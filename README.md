@@ -97,7 +97,7 @@ Two GitHub Actions do this. Each one downloads the sheet, rebuilds `index.html` 
 
 | Action | When | What it re-reads |
 |---|---|---|
-| **Quick update (current week)** ([`quick-update.yml`](.github/workflows/quick-update.yml)) | Every 2 hours | The 2 newest week tabs, plus `Schedule` and `PlayersList`. Older weeks come from the saved results in `build/data/cache/`. |
+| **Quick update (current week)** ([`quick-update.yml`](.github/workflows/quick-update.yml)) | Every hour | The 2 newest week tabs, plus `Schedule` and `PlayersList`. Older weeks come from the saved results in `build/data/cache/`. |
 | **Full rescan (whole sheet)** ([`full-rescan.yml`](.github/workflows/full-rescan.yml)) | Sundays | Every week tab, so corrections to older weeks show up. |
 
 Run either one by hand from **Actions → (pick one) → Run workflow**.
