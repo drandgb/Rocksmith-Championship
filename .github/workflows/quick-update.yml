@@ -1,8 +1,8 @@
-name: Update site from the scoreboard sheet
+name: Quick update (current week)
 
 on:
   schedule:
-    - cron: "17 7 * * *"     # every day at 07:17 UTC (3:17am New York); only commits when the data changed
+    - cron: "17 */2 * * *"     # every 2 hours; re-reads the newest week tabs, Schedule and PlayersList. Only commits when something changed
   workflow_dispatch:          # "Run workflow" button on the Actions tab
 
 permissions:
@@ -10,7 +10,7 @@ permissions:
   pages: write
 
 concurrency:
-  group: update-site
+  group: update-site   # never run both at once
   cancel-in-progress: false
 
 jobs:
@@ -29,21 +29,22 @@ jobs:
       - name: Download the sheet and build index.html
         run: |
           export BUILD_DATE=$(TZ=America/New_York date +%F)
-          ./build/build.sh 2>&1 | tee build.log
+          MODE=quick ./build/build.sh 2>&1 | tee build.log
 
       - name: Commit if anything changed
         id: commit
         run: |
           # ignore the "Last updated" line so the site only changes when the data does
-          if git diff --quiet -I 'Last updated:' -- index.html; then
+          if git diff --quiet -I 'Last updated:' -- index.html && [ -z "$(git status --porcelain -- build/data/cache)" ]; then
             git checkout -- index.html
             echo "No data changes."
             echo "changed=false" >> "$GITHUB_OUTPUT"
           else
             git config user.name  "github-actions[bot]"
             git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
-            git add index.html
-            git commit -m "Update data from the scoreboard sheet (week $(cat build/work/data_week.txt))"
+            git add index.html build/data/cache
+            git commit -m "Quick update from the scoreboard sheet (week $(cat build/work/data_week.txt))"
+            git pull --rebase -X theirs origin main
             git push
             echo "changed=true" >> "$GITHUB_OUTPUT"
           fi

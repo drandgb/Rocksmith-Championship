@@ -93,8 +93,14 @@ Class history is read from the font colors and sizes in the original Google Shee
 
 The site rebuilds itself from the **[scoreboard sheet](https://docs.google.com/spreadsheets/d/1WN-m8wF0lVkQ4cLWHBa009SkqDoPk0xN-C4-llcrXXs/edit)**:
 
-- **Automatically:** a GitHub Action ([`.github/workflows/update.yml`](.github/workflows/update.yml)) runs every day. It downloads the sheet, rebuilds `index.html` and commits it only if the data changed. GitHub Pages republishes a minute or two later.
-- **On demand:** go to **Actions → Update site from the scoreboard sheet → Run workflow**.
+Two GitHub Actions do this. Each one downloads the sheet, rebuilds `index.html` and commits only if the data changed; GitHub Pages republishes a minute or two later.
+
+| Action | When | What it re-reads |
+|---|---|---|
+| **Quick update (current week)** ([`quick-update.yml`](.github/workflows/quick-update.yml)) | Every 2 hours | The 2 newest week tabs, plus `Schedule` and `PlayersList`. Older weeks come from the saved results in `build/data/cache/`. |
+| **Full rescan (whole sheet)** ([`full-rescan.yml`](.github/workflows/full-rescan.yml)) | Sundays | Every week tab, so corrections to older weeks show up. |
+
+Run either one by hand from **Actions → (pick one) → Run workflow**.
 
 What it reads from the sheet (it must stay shared as *Anyone with the link can view*):
 
@@ -106,7 +112,7 @@ What it reads from the sheet (it must stay shared as *Anyone with the link can v
 
 History that doesn't change (attendance from the old Metrics workbook and songs from before week 440) is saved in `build/data/`. When the two disagree, the scoreboard sheet wins.
 
-To build by hand: `./build/build.sh` (downloads the sheet) or `./build/build.sh path/to/scoreboard.xlsx`. You need Python 3 with `openpyxl`.
+To build by hand: `./build/build.sh` (downloads the sheet) or `./build/build.sh path/to/scoreboard.xlsx`; add `MODE=quick` in front for a quick update. You need Python 3 with `openpyxl`.
 
 ---
 
