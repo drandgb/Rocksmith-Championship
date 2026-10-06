@@ -31,7 +31,7 @@ The whole app is one self-contained `index.html`. It has no build step, no serve
 - **🔥 Hot streaks**: players who won a challenge in each of the last 3+ weeks. 🔥🔥 means 5+ weeks and 🔥🔥🔥 means 10+.
 - **Most wins** and **Win rates** (top 20). Hover a win-rate bar to see wins vs. entries.
 - **Winner lookup**:
-  - **Stats:** weeks with a win, total wins, best week, longest win streak, triple crowns, close wins (won on the tiebreak) and most common rival (the player who was most often their closest match within the same rank; click to highlight those weeks).
+  - **Stats:** weeks with a win, total wins, best week, longest win streak, triple crowns, close wins (won on the tiebreak) and most common Lead, Rhythm and Bass rivals (the player who was most often their closest match within the same rank on that path; click to highlight those weeks).
   - **Medals:** 🏆 best-week trophies, ⚡ win-streak bolts, 🎖️ total-win ribbons, 👑 triple crowns (won Lead, Rhythm and Bass in the same week) and 🟰 close-win medals.
   - **Week chart:** heat colors for 1, 2 and 3+ wins.
   - **Year filter:** click a year label to see that year's stats only.
