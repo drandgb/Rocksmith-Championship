@@ -81,7 +81,7 @@ The whole app is one self-contained `index.html`. It has no build step, no serve
 ## Getting around
 
 - **Hover any name** on any tab to see all of that person's medals: player, win and host.
-- **Click a medal** in any lookup to highlight the week it was collected. Click a streak, best week, crown or legend item to highlight those weeks.
+- **Click a medal** in any lookup to highlight the week it was collected (rank-change pills in Player lookup do the same). Click a streak, best week, crown or legend item to highlight those weeks.
 - **Click a week** in a lookup chart, Rank changes, the Week log or the host leaderboard to open it on the Scoreboard.
 - **Jump between lookups**: Player, Winner and Host lookup link to each other.
 - **"Filters on" bubble**: shows which filters are active on the current tab. Click ✕ to clear one, or *Clear all*.

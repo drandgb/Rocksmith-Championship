@@ -459,6 +459,8 @@ footer .updated{display:block;margin-top:4px}
 .twl .riv .dt{flex-basis:100%;order:3}
 .twl .riv .rt{order:2}
 .twl .hot{color:var(--s-orange)}
+.ups .pill[data-hl]:hover{color:var(--fg)}
+.ups .pill.act{color:var(--fg);border-color:var(--fg);background:color-mix(in srgb,var(--accent) 18%,var(--panel2))}
 .twpaths{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:16px;align-items:start}
 .twpath h3{font:700 .85rem var(--f-display);letter-spacing:.08em;text-transform:uppercase;margin:0 0 8px;padding-left:8px;border-left:3px solid var(--pc)}
 .stats .rivbox{grid-column:1/-1;box-shadow:inset 3px 0 0 var(--pc);cursor:help}
@@ -713,6 +715,14 @@ footer{color:var(--dim);font-size:.78rem}
       <ul class="twl" id="tw-new"></ul>
     </section>
   </div>
+  <section class="panel">
+    <div class="panel-head"><h2>🏅 New medals</h2><span class="sub" id="tw-med-sub"></span></div>
+    <ul class="twl cols" id="tw-med"></ul>
+  </section>
+  <section class="panel">
+    <div class="panel-head"><h2>⚔️ Rivals</h2><span class="sub" id="tw-riv-sub"></span></div>
+    <div class="twpaths" id="tw-riv"></div>
+  </section>
   <div class="grid2 even">
     <section class="panel">
       <div class="panel-head"><h2>🎂 Anniversaries</h2><span class="sub" id="tw-ann-sub"></span></div>
@@ -723,14 +733,6 @@ footer{color:var(--dim);font-size:.78rem}
       <ul class="twl" id="tw-dng"></ul>
     </section>
   </div>
-  <section class="panel">
-    <div class="panel-head"><h2>🏅 New medals</h2><span class="sub" id="tw-med-sub"></span></div>
-    <ul class="twl cols" id="tw-med"></ul>
-  </section>
-  <section class="panel">
-    <div class="panel-head"><h2>⚔️ Rivals</h2><span class="sub" id="tw-riv-sub"></span></div>
-    <div class="twpaths" id="tw-riv"></div>
-  </section>
   </div>
 
   <div class="view" id="view-winners" role="tabpanel" aria-labelledby="tab-winners">
@@ -1306,7 +1308,7 @@ function showPlayer(name){
         <div${D.first?` data-hl="${D.first}" data-tip="Click to highlight Week ${D.first}"`:""}><small>First week</small><b>${D.first??"–"}</b>${dfw?`<span class="sub"> · ${fmt(dfw[1])}</span>`:""}</div>
         <div><small>Play rate</small><b>${(D.rate*100).toFixed(D.rate>=1?0:1)}%</b></div>
       </div>
-      ${(()=>{const u=WR.ups.filter(x=>x[0]===n).sort((a,b)=>a[4]-b[4]);return u.length?`<div class="ups">Rank changes: ${u.map(([,p,a,b,w])=>`<span class="pill hol">${PATHS[p]} ${a}${"BIAM".indexOf(b)<"BIAM".indexOf(a)?"↘":"↗"}${b} · wk ${w}</span>`).join("")}</div>`:""})()}
+      ${(()=>{const u=WR.ups.filter(x=>x[0]===n).sort((a,b)=>a[4]-b[4]);return u.length?`<div class="ups">Rank changes: ${u.map(([,p,a,b,w])=>`<span class="pill hol" data-hl="${w}" data-tip="Click to highlight Week ${w}" style="cursor:pointer">${PATHS[p]} ${a}${"BIAM".indexOf(b)<"BIAM".indexOf(a)?"↘":"↗"}${b} · wk ${w}</span>`).join("")}</div>`:""})()}
       ${WR.wins[n]||hosts[n]?`<div class="golinks">${WR.wins[n]?`<button type="button" class="clear" data-wprofile="${esc(n)}">Open win profile ›</button>`:""}${hosts[n]?`<button type="button" class="clear" data-gohost="${esc(n)}">Open host profile ›</button>`:""}</div>`:""}
     </div>
     <div style="min-width:0">
