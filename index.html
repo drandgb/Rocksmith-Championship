@@ -782,7 +782,7 @@ footer{color:var(--dim);font-size:.78rem}
     <p class="legendline"><span class="mk">*</span> outside own class (faded = playing down, not counted for wins) · <span class="mk">~</span> FreeBird · <span class="pct100">100%</span> full score or Master Mode · click a name to open their profile</p>
   </div>
 
-  <footer>Data: the Rocksmith 2014 Championship scoreboard sheet (older attendance also from the Championship Metrics workbook). Player stats run through week 675; scoreboards cover weeks 440–676. Weeks 1–16 have no recorded host in the source. <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-06T13:21:11+00:00">October 6, 2026</span></span></footer>
+  <footer>Data: the Rocksmith 2014 Championship scoreboard sheet (older attendance also from the Championship Metrics workbook). Player stats run through week 675; scoreboards cover weeks 440–676. Weeks 1–16 have no recorded host in the source. <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-06T13:24:38+00:00">October 6, 2026</span></span></footer>
 </div>
 <div class="tip" id="tip" hidden></div>
 
@@ -987,6 +987,13 @@ function fillYears(){
   $("yr").innerHTML=`<option value="">All years</option>`+ys.map(y=>`<option>${y}</option>`).join("");
 }
 
+// the Week log opens scrolled so this week is at the top (once, the first time the Hosts tab is shown)
+let logScrolled=false;
+function scrollLogToCurrent(){
+  const box=$("logbody").closest(".log"), row=box&&box.querySelector("tr.cur");
+  if(!row||!box.offsetHeight)return;
+  const head=box.querySelector("thead"); box.scrollTop=row.offsetTop-(head?head.offsetHeight:0); logScrolled=true;
+}
 function renderLog(){
   const q=$("q").value.trim().toLowerCase(), yr=$("yr").value, show=$("show").value;
   $("holbar").hidden=!holF; $("holname").innerHTML=holF?holEmoji(holF)+esc(holF):"";
@@ -1299,7 +1306,7 @@ function showView(v){
   ["hosting","players","winners","scores","songs"].forEach(k=>{const on=k===v;$("view-"+k).hidden=!on;$("tab-"+k).setAttribute("aria-selected",on)});
   tip.hidden=true;
   $("pfilter").hidden=v==="scores"||v==="songs";
-  if(v==="hosting")renderUpcoming();
+  if(v==="hosting"){renderUpcoming(); if(!logScrolled)requestAnimationFrame(scrollLogToCurrent)}
   try{localStorage.setItem("rsc-view",v)}catch(e){}
 }
 document.querySelector(".tabs").addEventListener("click",e=>{const b=e.target.closest("button[data-view]");if(b)showView(b.dataset.view)});
