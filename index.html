@@ -311,6 +311,16 @@ button.clear:hover{border-color:var(--accent)}
 .nrow .val{font:.8rem var(--f-mono);text-align:right;min-width:5.5em;white-space:nowrap}
 @media (prefers-reduced-motion:no-preference){.view:not([hidden]) .nrow .fill{animation:grow .9s cubic-bezier(.2,.8,.2,1) both}}
 .wpres i[data-wk]{cursor:pointer}
+.wpres .wyr{cursor:pointer;border-radius:4px;padding:0 3px;margin-left:-3px}
+.wpres .wyr:hover{color:var(--fg);background:var(--panel2)}
+.wpres .wyr.sel{color:var(--accent-ink);background:var(--accent);font-weight:700}
+.wpres.yf i[data-wk]:not(.iny){opacity:.22}
+.wleg span[data-hl]{cursor:pointer;padding:2px 6px;margin:-2px -6px;border-radius:6px}
+.wleg span[data-hl]:hover{color:var(--fg);background:var(--panel2)}
+.wleg span[data-hl].act{color:var(--fg);background:color-mix(in srgb,var(--accent) 18%,var(--panel2));box-shadow:inset 0 0 0 1px var(--accent)}
+.yrtag{display:flex;align-items:center;gap:10px;margin-top:10px;font-size:.82rem}
+.yrtag b{color:var(--accent-ink);background:var(--accent);padding:2px 9px;border-radius:999px;font:700 .75rem var(--f-display);letter-spacing:.04em}
+.yrtag .clear{padding:2px 9px;font-size:.72rem}
 .wpres.hl i[data-wk]:not(.hit),.pres.hl i[data-w]:not(.hit){opacity:.18}
 .wpres i.hit,.pres i.hit{outline:2px solid var(--fg);outline-offset:1px;position:relative;z-index:1}
 .stats div[data-hl]{cursor:pointer;transition:background .15s}
@@ -318,9 +328,12 @@ button.clear:hover{border-color:var(--accent)}
 .medal-m[data-hl].act{outline:2px solid var(--fg);outline-offset:2px;border-radius:50%}
 .stats div[data-hl].act{background:color-mix(in srgb,var(--accent) 16%,var(--panel2));box-shadow:inset 3px 0 0 var(--accent)}
 .wpres i[data-wk]:hover{outline:2px solid var(--fg);outline-offset:1px}
-.wpres i.w1{background:var(--s-green)}
-.wpres i.w2{background:var(--s-orange)}
-.wpres i.w3{background:var(--s-yellow)}
+/* win heat, matching the hot-streak flame bars: ember → red → orange → gold → white-hot */
+:root{--wg1:linear-gradient(135deg,#c2261c,#7e0f1c);--wg2:linear-gradient(135deg,#ff5a1f,#d42a16);--wg3:linear-gradient(135deg,#ffb83a,#ff7a1a);--wg4:linear-gradient(135deg,#fffbe0,#fff1a8 35%,#ffc23a)}
+.wpres i.w1{background:var(--wg1)}
+.wpres i.w2{background:var(--wg2);box-shadow:0 0 4px rgba(255,90,30,.4)}
+.wpres i.w3{background:var(--wg3);box-shadow:0 0 5px rgba(255,110,30,.5)}
+.wpres i.w4{background:var(--wg4);box-shadow:0 0 7px rgba(255,200,60,.75)}
 .wpres i.pl{background:#3a4254}
 .wpres i.q{background:repeating-linear-gradient(-45deg,color-mix(in srgb,var(--s-blue) 80%,transparent) 0 2px,var(--panel2) 2px 4px)}
 .wpres i.np{background:repeating-linear-gradient(45deg,var(--lost) 0 2px,var(--panel2) 2px 4px)}
@@ -420,6 +433,18 @@ footer .updated{display:block;margin-top:4px}
 @keyframes burn{0%{filter:brightness(1) saturate(1)}100%{filter:brightness(1.18) saturate(1.25)}}
 footer{color:var(--dim);font-size:.78rem}
 @media (prefers-reduced-motion:no-preference){.tl .c{transition:opacity .15s}}
+
+/* floating "filters on" bubble */
+#fbub{position:fixed;right:16px;bottom:16px;z-index:60;max-width:calc(100vw - 32px);display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:8px 10px;border-radius:14px;background:color-mix(in srgb,var(--panel) 92%,transparent);backdrop-filter:blur(6px);border:1.5px solid var(--accent);box-shadow:0 6px 24px rgba(0,0,0,.5),0 0 0 4px color-mix(in srgb,var(--accent) 18%,transparent);font-size:.78rem}
+#fbub[hidden]{display:none !important}
+#fbub .fl{display:flex;align-items:center;gap:5px;font:700 .68rem var(--f-display);letter-spacing:.1em;text-transform:uppercase;color:var(--accent)}
+#fbub .fl svg{width:13px;height:13px}
+#fbub .fc{display:inline-flex;align-items:center;gap:6px;padding:3px 4px 3px 9px;border-radius:999px;background:color-mix(in srgb,var(--accent) 16%,var(--panel2));color:var(--fg);border:1px solid color-mix(in srgb,var(--accent) 45%,transparent);white-space:nowrap}
+#fbub .fc button{all:unset;cursor:pointer;width:18px;height:18px;border-radius:50%;display:grid;place-items:center;font-size:.8rem;line-height:1;color:var(--muted)}
+#fbub .fc button:hover,#fbub .fc button:focus-visible{background:var(--accent);color:var(--accent-ink)}
+#fbub .fall{all:unset;cursor:pointer;font-size:.72rem;color:var(--muted);text-decoration:underline;padding:0 4px}
+#fbub .fall:hover{color:var(--fg)}
+@media (prefers-reduced-motion:no-preference){#fbub{animation:fbin .25s ease-out}@keyframes fbin{from{opacity:0;transform:translateY(8px)}}}
 </style>
 
 <div class="wrap">
@@ -1205,18 +1230,21 @@ const SB_W=Object.keys(SB.weeks).map(Number).sort((a,b)=>a-b);
 function playerWeekWins(name,p){
   const out={};
   SB_W.forEach(w=>{
-    let wins=0, played=false;
+    let wins=0, played=false, entries=0;
     (SB.weeks[w]||[]).forEach(card=>{
       if(p>=0&&card[0]!==p)return;
-      if(card[6].some(e=>SB.names[e[0]].replace(/[*~]+$/,"")===name))played=true;
+      const mine=card[6].filter(e=>SB.names[e[0]].replace(/[*~]+$/,"")===name);
+      if(mine.length)played=true;
+      entries+=mine.filter(e=>e[4]>=0).length; // eligible entries only, same as the all-time win rate
       const e=card[6].find(x=>x[4]>=0);
       if(e&&SB.names[e[0]].replace(/[*~]+$/,"")===name)wins++;
     });
-    out[w]=[played,wins];
+    out[w]=[played,wins,entries];
   });
   return out;
 }
-let wName=null, wPicked=false;
+let wName=null, wPicked=false, wYear=null;
+const yearOfWeek=w=>WEEKS[w-1]?WEEKS[w-1][1].slice(0,4):"";
 
 // winner medals: best single week, longest run of weeks with a win, and total wins
 const WIN_STREAK_STEPS=[2,3,4,5,6,8,10,12,15,20,25,30,40,50];
@@ -1262,47 +1290,59 @@ function showWinner(name){
   if(!WR.wins[name]){$("wcard").innerHTML=`<div class="empty">No scoreboard entries for “${esc(name)}”. Pick a name from the list as you type.</div>`;return}
   wName=name; $("wq").value=name;
   const per=playerWeekWins(name,wPath);
-  const done=SB_W.filter(w=>w!==cur[0]);
-  const weeksWon=done.filter(w=>per[w][1]>0), weeksPlayed=done.filter(w=>per[w][0]);
-  let best=null; weeksWon.forEach(w=>{if(!best||per[w][1]>per[best][1])best=w});
-  // longest run of consecutive weeks with a win
-  let run=0,bestRun=0,runEnd=null; done.slice().sort((a,b)=>a-b).forEach(w=>{run=per[w][1]>0?run+1:0; if(run>bestRun){bestRun=run;runEnd=w}});
-  const runStart=runEnd!=null?runEnd-bestRun+1:null;
-  const trip=tripleWeeks(name,done);
-  // close wins: wins where the runner-up (next eligible player) had the same %, so the tiebreak decided it
-  const ties=[];
-  done.forEach(w=>(SB.weeks[w]||[]).forEach(card=>{
-    if(wPath>=0&&card[0]!==wPath)return;
-    const el=card[6].filter(x=>x[4]>=0); if(el.length<2)return;
-    if(SB.names[el[0][0]].replace(/[*~]+$/,"")!==name)return;
-    if(Math.round((el[0][1]-el[1][1])*100)===0)ties.push(w);
-  }));
-  const tieWeeks=[...new Set(ties)].sort((a,b)=>a-b);
+  const doneAll=SB_W.filter(w=>w!==cur[0]);
+  const years=[...new Set(SB_W.map(yearOfWeek))];
+  if(wYear&&!years.includes(wYear))wYear=null;
+  // all the lookup stats for a set of weeks (all time for the medals, or one year when a year is picked)
+  const statsFor=done=>{
+    const weeksWon=done.filter(w=>per[w][1]>0), weeksPlayed=done.filter(w=>per[w][0]);
+    let best=null; weeksWon.forEach(w=>{if(!best||per[w][1]>per[best][1])best=w});
+    // longest run of consecutive weeks with a win
+    let run=0,bestRun=0,runEnd=null; done.slice().sort((a,b)=>a-b).forEach(w=>{run=per[w][1]>0?run+1:0; if(run>bestRun){bestRun=run;runEnd=w}});
+    const runStart=runEnd!=null?runEnd-bestRun+1:null;
+    const trip=tripleWeeks(name,done);
+    // close wins: wins where the runner-up (next eligible player) had the same %, so the tiebreak decided it
+    const ties=[];
+    done.forEach(w=>(SB.weeks[w]||[]).forEach(card=>{
+      if(wPath>=0&&card[0]!==wPath)return;
+      const el=card[6].filter(x=>x[4]>=0); if(el.length<2)return;
+      if(SB.names[el[0][0]].replace(/[*~]+$/,"")!==name)return;
+      if(Math.round((el[0][1]-el[1][1])*100)===0)ties.push(w);
+    }));
+    const tieWeeks=[...new Set(ties)].sort((a,b)=>a-b);
+    const wins=done.reduce((t,w)=>t+per[w][1],0), entries=done.reduce((t,w)=>t+per[w][2],0);
+    return {weeksWon,weeksPlayed,best,bestRun,runEnd,runStart,trip,ties,tieWeeks,wins,entries};
+  };
+  const A=statsFor(doneAll);
+  const S=wYear?statsFor(doneAll.filter(w=>yearOfWeek(w)===wYear)):A;
+  const {weeksWon,weeksPlayed,best,bestRun,runEnd,runStart,trip,ties,tieWeeks}=S;
+  const totWins=wYear?S.wins:(v?v[1]:0), totEntries=wYear?S.entries:(v?v[0]:0);
   const where=wPath<0?"":` (${PATHS[wPath]})`;
   const byYear={};
   SB_W.forEach(w=>{const d=WEEKS[w-1]; if(d)(byYear[d[1].slice(0,4)]=byYear[d[1].slice(0,4)]||[]).push(w)});
   let grid="";
   Object.keys(byYear).forEach(y=>{
     const ws=byYear[y], off=Math.floor((new Date(WEEKS[ws[0]-1][1]+"T12:00:00")-new Date(y+"-01-01T12:00:00"))/604800000);
-    grid+=`<div class="yr">${y}</div>`+"<i class='pre'></i>".repeat(off)+ws.map(w=>{const [pl,k]=per[w];const isCur=w===cur[0]; const cls=isCur?"q":k>=3?"w3":k===2?"w2":k===1?"w1":pl?"pl":"np";return `<i class="${cls}" data-wk="${w}" data-k="${k}" data-pl="${pl?1:0}"${isCur?' data-cur="1"':""}></i>`}).join("")+"<i class='pre'></i>".repeat(Math.max(0,53-off-ws.length));
+    grid+=`<div class="yr wyr${wYear===y?" sel":""}" data-wyear="${y}" title="${wYear===y?"Show all years":`Show stats for ${y} only`}">${y}</div>`+"<i class='pre'></i>".repeat(off)+ws.map(w=>{const [pl,k]=per[w];const isCur=w===cur[0]; const cls=(isCur?"q":k>=4?"w4":k===3?"w3":k===2?"w2":k===1?"w1":pl?"pl":"np")+(wYear===y?" iny":"");return `<i class="${cls}" data-wk="${w}" data-k="${k}" data-pl="${pl?1:0}"${isCur?' data-cur="1"':""}></i>`}).join("")+"<i class='pre'></i>".repeat(Math.max(0,53-off-ws.length));
   });
   $("wcard").innerHTML=`<div class="pc">
     <div>
       <h3>${esc(name)} ${actPill(name)}</h3>
+      ${wYear?`<div class="yrtag"><b>${wYear} only</b><button type="button" class="clear" data-wyear="${wYear}">Show all years</button></div>`:""}
       <div class="stats" style="margin-top:12px">
         <div><small>Weeks with a win${where}</small><b>${weeksWon.length}</b><span class="sub"> of ${weeksPlayed.length} played</span></div>
-        <div><small>Total wins${where}</small><b>${v?v[1]:0}</b><span class="sub"> of ${v?v[0]:0} entries</span></div>
+        <div><small>Total wins${where}</small><b>${totWins}</b><span class="sub"> of ${totEntries} entries</span></div>
         <div${best?` data-hl="${best}" title="Click to highlight this week"`:""}><small>Best week</small><b>${best?per[best][1]+" win"+(per[best][1]===1?"":"s"):"–"}</b>${best?`<span class="sub"> · wk ${best}</span>`:""}</div>
         <div${bestRun?` data-tip="${bestRun===1?`(Week ${runEnd})`:`(Week ${runStart}–${runEnd})`}" data-hl="${Array.from({length:bestRun},(_,i)=>runStart+i).join(",")}"`:""}><small>Longest win streak</small><b>${bestRun} wk${bestRun===1?"":"s"}</b></div>
-        <div><small>Triple crowns</small><b>${trip.reg.length}</b>${trip.reg.length?`<span class="sub"> · last wk ${trip.reg[trip.reg.length-1]}</span>`:""}</div>
+        <div data-tip="Triple crown · won a regular challenge on Lead, Rhythm and Bass in the same week${trip.reg.length?` · click to highlight ${trip.reg.length===1?"that week":"those weeks"}`:""}"${trip.reg.length?` data-hl="${trip.reg.join(",")}"`:""} style="cursor:${trip.reg.length?"pointer":"help"}"><small>Triple crowns</small><b>${trip.reg.length}</b>${trip.reg.length?`<span class="sub"> · last wk ${trip.reg[trip.reg.length-1]}</span>`:""}</div>
         <div${ties.length?` data-hl="${tieWeeks.join(",")}" data-tip="Won on the tiebreak, same % as the runner-up · Week${tieWeeks.length===1?"":"s"} ${tieWeeks.join(", ")}"`:""}><small>Close wins${where}</small><b>${ties.length}</b><span class="sub"> won on the tiebreak</span></div>
       </div>
       <button type="button" class="clear" style="margin-top:12px" data-profile="${esc(name)}">Open player profile ›</button>
     </div>
     <div style="min-width:0">
-      ${winMedals(per,done,best?per[best][1]:0,bestRun,v?v[1]:0,trip,ties)}
-      <div class="scroll"><div class="pres wpres" id="wpres">${grid}</div></div>
-      <div class="pres-legend"><span><i class="sw" style="background:var(--s-yellow)"></i>3+ wins</span><span><i class="sw" style="background:var(--s-orange)"></i>2 wins</span><span><i class="sw" style="background:var(--s-green)"></i>1 win</span><span><i class="sw" style="background:#3a4254"></i>Played, no win</span><span><i class="sw" style="background:repeating-linear-gradient(45deg,var(--lost) 0 2px,var(--panel2) 2px 4px)"></i>Didn't play</span><span><i class="sw" style="background:repeating-linear-gradient(-45deg,color-mix(in srgb,var(--s-blue) 80%,transparent) 0 2px,var(--panel2) 2px 4px)"></i>This week</span></div>
+      ${winMedals(per,doneAll,A.best?per[A.best][1]:0,A.bestRun,v?v[1]:0,A.trip,A.ties)}
+      <div class="scroll"><div class="pres wpres${wYear?" yf":""}" id="wpres">${grid}</div></div>
+      <div class="pres-legend wleg">${[["var(--wg1)","1 win",w=>per[w][1]===1],["var(--wg2)","2 wins",w=>per[w][1]===2],["var(--wg3)","3 wins",w=>per[w][1]===3],["var(--wg4)","4+ wins",w=>per[w][1]>=4],["#3a4254","Played, no win",w=>per[w][0]&&!per[w][1]],["repeating-linear-gradient(45deg,var(--lost) 0 2px,var(--panel2) 2px 4px)","Didn't play",w=>!per[w][0]]].map(([bg,lab,f])=>{const ws=doneAll.filter(f);return `<span${ws.length?` data-hl="${ws.join(",")}" title="Click to highlight these ${ws.length} week${ws.length===1?"":"s"}"`:""}><i class="sw" style="background:${bg}"></i>${lab}</span>`}).join("")}<span><i class="sw" style="background:repeating-linear-gradient(-45deg,color-mix(in srgb,var(--s-blue) 80%,transparent) 0 2px,var(--panel2) 2px 4px)"></i>This week</span></div>
     </div></div>`;
   try{localStorage.setItem("rsc-wname",name)}catch(e){}
 }
@@ -1318,6 +1358,8 @@ $("wcard").addEventListener("mousemove",e=>{
 });
 $("wcard").addEventListener("mouseleave",()=>tip.hidden=true);
 $("wcard").addEventListener("click",e=>{
+  const yb=e.target.closest("[data-wyear]");
+  if(yb){wYear=wYear===yb.dataset.wyear?null:yb.dataset.wyear;tip.hidden=true;showWinner(wName);markHot();return}
   const h=e.target.closest("[data-hl]");
   if(h){
     const g=$("wpres"), was=h.classList.contains("act");
@@ -1484,7 +1526,7 @@ function renderSongs(){
   const entries=scored.reduce((a,c)=>a+c.n,0);
   const where=sPath<0?"":" · "+PATHS[sPath];
   $("songstats").innerHTML=`<div data-tip="A challenge is one song set for one level on one path in one week (one card on the Scoreboard). Each week has up to 9 per path: Beginner, Intermediate, Advanced, Masterclass, a bonus song for each, and God of Guitar/Rhythm/Bass. A song used on Lead and Rhythm in the same week counts as 2." style="cursor:help"><div class="k"><span style="text-decoration:underline dotted">Challenges</span>${where} ⓘ</div><div class="v num">${cards.length.toLocaleString()}</div><div class="n">Weeks ${Math.min(...cards.map(c=>c.w))}–${Math.max(...cards.map(c=>c.w))}</div></div>
-    <div><div class="k">Different songs</div><div class="v num">${Object.keys(songs).length.toLocaleString()}</div><div class="n">${(cards.length/Object.keys(songs).length).toFixed(2)} challenges per song</div></div>
+    <div><div class="k">Different songs</div><div class="v num">${Object.keys(songs).length.toLocaleString()}</div></div>
     <div><div class="k">Different bands</div><div class="v num">${Object.keys(bands).length.toLocaleString()}</div><div class="n">${Object.values(bands).filter(v=>v.length===1).length} featured only once</div></div>
     <div><div class="k">Scores posted</div><div class="v num">${entries.toLocaleString()}</div><div class="n">Since week ${Math.min(...scored.map(c=>c.w))} · ${(entries/scored.length).toFixed(1)} per challenge</div></div>`;
   const featured=Object.entries(bands).map(([a,v])=>[a,v.length]).sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0])).slice(0,20);
@@ -1561,4 +1603,43 @@ try{const r=localStorage.getItem("rsc-spath");if(r!==null&&["0","1","2"].include
 renderSongs();
 $("view-songs").addEventListener("mousemove",e=>{const p=e.target.closest("[data-tip]");if(!p){tip.hidden=true;return}tip.textContent=p.dataset.tip;tip.hidden=false;placeTip(e.clientX,e.clientY)});
 $("view-songs").addEventListener("mouseleave",()=>tip.hidden=true);
+
+// ---------- floating bubble showing which filters are on in the current tab ----------
+const fbub=document.createElement("div"); fbub.id="fbub"; fbub.setAttribute("role","status"); fbub.setAttribute("aria-live","polite"); fbub.hidden=true; document.body.appendChild(fbub);
+function curView(){return ["hosting","players","winners","songs","scores"].find(k=>!$("view-"+k).hidden)}
+function activeFilters(){
+  const v=curView(), f=[];
+  if((v==="hosting"||v==="players"||v==="winners")&&activeOnly)f.push(["Active players only",()=>setActiveOnly(false)]);
+  if(v==="hosting"&&selHost)f.push([`Host: ${CATS[selHost]||selHost}`,()=>setHost(selHost)]);
+  if(v==="winners"){
+    if(wPath>=0)f.push([`Path: ${PATHS[wPath]}`,()=>document.querySelector('#wpath [data-rp="-1"]').click()]);
+    if(wYear)f.push([`Winner lookup: ${wYear}`,()=>{wYear=null;showWinner(wName);markHot()}]);
+    if(ruPath>=0&&ruPath!==wPath)f.push([`Rank changes: ${PATHS[ruPath]}`,()=>document.querySelector('#rufilter [data-rp="-1"]').click()]);
+  }
+  if(v==="songs"){
+    if(sPath>=0)f.push([`Path: ${PATHS[sPath]}`,()=>document.querySelector('#spath [data-sp="-1"]').click()]);
+    if(bandName&&bandTier)f.push([`Band lookup: ${TIER_LABEL[bandTier]||bandTier}`,()=>{bandTier=null;showBand(bandName)}]);
+    if(bandName&&bandPathF!=null)f.push([`Band lookup: ${PATHS[bandPathF]}`,()=>{bandPathF=null;showBand(bandName)}]);
+  }
+  if(v==="scores"&&sbFind)f.push([`Player: ${sbFind}`,()=>{sbFind="";$("sbfind").value="";sbRender()}]);
+  return f;
+}
+let fbubList=[];
+function updateBubble(){
+  fbubList=activeFilters();
+  if(!fbubList.length){fbub.hidden=true;fbub.innerHTML="";return}
+  fbub.innerHTML=`<span class="fl"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M1.5 2h13l-5 6.2V14l-3-1.6V8.2z" fill="currentColor"/></svg>Filter${fbubList.length===1?"":"s"} on</span>`+
+    fbubList.map(([t],i)=>`<span class="fc">${esc(t)}<button type="button" data-fx="${i}" aria-label="Remove filter: ${esc(t)}" title="Remove this filter">✕</button></span>`).join("")+
+    (fbubList.length>1?`<button type="button" class="fall" data-fx="all">Clear all</button>`:"");
+  fbub.hidden=false;
+}
+fbub.addEventListener("click",e=>{
+  const b=e.target.closest("[data-fx]"); if(!b)return; e.stopPropagation();
+  if(b.dataset.fx==="all")fbubList.slice().reverse().forEach(([,fn])=>fn()); else fbubList[+b.dataset.fx][1]();
+  updateBubble();
+});
+document.addEventListener("click",()=>setTimeout(updateBubble,0));
+document.addEventListener("input",()=>setTimeout(updateBubble,0));
+document.addEventListener("change",()=>setTimeout(updateBubble,0));
+updateBubble();
 </script>
