@@ -14,7 +14,7 @@ hist, HIST_END = H["players"], H["through_week"]     # name -> [tiers, bits for 
 parts_hist = json.load(open("parts_hist.json"))     # players per week, weeks 2..439
 sb = json.load(open("scores.json"))
 
-# PlayersList tab: name, Lead, Rhythm, Bass, ...
+# PlayersList tab: name, Lead, Rhythm, Bass, ... (only used for classes; every name on a scoreboard counts as a player)
 wb = openpyxl.load_workbook("board.xlsx", read_only=True, data_only=True)
 tiers = {}
 for r in wb["PlayersList"].iter_rows(min_row=2, values_only=True):
@@ -46,7 +46,8 @@ for w in range(SB_START, data_week + 1):
             raw = ALIAS.get(raw, raw)
             if raw in DROP or not raw: continue
             c = canon.get(raw.lower())
-            if c is None: unknown[raw] += 1; continue
+            if c is None:                            # first time this name shows up anywhere: a new player
+                c = canon[raw.lower()] = raw; unknown[raw] = w
             seen.add(c)
     for c in seen: pres[c][w - 2] = ord("1")
 # players per week: saved Metrics counts before the scoreboard era, then counted from attendance
@@ -71,6 +72,5 @@ for n, b in pres.items():
 json.dump(players, open("players.json", "w"), separators=(",", ":"))
 json.dump(parts, open("parts.json", "w"))
 print(f"players {len(players)}, weeks 2-{data_week}")
-if unknown:
-    print("Names on the scoreboard that aren't on PlayersList (not counted):", file=sys.stderr)
-    for n, k in unknown.most_common(): print(f"  {n} ({k} entries)", file=sys.stderr)
+if unknown:   # worth a glance in the build log, in case one of these is a typo of an existing name
+    print("New player names (first week seen):", ", ".join(f"{n} ({w})" for n, w in sorted(unknown.items(), key=lambda x: x[1])))

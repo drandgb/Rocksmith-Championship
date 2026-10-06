@@ -101,7 +101,7 @@ What it reads from the sheet (it must stay shared as *Anyone with the link can v
 | Tab | Used for |
 |---|---|
 | `WeekNNN` tabs | Scores, wins, medals, classes (from name colors) and who played each week |
-| `PlayersList` | Player names and Lead / Rhythm / Bass classes. Scoreboard names not on this list aren't counted as players (the build log lists them) |
+| `PlayersList` | Lead / Rhythm / Bass classes. Every name on a scoreboard counts as a player, listed or not; brand-new names are listed in the build log in case one is a typo |
 | `Schedule` | Week numbers, start dates and hosts, including upcoming bookings (*Week \| Start Date \| Host*) |
 
 History that doesn't change (attendance from the old Metrics workbook and songs from before week 440) is saved in `build/data/`. When the two disagree, the scoreboard sheet wins.
