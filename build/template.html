@@ -429,6 +429,9 @@ footer .updated{display:block;margin-top:4px}
 .medal-m.zod .ani{font-size:17px;line-height:1;filter:drop-shadow(0 1px 0 rgba(255,255,255,.35))}
 .medal-m.zod b{position:absolute;right:-3px;bottom:-3px;min-width:14px;height:14px;padding:0 2px;border-radius:7px;background:#e7eaf2;color:#10131a;font:800 9px/14px var(--f-display);text-align:center;box-shadow:0 0 0 1.5px var(--panel)}
 .medal-m.flm{position:relative;width:28px;height:32px}
+.medal-m.flm.ember{width:22px;height:25px;margin-right:7px}
+.medal-m.flm.ember svg{width:22px;height:25px}
+.medal-m.flm.ember b{right:-6px;bottom:-3px}
 .medal-m.flm svg{position:absolute;inset:0;width:28px;height:32px}
 .medal-m.flm .ani{position:absolute;left:0;right:0;top:13px;text-align:center;font-size:13px;line-height:1}
 .medal-m.flm b{position:absolute;right:-4px;bottom:-2px;min-width:14px;height:14px;padding:0 2px;border-radius:7px;background:#e7eaf2;color:#10131a;font:800 9px/14px var(--f-display);text-align:center;box-shadow:0 0 0 1.5px var(--panel)}
@@ -1092,6 +1095,8 @@ function medalSvg(kind,col,label){
   return `<svg viewBox="0 0 28 32" aria-hidden="true"><path d="M14 1c3 6 9 9 9 17a9 9 0 0 1-18 0c0-4 2-6 4-8 0 3 1 5 3 5-1-6 0-10 2-14z" fill="${col}"/><path d="M14 31a6 6 0 0 1-6-6c0-3 2-4 3-6 1 3 2 3 3 3 0-2 1-4 3-5 2 3 3 5 3 8a6 6 0 0 1-6 6z" fill="rgba(0,0,0,.18)"/><text x="14" y="23" text-anchor="middle" dominant-baseline="central" font-size="${label.length>1?8:10}" font-weight="800" fill="#1a1406" font-family="Oxanium,sans-serif">${label}</text></svg>`;
 }
 // flame heat: yellow at 1 year, through orange and red, to blue-hot at 10+
+// ember heat for the under-a-year streak medals: dull red embers warming to bright orange
+const EMBER_HEAT=["#8a3a2a","#9c3f2a","#ad452b","#c04d2c","#d1572d","#e0632f","#ec7232","#f58337","#fb963e","#ffaa48"];
 const FLAME_HEAT=["#ffe45c","#ffc93c","#ffa630","#ff8030","#ff5a3a","#f0446e","#c84cc8","#8f63ff","#4f8cff","#3fc6ff"];
 // lunar (Chinese) new year dates, used to color each year gem by that year's element
 const LNY=[["2013-02-10","Snake","Water"],["2014-01-31","Horse","Wood"],["2015-02-19","Goat","Wood"],["2016-02-08","Monkey","Fire"],["2017-01-28","Rooster","Fire"],["2018-02-16","Dog","Earth"],["2019-02-05","Pig","Earth"],["2020-01-25","Rat","Metal"],["2021-02-12","Ox","Metal"],["2022-02-01","Tiger","Water"],["2023-01-22","Rabbit","Water"],["2024-02-10","Dragon","Wood"],["2025-01-29","Snake","Wood"],["2026-02-17","Horse","Fire"],["2027-02-06","Goat","Fire"],["2028-01-26","Monkey","Earth"]];
@@ -1130,9 +1135,17 @@ function medalsFor(p){
     const col=ly?ELEMENT_COL[ly.element]:FLAME_HEAT[Math.min(y,FLAME_HEAT.length)-1];
     flames.push(`<span data-tip="${y}-year streak medal · played at least ${y*52} weeks in a row${ly?` · reached in the Year of the ${ly.element} ${ly.animal}`:""}${bestStart!=null?` (collected Week ${bestStart+y*52-1})`:""}" class="medal-m flm" style="--ec:${col}">${medalSvg("streak",col,"")}<span class="ani">${ly?ANIMAL_EMOJI[ly.animal]:""}</span><b>${y}</b></span>`);
   }
+  // lower tier: ember medals for streaks under a year (5, 10, 15 ... 50 weeks), dated by when a run first got that long
+  const embers=[];
+  {const reach={}; let r=0;
+   for(let i=0;i<bits.length;i++){ r=bits[i]==="1"?r+1:0; for(let k=5;k<=50&&k<=r;k+=5) if(reach[k]==null) reach[k]=i+PRES_START; }
+   for(let k=5;k<=50;k+=5){ if(reach[k]==null) break;
+     const col=EMBER_HEAT[k/5-1];
+     embers.push(`<span data-tip="${k}-week streak ember · played ${k} weeks in a row (collected Week ${reach[k]})" class="medal-m flm ember" style="--ec:${col}">${medalSvg("streak",col,"")}<b>${k}</b></span>`);
+   }}
   {const cg=classGem(p); if(cg) gems.unshift(cg);}
   if(rate>=1) gems.unshift(`<span class="medal-m perfect" data-tip="Perfect gem · played every week since joining the championship (collected Week ${first})"><svg viewBox="0 0 30 30" aria-hidden="true"><defs><linearGradient id="pg-${played}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff6c2"/><stop offset=".5" stop-color="#9ff0ff"/><stop offset="1" stop-color="#d8a6ff"/></linearGradient></defs><polygon points="8,3 22,3 29,11 15,28 1,11" fill="url(#pg-${played})"/><polygon points="8,3 22,3 19,11 11,11" fill="rgba(255,255,255,.6)"/><polygon points="1,11 11,11 15,28" fill="rgba(0,0,0,.12)"/><polygon points="29,11 19,11 15,28" fill="rgba(0,0,0,.22)"/><polygon points="8,3 22,3 29,11 15,28 1,11" fill="none" stroke="rgba(0,0,0,.35)" stroke-width=".8"/><path d="M15 6.5l1.5 3 3.3.4-2.4 2.3.6 3.3-3-1.6-3 1.6.6-3.3-2.4-2.3 3.3-.4z" fill="#f5c84a" stroke="rgba(0,0,0,.35)" stroke-width=".5"/></svg></span>`);
-  return (gems.length?`<div class="medals">${gems.join("")}</div>`:"")+(flames.length?`<div class="medals">${flames.join("")}</div>`:"");
+  return (gems.length?`<div class="medals">${gems.join("")}</div>`:"")+(embers.length?`<div class="medals">${embers.join("")}</div>`:"")+(flames.length?`<div class="medals">${flames.join("")}</div>`:"");
 }
 let pYear=null;
 function showPlayer(name){
