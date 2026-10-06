@@ -438,6 +438,7 @@ footer .updated{display:block;margin-top:4px}
 .medal-m.flm .ani{position:absolute;left:0;right:0;top:13px;text-align:center;font-size:13px;line-height:1}
 .medal-m.flm b{position:absolute;right:-4px;bottom:-2px;min-width:14px;height:14px;padding:0 2px;border-radius:7px;background:#e7eaf2;color:#10131a;font:800 9px/14px var(--f-display);text-align:center;box-shadow:0 0 0 1.5px var(--panel)}
 .medal-m.perfect{margin-right:2px}
+.medal-m.sword{margin-right:8px}
 .medal-m.classgem{margin-right:4px}
 .medal-m.classgem svg{width:30px;height:30px;filter:drop-shadow(0 0 3px var(--gc)) drop-shadow(0 0 8px var(--gc)) drop-shadow(0 0 14px color-mix(in srgb,var(--gc) 55%,transparent))}
 .medal-m.perfect svg{width:30px;height:30px;filter:drop-shadow(0 0 3px #bff6ff) drop-shadow(0 0 8px #9ff0ff) drop-shadow(0 0 14px rgba(216,166,255,.7))}
@@ -1146,6 +1147,9 @@ function medalsFor(p){
      embers.push(`<span data-tip="${k}-week streak ember · played ${k} weeks in a row (collected Week ${reach[k]})" class="medal-m flm ember" style="--ec:${col}">${medalSvg("streak",col,"")}<b>${k}</b></span>`);
    }}
   {const cg=classGem(p); if(cg) gems.unshift(cg);}
+  // sword: the week the player joined
+  {const col="#5f7ea8";
+   gems.unshift(`<span class="medal-m wm sword" style="--ec:${col}" data-tip="Joined medal · first played the championship in Week ${first}${fw?` (${fmt(fw[1])})`:""} (collected Week ${first})"><svg viewBox="0 0 28 30" aria-hidden="true"><circle cx="14" cy="15" r="12" fill="${col}"/><circle cx="14" cy="15" r="12" fill="url(#swg)" opacity=".35"/><path d="M19.6 5.6l2.8 0 0 2.8-9.3 9.3-2.8-2.8z" fill="#f4f7fb" stroke="#1a1406" stroke-width=".8" stroke-opacity=".55"/><path d="M8.2 15.6l4.2 4.2-1.1 1.1-1.4-.7-2.6 2.6-1.4-1.4 2.6-2.6-.7-1.4z" fill="#8a5a2b" stroke="#1a1406" stroke-width=".7" stroke-opacity=".6"/><path d="M7.4 14.2l6.4 6.4" stroke="#d9a441" stroke-width="2" stroke-linecap="round"/><path d="M6 11a9 9 0 0 1 5-5.5" stroke="rgba(255,255,255,.6)" stroke-width="1.6" fill="none" stroke-linecap="round"/><defs><radialGradient id="swg" cx=".35" cy=".3" r=".8"><stop offset="0" stop-color="#fff"/><stop offset="1" stop-color="#7f8ea3"/></radialGradient></defs></svg><b>${first}</b></span>`);}
   if(rate>=1) gems.unshift(`<span class="medal-m perfect" data-tip="Perfect gem · played every week since joining the championship (collected Week ${first})"><svg viewBox="0 0 30 30" aria-hidden="true"><defs><linearGradient id="pg-${played}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff6c2"/><stop offset=".5" stop-color="#9ff0ff"/><stop offset="1" stop-color="#d8a6ff"/></linearGradient></defs><polygon points="8,3 22,3 29,11 15,28 1,11" fill="url(#pg-${played})"/><polygon points="8,3 22,3 19,11 11,11" fill="rgba(255,255,255,.6)"/><polygon points="1,11 11,11 15,28" fill="rgba(0,0,0,.12)"/><polygon points="29,11 19,11 15,28" fill="rgba(0,0,0,.22)"/><polygon points="8,3 22,3 29,11 15,28 1,11" fill="none" stroke="rgba(0,0,0,.35)" stroke-width=".8"/><path d="M15 6.5l1.5 3 3.3.4-2.4 2.3.6 3.3-3-1.6-3 1.6.6-3.3-2.4-2.3 3.3-.4z" fill="#f5c84a" stroke="rgba(0,0,0,.35)" stroke-width=".5"/></svg></span>`);
   return (gems.length?`<div class="medals">${gems.join("")}</div>`:"")+(embers.length?`<div class="medals">${embers.join("")}</div>`:"")+(flames.length?`<div class="medals">${flames.join("")}</div>`:"");
 }
