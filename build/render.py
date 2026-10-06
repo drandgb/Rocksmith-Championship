@@ -8,6 +8,7 @@ for key, f in [("__WEEKS__", "weeks.json"), ("__PLAYERS__", "players.json"), ("_
     assert key in t, key
     t = t.replace(key, open(f).read())
 t = (t.replace("__BUILT__", f"{d:%B} {d.day}, {d.year}")
+      .replace("__BUILT_ISO__", datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds"))
       .replace("__DATAWEEK__", open("data_week.txt").read().strip())
       .replace("__SBMAX__", str(max(map(int, sb["weeks"])))))
 out = os.environ.get("OUT", "../../index.html")
