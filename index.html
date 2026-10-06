@@ -35,7 +35,8 @@ header.top{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-end;justify-con
 .brand h1{font-size:clamp(1.6rem,4vw,2.4rem);font-weight:800;letter-spacing:.01em}
 .strings{display:flex;gap:3px;margin-top:8px}
 .strings i{display:block;height:3px;width:34px;border-radius:2px}
-.forum{color:var(--accent);text-decoration:none;font-size:.85rem;border:1px solid var(--line);padding:6px 10px;border-radius:6px}
+.links{display:flex;flex-wrap:wrap;gap:8px}
+.forum{white-space:nowrap;color:var(--accent);text-decoration:none;font-size:.85rem;border:1px solid var(--line);padding:6px 10px;border-radius:6px}
 .forum:hover,.forum:focus-visible{border-color:var(--accent);outline:none}
 
 /* now strip */
@@ -428,7 +429,11 @@ footer{color:var(--dim);font-size:.78rem}
       <h1>Rocksmith Championship</h1>
       <div class="strings" aria-hidden="true"><i style="background:var(--s-red)"></i><i style="background:var(--s-yellow)"></i><i style="background:var(--s-blue)"></i><i style="background:var(--s-orange)"></i><i style="background:var(--s-green)"></i><i style="background:var(--s-purple)"></i></div>
     </div>
-    <a class="forum" href="https://customsforge.com/forum/38-rocksmith-championship/" target="_blank" rel="noopener">Championship forum ↗</a>
+    <nav class="links">
+      <a class="forum" href="https://customsforge.com/forum/38-rocksmith-championship/" target="_blank" rel="noopener">Championship forum ↗</a>
+      <a class="forum" href="https://docs.google.com/spreadsheets/d/1WN-m8wF0lVkQ4cLWHBa009SkqDoPk0xN-C4-llcrXXs/edit?gid=871655614#gid=871655614" target="_blank" rel="noopener">Scoreboard sheet ↗</a>
+      <a class="forum" href="https://script.google.com/macros/s/AKfycbwy6vF3XYDZ_s1WeqiHTgBcVgbF8cr2AUQjKH3aRSZYuh32Erc-IstP5Gos-1i_evkm/exec" target="_blank" rel="noopener">Request a song ↗</a>
+    </nav>
   </header>
 
   <nav class="tabs" role="tablist" aria-label="Pages">
@@ -1235,7 +1240,8 @@ function tripleWeeks(name,done){
   });
   return {reg,bon};
 }
-function winMedals(per,done,bestN,streak,total,trip){
+function tieSvg(col){return `<svg viewBox="0 0 28 30" aria-hidden="true"><circle cx="14" cy="15" r="12" fill="${col}"/><path d="M14 3a12 12 0 0 1 0 24z" fill="rgba(0,0,0,.18)"/><rect x="8" y="11" width="12" height="2.6" rx="1.3" fill="#1a1406" opacity=".8"/><rect x="8" y="16.4" width="12" height="2.6" rx="1.3" fill="#1a1406" opacity=".8"/><path d="M6 10a9 9 0 0 1 6-5" stroke="rgba(255,255,255,.55)" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg>`}
+function winMedals(per,done,bestN,streak,total,trip,ties){
   const rows=[], asc=done.slice().sort((a,b)=>a-b), rec=w=>w?` (collected Week ${w})`:"";
   const mk=(svg,num,tip)=>{const c=(svg.match(/fill="(#[0-9a-fA-F]{6})"/)||[])[1]||"#4fd6ff";return `<span class="medal-m wm" style="--ec:${c}" data-tip="${tip}">${svg}<b>${num}</b></span>`};
   const firstK=k=>asc.find(w=>per[w][1]>=k);
@@ -1248,6 +1254,7 @@ function winMedals(per,done,bestN,streak,total,trip){
   if(ts.length)rows.push(ts.map((x,i)=>mk(coinSvg(tierCol(i,TOTAL_WIN_STEPS.length)),x,`${x}-win medal · won ${x}+ challenges${rec(totalAt(x))}`)));
   if(trip)[[trip.reg,"#ffc94f","Regular triple crown","a regular challenge"],[trip.bon,"#c77dff","Bonus triple crown","a bonus challenge"]].forEach(([ws,col,lab,what])=>{
     if(ws.length)rows.push(ws.map(w=>`<span class="medal-m wm" style="--ec:${col};cursor:pointer" data-hl="${w}" data-tip="${lab} · won ${what} on Lead, Rhythm and Bass in the same week${rec(w)}">${crownSvg(col)}<b>${w}</b></span>`))});
+  if(ties&&ties.length)rows.push(ties.slice().sort((a,b)=>a-b).map(w=>`<span class="medal-m wm" style="--ec:#ff7eb6;cursor:pointer" data-hl="${w}" data-tip="Close win medal · won on the tiebreak with the same % as the runner-up${rec(w)}">${tieSvg("#ff7eb6")}<b>${w}</b></span>`));
   return rows.map(r=>`<div class="medals">${r.join("")}</div>`).join("");
 }
 function showWinner(name){
@@ -1262,15 +1269,15 @@ function showWinner(name){
   let run=0,bestRun=0,runEnd=null; done.slice().sort((a,b)=>a-b).forEach(w=>{run=per[w][1]>0?run+1:0; if(run>bestRun){bestRun=run;runEnd=w}});
   const runStart=runEnd!=null?runEnd-bestRun+1:null;
   const trip=tripleWeeks(name,done);
-  // closest win: smallest % margin over the next eligible player on a card this player won
-  let close=null;
+  // close wins: wins where the runner-up (next eligible player) had the same %, so the tiebreak decided it
+  const ties=[];
   done.forEach(w=>(SB.weeks[w]||[]).forEach(card=>{
     if(wPath>=0&&card[0]!==wPath)return;
     const el=card[6].filter(x=>x[4]>=0); if(el.length<2)return;
     if(SB.names[el[0][0]].replace(/[*~]+$/,"")!==name)return;
-    const d=Math.round((el[0][1]-el[1][1])*100)/100;
-    if(!close||d<close.d||(d===close.d&&w>close.w))close={w,d,p:card[0],lvl:card[2],song:card[3],by:SB.names[el[1][0]].replace(/[*~]+$/,""),mine:el[0][1],theirs:el[1][1]};
+    if(Math.round((el[0][1]-el[1][1])*100)===0)ties.push(w);
   }));
+  const tieWeeks=[...new Set(ties)].sort((a,b)=>a-b);
   const where=wPath<0?"":` (${PATHS[wPath]})`;
   const byYear={};
   SB_W.forEach(w=>{const d=WEEKS[w-1]; if(d)(byYear[d[1].slice(0,4)]=byYear[d[1].slice(0,4)]||[]).push(w)});
@@ -1288,14 +1295,14 @@ function showWinner(name){
         <div${best?` data-hl="${best}" title="Click to highlight this week"`:""}><small>Best week</small><b>${best?per[best][1]+" win"+(per[best][1]===1?"":"s"):"–"}</b>${best?`<span class="sub"> · wk ${best}</span>`:""}</div>
         <div${bestRun?` data-tip="${bestRun===1?`(Week ${runEnd})`:`(Week ${runStart}–${runEnd})`}" data-hl="${Array.from({length:bestRun},(_,i)=>runStart+i).join(",")}"`:""}><small>Longest win streak</small><b>${bestRun} wk${bestRun===1?"":"s"}</b></div>
         <div><small>Triple crowns</small><b>${trip.reg.length}</b>${trip.reg.length?`<span class="sub"> · last wk ${trip.reg[trip.reg.length-1]}</span>`:""}</div>
-        <div${close?` data-hl="${close.w}" data-tip="Week ${close.w} · ${PATHS[close.p]} ${esc(close.lvl)} · ${esc(close.song)} · beat ${esc(close.by)} ${close.mine}% to ${close.theirs}%${close.d===0?" (same %, won on the tiebreak)":""}"`:""}><small>Closest win${where}</small><b>${close?(close.d===0?"Tie":"+"+close.d+"%"):"–"}</b>${close?`<span class="sub"> · wk ${close.w}</span>`:""}</div>
+        <div${ties.length?` data-hl="${tieWeeks.join(",")}" data-tip="Won on the tiebreak, same % as the runner-up · Week${tieWeeks.length===1?"":"s"} ${tieWeeks.join(", ")}"`:""}><small>Close wins${where}</small><b>${ties.length}</b><span class="sub"> won on the tiebreak</span></div>
       </div>
       <button type="button" class="clear" style="margin-top:12px" data-profile="${esc(name)}">Open player profile ›</button>
     </div>
     <div style="min-width:0">
-      ${winMedals(per,done,best?per[best][1]:0,bestRun,v?v[1]:0,trip)}
+      ${winMedals(per,done,best?per[best][1]:0,bestRun,v?v[1]:0,trip,ties)}
       <div class="scroll"><div class="pres wpres" id="wpres">${grid}</div></div>
-      <div class="pres-legend"><span><i class="sw" style="background:var(--s-yellow)"></i>3+ wins</span><span><i class="sw" style="background:var(--s-orange)"></i>2 wins</span><span><i class="sw" style="background:var(--s-green)"></i>1 win</span><span><i class="sw" style="background:#3a4254"></i>Played, no win</span><span><i class="sw" style="background:repeating-linear-gradient(45deg,var(--lost) 0 2px,var(--panel2) 2px 4px)"></i>Didn't play</span><span><i class="sw" style="background:repeating-linear-gradient(-45deg,color-mix(in srgb,var(--s-blue) 80%,transparent) 0 2px,var(--panel2) 2px 4px)"></i>This week (in progress)</span></div>
+      <div class="pres-legend"><span><i class="sw" style="background:var(--s-yellow)"></i>3+ wins</span><span><i class="sw" style="background:var(--s-orange)"></i>2 wins</span><span><i class="sw" style="background:var(--s-green)"></i>1 win</span><span><i class="sw" style="background:#3a4254"></i>Played, no win</span><span><i class="sw" style="background:repeating-linear-gradient(45deg,var(--lost) 0 2px,var(--panel2) 2px 4px)"></i>Didn't play</span><span><i class="sw" style="background:repeating-linear-gradient(-45deg,color-mix(in srgb,var(--s-blue) 80%,transparent) 0 2px,var(--panel2) 2px 4px)"></i>This week</span></div>
     </div></div>`;
   try{localStorage.setItem("rsc-wname",name)}catch(e){}
 }
