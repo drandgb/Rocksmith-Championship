@@ -2,6 +2,7 @@
 # Attendance history (old Metrics workbook) is saved for weeks 2-675. From week 440 on, anyone on that week's
 # scoreboard also counts as played (the scoreboard fills in players the Metrics workbook missed); from week 676 on
 # the scoreboard is the only source. Week 565's scoreboard tab is incomplete, so history is kept rather than replaced.
+# A score that just carries over on a multi-week God challenge (identical to last week's) doesn't count as playing.
 import openpyxl, json, collections, sys
 
 ALIAS = {'AndreCardoso': 'ALSRC', 'BetterCallJamie': 'FlatCap Jay', 'jasmith85': 'FlatCap Jay', 'aand14': 'drand',
@@ -37,11 +38,29 @@ for n, (t, bits) in hist.items():
     for i, ch in enumerate(bits[:n_hist]):
         if ch == "1": b[i] = ord("1")
 
+def is_god(level):
+    l = (level or "").lower()
+    return l.startswith("god") or "tribute" in l
+
+def god_entries(w):
+    # (path, song, name, %, streak, score) for every entry on a God / tribute card that week
+    out = set()
+    for card in sb["weeks"].get(str(w), []):
+        if not is_god(card[2]): continue
+        for e in card[6]:
+            out.add((card[0], card[3].strip().lower(), sb["names"][e[0]].rstrip("*~").strip(), e[1], e[2], e[3]))
+    return out
+
 unknown = collections.Counter()
 for w in range(SB_START, data_week + 1):
     seen = set()
+    prev_god = god_entries(w - 1)
     for card in sb["weeks"].get(str(w), []):
         for e in card[6]:
+            # a multi-week God challenge keeps last week's scores on the board; an identical entry is not a new
+            # submission, so it doesn't count as playing this week
+            if is_god(card[2]) and (card[0], card[3].strip().lower(), sb["names"][e[0]].rstrip("*~").strip(), e[1], e[2], e[3]) in prev_god:
+                continue
             raw = sb["names"][e[0]].rstrip("*~").strip()
             raw = ALIAS.get(raw, raw)
             if raw in DROP or not raw: continue

@@ -110,6 +110,8 @@ What it reads from the sheet (it must stay shared as *Anyone with the link can v
 | `PlayersList` | Lead / Rhythm / Bass classes. Every name on a scoreboard counts as a player, listed or not; brand-new names are listed in the build log in case one is a typo |
 | `Schedule` | Week numbers, start dates and hosts, including upcoming bookings (*Week \| Start Date \| Host*) |
 
+Attendance and play streaks only count weeks where a player actually submitted a score: a score that simply carries over on a multi-week God challenge (identical to the week before) doesn't count.
+
 History that doesn't change (attendance from the old Metrics workbook and songs from before week 440) is saved in `build/data/`. When the two disagree, the scoreboard sheet wins.
 
 To build by hand: `./build/build.sh` (downloads the sheet) or `./build/build.sh path/to/scoreboard.xlsx`; add `MODE=quick` in front for a quick update. You need Python 3 with `openpyxl`.
