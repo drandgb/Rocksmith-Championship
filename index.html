@@ -297,6 +297,9 @@ button.clear:hover{border-color:var(--accent)}
 .rulist .w{font-family:var(--f-mono);font-size:.75rem;color:var(--muted);line-height:1.2}
 [data-sbw]{cursor:pointer}
 [data-sbw]:hover,[data-sbw]:hover b{color:var(--accent)}
+.golink{cursor:pointer}
+.golink:hover{color:var(--accent)}
+.golinks{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
 .songlink{cursor:pointer}
 .songlink:hover{color:var(--accent)}
 .songf{display:inline-block;font-size:.78rem;font-weight:600;padding:1px 9px;border-radius:999px;background:color-mix(in srgb,var(--accent) 18%,var(--panel2));border:1px solid color-mix(in srgb,var(--accent) 50%,transparent)}
@@ -341,12 +344,11 @@ button.clear.sblatest:hover{background:var(--accent);color:var(--accent-ink)}
 .medal-m[data-hl].act{outline:2px solid var(--fg);outline-offset:2px;border-radius:50%}
 .stats div[data-hl].act{background:color-mix(in srgb,var(--accent) 16%,var(--panel2));box-shadow:inset 3px 0 0 var(--accent)}
 .wpres i[data-wk]:hover{outline:2px solid var(--fg);outline-offset:1px}
-/* win heat, matching the hot-streak flame bars: ember → red → orange → gold → white-hot */
-:root{--wg1:linear-gradient(135deg,#c2261c,#7e0f1c);--wg2:linear-gradient(135deg,#ff5a1f,#d42a16);--wg3:linear-gradient(135deg,#ffb83a,#ff7a1a);--wg4:linear-gradient(135deg,#fffbe0,#fff1a8 35%,#ffc23a)}
+/* win heat, matching the hot-streak flame bars: deep ember → blazing orange → white-hot gold */
+:root{--wg1:linear-gradient(135deg,#e0321e,#8a1020);--wg2:linear-gradient(135deg,#ffa03a,#ff5a1a);--wg3:linear-gradient(135deg,#fffbe0,#ffe27a 40%,#ffb22e)}
 .wpres i.w1{background:var(--wg1)}
-.wpres i.w2{background:var(--wg2);box-shadow:0 0 4px rgba(255,90,30,.4)}
-.wpres i.w3{background:var(--wg3);box-shadow:0 0 5px rgba(255,110,30,.5)}
-.wpres i.w4{background:var(--wg4);box-shadow:0 0 7px rgba(255,200,60,.75)}
+.wpres i.w2{background:var(--wg2);box-shadow:0 0 5px rgba(255,120,30,.5)}
+.wpres i.w3{background:var(--wg3);box-shadow:0 0 8px rgba(255,200,60,.8)}
 .wpres i.pl{background:#3a4254}
 .wpres i.q{background:repeating-linear-gradient(-45deg,color-mix(in srgb,var(--s-blue) 80%,transparent) 0 2px,var(--panel2) 2px 4px)}
 .wpres i.np{background:repeating-linear-gradient(45deg,var(--lost) 0 2px,var(--panel2) 2px 4px)}
@@ -394,7 +396,7 @@ button.clear.sblatest:hover{background:var(--accent);color:var(--accent-ink)}
 .bandtbl td.r,.bandtbl th.r{text-align:right}
 .bandtbl td b{font-family:var(--f-display)}
 .bandtbl .chips{display:flex;flex-wrap:wrap;gap:3px}
-.bchips .pth,.bandtbl .pth{font:700 .6rem var(--f-display);letter-spacing:.06em;padding:1px 5px;border-radius:4px;color:var(--bg);background:var(--pc)}
+.bchips .pth,.bandtbl .pth,.yrtag .pth{font:700 .6rem var(--f-display);letter-spacing:.06em;padding:1px 5px;border-radius:4px;color:var(--bg);background:var(--pc)}
 .bandtbl .num{white-space:nowrap}
 .pstack{display:flex;flex-direction:column;gap:4px;align-items:flex-start}
 .pstack>span{height:18px;display:flex;align-items:center}
@@ -1159,7 +1161,7 @@ function showPlayer(name){
         <div><small>Play rate</small><b>${(D.rate*100).toFixed(D.rate>=1?0:1)}%</b></div>
       </div>
       ${(()=>{const u=WR.ups.filter(x=>x[0]===n).sort((a,b)=>a[4]-b[4]);return u.length?`<div class="ups">Rank changes: ${u.map(([,p,a,b,w])=>`<span class="pill hol">${PATHS[p]} ${a}${"BIAM".indexOf(b)<"BIAM".indexOf(a)?"↘":"↗"}${b} · wk ${w}</span>`).join("")}</div>`:""})()}
-      ${WR.wins[n]?`<button type="button" class="clear" style="margin-top:12px" data-wprofile="${esc(n)}">Open win profile ›</button>`:""}
+      ${WR.wins[n]||hosts[n]?`<div class="golinks">${WR.wins[n]?`<button type="button" class="clear" data-wprofile="${esc(n)}">Open win profile ›</button>`:""}${hosts[n]?`<button type="button" class="clear" data-gohost="${esc(n)}">Open host profile ›</button>`:""}</div>`:""}
     </div>
     <div style="min-width:0">
       ${medalsFor(p)}
@@ -1384,11 +1386,12 @@ function showWinner(name){
   let grid="";
   Object.keys(byYear).forEach(y=>{
     const ws=byYear[y], off=Math.floor((new Date(WEEKS[ws[0]-1][1]+"T12:00:00")-new Date(y+"-01-01T12:00:00"))/604800000);
-    grid+=`<div class="yr wyr${wYear===y?" sel":""}" data-wyear="${y}" title="${wYear===y?"Show all years":`Show stats for ${y} only`}">${y}</div>`+"<i class='pre'></i>".repeat(off)+ws.map(w=>{const [pl,k]=per[w];const isCur=w===cur[0]; const cls=(isCur?"q":k>=4?"w4":k===3?"w3":k===2?"w2":k===1?"w1":pl?"pl":"np")+(wYear===y?" iny":"");return `<i class="${cls}" data-wk="${w}" data-k="${k}" data-pl="${pl?1:0}"${isCur?' data-cur="1"':""}></i>`}).join("")+"<i class='pre'></i>".repeat(Math.max(0,53-off-ws.length));
+    grid+=`<div class="yr wyr${wYear===y?" sel":""}" data-wyear="${y}" title="${wYear===y?"Show all years":`Show stats for ${y} only`}">${y}</div>`+"<i class='pre'></i>".repeat(off)+ws.map(w=>{const [pl,k]=per[w];const isCur=w===cur[0]; const cls=(isCur?"q":k>=3?"w3":k===2?"w2":k===1?"w1":pl?"pl":"np")+(wYear===y?" iny":"");return `<i class="${cls}" data-wk="${w}" data-k="${k}" data-pl="${pl?1:0}"${isCur?' data-cur="1"':""}></i>`}).join("")+"<i class='pre'></i>".repeat(Math.max(0,53-off-ws.length));
   });
   $("wcard").innerHTML=`<div class="pc">
     <div>
       <h3>${esc(name)} ${actPill(name)}</h3>
+      ${wPath>=0?`<div class="yrtag"><span class="pth" style="--pc:${PATH_C[wPath]}">${PATHS[wPath]} only</span><button type="button" class="clear" data-wallpaths="1">Show all paths</button></div>`:""}
       ${wYear?`<div class="yrtag"><b>${wYear} only</b><button type="button" class="clear" data-wyear="${wYear}">Show all years</button></div>`:""}
       <div class="stats" style="margin-top:12px">
         <div><small>Weeks with a win${where}</small><b>${weeksWon.length}</b><span class="sub"> of ${weeksPlayed.length} played</span></div>
@@ -1398,12 +1401,12 @@ function showWinner(name){
         <div data-tip="Triple crown · won a regular challenge on Lead, Rhythm and Bass in the same week${trip.reg.length?` · click to highlight ${trip.reg.length===1?"that week":"those weeks"}`:""}"${trip.reg.length?` data-hl="${trip.reg.join(",")}"`:""} style="cursor:${trip.reg.length?"pointer":"help"}"><small>Triple crowns</small><b>${trip.reg.length}</b>${trip.reg.length?`<span class="sub"> · last wk ${trip.reg[trip.reg.length-1]}</span>`:""}</div>
         <div${ties.length?` data-hl="${tieWeeks.join(",")}" data-tip="Won on the tiebreak, same % as the runner-up · Week${tieWeeks.length===1?"":"s"} ${tieWeeks.join(", ")}"`:""}><small>Close wins${where}</small><b>${ties.length}</b><span class="sub"> won on the tiebreak</span></div>
       </div>
-      <button type="button" class="clear" style="margin-top:12px" data-profile="${esc(name)}">Open player profile ›</button>
+      <div class="golinks"><button type="button" class="clear" data-profile="${esc(name)}">Open player profile ›</button>${hosts[name]?`<button type="button" class="clear" data-gohost="${esc(name)}">Open host profile ›</button>`:""}</div>
     </div>
     <div style="min-width:0">
       ${winMedals(per,doneAll,A.best?per[A.best][1]:0,A.bestRun,v?v[1]:0,A.trip,A.ties)}
       <div class="scroll"><div class="pres wpres${wYear?" yf":""}" id="wpres">${grid}</div></div>
-      <div class="pres-legend wleg">${[["var(--wg1)","1 win",w=>per[w][1]===1],["var(--wg2)","2 wins",w=>per[w][1]===2],["var(--wg3)","3 wins",w=>per[w][1]===3],["var(--wg4)","4+ wins",w=>per[w][1]>=4],["#3a4254","Played, no win",w=>per[w][0]&&!per[w][1]],["repeating-linear-gradient(45deg,var(--lost) 0 2px,var(--panel2) 2px 4px)","Didn't play",w=>!per[w][0]]].map(([bg,lab,f])=>{const ws=doneAll.filter(f);return `<span${ws.length?` data-hl="${ws.join(",")}" title="Click to highlight these ${ws.length} week${ws.length===1?"":"s"}"`:""}><i class="sw" style="background:${bg}"></i>${lab}</span>`}).join("")}<span><i class="sw" style="background:repeating-linear-gradient(-45deg,color-mix(in srgb,var(--s-blue) 80%,transparent) 0 2px,var(--panel2) 2px 4px)"></i>This week</span></div>
+      <div class="pres-legend wleg">${[["var(--wg1)","1 win",w=>per[w][1]===1],["var(--wg2)","2 wins",w=>per[w][1]===2],["var(--wg3)","3+ wins",w=>per[w][1]>=3],["#3a4254","Played, no win",w=>per[w][0]&&!per[w][1]],["repeating-linear-gradient(45deg,var(--lost) 0 2px,var(--panel2) 2px 4px)","Didn't play",w=>!per[w][0]]].map(([bg,lab,f])=>{const ws=doneAll.filter(f);return `<span${ws.length?` data-hl="${ws.join(",")}" title="Click to highlight these ${ws.length} week${ws.length===1?"":"s"}"`:""}><i class="sw" style="background:${bg}"></i>${lab}</span>`}).join("")}<span><i class="sw" style="background:repeating-linear-gradient(-45deg,color-mix(in srgb,var(--s-blue) 80%,transparent) 0 2px,var(--panel2) 2px 4px)"></i>This week</span></div>
     </div></div>`;
   try{localStorage.setItem("rsc-wname",name)}catch(e){}
 }
@@ -1419,6 +1422,7 @@ $("wcard").addEventListener("mousemove",e=>{
 });
 $("wcard").addEventListener("mouseleave",()=>tip.hidden=true);
 $("wcard").addEventListener("click",e=>{
+  if(e.target.closest("[data-wallpaths]")){document.querySelector('#wpath [data-rp="-1"]').click();return}
   const yb=e.target.closest("[data-wyear]");
   if(yb){wYear=wYear===yb.dataset.wyear?null:yb.dataset.wyear;tip.hidden=true;showWinner(wName);markHot();return}
   const h=e.target.closest("[data-hl]");
@@ -1525,7 +1529,7 @@ function sbRender(){
   const findLc=sbFind.toLowerCase();
   $("sbcards").innerHTML=cards.map(([p,slot,lvl,song,diff,extra,ents])=>{
     const tc=tierColor(lvl), dash=song.indexOf(" - ");
-    const songHtml=song&&song!=="n/a"?(dash>0?`<b>${esc(song.slice(dash+3))}</b><small>${esc(song.slice(0,dash))}</small>`:`<b>${esc(song)}</b>`):`<small>No song this week</small>`;
+    const songHtml=song&&song!=="n/a"?(dash>0?`<b class="golink" data-goband="${esc(song.slice(0,dash).trim())}" data-gosong="${esc(song.slice(dash+3).trim())}" title="Show this song in Band lookup">${esc(song.slice(dash+3))}</b><small class="golink" data-goband="${esc(song.slice(0,dash).trim())}" title="Show this band in Band lookup">${esc(song.slice(0,dash))}</small>`:`<b>${esc(song)}</b>`):`<small>No song this week</small>`;
     let place=0;
     const rows=ents.map((e,i)=>{
       const elig=e[4]>=0; if(elig)place++;
@@ -1606,7 +1610,9 @@ function renderSongs(){
   const topSongs=Object.entries(songs).map(([sg,v])=>[sg,new Set(v.flatMap(c=>c.who||[])).size,v]).filter(x=>x[1]>0).sort((a,b)=>b[1]-a[1]||b[2].length-a[2].length).slice(0,20);
   $("songlist").innerHTML=topSongs.map(([sg,n,v])=>{const [a,ti]=splitSong(sg); const tiers=[...new Set(v.map(c=>c.t))].sort((x,y)=>TIER_ORDER.indexOf(x)-TIER_ORDER.indexOf(y));
     const who={}; v.forEach(c=>(c.who||[]).forEach(n=>{(who[n]=who[n]||new Set()).add(c.p)}));
-    const tipTxt=`${ti} — ${Object.keys(who).length} players\n`+Object.entries(who).sort((a,b)=>b[1].size-a[1].size||a[0].localeCompare(b[0])).map(([n,ps])=>`${n} · ${[...ps].sort().map(p=>PATHS[p]).join(", ")}`).join("\n");
+    // players grouped by the week they played it, latest week first
+    const byWk={}; v.forEach(c=>(c.who||[]).forEach(n=>{const m=(byWk[c.w]=byWk[c.w]||{});(m[n]=m[n]||new Set()).add(c.p)}));
+    const tipTxt=`${ti} — ${Object.keys(who).length} players\n`+Object.keys(byWk).map(Number).sort((a,b)=>b-a).map(w=>`\nWeek ${w}\n`+Object.entries(byWk[w]).sort((a,b)=>b[1].size-a[1].size||a[0].localeCompare(b[0])).map(([n,ps])=>`• ${n} · ${[...ps].sort().map(p=>PATHS[p]).join(", ")}`).join("\n")).join("\n");
     return `<li data-tip="${esc(tipTxt)}"><div><b class="songlink" data-band="${esc(a)}" data-song="${esc(ti)}">${esc(ti)}</b><small><span data-band="${esc(a)}" class="bandlink">${esc(a)}</span> · ${v.length} challenge${v.length===1?"":"s"}</small><div class="chips">${tiers.map(t=>`<span class="lvchip" style="--tc:${TIER_COL[t]}">${TIER_LABEL[t]}</span>`).join("")}</div></div><span class="cnt"><b>${n}</b>players attempted</span></li>`}).join("");
   // a multi-week God challenge (same song in back-to-back weeks as a God challenge) counts as one play
   const plays=(ws,v)=>{let n=0,prev=null;const god=w=>v.some(c=>c.w===w&&c.card==="G");ws.forEach(w=>{if(!(prev!=null&&w===prev+1&&god(w)&&god(prev)))n++;prev=w});return n};
@@ -1642,7 +1648,7 @@ function showBand(name){
       <div class="tierbar">${tierCount.map(([t,k])=>`<span style="--tc:${TIER_COL[t]};width:${k/tierTotal*100}%" title="${TIER_LABEL[t]}: ${k} song${k===1?"":"s"}"></span>`).join("")}</div>
       <div class="chips bchips">${(()=>{const pill=([t,k])=>`<button type="button" class="lvchip lvbtn${bandTier===t?" sel":""}" data-btier="${t}" aria-pressed="${bandTier===t}" style="--tc:${TIER_COL[t]}" title="${k} different song${k===1?"":"s"} at ${TIER_LABEL[t]} · click to show only these">${TIER_LABEL[t]}</button>`;
         const r1=tierCount.filter(([t])=>"BIA".includes(t)).map(pill).join(""), r2=tierCount.filter(([t])=>"MG".includes(t)).map(pill).join("");
-        return `${r1?`<div class="brow1">${r1}</div>`:""}${r2||bandTier?`<div class="brow1">${r2}${bandTier?`<button type="button" class="clear" data-btier="" style="padding:1px 8px;font-size:.72rem">Show all levels</button>`:""}</div>`:""}${bandPathF!=null?`<div class="brow1"><span class="pth" style="--pc:${PATH_C[bandPathF]}">${PATHS[bandPathF]} only</span><button type="button" class="clear" data-bpath="" style="padding:1px 8px;font-size:.72rem">Show all paths</button></div>`:""}${bandSong?`<div class="brow1"><span class="songf">♪ ${esc(bandSong)}</span><button type="button" class="clear" data-bsong="" style="padding:1px 8px;font-size:.72rem">Show all songs</button></div>`:""}`})()}</div>
+        return `${r1?`<div class="brow1">${r1}</div>`:""}${r2||bandTier?`<div class="brow1">${r2}${bandTier?`<button type="button" class="clear" data-btier="" style="padding:1px 8px;font-size:.72rem">Show all levels</button>`:""}</div>`:""}${(()=>{const fp=bandPathF!=null?bandPathF:sPath;return fp>=0?`<div class="brow1"><span class="pth" style="--pc:${PATH_C[fp]}">${PATHS[fp]} only</span><button type="button" class="clear" data-bpath="" style="padding:1px 8px;font-size:.72rem">Show all paths</button></div>`:""})()}${bandSong?`<div class="brow1"><span class="songf">♪ ${esc(bandSong)}</span><button type="button" class="clear" data-bsong="" style="padding:1px 8px;font-size:.72rem">Show all songs</button></div>`:""}`})()}</div>
       <div class="stats">
         <div><small>Challenges</small><b>${list.length}</b></div>
         <div><small>Different songs</small><b>${songsArr.length}</b></div>
@@ -1658,7 +1664,7 @@ function showBand(name){
     }</tbody></table></div></div></div>`;
 }
 $("bq").addEventListener("change",e=>showBand(e.target.value.trim()));
-$("bcard").addEventListener("click",e=>{const bs=e.target.closest("[data-bsong]");if(bs){e.stopPropagation();bandSong=null;showBand(bandName);return}const bp=e.target.closest("[data-bpath]");if(bp){e.stopPropagation();const p=bp.dataset.bpath===""?null:+bp.dataset.bpath;bandPathF=(p!=null&&bandPathF!==p)?p:null;showBand(bandName);return}const b=e.target.closest("[data-btier]");if(!b)return;e.stopPropagation();const t=b.dataset.btier||null;bandTier=(t&&bandTier!==t)?t:null;showBand(bandName)});
+$("bcard").addEventListener("click",e=>{const bs=e.target.closest("[data-bsong]");if(bs){e.stopPropagation();bandSong=null;showBand(bandName);return}const bp=e.target.closest("[data-bpath]");if(bp){e.stopPropagation();const p=bp.dataset.bpath===""?null:+bp.dataset.bpath;bandPathF=(p!=null&&bandPathF!==p)?p:null;if(bp.dataset.bpath===""&&sPath>=0){sPath=-1;renderSongs()}else showBand(bandName);return}const b=e.target.closest("[data-btier]");if(!b)return;e.stopPropagation();const t=b.dataset.btier||null;bandTier=(t&&bandTier!==t)?t:null;showBand(bandName)});
 $("bq").addEventListener("keydown",e=>{if(e.key==="Enter")showBand(e.target.value.trim())});
 $("view-songs").addEventListener("click",e=>{const el=e.target.closest("[data-band],[data-player]");if(!el)return;showBand(el.dataset.band||el.dataset.player);if(el.dataset.song){bandSong=el.dataset.song;bandTier=null;bandPathF=null;showBand(bandName)}if(el.dataset.ltier){bandTier=el.dataset.ltier;bandPathF=null;showBand(bandName)}$("bcard").closest("section").scrollIntoView({behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth",block:"start"})});
 $("spath").addEventListener("click",e=>{const b=e.target.closest("button[data-sp]");if(b){sPath=+b.dataset.sp;renderSongs()}});
@@ -1806,6 +1812,7 @@ function showHost(name){
         <div${bestLen?` data-hl="${spanStr}" data-tip="(Week ${b[0]}${bestLen>1?`–${b[1]}`:""})"`:""}><small>Most in a row</small><b>${bestLen} wk${bestLen===1?"":"s"}</b></div>
         ${hYear?(()=>{const cnt={};WEEKS.forEach(([w,d,ho],i)=>{if(i<=curIdx&&d.slice(0,4)===hYear&&ho&&ho!==LOST)cnt[ho]=(cnt[ho]||0)+1});const rk=ws.length?1+Object.values(cnt).filter(n=>n>ws.length).length:null;return `<div><small>Rank in ${hYear}</small><b>${rk?"#"+rk:"–"}</b><span class="sub"> of ${Object.keys(cnt).length} host${Object.keys(cnt).length===1?"":"s"}</span></div>`})():`<div><small>Years hosting</small><b>${years.length}</b><span class="sub"> · ${yearsTxt}</span></div>`}
       </div>
+      ${byName[name]||WR.wins[name]?`<div class="golinks">${byName[name]?`<button type="button" class="clear" data-goplayer="${esc(name)}">Open player profile ›</button>`:""}${WR.wins[name]?`<button type="button" class="clear" data-gowin="${esc(name)}">Open win profile ›</button>`:""}</div>`:""}
       ${!hYear&&future.length?`<div class="ups">Coming up: ${future.map(w=>`<span class="pill hol">wk ${w} · ${fmt(WEEKS[w-1][1])}</span>`).join("")}</div>`:""}
     </div>
     <div style="min-width:0">
@@ -1873,4 +1880,28 @@ document.addEventListener("click",e=>{
 },true);
 
 $("sblatest").addEventListener("click",()=>{sbWeek=SB_WEEKS[0];sbRender()});
+
+// ---------- scoreboard song and band names open Band lookup on the Songs tab ----------
+$("view-scores").addEventListener("click",e=>{
+  const g=e.target.closest("[data-goband]"); if(!g)return;
+  // names on the scoreboard can differ slightly from the song list ("The Ramones" vs "Ramones"), so match loosely
+  const norm=x=>String(x||"").toLowerCase().replace(/^the\s+/,"").replace(/&/g,"and").replace(/[^a-z0-9]/g,"");
+  const find=()=>{const bs=songCards.filter(c=>norm(c.artist)===norm(g.dataset.goband)); if(!bs.length)return null;
+    const sg=g.dataset.gosong?bs.find(c=>norm(c.title)===norm(g.dataset.gosong)):null; return {band:bs[0].artist,song:sg?sg.title:null}};
+  let m=find(); if(!m&&sPath>=0){sPath=-1;renderSongs();m=find()}
+  tip.hidden=true; showView("songs");
+  if(!m){$("bq").value=g.dataset.goband;$("bcard").innerHTML=`<div class="empty">“${esc(g.dataset.goband)}” isn't in the song list yet.</div>`;$("bcard").closest("section").scrollIntoView({block:"start"});return}
+  showBand(m.band);
+  bandTier=null; bandPathF=null; bandSong=m.song; showBand(bandName);
+  $("bcard").closest("section").scrollIntoView({block:"start"});
+});
+
+// ---------- links between Player, Winner and Host lookup ----------
+document.addEventListener("click",e=>{
+  const b=e.target.closest("[data-goplayer],[data-gowin],[data-gohost]"); if(!b)return;
+  e.stopPropagation(); tip.hidden=true; mcard.hidden=true;
+  if(b.dataset.goplayer){const n=b.dataset.goplayer;showView("players");showPlayer(n);$("pcard").closest("section").scrollIntoView({block:"start"})}
+  else if(b.dataset.gowin){const n=b.dataset.gowin;wPicked=true;showView("winners");showWinner(n);markHot();$("wcard").closest("section").scrollIntoView({block:"start"})}
+  else {const n=b.dataset.gohost;showView("hosting");showHost(n);$("hcard").closest("section").scrollIntoView({block:"start"})}
+},true);
 </script>
