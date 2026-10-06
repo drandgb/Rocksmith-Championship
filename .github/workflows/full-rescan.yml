@@ -1,0 +1,63 @@
+name: Full rescan (whole sheet)
+
+on:
+  schedule:
+    - cron: "47 7 * * 0"     # Sundays 07:47 UTC (3:47am New York); re-reads every week tab, so corrections to old weeks show up
+  workflow_dispatch:          # "Run workflow" button on the Actions tab
+
+permissions:
+  contents: write
+  pages: write
+
+concurrency:
+  group: update-site   # never run both at once
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install openpyxl
+        run: pip install openpyxl==3.1.5
+
+      - name: Download the sheet and build index.html
+        run: |
+          export BUILD_DATE=$(TZ=America/New_York date +%F)
+          MODE=full ./build/build.sh 2>&1 | tee build.log
+
+      - name: Commit if anything changed
+        id: commit
+        run: |
+          # ignore the "Last updated" line so the site only changes when the data does
+          if git diff --quiet -I 'Last updated:' -- index.html && [ -z "$(git status --porcelain -- build/data/cache)" ]; then
+            git checkout -- index.html
+            echo "No data changes."
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            git config user.name  "github-actions[bot]"
+            git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
+            git add index.html build/data/cache
+            git commit -m "Full rescan of the scoreboard sheet (week $(cat build/work/data_week.txt))"
+            git pull --rebase -X theirs origin main
+            git push
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Ask GitHub Pages to republish
+        if: steps.commit.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh api -X POST "repos/${{ github.repository }}/pages/builds" || echo "Pages will pick up the commit on its own."
+
+      - name: Save the build log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-log
+          path: build.log
