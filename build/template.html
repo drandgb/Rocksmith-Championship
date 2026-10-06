@@ -430,6 +430,35 @@ button.clear.sblatest:hover{background:var(--accent);color:var(--accent-ink)}
 .tierbar span{background:var(--tc)}
 footer .updated{display:block;margin-top:4px}
 .medals{display:flex;flex-wrap:wrap;gap:4px;margin:0 0 6px}
+/* This Week */
+.twnav{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.twtitle{flex:1;min-width:12em}
+.twtitle h2{font-size:1.35rem}
+.twtitle h2 .golink{cursor:pointer}
+.twarrow{background:var(--panel2);border:1px solid var(--line);color:var(--fg);border-radius:8px;width:36px;height:36px;font-size:1.3rem;cursor:pointer}
+.twarrow:disabled{opacity:.35;cursor:default}
+.twstats{display:flex;flex-wrap:wrap;gap:8px 18px;margin-top:12px;color:var(--muted);font-size:.9rem}
+.twstats b{color:var(--fg);font-family:var(--f-display);font-size:1.1rem}
+.twstats .pill.hol{cursor:default}
+.twl{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.twl.cols{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,330px),1fr))}
+.twl li{display:flex;align-items:center;gap:6px 10px;flex-wrap:wrap;padding:8px 10px;background:var(--panel2);border:1px solid var(--line);border-radius:8px;min-width:0}
+.twl li.empty{background:none;border:0;padding:6px 0}
+.twl .nm{font-weight:700;cursor:pointer;overflow-wrap:anywhere}
+.twl .nm:hover{text-decoration:underline}
+.twl .dt{color:var(--muted);font-size:.84rem;flex:1 1 12em;min-width:0}
+.twl .rt{margin-left:auto;font:700 .95rem var(--f-display);white-space:nowrap;text-align:right}
+.twl .rt small{display:block;font:400 .72rem var(--f-body);color:var(--muted)}
+.twl .wkl{cursor:pointer;text-decoration:underline dotted;text-underline-offset:2px}
+.twl .wkl:hover{color:var(--fg)}
+.twl .vs{color:var(--muted);font-size:.85rem}
+.twl .ok{color:var(--s-green);font-size:.8rem}
+.twl .medals{margin:0;flex-basis:100%}
+.twl .medal-m{cursor:pointer}
+.twl .riv .dt{flex-basis:100%;order:3}
+.twl .riv .rt{order:2}
+.twl .hot{color:var(--s-orange)}
+.twl .crit{color:var(--s-red)}
 .medals:last-of-type{margin-bottom:10px}
 .medal-m{display:inline-flex;cursor:help}
 .medal-m svg{width:24px;height:26px;filter:drop-shadow(0 1px 2px rgba(0,0,0,.4))}
@@ -528,6 +557,7 @@ footer{color:var(--dim);font-size:.78rem}
   </header>
 
   <nav class="tabs" role="tablist" aria-label="Pages">
+    <button type="button" role="tab" id="tab-thisweek" data-view="thisweek" aria-selected="false">This Week</button>
     <button type="button" role="tab" id="tab-winners" data-view="winners" aria-selected="true">Winners</button>
     <button type="button" role="tab" id="tab-players" data-view="players" aria-selected="false">Players</button>
     <button type="button" role="tab" id="tab-hosting" data-view="hosting" aria-selected="false">Hosts</button>
@@ -653,6 +683,46 @@ footer{color:var(--dim);font-size:.78rem}
   <section class="panel">
     <div class="panel-head"><h2 id="new-h">New this year</h2><span class="sub" id="new-sub"></span></div>
     <div class="newlist" id="newlist"></div>
+  </section>
+  </div>
+
+  <div class="view" id="view-thisweek" role="tabpanel" aria-labelledby="tab-thisweek" hidden>
+  <section class="panel twhead">
+    <div class="twnav">
+      <button type="button" class="twarrow" id="twprev" aria-label="Previous week">‹</button>
+      <div class="twtitle"><h2 id="tw-title"></h2><div class="sub" id="tw-meta"></div></div>
+      <button type="button" class="twarrow" id="twnext" aria-label="Next week">›</button>
+      <button type="button" class="clear sblatest" id="twnow" hidden></button>
+    </div>
+    <div class="twstats" id="tw-stats"></div>
+  </section>
+  <div class="grid2 even">
+    <section class="panel">
+      <div class="panel-head"><h2>👋 Back from a break</h2><span class="sub" id="tw-back-sub"></span></div>
+      <ul class="twl" id="tw-back"></ul>
+    </section>
+    <section class="panel">
+      <div class="panel-head"><h2>🌱 New this week</h2><span class="sub" id="tw-new-sub"></span></div>
+      <ul class="twl" id="tw-new"></ul>
+    </section>
+  </div>
+  <div class="grid2 even">
+    <section class="panel">
+      <div class="panel-head"><h2>🎂 Anniversaries</h2><span class="sub" id="tw-ann-sub"></span></div>
+      <ul class="twl" id="tw-ann"></ul>
+    </section>
+    <section class="panel">
+      <div class="panel-head"><h2 id="tw-dng-h">⏳ Streaks in danger</h2><span class="sub" id="tw-dng-sub"></span></div>
+      <ul class="twl" id="tw-dng"></ul>
+    </section>
+  </div>
+  <section class="panel">
+    <div class="panel-head"><h2>🏅 New medals</h2><span class="sub" id="tw-med-sub"></span></div>
+    <ul class="twl cols" id="tw-med"></ul>
+  </section>
+  <section class="panel">
+    <div class="panel-head"><h2>⚔️ Rivals</h2><span class="sub" id="tw-riv-sub"></span></div>
+    <ul class="twl cols" id="tw-riv"></ul>
   </section>
   </div>
 
@@ -1140,7 +1210,7 @@ function classGem(p){
   const ups=(WR.ups||[]).filter(u=>u[0]===n&&u[3]===top&&"BIAM".indexOf(u[3])>"BIAM".indexOf(u[2])).map(u=>u[4]), recW=ups.length?Math.min(...ups):null;
   return `<span class="medal-m wm classgem" style="--gc:${col}" data-tip="${name} gem · highest class reached in any path${recW?` (collected Week ${recW})`:""}"><svg viewBox="0 0 30 30" aria-hidden="true"><polygon points="8,3 22,3 29,11 15,28 1,11" fill="${col}"/><polygon points="8,3 22,3 19,11 11,11" fill="rgba(255,255,255,.5)"/><polygon points="1,11 11,11 15,28" fill="rgba(0,0,0,.15)"/><polygon points="29,11 19,11 15,28" fill="rgba(0,0,0,.28)"/><polygon points="11,11 19,11 15,28" fill="rgba(255,255,255,.12)"/><polygon points="8,3 22,3 29,11 15,28 1,11" fill="none" stroke="rgba(0,0,0,.35)" stroke-width=".8"/></svg><b>${top}</b></span>`;
 }
-function medalsFor(p){
+function medalsFor(p,bitsOv){
   const [n,first,latest,played,rate,streak,longest]=p;
   const years=(latest-first+1)/52, gems=[], flames=[];
   const fw=WEEKS[first-1];
@@ -1151,7 +1221,7 @@ function medalsFor(p){
     gems.push(`<span class="medal-m zod" data-tip="${tip}" style="--ec:${col}"><span class="ani">${ly?ANIMAL_EMOJI[ly.animal]:"🏅"}</span><b>${y}</b></span>`);
   }
   // find where the best streak started, to date each streak year
-  const bits=presOf(p); let run=0,bestLen=0,bestStart=null;
+  const bits=bitsOv||presOf(p); let run=0,bestLen=0,bestStart=null;
   for(let i=0;i<bits.length;i++){ if(bits[i]==="1"){run++; if(run>bestLen){bestLen=run;bestStart=i-run+1+PRES_START}} else run=0; }
   for(let y=1;y<=Math.floor(longest/52);y++){
     const sw=bestStart!=null?WEEKS[bestStart+y*52-2]:null, ly=sw?lunarYear(new Date(sw[1]+"T12:00:00")):null;
@@ -1305,14 +1375,15 @@ $("tl").addEventListener("click",e=>{
 });
 
 function showView(v){
-  ["hosting","players","winners","scores","songs"].forEach(k=>{const on=k===v;$("view-"+k).hidden=!on;$("tab-"+k).setAttribute("aria-selected",on)});
+  ["thisweek","hosting","players","winners","scores","songs"].forEach(k=>{const on=k===v;$("view-"+k).hidden=!on;$("tab-"+k).setAttribute("aria-selected",on)});
   tip.hidden=true;
-  $("pfilter").hidden=v==="scores"||v==="songs";
+  $("pfilter").hidden=v==="scores"||v==="songs"||v==="thisweek";
+  if(v==="thisweek"&&window.__twReady)renderThisWeek();
   if(v==="hosting"){renderUpcoming(); if(!logScrolled)requestAnimationFrame(scrollLogToCurrent)}
   try{localStorage.setItem("rsc-view",v)}catch(e){}
 }
 document.querySelector(".tabs").addEventListener("click",e=>{const b=e.target.closest("button[data-view]");if(b)showView(b.dataset.view)});
-{const H={"#hosts":"hosting","#players":"players","#winners":"winners","#scoreboard":"scores","#songs":"songs"};let v=H[location.hash]||null; if(!v){try{v=localStorage.getItem("rsc-view")}catch(e){}} showView(["hosting","scores","winners","songs","players"].includes(v)?v:"winners");}
+{const H={"#thisweek":"thisweek","#hosts":"hosting","#players":"players","#winners":"winners","#scoreboard":"scores","#songs":"songs"};let v=H[location.hash]||null; if(!v){try{v=localStorage.getItem("rsc-view")}catch(e){}} showView(["thisweek","hosting","scores","winners","songs","players"].includes(v)?v:"thisweek");}
 const SB=__SCORES__;
 // ---------- win rates & rank-ups (from scoreboards, weeks 440+) ----------
 const WR=__WINS__;
@@ -1739,7 +1810,7 @@ $("view-songs").addEventListener("mouseleave",()=>tip.hidden=true);
 
 // ---------- floating bubble showing which filters are on in the current tab ----------
 const fbub=document.createElement("div"); fbub.id="fbub"; fbub.setAttribute("role","status"); fbub.setAttribute("aria-live","polite"); fbub.hidden=true; document.body.appendChild(fbub);
-function curView(){return ["hosting","players","winners","songs","scores"].find(k=>!$("view-"+k).hidden)}
+function curView(){return ["thisweek","hosting","players","winners","songs","scores"].find(k=>!$("view-"+k).hidden)}
 function activeFilters(){
   const v=curView(), f=[];
   if((v==="hosting"||v==="players"||v==="winners")&&activeOnly)f.push(["Active players only",()=>setActiveOnly(false)]);
@@ -2021,4 +2092,131 @@ $("refreshbtn").addEventListener("click",async()=>{
   else {const t=b.dataset.lvr||null; lvlReplay=(t&&lvlReplay!==t)?t:null}
   renderSongs(); updateBubble();
 }));
+
+// ---------- This Week: who's back, who's new, anniversaries, new medals, streaks in danger and rivals ----------
+// The newest week is "live" while it's still running: attendance for it comes straight from its scoreboard, and its
+// player medals are provisional (win medals are added once the week is over).
+const TW_ALIAS={AndreCardoso:"ALSRC",BetterCallJamie:"FlatCap Jay",jasmith85:"FlatCap Jay",aand14:"drand",mattimatti:"mattibassi",Tinman86:"TinMan86"};
+const TW_CANON={}; PLAYERS.forEach(p=>TW_CANON[p[0].toLowerCase()]=p[0]);
+const twCanon=raw=>{let b=raw.replace(/[*~]+$/,"").trim(); b=TW_ALIAS[b]||b; return TW_CANON[b.toLowerCase()]||b};
+const twIsGod=l=>/^god/i.test(l||"")||/tribute/i.test(l||"");
+const TW_LIVE=cur[0]>DATA_WEEK?cur[0]:null;
+const TW_MIN=3, TW_MAX=Math.max(DATA_WEEK,cur[0]);
+let twWeek=TW_MAX;
+const twBits={}; PLAYERS.forEach(p=>twBits[p[0]]=presOf(p));
+// entries on week w's scoreboard, minus scores that only carried over on a multi-week God challenge
+function twEntries(w){
+  const key=(c,e)=>[c[0],c[3].trim().toLowerCase(),SB.names[e[0]].replace(/[*~]+$/,"").trim(),e[1],e[2],e[3]].join("|");
+  const prev=new Set(); (SB.weeks[w-1]||[]).forEach(c=>{if(twIsGod(c[2]))c[6].forEach(e=>prev.add(key(c,e)))});
+  const out=[]; (SB.weeks[w]||[]).forEach(c=>c[6].forEach(e=>{if(twIsGod(c[2])&&prev.has(key(c,e)))return; const n=twCanon(SB.names[e[0]]); if(n&&n!=="#REF!"&&n!=="Player Name")out.push({n,c,e})}));
+  return out;
+}
+const twLiveSet=TW_LIVE?new Set(twEntries(TW_LIVE).map(x=>x.n)):new Set();
+// did name play week w?
+const twPlayed=(n,w)=>{if(w===TW_LIVE)return twLiveSet.has(n); const b=twBits[n]; return !!b&&b[w-PRES_START]==="1"};
+const twLastBefore=(n,w)=>{const b=twBits[n]; if(!b)return null; for(let i=Math.min(w-1,DATA_WEEK)-PRES_START;i>=0;i--)if(b[i]==="1")return i+PRES_START; return null};
+const twStreakTo=(n,w)=>{let k=0; while(w>=PRES_START&&twPlayed(n,w)){k++;w--} return k};
+const twNames=w=>w===TW_LIVE?[...twLiveSet]:PLAYERS.filter(p=>twBits[p[0]][w-PRES_START]==="1").map(p=>p[0]);
+const twName=n=>`<span class="nm" data-name="${esc(n)}"${byName[n]?` data-goplayer="${esc(n)}"`:""}>${esc(n)}</span>`;
+const twWk=w=>SB.weeks[w]?`<span class="wkl" data-sbw="${w}" title="Open week ${w} on the Scoreboard">Week ${w}</span>`:`Week ${w}`;
+const twEmpty=t=>`<li class="empty">${t}</li>`;
+const twPl=(k,w)=>`${k} ${w}${k===1?"":"s"}`;
+// medals collected in week w, grouped: [{kind:"player"|"win"|"host", html}]
+const twMedalCache={};
+function twMedals(n,w,live){
+  const k=n+"|"+w; if(twMedalCache[k])return twMedalCache[k];
+  const box=document.createElement("div"), out=[];
+  const grab=(html,kind)=>{box.innerHTML=html; box.querySelectorAll(".medal-m").forEach(m=>{if(new RegExp(`collected Week ${w}\\)`).test(m.dataset.tip||"")){m.removeAttribute("data-hl");m.style.cursor="";m.dataset.mk=kind;m.dataset.mn=n;out.push(m.outerHTML)}})};
+  let p=byName[n];
+  if(live){ // provisional: this week's attendance added to the player's history
+    const pad="0".repeat(Math.max(0,w-1-DATA_WEEK)), bits=(twBits[n]||"")+pad+"1";
+    let best=0,r=0; for(const ch of bits){r=ch==="1"?r+1:0;if(r>best)best=r}
+    const first=p?p[1]:w, played=(p?p[3]:0)+1;
+    grab(medalsFor([n,first,w,played,played/(w-first+1),twStreakTo(n,w),best,"",p?p[8]:""],p?bits:"0".repeat(w-PRES_START)+"1"),"player");
+  } else {
+    if(p&&p[2]>=w)grab(medalsFor(p),"player");
+    if(WR.wins[n]&&twPlayed(n,w)){box.innerHTML=allMedalsHtml(n); const ms=[...box.children]; let sec=""; const win=[]; ms.forEach(el=>{if(el.classList.contains("ms"))sec=el.textContent;else if(/Win/.test(sec))win.push(el.outerHTML)}); grab(win.join(""),"win")}
+  }
+  if(hosts[n])grab(hostMedals(n),"host");
+  return twMedalCache[k]=out;
+}
+function renderThisWeek(){
+  const w=twWeek, W=WEEKS[w-1], live=w===TW_LIVE, names=twNames(w), set=new Set(names);
+  $("twprev").disabled=w<=TW_MIN; $("twnext").disabled=w>=TW_MAX;
+  $("twnow").hidden=w===TW_MAX; $("twnow").textContent=`Back to ${TW_LIVE?"this":"the latest"} week (${TW_MAX}) ›`;
+  const start=W?new Date(W[1]+"T12:00:00"):null, end=start?new Date(start.getTime()+6*864e5):null;
+  const left=end?Math.ceil((new Date(W[1]+"T00:00:00").getTime()+7*864e5-Date.now())/864e5):0;
+  $("tw-title").innerHTML=`${SB.weeks[w]?`<span class="golink" data-sbw="${w}" title="Open this week on the Scoreboard">Week ${w}</span>`:`Week ${w}`}${live?' <span class="pill new" style="width:auto">IN PROGRESS</span>':""}`;
+  $("tw-meta").innerHTML=W?`${fmtShort(W[1])} – ${fmt(iso(end))}${W[2]&&W[2]!==LOST?` · hosted by <span class="nm" data-name="${esc(W[2])}" data-gohost="${esc(W[2])}" style="cursor:pointer;font-weight:700;color:var(--fg)">${esc(W[2])}</span>`:""}${live&&left>0?` · ${twPl(left,"day")} left`:""}`:"";
+  const ents=SB.weeks[w]?twEntries(w):[];
+  // back from a break
+  const back=names.map(n=>{const prev=twPlayed(n,w-1)?null:twLastBefore(n,w); return prev?{n,prev,gap:w-prev-1}:null}).filter(Boolean).sort((a,b)=>b.gap-a.gap||a.n.localeCompare(b.n));
+  const fresh=names.filter(n=>{const p=byName[n]; return live?!p:(p&&p[1]===w)}).sort((a,b)=>a.localeCompare(b));
+  // anniversaries: players active in the past year whose first week was this calendar week in an earlier year
+  const ann=[]; if(start){const s0=new Date(W[1]+"T00:00:00"), s1=new Date(s0.getTime()+7*864e5);
+    PLAYERS.forEach(p=>{if(p[1]>=w)return; const fw=WEEKS[p[1]-1]; if(!fw)return; const fd=new Date(fw[1]+"T00:00:00");
+      for(const y of [s0.getFullYear(),s1.getFullYear()]){const a=new Date(y,fd.getMonth(),fd.getDate()),yrs=y-fd.getFullYear(); if(yrs>0&&a>=s0&&a<s1){
+        const active=set.has(p[0])||[...Array(52)].some((_,i)=>twPlayed(p[0],w-1-i)); if(active)ann.push({n:p[0],yrs,first:p[1],fd:fw[1]}); break}}})}
+  ann.sort((a,b)=>b.yrs-a.yrs||a.first-b.first);
+  // streaks: still to play this week (live) / ended this week (past weeks)
+  let dng;
+  if(live) dng=PLAYERS.map(p=>p[0]).filter(n=>!set.has(n)).map(n=>({n,k:twStreakTo(n,w-1)})).filter(x=>x.k>0).sort((a,b)=>b.k-a.k||a.n.localeCompare(b.n));
+  else dng=PLAYERS.map(p=>p[0]).filter(n=>!set.has(n)&&twPlayed(n,w-1)).map(n=>({n,k:twStreakTo(n,w-1)})).filter(x=>x.k>=2).sort((a,b)=>b.k-a.k||a.n.localeCompare(b.n));
+  // new medals
+  const cand=new Set(names); if(!live){ann.forEach(a=>cand.add(a.n))} if(W&&W[2]&&hosts[W[2]])cand.add(W[2]);
+  const med=[...cand].map(n=>({n,m:twMedals(n,w,live&&set.has(n))})).filter(x=>x.m.length).sort((a,b)=>b.m.length-a.m.length||a.n.localeCompare(b.n));
+  // rivals: for each player, the opponent whose % was closest across the challenges they both played this week
+  // (lowest average gap; more shared challenges and then closer streaks break ties)
+  const byCard=new Map(); ents.forEach(x=>{if(x.e[1]==null)return; if(!byCard.has(x.c))byCard.set(x.c,[]); byCard.get(x.c).push(x)});
+  const H={}; // H[a][b] = {n, sum, ssum, best:{gap,c,me,them}}
+  byCard.forEach((xs,c)=>{for(const a of xs)for(const b of xs){if(a.n===b.n)continue;
+    const gap=Math.abs(a.e[1]-b.e[1]), sg=Math.abs((a.e[2]||0)-(b.e[2]||0)), h=((H[a.n]=H[a.n]||{})[b.n]=H[a.n][b.n]||{k:0,sum:0,ssum:0,best:null});
+    h.k++; h.sum+=gap; h.ssum+=sg; if(!h.best||gap<h.best.gap||(gap===h.best.gap&&sg<h.best.sg))h.best={gap,sg,c,me:a,them:b}}});
+  const riv={};
+  Object.entries(H).forEach(([a,opp])=>{let r=null; Object.entries(opp).forEach(([b,h])=>{const avg=h.sum/h.k, savg=h.ssum/h.k;
+    if(!r||avg<r.avg||(avg===r.avg&&(h.k>r.k||(h.k===r.k&&savg<r.savg))))r={me:a,them:b,avg,savg,k:h.k,best:h.best}}); riv[a]=r});
+  const pairs=[], done=new Set();
+  Object.values(riv).sort((a,b)=>a.avg-b.avg||b.k-a.k||a.savg-b.savg||a.me.localeCompare(b.me)).forEach(r=>{
+    if(done.has(r.me))return; const o=riv[r.them], mutual=!!o&&o.them===r.me;
+    if(mutual)done.add(r.them); done.add(r.me); pairs.push({...r,mutual});
+  });
+  // header stats
+  const hol=W&&W[3]?W[3].split(/,\s*/).map(h=>`<span class="pill hol">${holEmoji(h)}${esc(h)}</span>`).join(""):"";
+  $("tw-stats").innerHTML=`<span><b>${names.length}</b> player${names.length===1?"":"s"}${live?" so far":""}</span>${ents.length?`<span><b>${ents.length}</b> entries</span>`:""}<span><b>${back.length}</b> back</span><span><b>${fresh.length}</b> new</span>${hol}`;
+  // lists
+  $("tw-back-sub").textContent=`Played week ${w} after missing week ${w-1}`;
+  $("tw-back").innerHTML=back.length?back.map(x=>`<li>${twName(x.n)}<span class="dt">last played ${twWk(x.prev)}</span><span class="rt">${x.gap>=52?`${(x.gap/52).toFixed(1).replace(/\.0$/,"")} yr`:twPl(x.gap,"wk")}<small>away</small></span></li>`).join(""):twEmpty(live?"Nobody back from a break yet.":"Nobody came back from a break this week.");
+  $("tw-new-sub").textContent=live?"First scores ever, so far":"First week in the championship";
+  $("tw-new").innerHTML=fresh.length?fresh.map(n=>{const cs=ents.filter(x=>x.n===n).map(x=>`${PATHS[x.c[0]]} ${x.c[2]}`); return `<li>${twName(n)}<span class="dt">${esc([...new Set(cs)].join(" · "))}</span><span class="pill new" style="width:auto">NEW</span></li>`}).join(""):twEmpty(live?"No new players yet this week.":"No new players this week.");
+  $("tw-ann-sub").textContent="First played this week in an earlier year (active players)";
+  $("tw-ann").innerHTML=ann.length?ann.map(a=>`<li>${twName(a.n)}<span class="dt">joined ${twWk(a.first)} · ${fmt(a.fd)}${set.has(a.n)?' <span class="ok">✓ playing</span>':""}</span><span class="rt">🎂 ${a.yrs}<small>year${a.yrs===1?"":"s"}</small></span></li>`).join(""):twEmpty("No anniversaries this week.");
+  $("tw-dng-h").textContent=live?"⏳ Streaks in danger":"💔 Streaks that ended";
+  $("tw-dng-sub").textContent=live?`Active streaks with no score yet this week${left>0?` · ${twPl(left,"day")} left`:""}`:`Played week ${w-1} but not week ${w} (2+ week streaks)`;
+  $("tw-dng").innerHTML=dng.length?dng.map(x=>`<li>${twName(x.n)}<span class="dt">${live?"last played":"ended after"} ${twWk(w-1)}</span><span class="rt ${x.k>=52?"crit":x.k>=10?"hot":""}">🔥 ${x.k}<small>week${x.k===1?"":"s"}</small></span></li>`).join(""):twEmpty(live?"Every active streak is safe this week. 🎉":"No streaks ended this week.");
+  $("tw-med-sub").textContent=live?"Collected this week · player medals are provisional, win medals are added when the week ends":"Collected this week · click a medal to see it in that lookup";
+  $("tw-med").innerHTML=med.length?med.map(x=>`<li>${twName(x.n)}<span class="dt">${twPl(x.m.length,"new medal")}</span><div class="medals">${x.m.join("")}</div></li>`).join(""):twEmpty("No new medals this week.");
+  $("tw-riv-sub").textContent=ents.length?"Each player's closest match: the opponent with the smallest average % gap on the challenges they both played":"";
+  const r2=v=>Math.round(v*100)/100;
+  $("tw-riv").innerHTML=!SB.weeks[w]?twEmpty(`No scoreboard for week ${w} (scoreboards start at week ${SB_W[0]}).`):pairs.length?pairs.map(r=>{
+    const c=r.best.c, g=r2(r.avg);
+    return `<li class="riv">${twName(r.me)}<span class="vs" title="${r.mutual?"Each other's closest rival":"Closest rival"}">${r.mutual?"⇄":"→"}</span>${twName(r.them)}<span class="rt">${g===0?"dead even":`${g.toFixed(2)}% gap`}<small>${r.k===1?"1 shared challenge":`avg over ${r.k} shared challenges`}</small></span><span class="dt">closest: <span class="wkl" data-sbw="${w}" data-sbp="${c[0]}" data-sbn="${esc(r.me)}" title="Open this challenge on the Scoreboard">${PATHS[c[0]]} · ${esc(c[2])}</span> · ${esc(c[3])} · ${r.best.me.e[1]}% vs ${r.best.them.e[1]}%</span></li>`}).join(""):twEmpty("No head-to-head finishes yet.");
+}
+$("twprev").addEventListener("click",()=>{if(twWeek>TW_MIN){twWeek--;renderThisWeek()}});
+$("twnext").addEventListener("click",()=>{if(twWeek<TW_MAX){twWeek++;renderThisWeek()}});
+$("twnow").addEventListener("click",()=>{twWeek=TW_MAX;renderThisWeek()});
+$("view-thisweek").addEventListener("mousemove",e=>{const p=e.target.closest("[data-tip]");if(!p){tip.hidden=true;return}tip.textContent=p.dataset.tip;tip.hidden=false;placeTip(e.clientX,e.clientY)});
+$("view-thisweek").addEventListener("mouseleave",()=>tip.hidden=true);
+// click a new medal: open that lookup and highlight the week it was collected
+$("view-thisweek").addEventListener("click",e=>{
+  const m=e.target.closest(".medal-m[data-mk]"); if(!m)return;
+  const n=m.dataset.mn, kind=m.dataset.mk, t=m.dataset.tip; tip.hidden=true;
+  if(kind==="win"){wPicked=true;showView("winners");showWinner(n);markHot()}
+  else if(kind==="host"){showView("hosting");showHost(n)}
+  else {if(!byName[n])return; showView("players");showPlayer(n)}
+  const card=$({win:"wcard",host:"hcard",player:"pcard"}[kind]);
+  card.closest("section").scrollIntoView({block:"start"});
+  const same=[...card.querySelectorAll(".medal-m[data-hl]")].find(x=>x.dataset.tip===t); if(same)same.click();
+});
+window.__twReady=true;
+if(curView()==="thisweek")renderThisWeek();
 </script>

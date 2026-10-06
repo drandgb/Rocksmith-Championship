@@ -16,6 +16,15 @@ The whole app is one self-contained `index.html`. It has no build step, no serve
 
 ## Tabs
 
+### 📅 This Week
+- Opens on the current week; use ‹ › to step back through earlier weeks.
+- **Back from a break**: who played after missing last week, with the week they last played.
+- **New this week**: first-time players.
+- **Anniversaries**: active players who first joined in this calendar week in an earlier year.
+- **Streaks in danger**: active play streaks with no score yet this week (on past weeks: streaks that ended).
+- **New medals** collected this week. Click one to open it in its lookup. While a week is still running, player medals are provisional and win medals are added once it ends.
+- **Rivals**: each player's closest match, the opponent with the smallest average % gap on the challenges they both played.
+
 ### 🏆 Winners
 - Switch between **All paths / Lead / Rhythm / Bass**.
 - **Hall of fame** podium for the most challenge wins.
