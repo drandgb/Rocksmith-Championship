@@ -1181,7 +1181,7 @@ function renderWins(){
   const list=winEntries().filter(([,v])=>v[0]>=min).map(([n,v])=>[n,Math.round(v[1]/v[0]*1000)/10,v]).sort((a,b)=>b[1]-a[1]||b[2][1]-a[2][1]).slice(0,20);
   $("wrate-sub").textContent=`Top 20 · 1st places per ${wPath<0?"":PATH_WORD[wPath]+" "}challenge entered · min ${min} entries`;
   const max=list.length?list[0][1]:1;
-  $("b-wins").innerHTML=list.map(([n,r,v],i)=>`<div class="brow${i<3?" top":""}${!isActivePlayer(n)?" inactive":""}" style="--c:${STR[(i+1)%6]}"><span class="rk">${i+1}</span><span class="nm" data-player="${esc(n)}" title="${esc(n)}">${esc(n)}</span><span class="act">${actPill(n)}</span><span class="track" data-tip="${v[1]}/${v[0]} · ${v[1]} win${v[1]===1?"":"s"} in ${v[0]} entries" style="cursor:help"><span class="fill" style="width:${Math.max(2,r/max*100)}%;animation-delay:${i*30}ms"></span></span><span class="val">${r}%</span></div>`).join("");
+  $("b-wins").innerHTML=list.map(([n,r,v],i)=>`<div class="brow${i<3?" top":""}${!isActivePlayer(n)?" inactive":""}" style="--c:${STR[(i+1)%6]}"><span class="rk">${i+1}</span><span class="nm" data-player="${esc(n)}" title="${esc(n)}">${esc(n)}</span><span class="act">${actPill(n)}</span><span class="track" data-tip="${v[1]} win${v[1]===1?"":"s"} in ${v[0]} entries" style="cursor:help"><span class="fill" style="width:${Math.max(2,r/max*100)}%;animation-delay:${i*30}ms"></span></span><span class="val">${r}%</span></div>`).join("");
 }
 let ruPath=-1;
 function renderRankups(){
