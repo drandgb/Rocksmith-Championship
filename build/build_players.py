@@ -43,12 +43,13 @@ def is_god(level):
     return l.startswith("god") or "tribute" in l
 
 def god_entries(w):
-    # (path, song, name, %, streak, score) for every entry on a God / tribute card that week
+    # (path, song, name, %, streak) for every entry on a God / tribute card that week. The score column is left out:
+    # hosts sometimes blank a carried-over score (0 one week, empty the next), which isn't a new submission
     out = set()
     for card in sb["weeks"].get(str(w), []):
         if not is_god(card[2]): continue
         for e in card[6]:
-            out.add((card[0], card[3].strip().lower(), sb["names"][e[0]].rstrip("*~").strip(), e[1], e[2], e[3]))
+            out.add((card[0], card[3].strip().lower(), sb["names"][e[0]].rstrip("*~").strip(), e[1], e[2]))
     return out
 
 unknown = collections.Counter()
@@ -59,7 +60,7 @@ for w in range(SB_START, data_week + 1):
         for e in card[6]:
             # a multi-week God challenge keeps last week's scores on the board; an identical entry is not a new
             # submission, so it doesn't count as playing this week
-            if is_god(card[2]) and (card[0], card[3].strip().lower(), sb["names"][e[0]].rstrip("*~").strip(), e[1], e[2], e[3]) in prev_god:
+            if is_god(card[2]) and (card[0], card[3].strip().lower(), sb["names"][e[0]].rstrip("*~").strip(), e[1], e[2]) in prev_god:
                 continue
             raw = sb["names"][e[0]].rstrip("*~").strip()
             raw = ALIAS.get(raw, raw)

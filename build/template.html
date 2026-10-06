@@ -2106,7 +2106,7 @@ let twWeek=TW_MAX;
 const twBits={}; PLAYERS.forEach(p=>twBits[p[0]]=presOf(p));
 // entries on week w's scoreboard, minus scores that only carried over on a multi-week God challenge
 function twEntries(w){
-  const key=(c,e)=>[c[0],c[3].trim().toLowerCase(),SB.names[e[0]].replace(/[*~]+$/,"").trim(),e[1],e[2],e[3]].join("|");
+  const key=(c,e)=>[c[0],c[3].trim().toLowerCase(),SB.names[e[0]].replace(/[*~]+$/,"").trim(),e[1],e[2]].join("|"); // score left out: carried-over scores sometimes get blanked
   const prev=new Set(); (SB.weeks[w-1]||[]).forEach(c=>{if(twIsGod(c[2]))c[6].forEach(e=>prev.add(key(c,e)))});
   const out=[]; (SB.weeks[w]||[]).forEach(c=>c[6].forEach(e=>{if(twIsGod(c[2])&&prev.has(key(c,e)))return; const n=twCanon(SB.names[e[0]]); if(n&&n!=="#REF!"&&n!=="Player Name")out.push({n,c,e})}));
   return out;
@@ -2167,7 +2167,9 @@ function renderThisWeek(){
   const med=[...cand].map(n=>({n,m:twMedals(n,w,live&&set.has(n))})).filter(x=>x.m.length).sort((a,b)=>b.m.length-a.m.length||a.n.localeCompare(b.n));
   // rivals: for each player, the opponent whose % was closest across the challenges they both played this week
   // (lowest average gap; more shared challenges and then closer streaks break ties)
-  const byCard=new Map(); ents.forEach(x=>{if(x.e[1]==null)return; if(!byCard.has(x.c))byCard.set(x.c,[]); byCard.get(x.c).push(x)});
+  // only ranked challenges: players at their own class (no * mark) on a Beginner-Masterclass card, so everyone compared is the same rank
+  const ranked=x=>x.e[4]===0&&!/[*]/.test(SB.names[x.e[0]])&&/^(beg|int|adv|master)/i.test(x.c[2]);
+  const byCard=new Map(); ents.forEach(x=>{if(x.e[1]==null||!ranked(x))return; if(!byCard.has(x.c))byCard.set(x.c,[]); byCard.get(x.c).push(x)});
   const H={}; // H[a][b] = {n, sum, ssum, best:{gap,c,me,them}}
   byCard.forEach((xs,c)=>{for(const a of xs)for(const b of xs){if(a.n===b.n)continue;
     const gap=Math.abs(a.e[1]-b.e[1]), sg=Math.abs((a.e[2]||0)-(b.e[2]||0)), h=((H[a.n]=H[a.n]||{})[b.n]=H[a.n][b.n]||{k:0,sum:0,ssum:0,best:null});
@@ -2195,7 +2197,7 @@ function renderThisWeek(){
   $("tw-dng").innerHTML=dng.length?dng.map(x=>`<li>${twName(x.n)}<span class="dt">${live?"last played":"ended after"} ${twWk(w-1)}</span><span class="rt ${x.k>=52?"crit":x.k>=10?"hot":""}">🔥 ${x.k}<small>week${x.k===1?"":"s"}</small></span></li>`).join(""):twEmpty(live?"Every active streak is safe this week. 🎉":"No streaks ended this week.");
   $("tw-med-sub").textContent=live?"Collected this week · player medals are provisional, win medals are added when the week ends":"Collected this week · click a medal to see it in that lookup";
   $("tw-med").innerHTML=med.length?med.map(x=>`<li>${twName(x.n)}<span class="dt">${twPl(x.m.length,"new medal")}</span><div class="medals">${x.m.join("")}</div></li>`).join(""):twEmpty("No new medals this week.");
-  $("tw-riv-sub").textContent=ents.length?"Each player's closest match: the opponent with the smallest average % gap on the challenges they both played":"";
+  $("tw-riv-sub").textContent=ents.length?"Each player's closest match within their own rank: smallest average % gap on the ranked challenges they both played (no playing up or down, no God challenges)":"";
   const r2=v=>Math.round(v*100)/100;
   $("tw-riv").innerHTML=!SB.weeks[w]?twEmpty(`No scoreboard for week ${w} (scoreboards start at week ${SB_W[0]}).`):pairs.length?pairs.map(r=>{
     const c=r.best.c, g=r2(r.avg);
