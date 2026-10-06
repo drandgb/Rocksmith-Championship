@@ -1215,9 +1215,13 @@ function classGem(p){
   (p[8]||"").toUpperCase().split("").forEach((t,i)=>{if(ord.includes(t)){(seen[t]=seen[t]||new Set()).add(PATHS[i])}});
   (WR.ups||[]).filter(u=>u[0]===n).forEach(u=>[u[2],u[3]].forEach(t=>{if(ord.includes(t))(seen[t]=seen[t]||new Set()).add(PATHS[u[1]])}));
   const top=[...ord].reverse().find(t=>seen[t]); if(!top)return "";
-  return [...ord.slice(0,ord.indexOf(top)+1)].map(tc=>{
-    const col=TIER_C[tc], name=TIER_NAME[tc];
-    const ups=(WR.ups||[]).filter(u=>u[0]===n&&u[3]===tc&&ord.indexOf(u[3])>ord.indexOf(u[2])).map(u=>u[4]), recW=ups.length?Math.min(...ups):null;
+  // first rank-up into each class; gems must be collected in order (Beginner first), so a date later than a higher
+  // class's date means the earlier rank-up wasn't recorded, and that gem goes undated
+  const cls=[...ord.slice(0,ord.indexOf(top)+1)], dated={}; let cap=Infinity;
+  cls.slice().reverse().forEach(tc=>{const ups=(WR.ups||[]).filter(u=>u[0]===n&&u[3]===tc&&ord.indexOf(u[3])>ord.indexOf(u[2])).map(u=>u[4]);
+    const w=ups.length?Math.min(...ups):null; if(w!=null&&w<=cap){dated[tc]=w;cap=w}});
+  return cls.map(tc=>{
+    const col=TIER_C[tc], name=TIER_NAME[tc], recW=dated[tc]??null;
     const top=tc;
     return `<span class="medal-m wm classgem" style="--gc:${col}" data-tip="${name} gem · reached ${name}${tc==="M"?"":" class"} in any path${recW?` (collected Week ${recW})`:""}"><svg viewBox="0 0 30 30" aria-hidden="true"><polygon points="8,3 22,3 29,11 15,28 1,11" fill="${col}"/><polygon points="8,3 22,3 19,11 11,11" fill="rgba(255,255,255,.5)"/><polygon points="1,11 11,11 15,28" fill="rgba(0,0,0,.15)"/><polygon points="29,11 19,11 15,28" fill="rgba(0,0,0,.28)"/><polygon points="11,11 19,11 15,28" fill="rgba(255,255,255,.12)"/><polygon points="8,3 22,3 29,11 15,28 1,11" fill="none" stroke="rgba(0,0,0,.35)" stroke-width=".8"/></svg><b>${top}</b></span>`;
   }).join("");
