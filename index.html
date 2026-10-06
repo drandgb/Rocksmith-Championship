@@ -310,8 +310,8 @@ button.clear:hover{border-color:var(--accent)}
 .nrow .val{font:.8rem var(--f-mono);text-align:right;min-width:5.5em;white-space:nowrap}
 @media (prefers-reduced-motion:no-preference){.view:not([hidden]) .nrow .fill{animation:grow .9s cubic-bezier(.2,.8,.2,1) both}}
 .wpres i[data-wk]{cursor:pointer}
-.wpres.hl i[data-wk]:not(.hit){opacity:.18}
-.wpres i.hit{outline:2px solid var(--fg);outline-offset:1px;position:relative;z-index:1}
+.wpres.hl i[data-wk]:not(.hit),.pres.hl i[data-w]:not(.hit){opacity:.18}
+.wpres i.hit,.pres i.hit{outline:2px solid var(--fg);outline-offset:1px;position:relative;z-index:1}
 .stats div[data-hl]{cursor:pointer;transition:background .15s}
 .stats div[data-hl]:hover{background:color-mix(in srgb,var(--accent) 8%,var(--panel2))}
 .medal-m[data-hl].act{outline:2px solid var(--fg);outline-offset:2px;border-radius:50%}
@@ -1044,13 +1044,20 @@ function showPlayer(name){
   const pres=presOf(p);
   const fw=WEEKS[first-1], lw=WEEKS[latest-1];
   const tierHtml=tiers?["Lead","Rhythm","Bass"].map((k,i)=>{const t=tiers[i].toUpperCase();return `<div class="tier" style="--tc:${TIER_C[t]||"var(--muted)"}"><small>${k}</small><b>${t==="?"?"–":t}</b></div>`}).join(""):`<span class="sub">No skill tiers on the player list</span>`;
+  // runs of consecutive played weeks, for highlighting the best and active streaks
+  const runs=[];let rs=null;
+  for(let i=0;i<=pres.length;i++){const on=pres[i]==="1";if(on&&rs==null)rs=i;if(!on&&rs!=null){runs.push([rs+PRES_START,i-1+PRES_START]);rs=null}}
+  const span=r=>r?Array.from({length:r[1]-r[0]+1},(_,i)=>r[0]+i).join(","):"";
+  let bestR=null;runs.forEach(r=>{if(!bestR||r[1]-r[0]>=bestR[1]-bestR[0])bestR=r});
+  const lastR=runs[runs.length-1], actR=streak>0&&lastR&&lastR[1]-lastR[0]+1===streak?lastR:null;
+  if(bestR&&bestR[1]-bestR[0]+1!==longest)bestR=null;
   // presence grid by calendar year
   const byYear={};
   for(let i=0;i<pres.length;i++){const wk=i+PRES_START, w=WEEKS[wk-1]; if(!w)continue; (byYear[w[1].slice(0,4)]=byYear[w[1].slice(0,4)]||[]).push([wk,pres[i]==="1",w[1]])}
   let grid="";
   Object.keys(byYear).forEach(y=>{
     const arr=byYear[y], off=Math.floor((new Date(arr[0][2]+"T12:00:00")-new Date(y+"-01-01T12:00:00"))/604800000);
-    grid+=`<div class="yr">${y}</div>`+"<i class='pre'></i>".repeat(off)+arr.map(([wk,on])=>`<i class="${on?"on":wk<first?"pre":""}${SB.weeks[wk]?" sbk":""}" ${SB.weeks[wk]?`data-pwk="${wk}"`:""} title="Week ${wk}${on?" · played":""}${SB.weeks[wk]?" · click to open the Scoreboard":""}"></i>`).join("")+"<i class='pre'></i>".repeat(Math.max(0,53-off-arr.length));
+    grid+=`<div class="yr">${y}</div>`+"<i class='pre'></i>".repeat(off)+arr.map(([wk,on])=>`<i data-w="${wk}" class="${on?"on":wk<first?"pre":""}${SB.weeks[wk]?" sbk":""}" ${SB.weeks[wk]?`data-pwk="${wk}"`:""} title="Week ${wk}${on?" · played":""}${SB.weeks[wk]?" · click to open the Scoreboard":""}"></i>`).join("")+"<i class='pre'></i>".repeat(Math.max(0,53-off-arr.length));
   });
   $("pcard").innerHTML=`<div class="pc">
     <div>
@@ -1059,8 +1066,8 @@ function showPlayer(name){
       <div class="stats">
         <div><small>Weeks played</small><b>${played}</b></div>
         <div><small>Latest week</small><b>${latest}</b>${lw?`<span class="sub"> · ${fmt(lw[1])}</span>`:""}</div>
-        <div><small>Active streak</small><b>${streak} wk${streak===1?"":"s"}</b></div>
-        <div><small>Best streak</small><b>${longest} wk${longest===1?"":"s"}</b></div>
+        <div${actR?` data-hl="${span(actR)}" data-tip="(Week ${actR[0]}${actR[1]>actR[0]?`–${actR[1]}`:""})"`:""}><small>Active streak</small><b>${streak} wk${streak===1?"":"s"}</b></div>
+        <div${bestR?` data-hl="${span(bestR)}" data-tip="(Week ${bestR[0]}${bestR[1]>bestR[0]?`–${bestR[1]}`:""})"`:""}><small>Best streak</small><b>${longest} wk${longest===1?"":"s"}</b></div>
         <div><small>First week</small><b>${first}</b>${fw?`<span class="sub"> · ${fmt(fw[1])}</span>`:""}</div>
         <div><small>Play rate</small><b>${(rate*100).toFixed(rate>=1?0:1)}%</b></div>
       </div>
@@ -1068,13 +1075,28 @@ function showPlayer(name){
     </div>
     <div style="min-width:0">
       ${medalsFor(p)}
-      <div class="scroll"><div class="pres">${grid}</div></div>
+      <div class="scroll"><div class="pres" id="ppres">${grid}</div></div>
       <div class="pres-legend"><span><i class="sw" style="background:var(--s-green)"></i>Played</span><span><i class="sw" style="background:var(--panel2)"></i>Missed</span></div>
     </div></div>`;
   $("pq").value=n;
 }
 $("pq").addEventListener("change",e=>showPlayer(e.target.value.trim()));
 $("pcard").addEventListener("click",e=>{
+  const h=e.target.closest("[data-hl]");
+  if(h){
+    const g=$("ppres"), was=h.classList.contains("act");
+    $("pcard").querySelectorAll("[data-hl].act").forEach(x=>x.classList.remove("act"));
+    g.querySelectorAll("i.hit").forEach(x=>x.classList.remove("hit"));
+    g.classList.toggle("hl",!was);
+    if(!was){
+      h.classList.add("act");
+      const set=new Set(h.dataset.hl.split(","));
+      let first=null;
+      g.querySelectorAll("i[data-w]").forEach(x=>{if(set.has(x.dataset.w)){x.classList.add("hit");first=first||x}});
+      if(first){const sc=g.parentElement;sc.scrollTo({left:Math.max(0,first.offsetLeft-sc.clientWidth/3),behavior:"smooth"})}
+    }
+    return;
+  }
   const c=e.target.closest("[data-pwk]"); if(!c)return; e.stopPropagation();
   const w=+c.dataset.pwk; if(!SB.weeks[w])return;
   sbWeek=w; sbFind=$("pq").value.trim(); $("sbfind").value=sbFind;
