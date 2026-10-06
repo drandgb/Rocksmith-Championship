@@ -458,6 +458,8 @@ footer .updated{display:block;margin-top:4px}
 .twl .riv .dt{flex-basis:100%;order:3}
 .twl .riv .rt{order:2}
 .twl .hot{color:var(--s-orange)}
+.stats .rivnm{cursor:pointer;overflow-wrap:anywhere}
+.stats .rivnm:hover{text-decoration:underline}
 .twl .crit{color:var(--s-red)}
 .medals:last-of-type{margin-bottom:10px}
 .medal-m{display:inline-flex;cursor:help}
@@ -852,7 +854,7 @@ footer{color:var(--dim);font-size:.78rem}
     <p class="legendline"><span class="mk">*</span> outside own class (faded = playing down, not counted for wins) · <span class="mk">~</span> FreeBird · <span class="pct100">100%</span> full score or Master Mode · click a name to open their profile</p>
   </div>
 
-  <footer>Data: the Rocksmith 2014 Championship scoreboard sheet (older attendance also from the Championship Metrics workbook). Player stats run through week 675; scoreboards cover weeks 440–676. Weeks 1–16 have no recorded host in the source. <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-06T14:04:05+00:00">October 6, 2026</span></span></footer>
+  <footer>Data: the Rocksmith 2014 Championship scoreboard sheet (older attendance also from the Championship Metrics workbook). Player stats run through week 675; scoreboards cover weeks 440–676. Weeks 1–16 have no recorded host in the source. <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-06T14:15:40+00:00">October 6, 2026</span></span></footer>
 </div>
 <div class="tip" id="tip" hidden></div>
 
@@ -1421,6 +1423,41 @@ function renderRankups(){
 
 // winner lookup: one player's weeks with a win
 const SB_W=Object.keys(SB.weeks).map(Number).sort((a,b)=>a-b);
+// ---------- shared by Winner lookup and This Week: canonical names, God carry-overs and rivals ----------
+const TW_ALIAS={AndreCardoso:"ALSRC",BetterCallJamie:"FlatCap Jay",jasmith85:"FlatCap Jay",aand14:"drand",mattimatti:"mattibassi",Tinman86:"TinMan86"};
+const TW_CANON={}; PLAYERS.forEach(p=>TW_CANON[p[0].toLowerCase()]=p[0]);
+const twCanon=raw=>{let b=raw.replace(/[*~]+$/,"").trim(); b=TW_ALIAS[b]||b; return TW_CANON[b.toLowerCase()]||b};
+const twIsGod=l=>/^god/i.test(l||"")||/tribute/i.test(l||"");
+// entries on week w's scoreboard, minus scores that only carried over on a multi-week God challenge
+function twEntries(w){
+  const key=(c,e)=>[c[0],c[3].trim().toLowerCase(),SB.names[e[0]].replace(/[*~]+$/,"").trim(),e[1],e[2]].join("|"); // score left out: carried-over scores sometimes get blanked
+  const prev=new Set(); (SB.weeks[w-1]||[]).forEach(c=>{if(twIsGod(c[2]))c[6].forEach(e=>prev.add(key(c,e)))});
+  const out=[]; (SB.weeks[w]||[]).forEach(c=>c[6].forEach(e=>{if(twIsGod(c[2])&&prev.has(key(c,e)))return; const n=twCanon(SB.names[e[0]]); if(n&&n!=="#REF!"&&n!=="Player Name")out.push({n,c,e})}));
+  return out;
+}
+// rivals for week w: each player's closest match within their own rank (players at their own class, no * mark,
+// on Beginner-Masterclass challenges): lowest average % gap on the challenges both played, then more shared
+// challenges, then closer streaks. path>=0 limits it to one path. Returns {name: {me, them, avg, savg, k, best}}
+const rivalCache={};
+function rivalsOfWeek(w,path=-1){
+  const ck=w+"|"+path; if(rivalCache[ck])return rivalCache[ck];
+  const ents=twEntries(w).filter(x=>path<0||x.c[0]===path);
+  const ranked=x=>x.e[4]===0&&!/[*]/.test(SB.names[x.e[0]])&&/^(beg|int|adv|master)/i.test(x.c[2]);
+  const byCard=new Map(); ents.forEach(x=>{if(x.e[1]==null||!ranked(x))return; if(!byCard.has(x.c))byCard.set(x.c,[]); byCard.get(x.c).push(x)});
+  const H={};
+  byCard.forEach((xs,c)=>{for(const a of xs)for(const b of xs){if(a.n===b.n)continue;
+    const gap=Math.abs(a.e[1]-b.e[1]), sg=Math.abs((a.e[2]||0)-(b.e[2]||0)), h=((H[a.n]=H[a.n]||{})[b.n]=H[a.n][b.n]||{k:0,sum:0,ssum:0,best:null});
+    h.k++; h.sum+=gap; h.ssum+=sg; if(!h.best||gap<h.best.gap||(gap===h.best.gap&&sg<h.best.sg))h.best={gap,sg,c,me:a,them:b}}});
+  const riv={};
+  Object.entries(H).forEach(([a,opp])=>{let r=null; Object.entries(opp).forEach(([b,h])=>{const avg=h.sum/h.k, savg=h.ssum/h.k;
+    if(!r||avg<r.avg||(avg===r.avg&&(h.k>r.k||(h.k===r.k&&savg<r.savg))))r={me:a,them:b,avg,savg,k:h.k,best:h.best}}); riv[a]=r});
+  return rivalCache[ck]=riv;
+}
+// how often each opponent was a player's rival, over a set of weeks: [[opponent, [weeks]], ...] most often first
+function rivalCounts(name,weeks,path=-1){
+  const m={}; weeks.forEach(w=>{const r=rivalsOfWeek(w,path)[name]; if(r)(m[r.them]=m[r.them]||[]).push(w)});
+  return Object.entries(m).sort((a,b)=>b[1].length-a[1].length||Math.max(...b[1])-Math.max(...a[1]));
+}
 function playerWeekWins(name,p){
   const out={};
   SB_W.forEach(w=>{
@@ -1530,6 +1567,9 @@ function showWinner(name){
         <div${bestRun?` data-tip="${bestRun===1?`(Week ${runEnd})`:`(Week ${runStart}–${runEnd})`}" data-hl="${Array.from({length:bestRun},(_,i)=>runStart+i).join(",")}"`:""}><small>Longest win streak</small><b>${bestRun} wk${bestRun===1?"":"s"}</b></div>
         <div data-tip="Triple crown · won a challenge on Lead, Rhythm and Bass in the same week${trip.reg.length?` · click to highlight ${trip.reg.length===1?"that week":"those weeks"}`:""}"${trip.reg.length?` data-hl="${trip.reg.join(",")}"`:""} style="cursor:${trip.reg.length?"pointer":"help"}"><small>Triple crowns</small><b>${trip.reg.length}</b>${trip.reg.length?`<span class="sub"> · last wk ${trip.reg[trip.reg.length-1]}</span>`:""}</div>
         <div${ties.length?` data-hl="${tieWeeks.join(",")}" data-tip="Won on the tiebreak, same % as the runner-up · Week${tieWeeks.length===1?"":"s"} ${tieWeeks.join(", ")}"`:""}><small>Close wins${where}</small><b>${ties.length}</b><span class="sub"> won on the tiebreak</span></div>
+        ${(()=>{const rc=rivalCounts(twCanon(name),wYear?doneAll.filter(w=>yearOfWeek(w)===wYear):doneAll,wPath); if(!rc.length)return `<div data-tip="Rival = the player's closest match within their own rank in a week (smallest average % gap on the ranked challenges both played)" style="cursor:help"><small>Most common rival${where}</small><b>–</b></div>`;
+          const [rn,rw]=rc[0], top=rc.slice(0,5).map(([n,ws])=>`${n} (${ws.length})`).join(", ");
+          return `<div data-hl="${rw.join(",")}" data-tip="Their closest match within the same rank most often · ${top} · click to highlight the weeks with ${rn}"><small>Most common rival${where}</small><b class="rivnm" data-gowin="${esc(rn)}" data-name="${esc(rn)}" title="Open ${esc(rn)}'s winner profile">${esc(rn)}</b><span class="sub"> · ${rw.length} week${rw.length===1?"":"s"}</span></div>`})()}
       </div>
       <div class="golinks"><button type="button" class="clear" data-profile="${esc(name)}">Open player profile ›</button>${hosts[name]?`<button type="button" class="clear" data-gohost="${esc(name)}">Open host profile ›</button>`:""}</div>
     </div>
@@ -2096,21 +2136,10 @@ $("refreshbtn").addEventListener("click",async()=>{
 // ---------- This Week: who's back, who's new, anniversaries, new medals, streaks in danger and rivals ----------
 // The newest week is "live" while it's still running: attendance for it comes straight from its scoreboard, and its
 // player medals are provisional (win medals are added once the week is over).
-const TW_ALIAS={AndreCardoso:"ALSRC",BetterCallJamie:"FlatCap Jay",jasmith85:"FlatCap Jay",aand14:"drand",mattimatti:"mattibassi",Tinman86:"TinMan86"};
-const TW_CANON={}; PLAYERS.forEach(p=>TW_CANON[p[0].toLowerCase()]=p[0]);
-const twCanon=raw=>{let b=raw.replace(/[*~]+$/,"").trim(); b=TW_ALIAS[b]||b; return TW_CANON[b.toLowerCase()]||b};
-const twIsGod=l=>/^god/i.test(l||"")||/tribute/i.test(l||"");
 const TW_LIVE=cur[0]>DATA_WEEK?cur[0]:null;
 const TW_MIN=3, TW_MAX=Math.max(DATA_WEEK,cur[0]);
 let twWeek=TW_MAX;
 const twBits={}; PLAYERS.forEach(p=>twBits[p[0]]=presOf(p));
-// entries on week w's scoreboard, minus scores that only carried over on a multi-week God challenge
-function twEntries(w){
-  const key=(c,e)=>[c[0],c[3].trim().toLowerCase(),SB.names[e[0]].replace(/[*~]+$/,"").trim(),e[1],e[2]].join("|"); // score left out: carried-over scores sometimes get blanked
-  const prev=new Set(); (SB.weeks[w-1]||[]).forEach(c=>{if(twIsGod(c[2]))c[6].forEach(e=>prev.add(key(c,e)))});
-  const out=[]; (SB.weeks[w]||[]).forEach(c=>c[6].forEach(e=>{if(twIsGod(c[2])&&prev.has(key(c,e)))return; const n=twCanon(SB.names[e[0]]); if(n&&n!=="#REF!"&&n!=="Player Name")out.push({n,c,e})}));
-  return out;
-}
 const twLiveSet=TW_LIVE?new Set(twEntries(TW_LIVE).map(x=>x.n)):new Set();
 // did name play week w?
 const twPlayed=(n,w)=>{if(w===TW_LIVE)return twLiveSet.has(n); const b=twBits[n]; return !!b&&b[w-PRES_START]==="1"};
@@ -2165,18 +2194,7 @@ function renderThisWeek(){
   // new medals
   const cand=new Set(names); if(!live){ann.forEach(a=>cand.add(a.n))} if(W&&W[2]&&hosts[W[2]])cand.add(W[2]);
   const med=[...cand].map(n=>({n,m:twMedals(n,w,live&&set.has(n))})).filter(x=>x.m.length).sort((a,b)=>b.m.length-a.m.length||a.n.localeCompare(b.n));
-  // rivals: for each player, the opponent whose % was closest across the challenges they both played this week
-  // (lowest average gap; more shared challenges and then closer streaks break ties)
-  // only ranked challenges: players at their own class (no * mark) on a Beginner-Masterclass card, so everyone compared is the same rank
-  const ranked=x=>x.e[4]===0&&!/[*]/.test(SB.names[x.e[0]])&&/^(beg|int|adv|master)/i.test(x.c[2]);
-  const byCard=new Map(); ents.forEach(x=>{if(x.e[1]==null||!ranked(x))return; if(!byCard.has(x.c))byCard.set(x.c,[]); byCard.get(x.c).push(x)});
-  const H={}; // H[a][b] = {n, sum, ssum, best:{gap,c,me,them}}
-  byCard.forEach((xs,c)=>{for(const a of xs)for(const b of xs){if(a.n===b.n)continue;
-    const gap=Math.abs(a.e[1]-b.e[1]), sg=Math.abs((a.e[2]||0)-(b.e[2]||0)), h=((H[a.n]=H[a.n]||{})[b.n]=H[a.n][b.n]||{k:0,sum:0,ssum:0,best:null});
-    h.k++; h.sum+=gap; h.ssum+=sg; if(!h.best||gap<h.best.gap||(gap===h.best.gap&&sg<h.best.sg))h.best={gap,sg,c,me:a,them:b}}});
-  const riv={};
-  Object.entries(H).forEach(([a,opp])=>{let r=null; Object.entries(opp).forEach(([b,h])=>{const avg=h.sum/h.k, savg=h.ssum/h.k;
-    if(!r||avg<r.avg||(avg===r.avg&&(h.k>r.k||(h.k===r.k&&savg<r.savg))))r={me:a,them:b,avg,savg,k:h.k,best:h.best}}); riv[a]=r});
+  const riv=SB.weeks[w]?rivalsOfWeek(w):{};
   const pairs=[], done=new Set();
   Object.values(riv).sort((a,b)=>a.avg-b.avg||b.k-a.k||a.savg-b.savg||a.me.localeCompare(b.me)).forEach(r=>{
     if(done.has(r.me))return; const o=riv[r.them], mutual=!!o&&o.them===r.me;
