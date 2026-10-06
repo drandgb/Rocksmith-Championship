@@ -1805,7 +1805,7 @@ function hostMedals(name){
   const ys=Object.keys(yrs).sort();
   // styled like the lunar year medallions: animal of the lunar year that starts in that calendar year, colored by its element
   rows.push(ys.map(y=>{const l=LNY.find(x=>x[0].startsWith(y)), ly=l?{animal:l[1],element:l[2]}:null, col=ly?ELEMENT_COL[ly.element]:"#ffb347";
-    return `<span class="medal-m zod" style="--ec:${col}" data-tip="${y} host medal${ly?` · Year of the ${ly.element} ${ly.animal}`:""} · hosted ${yrs[y].length} week${yrs[y].length===1?"":"s"} in ${y}${rec(yrs[y][0])}"><span class="ani">${ly?ANIMAL_EMOJI[ly.animal]:"🎙️"}</span><b>${y}</b></span>`}));
+    return `<span class="medal-m zod" style="--ec:${col}" data-tip="${y} host medal${ly?` · Year of the ${ly.element} ${ly.animal}`:""}${rec(yrs[y][0])}"><span class="ani">${ly?ANIMAL_EMOJI[ly.animal]:"🎙️"}</span><b>${y}</b></span>`}));
   return hostMedalCache[name]=rows.map((r,i)=>`<div class="medals${i===rows.length-1?" yrm":""}">${r.join("")}</div>`).join("");
 }
 $("filterbar").addEventListener("mousemove",e=>{const p=e.target.closest("[data-tip]");if(!p){tip.hidden=true;return}tip.textContent=p.dataset.tip;tip.hidden=false;placeTip(e.clientX,e.clientY)});
