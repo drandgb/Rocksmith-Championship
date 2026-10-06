@@ -66,6 +66,17 @@ for wk,ch in raw.items():
             rows.append([ni(e[0]),num(e[1]),num(e[2]),num(e[3]),d_])
         out.append([p,s_,l,fixsong(wk,song),num(d) if d is not None else None,ex,rows])
     weeks[wk]=out
+# God / tribute challenges run for 2+ weeks in a row with the same song. Only the final week of the run decides the
+# winner, so a card whose song is still the God challenge next week gets a trailing 1 ("continues") and doesn't count
+# toward wins or entries.
+def is_god(l): l=(l or '').lower(); return l.startswith('god') or 'tribute' in l
+def gkey(c): return (c[0], re.sub(r'\s+',' ',(c[3] or '').strip().lower()))
+CONT=0
+for wk,out in weeks.items():
+    nxt={gkey(c) for c in weeks.get(str(int(wk)+1),[]) if is_god(c[2])}
+    for c in out:
+        if is_god(c[2]) and c[3] and c[3]!='n/a' and gkey(c) in nxt: c.append(1); CONT+=1
+print('God cards that continue into the next week:',CONT)
 json.dump({"names":names,"aka":aka,"weeks":weeks},open('scores.json','w'),separators=(',',':'))
 N=names
 LV='BIAM'
@@ -80,9 +91,10 @@ own2=collections.defaultdict(lambda:collections.defaultdict(collections.Counter)
 win=collections.defaultdict(lambda:[[0,0,0],[0,0,0],[0,0,0]])
 for wk in weeks:
     w=int(wk)
-    for P,slot,l,song,d,ex,ents in weeks[wk]:
+    for card in weeks[wk]:
+        P,slot,l,song,d,ex,ents=card[:7]; cont=len(card)>7 and card[7]
         L=lvl(l)
-        elig=[e for e in ents if e[4]>=0]
+        elig=[e for e in ents if e[4]>=0] if not cont else []   # a God challenge only counts in its final week
         for i,e in enumerate(elig):
             b_=N[e[0]].rstrip('*~')
             if w<=DATA_WEEK:   # only completed weeks count toward win totals
