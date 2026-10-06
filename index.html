@@ -295,6 +295,13 @@ button.clear:hover{border-color:var(--accent)}
 .rulist li{break-inside:avoid}
 .rulist li{display:grid;grid-template-columns:6.4em minmax(0,1fr) auto;gap:10px;align-items:center;padding:7px 0;border-bottom:1px solid color-mix(in srgb,var(--line) 55%,transparent);font-size:.86rem}
 .rulist .w{font-family:var(--f-mono);font-size:.75rem;color:var(--muted);line-height:1.2}
+[data-sbw]{cursor:pointer}
+[data-sbw]:hover,[data-sbw]:hover b{color:var(--accent)}
+.songlink{cursor:pointer}
+.songlink:hover{color:var(--accent)}
+.songf{display:inline-block;font-size:.78rem;font-weight:600;padding:1px 9px;border-radius:999px;background:color-mix(in srgb,var(--accent) 18%,var(--panel2));border:1px solid color-mix(in srgb,var(--accent) 50%,transparent)}
+button.clear.sblatest{border-color:var(--accent);color:var(--accent);font-weight:600}
+button.clear.sblatest:hover{background:var(--accent);color:var(--accent-ink)}
 .rulist .w b{display:block;color:var(--fg);font-family:var(--f-display);font-size:.95rem}
 .rulist .who{min-width:0;overflow-wrap:anywhere}
 .rulist .path{display:inline-block;font:700 .62rem var(--f-display);letter-spacing:.08em;text-transform:uppercase;padding:1px 6px;border-radius:4px;color:var(--bg);background:var(--pc);margin-left:6px;vertical-align:middle}
@@ -733,6 +740,7 @@ footer{color:var(--dim);font-size:.78rem}
           <button type="button" data-path="1" class="s-rhy" aria-pressed="false">Rhythm</button>
           <button type="button" data-path="2" class="s-bass" aria-pressed="false">Bass</button>
         </div>
+        <button type="button" class="clear sblatest" id="sblatest" hidden>Back to latest week ›</button>
         <input id="sbfind" type="search" list="sbnames" placeholder="Highlight a player" aria-label="Highlight a player" autocomplete="off"><datalist id="sbnames"></datalist>
       </div>
       <div class="sbstats" id="sbstats"></div>
@@ -959,7 +967,7 @@ function renderLog(){
   $("logcount").textContent=`${rows.length} week${rows.length===1?"":"s"}`;
   $("logbody").innerHTML=rows.map(([w,i])=>{
     const host=w[2]===LOST?'<span class="dimtxt">No record</span>':w[2]?`<span class="hostcell" data-name="${esc(w[2])}"><span class="sw" style="background:${hc(w[2])}"></span>${esc(w[2])}</span>`:(i>=curIdx?'<span class="pill open">OPEN</span>':'<span class="dimtxt">—</span>');
-    return `<tr class="${i===curIdx?"cur":""}" id="wk-${w[0]}"><td class="w">${w[0]}</td><td class="d">${fmt(w[1])}</td><td>${host}</td><td>${esc(w[3])}</td></tr>`;
+    return `<tr class="${i===curIdx?"cur":""}" id="wk-${w[0]}"><td class="w"${SB.weeks[w[0]]?` data-sbw="${w[0]}" title="Open Week ${w[0]} on the Scoreboard"`:""}>${w[0]}</td><td class="d">${fmt(w[1])}</td><td>${host}</td><td>${esc(w[3])}</td></tr>`;
   }).join("") || `<tr><td colspan="4" class="dimtxt" style="padding:16px 0">No weeks match. Clear the search or pick another year.</td></tr>`;
 }
 
@@ -1275,7 +1283,7 @@ function renderRankups(){
   const list=WR.ups.filter(u=>(ruPath<0||u[1]===ruPath)&&(!activeOnly||isActivePlayer(u[0])));
   const nUp=list.filter(isUp).length, nDown=list.length-nUp;
   $("ru-sub").textContent=`${nUp} ${ruPath<0?"":PATH_WORD[ruPath]+" "}rank-up${nUp===1?"":"s"}${nDown?` and ${nDown} move${nDown===1?"":"s"} down`:""} since week 440 · newest first`;
-  $("rulist").innerHTML=list.map(([n,p,a,b,w])=>{const wk=WEEKS[w-1];return `<li><div class="w"><b>Wk ${w}</b>${wk?fmtShort(wk[1])+", "+wk[1].slice(0,4):""}</div><div class="who"><span data-player="${esc(n)}">${esc(n)}</span><span class="path" style="--pc:${PATH_C[p]}">${PATHS[p]}</span></div><div class="move${LVI.indexOf(b)<LVI.indexOf(a)?" down":""}" title="${TIER_NAME[a]} → ${TIER_NAME[b]}${LVI.indexOf(b)<LVI.indexOf(a)?" (moved down)":""}"><span style="--tc:${TIER_C[a]}">${a}</span><i>${LVI.indexOf(b)<LVI.indexOf(a)?"↘":"↗"}</i><span style="--tc:${TIER_C[b]}">${b}</span></div></li>`}).join("")||`<li class="empty">No rank-ups on this path.</li>`;
+  $("rulist").innerHTML=list.map(([n,p,a,b,w])=>{const wk=WEEKS[w-1];return `<li><div class="w"${SB.weeks[w]?` data-sbw="${w}" data-sbp="${p}" data-sbn="${esc(n)}" title="Open Week ${w} on the Scoreboard"`:""}><b>Wk ${w}</b>${wk?fmtShort(wk[1])+", "+wk[1].slice(0,4):""}</div><div class="who"><span data-player="${esc(n)}">${esc(n)}</span><span class="path" style="--pc:${PATH_C[p]}">${PATHS[p]}</span></div><div class="move${LVI.indexOf(b)<LVI.indexOf(a)?" down":""}" title="${TIER_NAME[a]} → ${TIER_NAME[b]}${LVI.indexOf(b)<LVI.indexOf(a)?" (moved down)":""}"><span style="--tc:${TIER_C[a]}">${a}</span><i>${LVI.indexOf(b)<LVI.indexOf(a)?"↘":"↗"}</i><span style="--tc:${TIER_C[b]}">${b}</span></div></li>`}).join("")||`<li class="empty">No rank-ups on this path.</li>`;
 }
 
 // winner lookup: one player's weeks with a win
@@ -1507,6 +1515,7 @@ function sbRender(){
   $("sbweek").value=sbWeek;
   $("sbprev").disabled=sbWeek===SB_WEEKS[SB_WEEKS.length-1];
   $("sbnext").disabled=sbWeek===SB_WEEKS[0];
+  $("sblatest").hidden=sbWeek===SB_WEEKS[0]; $("sblatest").textContent=`Back to latest week (${SB_WEEKS[0]}) ›`;
   $("sbmeta").innerHTML=wk?`${fmt(wk[1])}${wk[2]&&wk[2]!==LOST?` · hosted by <b>${esc(wk[2])}</b>`:""}`:"";
   document.querySelectorAll("#sbseg button").forEach(b=>b.setAttribute("aria-pressed",+b.dataset.path===sbPath));
   const all=ch.flatMap(c=>c[6]), players=new Set(all.map(e=>SB.names[e[0]].replace(/[*~]+$/,"")));
@@ -1559,7 +1568,7 @@ const tierOf=l=>/^god/i.test(l)?"G":/master/i.test(l)?"M":/^adv/i.test(l)?"A":/^
 // level from the difficulty rating when there is one: under 4 Beginner, 4–5.5 Intermediate, 6–7.5 Advanced, 8–9.5 Masterclass, 10+ God tier
 const tierByRating=(t,d)=>d==null||d<=0?t:d<4?"B":d<6?"I":d<8?"A":d<10?"M":"G";
 const splitSong=t=>{const i=t.indexOf(" - ");return i>0?[t.slice(0,i).trim(),t.slice(i+3).trim()]:["Unknown",t.trim()]};
-let sPath=-1, songCards=[], bandName=null, bandTier=null, bandPathF=null;
+let sPath=-1, songCards=[], bandName=null, bandTier=null, bandPathF=null, bandSong=null;
 function renderSongs(){
   TIER_LABEL.G=sPath<0?"God tier":["God of Guitar","God of Rhythm","God of Bass"][sPath];
   document.querySelectorAll("#spath button").forEach(b=>b.setAttribute("aria-pressed",+b.dataset.sp===sPath));
@@ -1598,14 +1607,14 @@ function renderSongs(){
   $("songlist").innerHTML=topSongs.map(([sg,n,v])=>{const [a,ti]=splitSong(sg); const tiers=[...new Set(v.map(c=>c.t))].sort((x,y)=>TIER_ORDER.indexOf(x)-TIER_ORDER.indexOf(y));
     const who={}; v.forEach(c=>(c.who||[]).forEach(n=>{(who[n]=who[n]||new Set()).add(c.p)}));
     const tipTxt=`${ti} — ${Object.keys(who).length} players\n`+Object.entries(who).sort((a,b)=>b[1].size-a[1].size||a[0].localeCompare(b[0])).map(([n,ps])=>`${n} · ${[...ps].sort().map(p=>PATHS[p]).join(", ")}`).join("\n");
-    return `<li data-tip="${esc(tipTxt)}"><div><b>${esc(ti)}</b><small><span data-band="${esc(a)}" class="bandlink">${esc(a)}</span> · ${v.length} challenge${v.length===1?"":"s"}</small><div class="chips">${tiers.map(t=>`<span class="lvchip" style="--tc:${TIER_COL[t]}">${TIER_LABEL[t]}</span>`).join("")}</div></div><span class="cnt"><b>${n}</b>players attempted</span></li>`}).join("");
+    return `<li data-tip="${esc(tipTxt)}"><div><b class="songlink" data-band="${esc(a)}" data-song="${esc(ti)}">${esc(ti)}</b><small><span data-band="${esc(a)}" class="bandlink">${esc(a)}</span> · ${v.length} challenge${v.length===1?"":"s"}</small><div class="chips">${tiers.map(t=>`<span class="lvchip" style="--tc:${TIER_COL[t]}">${TIER_LABEL[t]}</span>`).join("")}</div></div><span class="cnt"><b>${n}</b>players attempted</span></li>`}).join("");
   // a multi-week God challenge (same song in back-to-back weeks as a God challenge) counts as one play
   const plays=(ws,v)=>{let n=0,prev=null;const god=w=>v.some(c=>c.w===w&&c.card==="G");ws.forEach(w=>{if(!(prev!=null&&w===prev+1&&god(w)&&god(prev)))n++;prev=w});return n};
   const replay=Object.entries(songs).map(([sg,v])=>{const ws=[...new Set(v.map(c=>c.w))].sort((a,b)=>a-b);return [sg,ws,v,plays(ws,v)]}).filter(x=>x[3]>1).sort((a,b)=>b[3]-a[3]||b[1][b[1].length-1]-a[1][a[1].length-1]).slice(0,20);
   $("replaylist").innerHTML=replay.map(([sg,ws,v,np])=>{const [a,ti]=splitSong(sg);
     const lines=ws.slice().reverse().map(w=>{const cs=v.filter(c=>c.w===w);return `Week ${w} · `+cs.map(c=>`${PATHS[c.p]} ${TIER_LABEL[c.t]}${c.diff!=null?" ("+c.diff+")":""}`).join(", ")});
     const tipTxt=`${ti} — played ${np} times over ${ws.length} weeks\n`+lines.join("\n");
-    return `<li data-tip="${esc(tipTxt)}"><div><b>${esc(ti)}</b><small><span data-band="${esc(a)}" class="bandlink">${esc(a)}</span> · first wk ${ws[0]} · latest wk ${ws[ws.length-1]}</small><div class="chips">${[...new Set(v.map(c=>c.t))].sort((x,y)=>TIER_ORDER.indexOf(x)-TIER_ORDER.indexOf(y)).map(t=>`<span class="lvchip" style="--tc:${TIER_COL[t]}">${TIER_LABEL[t]}</span>`).join("")}</div></div><span class="cnt"><b>${np}</b>times played</span></li>`}).join("")||`<li class="empty">No songs have been used in more than one week.</li>`;
+    return `<li data-tip="${esc(tipTxt)}"><div><b class="songlink" data-band="${esc(a)}" data-song="${esc(ti)}">${esc(ti)}</b><small><span data-band="${esc(a)}" class="bandlink">${esc(a)}</span> · first wk ${ws[0]} · latest wk ${ws[ws.length-1]}</small><div class="chips">${[...new Set(v.map(c=>c.t))].sort((x,y)=>TIER_ORDER.indexOf(x)-TIER_ORDER.indexOf(y)).map(t=>`<span class="lvchip" style="--tc:${TIER_COL[t]}">${TIER_LABEL[t]}</span>`).join("")}</div></div><span class="cnt"><b>${np}</b>times played</span></li>`}).join("")||`<li class="empty">No songs have been used in more than one week.</li>`;
   $("bqlist").innerHTML=Object.entries(bands).sort((a,b)=>b[1].length-a[1].length).map(([a])=>`<option value="${esc(a)}"></option>`).join("");
   showBand(bandName&&bands[bandName]?bandName:featured[0][0]);
   try{localStorage.setItem("rsc-spath",String(sPath))}catch(e){}
@@ -1613,13 +1622,14 @@ function renderSongs(){
 function showBand(name){
   const list=songCards.filter(c=>c.artist.toLowerCase()===String(name).toLowerCase());
   if(!list.length){$("bcard").innerHTML=`<div class="empty">No challenges for “${esc(name)}”${sPath<0?"":" on "+PATHS[sPath]}. Pick a band from the list as you type.</div>`;return}
-  if(list[0].artist!==bandName){bandTier=null;bandPathF=null;}
+  if(list[0].artist!==bandName){bandTier=null;bandPathF=null;bandSong=null;}
   name=list[0].artist; bandName=name; $("bq").value=name;
   const rated=list.filter(c=>c.diff!=null&&c.diff>0), avg=rated.length?rated.reduce((a,c)=>a+c.diff,0)/rated.length:null;
   const scores=list.reduce((a,c)=>a+(c.n||0),0);
   if(bandTier&&!list.some(c=>c.t===bandTier))bandTier=null;
   if(bandPathF!=null&&!list.some(c=>c.p===bandPathF))bandPathF=null;
-  const shown=list.filter(c=>(!bandTier||c.t===bandTier)&&(bandPathF==null||c.p===bandPathF));
+  if(bandSong&&!list.some(c=>c.title.toLowerCase()===bandSong.toLowerCase()))bandSong=null;
+  const shown=list.filter(c=>(!bandTier||c.t===bandTier)&&(bandPathF==null||c.p===bandPathF)&&(!bandSong||c.title.toLowerCase()===bandSong.toLowerCase()));
   const bySong={}; shown.forEach(c=>(bySong[c.title]=bySong[c.title]||[]).push(c));
   const lastW=v=>Math.max(...v.map(c=>c.w));
   const songsArr=Object.entries(bySong).sort((a,b)=>lastW(b[1])-lastW(a[1])||a[0].localeCompare(b[0]));
@@ -1632,7 +1642,7 @@ function showBand(name){
       <div class="tierbar">${tierCount.map(([t,k])=>`<span style="--tc:${TIER_COL[t]};width:${k/tierTotal*100}%" title="${TIER_LABEL[t]}: ${k} song${k===1?"":"s"}"></span>`).join("")}</div>
       <div class="chips bchips">${(()=>{const pill=([t,k])=>`<button type="button" class="lvchip lvbtn${bandTier===t?" sel":""}" data-btier="${t}" aria-pressed="${bandTier===t}" style="--tc:${TIER_COL[t]}" title="${k} different song${k===1?"":"s"} at ${TIER_LABEL[t]} · click to show only these">${TIER_LABEL[t]}</button>`;
         const r1=tierCount.filter(([t])=>"BIA".includes(t)).map(pill).join(""), r2=tierCount.filter(([t])=>"MG".includes(t)).map(pill).join("");
-        return `${r1?`<div class="brow1">${r1}</div>`:""}${r2||bandTier?`<div class="brow1">${r2}${bandTier?`<button type="button" class="clear" data-btier="" style="padding:1px 8px;font-size:.72rem">Show all levels</button>`:""}</div>`:""}${bandPathF!=null?`<div class="brow1"><span class="pth" style="--pc:${PATH_C[bandPathF]}">${PATHS[bandPathF]} only</span><button type="button" class="clear" data-bpath="" style="padding:1px 8px;font-size:.72rem">Show all paths</button></div>`:""}`})()}</div>
+        return `${r1?`<div class="brow1">${r1}</div>`:""}${r2||bandTier?`<div class="brow1">${r2}${bandTier?`<button type="button" class="clear" data-btier="" style="padding:1px 8px;font-size:.72rem">Show all levels</button>`:""}</div>`:""}${bandPathF!=null?`<div class="brow1"><span class="pth" style="--pc:${PATH_C[bandPathF]}">${PATHS[bandPathF]} only</span><button type="button" class="clear" data-bpath="" style="padding:1px 8px;font-size:.72rem">Show all paths</button></div>`:""}${bandSong?`<div class="brow1"><span class="songf">♪ ${esc(bandSong)}</span><button type="button" class="clear" data-bsong="" style="padding:1px 8px;font-size:.72rem">Show all songs</button></div>`:""}`})()}</div>
       <div class="stats">
         <div><small>Challenges</small><b>${list.length}</b></div>
         <div><small>Different songs</small><b>${songsArr.length}</b></div>
@@ -1648,9 +1658,9 @@ function showBand(name){
     }</tbody></table></div></div></div>`;
 }
 $("bq").addEventListener("change",e=>showBand(e.target.value.trim()));
-$("bcard").addEventListener("click",e=>{const bp=e.target.closest("[data-bpath]");if(bp){e.stopPropagation();const p=bp.dataset.bpath===""?null:+bp.dataset.bpath;bandPathF=(p!=null&&bandPathF!==p)?p:null;showBand(bandName);return}const b=e.target.closest("[data-btier]");if(!b)return;e.stopPropagation();const t=b.dataset.btier||null;bandTier=(t&&bandTier!==t)?t:null;showBand(bandName)});
+$("bcard").addEventListener("click",e=>{const bs=e.target.closest("[data-bsong]");if(bs){e.stopPropagation();bandSong=null;showBand(bandName);return}const bp=e.target.closest("[data-bpath]");if(bp){e.stopPropagation();const p=bp.dataset.bpath===""?null:+bp.dataset.bpath;bandPathF=(p!=null&&bandPathF!==p)?p:null;showBand(bandName);return}const b=e.target.closest("[data-btier]");if(!b)return;e.stopPropagation();const t=b.dataset.btier||null;bandTier=(t&&bandTier!==t)?t:null;showBand(bandName)});
 $("bq").addEventListener("keydown",e=>{if(e.key==="Enter")showBand(e.target.value.trim())});
-$("view-songs").addEventListener("click",e=>{const el=e.target.closest("[data-band],[data-player]");if(!el)return;showBand(el.dataset.band||el.dataset.player);if(el.dataset.ltier){bandTier=el.dataset.ltier;bandPathF=null;showBand(bandName)}$("bcard").closest("section").scrollIntoView({behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth",block:"start"})});
+$("view-songs").addEventListener("click",e=>{const el=e.target.closest("[data-band],[data-player]");if(!el)return;showBand(el.dataset.band||el.dataset.player);if(el.dataset.song){bandSong=el.dataset.song;bandTier=null;bandPathF=null;showBand(bandName)}if(el.dataset.ltier){bandTier=el.dataset.ltier;bandPathF=null;showBand(bandName)}$("bcard").closest("section").scrollIntoView({behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth",block:"start"})});
 $("spath").addEventListener("click",e=>{const b=e.target.closest("button[data-sp]");if(b){sPath=+b.dataset.sp;renderSongs()}});
 try{const r=localStorage.getItem("rsc-spath");if(r!==null&&["0","1","2"].includes(r))sPath=+r}catch(e){}
 renderSongs();
@@ -1674,6 +1684,7 @@ function activeFilters(){
   if(v==="songs"){
     if(sPath>=0)f.push([`Path: ${PATHS[sPath]}`,()=>document.querySelector('#spath [data-sp="-1"]').click()]);
     if(bandName&&bandTier)f.push([`Band lookup: ${TIER_LABEL[bandTier]||bandTier}`,()=>{bandTier=null;showBand(bandName)}]);
+    if(bandName&&bandSong)f.push([`Band lookup: ${bandSong}`,()=>{bandSong=null;showBand(bandName)}]);
     if(bandName&&bandPathF!=null)f.push([`Band lookup: ${PATHS[bandPathF]}`,()=>{bandPathF=null;showBand(bandName)}]);
   }
   if(v==="scores"&&sbFind)f.push([`Player: ${sbFind}`,()=>{sbFind="";$("sbfind").value="";sbRender()}]);
@@ -1850,4 +1861,16 @@ if(matchMedia("(hover: hover)").matches){
   addEventListener("scroll",()=>{mcard.hidden=true},{passive:true});
   document.addEventListener("click",()=>{mcard.hidden=true},true);
 }
+
+// ---------- week numbers in Rank changes and the Week log open that week on the Scoreboard ----------
+document.addEventListener("click",e=>{
+  const c=e.target.closest("[data-sbw]"); if(!c)return;
+  const w=+c.dataset.sbw; if(!SB.weeks[w])return;
+  e.stopPropagation(); tip.hidden=true;
+  sbWeek=w; if(c.dataset.sbp!=null)sbPath=+c.dataset.sbp;
+  if(c.dataset.sbn){sbFind=c.dataset.sbn;$("sbfind").value=sbFind}
+  showView("scores"); sbRender(); scrollTo({top:0});
+},true);
+
+$("sblatest").addEventListener("click",()=>{sbWeek=SB_WEEKS[0];sbRender()});
 </script>
