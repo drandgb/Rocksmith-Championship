@@ -318,6 +318,10 @@ button.clear:hover{border-color:var(--accent)}
 .holf.sel{color:var(--accent);font-weight:600}
 .holbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 10px;font-size:.86rem}
 .holbar b{color:var(--accent)}
+.lvfilter{display:flex;align-items:center;gap:8px;margin:-4px 0 10px}
+.lvfilter:empty{display:none}
+.songlist .lvchip.lvbtn{cursor:pointer}
+.songlist .lvchip.lvbtn.sel{outline:2px solid var(--fg);outline-offset:1px}
 .songlink{cursor:pointer}
 .songlink:hover{color:var(--accent)}
 .songf{display:inline-block;font-size:.78rem;font-weight:600;padding:1px 9px;border-radius:999px;background:color-mix(in srgb,var(--accent) 18%,var(--panel2));border:1px solid color-mix(in srgb,var(--accent) 50%,transparent)}
@@ -745,11 +749,13 @@ footer{color:var(--dim);font-size:.78rem}
 
   <section class="panel">
     <div class="panel-head"><h2>Most played songs</h2><span class="sub">Top 20 · different players who posted a score on the song since week 440</span></div>
+    <div class="lvfilter" id="sl-f"></div>
     <ol class="songlist" id="songlist"></ol>
   </section>
 
   <section class="panel">
     <div class="panel-head"><h2>Most replayed songs</h2><span class="sub">Top 20 · songs brought back the most times · a multi-week God challenge counts once</span></div>
+    <div class="lvfilter" id="rl-f"></div>
     <ol class="songlist" id="replaylist"></ol>
   </section>
   </div>
@@ -1616,7 +1622,7 @@ const tierOf=l=>/^god/i.test(l)?"G":/master/i.test(l)?"M":/^adv/i.test(l)?"A":/^
 // level from the difficulty rating when there is one: under 4 Beginner, 4–5.5 Intermediate, 6–7.5 Advanced, 8–9.5 Masterclass, 10+ God tier
 const tierByRating=(t,d)=>d==null||d<=0?t:d<4?"B":d<6?"I":d<8?"A":d<10?"M":"G";
 const splitSong=t=>{const i=t.indexOf(" - ");return i>0?[t.slice(0,i).trim(),t.slice(i+3).trim()]:["Unknown",t.trim()]};
-let sPath=-1, songCards=[], bandName=null, bandTier=null, bandPathF=null, bandSong=null;
+let sPath=-1, songCards=[], bandName=null, bandTier=null, bandPathF=null, bandSong=null, lvlPlayed=null, lvlReplay=null;
 function renderSongs(){
   TIER_LABEL.G=sPath<0?"God tier":["God of Guitar","God of Rhythm","God of Bass"][sPath];
   document.querySelectorAll("#spath button").forEach(b=>b.setAttribute("aria-pressed",+b.dataset.sp===sPath));
@@ -1651,20 +1657,25 @@ function renderSongs(){
   const easy=Object.entries(bands).map(([a,v])=>{const d=v.filter(c=>c.diff!=null);return [a,d.length?d.reduce((s,c)=>s+c.diff,0)/d.length:0,d.length]}).filter(x=>x[2]>=5).sort((a,b)=>a[1]-b[1]).slice(0,20).map(([a,d])=>[a,Math.round(d*10)/10]);
   {const max=Math.max(...easy.map(x=>x[1]));
    $("b-easy").innerHTML=easy.map(([n,x],i)=>`<div class="brow${i<3?" top":""} notag" style="--c:var(--s-green)"><span class="rk">${i+1}</span><span class="nm" data-band="${esc(n)}" title="${esc(n)}">${esc(n)}</span><span class="track"><span class="fill" style="width:${Math.max(2,x/10*100)}%;animation-delay:${i*30}ms"></span></span><span class="val">${x}</span></div>`).join("");}
-  const topSongs=Object.entries(songs).map(([sg,v])=>[sg,new Set(v.flatMap(c=>c.who||[])).size,v]).filter(x=>x[1]>0).sort((a,b)=>b[1]-a[1]||b[2].length-a[2].length).slice(0,20);
+  // a level pill in either list narrows that list to challenges at that level
+  const byLvl=lv=>Object.entries(songs).map(([sg,v])=>[sg,lv?v.filter(c=>c.t===lv):v]).filter(([,v])=>v.length);
+  const lvPill=(t,attr,sel)=>`<span class="lvchip lvbtn${sel===t?" sel":""}" data-${attr}="${t}" style="--tc:${TIER_COL[t]}" title="${sel===t?"Show all levels":`Show only ${TIER_LABEL[t]} challenges`}">${TIER_LABEL[t]}</span>`;
+  const lvNote=(id,lv,attr)=>{$(id).innerHTML=lv?`<span class="lvchip" style="--tc:${TIER_COL[lv]}">${TIER_LABEL[lv]} only</span><button type="button" class="clear" data-${attr}="" style="padding:1px 8px;font-size:.72rem">Show all levels</button>`:""};
+  lvNote("sl-f",lvlPlayed,"lvp"); lvNote("rl-f",lvlReplay,"lvr");
+  const topSongs=byLvl(lvlPlayed).map(([sg,v])=>[sg,new Set(v.flatMap(c=>c.who||[])).size,v]).filter(x=>x[1]>0).sort((a,b)=>b[1]-a[1]||b[2].length-a[2].length).slice(0,20);
   $("songlist").innerHTML=topSongs.map(([sg,n,v])=>{const [a,ti]=splitSong(sg); const tiers=[...new Set(v.map(c=>c.t))].sort((x,y)=>TIER_ORDER.indexOf(x)-TIER_ORDER.indexOf(y));
     const who={}; v.forEach(c=>(c.who||[]).forEach(n=>{(who[n]=who[n]||new Set()).add(c.p)}));
     // players grouped by the week they played it, latest week first
     const byWk={}; v.forEach(c=>(c.who||[]).forEach(n=>{const m=(byWk[c.w]=byWk[c.w]||{});(m[n]=m[n]||new Set()).add(c.p)}));
     const tipTxt=`${ti} — ${Object.keys(who).length} players\n`+Object.keys(byWk).map(Number).sort((a,b)=>b-a).map(w=>`\nWeek ${w}\n`+Object.entries(byWk[w]).sort((a,b)=>b[1].size-a[1].size||a[0].localeCompare(b[0])).map(([n,ps])=>`• ${n} · ${[...ps].sort().map(p=>PATHS[p]).join(", ")}`).join("\n")).join("\n");
-    return `<li data-tip="${esc(tipTxt)}"><div><b class="songlink" data-band="${esc(a)}" data-song="${esc(ti)}">${esc(ti)}</b><small><span data-band="${esc(a)}" class="bandlink">${esc(a)}</span> · ${v.length} challenge${v.length===1?"":"s"}</small><div class="chips">${tiers.map(t=>`<span class="lvchip" style="--tc:${TIER_COL[t]}">${TIER_LABEL[t]}</span>`).join("")}</div></div><span class="cnt"><b>${n}</b>players attempted</span></li>`}).join("");
+    return `<li data-tip="${esc(tipTxt)}"><div><b class="songlink" data-band="${esc(a)}" data-song="${esc(ti)}">${esc(ti)}</b><small><span data-band="${esc(a)}" class="bandlink">${esc(a)}</span> · ${v.length} challenge${v.length===1?"":"s"}</small><div class="chips">${tiers.map(t=>lvPill(t,"lvp",lvlPlayed)).join("")}</div></div><span class="cnt"><b>${n}</b>players attempted</span></li>`}).join("");
   // a multi-week God challenge (same song in back-to-back weeks as a God challenge) counts as one play
   const plays=(ws,v)=>{let n=0,prev=null;const god=w=>v.some(c=>c.w===w&&c.card==="G");ws.forEach(w=>{if(!(prev!=null&&w===prev+1&&god(w)&&god(prev)))n++;prev=w});return n};
-  const replay=Object.entries(songs).map(([sg,v])=>{const ws=[...new Set(v.map(c=>c.w))].sort((a,b)=>a-b);return [sg,ws,v,plays(ws,v)]}).filter(x=>x[3]>1).sort((a,b)=>b[3]-a[3]||b[1][b[1].length-1]-a[1][a[1].length-1]).slice(0,20);
+  const replay=byLvl(lvlReplay).map(([sg,v])=>{const ws=[...new Set(v.map(c=>c.w))].sort((a,b)=>a-b);return [sg,ws,v,plays(ws,v)]}).filter(x=>x[3]>1).sort((a,b)=>b[3]-a[3]||b[1][b[1].length-1]-a[1][a[1].length-1]).slice(0,20);
   $("replaylist").innerHTML=replay.map(([sg,ws,v,np])=>{const [a,ti]=splitSong(sg);
     const lines=ws.slice().reverse().map(w=>{const cs=v.filter(c=>c.w===w);return `Week ${w} · `+cs.map(c=>`${PATHS[c.p]} ${TIER_LABEL[c.t]}${c.diff!=null?" ("+c.diff+")":""}`).join(", ")});
     const tipTxt=`${ti} — played ${np} times over ${ws.length} weeks\n`+lines.join("\n");
-    return `<li data-tip="${esc(tipTxt)}"><div><b class="songlink" data-band="${esc(a)}" data-song="${esc(ti)}">${esc(ti)}</b><small><span data-band="${esc(a)}" class="bandlink">${esc(a)}</span> · first wk ${ws[0]} · latest wk ${ws[ws.length-1]}</small><div class="chips">${[...new Set(v.map(c=>c.t))].sort((x,y)=>TIER_ORDER.indexOf(x)-TIER_ORDER.indexOf(y)).map(t=>`<span class="lvchip" style="--tc:${TIER_COL[t]}">${TIER_LABEL[t]}</span>`).join("")}</div></div><span class="cnt"><b>${np}</b>times played</span></li>`}).join("")||`<li class="empty">No songs have been used in more than one week.</li>`;
+    return `<li data-tip="${esc(tipTxt)}"><div><b class="songlink" data-band="${esc(a)}" data-song="${esc(ti)}">${esc(ti)}</b><small><span data-band="${esc(a)}" class="bandlink">${esc(a)}</span> · first wk ${ws[0]} · latest wk ${ws[ws.length-1]}</small><div class="chips">${[...new Set(v.map(c=>c.t))].sort((x,y)=>TIER_ORDER.indexOf(x)-TIER_ORDER.indexOf(y)).map(t=>lvPill(t,"lvr",lvlReplay)).join("")}</div></div><span class="cnt"><b>${np}</b>times played</span></li>`}).join("")||`<li class="empty">No songs have been used in more than one week.</li>`;
   $("bqlist").innerHTML=Object.entries(bands).sort((a,b)=>b[1].length-a[1].length).map(([a])=>`<option value="${esc(a)}"></option>`).join("");
   showBand(bandName&&bands[bandName]?bandName:featured[0][0]);
   try{localStorage.setItem("rsc-spath",String(sPath))}catch(e){}
@@ -1735,6 +1746,8 @@ function activeFilters(){
   if(v==="songs"){
     if(sPath>=0)f.push([`Path: ${PATHS[sPath]}`,()=>document.querySelector('#spath [data-sp="-1"]').click()]);
     if(bandName&&bandTier)f.push([`Band lookup: ${TIER_LABEL[bandTier]||bandTier}`,()=>{bandTier=null;showBand(bandName)}]);
+    if(lvlPlayed)f.push([`Most played: ${TIER_LABEL[lvlPlayed]}`,()=>{lvlPlayed=null;renderSongs()}]);
+    if(lvlReplay)f.push([`Most replayed: ${TIER_LABEL[lvlReplay]}`,()=>{lvlReplay=null;renderSongs()}]);
     if(bandName&&bandSong)f.push([`Band lookup: ${bandSong}`,()=>{bandSong=null;showBand(bandName)}]);
     if(bandName&&bandPathF!=null)f.push([`Band lookup: ${PATHS[bandPathF]}`,()=>{bandPathF=null;showBand(bandName)}]);
   }
@@ -1991,4 +2004,12 @@ $("refreshbtn").addEventListener("click",async()=>{
  Promise.all(["quick-update.yml","full-rescan.yml"].map(f=>fetch(api+f+"/runs?status=success&per_page=1").then(r=>r.ok?r.json():null).catch(()=>null)))
    .then(rs=>{const t=rs.flatMap(r=>r&&r.workflow_runs||[]).map(x=>new Date(x.updated_at)).filter(d=>!isNaN(d)).sort((a,b)=>b-a)[0];
      if(t&&t>new Date(el.dataset.iso))show(t)});}
+
+// ---------- level pills in Most played / Most replayed songs filter that list ----------
+["sl-f","rl-f","songlist","replaylist"].forEach(id=>$(id).addEventListener("click",e=>{
+  const b=e.target.closest("[data-lvp],[data-lvr]"); if(!b)return; e.stopPropagation(); tip.hidden=true;
+  if(b.dataset.lvp!=null){const t=b.dataset.lvp||null; lvlPlayed=(t&&lvlPlayed!==t)?t:null}
+  else {const t=b.dataset.lvr||null; lvlReplay=(t&&lvlReplay!==t)?t:null}
+  renderSongs(); updateBubble();
+}));
 </script>
