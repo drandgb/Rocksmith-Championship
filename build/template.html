@@ -1015,6 +1015,8 @@ const isActivePlayer=n=>{const p=byName[n];return !!p&&DATA_WEEK-p[2]<ACTIVE_PLA
 const NEW_YEAR=(WEEKS[DATA_WEEK-1]||WEEKS[WEEKS.length-1])[1].slice(0,4);
 const NEW_WINDOW=52;
 const isNewPlayer=n=>{const p=byName[n];return !!p&&DATA_WEEK-p[1]<NEW_WINDOW};
+// empty space the size of a NEW pill, so every row of rings is the same height
+const RING_PILL_SPACE=`<span class="pill new" style="visibility:hidden" aria-hidden="true">NEW</span>`;
 const newPill=n=>isNewPlayer(n)?`<span class="pill new" data-tip="Joined in the last ${NEW_WINDOW} weeks (around 1 year).">NEW</span>`:"";
 const actPill=n=>isNewPlayer(n)?newPill(n):(isActivePlayer(n)?`<span class="pill on" data-tip="Played at least once in the last ${ACTIVE_PLAYER_WINDOW} weeks (around 1 year).">ACTIVE</span>`:(byName[n]?`<span class="pill off" data-tip="Hasn't played in the last ${ACTIVE_PLAYER_WINDOW} weeks (around 1 year).">INACTIVE</span>`:""));
 const STR=["var(--s-red)","var(--s-yellow)","var(--s-blue)","var(--s-orange)","var(--s-green)","var(--s-purple)"];
@@ -1037,14 +1039,14 @@ function renderRecords(){
   const R=34, C=2*Math.PI*R;
   $("rings").innerHTML=RECORDS["Highest play rates"].map(([n,v],i)=>{
     const p=numOf(v), full=p>=100, col=rateColor(p);
-    return `<div class="ring${full?" full":""}"><svg viewBox="0 0 84 84" role="img" aria-label="${esc(n)} ${p}%"><circle class="rt" cx="42" cy="42" r="${R}"/><circle class="rv" cx="42" cy="42" r="${R}" stroke="${col}" stroke-dasharray="${C.toFixed(1)}" stroke-dashoffset="${(C*(1-p/100)).toFixed(1)}"/><text x="42" y="42">${p%1===0?p:p.toFixed(1)}%</text></svg><span class="nmrow"><span class="nm" data-player="${esc(n)}">${esc(n)}</span>${newPill(n)}</span></div>`;
+    return `<div class="ring${full?" full":""}"><svg viewBox="0 0 84 84" role="img" aria-label="${esc(n)} ${p}%"><circle class="rt" cx="42" cy="42" r="${R}"/><circle class="rv" cx="42" cy="42" r="${R}" stroke="${col}" stroke-dasharray="${C.toFixed(1)}" stroke-dashoffset="${(C*(1-p/100)).toFixed(1)}"/><text x="42" y="42">${p%1===0?p:p.toFixed(1)}%</text></svg><span class="nmrow"><span class="nm" data-player="${esc(n)}">${esc(n)}</span>${newPill(n)||RING_PILL_SPACE}</span></div>`;
   }).join("");
   {const Y=52, from=DATA_WEEK-Y+1;
    const yr=PLAYERS.map(p=>{const b=presOf(p);let c=0;for(let w=from;w<=DATA_WEEK;w++)if(b[w-PRES_START]==="1")c++;return [p[0],c,p[3]]}).filter(x=>x[1]>0).sort((a,b)=>b[1]-a[1]||b[2]-a[2]).slice(0,20);
    const W1=WEEKS[from-1], W2=WEEKS[DATA_WEEK-1];
    $("yr-sub").textContent=`Top 20 · weeks played out of the last ${Y} (weeks ${from}–${DATA_WEEK}${W1&&W2?", "+fmtShort(W1[1])+" "+W1[1].slice(0,4)+" – "+fmtShort(W2[1])+" "+W2[1].slice(0,4):""})`;
    $("yrings").innerHTML=yr.map(([n,c])=>{const p=c/Y*100, col=p>=75?"var(--s-green)":p>=50?"var(--s-blue)":p>=25?"var(--s-orange)":"var(--s-red)";
-     return `<div class="ring"><svg viewBox="0 0 84 84" role="img" aria-label="${esc(n)} ${c} of ${Y} weeks"><circle class="rt" cx="42" cy="42" r="${R}"/><circle class="rv" cx="42" cy="42" r="${R}" stroke="${col}" stroke-dasharray="${C.toFixed(1)}" stroke-dashoffset="${(C*(1-c/Y)).toFixed(1)}"/><text x="42" y="38">${c}</text><text class="of" x="42" y="54">of ${Y}</text></svg><span class="nmrow"><span class="nm" data-player="${esc(n)}">${esc(n)}</span>${newPill(n)}</span></div>`}).join("");}
+     return `<div class="ring"><svg viewBox="0 0 84 84" role="img" aria-label="${esc(n)} ${c} of ${Y} weeks"><circle class="rt" cx="42" cy="42" r="${R}"/><circle class="rv" cx="42" cy="42" r="${R}" stroke="${col}" stroke-dasharray="${C.toFixed(1)}" stroke-dashoffset="${(C*(1-c/Y)).toFixed(1)}"/><text x="42" y="38">${c}</text><text class="of" x="42" y="54">of ${Y}</text></svg><span class="nmrow"><span class="nm" data-player="${esc(n)}">${esc(n)}</span>${newPill(n)||RING_PILL_SPACE}</span></div>`}).join("");}
   {const list=PLAYERS.filter(p=>isNewPlayer(p[0])&&(!activeOnly||pAct(p))).sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0]));
    $("new-h").textContent="New in past year";
    $("new-sub").textContent=`${list.length} player${list.length===1?"":"s"} joined in the last ${NEW_WINDOW} weeks · newest first`;
