@@ -776,7 +776,7 @@ footer{color:var(--dim);font-size:.78rem}
     <p class="legendline"><span class="mk">*</span> outside own class (faded = playing down, not counted for wins) · <span class="mk">~</span> FreeBird · <span class="pct100">100%</span> full score or Master Mode · click a name to open their profile</p>
   </div>
 
-  <footer>Data: the Rocksmith 2014 Championship scoreboard sheet (older attendance also from the Championship Metrics workbook). Player stats run through week 675; scoreboards cover weeks 440–676. Weeks 1–16 have no recorded host in the source. <span class="updated">Last updated: October 6, 2026</span></footer>
+  <footer>Data: the Rocksmith 2014 Championship scoreboard sheet (older attendance also from the Championship Metrics workbook). Player stats run through week 675; scoreboards cover weeks 440–676. Weeks 1–16 have no recorded host in the source. <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-06T12:05:46+00:00">October 6, 2026</span></span></footer>
 </div>
 <div class="tip" id="tip" hidden></div>
 
@@ -1979,4 +1979,8 @@ $("refreshbtn").addEventListener("click",async()=>{
   try{if(window.caches)for(const k of await caches.keys())await caches.delete(k)}catch(e){}
   location.reload();
 });
+
+// ---------- show "Last updated" in the viewer's own time zone ----------
+{const el=$("builtat"), d=new Date(el.dataset.iso);
+ if(!isNaN(d)) el.textContent=d.toLocaleString(undefined,{year:"numeric",month:"long",day:"numeric",hour:"numeric",minute:"2-digit",timeZoneName:"short"});}
 </script>
