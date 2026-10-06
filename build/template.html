@@ -1481,6 +1481,7 @@ function playerWeekWins(name,p){
       if(p>=0&&card[0]!==p)return;
       const mine=card[6].filter(e=>SB.names[e[0]].replace(/[*~]+$/,"")===name);
       if(mine.length)played=true;
+      if(card[7])return; // a God challenge still running next week: only its final week counts for wins and entries
       entries+=mine.filter(e=>e[4]>=0).length; // eligible entries only, same as the all-time win rate
       const e=card[6].find(x=>x[4]>=0);
       if(e&&SB.names[e[0]].replace(/[*~]+$/,"")===name)wins++;
@@ -1507,6 +1508,7 @@ function tripleWeeks(name,done){
   done.slice().sort((a,b)=>a-b).forEach(w=>{
     const won=new Set();
     (SB.weeks[w]||[]).forEach(card=>{
+      if(card[7])return;
       const e=card[6].find(x=>x[4]>=0);
       if(e&&SB.names[e[0]].replace(/[*~]+$/,"")===name)won.add(card[0]);
     });
@@ -1550,6 +1552,7 @@ function showWinner(name){
     const ties=[];
     done.forEach(w=>(SB.weeks[w]||[]).forEach(card=>{
       if(wPath>=0&&card[0]!==wPath)return;
+      if(card[7])return;
       const el=card[6].filter(x=>x[4]>=0); if(el.length<2)return;
       if(SB.names[el[0][0]].replace(/[*~]+$/,"")!==name)return;
       if(Math.round((el[0][1]-el[1][1])*100)===0)ties.push(w);
@@ -1638,7 +1641,7 @@ $("wcard").addEventListener("click",e=>{
 const HOT_MIN=3;
 function hotStreaks(p){
   const lastDone=Math.max(...Object.keys(SB.weeks).map(Number).filter(w=>w<cur[0]));
-  const winnersOf=w=>{const set=new Set();(SB.weeks[w]||[]).forEach(card=>{if(p>=0&&card[0]!==p)return;const e=card[6].find(x=>x[4]>=0);if(e)set.add(SB.names[e[0]].replace(/[*~]+$/,""))});return set};
+  const winnersOf=w=>{const set=new Set();(SB.weeks[w]||[]).forEach(card=>{if(p>=0&&card[0]!==p)return;if(card[7])return;const e=card[6].find(x=>x[4]>=0);if(e)set.add(SB.names[e[0]].replace(/[*~]+$/,""))});return set};
   const run={}; let alive=null;
   for(let w=lastDone;w>=lastDone-60&&SB.weeks[w];w--){
     const set=winnersOf(w);
@@ -1713,7 +1716,7 @@ function sbRender(){
   $("sbstats").innerHTML=`<span><b>${players.size}</b> players this week</span><span><b>${all.length}</b> entries in all paths</span><span><b>${pathEnts.length}</b> ${["lead","rhythm","bass"][sbPath]} entries</span>`;
   const cards=ch.filter(c=>c[0]===sbPath);
   const findLc=sbFind.toLowerCase();
-  $("sbcards").innerHTML=cards.map(([p,slot,lvl,song,diff,extra,ents])=>{
+  $("sbcards").innerHTML=cards.map(([p,slot,lvl,song,diff,extra,ents,cont])=>{
     const tc=tierColor(lvl), dash=song.indexOf(" - ");
     const songHtml=song&&song!=="n/a"?(dash>0?`<b class="golink" data-goband="${esc(song.slice(0,dash).trim())}" data-gosong="${esc(song.slice(dash+3).trim())}" title="Show this song in Band lookup">${esc(song.slice(dash+3))}</b><small class="golink" data-goband="${esc(song.slice(0,dash).trim())}" title="Show this band in Band lookup">${esc(song.slice(0,dash))}</small>`:`<b>${esc(song)}</b>`):`<small>No song this week</small>`;
     let place=0;
@@ -1729,7 +1732,7 @@ function sbRender(){
       const up=!raw.includes("*")&&lvLetter&&RU_KEY.has(`${sbWeek}|${base}|${p}|${lvLetter}`)?`<span class="rkup" data-tip="First week in ${TIER_NAME[lvLetter]} ${PATHS[p]} after ranking up">RANKED UP</span>`:"";
       return `<tr class="${me}${e[4]<0?" down":""}"><td>${rk}</td><td class="n"><span data-player="${esc(base)}">${esc(base)}</span>${marks}${up}${SB.aka&&SB.aka[e[0]]?`<span class="aka">as ${esc(SB.aka[e[0]])}</span>`:""}</td><td>${pct}</td><td>${fmtNum(e[2])}</td><td>${fmtNum(e[3])}</td></tr>`;
     }).join("");
-    return `<article class="card" style="--tc:${tc}"><div class="ch"><div class="lv"><span>${esc(lvl)}</span>${diff!=null?`<span class="diff" title="Difficulty rating">${diff}</span>`:""}</div><div class="song">${songHtml}</div>${extra?`<div class="note">${esc(extra)}</div>`:""}</div>${ents.length?`<table><thead><tr><th>#</th><th>Player</th><th>%</th><th>Streak</th><th>Score</th></tr></thead><tbody>${rows}</tbody></table>`:`<div class="empty">No entries yet</div>`}</article>`;
+    return `<article class="card" style="--tc:${tc}"><div class="ch"><div class="lv"><span>${esc(lvl)}</span>${diff!=null?`<span class="diff" title="Difficulty rating">${diff}</span>`:""}</div><div class="song">${songHtml}</div>${extra?`<div class="note">${esc(extra)}</div>`:""}${cont?`<div class="note">⏳ Continues next week · the winner is decided in its final week</div>`:""}</div>${ents.length?`<table><thead><tr><th>#</th><th>Player</th><th>%</th><th>Streak</th><th>Score</th></tr></thead><tbody>${rows}</tbody></table>`:`<div class="empty">No entries yet</div>`}</article>`;
   }).join("");
   try{localStorage.setItem("rsc-sb",JSON.stringify({w:sbWeek,p:sbPath}))}catch(e){}
 }
@@ -1921,7 +1924,7 @@ function allMedalsHtml(name){
     const per=playerWeekWins(name,-1), done=SB_W.filter(w=>w!==cur[0]);
     let best=null; done.forEach(w=>{if(per[w][1]>0&&(!best||per[w][1]>per[best][1]))best=w});
     let run=0,bestRun=0; done.slice().sort((a,b)=>a-b).forEach(w=>{run=per[w][1]>0?run+1:0; if(run>bestRun)bestRun=run});
-    const ties=[]; done.forEach(w=>(SB.weeks[w]||[]).forEach(card=>{const el=card[6].filter(x=>x[4]>=0); if(el.length<2)return; if(SB.names[el[0][0]].replace(/[*~]+$/,"")!==name)return; if(Math.round((el[0][1]-el[1][1])*100)===0)ties.push(w)}));
+    const ties=[]; done.forEach(w=>(SB.weeks[w]||[]).forEach(card=>{if(card[7])return;const el=card[6].filter(x=>x[4]>=0); if(el.length<2)return; if(SB.names[el[0][0]].replace(/[*~]+$/,"")!==name)return; if(Math.round((el[0][1]-el[1][1])*100)===0)ties.push(w)}));
     const v=wv(name,-1), m=winMedals(per,done,best?per[best][1]:0,bestRun,v?v[1]:0,tripleWeeks(name,done),ties);
     if(m)html+=`<div class="ms">Win medals</div>${m}`;
   }

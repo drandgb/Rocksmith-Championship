@@ -92,6 +92,8 @@ The whole app is one self-contained `index.html`. It has no build step, no serve
 
 A win counts only when the player was **eligible**, meaning they were playing at or below their own class for that path. A player playing down can top a card without getting the win. In that case the win goes to the highest eligible player.
 
+God challenges (and tributes) run for 2 or more weeks in a row with the same song. Only the **final week** of the run counts: that's when its winner and entries are counted. Earlier weeks are marked *Continues next week* on the Scoreboard.
+
 This rule applies everywhere: win totals, win rates, streaks, medals, triple crowns and close wins.
 
 Class history is read from the font colors and sizes in the original Google Sheets. Each player's class per path is inferred from runs of at least 3 weeks.
