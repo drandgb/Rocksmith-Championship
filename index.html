@@ -111,6 +111,9 @@ header.top{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-end;justify-con
 .dimtxt{color:var(--dim);font-style:italic}
 
 .filterbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:.88rem}
+.hmedals{flex-basis:100%}
+.medals.yrm{gap:4px 11px;padding-right:8px}
+.hmedals:empty{display:none}
 button.clear{background:none;border:1px solid var(--line);color:var(--fg);border-radius:6px;padding:4px 10px;font:inherit;font-size:.8rem;cursor:pointer}
 button.clear:hover{border-color:var(--accent)}
 
@@ -314,7 +317,10 @@ button.clear:hover{border-color:var(--accent)}
 .wpres .wyr{cursor:pointer;border-radius:4px;padding:0 3px;margin-left:-3px}
 .wpres .wyr:hover{color:var(--fg);background:var(--panel2)}
 .wpres .wyr.sel{color:var(--accent-ink);background:var(--accent);font-weight:700}
-.wpres.yf i[data-wk]:not(.iny){opacity:.22}
+.wpres.yf i[data-wk]:not(.iny),#ppres.yf i[data-w]:not(.iny){opacity:.22}
+#ppres .pyr{cursor:pointer;border-radius:4px;padding:0 3px;margin-left:-3px}
+#ppres .pyr:hover{color:var(--fg);background:var(--panel2)}
+#ppres .pyr.sel{color:var(--accent-ink);background:var(--accent);font-weight:700}
 .wleg span[data-hl]{cursor:pointer;padding:2px 6px;margin:-2px -6px;border-radius:6px}
 .wleg span[data-hl]:hover{color:var(--fg);background:var(--panel2)}
 .wleg span[data-hl].act{color:var(--fg);background:color-mix(in srgb,var(--accent) 18%,var(--panel2));box-shadow:inset 0 0 0 1px var(--accent)}
@@ -445,6 +451,29 @@ footer{color:var(--dim);font-size:.78rem}
 #fbub .fall{all:unset;cursor:pointer;font-size:.72rem;color:var(--muted);text-decoration:underline;padding:0 4px}
 #fbub .fall:hover{color:var(--fg)}
 @media (prefers-reduced-motion:no-preference){#fbub{animation:fbin .25s ease-out}@keyframes fbin{from{opacity:0;transform:translateY(8px)}}}
+
+/* hover card with a player's medals */
+#mcard{position:fixed;z-index:70;pointer-events:none;max-width:min(440px,calc(100vw - 16px));padding:10px 12px 6px;border-radius:12px;background:var(--panel);border:1px solid var(--line);box-shadow:0 10px 30px rgba(0,0,0,.55)}
+#mcard[hidden]{display:none !important}
+#mcard .mh{font:700 .9rem var(--f-display);margin-bottom:8px;display:flex;align-items:center;gap:8px}
+#mcard .ms{font:600 .62rem var(--f-display);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:2px 0 4px}
+#mcard .none{font-size:.78rem;color:var(--muted);margin-bottom:6px}
+
+#hcard .pres i.hh{background:var(--hcol,var(--accent));box-shadow:0 0 4px color-mix(in srgb,var(--hcol,var(--accent)) 50%,transparent)}
+#hcard .pres i.ho{background:#3a4254}
+#hcard .pres i.hl{background:repeating-linear-gradient(45deg,var(--lost) 0 2px,var(--panel2) 2px 4px)}
+#hcard .pres i.hn{background:var(--panel2)}
+#hcard .pres i.hf{background:transparent;box-shadow:inset 0 0 0 1.5px var(--hcol,var(--accent))}
+#hcard .pres i[data-hw]{cursor:pointer}
+#hcard .pres i[data-hw]:hover{outline:2px solid var(--fg);outline-offset:1px}
+#hpres.hl i[data-hw]:not(.hit),#hpres.yf i[data-hw]:not(.iny){opacity:.22}
+#hpres i.hit{outline:2px solid var(--fg);outline-offset:1px;position:relative;z-index:1}
+#hpres .hyr{cursor:pointer;border-radius:4px;padding:0 3px;margin-left:-3px}
+#hpres .hyr:hover{color:var(--fg);background:var(--panel2)}
+#hpres .hyr.sel{color:var(--accent-ink);background:var(--accent);font-weight:700}
+#hcard .stats div[data-hl]{cursor:pointer}
+#hcard .stats div[data-hl]:hover{background:color-mix(in srgb,var(--accent) 8%,var(--panel2))}
+#hcard .stats div[data-hl].act{background:color-mix(in srgb,var(--accent) 16%,var(--panel2));box-shadow:inset 3px 0 0 var(--accent)}
 </style>
 
 <div class="wrap">
@@ -485,6 +514,7 @@ footer{color:var(--dim);font-size:.78rem}
   <div class="filterbar" id="filterbar" hidden>
     <span>Highlighting: <b id="fhost"></b></span>
     <button class="clear" id="fclear" type="button">Show all hosts</button>
+    <div id="hmedals" class="hmedals"></div>
   </div>
 
   <div class="grid2">
@@ -497,6 +527,12 @@ footer{color:var(--dim);font-size:.78rem}
       <div class="scroll"><table class="lb" id="lb"></table></div>
     </section>
   </div>
+
+  <section class="panel profile">
+    <div class="panel-head"><h2>Host lookup</h2><span class="sub">Click a host in the leaderboard, or search</span></div>
+    <div class="controls"><input id="hq" list="hlist" type="search" placeholder="Type a host name" aria-label="Find a host" autocomplete="off"><datalist id="hlist"></datalist></div>
+    <div id="hcard"></div>
+  </section>
 
   <section class="panel">
     <div class="panel-head"><h2>Hosting timeline</h2><span class="sub">One square per week. Click a name below to highlight it</span></div>
@@ -758,7 +794,7 @@ const color={}; activeList.forEach((h,i)=>color[h.name]=PAL[i%PAL.length]);
 const OTHER="#6b7489";
 const hc=h=>color[h]||OTHER;
 
-let selHost=null;
+let selHost=null, hName=null, hYear=null; // hName/hYear: Host lookup
 const CATS={"__other":"Inactive hosts","__open":"Open slots","__lost":"No record"};
 const matches=h=>{
   if(!selHost)return true;
@@ -785,7 +821,7 @@ function renderNow(){
   const monthWeeks=WEEKS.filter(w=>w[1].slice(0,7)===ym);
   const openM=monthWeeks.filter(w=>!w[2]);
   const openNote=openM.length?openM.map(w=>fmtShort(w[1])).join(", "):"Every week has a host";
-  const curHost=cur[2]&&cur[2]!==LOST?esc(cur[2]):'<span class="pill open">NEEDS HOST</span>';
+  const curHost=cur[2]&&cur[2]!==LOST?`<span data-name="${esc(cur[2])}">${esc(cur[2])}</span>`:'<span class="pill open">NEEDS HOST</span>';
   $("now").innerHTML=`
    <div><div class="k">This week</div><div class="v num">Week ${cur[0]}</div><div class="n">Started ${fmt(cur[1])}</div></div>
    <div><div class="k">Current host</div><div class="v">${curHost}</div><div class="n">${hostRankNote()}</div></div>
@@ -830,7 +866,7 @@ function weekAt(i){
 function upRow(i){
   const w=weekAt(curIdx+i);
   const hol=w[3]?w[3].split(/,\s*/).map(h=>`<span class="pill hol">${holEmoji(h)}${esc(h)}</span>`).join(""):"";
-  const who=w[2]?`<span class="who">${esc(w[2])}</span>`:`<span class="pill open">HOST NEEDED</span>`;
+  const who=w[2]?`<span class="who" data-name="${esc(w[2])}">${esc(w[2])}</span>`:`<span class="pill open">HOST NEEDED</span>`;
   const yr=w[1].slice(0,4)!==cur[1].slice(0,4)?`<span class="yy">${w[1].slice(0,4)}</span>`:"";
   return `<li class="${i===0?"cur":""}"><div class="wk"><b>${w[0]}</b>${fmtShort(w[1])}${yr}</div><div>${who}${i===0?' <span class="sub">· now</span>':""}<div class="meta">${hol}</div></div></li>`;
 }
@@ -922,7 +958,7 @@ function renderLog(){
   }).reverse();
   $("logcount").textContent=`${rows.length} week${rows.length===1?"":"s"}`;
   $("logbody").innerHTML=rows.map(([w,i])=>{
-    const host=w[2]===LOST?'<span class="dimtxt">No record</span>':w[2]?`<span class="hostcell"><span class="sw" style="background:${hc(w[2])}"></span>${esc(w[2])}</span>`:(i>=curIdx?'<span class="pill open">OPEN</span>':'<span class="dimtxt">—</span>');
+    const host=w[2]===LOST?'<span class="dimtxt">No record</span>':w[2]?`<span class="hostcell" data-name="${esc(w[2])}"><span class="sw" style="background:${hc(w[2])}"></span>${esc(w[2])}</span>`:(i>=curIdx?'<span class="pill open">OPEN</span>':'<span class="dimtxt">—</span>');
     return `<tr class="${i===curIdx?"cur":""}" id="wk-${w[0]}"><td class="w">${w[0]}</td><td class="d">${fmt(w[1])}</td><td>${host}</td><td>${esc(w[3])}</td></tr>`;
   }).join("") || `<tr><td colspan="4" class="dimtxt" style="padding:16px 0">No weeks match. Clear the search or pick another year.</td></tr>`;
 }
@@ -1067,6 +1103,7 @@ function medalsFor(p){
   if(rate>=1) gems.unshift(`<span class="medal-m perfect" data-tip="Perfect gem · played every week since joining the championship (collected Week ${first})"><svg viewBox="0 0 30 30" aria-hidden="true"><defs><linearGradient id="pg-${played}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff6c2"/><stop offset=".5" stop-color="#9ff0ff"/><stop offset="1" stop-color="#d8a6ff"/></linearGradient></defs><polygon points="8,3 22,3 29,11 15,28 1,11" fill="url(#pg-${played})"/><polygon points="8,3 22,3 19,11 11,11" fill="rgba(255,255,255,.6)"/><polygon points="1,11 11,11 15,28" fill="rgba(0,0,0,.12)"/><polygon points="29,11 19,11 15,28" fill="rgba(0,0,0,.22)"/><polygon points="8,3 22,3 29,11 15,28 1,11" fill="none" stroke="rgba(0,0,0,.35)" stroke-width=".8"/><path d="M15 6.5l1.5 3 3.3.4-2.4 2.3.6 3.3-3-1.6-3 1.6.6-3.3-2.4-2.3 3.3-.4z" fill="#f5c84a" stroke="rgba(0,0,0,.35)" stroke-width=".5"/></svg></span>`);
   return (gems.length?`<div class="medals">${gems.join("")}</div>`:"")+(flames.length?`<div class="medals">${flames.join("")}</div>`:"");
 }
+let pYear=null;
 function showPlayer(name){
   const p=byName[name];
   if(!p){$("pcard").innerHTML=`<div class="empty">No player named “${esc(name)}”. Pick a name from the list as you type.</div>`;return}
@@ -1087,32 +1124,46 @@ function showPlayer(name){
   let grid="";
   Object.keys(byYear).forEach(y=>{
     const arr=byYear[y], off=Math.floor((new Date(arr[0][2]+"T12:00:00")-new Date(y+"-01-01T12:00:00"))/604800000);
-    grid+=`<div class="yr">${y}</div>`+"<i class='pre'></i>".repeat(off)+arr.map(([wk,on])=>`<i data-w="${wk}" class="${on?"on":wk<first?"pre":""}${SB.weeks[wk]?" sbk":""}" ${SB.weeks[wk]?`data-pwk="${wk}"`:""} title="Week ${wk}${on?" · played":""}${SB.weeks[wk]?" · click to open the Scoreboard":""}"></i>`).join("")+"<i class='pre'></i>".repeat(Math.max(0,53-off-arr.length));
+    grid+=`<div class="yr pyr${pYear===y?" sel":""}" data-pyear="${y}" title="${pYear===y?"Show all years":`Show stats for ${y} only`}">${y}</div>`+"<i class='pre'></i>".repeat(off)+arr.map(([wk,on])=>`<i data-w="${wk}" class="${on?"on":wk<first?"pre":""}${SB.weeks[wk]?" sbk":""}${pYear===y?" iny":""}" ${SB.weeks[wk]?`data-pwk="${wk}"`:""} title="Week ${wk}${on?" · played":""}${SB.weeks[wk]?" · click to open the Scoreboard":""}"></i>`).join("")+"<i class='pre'></i>".repeat(Math.max(0,53-off-arr.length));
   });
+  if(pYear&&!byYear[pYear])pYear=null;
+  // what the stat boxes show: all time, or just the picked year (the active streak always stays as it is now)
+  const D={played,latest,first,rate,longest,bestR};
+  if(pYear){
+    const arr=byYear[pYear].filter(([wk,o])=>wk>=first&&(wk<cur[0]||o)), on=arr.filter(x=>x[1]);
+    D.played=on.length; D.first=on.length?on[0][0]:null; D.latest=on.length?on[on.length-1][0]:null;
+    D.rate=arr.length?on.length/arr.length:0;
+    let r=null,b=null; arr.forEach(([wk,o])=>{if(o){r=r&&r[1]===wk-1?[r[0],wk]:[wk,wk]; if(!b||r[1]-r[0]>b[1]-b[0])b=r.slice()}else r=null});
+    D.bestR=b; D.longest=b?b[1]-b[0]+1:0;
+  }
+  const dfw=D.first?WEEKS[D.first-1]:null, dlw=D.latest?WEEKS[D.latest-1]:null;
   $("pcard").innerHTML=`<div class="pc">
     <div>
       <h3>${esc(n)} ${actPill(n)}</h3>
       <div class="tiers">${tierHtml}</div>
+      ${pYear?`<div class="yrtag"><b>${pYear} only</b><button type="button" class="clear" data-pyear="${pYear}">Show all years</button></div>`:""}
       <div class="stats">
-        <div><small>Weeks played</small><b>${played}</b></div>
-        <div><small>Latest week</small><b>${latest}</b>${lw?`<span class="sub"> · ${fmt(lw[1])}</span>`:""}</div>
+        <div><small>Weeks played</small><b>${D.played}</b></div>
+        <div><small>Latest week</small><b>${D.latest??"–"}</b>${dlw?`<span class="sub"> · ${fmt(dlw[1])}</span>`:""}</div>
         <div${actR?` data-hl="${span(actR)}" data-tip="(Week ${actR[0]}${actR[1]>actR[0]?`–${actR[1]}`:""})"`:""}><small>Active streak</small><b>${streak} wk${streak===1?"":"s"}</b></div>
-        <div${bestR?` data-hl="${span(bestR)}" data-tip="(Week ${bestR[0]}${bestR[1]>bestR[0]?`–${bestR[1]}`:""})"`:""}><small>Best streak</small><b>${longest} wk${longest===1?"":"s"}</b></div>
-        <div><small>First week</small><b>${first}</b>${fw?`<span class="sub"> · ${fmt(fw[1])}</span>`:""}</div>
-        <div><small>Play rate</small><b>${(rate*100).toFixed(rate>=1?0:1)}%</b></div>
+        <div${D.bestR?` data-hl="${span(D.bestR)}" data-tip="(Week ${D.bestR[0]}${D.bestR[1]>D.bestR[0]?`–${D.bestR[1]}`:""})"`:""}><small>Best streak</small><b>${D.longest} wk${D.longest===1?"":"s"}</b></div>
+        <div><small>First week</small><b>${D.first??"–"}</b>${dfw?`<span class="sub"> · ${fmt(dfw[1])}</span>`:""}</div>
+        <div><small>Play rate</small><b>${(D.rate*100).toFixed(D.rate>=1?0:1)}%</b></div>
       </div>
       ${(()=>{const u=WR.ups.filter(x=>x[0]===n).sort((a,b)=>a[4]-b[4]);return u.length?`<div class="ups">Rank changes: ${u.map(([,p,a,b,w])=>`<span class="pill hol">${PATHS[p]} ${a}${"BIAM".indexOf(b)<"BIAM".indexOf(a)?"↘":"↗"}${b} · wk ${w}</span>`).join("")}</div>`:""})()}
       ${WR.wins[n]?`<button type="button" class="clear" style="margin-top:12px" data-wprofile="${esc(n)}">Open win profile ›</button>`:""}
     </div>
     <div style="min-width:0">
       ${medalsFor(p)}
-      <div class="scroll"><div class="pres" id="ppres">${grid}</div></div>
+      <div class="scroll"><div class="pres${pYear?" yf":""}" id="ppres">${grid}</div></div>
       <div class="pres-legend"><span><i class="sw" style="background:var(--s-green)"></i>Played</span><span><i class="sw" style="background:var(--panel2)"></i>Missed</span></div>
     </div></div>`;
   $("pq").value=n;
 }
 $("pq").addEventListener("change",e=>showPlayer(e.target.value.trim()));
 $("pcard").addEventListener("click",e=>{
+  const yb=e.target.closest("[data-pyear]");
+  if(yb){pYear=pYear===yb.dataset.pyear?null:yb.dataset.pyear;showPlayer($("pq").value.trim());return}
   const wb=e.target.closest("[data-wprofile]");
   if(wb){const n=wb.dataset.wprofile;wPicked=true;showView("winners");showWinner(n);markHot();$("wcard").closest("section").scrollIntoView({block:"start"});return}
   const h=e.target.closest("[data-hl]");
@@ -1142,6 +1193,8 @@ $("view-players").addEventListener("click",e=>{const el=e.target.closest("[data-
 function setHost(h){
   selHost=(selHost===h)?null:h;
   $("filterbar").hidden=!selHost; $("fhost").textContent=CATS[selHost]||selHost||"";
+  // host medals and Host lookup are set up further down; when a saved host is restored at load, they fill in once ready
+  if(window.__hostReady){$("hmedals").innerHTML=selHost&&hosts[selHost]?hostMedals(selHost):""; if(selHost&&hosts[selHost])showHost(selHost)}
   try{localStorage.setItem("rsc-host",selHost||"")}catch(e){}
   renderLB(); renderTL(); renderLog();
 }
@@ -1610,6 +1663,8 @@ function curView(){return ["hosting","players","winners","songs","scores"].find(
 function activeFilters(){
   const v=curView(), f=[];
   if((v==="hosting"||v==="players"||v==="winners")&&activeOnly)f.push(["Active players only",()=>setActiveOnly(false)]);
+  if(v==="players"&&pYear)f.push([`Player lookup: ${pYear}`,()=>{pYear=null;showPlayer($("pq").value.trim())}]);
+  if(v==="hosting"&&hYear)f.push([`Host lookup: ${hYear}`,()=>{hYear=null;showHost(hName)}]);
   if(v==="hosting"&&selHost)f.push([`Host: ${CATS[selHost]||selHost}`,()=>setHost(selHost)]);
   if(v==="winners"){
     if(wPath>=0)f.push([`Path: ${PATHS[wPath]}`,()=>document.querySelector('#wpath [data-rp="-1"]').click()]);
@@ -1642,4 +1697,157 @@ document.addEventListener("click",()=>setTimeout(updateBubble,0));
 document.addEventListener("input",()=>setTimeout(updateBubble,0));
 document.addEventListener("change",()=>setTimeout(updateBubble,0));
 updateBubble();
+
+// ---------- hover a player's name on Players or Winners to see all their medals ----------
+const mcard=document.createElement("div"); mcard.id="mcard"; mcard.hidden=true; mcard.setAttribute("aria-hidden","true"); document.body.appendChild(mcard);
+const medalCache={};
+function allMedalsHtml(name){
+  if(medalCache[name]!=null)return medalCache[name];
+  let html="";
+  const p=byName[name];
+  if(p){const m=medalsFor(p); if(m)html+=`<div class="ms">Player medals</div>${m}`}
+  if(WR.wins[name]){
+    const per=playerWeekWins(name,-1), done=SB_W.filter(w=>w!==cur[0]);
+    let best=null; done.forEach(w=>{if(per[w][1]>0&&(!best||per[w][1]>per[best][1]))best=w});
+    let run=0,bestRun=0; done.slice().sort((a,b)=>a-b).forEach(w=>{run=per[w][1]>0?run+1:0; if(run>bestRun)bestRun=run});
+    const ties=[]; done.forEach(w=>(SB.weeks[w]||[]).forEach(card=>{const el=card[6].filter(x=>x[4]>=0); if(el.length<2)return; if(SB.names[el[0][0]].replace(/[*~]+$/,"")!==name)return; if(Math.round((el[0][1]-el[1][1])*100)===0)ties.push(w)}));
+    const v=wv(name,-1), m=winMedals(per,done,best?per[best][1]:0,bestRun,v?v[1]:0,tripleWeeks(name,done),ties);
+    if(m)html+=`<div class="ms">Win medals</div>${m}`;
+  }
+  return medalCache[name]=html;
+}
+function placeCard(x,y){const w=mcard.offsetWidth,h=mcard.offsetHeight;mcard.style.left=Math.max(8,Math.min(x+14,innerWidth-w-8))+"px";mcard.style.top=Math.max(8,(y+16+h>innerHeight-8?y-h-12:y+16))+"px"}
+
+// ---------- hosting medals: total weeks hosted, weeks hosted in a row, and each calendar year hosted ----------
+const HOST_TOTAL_STEPS=[1,5,10,25,50,75,100,150,200,250,300];
+const HOST_STREAK_STEPS=[2,3,4,5,10,15,20,25,30,40,50,75,100];
+const HOST_COL=["#ffd36e","#ffb347","#ff8c42","#ff6b6b","#f05ca8","#c86bfa","#8f7bff","#5b9dff","#3fd0e0","#4fe3a8"];
+const hostCol=(i,n)=>HOST_COL[Math.min(HOST_COL.length-1,Math.round((n<=1?1:i/(n-1))*(HOST_COL.length-1)))];
+function micSvg(col){return `<svg viewBox="0 0 28 30" aria-hidden="true"><circle cx="14" cy="15" r="12" fill="${col}"/><rect x="11" y="6" width="6" height="11" rx="3" fill="#1a1406" opacity=".78"/><path d="M8.5 13.5a5.5 5.5 0 0 0 11 0M14 19v4M10.5 23h7" fill="none" stroke="#1a1406" stroke-width="1.8" stroke-linecap="round" opacity=".78"/><path d="M6 11a9 9 0 0 1 5-5.5" stroke="rgba(255,255,255,.5)" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg>`}
+function chainSvg(col){return `<svg viewBox="0 0 28 30" aria-hidden="true"><circle cx="14" cy="15" r="12" fill="${col}"/><rect x="5.5" y="11.5" width="10" height="7" rx="3.5" fill="none" stroke="#1a1406" stroke-width="2.2" opacity=".78"/><rect x="12.5" y="11.5" width="10" height="7" rx="3.5" fill="none" stroke="#1a1406" stroke-width="2.2" opacity=".78"/><path d="M6 11a9 9 0 0 1 5-5.5" stroke="rgba(255,255,255,.5)" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg>`}
+function calSvg(col){return `<svg viewBox="0 0 28 30" aria-hidden="true"><circle cx="14" cy="15" r="12" fill="${col}"/><rect x="7.5" y="9" width="13" height="12" rx="2" fill="none" stroke="#1a1406" stroke-width="1.9" opacity=".78"/><path d="M7.5 13h13M11 7v4M17 7v4" stroke="#1a1406" stroke-width="1.9" stroke-linecap="round" opacity=".78"/><path d="M6 11a9 9 0 0 1 5-5.5" stroke="rgba(255,255,255,.5)" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg>`}
+const hostMedalCache={};
+function hostMedals(name){
+  if(hostMedalCache[name]!=null)return hostMedalCache[name];
+  const ws=[]; WEEKS.forEach(([w,d,h],i)=>{if(i<=curIdx&&h===name)ws.push([w,d])});
+  if(!ws.length)return hostMedalCache[name]="";
+  const rec=w=>` (collected Week ${w})`, rows=[];
+  const mk=(svg,col,num,tip)=>`<span class="medal-m wm" style="--ec:${col}" data-tip="${tip}">${svg}<b>${num}</b></span>`;
+  const tot=HOST_TOTAL_STEPS.filter(x=>ws.length>=x);
+  if(tot.length)rows.push(tot.map((x,i)=>{const c=hostCol(i,HOST_TOTAL_STEPS.length);return mk(micSvg(c),c,x,`${x}-week host medal · hosted ${x}+ week${x===1?"":"s"}${rec(ws[x-1][0])}`)}));
+  // weeks hosted in a row
+  let run=0,best=0,prev=null; const reachAt={};
+  ws.forEach(([w])=>{run=prev===w-1?run+1:1;prev=w;if(run>best)best=run;HOST_STREAK_STEPS.forEach(x=>{if(run>=x&&reachAt[x]==null)reachAt[x]=w})});
+  const st=HOST_STREAK_STEPS.filter(x=>best>=x);
+  if(st.length)rows.push(st.map((x,i)=>{const c=hostCol(i,HOST_STREAK_STEPS.length);return mk(chainSvg(c),c,x,`${x}-week hosting streak medal · hosted ${x} weeks in a row${rec(reachAt[x])}`)}));
+  // one medal for every calendar year hosted
+  const yrs={}; ws.forEach(([w,d])=>{const y=d.slice(0,4);(yrs[y]=yrs[y]||[]).push(w)});
+  const ys=Object.keys(yrs).sort();
+  // styled like the lunar year medallions: animal of the lunar year that starts in that calendar year, colored by its element
+  rows.push(ys.map(y=>{const l=LNY.find(x=>x[0].startsWith(y)), ly=l?{animal:l[1],element:l[2]}:null, col=ly?ELEMENT_COL[ly.element]:"#ffb347";
+    return `<span class="medal-m zod" style="--ec:${col}" data-tip="${y} host medal${ly?` · Year of the ${ly.element} ${ly.animal}`:""} · hosted ${yrs[y].length} week${yrs[y].length===1?"":"s"} in ${y}${rec(yrs[y][0])}"><span class="ani">${ly?ANIMAL_EMOJI[ly.animal]:"🎙️"}</span><b>${y}</b></span>`}));
+  return hostMedalCache[name]=rows.map((r,i)=>`<div class="medals${i===rows.length-1?" yrm":""}">${r.join("")}</div>`).join("");
+}
+$("filterbar").addEventListener("mousemove",e=>{const p=e.target.closest("[data-tip]");if(!p){tip.hidden=true;return}tip.textContent=p.dataset.tip;tip.hidden=false;placeTip(e.clientX,e.clientY)});
+$("filterbar").addEventListener("mouseleave",()=>tip.hidden=true);
+if(selHost&&hosts[selHost])$("hmedals").innerHTML=hostMedals(selHost);
+// hover a host's name to see their hosting medals
+
+// ---------- host lookup ----------
+$("hlist").innerHTML=hostList.map(h=>`<option value="${esc(h.name)}"></option>`).join("");
+function showHost(name){
+  const h=hosts[name];
+  if(!h){$("hcard").innerHTML=`<div class="empty">No host named “${esc(name)}”. Pick a name from the list as you type.</div>`;return}
+  hName=name; $("hq").value=name;
+  const all=[]; WEEKS.forEach(([w,d,ho],i)=>{if(i<=curIdx&&ho===name)all.push(w)});
+  const future=WEEKS.filter(([w,d,ho],i)=>i>curIdx&&ho===name).map(x=>x[0]);
+  const yearOf=w=>WEEKS[w-1][1].slice(0,4);
+  const years=[...new Set(all.map(yearOf))];
+  if(hYear&&!WEEKS.some(([w,d],i)=>i<=curIdx&&d.slice(0,4)===hYear))hYear=null;
+  const ws=hYear?all.filter(w=>yearOf(w)===hYear):all;
+  // longest run of weeks hosted in a row
+  let r=null,b=null; ws.forEach(w=>{r=r&&r[1]===w-1?[r[0],w]:[w,w]; if(!b||r[1]-r[0]>b[1]-b[0])b=r.slice()});
+  const bestLen=b?b[1]-b[0]+1:0, spanStr=b?Array.from({length:bestLen},(_,i)=>b[0]+i).join(","):"";
+  const fw=ws.length?WEEKS[ws[0]-1]:null, lw=ws.length?WEEKS[ws[ws.length-1]-1]:null;
+  const active=cur[0]-h.last<=ACTIVE_WINDOW;
+  const yearsTxt=years.length?(years.length===1?years[0]:`${years[0]}–${years[years.length-1]}`):"–";
+  const col=color[name]||"var(--accent)";
+  // grid: one square per week, by calendar year
+  const byYear={}; WEEKS.forEach(([w,d,ho],i)=>{(byYear[d.slice(0,4)]=byYear[d.slice(0,4)]||[]).push([w,d,ho,i])});
+  let grid="";
+  Object.keys(byYear).forEach(y=>{
+    const arr=byYear[y], off=Math.floor((new Date(arr[0][1]+"T12:00:00")-new Date(y+"-01-01T12:00:00"))/604800000);
+    grid+=`<div class="yr hyr${hYear===y?" sel":""}" data-hyear="${y}" title="${hYear===y?"Show all years":`Show stats for ${y} only`}">${y}</div>`+"<i class='pre'></i>".repeat(off)+arr.map(([w,d,ho,i])=>{
+      const fut=i>curIdx, mine=ho===name;
+      const cls=mine?(fut?"hf":"hh"):fut?"hn":ho===LOST?"hl":ho?"ho":"hn";
+      const who=fut?(mine?"scheduled to host":ho?`${ho} scheduled`:"open"):mine?"hosted":ho===LOST?"no record":ho?`hosted by ${ho}`:"open";
+      return `<i class="${cls}${hYear===y?" iny":""}" data-hw="${w}" title="Week ${w} · ${fmt(d)} · ${esc(who)}${SB.weeks[w]?" · click to open the Scoreboard":""}"></i>`}).join("")+"<i class='pre'></i>".repeat(Math.max(0,53-off-arr.length));
+  });
+  $("hcard").innerHTML=`<div class="pc">
+    <div>
+      <h3>${esc(name)} ${active?`<span class="pill on">ACTIVE</span>`:`<span class="pill off">INACTIVE</span>`}</h3>
+      ${hYear?`<div class="yrtag"><b>${hYear} only</b><button type="button" class="clear" data-hyear="${hYear}">Show all years</button></div>`:""}
+      <div class="stats" style="margin-top:12px">
+        <div><small>Weeks hosted</small><b>${ws.length}</b>${hYear?"":`<span class="sub"> · #${ordinalRank(name)} all time</span>`}</div>
+        <div><small>Share</small><b>${(ws.length/(hYear?Math.max(1,WEEKS.filter(([w,d,ho],i)=>i<=curIdx&&d.slice(0,4)===hYear&&ho&&ho!==LOST).length):totalHosted)*100).toFixed(1)}%</b><span class="sub"> of ${hYear?hYear+"'s":"all"} hosted weeks</span></div>
+        <div><small>First week</small><b>${ws.length?ws[0]:"–"}</b>${fw?`<span class="sub"> · ${fmt(fw[1])}</span>`:""}</div>
+        <div><small>Latest week</small><b>${ws.length?ws[ws.length-1]:"–"}</b>${lw?`<span class="sub"> · ${fmt(lw[1])}</span>`:""}</div>
+        <div${bestLen?` data-hl="${spanStr}" data-tip="(Week ${b[0]}${bestLen>1?`–${b[1]}`:""})"`:""}><small>Most in a row</small><b>${bestLen} wk${bestLen===1?"":"s"}</b></div>
+        ${hYear?(()=>{const cnt={};WEEKS.forEach(([w,d,ho],i)=>{if(i<=curIdx&&d.slice(0,4)===hYear&&ho&&ho!==LOST)cnt[ho]=(cnt[ho]||0)+1});const rk=ws.length?1+Object.values(cnt).filter(n=>n>ws.length).length:null;return `<div><small>Rank in ${hYear}</small><b>${rk?"#"+rk:"–"}</b><span class="sub"> of ${Object.keys(cnt).length} host${Object.keys(cnt).length===1?"":"s"}</span></div>`})():`<div><small>Years hosting</small><b>${years.length}</b><span class="sub"> · ${yearsTxt}</span></div>`}
+      </div>
+      ${!hYear&&future.length?`<div class="ups">Coming up: ${future.map(w=>`<span class="pill hol">wk ${w} · ${fmt(WEEKS[w-1][1])}</span>`).join("")}</div>`:""}
+    </div>
+    <div style="min-width:0">
+      ${hostMedals(name)}
+      <div class="scroll"><div class="pres${hYear?" yf":""}" id="hpres" style="--hcol:${col}">${grid}</div></div>
+      <div class="pres-legend"><span><i class="sw" style="background:${col}"></i>Hosted</span><span><i class="sw" style="box-shadow:inset 0 0 0 1.5px ${col}"></i>Scheduled</span><span><i class="sw" style="background:#3a4254"></i>Someone else</span><span><i class="sw" style="background:var(--panel2)"></i>Open</span><span><i class="sw" style="background:repeating-linear-gradient(45deg,var(--lost) 0 2px,var(--panel2) 2px 4px)"></i>No record</span></div>
+    </div></div>`;
+}
+$("hq").addEventListener("change",e=>showHost(e.target.value.trim()));
+$("hq").addEventListener("keydown",e=>{if(e.key==="Enter")showHost(e.target.value.trim())});
+$("hcard").addEventListener("click",e=>{
+  const yb=e.target.closest("[data-hyear]");
+  if(yb){hYear=hYear===yb.dataset.hyear?null:yb.dataset.hyear;showHost(hName);return}
+  const hb=e.target.closest("[data-hl]");
+  if(hb){
+    const g=$("hpres"), was=hb.classList.contains("act");
+    $("hcard").querySelectorAll("[data-hl].act").forEach(x=>x.classList.remove("act"));
+    g.querySelectorAll("i.hit").forEach(x=>x.classList.remove("hit"));
+    g.classList.toggle("hl",!was);
+    if(!was){hb.classList.add("act");const set=new Set(hb.dataset.hl.split(","));let first=null;g.querySelectorAll("i[data-hw]").forEach(x=>{if(set.has(x.dataset.hw)){x.classList.add("hit");first=first||x}});if(first){const sc=g.parentElement;sc.scrollTo({left:Math.max(0,first.offsetLeft-sc.clientWidth/3),behavior:"smooth"})}}
+    return;
+  }
+  const c=e.target.closest("[data-hw]"); if(!c)return;
+  const w=+c.dataset.hw; if(!SB.weeks[w])return;
+  sbWeek=w; showView("scores"); sbRender(); scrollTo({top:0});
+});
+$("hcard").addEventListener("mousemove",e=>{const p=e.target.closest("[data-tip]");if(!p){tip.hidden=true;return}tip.textContent=p.dataset.tip;tip.hidden=false;placeTip(e.clientX,e.clientY)});
+$("hcard").addEventListener("mouseleave",()=>tip.hidden=true);
+window.__hostReady=true;
+showHost(selHost&&hosts[selHost]?selHost:(cur[2]&&hosts[cur[2]]?cur[2]:hostList[0].name));
+
+// ---------- hover any name, on any tab, to see all their medals: playing, winning and hosting ----------
+const NAME_SEL="[data-player],[data-name],[data-hpick],tr[data-host] .hostcell,#wcard h3,#pcard h3,#hcard h3";
+function nameOf(el){
+  if(el.matches("#wcard h3"))return wName; if(el.matches("#pcard h3"))return $("pq").value.trim(); if(el.matches("#hcard h3"))return hName;
+  return el.dataset.player||el.dataset.name||el.dataset.hpick||el.closest("[data-host]")?.dataset.host;
+}
+function everyMedalHtml(n){
+  const pw=allMedalsHtml(n), hm=hosts[n]?hostMedals(n):"";
+  return pw+(hm?`<div class="ms">Host medals</div>${hm}`:"");
+}
+if(matchMedia("(hover: hover)").matches){
+  document.addEventListener("mouseover",e=>{
+    const el=e.target.closest(NAME_SEL); if(!el||el.closest("#mcard,#fbub")||(el.closest("#view-songs")&&el.dataset.player))return; // Songs uses data-player for band names
+    const n=nameOf(el); if(!n||!(byName[n]||WR.wins[n]||hosts[n]))return;
+    if(el.title){el.dataset.t=el.title;el.removeAttribute("title")}
+    const m=everyMedalHtml(n);
+    mcard.innerHTML=`<div class="mh">${esc(n)} ${byName[n]?actPill(n):""}</div>${m||`<div class="none">No medals yet</div>`}`;
+    mcard.hidden=false; tip.hidden=true; placeCard(e.clientX,e.clientY);
+  });
+  document.addEventListener("mousemove",e=>{if(!mcard.hidden&&e.target.closest(NAME_SEL)){tip.hidden=true;placeCard(e.clientX,e.clientY)}});
+  document.addEventListener("mouseout",e=>{const el=e.target.closest(NAME_SEL);if(el&&!el.contains(e.relatedTarget))mcard.hidden=true});
+  addEventListener("scroll",()=>{mcard.hidden=true},{passive:true});
+  document.addEventListener("click",()=>{mcard.hidden=true},true);
+}
 </script>
