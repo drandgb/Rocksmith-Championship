@@ -782,7 +782,7 @@ footer{color:var(--dim);font-size:.78rem}
     <p class="legendline"><span class="mk">*</span> outside own class (faded = playing down, not counted for wins) · <span class="mk">~</span> FreeBird · <span class="pct100">100%</span> full score or Master Mode · click a name to open their profile</p>
   </div>
 
-  <footer>Data: the Rocksmith 2014 Championship scoreboard sheet (older attendance also from the Championship Metrics workbook). Player stats run through week 675; scoreboards cover weeks 440–676. Weeks 1–16 have no recorded host in the source. <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-06T13:24:38+00:00">October 6, 2026</span></span></footer>
+  <footer>Data: the Rocksmith 2014 Championship scoreboard sheet (older attendance also from the Championship Metrics workbook). Player stats run through week 675; scoreboards cover weeks 440–676. Weeks 1–16 have no recorded host in the source. <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-06T13:27:02+00:00">October 6, 2026</span></span></footer>
 </div>
 <div class="tip" id="tip" hidden></div>
 
@@ -820,6 +820,8 @@ const fmtShort=iso=>new Date(iso+"T12:00:00").toLocaleDateString("en-US",{month:
 const todayISO=(()=>{const d=new Date();return new Date(d.getTime()-d.getTimezoneOffset()*6e4).toISOString().slice(0,10)})();
 let curIdx=0; WEEKS.forEach((w,i)=>{if(w[1]<=todayISO)curIdx=i});
 const cur=WEEKS[curIdx];
+// a future year only shows up (timelines, year lists) once it has started or has a host booked
+const SHOW_YEARS=new Set(WEEKS.filter((w,i)=>i<=curIdx||(w[2]&&w[2]!==LOST)).map(w=>w[1].slice(0,4)));
 let lastHosted=null; for(let i=curIdx;i>=0;i--){if(WEEKS[i][2]&&WEEKS[i][2]!==LOST){lastHosted=WEEKS[i];break}}
 
 // host stats from the schedule itself
@@ -957,7 +959,7 @@ function renderTL(){
   // rows by season year (week 1 = Oct 2013); rows of 52 weeks aligned to the anniversary week
   const el=$("tl"); let html="";
   const byYear={};
-  WEEKS.forEach((w,i)=>{const y=w[1].slice(0,4);(byYear[y]=byYear[y]||[]).push(i)});
+  WEEKS.forEach((w,i)=>{const y=w[1].slice(0,4);if(SHOW_YEARS.has(y))(byYear[y]=byYear[y]||[]).push(i)});
   Object.keys(byYear).forEach(y=>{
     const idxs=byYear[y];
     const firstWeekOfYear=Math.floor((new Date(WEEKS[idxs[0]][1]+"T12:00:00")-new Date(y+"-01-01T12:00:00"))/604800000);
@@ -983,7 +985,7 @@ function renderTL(){
 }
 
 function fillYears(){
-  const ys=[...new Set(WEEKS.map(w=>w[1].slice(0,4)))].reverse();
+  const ys=[...new Set(WEEKS.map(w=>w[1].slice(0,4)))].filter(y=>SHOW_YEARS.has(y)).reverse();
   $("yr").innerHTML=`<option value="">All years</option>`+ys.map(y=>`<option>${y}</option>`).join("");
 }
 
@@ -1855,7 +1857,7 @@ function showHost(name){
   const yearsTxt=years.length?(years.length===1?years[0]:`${years[0]}–${years[years.length-1]}`):"–";
   const col=color[name]||"var(--accent)";
   // grid: one square per week, by calendar year
-  const byYear={}; WEEKS.forEach(([w,d,ho],i)=>{(byYear[d.slice(0,4)]=byYear[d.slice(0,4)]||[]).push([w,d,ho,i])});
+  const byYear={}; WEEKS.forEach(([w,d,ho],i)=>{if(SHOW_YEARS.has(d.slice(0,4)))(byYear[d.slice(0,4)]=byYear[d.slice(0,4)]||[]).push([w,d,ho,i])});
   let grid="";
   Object.keys(byYear).forEach(y=>{
     const arr=byYear[y], off=Math.floor((new Date(arr[0][1]+"T12:00:00")-new Date(y+"-01-01T12:00:00"))/604800000);
