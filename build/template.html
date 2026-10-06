@@ -1,0 +1,1940 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎸</text></svg>">
+<title>Rocksmith Championship Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oxanium:wght@500;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: a stage-dark console. Status strip, then two-column (upcoming + leaderboard), then a full-width note-highway timeline and a searchable log. Single dark look by choice, like the game's own UI. */
+:root{
+  color-scheme:dark;
+  --bg:#0d0f14; --panel:#151922; --panel2:#1c2130; --line:#2a3142;
+  --fg:#e7eaf2; --muted:#8c94a8; --dim:#5d6578;
+  --accent:#ff9a2e; --accent-ink:#1a0f02;
+  --s-red:#ef4a55; --s-yellow:#f5c84a; --s-blue:#3fa0ff; --s-orange:#ff9a2e; --s-green:#45d17a; --s-purple:#b277ff;
+  --open:#ff9a2e; --lost:#2b2f3a;
+  --f-display:"Oxanium","Segoe UI",system-ui,sans-serif;
+  --f-body:"IBM Plex Sans",system-ui,-apple-system,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font:15px/1.5 var(--f-body)}
+.wrap{max-width:1180px;margin:0 auto;padding-inline:16px;padding-block:20px 48px;display:flex;flex-direction:column;gap:20px}
+h1,h2,h3{font-family:var(--f-display);margin:0;text-wrap:balance}
+h2{font-size:1.05rem;letter-spacing:.06em;text-transform:uppercase;color:var(--fg)}
+.sub{color:var(--muted);font-size:.85rem}
+.num{font-variant-numeric:tabular-nums;font-family:var(--f-mono)}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px;min-width:0}
+.panel-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+
+/* header */
+header.top{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-end;justify-content:space-between}
+.brand .eyebrow{font-family:var(--f-mono);font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.brand h1{font-size:clamp(1.6rem,4vw,2.4rem);font-weight:800;letter-spacing:.01em}
+.strings{display:flex;gap:3px;margin-top:8px}
+.strings i{display:block;height:3px;width:34px;border-radius:2px}
+.links{display:flex;flex-wrap:wrap;gap:8px}
+.forum{white-space:nowrap;color:var(--accent);text-decoration:none;font-size:.85rem;border:1px solid var(--line);padding:6px 10px;border-radius:6px}
+.forum:hover,.forum:focus-visible{border-color:var(--accent);outline:none}
+
+/* now strip */
+.now{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.now > div{background:var(--panel);padding:14px 16px;min-width:0}
+.now .k{font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.now .v{font-family:var(--f-display);font-size:1.5rem;font-weight:700;line-height:1.2;margin-top:2px;overflow-wrap:anywhere}
+.now .v .of{font-size:.9rem;color:var(--muted);font-weight:500}
+.now .n{font-size:.8rem;color:var(--muted)}
+.pill{display:inline-block;font-family:var(--f-mono);font-size:.7rem;padding:2px 7px;border-radius:999px;letter-spacing:.04em;vertical-align:middle}
+.pill.open{background:color-mix(in srgb,var(--open) 18%,transparent);color:var(--open);border:1px solid color-mix(in srgb,var(--open) 50%,transparent)}
+.pill.on{cursor:help;background:color-mix(in srgb,var(--s-green) 16%,transparent);color:var(--s-green);border:1px solid color-mix(in srgb,var(--s-green) 45%,transparent)}
+.pill.hol{background:var(--panel2);color:var(--muted);border:1px solid var(--line);font-family:var(--f-body);letter-spacing:0}
+
+.grid2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.35fr);gap:20px}
+@media (max-width:860px){.grid2{grid-template-columns:minmax(0,1fr)}}
+
+/* upcoming */
+.up{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.up li{display:grid;grid-template-columns:56px 1fr;gap:12px;padding:10px 0;border-top:1px solid var(--line);align-items:start}
+.up li:first-child{border-top:0}
+.up .wk{font-family:var(--f-mono);font-size:.78rem;color:var(--muted)}
+.up .wk .yy{display:block;font-size:.68rem;color:var(--dim)}
+.up .wk b{display:block;font-family:var(--f-display);font-size:1.1rem;color:var(--fg)}
+.up .who{font-weight:600}
+.up .meta{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
+.up li.cur .wk b{color:var(--accent)}
+
+/* leaderboard */
+.lb{width:100%;border-collapse:collapse;font-size:.88rem}
+.lb th{font-weight:500;color:var(--muted);text-align:left;font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;padding:0 8px 8px 0;border-bottom:1px solid var(--line);white-space:nowrap}
+.lb td{padding:7px 8px 7px 0;border-bottom:1px solid color-mix(in srgb,var(--line) 60%,transparent);vertical-align:middle;white-space:nowrap}
+.lb td.r,.lb th.r{text-align:right}
+.lb tr{cursor:pointer}
+.lb tbody tr:hover td{background:var(--panel2)}
+.lb tr.sel td{background:color-mix(in srgb,var(--accent) 12%,transparent)}
+.hostcell{display:flex;align-items:center;gap:8px;min-width:120px}
+.sw{width:10px;height:10px;border-radius:2px;flex:none}
+.bar{position:relative;height:8px;background:var(--panel2);border-radius:4px;min-width:70px}
+.bar span{position:absolute;inset:0 auto 0 0;border-radius:4px}
+.scroll{overflow-x:auto}
+
+/* timeline */
+.tl{display:grid;grid-template-columns:44px repeat(53,minmax(9px,1fr));gap:2px;min-width:640px}
+.tl .yr{font-family:var(--f-mono);font-size:.72rem;color:var(--muted);align-self:center}
+.tl .c{aspect-ratio:1;border-radius:2px;background:var(--panel2);max-width:100%}
+.tl .c.lost{background:repeating-linear-gradient(45deg,var(--lost) 0 2px,var(--panel2) 2px 4px)}
+.tl .c.open{background:transparent;box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--open) 60%,transparent)}
+.tl .c.cur{box-shadow:0 0 0 2px var(--fg)}
+.tl .c.fade{opacity:.12}
+.tl .c[data-w]{cursor:pointer}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:12px;font-size:.8rem;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend button{display:inline-flex;align-items:center;gap:6px;background:none;border:1px solid transparent;border-radius:6px;padding:3px 7px;color:var(--muted);font:inherit;cursor:pointer}
+.legend button:hover{color:var(--fg);border-color:var(--line)}
+.legend button.sel{color:var(--fg);border-color:var(--accent);background:color-mix(in srgb,var(--accent) 12%,transparent)}
+.legend.has-sel button:not(.sel){opacity:.55}
+.tip{white-space:pre-line;position:fixed;pointer-events:none;background:var(--panel2);border:1px solid var(--line);padding:6px 9px;border-radius:6px;font-size:.8rem;z-index:10;max-width:300px;max-height:80vh;overflow:hidden}
+
+/* log */
+.controls{display:flex;flex-wrap:wrap;gap:8px}
+.controls input,.controls select{background:var(--panel2);color:var(--fg);border:1px solid var(--line);border-radius:6px;padding:7px 10px;font:inherit;font-size:.88rem;min-width:0}
+.controls input{flex:1 1 200px}
+.controls input:focus-visible,.controls select:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.log{max-height:440px;overflow:auto;border-top:1px solid var(--line);margin-top:12px}
+.log table{width:100%;border-collapse:collapse;font-size:.86rem}
+.log th{position:sticky;top:0;background:var(--panel);text-align:left;font-weight:500;color:var(--muted);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;padding:8px 8px 8px 0;border-bottom:1px solid var(--line)}
+.log td{padding:6px 8px 6px 0;border-bottom:1px solid color-mix(in srgb,var(--line) 55%,transparent);vertical-align:top}
+.log td.w{font-family:var(--f-mono);color:var(--muted);white-space:nowrap}
+.log td.d{white-space:nowrap;font-variant-numeric:tabular-nums}
+.log tr.cur td{background:color-mix(in srgb,var(--accent) 10%,transparent)}
+.dimtxt{color:var(--dim);font-style:italic}
+
+.filterbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:.88rem}
+.hmedals{flex-basis:100%}
+.medals.yrm{gap:4px 11px;padding-right:8px}
+.hmedals:empty{display:none}
+button.clear{background:none;border:1px solid var(--line);color:var(--fg);border-radius:6px;padding:4px 10px;font:inherit;font-size:.8rem;cursor:pointer}
+button.clear:hover{border-color:var(--accent)}
+
+/* records */
+.rec{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:20px}
+.rec h3{font-size:.78rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:500;margin-bottom:8px;font-family:var(--f-body)}
+.rec ol{margin:0;padding:0;list-style:none;counter-reset:r;font-size:.88rem}
+.rec li{display:flex;justify-content:space-between;gap:8px;padding:4px 0;border-bottom:1px dashed color-mix(in srgb,var(--line) 70%,transparent);counter-increment:r}
+.rec li::before{content:counter(r);font-family:var(--f-mono);color:var(--dim);width:1.4em;flex:none}
+.rec li span:first-of-type{flex:1;overflow-wrap:anywhere}
+.grid-streaks{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,2fr);gap:20px}
+@media (max-width:760px){.grid-streaks{grid-template-columns:minmax(0,1fr)}}
+.rank{margin:0;padding:0;list-style:none;counter-reset:r;font-size:.88rem}
+.rank.two{columns:2 220px;column-gap:28px}
+.rank li{display:flex;justify-content:space-between;gap:8px;padding:5px 0;border-bottom:1px dashed color-mix(in srgb,var(--line) 70%,transparent);counter-increment:r;break-inside:avoid}
+.rank li::before{content:counter(r);font-family:var(--f-mono);color:var(--dim);width:1.6em;flex:none}
+.rank li span:first-of-type{flex:1;overflow-wrap:anywhere}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line)}
+.tabs button{background:none;border:0;border-bottom:3px solid transparent;color:var(--muted);font:600 .95rem var(--f-display);letter-spacing:.06em;text-transform:uppercase;padding:8px 14px 9px;margin-bottom:-1px;cursor:pointer}
+.tabs button:hover{color:var(--fg)}
+.tabs button[aria-selected="true"]{color:var(--fg);border-bottom-color:var(--accent)}
+[hidden]{display:none !important}
+.view{display:flex;flex-direction:column;gap:20px}
+/* players page */
+.grid2.even{grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr))}
+.podium{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;align-items:end;max-width:640px;margin:8px auto 0}
+.pod{display:flex;flex-direction:column;align-items:center;gap:8px;min-width:0}
+.pod .medal{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;font:800 1.2rem var(--f-display);color:var(--bg);background:var(--m);box-shadow:0 0 0 3px color-mix(in srgb,var(--m) 30%,transparent),0 0 22px color-mix(in srgb,var(--m) 45%,transparent)}
+.pod .pname{font:700 clamp(.95rem,2.6vw,1.25rem) var(--f-display);text-align:center;overflow-wrap:anywhere}
+.pod .block{width:100%;border-radius:8px 8px 0 0;background:linear-gradient(180deg,color-mix(in srgb,var(--m) 55%,var(--panel2)),var(--panel2));border:1px solid color-mix(in srgb,var(--m) 50%,transparent);border-bottom:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding-top:12px;transform-origin:bottom}
+.pod .block b{font:800 clamp(1.4rem,4.5vw,2.2rem) var(--f-display);font-variant-numeric:tabular-nums;line-height:1}
+.pod .block small{color:var(--muted);font-size:.75rem;letter-spacing:.08em;text-transform:uppercase}
+.podium-base{max-width:640px;margin:0 auto;height:6px;border-radius:3px;background:linear-gradient(90deg,var(--s-red),var(--s-yellow),var(--s-blue),var(--s-orange),var(--s-green),var(--s-purple))}
+
+.bars{display:flex;flex-direction:column;gap:7px}
+@media (min-width:720px){.bars.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:repeat(10,auto);grid-auto-flow:column;column-gap:28px;row-gap:7px}}
+.brow{display:grid;grid-template-columns:1.6em minmax(70px,9em) 6em 1fr auto;align-items:center;gap:8px;font-size:.86rem;min-width:0}
+.brow .rk{font-family:var(--f-mono);color:var(--dim);font-size:.75rem}
+.brow .act{display:flex;align-items:center;gap:3px}
+.pill.on,.pill.new,.pill.off{display:inline-flex;justify-content:center;width:6.8em;box-sizing:border-box}
+.pill.off{cursor:help;background:color-mix(in srgb,#8c94a8 12%,transparent);color:#8c94a8;border:1px solid color-mix(in srgb,#8c94a8 40%,transparent)}
+.pill.new{cursor:help;background:color-mix(in srgb,var(--s-purple) 20%,transparent);color:var(--s-purple);border:1px solid color-mix(in srgb,var(--s-purple) 50%,transparent)}
+.ring .pill,.badge .pill{font-size:.6rem;padding:1px 6px}
+.brow.inactive{--c:#4a5163 !important}
+.brow.inactive .val,.brow.inactive .rk{color:var(--dim)}
+.brow.inactive .fill::after{background:#7a8296;box-shadow:none}
+.brow.notag{grid-template-columns:1.6em minmax(70px,9em) 1fr auto}
+#b-mostwins .brow{grid-template-columns:1.6em minmax(90px,1.4fr) 6em minmax(50px,1fr) 3.5em}
+#b-wins .brow{grid-template-columns:1.6em minmax(90px,1.4fr) 6em minmax(50px,1fr) 3.8em}
+.brow .act .pill{font-size:.6rem;padding:1px 5px}
+.pod .pill,.ring .pill,.badge .pill{font-size:.6rem;padding:1px 6px}
+.badge .pill{margin:4px 0 2px;display:inline-block}
+.pc h3 .pill{font-size:.7rem;vertical-align:middle}
+.brow .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.brow .track{height:12px;background:var(--panel2);border-radius:6px;position:relative;overflow:hidden}
+.brow .fill{position:absolute;inset:0 auto 0 0;border-radius:6px;background:var(--c);transform-origin:left}
+.brow .fill::after{content:"";position:absolute;right:0;top:50%;width:12px;height:12px;margin-top:-6px;border-radius:50%;background:var(--fg);box-shadow:0 0 8px var(--c)}
+.brow .val{font-family:var(--f-mono);font-size:.8rem;font-variant-numeric:tabular-nums;text-align:right;min-width:3.5em}
+.brow.top .nm{font-weight:600}
+.flame .fill{background:linear-gradient(90deg,var(--s-red),var(--s-orange) 60%,var(--s-yellow))}
+
+.rings{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:18px 12px}
+.ring .nm{cursor:pointer}
+.nmrow{display:flex;align-items:center;justify-content:center;gap:5px;flex-wrap:wrap;min-width:0}
+.badge.lead .nmrow{justify-content:flex-start}
+.nmrow .pill{margin:0!important}
+.ring text.of{font:500 10px var(--f-mono);fill:var(--muted)}
+@media (max-width:480px){.rings{gap:14px 6px}.ring .nm{font-size:.72rem}}
+.ring{display:flex;flex-direction:column;align-items:center;gap:6px;min-width:0}
+.ring svg{width:84px;height:84px;max-width:100%}
+.ring .rt{fill:none;stroke:var(--panel2);stroke-width:8}
+.ring .rv{fill:none;stroke-width:8;stroke-linecap:round;transform:rotate(-90deg);transform-origin:50% 50%}
+.ring text{fill:var(--fg);font:700 15px var(--f-display);text-anchor:middle;dominant-baseline:central}
+.ring .nm{font-size:.82rem;text-align:center;overflow-wrap:anywhere}
+.ring.full .nm::before{content:"★ ";color:var(--s-yellow)}
+
+.badges{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.badge{position:relative;border:1px solid color-mix(in srgb,var(--s-yellow) 40%,var(--line));border-radius:10px;padding:14px 12px 12px;background:radial-gradient(120% 90% at 50% 0%,color-mix(in srgb,var(--s-yellow) 14%,transparent),transparent 70%),var(--panel2);text-align:center;min-width:0}
+.badge svg{width:34px;height:34px;display:block;margin:0 auto 6px}
+.badge .nm{font-weight:600;overflow-wrap:anywhere}
+.badge .wk{font:700 1.4rem var(--f-display);font-variant-numeric:tabular-nums;color:var(--s-yellow);line-height:1.1}
+.badge .wk small{font:500 .7rem var(--f-body);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);display:block}
+.badge.lead{grid-column:1/-1;display:flex;align-items:center;justify-content:center;gap:16px;text-align:left;padding:18px}
+.badge.lead svg{margin:0;width:48px;height:48px;flex:none}
+.badge.lead .wk{font-size:2rem}
+
+@media (prefers-reduced-motion:no-preference){
+  .view:not([hidden]) .fill{animation:grow .9s cubic-bezier(.2,.8,.2,1) both}
+  .view:not([hidden]) .pod .block{animation:rise .8s cubic-bezier(.2,.8,.2,1) both}
+  .view:not([hidden]) .ring .rv{transition:stroke-dashoffset 1s}
+}
+@keyframes grow{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+@keyframes rise{from{transform:scaleY(.2)}to{transform:scaleY(1)}}
+.chartbox{position:relative;width:100%}
+.chartbox svg{display:block;width:100%;height:auto}
+.chartbox .gl{stroke:var(--line);stroke-width:1}
+.chartbox .tk{fill:var(--muted);font:11px var(--f-mono)}
+.chartbox .hov{stroke:var(--fg);stroke-width:1;stroke-dasharray:3 3}
+[data-player],[data-hpick]{cursor:pointer}
+[data-hpick]:hover{color:var(--accent)}
+[data-player]:hover,[data-band]:hover{color:var(--accent)}
+[data-band]{cursor:pointer}
+.pc{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,2fr);gap:20px;margin-top:14px}
+@media (max-width:760px){.pc{grid-template-columns:minmax(0,1fr)}}
+.pc h3{font:800 1.6rem var(--f-display);overflow-wrap:anywhere}
+.pc .tiers{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin:8px 0 14px}
+.tier{display:flex;flex-direction:column;align-items:center;min-width:0;padding:6px 8px;border-radius:8px;background:var(--panel2);border:1px solid var(--line)}
+.tier small{font-size:.66rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.tier b{font:800 1.2rem var(--f-display);color:var(--tc)}
+.stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.stats div{background:var(--panel2);padding:8px 10px}
+.stats small{display:block;font-size:.68rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.stats b{font:700 1.15rem var(--f-display);font-variant-numeric:tabular-nums}
+.pres{display:grid;grid-template-columns:40px repeat(53,minmax(6px,1fr));gap:2px;min-width:520px}
+.pres .yr{font:.7rem var(--f-mono);color:var(--muted);align-self:center}
+.pres i{display:block;aspect-ratio:1;border-radius:2px;background:var(--panel2);max-width:100%}
+.pres i.sbk{cursor:pointer}
+.pres i.sbk:hover{outline:2px solid var(--fg);outline-offset:1px}
+.pres i.on{background:var(--s-green)}
+.pres i.pre{background:transparent}
+.pres-legend{display:flex;gap:14px;margin-top:8px;font-size:.78rem;color:var(--muted)}
+.pres-legend span{display:inline-flex;align-items:center;gap:6px}
+.empty{color:var(--muted);padding:14px 0}
+/* scoreboard */
+.sbhead{display:flex;flex-direction:column;gap:14px}
+.sbnav{display:flex;align-items:center;gap:12px}
+.navbtn{width:40px;height:40px;flex:none;border-radius:8px;border:1px solid var(--line);background:var(--panel2);color:var(--fg);font:700 1.4rem/1 var(--f-display);cursor:pointer}
+.navbtn:hover:not(:disabled){border-color:var(--accent)}
+.navbtn:disabled{opacity:.35;cursor:default}
+.sbtitle{flex:1;min-width:0;text-align:center}
+.sbtitle select{background:none;border:0;color:var(--fg);font:800 clamp(1.4rem,4vw,2rem) var(--f-display);text-align:center;cursor:pointer;max-width:100%}
+.sbtitle select option{background:var(--panel);font-size:1rem}
+.sbtools{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.seg button{background:var(--panel2);border:0;color:var(--muted);font:700 .85rem var(--f-display);letter-spacing:.08em;text-transform:uppercase;padding:8px 16px;cursor:pointer;border-right:1px solid var(--line)}
+.seg button:last-child{border-right:0}
+.seg button[aria-pressed="true"]{color:var(--bg)}
+.seg .s-lead[aria-pressed="true"]{background:var(--s-red)}
+.seg .s-rhy[aria-pressed="true"]{background:var(--s-yellow)}
+.seg .s-bass[aria-pressed="true"]{background:var(--s-blue)}
+#sbfind{background:var(--panel2);color:var(--fg);border:1px solid var(--line);border-radius:6px;padding:7px 10px;font:inherit;font-size:.88rem;flex:0 1 240px;min-width:0}
+.sbstats{display:flex;flex-wrap:wrap;gap:8px 22px;font-size:.85rem;color:var(--muted)}
+.sbstats b{color:var(--fg);font-family:var(--f-display);font-size:1.05rem}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr));gap:14px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:hidden;display:flex;flex-direction:column;min-width:0}
+.card .ch{padding:12px 14px 10px;border-top:3px solid var(--tc);background:linear-gradient(180deg,color-mix(in srgb,var(--tc) 12%,transparent),transparent)}
+.card .lv{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.card .lv span{font:700 .78rem var(--f-display);letter-spacing:.1em;text-transform:uppercase;color:var(--tc)}
+.card .diff{font:700 .8rem var(--f-mono);padding:2px 7px;border-radius:5px;background:var(--panel2);border:1px solid var(--line);color:var(--fg)}
+.card .song{margin-top:6px;font-size:.92rem;line-height:1.3;overflow-wrap:anywhere}
+.card .song b{display:block;font-family:var(--f-display);font-size:1.05rem}
+.card .song small{color:var(--muted)}
+.card .note{font-size:.72rem;color:var(--muted);margin-top:4px}
+.card table{width:100%;border-collapse:collapse;font-size:.85rem}
+.card th{font-weight:500;color:var(--dim);font-size:.68rem;letter-spacing:.08em;text-transform:uppercase;text-align:right;padding:6px 10px 4px 0;border-bottom:1px solid var(--line)}
+.card th:nth-child(2){text-align:left}
+.card td{padding:5px 10px 5px 0;border-bottom:1px solid color-mix(in srgb,var(--line) 55%,transparent);text-align:right;font-variant-numeric:tabular-nums;font-family:var(--f-mono);font-size:.8rem;white-space:nowrap}
+.card td:first-child,.card th:first-child{width:2.2em;text-align:center;padding-left:6px}
+.card td.n{text-align:left;font-family:var(--f-body);font-size:.86rem;white-space:normal;overflow-wrap:anywhere}
+.card tr:last-child td{border-bottom:0}
+.card .rkb{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;font:700 .7rem var(--f-display);color:var(--bg);background:var(--m)}
+.card .rkn{color:var(--dim);font-size:.75rem}
+.card .mk,.legendline .mk{color:var(--accent);font-weight:700;margin-left:2px;cursor:help}
+.card .pct100,.legendline .pct100{color:var(--s-red);font-weight:700}
+.card tr.down td{opacity:.55}
+.card tr.me td{background:color-mix(in srgb,var(--accent) 18%,transparent)}
+.card .empty{padding:14px;color:var(--dim);font-size:.85rem}
+.card .aka{display:block;font-size:.7rem;color:var(--dim)}
+.legendline{color:var(--muted);font-size:.8rem;margin:0}
+.wpathbar{display:flex;justify-content:center}
+#wpath button{padding:10px 20px;font-size:.9rem}
+#pfilter .s-all[aria-pressed="true"],#pfilter .s-act[aria-pressed="true"]{background:var(--s-green)}
+#pfilter button{padding:6px 12px;font-size:.75rem}
+.tabs{align-items:center;flex-wrap:wrap}
+.actfilter{margin-left:auto;margin-bottom:6px}
+#pfilter .s-all[aria-pressed="true"],#wpath .s-all[aria-pressed="true"],#rufilter .s-all[aria-pressed="true"]{background:var(--accent)}
+.ruf{margin-bottom:12px}
+.rulist{list-style:none;margin:0;padding:0;columns:300px auto;column-gap:28px}
+.rulist li{break-inside:avoid}
+.rulist li{display:grid;grid-template-columns:6.4em minmax(0,1fr) auto;gap:10px;align-items:center;padding:7px 0;border-bottom:1px solid color-mix(in srgb,var(--line) 55%,transparent);font-size:.86rem}
+.rulist .w{font-family:var(--f-mono);font-size:.75rem;color:var(--muted);line-height:1.2}
+[data-sbw]{cursor:pointer}
+[data-sbw]:hover,[data-sbw]:hover b{color:var(--accent)}
+.golink{cursor:pointer}
+.golink:hover{color:var(--accent)}
+.golinks{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.holf{cursor:pointer}
+.holf:hover{color:var(--accent);border-color:var(--accent)}
+.holf.sel{color:var(--accent);font-weight:600}
+.holbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 10px;font-size:.86rem}
+.holbar b{color:var(--accent)}
+.songlink{cursor:pointer}
+.songlink:hover{color:var(--accent)}
+.songf{display:inline-block;font-size:.78rem;font-weight:600;padding:1px 9px;border-radius:999px;background:color-mix(in srgb,var(--accent) 18%,var(--panel2));border:1px solid color-mix(in srgb,var(--accent) 50%,transparent)}
+button.clear.sblatest{border-color:var(--accent);color:var(--accent);font-weight:600}
+button.clear.sblatest:hover{background:var(--accent);color:var(--accent-ink)}
+.rulist .w b{display:block;color:var(--fg);font-family:var(--f-display);font-size:.95rem}
+.rulist .who{min-width:0;overflow-wrap:anywhere}
+.rulist .path{display:inline-block;font:700 .62rem var(--f-display);letter-spacing:.08em;text-transform:uppercase;padding:1px 6px;border-radius:4px;color:var(--bg);background:var(--pc);margin-left:6px;vertical-align:middle}
+.rulist .move{display:flex;align-items:center;gap:6px;font:800 .95rem var(--f-display)}
+.rulist .move span{color:var(--tc)}
+.rulist .move i{font-style:normal;color:var(--dim)}
+.rulist .move i{color:var(--accent)}
+.rulist .move.down i{color:var(--s-red)}
+.rkup{display:inline-block;margin-left:5px;font:700 .6rem var(--f-display);letter-spacing:.06em;padding:1px 5px;border-radius:4px;background:color-mix(in srgb,var(--s-green) 20%,transparent);color:var(--s-green);border:1px solid color-mix(in srgb,var(--s-green) 45%,transparent);cursor:help;vertical-align:middle}
+.pc .ups{margin-top:10px;font-size:.82rem;color:var(--muted);display:flex;flex-wrap:wrap;gap:6px}
+.newlist{columns:340px auto;column-gap:28px}
+.nrow{display:grid;grid-template-columns:minmax(0,9em) 1fr auto;gap:10px;align-items:center;padding:7px 0;border-bottom:1px solid color-mix(in srgb,var(--line) 55%,transparent);break-inside:avoid;font-size:.86rem}
+.nrow .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nrow .j{display:block;font:.72rem var(--f-mono);color:var(--muted)}
+.nrow .track{height:10px;background:var(--panel2);border-radius:5px;position:relative;overflow:hidden}
+.nrow .fill{position:absolute;inset:0 auto 0 0;border-radius:5px;background:var(--s-purple);transform-origin:left}
+.nrow .val{font:.8rem var(--f-mono);text-align:right;min-width:5.5em;white-space:nowrap}
+@media (prefers-reduced-motion:no-preference){.view:not([hidden]) .nrow .fill{animation:grow .9s cubic-bezier(.2,.8,.2,1) both}}
+.wpres i[data-wk]{cursor:pointer}
+.wpres .wyr{cursor:pointer;border-radius:4px;padding:0 3px;margin-left:-3px}
+.wpres .wyr:hover{color:var(--fg);background:var(--panel2)}
+.wpres .wyr.sel{color:var(--accent-ink);background:var(--accent);font-weight:700}
+.wpres.yf i[data-wk]:not(.iny),#ppres.yf i[data-w]:not(.iny){opacity:.22}
+#ppres .pyr{cursor:pointer;border-radius:4px;padding:0 3px;margin-left:-3px}
+#ppres .pyr:hover{color:var(--fg);background:var(--panel2)}
+#ppres .pyr.sel{color:var(--accent-ink);background:var(--accent);font-weight:700}
+.wleg span[data-hl]{cursor:pointer;padding:2px 6px;margin:-2px -6px;border-radius:6px}
+.wleg span[data-hl]:hover{color:var(--fg);background:var(--panel2)}
+.wleg span[data-hl].act{color:var(--fg);background:color-mix(in srgb,var(--accent) 18%,var(--panel2));box-shadow:inset 0 0 0 1px var(--accent)}
+.yrtag{display:flex;align-items:center;gap:10px;margin-top:10px;font-size:.82rem}
+.yrtag b{color:var(--accent-ink);background:var(--accent);padding:2px 9px;border-radius:999px;font:700 .75rem var(--f-display);letter-spacing:.04em}
+.yrtag .clear{padding:2px 9px;font-size:.72rem}
+.wpres.hl i[data-wk]:not(.hit),.pres.hl i[data-w]:not(.hit){opacity:.18}
+.wpres i.hit,.pres i.hit{outline:2px solid var(--fg);outline-offset:1px;position:relative;z-index:1}
+.stats div[data-hl]{cursor:pointer;transition:background .15s}
+.stats div[data-hl]:hover{background:color-mix(in srgb,var(--accent) 8%,var(--panel2))}
+.medal-m[data-hl].act{outline:2px solid var(--fg);outline-offset:2px;border-radius:50%}
+#pcard .medal-m.act,#hcard .medal-m.act{outline:2px solid var(--fg);outline-offset:2px;border-radius:50%}
+.stats div[data-hl].act{background:color-mix(in srgb,var(--accent) 16%,var(--panel2));box-shadow:inset 3px 0 0 var(--accent)}
+.wpres i[data-wk]:hover{outline:2px solid var(--fg);outline-offset:1px}
+/* win heat, matching the hot-streak flame bars: deep ember → blazing orange → white-hot gold */
+:root{--wg1:linear-gradient(135deg,#e0321e,#8a1020);--wg2:linear-gradient(135deg,#ffa03a,#ff5a1a);--wg3:linear-gradient(135deg,#fffbe0,#ffe27a 40%,#ffb22e)}
+.wpres i.w1{background:var(--wg1)}
+.wpres i.w2{background:var(--wg2);box-shadow:0 0 5px rgba(255,120,30,.5)}
+.wpres i.w3{background:var(--wg3);box-shadow:0 0 8px rgba(255,200,60,.8)}
+.wpres i.pl{background:#3a4254}
+.wpres i.q{background:repeating-linear-gradient(-45deg,color-mix(in srgb,var(--s-blue) 80%,transparent) 0 2px,var(--panel2) 2px 4px)}
+.wpres i.np{background:repeating-linear-gradient(45deg,var(--lost) 0 2px,var(--panel2) 2px 4px)}
+#view-songs .brow.notag{grid-template-columns:1.6em minmax(90px,16em) minmax(40px,1fr) auto}
+#spath button{padding:10px 20px;font-size:.9rem}
+#spath .s-all[aria-pressed="true"]{background:var(--accent)}
+.tiers5{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:14px}
+@media (max-width:900px){.tiers5{grid-template-columns:repeat(auto-fit,minmax(180px,1fr))}}
+.tcol{border-top:3px solid var(--tc);background:linear-gradient(180deg,color-mix(in srgb,var(--tc) 10%,transparent),transparent 60%);border-radius:8px;padding:10px 10px 6px;min-width:0}
+.tcol h3{font:700 .8rem var(--f-display);letter-spacing:.1em;text-transform:uppercase;color:var(--tc);margin-bottom:6px}
+.tcol h3 small{display:block;font:500 .7rem var(--f-body);letter-spacing:0;text-transform:none;color:var(--muted)}
+.tcol ol{list-style:none;margin:0;padding:0;font-size:.84rem}
+.tcol li{cursor:pointer;display:flex;justify-content:space-between;gap:6px;padding:4px 0;border-bottom:1px dashed color-mix(in srgb,var(--line) 70%,transparent)}
+.tcol li:hover span:first-child{color:var(--accent)}
+.tcol li span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tcol li span:last-child{font-family:var(--f-mono);font-size:.78rem;color:var(--muted)}
+.mixrow{display:grid;grid-template-columns:7.5em 1fr 4.5em;gap:10px;align-items:center;padding:6px 0;font-size:.86rem}
+.mixrow .track{height:14px;background:var(--panel2);border-radius:7px;overflow:hidden;position:relative}
+.mixrow .fill{position:absolute;inset:0 auto 0 0;background:var(--tc);border-radius:7px;transform-origin:left}
+.mixrow .val{text-align:right;font:.8rem var(--f-mono)}
+.mixrow .nm{color:var(--tc);font-weight:600}
+.songlist{list-style:none;margin:0;padding:0;columns:420px auto;column-gap:28px;counter-reset:r}
+.songlist li{cursor:help;display:grid;grid-template-columns:1.8em minmax(0,1fr) auto;gap:10px;align-items:center;padding:7px 0;border-bottom:1px solid color-mix(in srgb,var(--line) 55%,transparent);break-inside:avoid;counter-increment:r;font-size:.86rem}
+.songlist li::before{content:counter(r);font:.75rem var(--f-mono);color:var(--dim)}
+.songlist b{display:block;font-family:var(--f-display);overflow-wrap:anywhere}
+.songlist small{color:var(--muted)}
+.bandlink{cursor:pointer;text-decoration:underline dotted}
+.bandlink:hover{color:var(--accent)}
+.songlist .cnt{text-align:right;font:.72rem var(--f-body);color:var(--muted);white-space:nowrap}
+.songlist .cnt b{display:block;font:700 1.1rem var(--f-display);color:var(--fg)}
+.songlist .chips{display:flex;gap:3px;flex-wrap:wrap;margin-top:3px}
+.bchips{display:flex;flex-direction:column;gap:5px;margin-bottom:12px}
+.bchips .brow1{display:flex;flex-wrap:wrap;gap:4px}
+.lvclick{cursor:pointer}
+.pth.sel{box-shadow:0 0 0 2px var(--fg)}
+.lvclick:hover{box-shadow:0 0 0 2px var(--fg)}
+.lvchip.lvbtn{border:0;cursor:pointer;font:700 .66rem var(--f-display);letter-spacing:.06em;padding:3px 8px}
+.lvbtn:focus-visible{outline:2px solid var(--fg);outline-offset:1px}
+.bchips:has(.lvbtn.sel) .lvbtn:not(.sel){opacity:.4}
+.lvbtn.sel{box-shadow:0 0 0 2px var(--fg)}
+.lvchip{font:700 .6rem var(--f-display);letter-spacing:.06em;padding:1px 5px;border-radius:4px;color:var(--bg);background:var(--tc)}
+.bandtbl{width:100%;border-collapse:collapse;font-size:.85rem}
+.bandtbl th{font-weight:500;color:var(--muted);font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;text-align:left;padding:6px 10px 6px 0;border-bottom:1px solid var(--line);white-space:nowrap}
+.bandtbl td{padding:7px 10px 7px 0;border-bottom:1px solid color-mix(in srgb,var(--line) 55%,transparent);vertical-align:top}
+.bandtbl td.r,.bandtbl th.r{text-align:right}
+.bandtbl td b{font-family:var(--f-display)}
+.bandtbl .chips{display:flex;flex-wrap:wrap;gap:3px}
+.bchips .pth,.bandtbl .pth,.yrtag .pth{font:700 .6rem var(--f-display);letter-spacing:.06em;padding:1px 5px;border-radius:4px;color:var(--bg);background:var(--pc)}
+.bandtbl .num{white-space:nowrap}
+.pstack{display:flex;flex-direction:column;gap:4px;align-items:flex-start}
+.pstack>span{height:18px;display:flex;align-items:center}
+.pstack.rt{align-items:flex-end;font:.8rem var(--f-mono);white-space:nowrap}
+.bandtbl td.wks{font:.78rem var(--f-mono);min-width:7em;max-width:14em}
+.bandscroll{max-height:520px;overflow:auto;margin-top:14px}
+.tierbar{display:flex;height:12px;border-radius:6px;overflow:hidden;margin:10px 0 4px;background:var(--panel2)}
+.tierbar span{background:var(--tc)}
+footer .updated{display:block;margin-top:4px}
+.medals{display:flex;flex-wrap:wrap;gap:4px;margin:0 0 6px}
+.medals:last-of-type{margin-bottom:10px}
+.medal-m{display:inline-flex;cursor:help}
+.medal-m svg{width:24px;height:26px;filter:drop-shadow(0 1px 2px rgba(0,0,0,.4))}
+.medal-m.zod{position:relative;width:30px;height:30px;border-radius:50%;align-items:center;justify-content:center;background:radial-gradient(circle at 35% 30%,color-mix(in srgb,var(--ec) 55%,#fff),var(--ec) 60%,color-mix(in srgb,var(--ec) 70%,#000));box-shadow:0 1px 3px rgba(0,0,0,.45),inset 0 0 0 1.5px rgba(0,0,0,.25)}
+.medal-m.zod .ani{font-size:17px;line-height:1;filter:drop-shadow(0 1px 0 rgba(255,255,255,.35))}
+.medal-m.zod b{position:absolute;right:-3px;bottom:-3px;min-width:14px;height:14px;padding:0 2px;border-radius:7px;background:#e7eaf2;color:#10131a;font:800 9px/14px var(--f-display);text-align:center;box-shadow:0 0 0 1.5px var(--panel)}
+.medal-m.flm{position:relative;width:28px;height:32px}
+.medal-m.flm svg{position:absolute;inset:0;width:28px;height:32px}
+.medal-m.flm .ani{position:absolute;left:0;right:0;top:13px;text-align:center;font-size:13px;line-height:1}
+.medal-m.flm b{position:absolute;right:-4px;bottom:-2px;min-width:14px;height:14px;padding:0 2px;border-radius:7px;background:#e7eaf2;color:#10131a;font:800 9px/14px var(--f-display);text-align:center;box-shadow:0 0 0 1.5px var(--panel)}
+.medal-m.perfect{margin-right:2px}
+.medal-m.classgem{margin-right:4px}
+.medal-m.classgem svg{width:30px;height:30px;filter:drop-shadow(0 0 3px var(--gc)) drop-shadow(0 0 8px var(--gc)) drop-shadow(0 0 14px color-mix(in srgb,var(--gc) 55%,transparent))}
+.medal-m.perfect svg{width:30px;height:30px;filter:drop-shadow(0 0 3px #bff6ff) drop-shadow(0 0 8px #9ff0ff) drop-shadow(0 0 14px rgba(216,166,255,.7))}
+@media (prefers-reduced-motion:no-preference){.medal-m.perfect svg,.medal-m.classgem svg{animation:gemglow 2.6s ease-in-out infinite}}
+@keyframes gemglow{0%,100%{opacity:1}50%{opacity:.82}}
+.medal-m.wm{position:relative;width:28px;height:30px}
+.medal-m.wm svg{width:28px;height:30px;filter:drop-shadow(0 0 3px var(--ec)) drop-shadow(0 0 8px color-mix(in srgb,var(--ec) 55%,transparent))}
+.medal-m.wm::after{content:"";position:absolute;inset:2px 3px 4px;border-radius:40%;background:linear-gradient(115deg,transparent 35%,rgba(255,255,255,.6) 48%,transparent 60%);background-size:250% 100%;background-position:120% 0;pointer-events:none;mix-blend-mode:screen}
+@media (prefers-reduced-motion:no-preference){.medal-m.wm::after{animation:shine 3.4s ease-in-out infinite}.medal-m.wm:nth-child(3n+2)::after{animation-delay:.7s}.medal-m.wm:nth-child(3n)::after{animation-delay:1.4s}}
+.medal-m.wm b{position:absolute;right:-5px;bottom:-3px;min-width:14px;height:14px;padding:0 3px;border-radius:7px;background:#e7eaf2;color:#10131a;font:800 9px/14px var(--f-display);text-align:center;box-shadow:0 0 0 1.5px var(--panel)}
+.medal-m.zod{overflow:visible;box-shadow:0 0 6px color-mix(in srgb,var(--ec) 70%,transparent),0 0 12px color-mix(in srgb,var(--ec) 35%,transparent),0 1px 3px rgba(0,0,0,.45),inset 0 0 0 1.5px rgba(0,0,0,.25)}
+.medal-m.zod::after{content:"";position:absolute;inset:0;border-radius:50%;background:linear-gradient(115deg,transparent 35%,rgba(255,255,255,.55) 48%,transparent 60%);background-size:250% 100%;background-position:120% 0;pointer-events:none}
+.medal-m.flm svg{transform-origin:50% 100%;filter:drop-shadow(0 0 3px var(--ec)) drop-shadow(0 0 7px color-mix(in srgb,var(--ec) 60%,transparent))}
+@media (prefers-reduced-motion:no-preference){
+  .medal-m.zod::after{animation:shine 3.2s ease-in-out infinite}
+  .medal-m.zod:nth-child(3n+2)::after{animation-delay:.6s}.medal-m.zod:nth-child(3n)::after{animation-delay:1.2s}
+  .medal-m.flm svg{animation:flicker 1.8s ease-in-out infinite}
+  .medal-m.flm:nth-child(2n)::after,.medal-m.flm:nth-child(2n) svg{animation-delay:.5s}
+}
+@keyframes shine{0%{background-position:120% 0}55%,100%{background-position:-60% 0}}
+@keyframes flicker{0%,100%{transform:scale(1);opacity:1}40%{transform:scale(1.04,1.07);opacity:.9}70%{transform:scale(.98,1.02)}}
+.hot{margin-left:4px;cursor:help;font-size:.9em}
+.pod .hot{font-size:.85em}
+#b-hot .fill{background:linear-gradient(90deg,#8a1020 0%,#e0321e 30%,#ff7a1a 60%,#ffc23a 85%,#fff1a8 100%);box-shadow:0 0 10px rgba(255,110,30,.55),0 0 2px rgba(255,200,80,.8)}
+#b-hot .fill::after{background:#fff6cf;box-shadow:0 0 10px #ffb23a,0 0 18px #ff6a1a}
+#b-hot .track{height:14px;border-radius:7px}
+@media (prefers-reduced-motion:no-preference){#b-hot .fill{background-size:200% 100%;animation:grow .9s cubic-bezier(.2,.8,.2,1) both,burn 2.4s ease-in-out infinite alternate}}
+@keyframes burn{0%{filter:brightness(1) saturate(1)}100%{filter:brightness(1.18) saturate(1.25)}}
+footer{color:var(--dim);font-size:.78rem}
+@media (prefers-reduced-motion:no-preference){.tl .c{transition:opacity .15s}}
+
+/* floating "filters on" bubble */
+#fbub{position:fixed;right:16px;bottom:16px;z-index:60;max-width:calc(100vw - 32px);display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:8px 10px;border-radius:14px;background:color-mix(in srgb,var(--panel) 92%,transparent);backdrop-filter:blur(6px);border:1.5px solid var(--accent);box-shadow:0 6px 24px rgba(0,0,0,.5),0 0 0 4px color-mix(in srgb,var(--accent) 18%,transparent);font-size:.78rem}
+#fbub[hidden]{display:none !important}
+#fbub .fl{display:flex;align-items:center;gap:5px;font:700 .68rem var(--f-display);letter-spacing:.1em;text-transform:uppercase;color:var(--accent)}
+#fbub .fl svg{width:13px;height:13px}
+#fbub .fc{display:inline-flex;align-items:center;gap:6px;padding:3px 4px 3px 9px;border-radius:999px;background:color-mix(in srgb,var(--accent) 16%,var(--panel2));color:var(--fg);border:1px solid color-mix(in srgb,var(--accent) 45%,transparent);white-space:nowrap}
+#fbub .fc button{all:unset;cursor:pointer;width:18px;height:18px;border-radius:50%;display:grid;place-items:center;font-size:.8rem;line-height:1;color:var(--muted)}
+#fbub .fc button:hover,#fbub .fc button:focus-visible{background:var(--accent);color:var(--accent-ink)}
+#fbub .fall{all:unset;cursor:pointer;font-size:.72rem;color:var(--muted);text-decoration:underline;padding:0 4px}
+#fbub .fall:hover{color:var(--fg)}
+@media (prefers-reduced-motion:no-preference){#fbub{animation:fbin .25s ease-out}@keyframes fbin{from{opacity:0;transform:translateY(8px)}}}
+
+/* hover card with a player's medals */
+#mcard{position:fixed;z-index:70;pointer-events:none;max-width:min(440px,calc(100vw - 16px));padding:10px 12px 6px;border-radius:12px;background:var(--panel);border:1px solid var(--line);box-shadow:0 10px 30px rgba(0,0,0,.55)}
+#mcard[hidden]{display:none !important}
+#mcard .mh{font:700 .9rem var(--f-display);margin-bottom:8px;display:flex;align-items:center;gap:8px}
+#mcard .ms{font:600 .62rem var(--f-display);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:2px 0 4px}
+#mcard .none{font-size:.78rem;color:var(--muted);margin-bottom:6px}
+
+#hcard .pres i.hh{background:var(--hcol,var(--accent));box-shadow:0 0 4px color-mix(in srgb,var(--hcol,var(--accent)) 50%,transparent)}
+#hcard .pres i.ho{background:#3a4254}
+#hcard .pres i.hl{background:repeating-linear-gradient(45deg,var(--lost) 0 2px,var(--panel2) 2px 4px)}
+#hcard .pres i.hn{background:var(--panel2)}
+#hcard .pres i.hf{background:transparent;box-shadow:inset 0 0 0 1.5px var(--hcol,var(--accent))}
+#hcard .pres i[data-hw]{cursor:pointer}
+#hcard .pres i[data-hw]:hover{outline:2px solid var(--fg);outline-offset:1px}
+#hpres.hl i[data-hw]:not(.hit),#hpres.yf i[data-hw]:not(.iny){opacity:.22}
+#hpres i.hit{outline:2px solid var(--fg);outline-offset:1px;position:relative;z-index:1}
+#hpres .hyr{cursor:pointer;border-radius:4px;padding:0 3px;margin-left:-3px}
+#hpres .hyr:hover{color:var(--fg);background:var(--panel2)}
+#hpres .hyr.sel{color:var(--accent-ink);background:var(--accent);font-weight:700}
+#hcard .stats div[data-hl]{cursor:pointer}
+#hcard .stats div[data-hl]:hover{background:color-mix(in srgb,var(--accent) 8%,var(--panel2))}
+#hcard .stats div[data-hl].act{background:color-mix(in srgb,var(--accent) 16%,var(--panel2));box-shadow:inset 3px 0 0 var(--accent)}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <div class="eyebrow">CustomsForge · Weekly CDLC challenge</div>
+      <h1>Rocksmith Championship</h1>
+      <div class="strings" aria-hidden="true"><i style="background:var(--s-red)"></i><i style="background:var(--s-yellow)"></i><i style="background:var(--s-blue)"></i><i style="background:var(--s-orange)"></i><i style="background:var(--s-green)"></i><i style="background:var(--s-purple)"></i></div>
+    </div>
+    <nav class="links">
+      <a class="forum" href="https://customsforge.com/forum/38-rocksmith-championship/" target="_blank" rel="noopener">Championship forum ↗</a>
+      <a class="forum" href="https://docs.google.com/spreadsheets/d/1WN-m8wF0lVkQ4cLWHBa009SkqDoPk0xN-C4-llcrXXs/edit?gid=871655614#gid=871655614" target="_blank" rel="noopener">Scoreboard sheet ↗</a>
+      <a class="forum" href="https://script.google.com/macros/s/AKfycbwy6vF3XYDZ_s1WeqiHTgBcVgbF8cr2AUQjKH3aRSZYuh32Erc-IstP5Gos-1i_evkm/exec" target="_blank" rel="noopener">Request a song ↗</a>
+    </nav>
+  </header>
+
+  <nav class="tabs" role="tablist" aria-label="Pages">
+    <button type="button" role="tab" id="tab-winners" data-view="winners" aria-selected="true">Winners</button>
+    <button type="button" role="tab" id="tab-players" data-view="players" aria-selected="false">Players</button>
+    <button type="button" role="tab" id="tab-hosting" data-view="hosting" aria-selected="false">Hosts</button>
+    <button type="button" role="tab" id="tab-songs" data-view="songs" aria-selected="false">Songs</button>
+    <button type="button" role="tab" id="tab-scores" data-view="scores" aria-selected="false">Scoreboard</button>
+    <div class="seg actfilter" role="radiogroup" aria-label="Show everyone or active only" id="pfilter">
+      <button type="button" data-af="0" class="s-all" aria-pressed="false">All</button>
+      <button type="button" data-af="1" class="s-act" aria-pressed="true">Active only</button>
+    </div>
+  </nav>
+
+  <div class="view" id="view-hosting" role="tabpanel" aria-labelledby="tab-hosting" hidden>
+  <section class="now" id="now" aria-label="This week"></section>
+
+  <section class="panel hof">
+    <div class="panel-head"><h2>Hall of fame</h2><span class="sub">Most weeks hosted, all time</span></div>
+    <div class="podium" id="hpodium"></div>
+    <div class="podium-base" aria-hidden="true"></div>
+  </section>
+
+  <div class="filterbar" id="filterbar" hidden>
+    <span>Highlighting: <b id="fhost"></b></span>
+    <button class="clear" id="fclear" type="button">Show all hosts</button>
+    <div id="hmedals" class="hmedals"></div>
+  </div>
+
+  <div class="grid2">
+    <section class="panel">
+      <div class="panel-head"><h2>Coming up</h2><span class="sub" id="upsub">Next 10 weeks</span></div>
+      <ul class="up" id="upcoming"></ul>
+    </section>
+    <section class="panel">
+      <div class="panel-head"><h2>Host leaderboard</h2><span class="sub">Click a host to trace their weeks</span></div>
+      <div class="scroll"><table class="lb" id="lb"></table></div>
+    </section>
+  </div>
+
+  <section class="panel profile">
+    <div class="panel-head"><h2>Host lookup</h2><span class="sub">Click a host in the leaderboard, or search</span></div>
+    <div class="controls"><input id="hq" list="hlist" type="search" placeholder="Type a host name" aria-label="Find a host" autocomplete="off"><datalist id="hlist"></datalist></div>
+    <div id="hcard"></div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head"><h2>Hosting timeline</h2><span class="sub">One square per week. Click a name below to highlight it</span></div>
+    <div class="scroll"><div class="tl" id="tl"></div></div>
+    <div class="legend" id="legend"></div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head"><h2>Week log</h2><span class="sub" id="logcount"></span></div>
+    <div class="controls">
+      <input id="q" type="search" placeholder="Search host, holiday or week number" aria-label="Search weeks">
+      <select id="yr" aria-label="Year"></select>
+      <select id="show" aria-label="Which weeks">
+        <option value="all">All weeks</option>
+        <option value="hosted">Hosted weeks</option>
+        <option value="open">Open slots</option>
+        <option value="hol">Holiday weeks</option>
+      </select>
+    </div>
+    <div class="holbar" id="holbar" hidden><span>Only weeks with <b id="holname"></b></span><button type="button" class="clear" id="holclear">Show all holidays</button></div>
+    <div class="log"><table><thead><tr><th>Wk</th><th>Starts</th><th>Host</th><th>Holidays</th></tr></thead><tbody id="logbody"></tbody></table></div>
+  </section>
+  </div>
+
+  <div class="view" id="view-players" role="tabpanel" aria-labelledby="tab-players" hidden>
+  <section class="panel">
+    <div class="panel-head"><h2>Players per week</h2><span class="sub" id="parts-sub"></span></div>
+    <div class="chartbox" id="parts"></div>
+  </section>
+
+  <section class="panel hof">
+    <div class="panel-head"><h2>Hall of fame</h2><span class="sub">Most weeks played, all time</span></div>
+    <div class="podium" id="podium"></div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head"><h2>Perfect attendance</h2><span class="sub">Never missed a week since joining</span></div>
+    <div class="badges" id="perfect"></div>
+  </section>
+
+
+  <section class="panel">
+    <div class="panel-head"><h2>Most active in past year</h2><span class="sub" id="yr-sub"></span></div>
+    <div class="rings" id="yrings"></div>
+  </section>
+
+
+
+  <div class="grid2 even">
+    <section class="panel">
+      <div class="panel-head"><h2>Active play streaks</h2><span class="sub">Top 20 · still going</span></div>
+      <div class="bars flame" id="streaks"></div>
+    </section>
+    <section class="panel">
+      <div class="panel-head"><h2>Most weeks played</h2><span class="sub">Top 20</span></div>
+      <div class="bars" id="b-played"></div>
+    </section>
+  </div>
+
+  <section class="panel profile">
+    <div class="panel-head"><h2>Player lookup</h2><span class="sub">Click any name on this page, or search</span></div>
+    <div class="controls"><input id="pq" list="plist" type="search" placeholder="Type a player name" aria-label="Find a player" autocomplete="off"><datalist id="plist"></datalist></div>
+    <div id="pcard"></div>
+  </section>
+
+  <div class="grid2 even">
+    <section class="panel">
+      <div class="panel-head"><h2>Longest all-time play streaks</h2><span class="sub">Top 20 · any era</span></div>
+      <div class="bars" id="b-alltime"></div>
+    </section>
+    <section class="panel">
+      <div class="panel-head"><h2>Longest playing careers</h2><span class="sub">Top 20 · first week to latest week</span></div>
+      <div class="bars" id="b-careers"></div>
+    </section>
+  </div>
+
+  <section class="panel">
+    <div class="panel-head"><h2>Highest play rates</h2><span class="sub">Top 20 · share of weeks played since a player's first week</span></div>
+    <div class="rings" id="rings"></div>
+  </section>
+  <section class="panel">
+    <div class="panel-head"><h2 id="new-h">New this year</h2><span class="sub" id="new-sub"></span></div>
+    <div class="newlist" id="newlist"></div>
+  </section>
+  </div>
+
+  <div class="view" id="view-winners" role="tabpanel" aria-labelledby="tab-winners">
+  <div class="wpathbar"><div class="seg" role="radiogroup" aria-label="Show winners for" id="wpath">
+    <button type="button" data-rp="-1" class="s-all" aria-pressed="true">All paths</button>
+    <button type="button" data-rp="0" class="s-lead" aria-pressed="false">Lead</button>
+    <button type="button" data-rp="1" class="s-rhy" aria-pressed="false">Rhythm</button>
+    <button type="button" data-rp="2" class="s-bass" aria-pressed="false">Bass</button>
+  </div></div>
+  <section class="panel hof">
+    <div class="panel-head"><h2>Hall of fame</h2><span class="sub" id="whof-sub"></span></div>
+    <div class="podium" id="wpodium"></div>
+    <div class="podium-base" aria-hidden="true"></div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head"><h2>🔥 Hot streaks</h2><span class="sub" id="hot-sub"></span></div>
+    <div class="bars" id="b-hot"></div>
+  </section>
+
+
+  <div class="grid2 even">
+    <section class="panel">
+      <div class="panel-head"><h2>Most wins</h2><span class="sub" id="wmost-sub">Top 20 · 1st-place finishes</span></div>
+      <div class="bars" id="b-mostwins"></div>
+    </section>
+    <section class="panel">
+      <div class="panel-head"><h2>Win rates</h2><span class="sub" id="wrate-sub"></span></div>
+      <div class="bars" id="b-wins"></div>
+    </section>
+  </div>
+
+  <section class="panel">
+    <div class="panel-head"><h2>Winner lookup</h2><span class="sub">Click any name on this page, or search</span></div>
+    <div class="controls"><input id="wq" list="wqlist" type="search" placeholder="Type a player name" aria-label="Find a winner" autocomplete="off"><datalist id="wqlist"></datalist></div>
+    <div id="wcard"></div>
+  </section>
+
+  <section class="panel">
+      <div class="panel-head"><h2>Rank changes</h2><span class="sub" id="ru-sub"></span></div>
+      <div class="ruf seg" role="radiogroup" aria-label="Filter rank-ups by path" id="rufilter">
+        <button type="button" data-rp="-1" class="s-all" aria-pressed="true">All</button>
+        <button type="button" data-rp="0" class="s-lead" aria-pressed="false">Lead</button>
+        <button type="button" data-rp="1" class="s-rhy" aria-pressed="false">Rhythm</button>
+        <button type="button" data-rp="2" class="s-bass" aria-pressed="false">Bass</button>
+      </div>
+      <ol class="rulist" id="rulist"></ol>
+    </section>
+  </div>
+
+  <div class="view" id="view-songs" role="tabpanel" aria-labelledby="tab-songs" hidden>
+  <div class="wpathbar"><div class="seg" role="radiogroup" aria-label="Arrangement" id="spath">
+    <button type="button" data-sp="-1" class="s-all" aria-pressed="true">All paths</button>
+    <button type="button" data-sp="0" class="s-lead" aria-pressed="false">Lead</button>
+    <button type="button" data-sp="1" class="s-rhy" aria-pressed="false">Rhythm</button>
+    <button type="button" data-sp="2" class="s-bass" aria-pressed="false">Bass</button>
+  </div></div>
+  <section class="now" id="songstats" aria-label="Song totals"></section>
+
+  <div class="grid2 even">
+    <section class="panel">
+      <div class="panel-head"><h2>Most featured bands</h2><span class="sub">Top 20 · challenges using their songs</span></div>
+      <div class="bars" id="b-featured"></div>
+    </section>
+    <section class="panel">
+      <div class="panel-head"><h2>Most played bands</h2><span class="sub">Top 20 · scores posted on their songs since week 440</span></div>
+      <div class="bars" id="b-playedbands"></div>
+    </section>
+  </div>
+
+  <section class="panel">
+    <div class="panel-head"><h2>Bands by difficulty</h2><span class="sub">Click a band to look it up · most featured bands at each level · level set by the difficulty rating: under 4 Beginner, 4–5.5 Intermediate, 6–7.5 Advanced, 8–9.5 Masterclass, 10 God tier</span></div>
+    <div class="tiers5" id="tiers5"></div>
+  </section>
+
+
+  <div class="grid2 even">
+    <section class="panel">
+      <div class="panel-head"><h2>Easiest bands</h2><span class="sub">Top 20 · lowest average difficulty rating · min 5 challenges</span></div>
+      <div class="bars" id="b-easy"></div>
+    </section>
+    <section class="panel">
+      <div class="panel-head"><h2>Toughest bands</h2><span class="sub">Top 20 · average difficulty rating · min 5 challenges</span></div>
+      <div class="bars" id="b-tough"></div>
+    </section>
+  </div>
+
+  <section class="panel">
+    <div class="panel-head"><h2>Band lookup</h2><span class="sub">Click any band on this page, or search</span></div>
+    <div class="controls"><input id="bq" list="bqlist" type="search" placeholder="Type a band name" aria-label="Find a band" autocomplete="off"><datalist id="bqlist"></datalist></div>
+    <div id="bcard"></div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head"><h2>Most played songs</h2><span class="sub">Top 20 · different players who posted a score on the song since week 440</span></div>
+    <ol class="songlist" id="songlist"></ol>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head"><h2>Most replayed songs</h2><span class="sub">Top 20 · songs brought back the most times · a multi-week God challenge counts once</span></div>
+    <ol class="songlist" id="replaylist"></ol>
+  </section>
+  </div>
+
+  <div class="view" id="view-scores" role="tabpanel" aria-labelledby="tab-scores" hidden>
+    <section class="panel sbhead">
+      <div class="sbnav">
+        <button type="button" class="navbtn" id="sbprev" aria-label="Previous week">‹</button>
+        <div class="sbtitle"><select id="sbweek" aria-label="Week"></select><div class="sub" id="sbmeta"></div></div>
+        <button type="button" class="navbtn" id="sbnext" aria-label="Next week">›</button>
+      </div>
+      <div class="sbtools">
+        <div class="seg" id="sbseg" role="radiogroup" aria-label="Arrangement">
+          <button type="button" data-path="0" class="s-lead" aria-pressed="true">Lead</button>
+          <button type="button" data-path="1" class="s-rhy" aria-pressed="false">Rhythm</button>
+          <button type="button" data-path="2" class="s-bass" aria-pressed="false">Bass</button>
+        </div>
+        <button type="button" class="clear sblatest" id="sblatest" hidden>Back to latest week ›</button>
+        <input id="sbfind" type="search" list="sbnames" placeholder="Highlight a player" aria-label="Highlight a player" autocomplete="off"><datalist id="sbnames"></datalist>
+      </div>
+      <div class="sbstats" id="sbstats"></div>
+    </section>
+    <div class="cards" id="sbcards"></div>
+    <p class="legendline"><span class="mk">*</span> outside own class (faded = playing down, not counted for wins) · <span class="mk">~</span> FreeBird · <span class="pct100">100%</span> full score or Master Mode · click a name to open their profile</p>
+  </div>
+
+  <footer>Data: the Rocksmith 2014 Championship scoreboard sheet (older attendance also from the Championship Metrics workbook). Player stats run through week __DATAWEEK__; scoreboards cover weeks 440–__SBMAX__. Weeks 1–16 have no recorded host in the source. <span class="updated">Last updated: __BUILT__</span></footer>
+</div>
+<div class="tip" id="tip" hidden></div>
+
+<script>
+const WEEKS = __WEEKS__; // [week, isoDate, host, holidays]
+const PLAYERS = __PLAYERS__; // [name, firstWeek, latestWeek, played, playRate, activeStreak, longestStreak, presenceHex (from week 2), tiers L/R/B]
+const PARTS = __PARTS__; // players per week, starting week 2
+const PRES_START=2;
+const DATA_WEEK=PRES_START+PARTS.length-1;
+const byName={}; PLAYERS.forEach(p=>byName[p[0]]=p);
+const topBy=(f,n=20,filt=()=>true)=>PLAYERS.filter(filt).map(p=>[p,f(p)]).sort((a,b)=>b[1]-a[1]||b[0][3]-a[0][3]).slice(0,n);
+let activeOnly=true;
+try{activeOnly=localStorage.getItem("rsc-activeonly2")!=="0"}catch(e){}
+const pAct=p=>DATA_WEEK-p[2]<52;
+let RECORDS,PERFECT,ACTIVE_STREAKS;
+function computeRecords(){
+  const f=p=>!activeOnly||pAct(p);
+  RECORDS={
+    "Most weeks played":topBy(p=>p[3],20,f).map(([p,v])=>[p[0],v]),
+    "Longest playing careers":topBy(p=>p[2]-p[1]+1,20,f).map(([p,v])=>[p[0],v]),
+    "Highest play rates":topBy(p=>p[4],20,f).map(([p,v])=>[p[0],Math.round(v*10000)/100]),
+    "Longest all-time play streaks":topBy(p=>p[6],20,f).map(([p,v])=>[p[0],v])
+  };
+  PERFECT=topBy(p=>p[3],99,p=>p[4]>=1&&f(p)).map(([p,v])=>[p[0],v]);
+  ACTIVE_STREAKS=topBy(p=>p[5],20,f).filter(([,v])=>v>0).map(([p,v])=>[p[0],v]);
+}
+computeRecords();
+const LOST="[LOST DATA]";
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const fmt=iso=>new Date(iso+"T12:00:00").toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"});
+const fmtShort=iso=>new Date(iso+"T12:00:00").toLocaleDateString("en-US",{month:"short",day:"numeric"});
+
+// current week = latest week whose start date is today or earlier
+const todayISO=(()=>{const d=new Date();return new Date(d.getTime()-d.getTimezoneOffset()*6e4).toISOString().slice(0,10)})();
+let curIdx=0; WEEKS.forEach((w,i)=>{if(w[1]<=todayISO)curIdx=i});
+const cur=WEEKS[curIdx];
+let lastHosted=null; for(let i=curIdx;i>=0;i--){if(WEEKS[i][2]&&WEEKS[i][2]!==LOST){lastHosted=WEEKS[i];break}}
+
+// host stats from the schedule itself
+const hosts={};
+// count only weeks that have started; future sign-ups show in Coming up and the timeline
+WEEKS.forEach(([w,d,h],i)=>{ if(i>curIdx||!h||h===LOST)return; const s=hosts[h]||(hosts[h]={name:h,n:0,first:w,last:w,firstD:d,lastD:d}); s.n++; s.last=w; s.lastD=d; });
+const hostList=Object.values(hosts).sort((a,b)=>b.n-a.n||b.last-a.last);
+const totalHosted=hostList.reduce((a,b)=>a+b.n,0);
+const ACTIVE_WINDOW=52; // hosted within the last ~1 year
+const PAL=["var(--s-orange)","var(--s-blue)","var(--s-green)","var(--s-red)","var(--s-yellow)","var(--s-purple)","#5fd3d0","#ff7ab8","#c9e265","#e8a87c","#8fa8ff","#d98cd9"];
+const activeList=hostList.filter(h=>cur[0]-h.last<=ACTIVE_WINDOW);
+const color={}; activeList.forEach((h,i)=>color[h.name]=PAL[i%PAL.length]);
+const OTHER="#6b7489";
+const hc=h=>color[h]||OTHER;
+
+let holF=null; // Week log: only weeks with this holiday
+let selHost=null, hName=null, hYear=null; // hName/hYear: Host lookup
+const CATS={"__other":"Inactive hosts","__open":"Open slots","__lost":"No record"};
+const matches=h=>{
+  if(!selHost)return true;
+  if(selHost==="__other")return !!h&&h!==LOST&&!color[h];
+  if(selHost==="__open")return !h;
+  if(selHost==="__lost")return h===LOST;
+  return h===selHost;
+};
+
+const ordinalRank=name=>{const h=hosts[name];if(!h)return 0;return 1+hostList.filter(x=>x.n>h.n).length};
+function hostRankNote(){
+  const h=cur[2]&&cur[2]!==LOST?cur[2]:null;
+  if(!h)return lastHosted?`Last hosted: ${esc(lastHosted[2])}, wk ${lastHosted[0]}`:"&nbsp;";
+  const r=ordinalRank(h), tie=hostList.filter(x=>x.n===hosts[h].n).length>1;
+  return `#${r}${tie?" (tied)":""} in weeks hosted · ${hosts[h].n} weeks`;
+}
+function renderNow(){
+  const established=WEEKS[0][1];
+  const [ey,em,ed]=established.split("-").map(Number), [ty,tm,td]=todayISO.split("-").map(Number);
+  let months=(ty-ey)*12+(tm-em); if(td<ed)months--;
+  const yrs=Math.floor(months/12), mos=months%12;
+  const span=`${yrs} year${yrs===1?"":"s"} ${mos} month${mos===1?"":"s"}`;
+  const ym=todayISO.slice(0,7), monthName=new Date(todayISO+"T12:00:00").toLocaleDateString("en-US",{month:"long"});
+  const monthWeeks=WEEKS.filter(w=>w[1].slice(0,7)===ym);
+  const openM=monthWeeks.filter(w=>!w[2]);
+  const openNote=openM.length?openM.map(w=>fmtShort(w[1])).join(", "):"Every week has a host";
+  const curHost=cur[2]&&cur[2]!==LOST?`<span data-name="${esc(cur[2])}">${esc(cur[2])}</span>`:'<span class="pill open">NEEDS HOST</span>';
+  $("now").innerHTML=`
+   <div><div class="k">This week</div><div class="v num">Week ${cur[0]}</div><div class="n">Started ${fmt(cur[1])}</div></div>
+   <div><div class="k">Current host</div><div class="v">${curHost}</div><div class="n">${hostRankNote()}</div></div>
+   <div><div class="k">Open slots this month</div><div class="v num">${openM.length} <span class="of">of ${monthWeeks.length}</span></div><div class="n">${openNote}</div></div>
+   <div><div class="k">Running for</div><div class="v num">${span}</div><div class="n">${totalHosted} weeks hosted · ${hostList.length} hosts</div></div>`;
+}
+
+const HOL_EMOJI={"Halloween":"🎃","Austrian National Day":"🇦🇹","Veterans Day":"🎖️","Poland National Day":"🇵🇱","Thanksgiving":"🦃","Portugal Restoration of Independence Day":"🇵🇹","Friday the 13th":"🔪","Christmas":"🎄","New Year's Eve":"🎆","Groundhog Day":"🐿️","Super Bowl Sunday":"🏈","Valentine's Day":"💘","Japan National Day":"🇯🇵","St. Patrick's Day":"☘️","Earth Day":"🌍","Easter Sunday":"🐣","Cinco de Mayo":"🌮","Mother's Day":"💐","U.K. National Day":"🇬🇧","Russia Day":"🇷🇺","Father's Day":"👔","U.S.A. Independence Day":"🇺🇸","Mexican Independence Day":"🇲🇽"};
+const holEmoji=h=>{const e=/Anniversary/.test(h)?"🎸":HOL_EMOJI[h];return e?`<span aria-hidden="true">${e}</span> `:""};
+// weeks past the end of the sheet: dates step forward 7 days; holidays computed from calendar rules
+const iso=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+const nthDow=(y,m,dow,n)=>{const d=new Date(y,m,1);d.setDate(1+((dow-d.getDay()+7)%7)+7*(n-1));return d};
+function easter(y){const a=y%19,b=Math.floor(y/100),c=y%100,d=Math.floor(b/4),e=b%4,f=Math.floor((b+8)/25),g=Math.floor((b-f+1)/3),h=(19*a+b-d-g+15)%30,i=Math.floor(c/4),k=c%4,l=(32+2*e+2*i-h-k)%7,m=Math.floor((a+11*h+22*l)/451),mo=Math.floor((h+l-7*m+114)/31),da=((h+l-7*m+114)%31)+1;return new Date(y,mo-1,da)}
+function holidaysFor(startISO){
+  const s=new Date(startISO+"T12:00:00");
+  const days=[...Array(7)].map((_,i)=>{const d=new Date(s);d.setDate(s.getDate()+i);return d});
+  const out=[];
+  const fixed=[[1,2,"Groundhog Day"],[1,11,"Japan National Day"],[1,14,"Valentine's Day"],[2,17,"St. Patrick's Day"],[3,22,"Earth Day"],[4,5,"Cinco de Mayo"],[5,2,"U.K. National Day"],[5,12,"Russia Day"],[6,4,"U.S.A. Independence Day"],[8,16,"Mexican Independence Day"],[9,26,"Austrian National Day"],[9,31,"Halloween"],[10,11,"Veterans Day"],[10,11,"Poland National Day"],[11,1,"Portugal Restoration of Independence Day"],[11,25,"Christmas"],[11,31,"New Year's Eve"]];
+  days.forEach((d,i)=>{
+    const Y=d.getFullYear(), same=x=>x.toDateString()===d.toDateString();
+    fixed.forEach(([m,dd,n])=>{if(d.getMonth()===m&&d.getDate()===dd)out.push([i,n])});
+    if(same(nthDow(Y,1,0,2)))out.push([i,"Super Bowl Sunday"]);
+    if(same(easter(Y)))out.push([i,"Easter Sunday"]);
+    if(same(nthDow(Y,4,0,2)))out.push([i,"Mother's Day"]);
+    if(same(nthDow(Y,5,0,3)))out.push([i,"Father's Day"]);
+    if(same(nthDow(Y,10,4,4)))out.push([i,"Thanksgiving"]);
+    if(d.getDate()===13&&d.getDay()===5)out.push([i,"Friday the 13th"]);
+  });
+  return out.sort((a,b)=>a[0]-b[0]).map(x=>x[1]).join(", ");
+}
+// replace the sheet's holiday column with calendar-correct holidays, keeping its anniversary markers
+WEEKS.forEach(w=>{
+  const ann=w[3].split(/,\s*/).filter(h=>/Anniversary/.test(h));
+  w[3]=[...ann,holidaysFor(w[1])].filter(Boolean).join(", ");
+});
+function weekAt(i){
+  if(i<WEEKS.length)return WEEKS[i];
+  const last=WEEKS[WEEKS.length-1], k=i-WEEKS.length+1;
+  const d=new Date(last[1]+"T12:00:00"); d.setDate(d.getDate()+7*k);
+  const st=iso(d); return [last[0]+k,st,"",holidaysFor(st)];
+}
+function upRow(i){
+  const w=weekAt(curIdx+i);
+  const hol=w[3]?w[3].split(/,\s*/).map(h=>`<span class="pill hol holf" data-hol="${esc(h)}" title="Show only weeks with ${esc(h)}">${holEmoji(h)}${esc(h)}</span>`).join(""):"";
+  const who=w[2]?`<span class="who" data-name="${esc(w[2])}">${esc(w[2])}</span>`:`<span class="pill open">HOST NEEDED</span>`;
+  const yr=w[1].slice(0,4)!==cur[1].slice(0,4)?`<span class="yy">${w[1].slice(0,4)}</span>`:"";
+  return `<li class="${i===0?"cur":""}"><div class="wk"><b>${w[0]}</b>${fmtShort(w[1])}${yr}</div><div>${who}${i===0?' <span class="sub">· now</span>':""}<div class="meta">${hol}</div></div></li>`;
+}
+let upCount=10;
+function renderUpcoming(){
+  const ul=$("upcoming");
+  ul.innerHTML=[...Array(10)].map((_,i)=>upRow(i)).join(""); upCount=10;
+  const upSec=ul.closest("section"), lbSec=$("lb").closest("section");
+  const stacked=getComputedStyle(upSec.parentElement).gridTemplateColumns.split(" ").length<2;
+  if(!$("view-hosting").hidden && !stacked){
+    const cs=getComputedStyle(upSec);
+    const avail=lbSec.offsetHeight-(ul.getBoundingClientRect().top-upSec.getBoundingClientRect().top)-parseFloat(cs.paddingBottom)-parseFloat(cs.borderBottomWidth);
+    while(upCount<80){
+      ul.insertAdjacentHTML("beforeend",upRow(upCount));
+      if(ul.offsetHeight>avail){ul.lastElementChild.remove();break}
+      upCount++;
+    }
+  }
+  $("upsub").textContent=`Next ${upCount} weeks`;
+}
+let upTimer; addEventListener("resize",()=>{clearTimeout(upTimer);upTimer=setTimeout(renderUpcoming,150)});
+document.fonts&&document.fonts.ready.then(()=>renderUpcoming());
+
+const hostActive=h=>cur[0]-h.last<=ACTIVE_WINDOW;
+const hostsShown=()=>activeOnly?hostList.filter(hostActive):hostList;
+function renderHostPodium(){
+  const M=["#f5c84a","#c9d0dc","#d8925a"], top=hostsShown().slice(0,3), max=top[0].n;
+  $("hpodium").innerHTML=[1,0,2].map(i=>{const h=top[i], ht=Math.round(70+130*h.n/max);
+    return `<div class="pod" style="--m:${M[i]}"><div class="medal">${i+1}</div><div class="pname" data-hpick="${esc(h.name)}" title="Highlight ${esc(h.name)}'s weeks">${esc(h.name)}</div><div class="block" style="height:${ht}px;animation-delay:${[150,0,300][i]}ms"><b>${h.n}</b><small>weeks</small><small>hosted</small></div></div>`}).join("");
+}
+$("hpodium").addEventListener("click",e=>{const el=e.target.closest("[data-hpick]");if(el)setHost(el.dataset.hpick)});
+function renderLB(){
+  const max=hostsShown()[0].n;
+  $("lb").innerHTML=`<thead><tr><th>Host</th><th class="r">Weeks</th><th></th><th class="r">First</th><th class="r">Latest</th><th class="r">Span</th></tr></thead><tbody>`+
+  hostsShown().map(h=>{
+    const active=cur[0]-h.last<=ACTIVE_WINDOW;
+    return `<tr data-host="${esc(h.name)}" class="${selHost&&matches(h.name)?"sel":""}" tabindex="0">
+      <td><div class="hostcell"><span class="sw" style="background:${hc(h.name)}"></span>${esc(h.name)} ${active?`<span class="pill on" data-tip="Hosted at least once in the last ${ACTIVE_WINDOW} weeks (around 1 year).">ACTIVE</span>`:`<span class="pill off" data-tip="Hasn't hosted in the last ${ACTIVE_WINDOW} weeks (around 1 year).">INACTIVE</span>`}</div></td>
+      <td class="r num">${h.n}</td>
+      <td><div class="bar"><span style="width:${h.n/max*100}%;background:${hc(h.name)}"></span></div></td>
+      <td class="r num"><span${SB.weeks[h.first]?` data-sbw="${h.first}" title="Open Week ${h.first} on the Scoreboard"`:""}>${h.first}</span></td><td class="r num"><span${SB.weeks[h.last]?` data-sbw="${h.last}" title="Open Week ${h.last} on the Scoreboard"`:""}>${h.last}</span></td><td class="r num">${h.last-h.first+1}</td></tr>`;
+  }).join("")+"</tbody>";
+}
+
+function renderTL(){
+  // rows by season year (week 1 = Oct 2013); rows of 52 weeks aligned to the anniversary week
+  const el=$("tl"); let html="";
+  const byYear={};
+  WEEKS.forEach((w,i)=>{const y=w[1].slice(0,4);(byYear[y]=byYear[y]||[]).push(i)});
+  Object.keys(byYear).forEach(y=>{
+    const idxs=byYear[y];
+    const firstWeekOfYear=Math.floor((new Date(WEEKS[idxs[0]][1]+"T12:00:00")-new Date(y+"-01-01T12:00:00"))/604800000);
+    html+=`<div class="yr">${y}</div>`;
+    for(let k=0;k<firstWeekOfYear;k++)html+=`<div></div>`;
+    idxs.forEach(i=>{
+      const [wk,d,h]=WEEKS[i];
+      let cls="c", st="";
+      if(h===LOST)cls+=" lost"; else if(!h)cls+=" open"; else st=`background:${hc(h)}`;
+      if(i===curIdx)cls+=" cur";
+      if(!matches(h))cls+=" fade";
+      html+=`<div class="${cls}" style="${st}" data-w="${i}"></div>`;
+    });
+    const used=firstWeekOfYear+idxs.length;
+    for(let k=used;k<53;k++)html+=`<div></div>`;
+  });
+  el.innerHTML=html;
+  const lb=(key,label,sw)=>`<button type="button" data-host="${esc(key)}" class="${selHost===key?"sel":""}" aria-pressed="${selHost===key}"><i class="sw" style="${sw}"></i>${esc(label)}</button>`;
+  $("legend").classList.toggle("has-sel",!!selHost);
+  $("legend").innerHTML=activeList.map(h=>lb(h.name,h.name,`background:${hc(h.name)}`)).join("")+
+   `<button type="button" data-host="__all" class="${selHost?"":"sel"}" aria-pressed="${!selHost}"><i class="sw" style="background:conic-gradient(var(--s-red) 0 25%,var(--s-yellow) 0 50%,var(--s-blue) 0 75%,var(--s-green) 0)"></i>All hosts</button>`+
+   lb("__open","Open",`box-shadow:inset 0 0 0 1px var(--open)`);
+}
+
+function fillYears(){
+  const ys=[...new Set(WEEKS.map(w=>w[1].slice(0,4)))].reverse();
+  $("yr").innerHTML=`<option value="">All years</option>`+ys.map(y=>`<option>${y}</option>`).join("");
+}
+
+function renderLog(){
+  const q=$("q").value.trim().toLowerCase(), yr=$("yr").value, show=$("show").value;
+  $("holbar").hidden=!holF; $("holname").innerHTML=holF?holEmoji(holF)+esc(holF):"";
+  const rows=WEEKS.map((w,i)=>[w,i]).filter(([w])=>{
+    if(!matches(w[2]))return false;
+    if(yr&&!w[1].startsWith(yr))return false;
+    if(show==="hosted"&&(!w[2]||w[2]===LOST))return false;
+    if(show==="open"&&w[2])return false;
+    if(show==="hol"&&!w[3])return false;
+    if(holF&&!w[3].split(/,\s*/).includes(holF))return false;
+    if(q&&!(String(w[0])===q||w[2].toLowerCase().includes(q)||w[3].toLowerCase().includes(q)))return false;
+    return true;
+  }).reverse();
+  $("logcount").textContent=`${rows.length} week${rows.length===1?"":"s"}`;
+  $("logbody").innerHTML=rows.map(([w,i])=>{
+    const host=w[2]===LOST?'<span class="dimtxt">No record</span>':w[2]?`<span class="hostcell" data-name="${esc(w[2])}"><span class="sw" style="background:${hc(w[2])}"></span>${esc(w[2])}</span>`:(i>=curIdx?'<span class="pill open">OPEN</span>':'<span class="dimtxt">—</span>');
+    return `<tr class="${i===curIdx?"cur":""}" id="wk-${w[0]}"><td class="w"${SB.weeks[w[0]]?` data-sbw="${w[0]}" title="Open Week ${w[0]} on the Scoreboard"`:""}>${w[0]}</td><td class="d">${fmt(w[1])}</td><td>${host}</td><td>${w[3]?w[3].split(/,\s*/).map(h=>`<span class="holf${holF===h?" sel":""}" data-hol="${esc(h)}" title="Show only weeks with ${esc(h)}">${esc(h)}</span>`).join(", "):""}</td></tr>`;
+  }).join("") || `<tr><td colspan="4" class="dimtxt" style="padding:16px 0">No weeks match. Clear the search or pick another year.</td></tr>`;
+}
+
+const numOf=v=>parseFloat(String(v).replace(/[^\d.]/g,""));
+function barRows(list,color,unit="",tags=true){
+  const max=Math.max(...list.map(([,v])=>numOf(v)));
+  return list.map(([n,v],i)=>{
+    const x=numOf(v), pct=Math.max(2,x/max*100);
+    const c=typeof color==="function"?color(n,i):color;
+    return `<div class="brow${i<3?" top":""}${tags?"":" notag"}${tags&&!isActivePlayer(n)?" inactive":""}" style="--c:${c}"><span class="rk">${i+1}</span><span class="nm" data-player="${esc(n)}" title="${esc(n)}">${esc(n)}</span>${tags?`<span class="act">${actPill(n)}</span>`:""}<span class="track"><span class="fill" style="width:${pct}%;animation-delay:${i*30}ms"></span></span><span class="val">${x}${unit}</span></div>`;
+  }).join("");
+}
+const ACTIVE_PLAYER_WINDOW=52;
+const isActivePlayer=n=>{const p=byName[n];return !!p&&DATA_WEEK-p[2]<ACTIVE_PLAYER_WINDOW};
+const NEW_YEAR=(WEEKS[DATA_WEEK-1]||WEEKS[WEEKS.length-1])[1].slice(0,4);
+const NEW_WINDOW=52;
+const isNewPlayer=n=>{const p=byName[n];return !!p&&DATA_WEEK-p[1]<NEW_WINDOW};
+const newPill=n=>isNewPlayer(n)?`<span class="pill new" data-tip="Joined in the last ${NEW_WINDOW} weeks (around 1 year).">NEW</span>`:"";
+const actPill=n=>isNewPlayer(n)?newPill(n):(isActivePlayer(n)?`<span class="pill on" data-tip="Played at least once in the last ${ACTIVE_PLAYER_WINDOW} weeks (around 1 year).">ACTIVE</span>`:(byName[n]?`<span class="pill off" data-tip="Hasn't played in the last ${ACTIVE_PLAYER_WINDOW} weeks (around 1 year).">INACTIVE</span>`:""));
+const STR=["var(--s-red)","var(--s-yellow)","var(--s-blue)","var(--s-orange)","var(--s-green)","var(--s-purple)"];
+const STAR=`<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="var(--s-yellow)" d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9z"/></svg>`;
+const RATE_BRACKETS=[[100,"var(--s-yellow)","100%"],[90,"var(--s-green)","90s"],[80,"var(--s-blue)","80s"],[70,"var(--s-purple)","70s"],[60,"var(--s-orange)","60s"],[50,"var(--s-red)","50s"],[0,"#6b7489","Under 50"]];
+const rateColor=p=>RATE_BRACKETS.find(([min])=>p>=min)[1];
+function renderRecords(){
+  const played=RECORDS["Most weeks played"];
+  const M=["#f5c84a","#c9d0dc","#d8925a"];
+  const top=played.slice(0,3), maxP=numOf(top[0][1]);
+  $("podium").innerHTML=[1,0,2].map(i=>{
+    const [n,v]=top[i], h=Math.round(70+130*numOf(v)/maxP);
+    return `<div class="pod" style="--m:${M[i]}"><div class="medal">${i+1}</div><div class="pname" data-player="${esc(n)}">${esc(n)}</div><div class="block" style="height:${h}px;animation-delay:${[150,0,300][i]}ms"><b>${numOf(v)}</b><small>weeks</small><small>played</small></div></div>`;
+  }).join("");
+  if(!$("podium").nextElementSibling||!$("podium").nextElementSibling.classList.contains("podium-base"))$("podium").insertAdjacentHTML("afterend",'<div class="podium-base" aria-hidden="true"></div>');
+  $("b-played").innerHTML=barRows(played,(n,i)=>STR[i%6]);
+  $("b-careers").innerHTML=barRows(RECORDS["Longest playing careers"],(n,i)=>STR[(i+2)%6]," wks");
+  $("b-alltime").innerHTML=barRows(RECORDS["Longest all-time play streaks"],(n,i)=>STR[(i+4)%6]," wks");
+  $("streaks").innerHTML=barRows(ACTIVE_STREAKS,"var(--s-orange)"," wks",false);
+  const R=34, C=2*Math.PI*R;
+  $("rings").innerHTML=RECORDS["Highest play rates"].map(([n,v],i)=>{
+    const p=numOf(v), full=p>=100, col=rateColor(p);
+    return `<div class="ring${full?" full":""}"><svg viewBox="0 0 84 84" role="img" aria-label="${esc(n)} ${p}%"><circle class="rt" cx="42" cy="42" r="${R}"/><circle class="rv" cx="42" cy="42" r="${R}" stroke="${col}" stroke-dasharray="${C.toFixed(1)}" stroke-dashoffset="${(C*(1-p/100)).toFixed(1)}"/><text x="42" y="42">${p%1===0?p:p.toFixed(1)}%</text></svg><span class="nmrow"><span class="nm" data-player="${esc(n)}">${esc(n)}</span>${newPill(n)}</span></div>`;
+  }).join("");
+  {const Y=52, from=DATA_WEEK-Y+1;
+   const yr=PLAYERS.map(p=>{const b=presOf(p);let c=0;for(let w=from;w<=DATA_WEEK;w++)if(b[w-PRES_START]==="1")c++;return [p[0],c,p[3]]}).filter(x=>x[1]>0).sort((a,b)=>b[1]-a[1]||b[2]-a[2]).slice(0,20);
+   const W1=WEEKS[from-1], W2=WEEKS[DATA_WEEK-1];
+   $("yr-sub").textContent=`Top 20 · weeks played out of the last ${Y} (weeks ${from}–${DATA_WEEK}${W1&&W2?", "+fmtShort(W1[1])+" "+W1[1].slice(0,4)+" – "+fmtShort(W2[1])+" "+W2[1].slice(0,4):""})`;
+   $("yrings").innerHTML=yr.map(([n,c])=>{const p=c/Y*100, col=p>=75?"var(--s-green)":p>=50?"var(--s-blue)":p>=25?"var(--s-orange)":"var(--s-red)";
+     return `<div class="ring"><svg viewBox="0 0 84 84" role="img" aria-label="${esc(n)} ${c} of ${Y} weeks"><circle class="rt" cx="42" cy="42" r="${R}"/><circle class="rv" cx="42" cy="42" r="${R}" stroke="${col}" stroke-dasharray="${C.toFixed(1)}" stroke-dashoffset="${(C*(1-c/Y)).toFixed(1)}"/><text x="42" y="38">${c}</text><text class="of" x="42" y="54">of ${Y}</text></svg><span class="nmrow"><span class="nm" data-player="${esc(n)}">${esc(n)}</span>${newPill(n)}</span></div>`}).join("");}
+  {const list=PLAYERS.filter(p=>isNewPlayer(p[0])&&(!activeOnly||pAct(p))).sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0]));
+   $("new-h").textContent="New in past year";
+   $("new-sub").textContent=`${list.length} player${list.length===1?"":"s"} joined in the last ${NEW_WINDOW} weeks · newest first`;
+   $("newlist").innerHTML=list.map(p=>{const [n,first,last,played]=p, since=DATA_WEEK-first+1, w=WEEKS[first-1];
+     return `<div class="nrow"><div><span class="nm" data-player="${esc(n)}" title="${esc(n)}">${esc(n)}</span><span class="j">Joined wk ${first}${w?" · "+fmtShort(w[1]):""}</span></div><span class="track"><span class="fill" style="width:${Math.max(3,played/since*100)}%"></span></span><span class="val" title="${played} of ${since} weeks since joining">${played}/${since} wks<span class="j">Last played wk ${last}</span></span></div>`}).join("")||`<div class="empty">No new players yet this year.</div>`;}
+  $("perfect").innerHTML=PERFECT.map(([n,v],i)=>`<div class="badge${i===0?" lead":""}">${STAR}<div><div class="nmrow"><span class="nm" data-player="${esc(n)}">${esc(n)}</span>${newPill(n)}</div><div class="wk">${v}<small>weeks, every one played</small></div></div></div>`).join("");
+  renderParts();
+  $("plist").innerHTML=PLAYERS.slice().sort((a,b)=>b[3]-a[3]).map(p=>`<option value="${esc(p[0])}"></option>`).join("");
+}
+
+// players-per-week chart
+function renderParts(){
+  const W=1000,H=240,L=34,Rr=14,T=14,B=26, n=PARTS.length;
+  const max=Math.ceil(Math.max(...PARTS)/10)*10;
+  const x=i=>L+(W-L-Rr)*i/(n-1), y=v=>T+(H-T-B)*(1-v/max);
+  const avg=PARTS.map((_,i)=>{const a=PARTS.slice(Math.max(0,i-9),i+1);return a.reduce((s,v)=>s+v,0)/a.length});
+  let g="";
+  for(let v=0;v<=max;v+=max/4){g+=`<line class="gl" x1="${L}" x2="${W-Rr}" y1="${y(v)}" y2="${y(v)}"/><text class="tk" x="${L-6}" y="${y(v)+4}" text-anchor="end">${v}</text>`}
+  // year ticks from the schedule dates
+  WEEKS.forEach(w=>{const i=w[0]-PRES_START; if(i<0||i>=n)return; const prev=WEEKS[w[0]-2]; if(prev&&prev[1].slice(0,4)!==w[1].slice(0,4)){g+=`<line class="gl" x1="${x(i)}" x2="${x(i)}" y1="${T}" y2="${H-B}" stroke-dasharray="2 4"/><text class="tk" x="${x(i)}" y="${H-8}" text-anchor="middle">${w[1].slice(0,4)}</text>`}});
+  const area=`M${x(0)},${y(0)} `+PARTS.map((v,i)=>`L${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(" ")+` L${x(n-1)},${y(0)} Z`;
+  const line="M"+avg.map((v,i)=>`${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(" L");
+  const last=PARTS[n-1];
+  $("parts").innerHTML=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Players per week from week ${PRES_START} to ${DATA_WEEK}">
+    <defs><linearGradient id="pg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--s-blue)" stop-opacity=".45"/><stop offset="1" stop-color="var(--s-blue)" stop-opacity=".03"/></linearGradient></defs>
+    ${g}<path d="${area}" fill="url(#pg)"/><path d="${line}" fill="none" stroke="var(--accent)" stroke-width="2.2"/>
+    <circle cx="${x(n-1)}" cy="${y(last)}" r="4.5" fill="var(--accent)" stroke="var(--bg)" stroke-width="2"/>
+    <line class="hov" id="phov" y1="${T}" y2="${H-B}" x1="-10" x2="-10"/>
+    <rect x="${L}" y="${T}" width="${W-L-Rr}" height="${H-T-B}" fill="transparent" id="phit"/></svg>`;
+  const peak=PARTS.indexOf(Math.max(...PARTS));
+  $("parts-sub").innerHTML=`Week ${DATA_WEEK}: <b>${last}</b> players · peak ${PARTS[peak]} in week ${peak+PRES_START} · <span style="color:var(--accent)">━</span> 10-week average`;
+  const svg=$("parts").querySelector("svg"), hov=$("phov");
+  $("phit").addEventListener("mousemove",e=>{
+    const r=svg.getBoundingClientRect(), sx=(e.clientX-r.left)/r.width*W;
+    const i=Math.max(0,Math.min(n-1,Math.round((sx-L)/(W-L-Rr)*(n-1))));
+    hov.setAttribute("x1",x(i));hov.setAttribute("x2",x(i));
+    const wk=WEEKS[i+PRES_START-1];
+    tip.innerHTML=`<b class="num">Week ${i+PRES_START}</b>${wk?" · "+fmt(wk[1]):""}<br>${PARTS[i]} players · avg ${avg[i].toFixed(1)}`;
+    tip.hidden=false; placeTip(e.clientX,e.clientY);
+  });
+  $("phit").addEventListener("mouseleave",()=>{tip.hidden=true;hov.setAttribute("x1",-10);hov.setAttribute("x2",-10)});
+}
+
+// player lookup
+const presOf=p=>{const bits=[...p[7]].map(h=>parseInt(h,16).toString(2).padStart(4,"0")).join("");return bits.slice(0,PARTS.length)};
+const TIER_C={M:"var(--s-purple)",A:"var(--s-blue)",I:"var(--s-green)",B:"var(--s-yellow)",F:"var(--s-red)"};
+
+// milestone medals: years in the championship (since first week) and longest play streak
+const MEDAL_STEPS=[[10,"#f5c84a","10"],[5,"#c9d0dc","5"],[1,"#d8925a","1"]];
+function medalSvg(kind,col,label){
+  if(kind==="tenure") return `<svg viewBox="0 0 28 32" aria-hidden="true"><path d="M8 0h5l2 9-4 2zM20 0h-5l-2 9 4 2z" fill="var(--s-blue)"/><circle cx="14" cy="20" r="10" fill="${col}"/><circle cx="14" cy="20" r="7.2" fill="none" stroke="rgba(0,0,0,.25)" stroke-width="1.2"/><text x="14" y="20.5" text-anchor="middle" dominant-baseline="central" font-size="${label.length>1?8:10}" font-weight="800" fill="#1a1406" font-family="Oxanium,sans-serif">${label}</text></svg>`;
+  return `<svg viewBox="0 0 28 32" aria-hidden="true"><path d="M14 1c3 6 9 9 9 17a9 9 0 0 1-18 0c0-4 2-6 4-8 0 3 1 5 3 5-1-6 0-10 2-14z" fill="${col}"/><path d="M14 31a6 6 0 0 1-6-6c0-3 2-4 3-6 1 3 2 3 3 3 0-2 1-4 3-5 2 3 3 5 3 8a6 6 0 0 1-6 6z" fill="rgba(0,0,0,.18)"/><text x="14" y="23" text-anchor="middle" dominant-baseline="central" font-size="${label.length>1?8:10}" font-weight="800" fill="#1a1406" font-family="Oxanium,sans-serif">${label}</text></svg>`;
+}
+// flame heat: yellow at 1 year, through orange and red, to blue-hot at 10+
+const FLAME_HEAT=["#ffe45c","#ffc93c","#ffa630","#ff8030","#ff5a3a","#f0446e","#c84cc8","#8f63ff","#4f8cff","#3fc6ff"];
+// lunar (Chinese) new year dates, used to color each year gem by that year's element
+const LNY=[["2013-02-10","Snake","Water"],["2014-01-31","Horse","Wood"],["2015-02-19","Goat","Wood"],["2016-02-08","Monkey","Fire"],["2017-01-28","Rooster","Fire"],["2018-02-16","Dog","Earth"],["2019-02-05","Pig","Earth"],["2020-01-25","Rat","Metal"],["2021-02-12","Ox","Metal"],["2022-02-01","Tiger","Water"],["2023-01-22","Rabbit","Water"],["2024-02-10","Dragon","Wood"],["2025-01-29","Snake","Wood"],["2026-02-17","Horse","Fire"],["2027-02-06","Goat","Fire"],["2028-01-26","Monkey","Earth"]];
+const ANIMAL_EMOJI={Rat:"🐀",Ox:"🐂",Tiger:"🐅",Rabbit:"🐇",Dragon:"🐉",Snake:"🐍",Horse:"🐎",Goat:"🐐",Monkey:"🐒",Rooster:"🐓",Dog:"🐕",Pig:"🐖"};
+const ELEMENT_COL={Wood:"#3fcf7a",Fire:"#ef4a55",Earth:"#e0a94a",Metal:"#dfe4ec",Water:"#4f7dff"};
+function lunarYear(d){let r=null;for(const [ds,animal,element] of LNY){if(new Date(ds+"T00:00:00")<=d)r={animal,element};else break}return r}
+function gemSvg(col,label){
+  return `<svg viewBox="0 0 28 28" aria-hidden="true"><polygon points="7,3 21,3 27,10 14,26 1,10" fill="${col}"/><polygon points="7,3 21,3 18,10 10,10" fill="rgba(255,255,255,.45)"/><polygon points="1,10 10,10 14,26" fill="rgba(0,0,0,.18)"/><polygon points="27,10 18,10 14,26" fill="rgba(0,0,0,.30)"/><polygon points="10,10 18,10 14,26" fill="rgba(255,255,255,.12)"/><polygon points="7,3 21,3 27,10 14,26 1,10" fill="none" stroke="rgba(0,0,0,.35)" stroke-width=".8"/><text x="14" y="13.5" text-anchor="middle" dominant-baseline="central" font-size="${label.length>1?7.5:9}" font-weight="800" fill="#10131a" font-family="Oxanium,sans-serif">${label}</text></svg>`;
+}
+
+// class gem: highest class the player has reached on any path (player list or rank history)
+function classGem(p){
+  const n=p[0], ord="BIAM", seen={};
+  (p[8]||"").toUpperCase().split("").forEach((t,i)=>{if(ord.includes(t)){(seen[t]=seen[t]||new Set()).add(PATHS[i])}});
+  (WR.ups||[]).filter(u=>u[0]===n).forEach(u=>[u[2],u[3]].forEach(t=>{if(ord.includes(t))(seen[t]=seen[t]||new Set()).add(PATHS[u[1]])}));
+  const top=[...ord].reverse().find(t=>seen[t]); if(!top)return "";
+  const col=TIER_C[top], name=TIER_NAME[top], paths=[...seen[top]];
+  const ups=(WR.ups||[]).filter(u=>u[0]===n&&u[3]===top&&"BIAM".indexOf(u[3])>"BIAM".indexOf(u[2])).map(u=>u[4]), recW=ups.length?Math.min(...ups):null;
+  return `<span class="medal-m classgem" style="--gc:${col}" data-tip="${name} gem · highest class reached in any path${recW?` (collected Week ${recW})`:""}"><svg viewBox="0 0 30 30" aria-hidden="true"><polygon points="8,3 22,3 29,11 15,28 1,11" fill="${col}"/><polygon points="8,3 22,3 19,11 11,11" fill="rgba(255,255,255,.5)"/><polygon points="1,11 11,11 15,28" fill="rgba(0,0,0,.15)"/><polygon points="29,11 19,11 15,28" fill="rgba(0,0,0,.28)"/><polygon points="11,11 19,11 15,28" fill="rgba(255,255,255,.12)"/><polygon points="8,3 22,3 29,11 15,28 1,11" fill="none" stroke="rgba(0,0,0,.35)" stroke-width=".8"/><text x="15" y="15" text-anchor="middle" dominant-baseline="central" font-size="10" font-weight="800" fill="#10131a" font-family="Oxanium,sans-serif">${top}</text></svg></span>`;
+}
+function medalsFor(p){
+  const [n,first,latest,played,rate,streak,longest]=p;
+  const years=(latest-first+1)/52, gems=[], flames=[];
+  const fw=WEEKS[first-1];
+  for(let y=1;y<=Math.floor(years);y++){
+    const d=fw?new Date(new Date(fw[1]+"T12:00:00").getTime()+y*52*7*864e5):null, ly=d?lunarYear(d):null;
+    const col=ly?ELEMENT_COL[ly.element]:"#c9d0dc";
+    const tip=`${y}-year medal · in the championship for at least ${y*52} weeks${ly?` · reached in the Year of the ${ly.element} ${ly.animal}`:""} (collected Week ${first+y*52-1})`;
+    gems.push(`<span class="medal-m zod" data-tip="${tip}" style="--ec:${col}"><span class="ani">${ly?ANIMAL_EMOJI[ly.animal]:"🏅"}</span><b>${y}</b></span>`);
+  }
+  // find where the best streak started, to date each streak year
+  const bits=presOf(p); let run=0,bestLen=0,bestStart=null;
+  for(let i=0;i<bits.length;i++){ if(bits[i]==="1"){run++; if(run>bestLen){bestLen=run;bestStart=i-run+1+PRES_START}} else run=0; }
+  for(let y=1;y<=Math.floor(longest/52);y++){
+    const sw=bestStart!=null?WEEKS[bestStart+y*52-2]:null, ly=sw?lunarYear(new Date(sw[1]+"T12:00:00")):null;
+    const col=ly?ELEMENT_COL[ly.element]:FLAME_HEAT[Math.min(y,FLAME_HEAT.length)-1];
+    flames.push(`<span data-tip="${y}-year streak medal · played at least ${y*52} weeks in a row${ly?` · reached in the Year of the ${ly.element} ${ly.animal}`:""}${bestStart!=null?` (collected Week ${bestStart+y*52-1})`:""}" class="medal-m flm" style="--ec:${col}">${medalSvg("streak",col,"")}<span class="ani">${ly?ANIMAL_EMOJI[ly.animal]:""}</span><b>${y}</b></span>`);
+  }
+  {const cg=classGem(p); if(cg) gems.unshift(cg);}
+  if(rate>=1) gems.unshift(`<span class="medal-m perfect" data-tip="Perfect gem · played every week since joining the championship (collected Week ${first})"><svg viewBox="0 0 30 30" aria-hidden="true"><defs><linearGradient id="pg-${played}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff6c2"/><stop offset=".5" stop-color="#9ff0ff"/><stop offset="1" stop-color="#d8a6ff"/></linearGradient></defs><polygon points="8,3 22,3 29,11 15,28 1,11" fill="url(#pg-${played})"/><polygon points="8,3 22,3 19,11 11,11" fill="rgba(255,255,255,.6)"/><polygon points="1,11 11,11 15,28" fill="rgba(0,0,0,.12)"/><polygon points="29,11 19,11 15,28" fill="rgba(0,0,0,.22)"/><polygon points="8,3 22,3 29,11 15,28 1,11" fill="none" stroke="rgba(0,0,0,.35)" stroke-width=".8"/><path d="M15 6.5l1.5 3 3.3.4-2.4 2.3.6 3.3-3-1.6-3 1.6.6-3.3-2.4-2.3 3.3-.4z" fill="#f5c84a" stroke="rgba(0,0,0,.35)" stroke-width=".5"/></svg></span>`);
+  return (gems.length?`<div class="medals">${gems.join("")}</div>`:"")+(flames.length?`<div class="medals">${flames.join("")}</div>`:"");
+}
+let pYear=null;
+function showPlayer(name){
+  const p=byName[name];
+  if(!p){$("pcard").innerHTML=`<div class="empty">No player named “${esc(name)}”. Pick a name from the list as you type.</div>`;return}
+  const [n,first,latest,played,rate,streak,longest,,tiers]=p;
+  const pres=presOf(p);
+  const fw=WEEKS[first-1], lw=WEEKS[latest-1];
+  const tierHtml=tiers?["Lead","Rhythm","Bass"].map((k,i)=>{const t=tiers[i].toUpperCase();return `<div class="tier" style="--tc:${TIER_C[t]||"var(--muted)"}"><small>${k}</small><b>${t==="?"?"–":t}</b></div>`}).join(""):`<span class="sub">No skill tiers on the player list</span>`;
+  // runs of consecutive played weeks, for highlighting the best and active streaks
+  const runs=[];let rs=null;
+  for(let i=0;i<=pres.length;i++){const on=pres[i]==="1";if(on&&rs==null)rs=i;if(!on&&rs!=null){runs.push([rs+PRES_START,i-1+PRES_START]);rs=null}}
+  const span=r=>r?Array.from({length:r[1]-r[0]+1},(_,i)=>r[0]+i).join(","):"";
+  let bestR=null;runs.forEach(r=>{if(!bestR||r[1]-r[0]>=bestR[1]-bestR[0])bestR=r});
+  const lastR=runs[runs.length-1], actR=streak>0&&lastR&&lastR[1]-lastR[0]+1===streak?lastR:null;
+  if(bestR&&bestR[1]-bestR[0]+1!==longest)bestR=null;
+  // presence grid by calendar year
+  const byYear={};
+  for(let i=0;i<pres.length;i++){const wk=i+PRES_START, w=WEEKS[wk-1]; if(!w)continue; (byYear[w[1].slice(0,4)]=byYear[w[1].slice(0,4)]||[]).push([wk,pres[i]==="1",w[1]])}
+  let grid="";
+  Object.keys(byYear).forEach(y=>{
+    const arr=byYear[y], off=Math.floor((new Date(arr[0][2]+"T12:00:00")-new Date(y+"-01-01T12:00:00"))/604800000);
+    grid+=`<div class="yr pyr${pYear===y?" sel":""}" data-pyear="${y}" title="${pYear===y?"Show all years":`Show stats for ${y} only`}">${y}</div>`+"<i class='pre'></i>".repeat(off)+arr.map(([wk,on])=>`<i data-w="${wk}" class="${on?"on":wk<first?"pre":""}${SB.weeks[wk]?" sbk":""}${pYear===y?" iny":""}" ${SB.weeks[wk]?`data-pwk="${wk}"`:""} title="Week ${wk}${on?" · played":""}${SB.weeks[wk]?" · click to open the Scoreboard":""}"></i>`).join("")+"<i class='pre'></i>".repeat(Math.max(0,53-off-arr.length));
+  });
+  if(pYear&&!byYear[pYear])pYear=null;
+  // what the stat boxes show: all time, or just the picked year (the active streak always stays as it is now)
+  const D={played,latest,first,rate,longest,bestR};
+  if(pYear){
+    const arr=byYear[pYear].filter(([wk,o])=>wk>=first&&(wk<cur[0]||o)), on=arr.filter(x=>x[1]);
+    D.played=on.length; D.first=on.length?on[0][0]:null; D.latest=on.length?on[on.length-1][0]:null;
+    D.rate=arr.length?on.length/arr.length:0;
+    let r=null,b=null; arr.forEach(([wk,o])=>{if(o){r=r&&r[1]===wk-1?[r[0],wk]:[wk,wk]; if(!b||r[1]-r[0]>b[1]-b[0])b=r.slice()}else r=null});
+    D.bestR=b; D.longest=b?b[1]-b[0]+1:0;
+  }
+  const dfw=D.first?WEEKS[D.first-1]:null, dlw=D.latest?WEEKS[D.latest-1]:null;
+  $("pcard").innerHTML=`<div class="pc">
+    <div>
+      <h3>${esc(n)} ${actPill(n)}</h3>
+      <div class="tiers">${tierHtml}</div>
+      ${pYear?`<div class="yrtag"><b>${pYear} only</b><button type="button" class="clear" data-pyear="${pYear}">Show all years</button></div>`:""}
+      <div class="stats">
+        <div><small>Weeks played</small><b>${D.played}</b></div>
+        <div${D.latest?` data-hl="${D.latest}" data-tip="Click to highlight Week ${D.latest}"`:""}><small>Latest week</small><b>${D.latest??"–"}</b>${dlw?`<span class="sub"> · ${fmt(dlw[1])}</span>`:""}</div>
+        <div${actR?` data-hl="${span(actR)}" data-tip="(Week ${actR[0]}${actR[1]>actR[0]?`–${actR[1]}`:""})"`:""}><small>Active streak</small><b>${streak} wk${streak===1?"":"s"}</b></div>
+        <div${D.bestR?` data-hl="${span(D.bestR)}" data-tip="(Week ${D.bestR[0]}${D.bestR[1]>D.bestR[0]?`–${D.bestR[1]}`:""})"`:""}><small>Best streak</small><b>${D.longest} wk${D.longest===1?"":"s"}</b></div>
+        <div${D.first?` data-hl="${D.first}" data-tip="Click to highlight Week ${D.first}"`:""}><small>First week</small><b>${D.first??"–"}</b>${dfw?`<span class="sub"> · ${fmt(dfw[1])}</span>`:""}</div>
+        <div><small>Play rate</small><b>${(D.rate*100).toFixed(D.rate>=1?0:1)}%</b></div>
+      </div>
+      ${(()=>{const u=WR.ups.filter(x=>x[0]===n).sort((a,b)=>a[4]-b[4]);return u.length?`<div class="ups">Rank changes: ${u.map(([,p,a,b,w])=>`<span class="pill hol">${PATHS[p]} ${a}${"BIAM".indexOf(b)<"BIAM".indexOf(a)?"↘":"↗"}${b} · wk ${w}</span>`).join("")}</div>`:""})()}
+      ${WR.wins[n]||hosts[n]?`<div class="golinks">${WR.wins[n]?`<button type="button" class="clear" data-wprofile="${esc(n)}">Open win profile ›</button>`:""}${hosts[n]?`<button type="button" class="clear" data-gohost="${esc(n)}">Open host profile ›</button>`:""}</div>`:""}
+    </div>
+    <div style="min-width:0">
+      ${medalsFor(p)}
+      <div class="scroll"><div class="pres${pYear?" yf":""}" id="ppres">${grid}</div></div>
+      <div class="pres-legend"><span><i class="sw" style="background:var(--s-green)"></i>Played</span><span><i class="sw" style="background:var(--panel2)"></i>Missed</span></div>
+    </div></div>`;
+  $("pq").value=n;
+}
+$("pq").addEventListener("change",e=>showPlayer(e.target.value.trim()));
+$("pcard").addEventListener("click",e=>{
+  const yb=e.target.closest("[data-pyear]");
+  if(yb){pYear=pYear===yb.dataset.pyear?null:yb.dataset.pyear;showPlayer($("pq").value.trim());return}
+  const wb=e.target.closest("[data-wprofile]");
+  if(wb){const n=wb.dataset.wprofile;wPicked=true;showView("winners");showWinner(n);markHot();$("wcard").closest("section").scrollIntoView({block:"start"});return}
+  const h=e.target.closest("[data-hl]");
+  if(h){
+    const g=$("ppres"), was=h.classList.contains("act");
+    $("pcard").querySelectorAll("[data-hl].act").forEach(x=>x.classList.remove("act"));
+    g.querySelectorAll("i.hit").forEach(x=>x.classList.remove("hit"));
+    g.classList.toggle("hl",!was);
+    if(!was){
+      h.classList.add("act");
+      const set=new Set(h.dataset.hl.split(","));
+      let first=null;
+      g.querySelectorAll("i[data-w]").forEach(x=>{if(set.has(x.dataset.w)){x.classList.add("hit");first=first||x}});
+      if(first){const sc=g.parentElement;sc.scrollTo({left:Math.max(0,first.offsetLeft-sc.clientWidth/3),behavior:"smooth"})}
+    }
+    return;
+  }
+  const c=e.target.closest("[data-pwk]"); if(!c)return; e.stopPropagation();
+  const w=+c.dataset.pwk; if(!SB.weeks[w])return;
+  sbWeek=w; sbFind=$("pq").value.trim(); $("sbfind").value=sbFind;
+  showView("scores"); sbRender();
+  scrollTo({top:0,behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth"});
+});
+$("pq").addEventListener("keydown",e=>{if(e.key==="Enter")showPlayer(e.target.value.trim())});
+$("view-players").addEventListener("click",e=>{const el=e.target.closest("[data-player]");if(!el)return;showPlayer(el.dataset.player);$("pcard").closest("section").scrollIntoView({behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth",block:"start"})});
+
+function setHost(h){
+  selHost=(selHost===h)?null:h;
+  $("filterbar").hidden=!selHost; $("fhost").textContent=CATS[selHost]||selHost||"";
+  // host medals and Host lookup are set up further down; when a saved host is restored at load, they fill in once ready
+  if(window.__hostReady){$("hmedals").innerHTML=selHost&&hosts[selHost]?hostMedals(selHost):""; if(selHost&&hosts[selHost])showHost(selHost)}
+  try{localStorage.setItem("rsc-host",selHost||"")}catch(e){}
+  renderLB(); renderTL(); renderLog();
+}
+
+$("lb").addEventListener("click",e=>{const tr=e.target.closest("tr[data-host]");if(tr)setHost(tr.dataset.host)});
+$("lb").addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){const tr=e.target.closest("tr[data-host]");if(tr){e.preventDefault();setHost(tr.dataset.host)}}});
+$("fclear").addEventListener("click",()=>setHost(selHost));
+$("legend").addEventListener("click",e=>{const b=e.target.closest("button[data-host]");if(!b)return; if(b.dataset.host==="__all"){if(selHost)setHost(selHost)} else setHost(b.dataset.host)});
+["q","yr","show"].forEach(id=>$(id).addEventListener("input",renderLog));
+
+const tip=$("tip");
+$("tl").addEventListener("mousemove",e=>{
+  const c=e.target.closest("[data-w]"); if(!c){tip.hidden=true;return}
+  const w=WEEKS[+c.dataset.w];
+  tip.innerHTML=`<b class="num">Week ${w[0]}</b> · ${fmt(w[1])}<br>${w[2]===LOST?"No host on record":w[2]?esc(w[2]):"Open slot"}${w[3]?`<br><span class="sub">${esc(w[3])}</span>`:""}`;
+  tip.hidden=false;
+  const x=Math.min(e.clientX+12,innerWidth-tip.offsetWidth-8); tip.style.left=x+"px"; tip.style.top=(e.clientY+14)+"px";
+});
+$("tl").addEventListener("mouseleave",()=>tip.hidden=true);
+function placeTip(x,y){tip.style.left=Math.max(8,Math.min(x+12,innerWidth-tip.offsetWidth-8))+"px";const h=tip.offsetHeight;tip.style.top=Math.max(8,(y+14+h>innerHeight-8?y-h-10:y+14))+"px"}
+$("lb").addEventListener("mousemove",e=>{
+  const p=e.target.closest("[data-tip]"); if(!p){tip.hidden=true;return}
+  tip.textContent=p.dataset.tip; tip.hidden=false; placeTip(e.clientX,e.clientY);
+});
+$("lb").addEventListener("mouseleave",()=>tip.hidden=true);
+$("view-players").addEventListener("mousemove",e=>{
+  if(e.target.closest("#parts"))return;
+  const p=e.target.closest("[data-tip]"); if(!p){tip.hidden=true;return}
+  tip.textContent=p.dataset.tip; tip.hidden=false; placeTip(e.clientX,e.clientY);
+});
+$("view-players").addEventListener("mouseleave",()=>tip.hidden=true);
+$("tl").addEventListener("click",e=>{
+  const c=e.target.closest("[data-w]"); if(!c)return;
+  const w=WEEKS[+c.dataset.w];
+  $("q").value=String(w[0]); $("yr").value=""; $("show").value="all";
+  if(!matches(w[2])){selHost=null;$("filterbar").hidden=true;renderLB();renderTL();}
+  renderLog(); document.getElementById("wk-"+w[0])?.scrollIntoView({block:"nearest"});
+});
+
+function showView(v){
+  ["hosting","players","winners","scores","songs"].forEach(k=>{const on=k===v;$("view-"+k).hidden=!on;$("tab-"+k).setAttribute("aria-selected",on)});
+  tip.hidden=true;
+  $("pfilter").hidden=v==="scores"||v==="songs";
+  if(v==="hosting")renderUpcoming();
+  try{localStorage.setItem("rsc-view",v)}catch(e){}
+}
+document.querySelector(".tabs").addEventListener("click",e=>{const b=e.target.closest("button[data-view]");if(b)showView(b.dataset.view)});
+{const H={"#hosts":"hosting","#players":"players","#winners":"winners","#scoreboard":"scores","#songs":"songs"};let v=H[location.hash]||null; if(!v){try{v=localStorage.getItem("rsc-view")}catch(e){}} showView(["hosting","scores","winners","songs","players"].includes(v)?v:"winners");}
+const SB=__SCORES__;
+// ---------- win rates & rank-ups (from scoreboards, weeks 440+) ----------
+const WR=__WINS__;
+const TIER_NAME={B:"Beginner",I:"Intermediate",A:"Advanced",M:"Masterclass"};
+const PATHS=["Lead","Rhythm","Bass"], PATH_C=["var(--s-red)","var(--s-yellow)","var(--s-blue)"];
+let wPath=-1;
+const PATH_WORD=["lead","rhythm","bass"];
+const wv=(n,p)=>{const v=WR.wins[n];if(!v)return null;return p<0?v.reduce((a,x)=>[a[0]+x[0],a[1]+x[1],a[2]+x[2]],[0,0,0]):v[p]};
+const winEntries=()=>Object.keys(WR.wins).filter(n=>!activeOnly||isActivePlayer(n)).map(n=>[n,wv(n,wPath)]).filter(([,v])=>v&&v[0]>0);
+function renderWinnersPodium(){
+  const M=["#f5c84a","#c9d0dc","#d8925a"], where=wPath<0?"":` on ${PATH_WORD[wPath]}`;
+  const sorted=winEntries().sort((a,b)=>b[1][1]-a[1][1]);
+  const top=sorted.slice(0,3), max=top[0][1][1];
+  $("whof-sub").textContent=`Most challenge wins${where} since week 440 · own class or playing up`;
+  $("wpodium").innerHTML=[1,0,2].map(i=>{const [n,v]=top[i], h=Math.round(70+130*v[1]/max);
+    return `<div class="pod" style="--m:${M[i]}"><div class="medal">${i+1}</div><div class="pname" data-player="${esc(n)}">${esc(n)}</div><div class="block" style="height:${h}px;animation-delay:${[150,0,300][i]}ms"><b>${v[1]}</b><small>${wPath<0?"challenge":PATH_WORD[wPath]}</small><small>wins</small></div></div>`}).join("");
+  $("wmost-sub").textContent=`Top 20 · 1st-place finishes${where}`;
+  $("b-mostwins").innerHTML=barRows(sorted.slice(0,20).map(([n,v])=>[n,v[1]]),(n,i)=>STR[(i+3)%6]);
+}
+function renderWins(){
+  const min=wPath<0?25:15;
+  const list=winEntries().filter(([,v])=>v[0]>=min).map(([n,v])=>[n,Math.round(v[1]/v[0]*1000)/10,v]).sort((a,b)=>b[1]-a[1]||b[2][1]-a[2][1]).slice(0,20);
+  $("wrate-sub").textContent=`Top 20 · 1st places per ${wPath<0?"":PATH_WORD[wPath]+" "}challenge entered · min ${min} entries`;
+  const max=list.length?list[0][1]:1;
+  $("b-wins").innerHTML=list.map(([n,r,v],i)=>`<div class="brow${i<3?" top":""}${!isActivePlayer(n)?" inactive":""}" style="--c:${STR[(i+1)%6]}"><span class="rk">${i+1}</span><span class="nm" data-player="${esc(n)}" title="${esc(n)}">${esc(n)}</span><span class="act">${actPill(n)}</span><span class="track" data-tip="${v[1]} win${v[1]===1?"":"s"} in ${v[0]} entries" style="cursor:help"><span class="fill" style="width:${Math.max(2,r/max*100)}%;animation-delay:${i*30}ms"></span></span><span class="val">${r}%</span></div>`).join("");
+}
+let ruPath=-1;
+function renderRankups(){
+  document.querySelectorAll("#rufilter button").forEach(b=>b.setAttribute("aria-pressed",+b.dataset.rp===ruPath));
+  const list=WR.ups.filter(u=>(ruPath<0||u[1]===ruPath)&&(!activeOnly||isActivePlayer(u[0])));
+  const nUp=list.filter(isUp).length, nDown=list.length-nUp;
+  $("ru-sub").textContent=`${nUp} ${ruPath<0?"":PATH_WORD[ruPath]+" "}rank-up${nUp===1?"":"s"}${nDown?` and ${nDown} move${nDown===1?"":"s"} down`:""} since week 440 · newest first`;
+  $("rulist").innerHTML=list.map(([n,p,a,b,w])=>{const wk=WEEKS[w-1];return `<li><div class="w"${SB.weeks[w]?` data-sbw="${w}" data-sbp="${p}" data-sbn="${esc(n)}" title="Open Week ${w} on the Scoreboard"`:""}><b>Wk ${w}</b>${wk?fmtShort(wk[1])+", "+wk[1].slice(0,4):""}</div><div class="who"><span data-player="${esc(n)}">${esc(n)}</span><span class="path" style="--pc:${PATH_C[p]}">${PATHS[p]}</span></div><div class="move${LVI.indexOf(b)<LVI.indexOf(a)?" down":""}" title="${TIER_NAME[a]} → ${TIER_NAME[b]}${LVI.indexOf(b)<LVI.indexOf(a)?" (moved down)":""}"><span style="--tc:${TIER_C[a]}">${a}</span><i>${LVI.indexOf(b)<LVI.indexOf(a)?"↘":"↗"}</i><span style="--tc:${TIER_C[b]}">${b}</span></div></li>`}).join("")||`<li class="empty">No rank-ups on this path.</li>`;
+}
+
+// winner lookup: one player's weeks with a win
+const SB_W=Object.keys(SB.weeks).map(Number).sort((a,b)=>a-b);
+function playerWeekWins(name,p){
+  const out={};
+  SB_W.forEach(w=>{
+    let wins=0, played=false, entries=0;
+    (SB.weeks[w]||[]).forEach(card=>{
+      if(p>=0&&card[0]!==p)return;
+      const mine=card[6].filter(e=>SB.names[e[0]].replace(/[*~]+$/,"")===name);
+      if(mine.length)played=true;
+      entries+=mine.filter(e=>e[4]>=0).length; // eligible entries only, same as the all-time win rate
+      const e=card[6].find(x=>x[4]>=0);
+      if(e&&SB.names[e[0]].replace(/[*~]+$/,"")===name)wins++;
+    });
+    out[w]=[played,wins,entries];
+  });
+  return out;
+}
+let wName=null, wPicked=false, wYear=null;
+const yearOfWeek=w=>WEEKS[w-1]?WEEKS[w-1][1].slice(0,4):"";
+
+// winner medals: best single week, longest run of weeks with a win, and total wins
+const WIN_STREAK_STEPS=[2,3,4,5,6,8,10,12,15,20,25,30,40,50];
+const TOTAL_WIN_STEPS=[1,5,10,25,50,75,100,150,200,250,300,400,500,750,1000];
+const COOL=["#6fe8d0","#4fd6ff","#4f9dff","#6f7cff","#9b6bff","#c77dff"];
+const tierCol=(i,n)=>{const f=n<=1?1:i/(n-1);return COOL[Math.min(COOL.length-1,Math.round(f*(COOL.length-1)))]};
+function trophySvg(col){return `<svg viewBox="0 0 28 30" aria-hidden="true"><path d="M7 3h14v6a7 7 0 0 1-14 0z" fill="${col}"/><path d="M7 5H3a4 4 0 0 0 5 6M21 5h4a4 4 0 0 1-5 6" fill="none" stroke="${col}" stroke-width="2"/><rect x="12" y="15" width="4" height="6" fill="${col}"/><rect x="8" y="21" width="12" height="4" rx="1" fill="${col}"/><path d="M9 4h4v6a4 4 0 0 1-4-3z" fill="rgba(255,255,255,.35)"/></svg>`}
+function boltSvg(col){return `<svg viewBox="0 0 28 30" aria-hidden="true"><circle cx="14" cy="15" r="12" fill="${col}"/><path d="M16 4 8 17h6l-2 9 8-13h-6z" fill="#1a1406" opacity=".8"/></svg>`}
+function coinSvg(col){return `<svg viewBox="0 0 28 30" aria-hidden="true"><path d="M8 0h5l2 8-4 2zM20 0h-5l-2 8 4 2z" fill="var(--s-red)"/><circle cx="14" cy="19" r="10" fill="${col}"/><path d="M14 12l2 4.2 4.6.6-3.3 3.2.8 4.6-4.1-2.2-4.1 2.2.8-4.6-3.3-3.2 4.6-.6z" fill="rgba(0,0,0,.25)"/></svg>`}
+function crownSvg(col){return `<svg viewBox="0 0 28 30" aria-hidden="true"><path d="M3 10l5.5 5L14 6l5.5 9L25 10l-2.5 14h-17z" fill="${col}"/><rect x="5.5" y="23" width="17" height="3.5" rx="1" fill="${col}"/><circle cx="9" cy="20" r="1.8" fill="#ff5d6c"/><circle cx="14" cy="19.4" r="1.8" fill="#5be38a"/><circle cx="19" cy="20" r="1.8" fill="#4f9dff"/><path d="M6 11l2.5 2.3L12 8.5z" fill="rgba(255,255,255,.4)"/></svg>`}
+// weeks where the player won at least one challenge (any level, regular or bonus) on each of Lead, Rhythm and Bass
+function tripleWeeks(name,done){
+  const reg=[];
+  done.slice().sort((a,b)=>a-b).forEach(w=>{
+    const won=new Set();
+    (SB.weeks[w]||[]).forEach(card=>{
+      const e=card[6].find(x=>x[4]>=0);
+      if(e&&SB.names[e[0]].replace(/[*~]+$/,"")===name)won.add(card[0]);
+    });
+    if(won.size===3)reg.push(w);
+  });
+  return {reg};
+}
+function tieSvg(col){return `<svg viewBox="0 0 28 30" aria-hidden="true"><circle cx="14" cy="15" r="12" fill="${col}"/><path d="M14 3a12 12 0 0 1 0 24z" fill="rgba(0,0,0,.18)"/><rect x="8" y="11" width="12" height="2.6" rx="1.3" fill="#1a1406" opacity=".8"/><rect x="8" y="16.4" width="12" height="2.6" rx="1.3" fill="#1a1406" opacity=".8"/><path d="M6 10a9 9 0 0 1 6-5" stroke="rgba(255,255,255,.55)" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg>`}
+function winMedals(per,done,bestN,streak,total,trip,ties){
+  const rows=[], asc=done.slice().sort((a,b)=>a-b), rec=w=>w?` (collected Week ${w})`:"";
+  const mk=(svg,num,tip)=>{const c=(svg.match(/fill="(#[0-9a-fA-F]{6})"/)||[])[1]||"#4fd6ff";return `<span class="medal-m wm" style="--ec:${c}" data-tip="${tip}">${svg}<b>${num}</b></span>`};
+  const firstK=k=>asc.find(w=>per[w][1]>=k);
+  const streakAt=x=>{let r=0;for(const w of asc){r=per[w][1]>0?r+1:0;if(r>=x)return w}};
+  const totalAt=x=>{let t=0;for(const w of asc){t+=per[w][1];if(t>=x)return w}};
+  if(bestN>0){const r=[];for(let k=1;k<=bestN;k++)r.push(mk(trophySvg(tierCol(k-1,Math.max(bestN,3))),k,`${k}-win week trophy · won ${k}+ challenge${k===1?"":"s"} in a single week${rec(firstK(k))}`));rows.push(r)}
+  const ss=[];for(let x=2;x<=streak;x++)ss.push(x);
+  if(ss.length)rows.push(ss.map((x,i)=>mk(boltSvg(tierCol(i,Math.max(ss.length,3))),x,`${x}-week win streak medal · won a challenge ${x} weeks in a row${rec(streakAt(x))}`)));
+  const ts=TOTAL_WIN_STEPS.filter(x=>total>=x);
+  if(ts.length)rows.push(ts.map((x,i)=>mk(coinSvg(tierCol(i,TOTAL_WIN_STEPS.length)),x,`${x}-win medal · won ${x}+ challenges${rec(totalAt(x))}`)));
+  if(trip&&trip.reg.length)rows.push(trip.reg.map(w=>`<span class="medal-m wm" style="--ec:#ffc94f;cursor:pointer" data-hl="${w}" data-tip="Triple crown · won a challenge on Lead, Rhythm and Bass in the same week${rec(w)}">${crownSvg("#ffc94f")}<b>${w}</b></span>`));
+  if(ties&&ties.length)rows.push(ties.slice().sort((a,b)=>a-b).map(w=>`<span class="medal-m wm" style="--ec:#ff7eb6;cursor:pointer" data-hl="${w}" data-tip="Close win medal · won on the tiebreak with the same % as the runner-up${rec(w)}">${tieSvg("#ff7eb6")}<b>${w}</b></span>`));
+  return rows.map(r=>`<div class="medals">${r.join("")}</div>`).join("");
+}
+function showWinner(name){
+  const v=wv(name,wPath);
+  if(!WR.wins[name]){$("wcard").innerHTML=`<div class="empty">No scoreboard entries for “${esc(name)}”. Pick a name from the list as you type.</div>`;return}
+  wName=name; $("wq").value=name;
+  const per=playerWeekWins(name,wPath);
+  const doneAll=SB_W.filter(w=>w!==cur[0]);
+  const years=[...new Set(SB_W.map(yearOfWeek))];
+  if(wYear&&!years.includes(wYear))wYear=null;
+  // all the lookup stats for a set of weeks (all time for the medals, or one year when a year is picked)
+  const statsFor=done=>{
+    const weeksWon=done.filter(w=>per[w][1]>0), weeksPlayed=done.filter(w=>per[w][0]);
+    let best=null; weeksWon.forEach(w=>{if(!best||per[w][1]>per[best][1])best=w});
+    // longest run of consecutive weeks with a win
+    let run=0,bestRun=0,runEnd=null; done.slice().sort((a,b)=>a-b).forEach(w=>{run=per[w][1]>0?run+1:0; if(run>bestRun){bestRun=run;runEnd=w}});
+    const runStart=runEnd!=null?runEnd-bestRun+1:null;
+    const trip=tripleWeeks(name,done);
+    // close wins: wins where the runner-up (next eligible player) had the same %, so the tiebreak decided it
+    const ties=[];
+    done.forEach(w=>(SB.weeks[w]||[]).forEach(card=>{
+      if(wPath>=0&&card[0]!==wPath)return;
+      const el=card[6].filter(x=>x[4]>=0); if(el.length<2)return;
+      if(SB.names[el[0][0]].replace(/[*~]+$/,"")!==name)return;
+      if(Math.round((el[0][1]-el[1][1])*100)===0)ties.push(w);
+    }));
+    const tieWeeks=[...new Set(ties)].sort((a,b)=>a-b);
+    const wins=done.reduce((t,w)=>t+per[w][1],0), entries=done.reduce((t,w)=>t+per[w][2],0);
+    return {weeksWon,weeksPlayed,best,bestRun,runEnd,runStart,trip,ties,tieWeeks,wins,entries};
+  };
+  const A=statsFor(doneAll);
+  const S=wYear?statsFor(doneAll.filter(w=>yearOfWeek(w)===wYear)):A;
+  const {weeksWon,weeksPlayed,best,bestRun,runEnd,runStart,trip,ties,tieWeeks}=S;
+  const totWins=wYear?S.wins:(v?v[1]:0), totEntries=wYear?S.entries:(v?v[0]:0);
+  const where=wPath<0?"":` (${PATHS[wPath]})`;
+  const byYear={};
+  SB_W.forEach(w=>{const d=WEEKS[w-1]; if(d)(byYear[d[1].slice(0,4)]=byYear[d[1].slice(0,4)]||[]).push(w)});
+  let grid="";
+  Object.keys(byYear).forEach(y=>{
+    const ws=byYear[y], off=Math.floor((new Date(WEEKS[ws[0]-1][1]+"T12:00:00")-new Date(y+"-01-01T12:00:00"))/604800000);
+    grid+=`<div class="yr wyr${wYear===y?" sel":""}" data-wyear="${y}" title="${wYear===y?"Show all years":`Show stats for ${y} only`}">${y}</div>`+"<i class='pre'></i>".repeat(off)+ws.map(w=>{const [pl,k]=per[w];const isCur=w===cur[0]; const cls=(isCur?"q":k>=3?"w3":k===2?"w2":k===1?"w1":pl?"pl":"np")+(wYear===y?" iny":"");return `<i class="${cls}" data-wk="${w}" data-k="${k}" data-pl="${pl?1:0}"${isCur?' data-cur="1"':""}></i>`}).join("")+"<i class='pre'></i>".repeat(Math.max(0,53-off-ws.length));
+  });
+  $("wcard").innerHTML=`<div class="pc">
+    <div>
+      <h3>${esc(name)} ${actPill(name)}</h3>
+      ${wPath>=0?`<div class="yrtag"><span class="pth" style="--pc:${PATH_C[wPath]}">${PATHS[wPath]} only</span><button type="button" class="clear" data-wallpaths="1">Show all paths</button></div>`:""}
+      ${wYear?`<div class="yrtag"><b>${wYear} only</b><button type="button" class="clear" data-wyear="${wYear}">Show all years</button></div>`:""}
+      <div class="stats" style="margin-top:12px">
+        <div><small>Weeks with a win${where}</small><b>${weeksWon.length}</b><span class="sub"> of ${weeksPlayed.length} played</span></div>
+        <div><small>Total wins${where}</small><b>${totWins}</b><span class="sub"> of ${totEntries} entries</span></div>
+        <div${best?` data-hl="${best}" title="Click to highlight this week"`:""}><small>Best week</small><b>${best?per[best][1]+" win"+(per[best][1]===1?"":"s"):"–"}</b>${best?`<span class="sub"> · wk ${best}</span>`:""}</div>
+        <div${bestRun?` data-tip="${bestRun===1?`(Week ${runEnd})`:`(Week ${runStart}–${runEnd})`}" data-hl="${Array.from({length:bestRun},(_,i)=>runStart+i).join(",")}"`:""}><small>Longest win streak</small><b>${bestRun} wk${bestRun===1?"":"s"}</b></div>
+        <div data-tip="Triple crown · won a challenge on Lead, Rhythm and Bass in the same week${trip.reg.length?` · click to highlight ${trip.reg.length===1?"that week":"those weeks"}`:""}"${trip.reg.length?` data-hl="${trip.reg.join(",")}"`:""} style="cursor:${trip.reg.length?"pointer":"help"}"><small>Triple crowns</small><b>${trip.reg.length}</b>${trip.reg.length?`<span class="sub"> · last wk ${trip.reg[trip.reg.length-1]}</span>`:""}</div>
+        <div${ties.length?` data-hl="${tieWeeks.join(",")}" data-tip="Won on the tiebreak, same % as the runner-up · Week${tieWeeks.length===1?"":"s"} ${tieWeeks.join(", ")}"`:""}><small>Close wins${where}</small><b>${ties.length}</b><span class="sub"> won on the tiebreak</span></div>
+      </div>
+      <div class="golinks"><button type="button" class="clear" data-profile="${esc(name)}">Open player profile ›</button>${hosts[name]?`<button type="button" class="clear" data-gohost="${esc(name)}">Open host profile ›</button>`:""}</div>
+    </div>
+    <div style="min-width:0">
+      ${winMedals(per,doneAll,A.best?per[A.best][1]:0,A.bestRun,v?v[1]:0,A.trip,A.ties)}
+      <div class="scroll"><div class="pres wpres${wYear?" yf":""}" id="wpres">${grid}</div></div>
+      <div class="pres-legend wleg">${[["var(--wg1)","1 win",w=>per[w][1]===1],["var(--wg2)","2 wins",w=>per[w][1]===2],["var(--wg3)","3+ wins",w=>per[w][1]>=3],["#3a4254","Played, no win",w=>per[w][0]&&!per[w][1]],["repeating-linear-gradient(45deg,var(--lost) 0 2px,var(--panel2) 2px 4px)","Didn't play",w=>!per[w][0]]].map(([bg,lab,f])=>{const ws=doneAll.filter(f);return `<span${ws.length?` data-hl="${ws.join(",")}" title="Click to highlight these ${ws.length} week${ws.length===1?"":"s"}"`:""}><i class="sw" style="background:${bg}"></i>${lab}</span>`}).join("")}<span><i class="sw" style="background:repeating-linear-gradient(-45deg,color-mix(in srgb,var(--s-blue) 80%,transparent) 0 2px,var(--panel2) 2px 4px)"></i>This week</span></div>
+    </div></div>`;
+  try{localStorage.setItem("rsc-wname",name)}catch(e){}
+}
+$("wqlist").innerHTML=Object.entries(WR.wins).sort((a,b)=>wv(b[0],-1)[1]-wv(a[0],-1)[1]).map(([n])=>`<option value="${esc(n)}"></option>`).join("");
+$("wq").addEventListener("change",e=>{wPicked=true;showWinner(e.target.value.trim());markHot()});
+$("wq").addEventListener("keydown",e=>{if(e.key==="Enter"){wPicked=true;showWinner(e.target.value.trim());markHot()}});
+$("wcard").addEventListener("mousemove",e=>{
+  const tp=e.target.closest("[data-tip]"); if(tp){tip.textContent=tp.dataset.tip;tip.hidden=false;placeTip(e.clientX,e.clientY);return}
+  const c=e.target.closest("[data-wk]"); if(!c){tip.hidden=true;return}
+  const w=+c.dataset.wk, d=WEEKS[w-1], k=+c.dataset.k;
+  tip.innerHTML=`<b class="num">Week ${w}</b>${d?" · "+fmt(d[1]):""}<br>${c.dataset.cur?"This week · in progress, no winner yet":k?k+" win"+(k===1?"":"s"):c.dataset.pl==="1"?"Played, no win":"Didn't play"}<br><span class="sub">Click to open this week on the Scoreboard</span>`;
+  tip.hidden=false; placeTip(e.clientX,e.clientY);
+});
+$("wcard").addEventListener("mouseleave",()=>tip.hidden=true);
+$("wcard").addEventListener("click",e=>{
+  if(e.target.closest("[data-wallpaths]")){document.querySelector('#wpath [data-rp="-1"]').click();return}
+  const yb=e.target.closest("[data-wyear]");
+  if(yb){wYear=wYear===yb.dataset.wyear?null:yb.dataset.wyear;tip.hidden=true;showWinner(wName);markHot();return}
+  const h=e.target.closest("[data-hl]");
+  if(h){
+    const g=$("wpres"), was=h.classList.contains("act");
+    $("wcard").querySelectorAll("[data-hl].act").forEach(x=>x.classList.remove("act"));
+    g.querySelectorAll("i.hit").forEach(x=>x.classList.remove("hit"));
+    g.classList.toggle("hl",!was);
+    if(!was){
+      h.classList.add("act");
+      const set=new Set(h.dataset.hl.split(",").filter(Boolean));
+      let first=null;
+      g.querySelectorAll("i[data-wk]").forEach(x=>{if(set.has(x.dataset.wk)){x.classList.add("hit");first=first||x}});
+      if(first){const sc=g.parentElement;sc.scrollTo({left:Math.max(0,first.offsetLeft-sc.clientWidth/3),behavior:"smooth"})}
+    }
+    return;
+  }
+  const c=e.target.closest("[data-wk]"); if(!c)return;
+  const w=+c.dataset.wk; if(!SB.weeks[w])return;
+  tip.hidden=true;
+  sbWeek=w; if(wPath>=0)sbPath=wPath;
+  sbFind=wName||""; $("sbfind").value=sbFind;
+  showView("scores"); sbRender();
+  scrollTo({top:0,behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth"});
+});
+// hot streak: won at least one challenge in each of the most recent completed weeks
+const HOT_MIN=3;
+function hotStreaks(p){
+  const lastDone=Math.max(...Object.keys(SB.weeks).map(Number).filter(w=>w<cur[0]));
+  const winnersOf=w=>{const set=new Set();(SB.weeks[w]||[]).forEach(card=>{if(p>=0&&card[0]!==p)return;const e=card[6].find(x=>x[4]>=0);if(e)set.add(SB.names[e[0]].replace(/[*~]+$/,""))});return set};
+  const run={}; let alive=null;
+  for(let w=lastDone;w>=lastDone-60&&SB.weeks[w];w--){
+    const set=winnersOf(w);
+    if(alive===null){alive=new Set(set);set.forEach(n=>run[n]=1);continue}
+    for(const n of [...alive]){if(set.has(n))run[n]++;else alive.delete(n)}
+    if(!alive.size)break;
+  }
+  const out={};Object.entries(run).forEach(([n,k])=>{if(k>=HOT_MIN)out[n]=k});return out;
+}
+function markHot(){
+  const hot=hotStreaks(wPath), where=wPath<0?"":` on ${PATH_WORD[wPath]}`;
+  const list=Object.entries(hot).filter(([n])=>!activeOnly||isActivePlayer(n)).sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0]));
+  $("hot-sub").textContent=`Players who won a challenge${where} in each of the last ${HOT_MIN}+ weeks`;
+  $("b-hot").innerHTML=list.length?barRows(list.map(([n,k])=>[n,k]),()=>"var(--s-orange)"," wks"):`<div class="empty">Nobody is on a ${HOT_MIN}-week win streak${where} right now.</div>`;
+  document.querySelectorAll("#view-winners .hot").forEach(el=>el.remove());
+  document.querySelectorAll("#view-winners [data-player]:not(#b-hot [data-player]), #wcard h3").forEach(el=>{
+    const n=el.dataset.player||wName; if(!hot[n])return;
+    el.insertAdjacentHTML("beforeend",`<span class="hot" data-tip="On a hot streak · won a challenge${where} in each of the last ${hot[n]} weeks">${"🔥".repeat(hot[n]>=10?3:hot[n]>=5?2:1)}</span>`);
+  });
+}
+function renderWinners(){
+  document.querySelectorAll("#wpath button").forEach(b=>b.setAttribute("aria-pressed",+b.dataset.rp===wPath));
+  renderWinnersPodium(); renderWins(); renderRankups();
+  showWinner(wPicked&&wName?wName:winEntries().sort((a,b)=>b[1][1]-a[1][1])[0][0]);
+  markHot();
+  try{localStorage.setItem("rsc-wpath",String(wPath))}catch(e){}
+}
+$("wpath").addEventListener("click",e=>{const b=e.target.closest("button[data-rp]");if(b){wPath=+b.dataset.rp;ruPath=wPath;renderWinners()}});
+$("rufilter").addEventListener("click",e=>{const b=e.target.closest("button[data-rp]");if(b){ruPath=+b.dataset.rp;renderRankups()}});
+// rank-up markers on the scoreboard: first week a player appears in their new class
+const LVI="BIAM";
+const isUp=u=>LVI.indexOf(u[3])>LVI.indexOf(u[2]);
+const RU_KEY=new Set(WR.ups.filter(isUp).map(([n,p,a,b,w])=>`${w}|${n}|${p}|${b}`));
+try{const r=localStorage.getItem("rsc-wpath");if(r!==null&&["0","1","2"].includes(r))wPath=+r}catch(e){}
+ruPath=wPath;
+renderWinners();
+function setActiveOnly(v){
+  activeOnly=v; try{localStorage.setItem("rsc-activeonly2",v?"1":"0")}catch(e){}
+  document.querySelectorAll("#pfilter button").forEach(b=>b.setAttribute("aria-pressed",(b.dataset.af==="1")===activeOnly));
+  computeRecords(); renderRecords(); renderWinners(); renderHostPodium(); renderLB(); renderUpcoming();
+}
+$("pfilter").addEventListener("click",e=>{const b=e.target.closest("button[data-af]");if(b)setActiveOnly(b.dataset.af==="1")});
+document.querySelectorAll("#pfilter button").forEach(b=>b.setAttribute("aria-pressed",(b.dataset.af==="1")===activeOnly));
+$("view-winners").addEventListener("click",e=>{
+  const pb=e.target.closest("[data-profile]");
+  if(pb){const n=pb.dataset.profile;if(byName[n]){showView("players");showPlayer(n);$("pcard").closest("section").scrollIntoView({block:"start"})}return}
+  const el=e.target.closest("[data-player]"); if(!el||el.closest("#wcard"))return;
+  wPicked=true; showWinner(el.dataset.player); markHot(); $("wcard").closest("section").scrollIntoView({behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth",block:"start"});
+});
+$("view-winners").addEventListener("mousemove",e=>{if(e.target.closest("#wcard"))return;const p=e.target.closest("[data-tip]");if(!p){tip.hidden=true;return}tip.textContent=p.dataset.tip;tip.hidden=false;placeTip(e.clientX,e.clientY)});
+$("view-winners").addEventListener("mouseleave",()=>tip.hidden=true);
+
+fillYears(); renderNow(); renderHostPodium(); renderUpcoming(); renderRecords();
+showPlayer(RECORDS["Most weeks played"][0][0]);
+try{const s=localStorage.getItem("rsc-host"); if(s&&(hosts[s]||CATS[s])){selHost=s;$("filterbar").hidden=false;$("fhost").textContent=CATS[s]||s}}catch(e){}
+renderLB(); renderTL(); renderLog(); renderUpcoming();
+// ---------- scoreboard ----------
+const SB_WEEKS=Object.keys(SB.weeks).map(Number).sort((a,b)=>b-a);
+let sbWeek=SB_WEEKS[0], sbPath=0, sbFind="";
+const tierColor=l=>/god/i.test(l)?"var(--s-red)":/master/i.test(l)?"var(--s-purple)":/adv/i.test(l)?"var(--s-blue)":/inter|int\//i.test(l)?"var(--s-green)":/begin/i.test(l)?"var(--s-yellow)":"var(--s-orange)";
+const fmtNum=v=>v==null?"":v.toLocaleString("en-US");
+function sbRender(){
+  const ch=SB.weeks[sbWeek]||[], wk=WEEKS[sbWeek-1];
+  $("sbweek").value=sbWeek;
+  $("sbprev").disabled=sbWeek===SB_WEEKS[SB_WEEKS.length-1];
+  $("sbnext").disabled=sbWeek===SB_WEEKS[0];
+  $("sblatest").hidden=sbWeek===SB_WEEKS[0]; $("sblatest").textContent=`Back to latest week (${SB_WEEKS[0]}) ›`;
+  $("sbmeta").innerHTML=wk?`${fmt(wk[1])}${wk[2]&&wk[2]!==LOST?` · hosted by <b>${esc(wk[2])}</b>`:""}`:"";
+  document.querySelectorAll("#sbseg button").forEach(b=>b.setAttribute("aria-pressed",+b.dataset.path===sbPath));
+  const all=ch.flatMap(c=>c[6]), players=new Set(all.map(e=>SB.names[e[0]].replace(/[*~]+$/,"")));
+  const pathEnts=ch.filter(c=>c[0]===sbPath).flatMap(c=>c[6]);
+  $("sbstats").innerHTML=`<span><b>${players.size}</b> players this week</span><span><b>${all.length}</b> entries in all paths</span><span><b>${pathEnts.length}</b> ${["lead","rhythm","bass"][sbPath]} entries</span>`;
+  const cards=ch.filter(c=>c[0]===sbPath);
+  const findLc=sbFind.toLowerCase();
+  $("sbcards").innerHTML=cards.map(([p,slot,lvl,song,diff,extra,ents])=>{
+    const tc=tierColor(lvl), dash=song.indexOf(" - ");
+    const songHtml=song&&song!=="n/a"?(dash>0?`<b class="golink" data-goband="${esc(song.slice(0,dash).trim())}" data-gosong="${esc(song.slice(dash+3).trim())}" title="Show this song in Band lookup">${esc(song.slice(dash+3))}</b><small class="golink" data-goband="${esc(song.slice(0,dash).trim())}" title="Show this band in Band lookup">${esc(song.slice(0,dash))}</small>`:`<b>${esc(song)}</b>`):`<small>No song this week</small>`;
+    let place=0;
+    const rows=ents.map((e,i)=>{
+      const elig=e[4]>=0; if(elig)place++;
+      const raw=SB.names[e[0]]; const base=raw.replace(/[*~]+$/,"");
+      const MK={"-1":"Playing down, below their own class (not counted for wins)","1":"Playing up one class","2":"Playing up two or more classes","0":"Played outside their own class"};
+      const marks=(raw.includes("*")?`<span class="mk" data-tip="${MK[e[4]||0]}">*</span>`:"")+(raw.includes("~")?`<span class="mk" data-tip="FreeBird">~</span>`:"");
+      const rk=elig&&place<=3?`<span class="rkb" style="--m:${["#f5c84a","#c9d0dc","#d8925a"][place-1]}" title="${["1st","2nd","3rd"][place-1]} among players at or below this level">${i+1}</span>`:`<span class="rkn">${i+1}</span>`;
+      const pct=e[1]==null?"":`<span class="${e[1]>=100?"pct100":""}">${e[1]}%</span>`;
+      const me=findLc&&base.toLowerCase()===findLc?" me":"";
+      const lvLetter=/master/i.test(lvl)?"M":/^adv/i.test(lvl)?"A":/^int/i.test(lvl)?"I":/begin/i.test(lvl)?"B":"";
+      const up=!raw.includes("*")&&lvLetter&&RU_KEY.has(`${sbWeek}|${base}|${p}|${lvLetter}`)?`<span class="rkup" data-tip="First week in ${TIER_NAME[lvLetter]} ${PATHS[p]} after ranking up">RANKED UP</span>`:"";
+      return `<tr class="${me}${e[4]<0?" down":""}"><td>${rk}</td><td class="n"><span data-player="${esc(base)}">${esc(base)}</span>${marks}${up}${SB.aka&&SB.aka[e[0]]?`<span class="aka">as ${esc(SB.aka[e[0]])}</span>`:""}</td><td>${pct}</td><td>${fmtNum(e[2])}</td><td>${fmtNum(e[3])}</td></tr>`;
+    }).join("");
+    return `<article class="card" style="--tc:${tc}"><div class="ch"><div class="lv"><span>${esc(lvl)}</span>${diff!=null?`<span class="diff" title="Difficulty rating">${diff}</span>`:""}</div><div class="song">${songHtml}</div>${extra?`<div class="note">${esc(extra)}</div>`:""}</div>${ents.length?`<table><thead><tr><th>#</th><th>Player</th><th>%</th><th>Streak</th><th>Score</th></tr></thead><tbody>${rows}</tbody></table>`:`<div class="empty">No entries yet</div>`}</article>`;
+  }).join("");
+  try{localStorage.setItem("rsc-sb",JSON.stringify({w:sbWeek,p:sbPath}))}catch(e){}
+}
+$("sbweek").innerHTML=SB_WEEKS.map(w=>`<option value="${w}">Week ${w}</option>`).join("");
+$("sbnames").innerHTML=SB.names.map(n=>n.replace(/[*~]+$/,"")).filter((n,i,a)=>a.indexOf(n)===i).sort((a,b)=>a.localeCompare(b)).map(n=>`<option value="${esc(n)}"></option>`).join("");
+$("sbweek").addEventListener("change",e=>{sbWeek=+e.target.value;sbRender()});
+$("sbprev").addEventListener("click",()=>{const i=SB_WEEKS.indexOf(sbWeek);if(i<SB_WEEKS.length-1){sbWeek=SB_WEEKS[i+1];sbRender()}});
+$("sbnext").addEventListener("click",()=>{const i=SB_WEEKS.indexOf(sbWeek);if(i>0){sbWeek=SB_WEEKS[i-1];sbRender()}});
+$("sbseg").addEventListener("click",e=>{const b=e.target.closest("button[data-path]");if(b){sbPath=+b.dataset.path;sbRender()}});
+$("sbfind").addEventListener("input",e=>{sbFind=e.target.value.trim();sbRender()});
+$("view-scores").addEventListener("click",e=>{
+  const el=e.target.closest("[data-player]"); if(!el)return;
+  const n=el.dataset.player; if(!byName[n])return;
+  showView("players"); showPlayer(n); $("pcard").closest("section").scrollIntoView({block:"start"});
+});
+$("view-scores").addEventListener("mousemove",e=>{const p=e.target.closest("[data-tip]");if(!p){tip.hidden=true;return}tip.textContent=p.dataset.tip;tip.hidden=false;placeTip(e.clientX,e.clientY)});
+$("view-scores").addEventListener("mouseleave",()=>tip.hidden=true);
+try{const st=JSON.parse(localStorage.getItem("rsc-sb")||"null");if(st){if(SB.weeks[st.w])sbWeek=st.w;if([0,1,2].includes(st.p))sbPath=st.p}}catch(e){}
+sbRender();
+
+// ---------- songs ----------
+const SONGS_OLD=__SONGS_OLD__; // weeks before the scoreboards: [week, path, tier, bonus, song, difficulty]
+const TIER_ORDER=["B","I","A","M","G"], TIER_LABEL={B:"Beginner",I:"Intermediate",A:"Advanced",M:"Masterclass",G:"God of…"};
+const TIER_COL={B:"var(--s-yellow)",I:"var(--s-green)",A:"var(--s-blue)",M:"var(--s-purple)",G:"var(--s-red)"};
+const tierOf=l=>/^god/i.test(l)?"G":/master/i.test(l)?"M":/^adv/i.test(l)?"A":/^int/i.test(l)?"I":/begin/i.test(l)?"B":null;
+// level from the difficulty rating when there is one: under 4 Beginner, 4–5.5 Intermediate, 6–7.5 Advanced, 8–9.5 Masterclass, 10+ God tier
+const tierByRating=(t,d)=>d==null||d<=0?t:d<4?"B":d<6?"I":d<8?"A":d<10?"M":"G";
+const splitSong=t=>{const i=t.indexOf(" - ");return i>0?[t.slice(0,i).trim(),t.slice(i+3).trim()]:["Unknown",t.trim()]};
+let sPath=-1, songCards=[], bandName=null, bandTier=null, bandPathF=null, bandSong=null;
+function renderSongs(){
+  TIER_LABEL.G=sPath<0?"God tier":["God of Guitar","God of Rhythm","God of Bass"][sPath];
+  document.querySelectorAll("#spath button").forEach(b=>b.setAttribute("aria-pressed",+b.dataset.sp===sPath));
+  const cards=[];
+  Object.entries(SB.weeks).forEach(([w,ch])=>ch.forEach(c=>{ if(sPath>=0&&c[0]!==sPath)return; if(!c[3]||/^n\/a$/i.test(c[3]))return; const t=tierOf(c[2]); if(!t)return; const [artist,title]=splitSong(c[3]); cards.push({w:+w,p:c[0],t:tierByRating(t,c[4]),card:t,artist,title,song:c[3],diff:c[4],n:c[6].length,who:c[6].map(e=>SB.names[e[0]].replace(/[*~]+$/,""))}); }));
+  SONGS_OLD.forEach(([w,p,t,b,song,diff])=>{ if(sPath>=0&&p!==sPath)return; const [artist,title]=splitSong(song); cards.push({w,p,t:tierByRating(t,diff),card:t,artist,title,song,diff,n:null}); });
+  // known band-name typos in the source sheets
+  const ARTIST_FIX={};
+  cards.forEach(c=>{if(ARTIST_FIX[c.artist])c.artist=ARTIST_FIX[c.artist]});
+  // merge spelling/case variants of the same band or song under the most common spelling
+  const canon=(key)=>{const cnt={};cards.forEach(c=>{const k=c[key].toLowerCase().replace(/^the /,'').replace(/\s+/g,' ').trim();(cnt[k]=cnt[k]||{})[c[key]]=(cnt[k][c[key]]||0)+1});const best={};Object.entries(cnt).forEach(([k,v])=>best[k]=Object.entries(v).sort((a,b)=>b[1]-a[1])[0][0]);cards.forEach(c=>c[key]=best[c[key].toLowerCase().replace(/^the /,'').replace(/\s+/g,' ').trim()])};
+  canon('artist'); cards.forEach(c=>c.song=c.artist+' - '+c.title); canon('song');
+  const scored=cards.filter(c=>c.n!=null);
+  songCards=cards;
+  const by=(key)=>{const m={};cards.forEach(c=>{const k=key(c);(m[k]=m[k]||[]).push(c)});return m};
+  const bands=by(c=>c.artist), songs=by(c=>c.song);
+  const entries=scored.reduce((a,c)=>a+c.n,0);
+  const where=sPath<0?"":" · "+PATHS[sPath];
+  $("songstats").innerHTML=`<div data-tip="A challenge is one song set for one level on one path in one week (one card on the Scoreboard). Each week has up to 9 per path: Beginner, Intermediate, Advanced, Masterclass, a bonus song for each, and God of Guitar/Rhythm/Bass. A song used on Lead and Rhythm in the same week counts as 2." style="cursor:help"><div class="k"><span style="text-decoration:underline dotted">Challenges</span>${where} ⓘ</div><div class="v num">${cards.length.toLocaleString()}</div><div class="n">Weeks ${Math.min(...cards.map(c=>c.w))}–${Math.max(...cards.map(c=>c.w))}</div></div>
+    <div><div class="k">Different songs</div><div class="v num">${Object.keys(songs).length.toLocaleString()}</div></div>
+    <div><div class="k">Different bands</div><div class="v num">${Object.keys(bands).length.toLocaleString()}</div><div class="n">${Object.values(bands).filter(v=>v.length===1).length} featured only once</div></div>
+    <div><div class="k">Scores posted</div><div class="v num">${entries.toLocaleString()}</div><div class="n">Since week ${Math.min(...scored.map(c=>c.w))} · ${(entries/scored.length).toFixed(1)} per challenge</div></div>`;
+  const featured=Object.entries(bands).map(([a,v])=>[a,v.length]).sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0])).slice(0,20);
+  $("b-featured").innerHTML=barRows(featured,(n,i)=>STR[i%6],"",false);
+  const played=Object.entries(bands).map(([a,v])=>[a,v.reduce((s,c)=>s+(c.n||0),0)]).filter(x=>x[1]>0).sort((a,b)=>b[1]-a[1]).slice(0,20);
+  $("b-playedbands").innerHTML=barRows(played,(n,i)=>STR[(i+2)%6],"",false);
+  $("tiers5").innerHTML=TIER_ORDER.map(t=>{const sub=cards.filter(c=>c.t===t); const m={}; sub.forEach(c=>m[c.artist]=(m[c.artist]||0)+1);
+    const top=Object.entries(m).sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0])).slice(0,8);
+    return `<div class="tcol" style="--tc:${TIER_COL[t]}"><h3>${TIER_LABEL[t]}<small>${sub.length} challenges</small></h3><ol>${top.map(([a,k])=>`<li data-band="${esc(a)}" data-ltier="${t}" title="Show ${esc(a)}'s ${TIER_LABEL[t]} songs"><span>${esc(a)}</span><span>${k}</span></li>`).join("")||`<li><span class="sub">None</span></li>`}</ol></div>`}).join("");
+  const tough=Object.entries(bands).map(([a,v])=>{const d=v.filter(c=>c.diff!=null);return [a,d.length?d.reduce((s,c)=>s+c.diff,0)/d.length:0,d.length]}).filter(x=>x[2]>=5).sort((a,b)=>b[1]-a[1]).slice(0,20).map(([a,d])=>[a,Math.round(d*10)/10]);
+  $("b-tough").innerHTML=barRows(tough,(n,i)=>"var(--s-red)","",false);
+  const easy=Object.entries(bands).map(([a,v])=>{const d=v.filter(c=>c.diff!=null);return [a,d.length?d.reduce((s,c)=>s+c.diff,0)/d.length:0,d.length]}).filter(x=>x[2]>=5).sort((a,b)=>a[1]-b[1]).slice(0,20).map(([a,d])=>[a,Math.round(d*10)/10]);
+  {const max=Math.max(...easy.map(x=>x[1]));
+   $("b-easy").innerHTML=easy.map(([n,x],i)=>`<div class="brow${i<3?" top":""} notag" style="--c:var(--s-green)"><span class="rk">${i+1}</span><span class="nm" data-band="${esc(n)}" title="${esc(n)}">${esc(n)}</span><span class="track"><span class="fill" style="width:${Math.max(2,x/10*100)}%;animation-delay:${i*30}ms"></span></span><span class="val">${x}</span></div>`).join("");}
+  const topSongs=Object.entries(songs).map(([sg,v])=>[sg,new Set(v.flatMap(c=>c.who||[])).size,v]).filter(x=>x[1]>0).sort((a,b)=>b[1]-a[1]||b[2].length-a[2].length).slice(0,20);
+  $("songlist").innerHTML=topSongs.map(([sg,n,v])=>{const [a,ti]=splitSong(sg); const tiers=[...new Set(v.map(c=>c.t))].sort((x,y)=>TIER_ORDER.indexOf(x)-TIER_ORDER.indexOf(y));
+    const who={}; v.forEach(c=>(c.who||[]).forEach(n=>{(who[n]=who[n]||new Set()).add(c.p)}));
+    // players grouped by the week they played it, latest week first
+    const byWk={}; v.forEach(c=>(c.who||[]).forEach(n=>{const m=(byWk[c.w]=byWk[c.w]||{});(m[n]=m[n]||new Set()).add(c.p)}));
+    const tipTxt=`${ti} — ${Object.keys(who).length} players\n`+Object.keys(byWk).map(Number).sort((a,b)=>b-a).map(w=>`\nWeek ${w}\n`+Object.entries(byWk[w]).sort((a,b)=>b[1].size-a[1].size||a[0].localeCompare(b[0])).map(([n,ps])=>`• ${n} · ${[...ps].sort().map(p=>PATHS[p]).join(", ")}`).join("\n")).join("\n");
+    return `<li data-tip="${esc(tipTxt)}"><div><b class="songlink" data-band="${esc(a)}" data-song="${esc(ti)}">${esc(ti)}</b><small><span data-band="${esc(a)}" class="bandlink">${esc(a)}</span> · ${v.length} challenge${v.length===1?"":"s"}</small><div class="chips">${tiers.map(t=>`<span class="lvchip" style="--tc:${TIER_COL[t]}">${TIER_LABEL[t]}</span>`).join("")}</div></div><span class="cnt"><b>${n}</b>players attempted</span></li>`}).join("");
+  // a multi-week God challenge (same song in back-to-back weeks as a God challenge) counts as one play
+  const plays=(ws,v)=>{let n=0,prev=null;const god=w=>v.some(c=>c.w===w&&c.card==="G");ws.forEach(w=>{if(!(prev!=null&&w===prev+1&&god(w)&&god(prev)))n++;prev=w});return n};
+  const replay=Object.entries(songs).map(([sg,v])=>{const ws=[...new Set(v.map(c=>c.w))].sort((a,b)=>a-b);return [sg,ws,v,plays(ws,v)]}).filter(x=>x[3]>1).sort((a,b)=>b[3]-a[3]||b[1][b[1].length-1]-a[1][a[1].length-1]).slice(0,20);
+  $("replaylist").innerHTML=replay.map(([sg,ws,v,np])=>{const [a,ti]=splitSong(sg);
+    const lines=ws.slice().reverse().map(w=>{const cs=v.filter(c=>c.w===w);return `Week ${w} · `+cs.map(c=>`${PATHS[c.p]} ${TIER_LABEL[c.t]}${c.diff!=null?" ("+c.diff+")":""}`).join(", ")});
+    const tipTxt=`${ti} — played ${np} times over ${ws.length} weeks\n`+lines.join("\n");
+    return `<li data-tip="${esc(tipTxt)}"><div><b class="songlink" data-band="${esc(a)}" data-song="${esc(ti)}">${esc(ti)}</b><small><span data-band="${esc(a)}" class="bandlink">${esc(a)}</span> · first wk ${ws[0]} · latest wk ${ws[ws.length-1]}</small><div class="chips">${[...new Set(v.map(c=>c.t))].sort((x,y)=>TIER_ORDER.indexOf(x)-TIER_ORDER.indexOf(y)).map(t=>`<span class="lvchip" style="--tc:${TIER_COL[t]}">${TIER_LABEL[t]}</span>`).join("")}</div></div><span class="cnt"><b>${np}</b>times played</span></li>`}).join("")||`<li class="empty">No songs have been used in more than one week.</li>`;
+  $("bqlist").innerHTML=Object.entries(bands).sort((a,b)=>b[1].length-a[1].length).map(([a])=>`<option value="${esc(a)}"></option>`).join("");
+  showBand(bandName&&bands[bandName]?bandName:featured[0][0]);
+  try{localStorage.setItem("rsc-spath",String(sPath))}catch(e){}
+}
+function showBand(name){
+  const list=songCards.filter(c=>c.artist.toLowerCase()===String(name).toLowerCase());
+  if(!list.length){$("bcard").innerHTML=`<div class="empty">No challenges for “${esc(name)}”${sPath<0?"":" on "+PATHS[sPath]}. Pick a band from the list as you type.</div>`;return}
+  if(list[0].artist!==bandName){bandTier=null;bandPathF=null;bandSong=null;}
+  name=list[0].artist; bandName=name; $("bq").value=name;
+  const rated=list.filter(c=>c.diff!=null&&c.diff>0), avg=rated.length?rated.reduce((a,c)=>a+c.diff,0)/rated.length:null;
+  const scores=list.reduce((a,c)=>a+(c.n||0),0);
+  if(bandTier&&!list.some(c=>c.t===bandTier))bandTier=null;
+  if(bandPathF!=null&&!list.some(c=>c.p===bandPathF))bandPathF=null;
+  if(bandSong&&!list.some(c=>c.title.toLowerCase()===bandSong.toLowerCase()))bandSong=null;
+  const shown=list.filter(c=>(!bandTier||c.t===bandTier)&&(bandPathF==null||c.p===bandPathF)&&(!bandSong||c.title.toLowerCase()===bandSong.toLowerCase()));
+  const bySong={}; shown.forEach(c=>(bySong[c.title]=bySong[c.title]||[]).push(c));
+  const lastW=v=>Math.max(...v.map(c=>c.w));
+  const songsArr=Object.entries(bySong).sort((a,b)=>lastW(b[1])-lastW(a[1])||a[0].localeCompare(b[0]));
+  const tierCount=TIER_ORDER.map(t=>[t,new Set(list.filter(c=>c.t===t).map(c=>c.title.toLowerCase())).size]).filter(x=>x[1]);
+  const tierTotal=tierCount.reduce((a,x)=>a+x[1],0);
+  const weeks=list.map(c=>c.w);
+  $("bcard").innerHTML=`<div class="pc">
+    <div>
+      <h3>${esc(name)}</h3>
+      <div class="tierbar">${tierCount.map(([t,k])=>`<span style="--tc:${TIER_COL[t]};width:${k/tierTotal*100}%" title="${TIER_LABEL[t]}: ${k} song${k===1?"":"s"}"></span>`).join("")}</div>
+      <div class="chips bchips">${(()=>{const pill=([t,k])=>`<button type="button" class="lvchip lvbtn${bandTier===t?" sel":""}" data-btier="${t}" aria-pressed="${bandTier===t}" style="--tc:${TIER_COL[t]}" title="${k} different song${k===1?"":"s"} at ${TIER_LABEL[t]} · click to show only these">${TIER_LABEL[t]}</button>`;
+        const r1=tierCount.filter(([t])=>"BIA".includes(t)).map(pill).join(""), r2=tierCount.filter(([t])=>"MG".includes(t)).map(pill).join("");
+        return `${r1?`<div class="brow1">${r1}</div>`:""}${r2||bandTier?`<div class="brow1">${r2}${bandTier?`<button type="button" class="clear" data-btier="" style="padding:1px 8px;font-size:.72rem">Show all levels</button>`:""}</div>`:""}${(()=>{const fp=bandPathF!=null?bandPathF:sPath;return fp>=0?`<div class="brow1"><span class="pth" style="--pc:${PATH_C[fp]}">${PATHS[fp]} only</span><button type="button" class="clear" data-bpath="" style="padding:1px 8px;font-size:.72rem">Show all paths</button></div>`:""})()}${bandSong?`<div class="brow1"><span class="songf">♪ ${esc(bandSong)}</span><button type="button" class="clear" data-bsong="" style="padding:1px 8px;font-size:.72rem">Show all songs</button></div>`:""}`})()}</div>
+      <div class="stats">
+        <div><small>Challenges</small><b>${list.length}</b></div>
+        <div><small>Different songs</small><b>${songsArr.length}</b></div>
+        <div><small>Average rating</small><b>${avg!=null?avg.toFixed(1):"–"}</b></div>
+        <div><small>Scores posted</small><b>${scores}</b><span class="sub"> since wk 440</span></div>
+        <div><small>First featured</small><b>Wk ${Math.min(...weeks)}</b></div>
+        <div><small>Latest</small><b>Wk ${Math.max(...weeks)}</b></div>
+      </div>
+    </div>
+    <div style="min-width:0"><div class="bandscroll"><table class="bandtbl"><thead><tr><th>Song</th><th>Levels</th><th>Paths</th><th class="r">Ratings</th><th class="r" data-tip="How many challenges used this song. Each path counts separately, so one week on Lead, Rhythm and Bass is 3." style="cursor:help;text-decoration:underline dotted">Challenges</th><th class="r" data-tip="Latest first" style="cursor:help">Weeks</th></tr></thead><tbody>${
+      songsArr.map(([ti,v])=>{const lv=[...new Set(v.map(c=>c.t))].sort((a,b)=>TIER_ORDER.indexOf(a)-TIER_ORDER.indexOf(b));const ps=[...new Set(v.map(c=>c.p))].sort();const r=[...new Set(v.map(c=>c.diff).filter(d=>d!=null&&d>0))].sort((a,b)=>a-b);const ws=[...new Set(v.map(c=>c.w))].sort((a,b)=>b-a);
+        return `<tr><td><b>${esc(ti)}</b></td><td><div class="chips">${lv.map(t=>`<span class="lvchip lvclick" data-btier="${t}" style="--tc:${TIER_COL[t]}" title="Show only ${TIER_LABEL[t]} songs">${TIER_LABEL[t]}</span>`).join("")}</div></td><td><div class="pstack">${ps.map(p=>`<span class="pth lvclick${bandPathF===p?" sel":""}" data-bpath="${p}" style="--pc:${PATH_C[p]}" title="Show only ${PATHS[p]} songs">${PATHS[p]}</span>`).join("")}</div></td><td class="r"><div class="pstack rt">${ps.map(p=>{const rr=[...new Set(v.filter(c=>c.p===p).map(c=>c.diff).filter(d=>d!=null&&d>0))].sort((a,b)=>a-b);return `<span>${rr.join(" / ")||"–"}</span>`}).join("")}</div></td><td class="r num">${v.length}</td><td class="r wks">${ws.join(", ")}</td></tr>`}).join("")
+    }</tbody></table></div></div></div>`;
+}
+$("bq").addEventListener("change",e=>showBand(e.target.value.trim()));
+$("bcard").addEventListener("click",e=>{const bs=e.target.closest("[data-bsong]");if(bs){e.stopPropagation();bandSong=null;showBand(bandName);return}const bp=e.target.closest("[data-bpath]");if(bp){e.stopPropagation();const p=bp.dataset.bpath===""?null:+bp.dataset.bpath;bandPathF=(p!=null&&bandPathF!==p)?p:null;if(bp.dataset.bpath===""&&sPath>=0){sPath=-1;renderSongs()}else showBand(bandName);return}const b=e.target.closest("[data-btier]");if(!b)return;e.stopPropagation();const t=b.dataset.btier||null;bandTier=(t&&bandTier!==t)?t:null;showBand(bandName)});
+$("bq").addEventListener("keydown",e=>{if(e.key==="Enter")showBand(e.target.value.trim())});
+$("view-songs").addEventListener("click",e=>{const el=e.target.closest("[data-band],[data-player]");if(!el)return;showBand(el.dataset.band||el.dataset.player);if(el.dataset.song){bandSong=el.dataset.song;bandTier=null;bandPathF=null;showBand(bandName)}if(el.dataset.ltier){bandTier=el.dataset.ltier;bandPathF=null;showBand(bandName)}$("bcard").closest("section").scrollIntoView({behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth",block:"start"})});
+$("spath").addEventListener("click",e=>{const b=e.target.closest("button[data-sp]");if(b){sPath=+b.dataset.sp;renderSongs()}});
+try{const r=localStorage.getItem("rsc-spath");if(r!==null&&["0","1","2"].includes(r))sPath=+r}catch(e){}
+renderSongs();
+$("view-songs").addEventListener("mousemove",e=>{const p=e.target.closest("[data-tip]");if(!p){tip.hidden=true;return}tip.textContent=p.dataset.tip;tip.hidden=false;placeTip(e.clientX,e.clientY)});
+$("view-songs").addEventListener("mouseleave",()=>tip.hidden=true);
+
+// ---------- floating bubble showing which filters are on in the current tab ----------
+const fbub=document.createElement("div"); fbub.id="fbub"; fbub.setAttribute("role","status"); fbub.setAttribute("aria-live","polite"); fbub.hidden=true; document.body.appendChild(fbub);
+function curView(){return ["hosting","players","winners","songs","scores"].find(k=>!$("view-"+k).hidden)}
+function activeFilters(){
+  const v=curView(), f=[];
+  if((v==="hosting"||v==="players"||v==="winners")&&activeOnly)f.push(["Active players only",()=>setActiveOnly(false)]);
+  if(v==="players"&&pYear)f.push([`Player lookup: ${pYear}`,()=>{pYear=null;showPlayer($("pq").value.trim())}]);
+  if(v==="hosting"&&holF)f.push([`Holiday: ${holF}`,()=>{holF=null;renderLog()}]);
+  if(v==="hosting"&&hYear)f.push([`Host lookup: ${hYear}`,()=>{hYear=null;showHost(hName)}]);
+  if(v==="hosting"&&selHost)f.push([`Host: ${CATS[selHost]||selHost}`,()=>setHost(selHost)]);
+  if(v==="winners"){
+    if(wPath>=0)f.push([`Path: ${PATHS[wPath]}`,()=>document.querySelector('#wpath [data-rp="-1"]').click()]);
+    if(wYear)f.push([`Winner lookup: ${wYear}`,()=>{wYear=null;showWinner(wName);markHot()}]);
+    if(ruPath>=0&&ruPath!==wPath)f.push([`Rank changes: ${PATHS[ruPath]}`,()=>document.querySelector('#rufilter [data-rp="-1"]').click()]);
+  }
+  if(v==="songs"){
+    if(sPath>=0)f.push([`Path: ${PATHS[sPath]}`,()=>document.querySelector('#spath [data-sp="-1"]').click()]);
+    if(bandName&&bandTier)f.push([`Band lookup: ${TIER_LABEL[bandTier]||bandTier}`,()=>{bandTier=null;showBand(bandName)}]);
+    if(bandName&&bandSong)f.push([`Band lookup: ${bandSong}`,()=>{bandSong=null;showBand(bandName)}]);
+    if(bandName&&bandPathF!=null)f.push([`Band lookup: ${PATHS[bandPathF]}`,()=>{bandPathF=null;showBand(bandName)}]);
+  }
+  if(v==="scores"&&sbFind)f.push([`Player: ${sbFind}`,()=>{sbFind="";$("sbfind").value="";sbRender()}]);
+  return f;
+}
+let fbubList=[];
+function updateBubble(){
+  fbubList=activeFilters();
+  if(!fbubList.length){fbub.hidden=true;fbub.innerHTML="";return}
+  fbub.innerHTML=`<span class="fl"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M1.5 2h13l-5 6.2V14l-3-1.6V8.2z" fill="currentColor"/></svg>Filter${fbubList.length===1?"":"s"} on</span>`+
+    fbubList.map(([t],i)=>`<span class="fc">${esc(t)}<button type="button" data-fx="${i}" aria-label="Remove filter: ${esc(t)}" title="Remove this filter">✕</button></span>`).join("")+
+    (fbubList.length>1?`<button type="button" class="fall" data-fx="all">Clear all</button>`:"");
+  fbub.hidden=false;
+}
+fbub.addEventListener("click",e=>{
+  const b=e.target.closest("[data-fx]"); if(!b)return; e.stopPropagation();
+  if(b.dataset.fx==="all")fbubList.slice().reverse().forEach(([,fn])=>fn()); else fbubList[+b.dataset.fx][1]();
+  updateBubble();
+});
+document.addEventListener("click",()=>setTimeout(updateBubble,0));
+document.addEventListener("input",()=>setTimeout(updateBubble,0));
+document.addEventListener("change",()=>setTimeout(updateBubble,0));
+updateBubble();
+
+// ---------- hover a player's name on Players or Winners to see all their medals ----------
+const mcard=document.createElement("div"); mcard.id="mcard"; mcard.hidden=true; mcard.setAttribute("aria-hidden","true"); document.body.appendChild(mcard);
+const medalCache={};
+function allMedalsHtml(name){
+  if(medalCache[name]!=null)return medalCache[name];
+  let html="";
+  const p=byName[name];
+  if(p){const m=medalsFor(p); if(m)html+=`<div class="ms">Player medals</div>${m}`}
+  if(WR.wins[name]){
+    const per=playerWeekWins(name,-1), done=SB_W.filter(w=>w!==cur[0]);
+    let best=null; done.forEach(w=>{if(per[w][1]>0&&(!best||per[w][1]>per[best][1]))best=w});
+    let run=0,bestRun=0; done.slice().sort((a,b)=>a-b).forEach(w=>{run=per[w][1]>0?run+1:0; if(run>bestRun)bestRun=run});
+    const ties=[]; done.forEach(w=>(SB.weeks[w]||[]).forEach(card=>{const el=card[6].filter(x=>x[4]>=0); if(el.length<2)return; if(SB.names[el[0][0]].replace(/[*~]+$/,"")!==name)return; if(Math.round((el[0][1]-el[1][1])*100)===0)ties.push(w)}));
+    const v=wv(name,-1), m=winMedals(per,done,best?per[best][1]:0,bestRun,v?v[1]:0,tripleWeeks(name,done),ties);
+    if(m)html+=`<div class="ms">Win medals</div>${m}`;
+  }
+  return medalCache[name]=html;
+}
+function placeCard(x,y){const w=mcard.offsetWidth,h=mcard.offsetHeight;mcard.style.left=Math.max(8,Math.min(x+14,innerWidth-w-8))+"px";mcard.style.top=Math.max(8,(y+16+h>innerHeight-8?y-h-12:y+16))+"px"}
+
+// ---------- hosting medals: total weeks hosted, weeks hosted in a row, and each calendar year hosted ----------
+const HOST_TOTAL_STEPS=[1,5,10,25,50,75,100,150,200,250,300];
+const HOST_STREAK_STEPS=[2,3,4,5,10,15,20,25,30,40,50,75,100];
+const HOST_COL=["#ffd36e","#ffb347","#ff8c42","#ff6b6b","#f05ca8","#c86bfa","#8f7bff","#5b9dff","#3fd0e0","#4fe3a8"];
+const hostCol=(i,n)=>HOST_COL[Math.min(HOST_COL.length-1,Math.round((n<=1?1:i/(n-1))*(HOST_COL.length-1)))];
+function micSvg(col){return `<svg viewBox="0 0 28 30" aria-hidden="true"><circle cx="14" cy="15" r="12" fill="${col}"/><rect x="11" y="6" width="6" height="11" rx="3" fill="#1a1406" opacity=".78"/><path d="M8.5 13.5a5.5 5.5 0 0 0 11 0M14 19v4M10.5 23h7" fill="none" stroke="#1a1406" stroke-width="1.8" stroke-linecap="round" opacity=".78"/><path d="M6 11a9 9 0 0 1 5-5.5" stroke="rgba(255,255,255,.5)" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg>`}
+function chainSvg(col){return `<svg viewBox="0 0 28 30" aria-hidden="true"><circle cx="14" cy="15" r="12" fill="${col}"/><rect x="5.5" y="11.5" width="10" height="7" rx="3.5" fill="none" stroke="#1a1406" stroke-width="2.2" opacity=".78"/><rect x="12.5" y="11.5" width="10" height="7" rx="3.5" fill="none" stroke="#1a1406" stroke-width="2.2" opacity=".78"/><path d="M6 11a9 9 0 0 1 5-5.5" stroke="rgba(255,255,255,.5)" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg>`}
+function calSvg(col){return `<svg viewBox="0 0 28 30" aria-hidden="true"><circle cx="14" cy="15" r="12" fill="${col}"/><rect x="7.5" y="9" width="13" height="12" rx="2" fill="none" stroke="#1a1406" stroke-width="1.9" opacity=".78"/><path d="M7.5 13h13M11 7v4M17 7v4" stroke="#1a1406" stroke-width="1.9" stroke-linecap="round" opacity=".78"/><path d="M6 11a9 9 0 0 1 5-5.5" stroke="rgba(255,255,255,.5)" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg>`}
+const hostMedalCache={};
+function hostMedals(name){
+  if(hostMedalCache[name]!=null)return hostMedalCache[name];
+  const ws=[]; WEEKS.forEach(([w,d,h],i)=>{if(i<=curIdx&&h===name)ws.push([w,d])});
+  if(!ws.length)return hostMedalCache[name]="";
+  const rec=w=>` (collected Week ${w})`, rows=[];
+  const mk=(svg,col,num,tip)=>`<span class="medal-m wm" style="--ec:${col}" data-tip="${tip}">${svg}<b>${num}</b></span>`;
+  const tot=HOST_TOTAL_STEPS.filter(x=>ws.length>=x);
+  if(tot.length)rows.push(tot.map((x,i)=>{const c=hostCol(i,HOST_TOTAL_STEPS.length);return mk(micSvg(c),c,x,`${x}-week host medal · hosted ${x}+ week${x===1?"":"s"}${rec(ws[x-1][0])}`)}));
+  // weeks hosted in a row
+  let run=0,best=0,prev=null; const reachAt={};
+  ws.forEach(([w])=>{run=prev===w-1?run+1:1;prev=w;if(run>best)best=run;HOST_STREAK_STEPS.forEach(x=>{if(run>=x&&reachAt[x]==null)reachAt[x]=w})});
+  const st=HOST_STREAK_STEPS.filter(x=>best>=x);
+  if(st.length)rows.push(st.map((x,i)=>{const c=hostCol(i,HOST_STREAK_STEPS.length);return mk(chainSvg(c),c,x,`${x}-week hosting streak medal · hosted ${x} weeks in a row${rec(reachAt[x])}`)}));
+  // one medal for every calendar year hosted
+  const yrs={}; ws.forEach(([w,d])=>{const y=d.slice(0,4);(yrs[y]=yrs[y]||[]).push(w)});
+  const ys=Object.keys(yrs).sort();
+  // styled like the lunar year medallions: animal of the lunar year that starts in that calendar year, colored by its element
+  rows.push(ys.map(y=>{const l=LNY.find(x=>x[0].startsWith(y)), ly=l?{animal:l[1],element:l[2]}:null, col=ly?ELEMENT_COL[ly.element]:"#ffb347";
+    return `<span class="medal-m zod" style="--ec:${col}" data-tip="${y} host medal${ly?` · Year of the ${ly.element} ${ly.animal}`:""} · hosted ${yrs[y].length} week${yrs[y].length===1?"":"s"} in ${y}${rec(yrs[y][0])}"><span class="ani">${ly?ANIMAL_EMOJI[ly.animal]:"🎙️"}</span><b>${y}</b></span>`}));
+  return hostMedalCache[name]=rows.map((r,i)=>`<div class="medals${i===rows.length-1?" yrm":""}">${r.join("")}</div>`).join("");
+}
+$("filterbar").addEventListener("mousemove",e=>{const p=e.target.closest("[data-tip]");if(!p){tip.hidden=true;return}tip.textContent=p.dataset.tip;tip.hidden=false;placeTip(e.clientX,e.clientY)});
+$("filterbar").addEventListener("mouseleave",()=>tip.hidden=true);
+if(selHost&&hosts[selHost])$("hmedals").innerHTML=hostMedals(selHost);
+// hover a host's name to see their hosting medals
+
+// ---------- host lookup ----------
+$("hlist").innerHTML=hostList.map(h=>`<option value="${esc(h.name)}"></option>`).join("");
+function showHost(name){
+  const h=hosts[name];
+  if(!h){$("hcard").innerHTML=`<div class="empty">No host named “${esc(name)}”. Pick a name from the list as you type.</div>`;return}
+  hName=name; $("hq").value=name;
+  const all=[]; WEEKS.forEach(([w,d,ho],i)=>{if(i<=curIdx&&ho===name)all.push(w)});
+  const future=WEEKS.filter(([w,d,ho],i)=>i>curIdx&&ho===name).map(x=>x[0]);
+  const yearOf=w=>WEEKS[w-1][1].slice(0,4);
+  const years=[...new Set(all.map(yearOf))];
+  if(hYear&&!WEEKS.some(([w,d],i)=>i<=curIdx&&d.slice(0,4)===hYear))hYear=null;
+  const ws=hYear?all.filter(w=>yearOf(w)===hYear):all;
+  // longest run of weeks hosted in a row
+  let r=null,b=null; ws.forEach(w=>{r=r&&r[1]===w-1?[r[0],w]:[w,w]; if(!b||r[1]-r[0]>b[1]-b[0])b=r.slice()});
+  const bestLen=b?b[1]-b[0]+1:0, spanStr=b?Array.from({length:bestLen},(_,i)=>b[0]+i).join(","):"";
+  const fw=ws.length?WEEKS[ws[0]-1]:null, lw=ws.length?WEEKS[ws[ws.length-1]-1]:null;
+  const active=cur[0]-h.last<=ACTIVE_WINDOW;
+  const yearsTxt=years.length?(years.length===1?years[0]:`${years[0]}–${years[years.length-1]}`):"–";
+  const col=color[name]||"var(--accent)";
+  // grid: one square per week, by calendar year
+  const byYear={}; WEEKS.forEach(([w,d,ho],i)=>{(byYear[d.slice(0,4)]=byYear[d.slice(0,4)]||[]).push([w,d,ho,i])});
+  let grid="";
+  Object.keys(byYear).forEach(y=>{
+    const arr=byYear[y], off=Math.floor((new Date(arr[0][1]+"T12:00:00")-new Date(y+"-01-01T12:00:00"))/604800000);
+    grid+=`<div class="yr hyr${hYear===y?" sel":""}" data-hyear="${y}" title="${hYear===y?"Show all years":`Show stats for ${y} only`}">${y}</div>`+"<i class='pre'></i>".repeat(off)+arr.map(([w,d,ho,i])=>{
+      const fut=i>curIdx, mine=ho===name;
+      const cls=mine?(fut?"hf":"hh"):fut?"hn":ho===LOST?"hl":ho?"ho":"hn";
+      const who=fut?(mine?"scheduled to host":ho?`${ho} scheduled`:"open"):mine?"hosted":ho===LOST?"no record":ho?`hosted by ${ho}`:"open";
+      return `<i class="${cls}${hYear===y?" iny":""}" data-hw="${w}" title="Week ${w} · ${fmt(d)} · ${esc(who)}${SB.weeks[w]?" · click to open the Scoreboard":""}"></i>`}).join("")+"<i class='pre'></i>".repeat(Math.max(0,53-off-arr.length));
+  });
+  $("hcard").innerHTML=`<div class="pc">
+    <div>
+      <h3>${esc(name)} ${active?`<span class="pill on">ACTIVE</span>`:`<span class="pill off">INACTIVE</span>`}</h3>
+      ${hYear?`<div class="yrtag"><b>${hYear} only</b><button type="button" class="clear" data-hyear="${hYear}">Show all years</button></div>`:""}
+      <div class="stats" style="margin-top:12px">
+        <div><small>Weeks hosted</small><b>${ws.length}</b>${hYear?"":`<span class="sub"> · #${ordinalRank(name)} all time</span>`}</div>
+        <div><small>Share</small><b>${(ws.length/(hYear?Math.max(1,WEEKS.filter(([w,d,ho],i)=>i<=curIdx&&d.slice(0,4)===hYear&&ho&&ho!==LOST).length):totalHosted)*100).toFixed(1)}%</b><span class="sub"> of ${hYear?hYear+"'s":"all"} hosted weeks</span></div>
+        <div><small>First week</small><b${ws.length&&SB.weeks[ws[0]]?` data-sbw="${ws[0]}" title="Open Week ${ws[0]} on the Scoreboard"`:""}>${ws.length?ws[0]:"–"}</b>${fw?`<span class="sub"> · ${fmt(fw[1])}</span>`:""}</div>
+        <div><small>Latest week</small><b${ws.length&&SB.weeks[ws[ws.length-1]]?` data-sbw="${ws[ws.length-1]}" title="Open Week ${ws[ws.length-1]} on the Scoreboard"`:""}>${ws.length?ws[ws.length-1]:"–"}</b>${lw?`<span class="sub"> · ${fmt(lw[1])}</span>`:""}</div>
+        <div${bestLen?` data-hl="${spanStr}" data-tip="(Week ${b[0]}${bestLen>1?`–${b[1]}`:""})"`:""}><small>Most in a row</small><b>${bestLen} wk${bestLen===1?"":"s"}</b></div>
+        ${hYear?(()=>{const cnt={};WEEKS.forEach(([w,d,ho],i)=>{if(i<=curIdx&&d.slice(0,4)===hYear&&ho&&ho!==LOST)cnt[ho]=(cnt[ho]||0)+1});const rk=ws.length?1+Object.values(cnt).filter(n=>n>ws.length).length:null;return `<div><small>Rank in ${hYear}</small><b>${rk?"#"+rk:"–"}</b><span class="sub"> of ${Object.keys(cnt).length} host${Object.keys(cnt).length===1?"":"s"}</span></div>`})():`<div><small>Years hosting</small><b>${years.length}</b><span class="sub"> · ${yearsTxt}</span></div>`}
+      </div>
+      ${byName[name]||WR.wins[name]?`<div class="golinks">${byName[name]?`<button type="button" class="clear" data-goplayer="${esc(name)}">Open player profile ›</button>`:""}${WR.wins[name]?`<button type="button" class="clear" data-gowin="${esc(name)}">Open win profile ›</button>`:""}</div>`:""}
+      ${!hYear&&future.length?`<div class="ups">Coming up: ${future.map(w=>`<span class="pill hol">wk ${w} · ${fmt(WEEKS[w-1][1])}</span>`).join("")}</div>`:""}
+    </div>
+    <div style="min-width:0">
+      ${hostMedals(name)}
+      <div class="scroll"><div class="pres${hYear?" yf":""}" id="hpres" style="--hcol:${col}">${grid}</div></div>
+      <div class="pres-legend"><span><i class="sw" style="background:${col}"></i>Hosted</span><span><i class="sw" style="box-shadow:inset 0 0 0 1.5px ${col}"></i>Scheduled</span><span><i class="sw" style="background:#3a4254"></i>Someone else</span><span><i class="sw" style="background:var(--panel2)"></i>Open</span><span><i class="sw" style="background:repeating-linear-gradient(45deg,var(--lost) 0 2px,var(--panel2) 2px 4px)"></i>No record</span></div>
+    </div></div>`;
+}
+$("hq").addEventListener("change",e=>showHost(e.target.value.trim()));
+$("hq").addEventListener("keydown",e=>{if(e.key==="Enter")showHost(e.target.value.trim())});
+$("hcard").addEventListener("click",e=>{
+  const yb=e.target.closest("[data-hyear]");
+  if(yb){hYear=hYear===yb.dataset.hyear?null:yb.dataset.hyear;showHost(hName);return}
+  const hb=e.target.closest("[data-hl]");
+  if(hb){
+    const g=$("hpres"), was=hb.classList.contains("act");
+    $("hcard").querySelectorAll("[data-hl].act").forEach(x=>x.classList.remove("act"));
+    g.querySelectorAll("i.hit").forEach(x=>x.classList.remove("hit"));
+    g.classList.toggle("hl",!was);
+    if(!was){hb.classList.add("act");const set=new Set(hb.dataset.hl.split(","));let first=null;g.querySelectorAll("i[data-hw]").forEach(x=>{if(set.has(x.dataset.hw)){x.classList.add("hit");first=first||x}});if(first){const sc=g.parentElement;sc.scrollTo({left:Math.max(0,first.offsetLeft-sc.clientWidth/3),behavior:"smooth"})}}
+    return;
+  }
+  const c=e.target.closest("[data-hw]"); if(!c)return;
+  const w=+c.dataset.hw; if(!SB.weeks[w])return;
+  sbWeek=w; showView("scores"); sbRender(); scrollTo({top:0});
+});
+$("hcard").addEventListener("mousemove",e=>{const p=e.target.closest("[data-tip]");if(!p){tip.hidden=true;return}tip.textContent=p.dataset.tip;tip.hidden=false;placeTip(e.clientX,e.clientY)});
+$("hcard").addEventListener("mouseleave",()=>tip.hidden=true);
+window.__hostReady=true;
+showHost(selHost&&hosts[selHost]?selHost:(cur[2]&&hosts[cur[2]]?cur[2]:hostList[0].name));
+
+// ---------- hover any name, on any tab, to see all their medals: playing, winning and hosting ----------
+const NAME_SEL="[data-player],[data-name],[data-hpick],tr[data-host] .hostcell,#wcard h3,#pcard h3,#hcard h3";
+function nameOf(el){
+  if(el.matches("#wcard h3"))return wName; if(el.matches("#pcard h3"))return $("pq").value.trim(); if(el.matches("#hcard h3"))return hName;
+  return el.dataset.player||el.dataset.name||el.dataset.hpick||el.closest("[data-host]")?.dataset.host;
+}
+function everyMedalHtml(n){
+  const pw=allMedalsHtml(n), hm=hosts[n]?hostMedals(n):"";
+  return pw+(hm?`<div class="ms">Host medals</div>${hm}`:"");
+}
+if(matchMedia("(hover: hover)").matches){
+  document.addEventListener("mouseover",e=>{
+    const el=e.target.closest(NAME_SEL); if(!el||el.closest("#mcard,#fbub")||(el.closest("#view-songs")&&el.dataset.player))return; // Songs uses data-player for band names
+    const n=nameOf(el); if(!n||!(byName[n]||WR.wins[n]||hosts[n]))return;
+    if(el.title){el.dataset.t=el.title;el.removeAttribute("title")}
+    const m=everyMedalHtml(n);
+    mcard.innerHTML=`<div class="mh">${esc(n)} ${byName[n]?actPill(n):""}</div>${m||`<div class="none">No medals yet</div>`}`;
+    mcard.hidden=false; tip.hidden=true; placeCard(e.clientX,e.clientY);
+  });
+  document.addEventListener("mousemove",e=>{if(!mcard.hidden&&e.target.closest(NAME_SEL)){tip.hidden=true;placeCard(e.clientX,e.clientY)}});
+  document.addEventListener("mouseout",e=>{const el=e.target.closest(NAME_SEL);if(el&&!el.contains(e.relatedTarget))mcard.hidden=true});
+  addEventListener("scroll",()=>{mcard.hidden=true},{passive:true});
+  document.addEventListener("click",()=>{mcard.hidden=true},true);
+}
+
+// ---------- week numbers in Rank changes and the Week log open that week on the Scoreboard ----------
+document.addEventListener("click",e=>{
+  const c=e.target.closest("[data-sbw]"); if(!c)return;
+  const w=+c.dataset.sbw; if(!SB.weeks[w])return;
+  e.stopPropagation(); tip.hidden=true;
+  sbWeek=w; if(c.dataset.sbp!=null)sbPath=+c.dataset.sbp;
+  if(c.dataset.sbn){sbFind=c.dataset.sbn;$("sbfind").value=sbFind}
+  showView("scores"); sbRender(); scrollTo({top:0});
+},true);
+
+$("sblatest").addEventListener("click",()=>{sbWeek=SB_WEEKS[0];sbRender()});
+
+// ---------- scoreboard song and band names open Band lookup on the Songs tab ----------
+$("view-scores").addEventListener("click",e=>{
+  const g=e.target.closest("[data-goband]"); if(!g)return;
+  // names on the scoreboard can differ slightly from the song list ("The Ramones" vs "Ramones"), so match loosely
+  const norm=x=>String(x||"").toLowerCase().replace(/^the\s+/,"").replace(/&/g,"and").replace(/[^a-z0-9]/g,"");
+  const find=()=>{const bs=songCards.filter(c=>norm(c.artist)===norm(g.dataset.goband)); if(!bs.length)return null;
+    const sg=g.dataset.gosong?bs.find(c=>norm(c.title)===norm(g.dataset.gosong)):null; return {band:bs[0].artist,song:sg?sg.title:null}};
+  let m=find(); if(!m&&sPath>=0){sPath=-1;renderSongs();m=find()}
+  tip.hidden=true; showView("songs");
+  if(!m){$("bq").value=g.dataset.goband;$("bcard").innerHTML=`<div class="empty">“${esc(g.dataset.goband)}” isn't in the song list yet.</div>`;$("bcard").closest("section").scrollIntoView({block:"start"});return}
+  showBand(m.band);
+  bandTier=null; bandPathF=null; bandSong=m.song; showBand(bandName);
+  $("bcard").closest("section").scrollIntoView({block:"start"});
+});
+
+// ---------- links between Player, Winner and Host lookup ----------
+document.addEventListener("click",e=>{
+  const b=e.target.closest("[data-goplayer],[data-gowin],[data-gohost]"); if(!b)return;
+  e.stopPropagation(); tip.hidden=true; mcard.hidden=true;
+  if(b.dataset.goplayer){const n=b.dataset.goplayer;showView("players");showPlayer(n);$("pcard").closest("section").scrollIntoView({block:"start"})}
+  else if(b.dataset.gowin){const n=b.dataset.gowin;wPicked=true;showView("winners");showWinner(n);markHot();$("wcard").closest("section").scrollIntoView({block:"start"})}
+  else {const n=b.dataset.gohost;showView("hosting");showHost(n);$("hcard").closest("section").scrollIntoView({block:"start"})}
+},true);
+
+// ---------- click a holiday (Coming up or Week log) to show only weeks with that holiday ----------
+function setHoliday(h){
+  holF=holF===h?null:h;
+  if(holF){$("q").value="";$("show").value="all";$("yr").value=""}
+  renderLog();
+  if(holF)$("logbody").closest("section").scrollIntoView({block:"start"});
+  updateBubble();
+}
+$("view-hosting").addEventListener("click",e=>{const h=e.target.closest("[data-hol]");if(!h)return;e.stopPropagation();setHoliday(h.dataset.hol)});
+$("holclear").addEventListener("click",()=>{holF=null;renderLog();updateBubble()});
+
+// ---------- clicking any medal in a lookup highlights the week it was collected ----------
+function addMedalHl(box){
+  box.querySelectorAll(".medal-m:not([data-hl])").forEach(m=>{
+    const k=/collected Week (\d+)/.exec(m.dataset.tip||""); if(!k)return;
+    m.dataset.hl=k[1]; m.style.cursor="pointer";
+  });
+}
+{const _w=showWinner; showWinner=function(n){_w(n);addMedalHl($("wcard"))};
+ const _p=showPlayer; showPlayer=function(n){_p(n);addMedalHl($("pcard"))};
+ const _h=showHost; showHost=function(n){_h(n);addMedalHl($("hcard"))};
+ addMedalHl($("wcard")); addMedalHl($("pcard")); addMedalHl($("hcard"));}
+</script>

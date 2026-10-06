@@ -91,10 +91,22 @@ Class history is read from the font colors and sizes in the original Google Shee
 
 ## Updating the site
 
-1. Replace `index.html` in this repo with the new version. Use **Add file → Upload files** and commit.
-2. GitHub Pages redeploys within a minute or two. Hard-refresh the page (Ctrl+Shift+R) to see the changes.
+The site rebuilds itself from the **[scoreboard sheet](https://docs.google.com/spreadsheets/d/1WN-m8wF0lVkQ4cLWHBa009SkqDoPk0xN-C4-llcrXXs/edit)**:
 
-The footer of the page shows the date the data was last updated.
+- **Automatically:** a GitHub Action ([`.github/workflows/update.yml`](.github/workflows/update.yml)) runs every day. It downloads the sheet, rebuilds `index.html` and commits it only if the data changed. GitHub Pages republishes a minute or two later.
+- **On demand:** go to **Actions → Update site from the scoreboard sheet → Run workflow**.
+
+What it reads from the sheet (it must stay shared as *Anyone with the link can view*):
+
+| Tab | Used for |
+|---|---|
+| `WeekNNN` tabs | Scores, wins, medals, classes (from name colors) and who played each week |
+| `PlayersList` | Player names and Lead / Rhythm / Bass classes. Scoreboard names not on this list aren't counted as players (the build log lists them) |
+| `Schedule` | Week numbers, start dates and hosts, including upcoming bookings (*Week \| Start Date \| Host*) |
+
+History that doesn't change (attendance from the old Metrics workbook and songs from before week 440) is saved in `build/data/`. When the two disagree, the scoreboard sheet wins.
+
+To build by hand: `./build/build.sh` (downloads the sheet) or `./build/build.sh path/to/scoreboard.xlsx`. You need Python 3 with `openpyxl`.
 
 ---
 
