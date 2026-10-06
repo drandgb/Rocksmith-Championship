@@ -43,7 +43,7 @@ The whole app is one self-contained `index.html`. It has no build step, no serve
 - Longest careers, highest play rates, and players new in the past year.
 - **Player lookup**:
   - **Stats:** weeks played, first and latest week, active and best streak, play rate.
-  - **Medals:** perfect-attendance gem, class gems (one for every class up to the highest reached, so Advanced also gives Beginner and Intermediate; dated by the first rank-up into that class when there is a record), lunar-year medallions (zodiac animal, colored by element) and play-streak flames.
+  - **Medals:** perfect-attendance gem, class gems (one for every class up to the highest reached, so Advanced also gives Beginner and Intermediate; dated by the first rank-up into that class when there is a record; gems are always collected in order, so a date later than a higher class's date is left off as a missing record), lunar-year medallions (zodiac animal, colored by element) and play-streak flames.
   - **Year filter:** click a year label to see that year's stats only.
 
 ### 🎙️ Hosts
