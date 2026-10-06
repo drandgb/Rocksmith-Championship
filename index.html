@@ -1072,6 +1072,7 @@ function showPlayer(name){
         <div><small>Play rate</small><b>${(rate*100).toFixed(rate>=1?0:1)}%</b></div>
       </div>
       ${(()=>{const u=WR.ups.filter(x=>x[0]===n).sort((a,b)=>a[4]-b[4]);return u.length?`<div class="ups">Rank changes: ${u.map(([,p,a,b,w])=>`<span class="pill hol">${PATHS[p]} ${a}${"BIAM".indexOf(b)<"BIAM".indexOf(a)?"↘":"↗"}${b} · wk ${w}</span>`).join("")}</div>`:""})()}
+      ${WR.wins[n]?`<button type="button" class="clear" style="margin-top:12px" data-wprofile="${esc(n)}">Open win profile ›</button>`:""}
     </div>
     <div style="min-width:0">
       ${medalsFor(p)}
@@ -1082,6 +1083,8 @@ function showPlayer(name){
 }
 $("pq").addEventListener("change",e=>showPlayer(e.target.value.trim()));
 $("pcard").addEventListener("click",e=>{
+  const wb=e.target.closest("[data-wprofile]");
+  if(wb){const n=wb.dataset.wprofile;wPicked=true;showView("winners");showWinner(n);markHot();$("wcard").closest("section").scrollIntoView({block:"start"});return}
   const h=e.target.closest("[data-hl]");
   if(h){
     const g=$("ppres"), was=h.classList.contains("act");
