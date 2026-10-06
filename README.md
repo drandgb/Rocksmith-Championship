@@ -23,7 +23,7 @@ The whole app is one self-contained `index.html`. It has no build step, no serve
 - **Anniversaries**: active players who first joined in this calendar week in an earlier year.
 - **Streaks in danger**: active play streaks with no score yet this week (on past weeks: streaks that ended).
 - **New medals** collected this week. Click one to open it in its lookup. While a week is still running, player medals are provisional and win medals are added once it ends.
-- **Rivals**: each player's closest match, the opponent with the smallest average % gap on the challenges they both played.
+- **Rivals**: each player's closest match within their own rank: the opponent with the smallest average % gap on the ranked challenges they both played. Playing up or down and God challenges don't count.
 
 ### 🏆 Winners
 - Switch between **All paths / Lead / Rhythm / Bass**.
