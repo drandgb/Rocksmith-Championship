@@ -1387,10 +1387,9 @@ function showView(v){
   $("pfilter").hidden=v==="scores"||v==="songs"||v==="thisweek";
   if(v==="thisweek"&&window.__twReady)renderThisWeek();
   if(v==="hosting"){renderUpcoming(); if(!logScrolled)requestAnimationFrame(scrollLogToCurrent)}
-  try{localStorage.setItem("rsc-view",v)}catch(e){}
 }
 document.querySelector(".tabs").addEventListener("click",e=>{const b=e.target.closest("button[data-view]");if(b)showView(b.dataset.view)});
-{const H={"#thisweek":"thisweek","#hosts":"hosting","#players":"players","#winners":"winners","#scoreboard":"scores","#songs":"songs"};let v=H[location.hash]||null; if(!v){try{v=localStorage.getItem("rsc-view")}catch(e){}} showView(["thisweek","hosting","scores","winners","songs","players"].includes(v)?v:"thisweek");}
+{const H={"#thisweek":"thisweek","#hosts":"hosting","#players":"players","#winners":"winners","#scoreboard":"scores","#songs":"songs"};let v=H[location.hash]||null; showView(["thisweek","hosting","scores","winners","songs","players"].includes(v)?v:"thisweek");}
 const SB=__SCORES__;
 // ---------- win rates & rank-ups (from scoreboards, weeks 440+) ----------
 const WR=__WINS__;

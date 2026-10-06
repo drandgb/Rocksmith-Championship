@@ -17,7 +17,7 @@ The whole app is one self-contained `index.html`. It has no build step, no serve
 ## Tabs
 
 ### 📅 This Week
-- Opens on the current week; use ‹ › to step back through earlier weeks.
+- The page the site opens on (links ending in #winners, #players, #hosts, #songs or #scoreboard open that tab instead). Shows the current week; use ‹ › to step back through earlier weeks.
 - **Back from a break**: who played after missing last week, with the week they last played.
 - **New this week**: first-time players.
 - **Anniversaries**: active players who first joined in this calendar week in an earlier year.
