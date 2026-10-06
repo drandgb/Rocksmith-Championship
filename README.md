@@ -1,52 +1,53 @@
-[README.md](https://github.com/user-attachments/files/33080801/README.md)
-# Rocksmith 2014 Championship Stats
+[README.md](https://github.com/user-attachments/files/33099096/README.md)
+# 🎸 Rocksmith 2014 Championship Stats
 
-A stats companion for the **Rocksmith 2014 Championship**, the weekly CDLC challenge run on the [CustomsForge](https://customsforge.com) forums. It covers winners, players, hosts, songs and the full scoreboard history in one page.
+A stats companion for the **Rocksmith 2014 Championship**, the weekly CDLC challenge run on the [CustomsForge](https://customsforge.com/forum/38-rocksmith-championship/) forums. It covers winners, players, hosts, songs and the full scoreboard history, with medals for all of them, in one page.
 
-**Live site:** https://YOUR-USERNAME.github.io/rocksmith-championship/
+**Live site:** https://drandgb.github.io/Rocksmith-Championship/
 
-The whole app is a single self-contained `index.html`. It has no build step, no server and no dependencies apart from Google Fonts.
+Quick links in the page header:
+- [Championship forum](https://customsforge.com/forum/38-rocksmith-championship/)
+- [Scoreboard sheet](https://docs.google.com/spreadsheets/d/1WN-m8wF0lVkQ4cLWHBa009SkqDoPk0xN-C4-llcrXXs/edit?gid=871655614#gid=871655614)
+- [Request a song](https://script.google.com/macros/s/AKfycbwy6vF3XYDZ_s1WeqiHTgBcVgbF8cr2AUQjKH3aRSZYuh32Erc-IstP5Gos-1i_evkm/exec)
+
+The whole app is one self-contained `index.html`. It has no build step, no server and no dependencies apart from Google Fonts.
 
 ---
 
-## What's inside
+## Tabs
 
 ### 🏆 Winners
-- Switch between **All / Lead / Rhythm / Bass**.
+- Switch between **All paths / Lead / Rhythm / Bass**.
 - **Hall of fame** podium for the most challenge wins.
-- **🔥 Hot streaks**: players who won in each of the last 3+ weeks. 🔥🔥 means 5+ weeks and 🔥🔥🔥 means 10+.
-- **Most wins** and **Win rates** (top 20, minimum 25 entries).
+- **🔥 Hot streaks**: players who won a challenge in each of the last 3+ weeks. 🔥🔥 means 5+ weeks and 🔥🔥🔥 means 10+.
+- **Most wins** and **Win rates** (top 20). Hover a win-rate bar to see wins vs. entries.
 - **Winner lookup**:
-  - Stats: weeks with a win, total wins, best week, longest win streak, triple crowns and closest win.
-  - Medals:
-    - 🏆 trophies for wins in a single week
-    - ⚡ one bolt for each week of the win streak
-    - 🎖️ total-win ribbons
-    - 👑 triple crowns for winning Lead, Rhythm and Bass in the same week (gold for regular challenges, purple for bonus)
-  - A week-by-week grid. Click a week to open it on the Scoreboard. Click *Best week*, *Longest win streak*, *Closest win* or a crown to highlight those weeks.
-- **Rank changes**: class promotions (↗) and demotions (↘) over the past year.
+  - **Stats:** weeks with a win, total wins, best week, longest win streak, triple crowns and close wins (won on the tiebreak).
+  - **Medals:** 🏆 best-week trophies, ⚡ win-streak bolts, 🎖️ total-win ribbons, 👑 triple crowns (won Lead, Rhythm and Bass in the same week) and 🟰 close-win medals.
+  - **Week chart:** heat colors for 1, 2 and 3+ wins.
+  - **Year filter:** click a year label to see that year's stats only.
+- **Rank changes**: class promotions ↗ and demotions ↘ over the past year.
 
 ### 🎸 Players
 - Players per week, with a 10-week average.
 - Hall of fame, perfect attendance, most active in the past year, and active and all-time play streaks.
 - Longest careers, highest play rates, and players new in the past year.
 - **Player lookup**:
-  - Medals:
-    - Perfect-attendance gem
-    - Class gem for the highest class reached
-    - Lunar-year medallions with zodiac animals, colored by element
-    - Play-streak flames
-  - A presence grid linked to the Scoreboard.
+  - **Stats:** weeks played, first and latest week, active and best streak, play rate.
+  - **Medals:** perfect-attendance gem, class gem, lunar-year medallions (zodiac animal, colored by element) and play-streak flames.
+  - **Year filter:** click a year label to see that year's stats only.
 
 ### 🎙️ Hosts
-- Hall of fame.
-- **Coming up** schedule, with holidays and a *HOST NEEDED* tag for open weeks.
-- Leaderboard with active and inactive tags.
-- Timeline and week log.
+- Hall of fame and **Coming up** schedule, with holidays and a *HOST NEEDED* tag for open weeks.
+- **Host leaderboard** with active and inactive tags.
+- **Host lookup**:
+  - **Stats:** weeks hosted, share, most weeks in a row, years hosting and scheduled weeks.
+  - **Medals:** 🎙️ total weeks, 🔗 weeks in a row, and yearly lunar host medallions.
+  - **Year filter:** click a year label to see that year's stats only, including the host's rank among that year's hosts.
+- Hosting timeline and **Week log**. Click any holiday to see only the weeks with that holiday.
 
 ### 🎵 Songs
-- Most featured and most played bands.
-- Bands by difficulty:
+- Most featured and most played bands. Bands by difficulty, plus the easiest and toughest bands:
 
   | Level | Rating |
   |---|---|
@@ -56,20 +57,33 @@ The whole app is a single self-contained `index.html`. It has no build step, no 
   | Masterclass | 8–9.5 |
   | God tier | 10+ |
 
-- Easiest and toughest bands.
-- **Band lookup** with level and path filters.
-- Most played songs (by unique players) and most replayed songs.
+- **Band lookup** with level, path and song filters.
+- **Most played songs**: hover to see who played each song, grouped by week.
+- **Most replayed songs**.
 
 ### 📋 Scoreboard
 - Every challenge card for weeks 440 onward, by path and level.
-- Medals go only to eligible players.
-- Players playing down are faded, renamed players show as *"as OldName"*, and rank-ups are tagged.
+- Medals go only to eligible players. Players playing down are faded, renamed players show as *"as OldName"*, and rank-ups are tagged.
+- Click a song or band name to open it in Band lookup.
+- **Back to latest week** appears when you're on an older week.
+
+---
+
+## Getting around
+
+- **Hover any name** on any tab to see all of that person's medals: player, win and host.
+- **Click a medal** in any lookup to highlight the week it was collected. Click a streak, best week, crown or legend item to highlight those weeks.
+- **Click a week** in a lookup chart, Rank changes, the Week log or the host leaderboard to open it on the Scoreboard.
+- **Jump between lookups**: Player, Winner and Host lookup link to each other.
+- **"Filters on" bubble**: shows which filters are active on the current tab. Click ✕ to clear one, or *Clear all*.
 
 ---
 
 ## How wins are counted
 
-A win counts only when the player was **eligible**, meaning they were playing at or below their own class for that path. A player playing down can top a card without getting the win. In that case the win goes to the highest eligible player. This rule applies everywhere: win totals, streaks, medals, triple crowns and closest wins.
+A win counts only when the player was **eligible**, meaning they were playing at or below their own class for that path. A player playing down can top a card without getting the win. In that case the win goes to the highest eligible player.
+
+This rule applies everywhere: win totals, win rates, streaks, medals, triple crowns and close wins.
 
 Class history is read from the font colors and sizes in the original Google Sheets. Each player's class per path is inferred from runs of at least 3 weeks.
 
@@ -78,7 +92,7 @@ Class history is read from the font colors and sizes in the original Google Shee
 ## Updating the site
 
 1. Replace `index.html` in this repo with the new version. Use **Add file → Upload files** and commit.
-2. GitHub Pages redeploys automatically within a minute or two.
+2. GitHub Pages redeploys within a minute or two. Hard-refresh the page (Ctrl+Shift+R) to see the changes.
 
 The footer of the page shows the date the data was last updated.
 
@@ -86,7 +100,7 @@ The footer of the page shows the date the data was last updated.
 
 ## Credits
 
-- Data comes from the Rocksmith 2014 Championship scoreboards and song lists maintained by the challenge hosts on CustomsForge.
-- Thanks to every host and player who has kept the challenge running week after week. 🤘
+- Data comes from the Rocksmith 2014 Championship scoreboards, player list and song lists maintained by the challenge hosts on CustomsForge.
+- Thanks to every host and player who has kept the challenge running week after week since 2013. 🤘
 
 *Unofficial fan project. Not affiliated with Ubisoft or Rocksmith.*
