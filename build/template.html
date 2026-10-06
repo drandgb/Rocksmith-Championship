@@ -36,6 +36,8 @@ header.top{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-end;justify-con
 .strings{display:flex;gap:3px;margin-top:8px}
 .strings i{display:block;height:3px;width:34px;border-radius:2px}
 .links{display:flex;flex-wrap:wrap;gap:8px}
+button.forum{background:none;cursor:pointer;font:inherit;font-size:.85rem}
+.refresh.spin{opacity:.6;pointer-events:none}
 .forum{white-space:nowrap;color:var(--accent);text-decoration:none;font-size:.85rem;border:1px solid var(--line);padding:6px 10px;border-radius:6px}
 .forum:hover,.forum:focus-visible{border-color:var(--accent);outline:none}
 
@@ -514,6 +516,7 @@ footer{color:var(--dim);font-size:.78rem}
       <div class="strings" aria-hidden="true"><i style="background:var(--s-red)"></i><i style="background:var(--s-yellow)"></i><i style="background:var(--s-blue)"></i><i style="background:var(--s-orange)"></i><i style="background:var(--s-green)"></i><i style="background:var(--s-purple)"></i></div>
     </div>
     <nav class="links">
+      <button type="button" class="forum refresh" id="refreshbtn" title="Load the newest version of the site, skipping the browser's saved copy">↻ Refresh</button>
       <a class="forum" href="https://customsforge.com/forum/38-rocksmith-championship/" target="_blank" rel="noopener">Championship forum ↗</a>
       <a class="forum" href="https://docs.google.com/spreadsheets/d/1WN-m8wF0lVkQ4cLWHBa009SkqDoPk0xN-C4-llcrXXs/edit?gid=871655614#gid=871655614" target="_blank" rel="noopener">Scoreboard sheet ↗</a>
       <a class="forum" href="https://script.google.com/macros/s/AKfycbwy6vF3XYDZ_s1WeqiHTgBcVgbF8cr2AUQjKH3aRSZYuh32Erc-IstP5Gos-1i_evkm/exec" target="_blank" rel="noopener">Request a song ↗</a>
@@ -1967,4 +1970,13 @@ function addMedalHl(box){
  const _p=showPlayer; showPlayer=function(n){_p(n);addMedalHl($("pcard"))};
  const _h=showHost; showHost=function(n){_h(n);addMedalHl($("hcard"))};
  addMedalHl($("wcard")); addMedalHl($("pcard")); addMedalHl($("hcard"));}
+
+// ---------- Refresh: re-download the page past the browser cache, then reload ----------
+$("refreshbtn").addEventListener("click",async()=>{
+  const b=$("refreshbtn"); b.classList.add("spin"); b.textContent="↻ Refreshing…";
+  const url=location.href.split("#")[0];
+  try{await fetch(url,{cache:"reload"})}catch(e){}           // replaces the saved copy of this page
+  try{if(window.caches)for(const k of await caches.keys())await caches.delete(k)}catch(e){}
+  location.reload();
+});
 </script>
