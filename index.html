@@ -300,6 +300,11 @@ button.clear:hover{border-color:var(--accent)}
 .golink{cursor:pointer}
 .golink:hover{color:var(--accent)}
 .golinks{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.holf{cursor:pointer}
+.holf:hover{color:var(--accent);border-color:var(--accent)}
+.holf.sel{color:var(--accent);font-weight:600}
+.holbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 10px;font-size:.86rem}
+.holbar b{color:var(--accent)}
 .songlink{cursor:pointer}
 .songlink:hover{color:var(--accent)}
 .songf{display:inline-block;font-size:.78rem;font-weight:600;padding:1px 9px;border-radius:999px;background:color-mix(in srgb,var(--accent) 18%,var(--panel2));border:1px solid color-mix(in srgb,var(--accent) 50%,transparent)}
@@ -342,6 +347,7 @@ button.clear.sblatest:hover{background:var(--accent);color:var(--accent-ink)}
 .stats div[data-hl]{cursor:pointer;transition:background .15s}
 .stats div[data-hl]:hover{background:color-mix(in srgb,var(--accent) 8%,var(--panel2))}
 .medal-m[data-hl].act{outline:2px solid var(--fg);outline-offset:2px;border-radius:50%}
+#pcard .medal-m.act,#hcard .medal-m.act{outline:2px solid var(--fg);outline-offset:2px;border-radius:50%}
 .stats div[data-hl].act{background:color-mix(in srgb,var(--accent) 16%,var(--panel2));box-shadow:inset 3px 0 0 var(--accent)}
 .wpres i[data-wk]:hover{outline:2px solid var(--fg);outline-offset:1px}
 /* win heat, matching the hot-streak flame bars: deep ember → blazing orange → white-hot gold */
@@ -561,6 +567,7 @@ footer{color:var(--dim);font-size:.78rem}
         <option value="hol">Holiday weeks</option>
       </select>
     </div>
+    <div class="holbar" id="holbar" hidden><span>Only weeks with <b id="holname"></b></span><button type="button" class="clear" id="holclear">Show all holidays</button></div>
     <div class="log"><table><thead><tr><th>Wk</th><th>Starts</th><th>Host</th><th>Holidays</th></tr></thead><tbody id="logbody"></tbody></table></div>
   </section>
   </div>
@@ -804,6 +811,7 @@ const color={}; activeList.forEach((h,i)=>color[h.name]=PAL[i%PAL.length]);
 const OTHER="#6b7489";
 const hc=h=>color[h]||OTHER;
 
+let holF=null; // Week log: only weeks with this holiday
 let selHost=null, hName=null, hYear=null; // hName/hYear: Host lookup
 const CATS={"__other":"Inactive hosts","__open":"Open slots","__lost":"No record"};
 const matches=h=>{
@@ -875,7 +883,7 @@ function weekAt(i){
 }
 function upRow(i){
   const w=weekAt(curIdx+i);
-  const hol=w[3]?w[3].split(/,\s*/).map(h=>`<span class="pill hol">${holEmoji(h)}${esc(h)}</span>`).join(""):"";
+  const hol=w[3]?w[3].split(/,\s*/).map(h=>`<span class="pill hol holf" data-hol="${esc(h)}" title="Show only weeks with ${esc(h)}">${holEmoji(h)}${esc(h)}</span>`).join(""):"";
   const who=w[2]?`<span class="who" data-name="${esc(w[2])}">${esc(w[2])}</span>`:`<span class="pill open">HOST NEEDED</span>`;
   const yr=w[1].slice(0,4)!==cur[1].slice(0,4)?`<span class="yy">${w[1].slice(0,4)}</span>`:"";
   return `<li class="${i===0?"cur":""}"><div class="wk"><b>${w[0]}</b>${fmtShort(w[1])}${yr}</div><div>${who}${i===0?' <span class="sub">· now</span>':""}<div class="meta">${hol}</div></div></li>`;
@@ -910,14 +918,14 @@ function renderHostPodium(){
 $("hpodium").addEventListener("click",e=>{const el=e.target.closest("[data-hpick]");if(el)setHost(el.dataset.hpick)});
 function renderLB(){
   const max=hostsShown()[0].n;
-  $("lb").innerHTML=`<thead><tr><th>Host</th><th class="r">Weeks</th><th>Share</th><th class="r">First</th><th class="r">Latest</th><th class="r">Span</th></tr></thead><tbody>`+
+  $("lb").innerHTML=`<thead><tr><th>Host</th><th class="r">Weeks</th><th></th><th class="r">First</th><th class="r">Latest</th><th class="r">Span</th></tr></thead><tbody>`+
   hostsShown().map(h=>{
     const active=cur[0]-h.last<=ACTIVE_WINDOW;
     return `<tr data-host="${esc(h.name)}" class="${selHost&&matches(h.name)?"sel":""}" tabindex="0">
       <td><div class="hostcell"><span class="sw" style="background:${hc(h.name)}"></span>${esc(h.name)} ${active?`<span class="pill on" data-tip="Hosted at least once in the last ${ACTIVE_WINDOW} weeks (around 1 year).">ACTIVE</span>`:`<span class="pill off" data-tip="Hasn't hosted in the last ${ACTIVE_WINDOW} weeks (around 1 year).">INACTIVE</span>`}</div></td>
       <td class="r num">${h.n}</td>
-      <td><div class="bar" title="${(h.n/totalHosted*100).toFixed(2)}%"><span style="width:${h.n/totalHosted*100}%;background:${hc(h.name)}"></span></div></td>
-      <td class="r num">${h.first}</td><td class="r num">${h.last}</td><td class="r num">${h.last-h.first+1}</td></tr>`;
+      <td><div class="bar"><span style="width:${h.n/max*100}%;background:${hc(h.name)}"></span></div></td>
+      <td class="r num"><span${SB.weeks[h.first]?` data-sbw="${h.first}" title="Open Week ${h.first} on the Scoreboard"`:""}>${h.first}</span></td><td class="r num"><span${SB.weeks[h.last]?` data-sbw="${h.last}" title="Open Week ${h.last} on the Scoreboard"`:""}>${h.last}</span></td><td class="r num">${h.last-h.first+1}</td></tr>`;
   }).join("")+"</tbody>";
 }
 
@@ -957,19 +965,21 @@ function fillYears(){
 
 function renderLog(){
   const q=$("q").value.trim().toLowerCase(), yr=$("yr").value, show=$("show").value;
+  $("holbar").hidden=!holF; $("holname").innerHTML=holF?holEmoji(holF)+esc(holF):"";
   const rows=WEEKS.map((w,i)=>[w,i]).filter(([w])=>{
     if(!matches(w[2]))return false;
     if(yr&&!w[1].startsWith(yr))return false;
     if(show==="hosted"&&(!w[2]||w[2]===LOST))return false;
     if(show==="open"&&w[2])return false;
     if(show==="hol"&&!w[3])return false;
+    if(holF&&!w[3].split(/,\s*/).includes(holF))return false;
     if(q&&!(String(w[0])===q||w[2].toLowerCase().includes(q)||w[3].toLowerCase().includes(q)))return false;
     return true;
   }).reverse();
   $("logcount").textContent=`${rows.length} week${rows.length===1?"":"s"}`;
   $("logbody").innerHTML=rows.map(([w,i])=>{
     const host=w[2]===LOST?'<span class="dimtxt">No record</span>':w[2]?`<span class="hostcell" data-name="${esc(w[2])}"><span class="sw" style="background:${hc(w[2])}"></span>${esc(w[2])}</span>`:(i>=curIdx?'<span class="pill open">OPEN</span>':'<span class="dimtxt">—</span>');
-    return `<tr class="${i===curIdx?"cur":""}" id="wk-${w[0]}"><td class="w"${SB.weeks[w[0]]?` data-sbw="${w[0]}" title="Open Week ${w[0]} on the Scoreboard"`:""}>${w[0]}</td><td class="d">${fmt(w[1])}</td><td>${host}</td><td>${esc(w[3])}</td></tr>`;
+    return `<tr class="${i===curIdx?"cur":""}" id="wk-${w[0]}"><td class="w"${SB.weeks[w[0]]?` data-sbw="${w[0]}" title="Open Week ${w[0]} on the Scoreboard"`:""}>${w[0]}</td><td class="d">${fmt(w[1])}</td><td>${host}</td><td>${w[3]?w[3].split(/,\s*/).map(h=>`<span class="holf${holF===h?" sel":""}" data-hol="${esc(h)}" title="Show only weeks with ${esc(h)}">${esc(h)}</span>`).join(", "):""}</td></tr>`;
   }).join("") || `<tr><td colspan="4" class="dimtxt" style="padding:16px 0">No weeks match. Clear the search or pick another year.</td></tr>`;
 }
 
@@ -1154,10 +1164,10 @@ function showPlayer(name){
       ${pYear?`<div class="yrtag"><b>${pYear} only</b><button type="button" class="clear" data-pyear="${pYear}">Show all years</button></div>`:""}
       <div class="stats">
         <div><small>Weeks played</small><b>${D.played}</b></div>
-        <div><small>Latest week</small><b>${D.latest??"–"}</b>${dlw?`<span class="sub"> · ${fmt(dlw[1])}</span>`:""}</div>
+        <div${D.latest?` data-hl="${D.latest}" data-tip="Click to highlight Week ${D.latest}"`:""}><small>Latest week</small><b>${D.latest??"–"}</b>${dlw?`<span class="sub"> · ${fmt(dlw[1])}</span>`:""}</div>
         <div${actR?` data-hl="${span(actR)}" data-tip="(Week ${actR[0]}${actR[1]>actR[0]?`–${actR[1]}`:""})"`:""}><small>Active streak</small><b>${streak} wk${streak===1?"":"s"}</b></div>
         <div${D.bestR?` data-hl="${span(D.bestR)}" data-tip="(Week ${D.bestR[0]}${D.bestR[1]>D.bestR[0]?`–${D.bestR[1]}`:""})"`:""}><small>Best streak</small><b>${D.longest} wk${D.longest===1?"":"s"}</b></div>
-        <div><small>First week</small><b>${D.first??"–"}</b>${dfw?`<span class="sub"> · ${fmt(dfw[1])}</span>`:""}</div>
+        <div${D.first?` data-hl="${D.first}" data-tip="Click to highlight Week ${D.first}"`:""}><small>First week</small><b>${D.first??"–"}</b>${dfw?`<span class="sub"> · ${fmt(dfw[1])}</span>`:""}</div>
         <div><small>Play rate</small><b>${(D.rate*100).toFixed(D.rate>=1?0:1)}%</b></div>
       </div>
       ${(()=>{const u=WR.ups.filter(x=>x[0]===n).sort((a,b)=>a[4]-b[4]);return u.length?`<div class="ups">Rank changes: ${u.map(([,p,a,b,w])=>`<span class="pill hol">${PATHS[p]} ${a}${"BIAM".indexOf(b)<"BIAM".indexOf(a)?"↘":"↗"}${b} · wk ${w}</span>`).join("")}</div>`:""})()}
@@ -1318,18 +1328,18 @@ function trophySvg(col){return `<svg viewBox="0 0 28 30" aria-hidden="true"><pat
 function boltSvg(col){return `<svg viewBox="0 0 28 30" aria-hidden="true"><circle cx="14" cy="15" r="12" fill="${col}"/><path d="M16 4 8 17h6l-2 9 8-13h-6z" fill="#1a1406" opacity=".8"/></svg>`}
 function coinSvg(col){return `<svg viewBox="0 0 28 30" aria-hidden="true"><path d="M8 0h5l2 8-4 2zM20 0h-5l-2 8 4 2z" fill="var(--s-red)"/><circle cx="14" cy="19" r="10" fill="${col}"/><path d="M14 12l2 4.2 4.6.6-3.3 3.2.8 4.6-4.1-2.2-4.1 2.2.8-4.6-3.3-3.2 4.6-.6z" fill="rgba(0,0,0,.25)"/></svg>`}
 function crownSvg(col){return `<svg viewBox="0 0 28 30" aria-hidden="true"><path d="M3 10l5.5 5L14 6l5.5 9L25 10l-2.5 14h-17z" fill="${col}"/><rect x="5.5" y="23" width="17" height="3.5" rx="1" fill="${col}"/><circle cx="9" cy="20" r="1.8" fill="#ff5d6c"/><circle cx="14" cy="19.4" r="1.8" fill="#5be38a"/><circle cx="19" cy="20" r="1.8" fill="#4f9dff"/><path d="M6 11l2.5 2.3L12 8.5z" fill="rgba(255,255,255,.4)"/></svg>`}
-// weeks where the player won Lead, Rhythm and Bass in the same week: regular (non-bonus) and bonus challenges counted separately
+// weeks where the player won at least one challenge (any level, regular or bonus) on each of Lead, Rhythm and Bass
 function tripleWeeks(name,done){
-  const reg=[],bon=[];
+  const reg=[];
   done.slice().sort((a,b)=>a-b).forEach(w=>{
-    const r=new Set(),b=new Set();
+    const won=new Set();
     (SB.weeks[w]||[]).forEach(card=>{
       const e=card[6].find(x=>x[4]>=0);
-      if(e&&SB.names[e[0]].replace(/[*~]+$/,"")===name)(/bonus/i.test(card[2])?b:r).add(card[0]);
+      if(e&&SB.names[e[0]].replace(/[*~]+$/,"")===name)won.add(card[0]);
     });
-    if(r.size===3)reg.push(w); if(b.size===3)bon.push(w);
+    if(won.size===3)reg.push(w);
   });
-  return {reg,bon};
+  return {reg};
 }
 function tieSvg(col){return `<svg viewBox="0 0 28 30" aria-hidden="true"><circle cx="14" cy="15" r="12" fill="${col}"/><path d="M14 3a12 12 0 0 1 0 24z" fill="rgba(0,0,0,.18)"/><rect x="8" y="11" width="12" height="2.6" rx="1.3" fill="#1a1406" opacity=".8"/><rect x="8" y="16.4" width="12" height="2.6" rx="1.3" fill="#1a1406" opacity=".8"/><path d="M6 10a9 9 0 0 1 6-5" stroke="rgba(255,255,255,.55)" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg>`}
 function winMedals(per,done,bestN,streak,total,trip,ties){
@@ -1343,8 +1353,7 @@ function winMedals(per,done,bestN,streak,total,trip,ties){
   if(ss.length)rows.push(ss.map((x,i)=>mk(boltSvg(tierCol(i,Math.max(ss.length,3))),x,`${x}-week win streak medal · won a challenge ${x} weeks in a row${rec(streakAt(x))}`)));
   const ts=TOTAL_WIN_STEPS.filter(x=>total>=x);
   if(ts.length)rows.push(ts.map((x,i)=>mk(coinSvg(tierCol(i,TOTAL_WIN_STEPS.length)),x,`${x}-win medal · won ${x}+ challenges${rec(totalAt(x))}`)));
-  if(trip)[[trip.reg,"#ffc94f","Regular triple crown","a regular challenge"],[trip.bon,"#c77dff","Bonus triple crown","a bonus challenge"]].forEach(([ws,col,lab,what])=>{
-    if(ws.length)rows.push(ws.map(w=>`<span class="medal-m wm" style="--ec:${col};cursor:pointer" data-hl="${w}" data-tip="${lab} · won ${what} on Lead, Rhythm and Bass in the same week${rec(w)}">${crownSvg(col)}<b>${w}</b></span>`))});
+  if(trip&&trip.reg.length)rows.push(trip.reg.map(w=>`<span class="medal-m wm" style="--ec:#ffc94f;cursor:pointer" data-hl="${w}" data-tip="Triple crown · won a challenge on Lead, Rhythm and Bass in the same week${rec(w)}">${crownSvg("#ffc94f")}<b>${w}</b></span>`));
   if(ties&&ties.length)rows.push(ties.slice().sort((a,b)=>a-b).map(w=>`<span class="medal-m wm" style="--ec:#ff7eb6;cursor:pointer" data-hl="${w}" data-tip="Close win medal · won on the tiebreak with the same % as the runner-up${rec(w)}">${tieSvg("#ff7eb6")}<b>${w}</b></span>`));
   return rows.map(r=>`<div class="medals">${r.join("")}</div>`).join("");
 }
@@ -1398,7 +1407,7 @@ function showWinner(name){
         <div><small>Total wins${where}</small><b>${totWins}</b><span class="sub"> of ${totEntries} entries</span></div>
         <div${best?` data-hl="${best}" title="Click to highlight this week"`:""}><small>Best week</small><b>${best?per[best][1]+" win"+(per[best][1]===1?"":"s"):"–"}</b>${best?`<span class="sub"> · wk ${best}</span>`:""}</div>
         <div${bestRun?` data-tip="${bestRun===1?`(Week ${runEnd})`:`(Week ${runStart}–${runEnd})`}" data-hl="${Array.from({length:bestRun},(_,i)=>runStart+i).join(",")}"`:""}><small>Longest win streak</small><b>${bestRun} wk${bestRun===1?"":"s"}</b></div>
-        <div data-tip="Triple crown · won a regular challenge on Lead, Rhythm and Bass in the same week${trip.reg.length?` · click to highlight ${trip.reg.length===1?"that week":"those weeks"}`:""}"${trip.reg.length?` data-hl="${trip.reg.join(",")}"`:""} style="cursor:${trip.reg.length?"pointer":"help"}"><small>Triple crowns</small><b>${trip.reg.length}</b>${trip.reg.length?`<span class="sub"> · last wk ${trip.reg[trip.reg.length-1]}</span>`:""}</div>
+        <div data-tip="Triple crown · won a challenge on Lead, Rhythm and Bass in the same week${trip.reg.length?` · click to highlight ${trip.reg.length===1?"that week":"those weeks"}`:""}"${trip.reg.length?` data-hl="${trip.reg.join(",")}"`:""} style="cursor:${trip.reg.length?"pointer":"help"}"><small>Triple crowns</small><b>${trip.reg.length}</b>${trip.reg.length?`<span class="sub"> · last wk ${trip.reg[trip.reg.length-1]}</span>`:""}</div>
         <div${ties.length?` data-hl="${tieWeeks.join(",")}" data-tip="Won on the tiebreak, same % as the runner-up · Week${tieWeeks.length===1?"":"s"} ${tieWeeks.join(", ")}"`:""}><small>Close wins${where}</small><b>${ties.length}</b><span class="sub"> won on the tiebreak</span></div>
       </div>
       <div class="golinks"><button type="button" class="clear" data-profile="${esc(name)}">Open player profile ›</button>${hosts[name]?`<button type="button" class="clear" data-gohost="${esc(name)}">Open host profile ›</button>`:""}</div>
@@ -1680,6 +1689,7 @@ function activeFilters(){
   const v=curView(), f=[];
   if((v==="hosting"||v==="players"||v==="winners")&&activeOnly)f.push(["Active players only",()=>setActiveOnly(false)]);
   if(v==="players"&&pYear)f.push([`Player lookup: ${pYear}`,()=>{pYear=null;showPlayer($("pq").value.trim())}]);
+  if(v==="hosting"&&holF)f.push([`Holiday: ${holF}`,()=>{holF=null;renderLog()}]);
   if(v==="hosting"&&hYear)f.push([`Host lookup: ${hYear}`,()=>{hYear=null;showHost(hName)}]);
   if(v==="hosting"&&selHost)f.push([`Host: ${CATS[selHost]||selHost}`,()=>setHost(selHost)]);
   if(v==="winners"){
@@ -1807,8 +1817,8 @@ function showHost(name){
       <div class="stats" style="margin-top:12px">
         <div><small>Weeks hosted</small><b>${ws.length}</b>${hYear?"":`<span class="sub"> · #${ordinalRank(name)} all time</span>`}</div>
         <div><small>Share</small><b>${(ws.length/(hYear?Math.max(1,WEEKS.filter(([w,d,ho],i)=>i<=curIdx&&d.slice(0,4)===hYear&&ho&&ho!==LOST).length):totalHosted)*100).toFixed(1)}%</b><span class="sub"> of ${hYear?hYear+"'s":"all"} hosted weeks</span></div>
-        <div><small>First week</small><b>${ws.length?ws[0]:"–"}</b>${fw?`<span class="sub"> · ${fmt(fw[1])}</span>`:""}</div>
-        <div><small>Latest week</small><b>${ws.length?ws[ws.length-1]:"–"}</b>${lw?`<span class="sub"> · ${fmt(lw[1])}</span>`:""}</div>
+        <div><small>First week</small><b${ws.length&&SB.weeks[ws[0]]?` data-sbw="${ws[0]}" title="Open Week ${ws[0]} on the Scoreboard"`:""}>${ws.length?ws[0]:"–"}</b>${fw?`<span class="sub"> · ${fmt(fw[1])}</span>`:""}</div>
+        <div><small>Latest week</small><b${ws.length&&SB.weeks[ws[ws.length-1]]?` data-sbw="${ws[ws.length-1]}" title="Open Week ${ws[ws.length-1]} on the Scoreboard"`:""}>${ws.length?ws[ws.length-1]:"–"}</b>${lw?`<span class="sub"> · ${fmt(lw[1])}</span>`:""}</div>
         <div${bestLen?` data-hl="${spanStr}" data-tip="(Week ${b[0]}${bestLen>1?`–${b[1]}`:""})"`:""}><small>Most in a row</small><b>${bestLen} wk${bestLen===1?"":"s"}</b></div>
         ${hYear?(()=>{const cnt={};WEEKS.forEach(([w,d,ho],i)=>{if(i<=curIdx&&d.slice(0,4)===hYear&&ho&&ho!==LOST)cnt[ho]=(cnt[ho]||0)+1});const rk=ws.length?1+Object.values(cnt).filter(n=>n>ws.length).length:null;return `<div><small>Rank in ${hYear}</small><b>${rk?"#"+rk:"–"}</b><span class="sub"> of ${Object.keys(cnt).length} host${Object.keys(cnt).length===1?"":"s"}</span></div>`})():`<div><small>Years hosting</small><b>${years.length}</b><span class="sub"> · ${yearsTxt}</span></div>`}
       </div>
@@ -1904,4 +1914,27 @@ document.addEventListener("click",e=>{
   else if(b.dataset.gowin){const n=b.dataset.gowin;wPicked=true;showView("winners");showWinner(n);markHot();$("wcard").closest("section").scrollIntoView({block:"start"})}
   else {const n=b.dataset.gohost;showView("hosting");showHost(n);$("hcard").closest("section").scrollIntoView({block:"start"})}
 },true);
+
+// ---------- click a holiday (Coming up or Week log) to show only weeks with that holiday ----------
+function setHoliday(h){
+  holF=holF===h?null:h;
+  if(holF){$("q").value="";$("show").value="all";$("yr").value=""}
+  renderLog();
+  if(holF)$("logbody").closest("section").scrollIntoView({block:"start"});
+  updateBubble();
+}
+$("view-hosting").addEventListener("click",e=>{const h=e.target.closest("[data-hol]");if(!h)return;e.stopPropagation();setHoliday(h.dataset.hol)});
+$("holclear").addEventListener("click",()=>{holF=null;renderLog();updateBubble()});
+
+// ---------- clicking any medal in a lookup highlights the week it was collected ----------
+function addMedalHl(box){
+  box.querySelectorAll(".medal-m:not([data-hl])").forEach(m=>{
+    const k=/collected Week (\d+)/.exec(m.dataset.tip||""); if(!k)return;
+    m.dataset.hl=k[1]; m.style.cursor="pointer";
+  });
+}
+{const _w=showWinner; showWinner=function(n){_w(n);addMedalHl($("wcard"))};
+ const _p=showPlayer; showPlayer=function(n){_p(n);addMedalHl($("pcard"))};
+ const _h=showHost; showHost=function(n){_h(n);addMedalHl($("hcard"))};
+ addMedalHl($("wcard")); addMedalHl($("pcard")); addMedalHl($("hcard"));}
 </script>
