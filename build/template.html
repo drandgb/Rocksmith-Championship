@@ -987,6 +987,13 @@ function fillYears(){
   $("yr").innerHTML=`<option value="">All years</option>`+ys.map(y=>`<option>${y}</option>`).join("");
 }
 
+// the Week log opens scrolled so this week is at the top (once, the first time the Hosts tab is shown)
+let logScrolled=false;
+function scrollLogToCurrent(){
+  const box=$("logbody").closest(".log"), row=box&&box.querySelector("tr.cur");
+  if(!row||!box.offsetHeight)return;
+  const head=box.querySelector("thead"); box.scrollTop=row.offsetTop-(head?head.offsetHeight:0); logScrolled=true;
+}
 function renderLog(){
   const q=$("q").value.trim().toLowerCase(), yr=$("yr").value, show=$("show").value;
   $("holbar").hidden=!holF; $("holname").innerHTML=holF?holEmoji(holF)+esc(holF):"";
@@ -1299,7 +1306,7 @@ function showView(v){
   ["hosting","players","winners","scores","songs"].forEach(k=>{const on=k===v;$("view-"+k).hidden=!on;$("tab-"+k).setAttribute("aria-selected",on)});
   tip.hidden=true;
   $("pfilter").hidden=v==="scores"||v==="songs";
-  if(v==="hosting")renderUpcoming();
+  if(v==="hosting"){renderUpcoming(); if(!logScrolled)requestAnimationFrame(scrollLogToCurrent)}
   try{localStorage.setItem("rsc-view",v)}catch(e){}
 }
 document.querySelector(".tabs").addEventListener("click",e=>{const b=e.target.closest("button[data-view]");if(b)showView(b.dataset.view)});
