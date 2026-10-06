@@ -1981,6 +1981,12 @@ $("refreshbtn").addEventListener("click",async()=>{
 });
 
 // ---------- show "Last updated" in the viewer's own time zone ----------
-{const el=$("builtat"), d=new Date(el.dataset.iso);
- if(!isNaN(d)) el.textContent=d.toLocaleString(undefined,{year:"numeric",month:"long",day:"numeric",hour:"numeric",minute:"2-digit",timeZoneName:"short"});}
+// "Last updated" = the last time an Action checked the spreadsheet (asked from GitHub's public API, so it moves
+// every hour even when nothing changed). Falls back to when this page was built.
+{const el=$("builtat"), show=d=>{if(!isNaN(d))el.textContent=d.toLocaleString(undefined,{year:"numeric",month:"long",day:"numeric",hour:"numeric",minute:"2-digit",timeZoneName:"short"})};
+ show(new Date(el.dataset.iso));
+ const api="https://api.github.com/repos/drandgb/rocksmith-championship/actions/workflows/";
+ Promise.all(["quick-update.yml","full-rescan.yml"].map(f=>fetch(api+f+"/runs?status=success&per_page=1").then(r=>r.ok?r.json():null).catch(()=>null)))
+   .then(rs=>{const t=rs.flatMap(r=>r&&r.workflow_runs||[]).map(x=>new Date(x.updated_at)).filter(d=>!isNaN(d)).sort((a,b)=>b-a)[0];
+     if(t&&t>new Date(el.dataset.iso))show(t)});}
 </script>
