@@ -158,7 +158,7 @@ button.clear:hover{border-color:var(--accent)}
 .brow.inactive .fill::after{background:#7a8296;box-shadow:none}
 .brow.notag{grid-template-columns:1.6em minmax(70px,9em) 1fr auto}
 #b-mostwins .brow{grid-template-columns:1.6em minmax(90px,1.4fr) 6em minmax(50px,1fr) 3.5em}
-#b-wins .brow{grid-template-columns:1.6em minmax(90px,1.4fr) 6em minmax(50px,1fr) 8.2em}
+#b-wins .brow{grid-template-columns:1.6em minmax(90px,1.4fr) 6em minmax(50px,1fr) 3.8em}
 .brow .act .pill{font-size:.6rem;padding:1px 5px}
 .pod .pill,.ring .pill,.badge .pill{font-size:.6rem;padding:1px 6px}
 .badge .pill{margin:4px 0 2px;display:inline-block}
@@ -840,7 +840,7 @@ function renderLB(){
     return `<tr data-host="${esc(h.name)}" class="${selHost&&matches(h.name)?"sel":""}" tabindex="0">
       <td><div class="hostcell"><span class="sw" style="background:${hc(h.name)}"></span>${esc(h.name)} ${active?`<span class="pill on" data-tip="Hosted at least once in the last ${ACTIVE_WINDOW} weeks (around 1 year).">ACTIVE</span>`:`<span class="pill off" data-tip="Hasn't hosted in the last ${ACTIVE_WINDOW} weeks (around 1 year).">INACTIVE</span>`}</div></td>
       <td class="r num">${h.n}</td>
-      <td><div class="bar" title="${(h.n/totalHosted*100).toFixed(2)}%"><span style="width:${h.n/max*100}%;background:${hc(h.name)}"></span></div></td>
+      <td><div class="bar" title="${(h.n/totalHosted*100).toFixed(2)}%"><span style="width:${h.n/totalHosted*100}%;background:${hc(h.name)}"></span></div></td>
       <td class="r num">${h.first}</td><td class="r num">${h.last}</td><td class="r num">${h.last-h.first+1}</td></tr>`;
   }).join("")+"</tbody>";
 }
@@ -1181,7 +1181,7 @@ function renderWins(){
   const list=winEntries().filter(([,v])=>v[0]>=min).map(([n,v])=>[n,Math.round(v[1]/v[0]*1000)/10,v]).sort((a,b)=>b[1]-a[1]||b[2][1]-a[2][1]).slice(0,20);
   $("wrate-sub").textContent=`Top 20 · 1st places per ${wPath<0?"":PATH_WORD[wPath]+" "}challenge entered · min ${min} entries`;
   const max=list.length?list[0][1]:1;
-  $("b-wins").innerHTML=list.map(([n,r,v],i)=>`<div class="brow${i<3?" top":""}${!isActivePlayer(n)?" inactive":""}" style="--c:${STR[(i+1)%6]}"><span class="rk">${i+1}</span><span class="nm" data-player="${esc(n)}" title="${esc(n)}">${esc(n)}</span><span class="act">${actPill(n)}</span><span class="track"><span class="fill" style="width:${Math.max(2,r/max*100)}%;animation-delay:${i*30}ms"></span></span><span class="val" title="${v[1]} wins in ${v[0]} entries">${r}%<small class="sub"> ${v[1]}/${v[0]}</small></span></div>`).join("");
+  $("b-wins").innerHTML=list.map(([n,r,v],i)=>`<div class="brow${i<3?" top":""}${!isActivePlayer(n)?" inactive":""}" style="--c:${STR[(i+1)%6]}"><span class="rk">${i+1}</span><span class="nm" data-player="${esc(n)}" title="${esc(n)}">${esc(n)}</span><span class="act">${actPill(n)}</span><span class="track" data-tip="${v[1]}/${v[0]} · ${v[1]} win${v[1]===1?"":"s"} in ${v[0]} entries" style="cursor:help"><span class="fill" style="width:${Math.max(2,r/max*100)}%;animation-delay:${i*30}ms"></span></span><span class="val">${r}%</span></div>`).join("");
 }
 let ruPath=-1;
 function renderRankups(){
