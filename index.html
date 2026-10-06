@@ -190,7 +190,16 @@ button.clear:hover{border-color:var(--accent)}
 .ring .nm{font-size:.82rem;text-align:center;overflow-wrap:anywhere}
 .ring.full .nm::before{content:"★ ";color:var(--s-yellow)}
 
-.badges{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.badges{display:flex;flex-direction:column;gap:8px}
+.badge.pbar{display:flex;align-items:center;gap:14px;text-align:left;height:var(--h);padding:8px 18px}
+.badge.pbar svg{margin:0;width:clamp(22px,calc(var(--h)*.32),46px);height:auto;flex:none}
+.badge.pbar .pnm{flex:1;min-width:0}
+.badge.pbar .nmrow{justify-content:flex-start;gap:8px}
+.badge.pbar .pill{margin:0}
+.badge.pbar .wk{text-align:right;font-size:clamp(1.1rem,calc(var(--h)*.2),2rem)}
+.badge.pbar .wk small{font-size:.62rem}
+.badge.pbar .nm{overflow-wrap:normal;word-break:normal}
+@media (max-width:560px){.badge.pbar{padding:6px 12px;gap:10px}.badge.pbar .wk small{display:none}.badge.pbar .wk::after{content:" wks";font:500 .7rem var(--f-body);color:var(--muted)}.badge.pbar .nmrow{flex-wrap:wrap}}
 .badge{position:relative;border:1px solid color-mix(in srgb,var(--s-yellow) 40%,var(--line));border-radius:10px;padding:14px 12px 12px;background:radial-gradient(120% 90% at 50% 0%,color-mix(in srgb,var(--s-yellow) 14%,transparent),transparent 70%),var(--panel2);text-align:center;min-width:0}
 .badge svg{width:34px;height:34px;display:block;margin:0 auto 6px}
 .badge .nm{font-weight:600;overflow-wrap:anywhere}
@@ -1032,7 +1041,9 @@ function renderRecords(){
    $("new-sub").textContent=`${list.length} player${list.length===1?"":"s"} joined in the last ${NEW_WINDOW} weeks · newest first`;
    $("newlist").innerHTML=list.map(p=>{const [n,first,last,played]=p, since=DATA_WEEK-first+1, w=WEEKS[first-1];
      return `<div class="nrow"><div><span class="nm" data-player="${esc(n)}" title="${esc(n)}">${esc(n)}</span><span class="j">Joined wk ${first}${w?" · "+fmtShort(w[1]):""}</span></div><span class="track"><span class="fill" style="width:${Math.max(3,played/since*100)}%"></span></span><span class="val" title="${played} of ${since} weeks since joining">${played}/${since} wks<span class="j">Last played wk ${last}</span></span></div>`}).join("")||`<div class="empty">No new players yet this year.</div>`;}
-  $("perfect").innerHTML=PERFECT.map(([n,v],i)=>`<div class="badge${i===0?" lead":""}">${STAR}<div><div class="nmrow"><span class="nm" data-player="${esc(n)}">${esc(n)}</span>${newPill(n)}</div><div class="wk">${v}<small>weeks, every one played</small></div></div></div>`).join("");
+  // one column, highest first; each box's height grows with the number of weeks
+  const pmax=Math.max(...PERFECT.map(p=>p[1]),1);
+  $("perfect").innerHTML=PERFECT.slice().sort((a,b)=>b[1]-a[1]).map(([n,v])=>`<div class="badge pbar" style="--h:${Math.round(52+120*v/pmax)}px">${STAR}<div class="pnm"><div class="nmrow"><span class="nm" data-player="${esc(n)}">${esc(n)}</span>${newPill(n)}</div></div><div class="wk">${v}<small>weeks, every one played</small></div></div>`).join("");
   renderParts();
   $("plist").innerHTML=PLAYERS.slice().sort((a,b)=>b[3]-a[3]).map(p=>`<option value="${esc(p[0])}"></option>`).join("");
 }
