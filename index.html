@@ -975,7 +975,7 @@ footer{color:var(--dim);font-size:.78rem}
 
   <footer>Data: Rodman’s Rocksmith 2014 Championship Google Sheets (older attendance also from the Championship Metrics workbook). Player stats run through week 675; scoreboards cover weeks 440–676. Weeks 1–16 have no recorded host in the source.
   <span class="updated disclaimer">Unofficial fan project. Not affiliated with Ubisoft or Rocksmith.</span>
-  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-07T18:01:47+00:00">October 7, 2026</span></span>
+  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-07T18:04:51+00:00">October 7, 2026</span></span>
   </footer>
 </div>
 <div class="tip" id="tip" hidden></div>
@@ -1695,7 +1695,7 @@ function winMedals(per,done,bestN,streak,total,trip,ties,pod){
   if(bestN>0){const r=[];for(let k=1;k<=bestN;k++){const ws=asc.filter(w=>per[w][1]===k); if(!ws.length)continue;
     r.push(`<span class="medal-m wm tro" style="--ec:#f5c84a;cursor:pointer" data-hl="${ws.join(",")}" data-tip="${k}-win week trophy · won ${k} challenge${k===1?"":"s"} in a single week · ${ws.length} time${ws.length===1?"":"s"} · click to highlight">${trophiesSvg("#f5c84a",k)}<b>${ws.length}</b></span>`)}
     if(r.length)rows.push(r)}
-  const ss=[];for(let x=2;x<=streak;x++)ss.push(x);
+  const ss=[];if(streak>=3)ss.push(3);for(let x=5;x<=streak;x+=5)ss.push(x); // 3, then every 5 weeks
   if(ss.length)rows.push(ss.map((x,i)=>mk(boltSvg(tierCol(i,Math.max(ss.length,3))),x,`${x}-week win streak medal · won a challenge ${x} weeks in a row${rec(streakAt(x))}`).replace('<span class="medal-m wm"',`<span class="medal-m wm" data-hl="${winRun(streakAt(x),x)}" style="cursor:pointer"`)));
   return rows.map(r=>`<div class="medals">${r.join("")}</div>`).join("");
 }
@@ -2114,7 +2114,7 @@ function placeCard(x,y){const w=mcard.offsetWidth,h=mcard.offsetHeight;mcard.sty
 
 // ---------- hosting medals: total weeks hosted, weeks hosted in a row, and each calendar year hosted ----------
 const HOST_TOTAL_STEPS=[1,5,10,25,50,75,100,150,200,250,300];
-const HOST_STREAK_STEPS=[2,3,4,5,10,15,20,25,30,40,50,75,100];
+const HOST_STREAK_STEPS=[3,5,10,15,20,25,30,35,40,45,50,60,70,75,80,90,100];
 const HOST_COL=["#ffd36e","#ffb347","#ff8c42","#ff6b6b","#f05ca8","#c86bfa","#8f7bff","#5b9dff","#3fd0e0","#4fe3a8"];
 const hostCol=(i,n)=>HOST_COL[Math.min(HOST_COL.length-1,Math.round((n<=1?1:i/(n-1))*(HOST_COL.length-1)))];
 function micSvg(col){return `<svg viewBox="0 0 28 30" aria-hidden="true"><circle cx="14" cy="15" r="12" fill="${col}"/><rect x="11" y="6" width="6" height="11" rx="3" fill="#1a1406" opacity=".78"/><path d="M8.5 13.5a5.5 5.5 0 0 0 11 0M14 19v4M10.5 23h7" fill="none" stroke="#1a1406" stroke-width="1.8" stroke-linecap="round" opacity=".78"/><path d="M6 11a9 9 0 0 1 5-5.5" stroke="rgba(255,255,255,.5)" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg>`}
