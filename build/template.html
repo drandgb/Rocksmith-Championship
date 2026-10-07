@@ -499,6 +499,16 @@ footer .updated{display:block;margin-top:4px}
 .panel.starry.lit::after{transform:scale(-1,-1);opacity:.6}
 @media (prefers-reduced-motion:no-preference){.panel.starry.lit::before{animation:twinkle 2.4s ease-in-out infinite}.panel.starry.lit::after{animation:twinkle 2.4s ease-in-out 1.2s infinite}}
 @keyframes twinkle{0%,100%{opacity:.25}50%{opacity:1}}
+/* Back from a break: a sunny vacation rim (sand, sunset and sea) */
+.panel.vacation.lit{border:1px solid transparent;background:linear-gradient(var(--panel),var(--panel)) padding-box,linear-gradient(120deg,#ffd36e,#ff8a5c,#ff6fa5,#3fd0e0,#2fb8a8,#ffd36e) border-box;background-size:100% 100%,300% 300%;box-shadow:0 0 14px rgba(63,208,224,.25),0 0 22px rgba(255,170,90,.18)}
+@media (prefers-reduced-motion:no-preference){.panel.vacation.lit{animation:vacay 7s linear infinite}}
+@keyframes vacay{0%{background-position:0 0,0% 50%}50%{background-position:0 0,100% 50%}100%{background-position:0 0,0% 50%}}
+/* Streaks that ended: a gloomy, melancholic blue rim with a slow drizzle */
+.panel.gloom{position:relative;overflow:hidden;border-color:#3d5a80;box-shadow:0 0 0 1px rgba(80,110,160,.25),0 0 16px rgba(60,90,150,.3),inset 0 0 26px rgba(40,60,110,.25)}
+.panel.gloom::before{content:"";position:absolute;inset:0;pointer-events:none;opacity:.18;background:repeating-linear-gradient(105deg,transparent 0 14px,rgba(150,180,230,.55) 14px 15px,transparent 15px 34px);background-size:100% 200%}
+@media (prefers-reduced-motion:no-preference){.panel.gloom{animation:gloomglow 6s ease-in-out infinite}.panel.gloom::before{animation:drizzle 3s linear infinite}}
+@keyframes gloomglow{0%,100%{box-shadow:0 0 0 1px rgba(80,110,160,.2),0 0 10px rgba(60,90,150,.22),inset 0 0 22px rgba(40,60,110,.2)}50%{box-shadow:0 0 0 1px rgba(90,120,170,.35),0 0 20px rgba(60,90,150,.38),inset 0 0 30px rgba(40,60,110,.3)}}
+@keyframes drizzle{from{background-position:0 0}to{background-position:-40px 120px}}
 /* amber glowing rim for the streak boxes */
 .panel.amber{border-color:color-mix(in srgb,#ffb020 70%,var(--line));box-shadow:0 0 0 1px rgba(255,176,32,.25),0 0 14px rgba(255,160,40,.28),inset 0 0 18px rgba(255,160,40,.06)}
 @media (prefers-reduced-motion:no-preference){.panel.amber{animation:amberglow 3.2s ease-in-out infinite}}
@@ -770,7 +780,7 @@ footer{color:var(--dim);font-size:.78rem}
   </section>
   <div class="twgrid4">
     <div class="twstack">
-    <section class="panel">
+    <section class="panel vacation">
       <div class="panel-head"><h2>👋 Back from a break</h2><span class="sub" id="tw-back-sub"></span></div>
       <ul class="twl" id="tw-back"></ul>
     </section>
@@ -2332,7 +2342,8 @@ function renderThisWeek(){
   $("tw-med-sub").textContent=live?"Collected this week · player medals are provisional, win medals are added when the week ends":"Collected this week · click a medal to see what it is for";
   $("tw-med").innerHTML=med.length?med.map(x=>`<li>${twName(x.n)}<span class="dt">${twPl(x.m.length,"new medal")}</span><div class="medals">${x.m.join("")}</div></li>`).join(""):twEmpty("No new medals this week.");
   const lit=(id,on)=>$(id).closest("section").classList.toggle("lit",!!on);
-  lit("tw-med",med.length); lit("tw-new",fresh.length); lit("tw-ann",ann.length); lit("tw-riv",SB.weeks[w]&&[0,1,2].some(pi=>Object.keys(rivalsOfWeek(w,pi)).length));
+  lit("tw-med",med.length); lit("tw-back",back.length);
+  {const s=$("tw-dng").closest("section"); s.classList.toggle("amber",live); s.classList.toggle("gloom",!live&&dng.length>0)} lit("tw-new",fresh.length); lit("tw-ann",ann.length); lit("tw-riv",SB.weeks[w]&&[0,1,2].some(pi=>Object.keys(rivalsOfWeek(w,pi)).length));
   $("tw-riv-sub").textContent=ents.length?"Each player's closest match within their own rank: smallest average % gap on the ranked challenges they both played (no playing up or down, no God challenges)":"";
   const r2=v=>Math.round(v*100)/100;
   $("tw-riv").innerHTML=!SB.weeks[w]?`<ul class="twl">${twEmpty(`No scoreboard for week ${w} (scoreboards start at week ${SB_W[0]}).`)}</ul>`:[0,1,2].map(pi=>{const pairs=pairsFor(pi);
