@@ -891,8 +891,8 @@ footer{color:var(--dim);font-size:.78rem}
   </div>
 
   <footer>Data: Rodman’s Rocksmith 2014 Championship Google Sheets (older attendance also from the Championship Metrics workbook). Player stats run through week 675; scoreboards cover weeks 440–676. Weeks 1–16 have no recorded host in the source.
-  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-07T11:38:50+00:00">October 7, 2026</span></span>
   <span class="updated disclaimer">Unofficial fan project. Not affiliated with Ubisoft or Rocksmith.</span>
+  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-07T14:13:02+00:00">October 7, 2026</span></span>
   </footer>
 </div>
 <div class="tip" id="tip" hidden></div>
@@ -1619,7 +1619,7 @@ function showWinner(name){
         <div${best?` data-hl="${best}" title="Click to highlight this week"`:""}><small>Best week</small><b>${best?per[best][1]+" win"+(per[best][1]===1?"":"s"):"–"}</b>${best?`<span class="sub"> · wk ${best}</span>`:""}</div>
         <div${bestRun?` data-tip="${bestRun===1?`(Week ${runEnd})`:`(Week ${runStart}–${runEnd})`}" data-hl="${Array.from({length:bestRun},(_,i)=>runStart+i).join(",")}"`:""}><small>Longest win streak</small><b>${bestRun} wk${bestRun===1?"":"s"}</b></div>
         <div data-tip="Triple crown · won a challenge on Lead, Rhythm and Bass in the same week${trip.reg.length?` · click to highlight ${trip.reg.length===1?"that week":"those weeks"}`:""}"${trip.reg.length?` data-hl="${trip.reg.join(",")}"`:""} style="cursor:${trip.reg.length?"pointer":"help"}"><small>Triple crowns</small><b>${trip.reg.length}</b>${trip.reg.length?`<span class="sub"> · last wk ${trip.reg[trip.reg.length-1]}</span>`:""}</div>
-        <div${ties.length?` data-hl="${tieWeeks.join(",")}" data-tip="Won on the tiebreak, same % as the runner-up · Week${tieWeeks.length===1?"":"s"} ${tieWeeks.join(", ")}"`:""}><small>Close wins${where}</small><b>${ties.length}</b><span class="sub"> won on the tiebreak</span></div>
+        <div${ties.length?` data-hl="${tieWeeks.join(",")}" data-tip="Won on the tiebreak, same % as the runner-up · click to highlight"`:""}><small>Close wins${where}</small><b>${ties.length}</b><span class="sub"> won on the tiebreak</span></div>
         ${[0,1,2].map(pi=>{const rc=rivalCounts(twCanon(name),wYear?doneAll.filter(w=>yearOfWeek(w)===wYear):doneAll,pi), lab=`${PATHS[pi]} rival`;
           if(!rc.length)return `<div class="rivbox" style="--pc:${PATH_C[pi]}" data-tip="Rival = the player's closest ${PATHS[pi]} match within their own rank in a week (smallest average % gap on the ranked ${PATHS[pi]} challenges both played)"><small>${lab}</small><b>–</b></div>`;
           const [rn,rw]=rc[0];
