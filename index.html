@@ -282,6 +282,7 @@ button.clear:hover{border-color:var(--accent)}
 .seg .s-lead[aria-pressed="true"]{background:var(--s-orange)}
 .seg .s-rhy[aria-pressed="true"]{background:var(--s-green)}
 .seg .s-bass[aria-pressed="true"]{background:var(--s-blue)}
+#wseason button[aria-pressed="true"]{background:var(--accent)}
 #sbfind{background:var(--panel2);color:var(--fg);border:1px solid var(--line);border-radius:6px;padding:7px 10px;font:inherit;font-size:.88rem;flex:0 1 240px;min-width:0}
 .sbstats{display:flex;flex-wrap:wrap;gap:8px 22px;font-size:.85rem;color:var(--muted)}
 .sbstats b{color:var(--fg);font-family:var(--f-display);font-size:1.05rem}
@@ -817,7 +818,7 @@ footer{color:var(--dim);font-size:.78rem}
     <button type="button" data-rp="0" class="s-lead" aria-pressed="false">Lead</button>
     <button type="button" data-rp="1" class="s-rhy" aria-pressed="false">Rhythm</button>
     <button type="button" data-rp="2" class="s-bass" aria-pressed="false">Bass</button>
-  </div></div>
+  </div><div class="seg" role="radiogroup" aria-label="Season" id="wseason"></div></div>
   <section class="panel hof">
     <div class="panel-head"><h2>Hall of fame</h2><span class="sub" id="whof-sub"></span></div>
     <div class="podium" id="wpodium"></div>
@@ -939,7 +940,7 @@ footer{color:var(--dim);font-size:.78rem}
 
   <footer>Data: Rodman’s Rocksmith 2014 Championship Google Sheets (older attendance also from the Championship Metrics workbook). Player stats run through week 675; scoreboards cover weeks 440–676. Weeks 1–16 have no recorded host in the source.
   <span class="updated disclaimer">Unofficial fan project. Not affiliated with Ubisoft or Rocksmith.</span>
-  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-07T17:23:31+00:00">October 7, 2026</span></span>
+  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-07T17:28:16+00:00">October 7, 2026</span></span>
   </footer>
 </div>
 <div class="tip" id="tip" hidden></div>
@@ -1492,31 +1493,44 @@ const TIER_NAME={B:"Beginner",I:"Intermediate",A:"Advanced",M:"Masterclass"};
 const PATHS=["Lead","Rhythm","Bass"], PATH_C=["var(--s-orange)","var(--s-green)","var(--s-blue)"];
 let wPath=-1;
 const PATH_WORD=["lead","rhythm","bass"];
-const wv=(n,p)=>{const v=WR.wins[n];if(!v)return null;return p<0?v.reduce((a,x)=>[a[0]+x[0],a[1]+x[1],a[2]+x[2]],[0,0,0]):v[p]};
-const winEntries=()=>Object.keys(WR.wins).filter(n=>!activeOnly||isActivePlayer(n)).map(n=>[n,wv(n,wPath)]).filter(([,v])=>v&&v[0]>0);
+// seasons (calendar years): win totals recomputed from the scoreboards, same rules as the all-time totals
+let wSeason=null;
+const seasonCache={};
+function seasonTable(y){
+  if(seasonCache[y])return seasonCache[y];
+  const out={};
+  Object.keys(SB.weeks).map(Number).filter(w=>w<=DATA_WEEK&&(WEEKS[w-1]||[])[1]?.slice(0,4)===y).forEach(w=>SB.weeks[w].forEach(card=>{
+    if(card[7])return; // a God challenge still running next week
+    card[6].filter(e=>e[4]>=0).forEach((e,i)=>{const n=SB.names[e[0]].replace(/[*~]+$/,""); const v=(out[n]=out[n]||[[0,0,0],[0,0,0],[0,0,0]])[card[0]]; v[0]++; if(i===0)v[1]++; if(i<3)v[2]++});
+  }));
+  return seasonCache[y]=out;
+}
+const winSrc=()=>wSeason?seasonTable(wSeason):WR.wins;
+const wv=(n,p)=>{const v=winSrc()[n];if(!v)return null;return p<0?v.reduce((a,x)=>[a[0]+x[0],a[1]+x[1],a[2]+x[2]],[0,0,0]):v[p]};
+const winEntries=()=>Object.keys(winSrc()).filter(n=>!activeOnly||isActivePlayer(n)).map(n=>[n,wv(n,wPath)]).filter(([,v])=>v&&v[0]>0);
 function renderWinnersPodium(){
   const M=["#f5c84a","#c9d0dc","#d8925a"], where=wPath<0?"":` on ${PATH_WORD[wPath]}`;
   const sorted=winEntries().sort((a,b)=>b[1][1]-a[1][1]);
-  const top=sorted.slice(0,3), max=top[0][1][1];
-  $("whof-sub").textContent=`Most challenge wins${where} since week 440 · own class or playing up`;
-  $("wpodium").innerHTML=[1,0,2].map(i=>{const [n,v]=top[i], h=Math.round(70+130*v[1]/max);
+  const top=sorted.slice(0,3), max=top.length?top[0][1][1]||1:1;
+  $("whof-sub").textContent=`Most challenge wins${where} ${wSeason?`in ${wSeason}`:"since week 440"} · own class or playing up`;
+  $("wpodium").innerHTML=[1,0,2].filter(i=>top[i]).map(i=>{const [n,v]=top[i], h=Math.round(70+130*v[1]/max);
     return `<div class="pod" style="--m:${M[i]}"><div class="medal">${i+1}</div><div class="pname" data-player="${esc(n)}">${esc(n)}</div><div class="block" style="height:${h}px;animation-delay:${[150,0,300][i]}ms"><b>${v[1]}</b><small>${wPath<0?"challenge":PATH_WORD[wPath]}</small><small>wins</small></div></div>`}).join("");
-  $("wmost-sub").textContent=`Top 20 · 1st-place finishes${where}`;
+  $("wmost-sub").textContent=`Top 20 · 1st-place finishes${where}${wSeason?` in ${wSeason}`:""}`;
   $("b-mostwins").innerHTML=barRows(sorted.slice(0,20).map(([n,v])=>[n,v[1]]),(n,i)=>STR[(i+3)%6]);
 }
 function renderWins(){
-  const min=wPath<0?25:15;
+  const min=wSeason?(wPath<0?10:5):(wPath<0?25:15);
   const list=winEntries().filter(([,v])=>v[0]>=min).map(([n,v])=>[n,Math.round(v[1]/v[0]*1000)/10,v]).sort((a,b)=>b[1]-a[1]||b[2][1]-a[2][1]).slice(0,20);
-  $("wrate-sub").textContent=`Top 20 · 1st places per ${wPath<0?"":PATH_WORD[wPath]+" "}challenge entered · min ${min} entries`;
+  $("wrate-sub").textContent=`Top 20 · 1st places per ${wPath<0?"":PATH_WORD[wPath]+" "}challenge entered${wSeason?` in ${wSeason}`:""} · min ${min} entries`;
   const max=list.length?list[0][1]:1;
   $("b-wins").innerHTML=list.map(([n,r,v],i)=>`<div class="brow${i<3?" top":""}${!isActivePlayer(n)?" inactive":""}" style="--c:${STR[(i+1)%6]}"><span class="rk">${i+1}</span><span class="nm" data-player="${esc(n)}" title="${esc(n)}">${esc(n)}</span><span class="act">${actPill(n)}</span><span class="track" data-tip="${v[1]} win${v[1]===1?"":"s"} in ${v[0]} entries" style="cursor:help"><span class="fill" style="width:${Math.max(2,r/max*100)}%;animation-delay:${i*30}ms"></span></span><span class="val">${r}%</span></div>`).join("");
 }
 let ruPath=-1;
 function renderRankups(){
   document.querySelectorAll("#rufilter button").forEach(b=>b.setAttribute("aria-pressed",+b.dataset.rp===ruPath));
-  const list=WR.ups.filter(u=>(ruPath<0||u[1]===ruPath)&&(!activeOnly||isActivePlayer(u[0])));
+  const list=WR.ups.filter(u=>(ruPath<0||u[1]===ruPath)&&(!activeOnly||isActivePlayer(u[0]))&&(!wSeason||yearOfWeek(u[4])===wSeason));
   const nUp=list.filter(isUp).length, nDown=list.length-nUp;
-  $("ru-sub").textContent=`${nUp} ${ruPath<0?"":PATH_WORD[ruPath]+" "}rank-up${nUp===1?"":"s"}${nDown?` and ${nDown} move${nDown===1?"":"s"} down`:""} since week 440 · newest first`;
+  $("ru-sub").textContent=`${nUp} ${ruPath<0?"":PATH_WORD[ruPath]+" "}rank-up${nUp===1?"":"s"}${nDown?` and ${nDown} move${nDown===1?"":"s"} down`:""} ${wSeason?`in ${wSeason}`:"since week 440"} · newest first`;
   $("rulist").innerHTML=list.map(([n,p,a,b,w])=>{const wk=WEEKS[w-1];return `<li><div class="w"${SB.weeks[w]?` data-sbw="${w}" data-sbp="${p}" data-sbn="${esc(n)}" title="Open Week ${w} on the Scoreboard"`:""}><b>Wk ${w}</b>${wk?fmtShort(wk[1])+", "+wk[1].slice(0,4):""}</div><div class="who"><span data-player="${esc(n)}">${esc(n)}</span><span class="path" style="--pc:${PATH_C[p]}">${PATHS[p]}</span></div><div class="move${LVI.indexOf(b)<LVI.indexOf(a)?" down":""}" title="${TIER_NAME[a]} → ${TIER_NAME[b]}${LVI.indexOf(b)<LVI.indexOf(a)?" (moved down)":""}"><span style="--tc:${TIER_C[a]}">${a}</span><i>${LVI.indexOf(b)<LVI.indexOf(a)?"↘":"↗"}</i><span style="--tc:${TIER_C[b]}">${b}</span></div></li>`}).join("")||`<li class="empty">No rank-ups on this path.</li>`;
 }
 
@@ -1782,11 +1796,15 @@ function markHot(){
 }
 function renderWinners(){
   document.querySelectorAll("#wpath button").forEach(b=>b.setAttribute("aria-pressed",+b.dataset.rp===wPath));
+  document.querySelectorAll("#wseason button").forEach(b=>b.setAttribute("aria-pressed",(b.dataset.season||null)===wSeason));
   renderWinnersPodium(); renderWins(); renderRankups();
   showWinner(wPicked&&wName?wName:winEntries().sort((a,b)=>b[1][1]-a[1][1])[0][0]);
   markHot();
   try{localStorage.setItem("rsc-wpath",String(wPath))}catch(e){}
 }
+{const ys=[...new Set(Object.keys(SB.weeks).map(Number).filter(w=>w<=DATA_WEEK).map(yearOfWeek))].filter(Boolean).sort().reverse();
+ $("wseason").innerHTML=`<button type="button" data-season="" class="s-all" aria-pressed="true">All time</button>`+ys.map(y=>`<button type="button" data-season="${y}" aria-pressed="false">${y}</button>`).join("");}
+$("wseason").addEventListener("click",e=>{const b=e.target.closest("button[data-season]"); if(!b)return; wSeason=b.dataset.season||null; wYear=wSeason; renderWinners(); updateBubble()});
 $("wpath").addEventListener("click",e=>{const b=e.target.closest("button[data-rp]");if(b){wPath=+b.dataset.rp;ruPath=wPath;renderWinners()}});
 $("rufilter").addEventListener("click",e=>{const b=e.target.closest("button[data-rp]");if(b){ruPath=+b.dataset.rp;renderRankups()}});
 // rank-up markers on the scoreboard: first week a player appears in their new class
@@ -2004,7 +2022,8 @@ function activeFilters(){
   if(v==="hosting"&&selHost)f.push([`Host: ${CATS[selHost]||selHost}`,()=>setHost(selHost)]);
   if(v==="winners"){
     if(wPath>=0)f.push([`Path: ${PATHS[wPath]}`,()=>document.querySelector('#wpath [data-rp="-1"]').click()]);
-    if(wYear)f.push([`Winner lookup: ${wYear}`,()=>{wYear=null;showWinner(wName);markHot()}]);
+    if(wSeason)f.push([`Season: ${wSeason}`,()=>{wSeason=null;wYear=null;renderWinners()}]);
+    if(wYear&&wYear!==wSeason)f.push([`Winner lookup: ${wYear}`,()=>{wYear=null;showWinner(wName);markHot()}]);
     if(ruPath>=0&&ruPath!==wPath)f.push([`Rank changes: ${PATHS[ruPath]}`,()=>document.querySelector('#rufilter [data-rp="-1"]').click()]);
   }
   if(v==="songs"){
