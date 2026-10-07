@@ -741,7 +741,7 @@ footer{color:var(--dim);font-size:.78rem}
     </section>
     </div>
     <section class="panel">
-      <div class="panel-head"><h2 id="tw-dng-h">⏳ Streaks in danger</h2><span class="sub" id="tw-dng-sub"></span></div>
+      <div class="panel-head"><h2 id="tw-dng-h">⏳ Streaks at stake</h2><span class="sub" id="tw-dng-sub"></span></div>
       <ul class="twl" id="tw-dng"></ul>
     </section>
   </div>
@@ -873,7 +873,7 @@ footer{color:var(--dim);font-size:.78rem}
     <p class="legendline"><span class="mk">*</span> outside own class (faded = playing down, not counted for wins) · <span class="mk">~</span> FreeBird · <span class="pct100">100%</span> full score or Master Mode · click a name to open their profile</p>
   </div>
 
-  <footer>Data: the Rocksmith 2014 Championship scoreboard sheet (older attendance also from the Championship Metrics workbook). Player stats run through week 675; scoreboards cover weeks 440–676. Weeks 1–16 have no recorded host in the source. <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-07T03:54:10+00:00">October 6, 2026</span></span></footer>
+  <footer>Data: the Rocksmith 2014 Championship scoreboard sheet (older attendance also from the Championship Metrics workbook). Player stats run through week 675; scoreboards cover weeks 440–676. Weeks 1–16 have no recorded host in the source. <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-07T03:56:05+00:00">October 6, 2026</span></span></footer>
 </div>
 <div class="tip" id="tip" hidden></div>
 
@@ -2241,7 +2241,7 @@ function renderThisWeek(){
   $("tw-new").innerHTML=fresh.length?fresh.map(n=>{const cs=ents.filter(x=>x.n===n).map(x=>`${PATHS[x.c[0]]} ${x.c[2]}`); return `<li>${twName(n)}<span class="dt">${esc([...new Set(cs)].join(" · "))}</span><span class="pill new" style="width:auto">NEW</span></li>`}).join(""):twEmpty(live?"No new players yet this week.":"No new players this week.");
   $("tw-ann-sub").textContent="First played this week in an earlier year (active players)";
   $("tw-ann").innerHTML=ann.length?ann.map(a=>`<li>${twName(a.n)}<span class="dt">joined ${twWk(a.first)} · ${fmt(a.fd)}${set.has(a.n)?' <span class="ok">✓ playing</span>':""}</span><span class="rt">🎂 ${a.yrs}<small>year${a.yrs===1?"":"s"}</small></span></li>`).join(""):twEmpty("No anniversaries this week.");
-  $("tw-dng-h").textContent=live?"⏳ Streaks in danger":"💔 Streaks that ended";
+  $("tw-dng-h").textContent=live?"⏳ Streaks at stake":"💔 Streaks that ended";
   $("tw-dng-sub").textContent=live?`Active streaks with no score yet this week${left>0?` · ${twPl(left,"day")} left`:""}`:`Played week ${w-1} but not week ${w} (2+ week streaks)`;
   $("tw-dng").innerHTML=dng.length?dng.map(x=>`<li>${twName(x.n)}<span class="rt ${x.k>=52?"crit":x.k>=10?"hot":""}">🔥 ${x.k}<small>week${x.k===1?"":"s"}</small></span></li>`).join(""):twEmpty(live?"Every active streak is safe this week. 🎉":"No streaks ended this week.");
   $("tw-med-sub").textContent=live?"Collected this week · player medals are provisional, win medals are added when the week ends":"Collected this week · click a medal to see what it is for";
