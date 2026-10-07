@@ -903,7 +903,7 @@ footer{color:var(--dim);font-size:.78rem}
 
   <footer>Data: Rodman’s Rocksmith 2014 Championship Google Sheets (older attendance also from the Championship Metrics workbook). Player stats run through week 675; scoreboards cover weeks 440–676. Weeks 1–16 have no recorded host in the source.
   <span class="updated disclaimer">Unofficial fan project. Not affiliated with Ubisoft or Rocksmith.</span>
-  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-07T16:22:23+00:00">October 7, 2026</span></span>
+  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-07T16:25:16+00:00">October 7, 2026</span></span>
   </footer>
 </div>
 <div class="tip" id="tip" hidden></div>
@@ -1601,18 +1601,17 @@ function winMedals(per,done,bestN,streak,total,trip,ties,pod){
   const winRun=(end,x)=>{if(end==null)return ""; const i=asc.indexOf(end); return asc.slice(i-x+1,i+1).join(",")};
   const totalAt=x=>{let t=0;for(const w of asc){t+=per[w][1];if(t>=x)return w}};
   const P=pod?podiumMedals(pod):{reg:[],god:[]};
-  if(P.reg.length||P.god.length)rows.push([...P.reg,...P.god]);
-  // best-week trophies: one per number of wins in a week; the count is how many weeks had exactly that many wins
-  if(bestN>0){const r=[];for(let k=1;k<=bestN;k++){const ws=asc.filter(w=>per[w][1]===k); if(!ws.length)continue;
-    r.push(`<span class="medal-m wm tro" style="--ec:${tierCol(k-1,Math.max(bestN,3))};cursor:pointer" data-hl="${ws.join(",")}" data-tip="${k}-win week trophy · won ${k} challenge${k===1?"":"s"} in a single week · ${ws.length} time${ws.length===1?"":"s"} · click to highlight">${trophiesSvg(tierCol(k-1,Math.max(bestN,3)),k)}<b>${ws.length}</b></span>`)}
-    if(r.length)rows.push(r)}
-  const ss=[];for(let x=2;x<=streak;x++)ss.push(x);
-  if(ss.length)rows.push(ss.map((x,i)=>mk(boltSvg(tierCol(i,Math.max(ss.length,3))),x,`${x}-week win streak medal · won a challenge ${x} weeks in a row${rec(streakAt(x))}`).replace('<span class="medal-m wm"',`<span class="medal-m wm" data-hl="${winRun(streakAt(x),x)}" style="cursor:pointer"`)));
   // triple crowns and close wins: one medal each, the count is how many times; the weeks light up on the chart when clicked
   const tc=[];
   if(trip&&trip.reg.length)tc.push(`<span class="medal-m wm" style="--ec:#ffc94f;cursor:pointer" data-hl="${trip.reg.join(",")}" data-tip="Triple crown · won a challenge on Lead, Rhythm and Bass in the same week · ${trip.reg.length} time${trip.reg.length===1?"":"s"} · click to highlight">${crownSvg("#ffc94f")}<b>${trip.reg.length}</b></span>`);
   if(ties&&ties.length)tc.push(`<span class="medal-m wm" style="--ec:#ff7eb6;cursor:pointer" data-hl="${[...new Set(ties)].sort((a,b)=>a-b).join(",")}" data-tip="Close win medal · won on the tiebreak with the same % as the runner-up · ${ties.length} time${ties.length===1?"":"s"} · click to highlight">${tieSvg("#ff7eb6")}<b>${ties.length}</b></span>`);
-  if(tc.length)rows.push(tc);
+  if(P.reg.length||P.god.length||tc.length)rows.push([...P.reg,...P.god,...tc]);
+  // best-week trophies: one per number of wins in a week; the count is how many weeks had exactly that many wins
+  if(bestN>0){const r=[];for(let k=1;k<=bestN;k++){const ws=asc.filter(w=>per[w][1]===k); if(!ws.length)continue;
+    r.push(`<span class="medal-m wm tro" style="--ec:#f5c84a;cursor:pointer" data-hl="${ws.join(",")}" data-tip="${k}-win week trophy · won ${k} challenge${k===1?"":"s"} in a single week · ${ws.length} time${ws.length===1?"":"s"} · click to highlight">${trophiesSvg("#f5c84a",k)}<b>${ws.length}</b></span>`)}
+    if(r.length)rows.push(r)}
+  const ss=[];for(let x=2;x<=streak;x++)ss.push(x);
+  if(ss.length)rows.push(ss.map((x,i)=>mk(boltSvg(tierCol(i,Math.max(ss.length,3))),x,`${x}-week win streak medal · won a challenge ${x} weeks in a row${rec(streakAt(x))}`).replace('<span class="medal-m wm"',`<span class="medal-m wm" data-hl="${winRun(streakAt(x),x)}" style="cursor:pointer"`)));
   return rows.map(r=>`<div class="medals">${r.join("")}</div>`).join("");
 }
 function showWinner(name){
