@@ -887,11 +887,11 @@ footer{color:var(--dim);font-size:.78rem}
 
   <div class="grid2 even">
     <section class="panel">
-      <div class="panel-head"><h2>Easiest bands</h2><span class="sub">Top 20 · lowest average difficulty rating · min 5 challenges</span></div>
+      <div class="panel-head"><h2>Easiest bands</h2><span class="sub">Top 20 · lowest average difficulty rating · <span class="minc">min 5 challenges</span></span></div>
       <div class="bars" id="b-easy"></div>
     </section>
     <section class="panel">
-      <div class="panel-head"><h2>Toughest bands</h2><span class="sub">Top 20 · average difficulty rating · min 5 challenges</span></div>
+      <div class="panel-head"><h2>Toughest bands</h2><span class="sub">Top 20 · average difficulty rating · <span class="minc">min 5 challenges</span></span></div>
       <div class="bars" id="b-tough"></div>
     </section>
   </div>
@@ -1913,9 +1913,12 @@ function renderSongs(){
   $("tiers5").innerHTML=TIER_ORDER.map(t=>{const sub=cards.filter(c=>c.t===t); const m={}; sub.forEach(c=>m[c.artist]=(m[c.artist]||0)+1);
     const top=Object.entries(m).sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0])).slice(0,8);
     return `<div class="tcol" style="--tc:${TIER_COL[t]}"><h3>${TIER_LABEL[t]}<small>${sub.length} challenges</small></h3><ol>${top.map(([a,k])=>`<li data-band="${esc(a)}" data-ltier="${t}" title="Show ${esc(a)}'s ${TIER_LABEL[t]} songs"><span>${esc(a)}</span><span>${k}</span></li>`).join("")||`<li><span class="sub">None</span></li>`}</ol></div>`}).join("");
-  const tough=Object.entries(bands).map(([a,v])=>{const d=v.filter(c=>c.diff!=null);return [a,d.length?d.reduce((s,c)=>s+c.diff,0)/d.length:0,d.length]}).filter(x=>x[2]>=5).sort((a,b)=>b[1]-a[1]).slice(0,20).map(([a,d])=>[a,Math.round(d*10)/10]);
+  // with one host's picks there are too few challenges per band for a minimum, so any rated band counts
+  const MINC=sHost?1:5;
+  document.querySelectorAll(".minc").forEach(el=>el.textContent=sHost?"any number of challenges":"min 5 challenges");
+  const tough=Object.entries(bands).map(([a,v])=>{const d=v.filter(c=>c.diff!=null);return [a,d.length?d.reduce((s,c)=>s+c.diff,0)/d.length:0,d.length]}).filter(x=>x[2]>=MINC).sort((a,b)=>b[1]-a[1]).slice(0,20).map(([a,d])=>[a,Math.round(d*10)/10]);
   $("b-tough").innerHTML=barRows(tough,(n,i)=>"var(--s-red)","",false);
-  const easy=Object.entries(bands).map(([a,v])=>{const d=v.filter(c=>c.diff!=null);return [a,d.length?d.reduce((s,c)=>s+c.diff,0)/d.length:0,d.length]}).filter(x=>x[2]>=5).sort((a,b)=>a[1]-b[1]).slice(0,20).map(([a,d])=>[a,Math.round(d*10)/10]);
+  const easy=Object.entries(bands).map(([a,v])=>{const d=v.filter(c=>c.diff!=null);return [a,d.length?d.reduce((s,c)=>s+c.diff,0)/d.length:0,d.length]}).filter(x=>x[2]>=MINC).sort((a,b)=>a[1]-b[1]).slice(0,20).map(([a,d])=>[a,Math.round(d*10)/10]);
   {const max=Math.max(...easy.map(x=>x[1]));
    $("b-easy").innerHTML=easy.map(([n,x],i)=>`<div class="brow${i<3?" top":""} notag" style="--c:var(--s-green)"><span class="rk">${i+1}</span><span class="nm" data-band="${esc(n)}" title="${esc(n)}">${esc(n)}</span><span class="track"><span class="fill" style="width:${Math.max(2,x/10*100)}%;animation-delay:${i*30}ms"></span></span><span class="val">${x}</span></div>`).join("");}
   // a level pill in either list narrows that list to challenges at that level
