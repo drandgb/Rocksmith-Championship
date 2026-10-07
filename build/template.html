@@ -1318,6 +1318,8 @@ function medalSvg(kind,col,label){
 }
 // flame heat: yellow at 1 year, through orange and red, to blue-hot at 10+
 // ember heat for the under-a-year streak medals: dull red embers warming to bright orange
+// streak medal steps: 2, 3, 4, 5, then 10, 15… (embers stop below a year, where the year flames take over)
+const STREAK_STEPS=[2,3,4,5,10,15,20,25,30,40,50,75,100], EMBER_STEPS=STREAK_STEPS.filter(k=>k<52);
 const EMBER_HEAT=["#8a3a2a","#9c3f2a","#ad452b","#c04d2c","#d1572d","#e0632f","#ec7232","#f58337","#fb963e","#ffaa48"];
 const FLAME_HEAT=["#ffe45c","#ffc93c","#ffa630","#ff8030","#ff5a3a","#f0446e","#c84cc8","#8f63ff","#4f8cff","#3fc6ff"];
 // lunar (Chinese) new year dates, used to color each year gem by that year's element
@@ -1369,11 +1371,11 @@ function medalsFor(p,bitsOv){
   // lower tier: ember medals for streaks under a year (5, 10, 15 ... 50 weeks), dated by when a run first got that long
   const embers=[];
   {const reach={}; let r=0;
-   for(let i=0;i<bits.length;i++){ r=bits[i]==="1"?r+1:0; for(let k=5;k<=50&&k<=r;k+=5) if(reach[k]==null) reach[k]=i+PRES_START; }
-   for(let k=5;k<=50;k+=5){ if(reach[k]==null) break;
-     const col=EMBER_HEAT[k/5-1];
+   for(let i=0;i<bits.length;i++){ r=bits[i]==="1"?r+1:0; for(const k of EMBER_STEPS){if(k>r)break; if(reach[k]==null) reach[k]=i+PRES_START} }
+   EMBER_STEPS.forEach((k,ki)=>{ if(reach[k]==null) return;
+     const col=EMBER_HEAT[Math.round(ki*(EMBER_HEAT.length-1)/(EMBER_STEPS.length-1))];
      embers.push(`<span data-hl="${weekRange(reach[k],k)}" data-tip="${k}-week streak ember · played ${k} weeks in a row (collected Week ${reach[k]})" class="medal-m flm ember" style="--ec:${col}">${medalSvg("streak",col,"")}<b>${k}</b></span>`);
-   }}
+   });}
   {const cg=classGem(p); if(cg) gems.unshift(cg);}
   // sword: the week the player joined
   {const col="#5f7ea8";
@@ -1695,7 +1697,7 @@ function winMedals(per,done,bestN,streak,total,trip,ties,pod){
   if(bestN>0){const r=[];for(let k=1;k<=bestN;k++){const ws=asc.filter(w=>per[w][1]===k); if(!ws.length)continue;
     r.push(`<span class="medal-m wm tro" style="--ec:#f5c84a;cursor:pointer" data-hl="${ws.join(",")}" data-tip="${k}-win week trophy · won ${k} challenge${k===1?"":"s"} in a single week · ${ws.length} time${ws.length===1?"":"s"} · click to highlight">${trophiesSvg("#f5c84a",k)}<b>${ws.length}</b></span>`)}
     if(r.length)rows.push(r)}
-  const ss=[];if(streak>=3)ss.push(3);for(let x=5;x<=streak;x+=5)ss.push(x); // 3, then every 5 weeks
+  const ss=STREAK_STEPS.filter(x=>x<=streak);
   if(ss.length)rows.push(ss.map((x,i)=>mk(boltSvg(tierCol(i,Math.max(ss.length,3))),x,`${x}-week win streak medal · won a challenge ${x} weeks in a row${rec(streakAt(x))}`).replace('<span class="medal-m wm"',`<span class="medal-m wm" data-hl="${winRun(streakAt(x),x)}" style="cursor:pointer"`)));
   return rows.map(r=>`<div class="medals">${r.join("")}</div>`).join("");
 }
