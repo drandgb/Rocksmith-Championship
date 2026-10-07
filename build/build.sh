@@ -22,5 +22,6 @@ python3 build_weeks.py
 python3 parse_weeks.py
 python3 build_sb.py
 python3 build_players.py
+python3 build_rankings.py
 OUT="${OUT:-../../index.html}" python3 render.py
 cp cache/*.json ../data/cache/
