@@ -459,6 +459,12 @@ footer .updated{display:block;margin-top:4px}
 .twl .riv .dt{flex-basis:100%;order:3}
 .twl .riv .rt{order:2}
 .twl .hot{color:var(--s-orange)}
+/* dead-even rivals: a glowing, slowly shifting rim */
+.twl li.riv.even{position:relative;border:2px solid transparent;padding:7px 9px;background:linear-gradient(var(--panel2),var(--panel2)) padding-box,linear-gradient(120deg,#ffd36e,#ff7eb6,#8f7bff,#3fd0e0,#ffd36e) border-box;background-size:100% 100%,300% 300%;box-shadow:0 0 12px rgba(255,126,182,.55),0 0 26px rgba(143,123,255,.4)}
+.twl li.riv.even .rt{color:#ffd36e}
+.evenbadge{flex-basis:100%;order:-1;font:700 .62rem var(--f-display);letter-spacing:.1em;text-transform:uppercase;color:#ffd36e;text-shadow:0 0 8px rgba(255,211,110,.6)}
+@media (prefers-reduced-motion:no-preference){.twl li.riv.even{animation:evenrim 4s linear infinite}}
+@keyframes evenrim{0%{background-position:0 0,0% 50%;box-shadow:0 0 12px rgba(255,126,182,.55),0 0 26px rgba(143,123,255,.4)}50%{background-position:0 0,100% 50%;box-shadow:0 0 16px rgba(63,208,224,.6),0 0 32px rgba(255,211,110,.45)}100%{background-position:0 0,0% 50%;box-shadow:0 0 12px rgba(255,126,182,.55),0 0 26px rgba(143,123,255,.4)}}
 .ups .pill[data-hl]:hover{color:var(--fg)}
 .ups .pill.act{color:var(--fg);border-color:var(--fg);background:color-mix(in srgb,var(--accent) 18%,var(--panel2))}
 .twgrid4{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));gap:20px;align-items:start}
@@ -703,6 +709,7 @@ footer{color:var(--dim);font-size:.78rem}
       <button type="button" class="twarrow" id="twprev" aria-label="Previous week">‹</button>
       <div class="twtitle"><h2 id="tw-title"></h2><div class="sub" id="tw-meta"></div></div>
       <button type="button" class="twarrow" id="twnext" aria-label="Next week">›</button>
+      <button type="button" class="clear" id="twsb">Open scoreboard ›</button>
       <button type="button" class="clear sblatest" id="twnow" hidden></button>
     </div>
     <div class="twstats" id="tw-stats"></div>
@@ -2193,7 +2200,7 @@ function twMedals(n,w,live){
 function renderThisWeek(){
   const w=twWeek, W=WEEKS[w-1], live=w===TW_LIVE, names=twNames(w), set=new Set(names);
   $("twprev").disabled=w<=TW_MIN; $("twnext").disabled=w>=TW_MAX;
-  $("twnow").hidden=w===TW_MAX; $("twnow").textContent=`Back to ${TW_LIVE?"this":"the latest"} week (${TW_MAX}) ›`;
+  $("twnow").hidden=w===TW_MAX; $("twsb").hidden=!SB.weeks[w]; $("twsb").dataset.sbw=w; $("twsb").title=`Open week ${w} on the Scoreboard`; $("twnow").textContent=`Back to ${TW_LIVE?"this":"the latest"} week (${TW_MAX}) ›`;
   const start=W?new Date(W[1]+"T12:00:00"):null, end=start?new Date(start.getTime()+6*864e5):null;
   const left=end?Math.ceil((new Date(W[1]+"T00:00:00").getTime()+7*864e5-Date.now())/864e5):0;
   $("tw-title").innerHTML=`${SB.weeks[w]?`<span class="golink" data-sbw="${w}" title="Open this week on the Scoreboard">Week ${w}</span>`:`Week ${w}`}${live?' <span class="pill new" style="width:auto">IN PROGRESS</span>':""}`;
@@ -2241,7 +2248,7 @@ function renderThisWeek(){
   $("tw-riv").innerHTML=!SB.weeks[w]?`<ul class="twl">${twEmpty(`No scoreboard for week ${w} (scoreboards start at week ${SB_W[0]}).`)}</ul>`:[0,1,2].map(pi=>{const pairs=pairsFor(pi);
     return `<div class="twpath" style="--pc:${PATH_C[pi]}"><h3>${PATHS[pi]}</h3><ul class="twl">${pairs.length?pairs.map(r=>{
     const c=r.best.c, g=r2(r.avg);
-    return `<li class="riv">${twName(r.me)}<span class="vs" title="${r.mutual?"Each other's closest rival":"Closest rival"}">${r.mutual?"⇄":"→"}</span>${twName(r.them)}<span class="rt">${g===0?"dead even":`${g.toFixed(2)}% gap`}<small>${r.k===1?"1 shared challenge":`avg over ${r.k} shared challenges`}</small></span><span class="dt">closest: <span class="wkl" data-sbw="${w}" data-sbp="${pi}" data-sbn="${esc(r.me)}" title="Open this challenge on the Scoreboard">${esc(c[2])}</span> · ${esc(c[3])} · ${r.best.me.e[1]}% vs ${r.best.them.e[1]}%</span></li>`}).join(""):twEmpty(`No ${PATHS[pi].toLowerCase()} rivals yet.`)}</ul></div>`}).join("");
+    return `<li class="riv${g===0?" even":""}">${g===0?'<span class="evenbadge" title="Same average % on every shared challenge">🤝 Dead even</span>':""}${twName(r.me)}<span class="vs" title="${r.mutual?"Each other's closest rival":"Closest rival"}">${r.mutual?"⇄":"→"}</span>${twName(r.them)}<span class="rt">${g===0?"0.00% gap":`${g.toFixed(2)}% gap`}<small>${r.k===1?"1 shared challenge":`avg over ${r.k} shared challenges`}</small></span><span class="dt">closest: <span class="wkl" data-sbw="${w}" data-sbp="${pi}" data-sbn="${esc(r.me)}" title="Open this challenge on the Scoreboard">${esc(c[2])}</span> · ${esc(c[3])} · ${r.best.me.e[1]}% vs ${r.best.them.e[1]}%</span></li>`}).join(""):twEmpty(`No ${PATHS[pi].toLowerCase()} rivals yet.`)}</ul></div>`}).join("");
 }
 $("twprev").addEventListener("click",()=>{if(twWeek>TW_MIN){twWeek--;renderThisWeek()}});
 $("twnext").addEventListener("click",()=>{if(twWeek<TW_MAX){twWeek++;renderThisWeek()}});
