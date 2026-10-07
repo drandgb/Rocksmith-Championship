@@ -523,6 +523,8 @@ footer .updated{display:block;margin-top:4px}
 @media (prefers-reduced-motion:no-preference){.panel.amber{animation:amberglow 3.2s ease-in-out infinite}}
 @keyframes amberglow{0%,100%{box-shadow:0 0 0 1px rgba(255,176,32,.22),0 0 10px rgba(255,160,40,.22),inset 0 0 16px rgba(255,160,40,.05)}50%{box-shadow:0 0 0 1px rgba(255,190,60,.4),0 0 20px rgba(255,160,40,.4),inset 0 0 22px rgba(255,160,40,.09)}}
 /* Rodman's Rankings */
+.rkinfo{cursor:help}
+.rkinfo .infoi{font-size:.8em;color:var(--muted);vertical-align:1px}
 .rkbody{display:flex;flex-direction:column;gap:20px}
 .rkpath{border-top:3px solid var(--pc)}
 .rkpath>.panel-head h2{color:var(--pc)}
@@ -835,7 +837,7 @@ footer{color:var(--dim);font-size:.78rem}
 
   <div class="view" id="view-rankings" role="tabpanel" aria-labelledby="tab-rankings" hidden>
   <section class="panel rkhead">
-    <div class="panel-head"><h2>Rodman’s Rankings</h2><span class="sub" id="rk-sub"></span></div>
+    <div class="panel-head"><h2 class="rkinfo" data-tip="How Rodman’s Rankings work: each path (Lead, Rhythm, Bass) and level (Beginner to Masterclass) has its own leaderboard covering the last 10 weeks. Finishing 1st, 2nd, 3rd or 4th on a challenge at that level earns 10, 5, 3 or 1 points, and a player’s points over those 10 weeks are added up. Players with the same points share a rank. The arrows show how many places a player moved since last week’s rankings; New means they just entered the list, and Out means they no longer have points in the last 10 weeks. Kept by Rodman in the scoreboard sheet.">Rodman’s Rankings <span class="infoi" aria-hidden="true">ⓘ</span></h2><span class="sub" id="rk-sub"></span></div>
     <div class="twstats" id="rk-stats"></div>
   </section>
   <div class="wpathbar"><div class="seg" role="radiogroup" aria-label="Path" id="rkpath">
