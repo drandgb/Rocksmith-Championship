@@ -21,7 +21,7 @@ The whole app is one self-contained `index.html`. It has no build step, no serve
 - **Back from a break**: who played after missing last week, with the week they last played.
 - **New this week**: first-time players.
 - **Anniversaries**: active players who first joined in this calendar week in an earlier year.
-- **Streaks in danger**: active play streaks with no score yet this week (on past weeks: streaks that ended).
+- **Streaks at stake**: active play streaks with no score yet this week (on past weeks: streaks that ended).
 - **New medals** collected this week. Click one to ring it and show what it is for. While a week is still running, player medals are provisional and win medals are added once it ends.
 - An **Open scoreboard** button opens the week shown on the Scoreboard.
 - **Rivals**, split into Lead, Rhythm and Bass (dead-even pairs get a glowing rim): each player's closest match within their own rank on that path: the opponent with the smallest average % gap on the ranked challenges they both played. Playing up or down and God challenges don't count.
