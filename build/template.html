@@ -202,9 +202,9 @@ button.clear:hover{border-color:var(--accent)}
 @media (max-width:360px){.rings{grid-template-columns:repeat(3,minmax(0,1fr))}}
 .ring.full .nm::before{content:"★ ";color:var(--s-yellow)}
 .ring.glow svg{overflow:visible}
-.ring.glow .rv{filter:drop-shadow(0 0 2px var(--gc)) drop-shadow(0 0 5px color-mix(in srgb,var(--gc) 60%,transparent))}
-@media (prefers-reduced-motion:no-preference){.ring.glow .rv{animation:ringglow 2.4s ease-in-out infinite}}
-@keyframes ringglow{0%,100%{filter:drop-shadow(0 0 1px var(--gc)) drop-shadow(0 0 4px color-mix(in srgb,var(--gc) 50%,transparent))}50%{filter:drop-shadow(0 0 3px var(--gc)) drop-shadow(0 0 8px color-mix(in srgb,var(--gc) 60%,transparent))}}
+.ring .rglow{opacity:.9}
+@media (prefers-reduced-motion:no-preference){.ring .rglow{animation:ringglow 2.6s ease-in-out infinite}}
+@keyframes ringglow{0%,100%{opacity:.7}50%{opacity:1}}
 .badge.pbar svg.shiny{filter:drop-shadow(0 0 4px rgba(255,211,110,.8)) drop-shadow(0 0 10px rgba(255,170,60,.45))}
 @media (prefers-reduced-motion:no-preference){.badge.pbar svg.shiny{animation:starglow 2.8s ease-in-out infinite}}
 @keyframes starglow{0%,100%{filter:drop-shadow(0 0 3px rgba(255,211,110,.7)) drop-shadow(0 0 8px rgba(255,170,60,.35))}50%{filter:drop-shadow(0 0 7px rgba(255,230,150,.95)) drop-shadow(0 0 16px rgba(255,170,60,.6))}}
@@ -1165,16 +1165,17 @@ function renderRecords(){
   $("b-alltime").innerHTML=barRows(RECORDS["Longest all-time play streaks"],(n,i)=>STR[(i+4)%6]," wks");
   $("streaks").innerHTML=barRows(ACTIVE_STREAKS,"var(--s-orange)"," wks",false);
   const R=34, C=2*Math.PI*R;
+  const ringGlow=(id,col)=>`<defs><filter id="${id}" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="5"/></filter></defs><circle class="rglow" cx="42" cy="42" r="${R}" fill="none" stroke="${col}" stroke-width="13" filter="url(#${id})"/>`;
   $("rings").innerHTML=RECORDS["Highest play rates"].map(([n,v],i)=>{
     const p=numOf(v), full=p>=100, col=rateColor(p);
-    return `<div class="ring${full?" full glow":""}" style="--gc:${col}"><svg viewBox="0 0 84 84" role="img" aria-label="${esc(n)} ${p}%"><circle class="rt" cx="42" cy="42" r="${R}"/><circle class="rv" cx="42" cy="42" r="${R}" stroke="${col}" stroke-dasharray="${C.toFixed(1)}" stroke-dashoffset="${(C*(1-p/100)).toFixed(1)}"/><text x="42" y="42">${p%1===0?p:p.toFixed(1)}%</text></svg><span class="nmrow"><span class="nm" data-player="${esc(n)}">${esc(n)}</span>${newPill(n)||RING_PILL_SPACE}</span></div>`;
+    return `<div class="ring${full?" full glow":""}" style="--gc:${col}"><svg viewBox="0 0 84 84" role="img" aria-label="${esc(n)} ${p}%">${full?ringGlow("rgr"+i,col):""}<circle class="rt" cx="42" cy="42" r="${R}"/><circle class="rv" cx="42" cy="42" r="${R}" stroke="${col}" stroke-dasharray="${C.toFixed(1)}" stroke-dashoffset="${(C*(1-p/100)).toFixed(1)}"/><text x="42" y="42">${p%1===0?p:p.toFixed(1)}%</text></svg><span class="nmrow"><span class="nm" data-player="${esc(n)}">${esc(n)}</span>${newPill(n)||RING_PILL_SPACE}</span></div>`;
   }).join("");
   {const Y=52, from=DATA_WEEK-Y+1;
    const yr=PLAYERS.map(p=>{const b=presOf(p);let c=0;for(let w=from;w<=DATA_WEEK;w++)if(b[w-PRES_START]==="1")c++;return [p[0],c,p[3]]}).filter(x=>x[1]>0).sort((a,b)=>b[1]-a[1]||b[2]-a[2]).slice(0,20);
    const W1=WEEKS[from-1], W2=WEEKS[DATA_WEEK-1];
    $("yr-sub").textContent=`Top 20 · weeks played out of the last ${Y} (weeks ${from}–${DATA_WEEK}${W1&&W2?", "+fmtShort(W1[1])+" "+W1[1].slice(0,4)+" – "+fmtShort(W2[1])+" "+W2[1].slice(0,4):""})`;
-   $("yrings").innerHTML=yr.map(([n,c])=>{const p=c/Y*100, col=p>=75?"var(--s-green)":p>=50?"var(--s-blue)":p>=25?"var(--s-orange)":"var(--s-red)";
-     return `<div class="ring${c>=Y?" glow":""}" style="--gc:${col}"${c>=Y?` data-tip="Played all ${Y} of the last ${Y} weeks"`:""}><svg viewBox="0 0 84 84" role="img" aria-label="${esc(n)} ${c} of ${Y} weeks"><circle class="rt" cx="42" cy="42" r="${R}"/><circle class="rv" cx="42" cy="42" r="${R}" stroke="${col}" stroke-dasharray="${C.toFixed(1)}" stroke-dashoffset="${(C*(1-c/Y)).toFixed(1)}"/><text x="42" y="38">${c}</text><text class="of" x="42" y="54">of ${Y}</text></svg><span class="nmrow"><span class="nm" data-player="${esc(n)}">${esc(n)}</span>${newPill(n)||RING_PILL_SPACE}</span></div>`}).join("");}
+   $("yrings").innerHTML=yr.map(([n,c],i)=>{const p=c/Y*100, col=p>=75?"var(--s-green)":p>=50?"var(--s-blue)":p>=25?"var(--s-orange)":"var(--s-red)";
+     return `<div class="ring${c>=Y?" glow":""}" style="--gc:${col}"${c>=Y?` data-tip="Played all ${Y} of the last ${Y} weeks"`:""}><svg viewBox="0 0 84 84" role="img" aria-label="${esc(n)} ${c} of ${Y} weeks">${c>=Y?ringGlow("rgy"+i,col):""}<circle class="rt" cx="42" cy="42" r="${R}"/><circle class="rv" cx="42" cy="42" r="${R}" stroke="${col}" stroke-dasharray="${C.toFixed(1)}" stroke-dashoffset="${(C*(1-c/Y)).toFixed(1)}"/><text x="42" y="38">${c}</text><text class="of" x="42" y="54">of ${Y}</text></svg><span class="nmrow"><span class="nm" data-player="${esc(n)}">${esc(n)}</span>${newPill(n)||RING_PILL_SPACE}</span></div>`}).join("");}
   {const list=PLAYERS.filter(p=>isNewPlayer(p[0])&&(!activeOnly||pAct(p))).sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0]));
    $("new-h").textContent="New in past year";
    $("new-sub").textContent=`${list.length} player${list.length===1?"":"s"} joined in the last ${NEW_WINDOW} weeks · newest first`;
