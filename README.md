@@ -27,6 +27,10 @@ The whole app is one self-contained `index.html`. It has no build step, no serve
 - Boxes with something in them get a glowing rim: gold for New medals, red for Rivals, green for New this week, a starry rim for Anniversaries, a tropical rim (with a swaying palm) for Back from a break, amber for Streaks at stake and a gloomy rainy blue for Streaks that ended.
 - **Rivals**, split into Lead, Rhythm and Bass (dead-even pairs get a glowing rim): each player's closest match within their own rank on that path: the opponent with the smallest average % gap on the ranked challenges they both played. Playing up or down and God challenges don't count.
 
+### 📊 Rankings
+- **Rodman’s Rankings**, straight from the *Rodman´s Rankings* tab of the scoreboard sheet: the leaderboard for the last 10 weeks (1st–4th place on a challenge scores 10/5/3/1 points), for every path and level, with each player's rank change since last week.
+- Filter by **All paths / Lead / Rhythm / Bass**. Click a name to open their Player lookup.
+
 ### 🏆 Winners
 - Switch between **All paths / Lead / Rhythm / Bass**.
 - **Seasons**: pick a year (or All time) to see that year's Hall of fame, Most wins, Win rates and Rank changes. Winner lookup follows the season too.
@@ -125,6 +129,7 @@ What it reads from the sheet (it must stay shared as *Anyone with the link can v
 |---|---|
 | `WeekNNN` tabs | Scores, wins, medals, classes (from name colors) and who played each week |
 | `PlayersList` | Lead / Rhythm / Bass classes. Every name on a scoreboard counts as a player, listed or not; brand-new names are listed in the build log in case one is a typo |
+| `Rodman´s Rankings` | The Rankings page |
 | `Schedule` | Week numbers, start dates and hosts, including upcoming bookings (*Week \| Start Date \| Host*) |
 
 Attendance and play streaks only count weeks where a player actually submitted a score: a score that simply carries over on a multi-week God challenge (identical to the week before) doesn't count.

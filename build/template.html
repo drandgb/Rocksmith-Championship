@@ -396,7 +396,7 @@ button.clear.sblatest:hover{background:var(--accent);color:var(--accent-ink)}
 .wpres i.np{background:repeating-linear-gradient(45deg,var(--lost) 0 2px,var(--panel2) 2px 4px)}
 #view-songs .brow.notag{grid-template-columns:1.6em minmax(90px,16em) minmax(40px,1fr) auto}
 #spath button{padding:10px 20px;font-size:.9rem}
-#spath .s-all[aria-pressed="true"]{background:var(--accent)}
+#spath .s-all[aria-pressed="true"],#rkpath .s-all[aria-pressed="true"]{background:var(--accent)}
 .tiers5{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:14px}
 @media (max-width:900px){.tiers5{grid-template-columns:repeat(auto-fit,minmax(180px,1fr))}}
 .tcol{border-top:3px solid var(--tc);background:linear-gradient(180deg,color-mix(in srgb,var(--tc) 10%,transparent),transparent 60%);border-radius:8px;padding:10px 10px 6px;min-width:0}
@@ -522,6 +522,28 @@ footer .updated{display:block;margin-top:4px}
 .panel.amber{border-color:color-mix(in srgb,#ffb020 70%,var(--line));box-shadow:0 0 0 1px rgba(255,176,32,.25),0 0 14px rgba(255,160,40,.28),inset 0 0 18px rgba(255,160,40,.06)}
 @media (prefers-reduced-motion:no-preference){.panel.amber{animation:amberglow 3.2s ease-in-out infinite}}
 @keyframes amberglow{0%,100%{box-shadow:0 0 0 1px rgba(255,176,32,.22),0 0 10px rgba(255,160,40,.22),inset 0 0 16px rgba(255,160,40,.05)}50%{box-shadow:0 0 0 1px rgba(255,190,60,.4),0 0 20px rgba(255,160,40,.4),inset 0 0 22px rgba(255,160,40,.09)}}
+/* Rodman's Rankings */
+.rkbody{display:flex;flex-direction:column;gap:20px}
+.rkpath{border-top:3px solid var(--pc)}
+.rkpath>.panel-head h2{color:var(--pc)}
+.rklevels{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+@media (max-width:1000px){.rklevels{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:560px){.rklevels{grid-template-columns:minmax(0,1fr)}}
+.rklv{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px 12px;min-width:0}
+.rklv h3{font:700 .8rem var(--f-display);letter-spacing:.1em;text-transform:uppercase;color:var(--tc);margin:0 0 8px;display:flex;justify-content:space-between;align-items:baseline}
+.rklv h3 small{color:var(--muted);font:400 .72rem var(--f-body);letter-spacing:0;text-transform:none}
+.rklv ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px}
+.rklv li{display:grid;grid-template-columns:24px minmax(0,1fr) auto 3.4em;gap:8px;align-items:center;font-size:.86rem;padding:3px 0}
+.rklv li .rr{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;font:700 .72rem var(--f-display);color:var(--muted)}
+.rklv li.p1 .rr,.rklv li.p2 .rr,.rklv li.p3 .rr{color:#10131a;background:radial-gradient(circle at 35% 30%,color-mix(in srgb,var(--rkm) 45%,#fff),var(--rkm) 65%);box-shadow:0 0 6px color-mix(in srgb,var(--rkm) 45%,transparent)}
+.rklv li.p1{--rkm:#f5c84a}.rklv li.p2{--rkm:#c9d0dc}.rklv li.p3{--rkm:#d8925a}
+.rklv li .nm{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer}
+.rklv li .nm:hover{text-decoration:underline}
+.rklv li .pts{font:700 .9rem var(--f-display);font-variant-numeric:tabular-nums;text-align:right}
+.rklv li .chg{font:700 .74rem var(--f-mono);text-align:right;color:var(--dim)}
+.rklv li .chg.up{color:var(--s-green)}.rklv li .chg.down{color:var(--s-red)}.rklv li .chg.new{color:var(--s-purple)}
+.rklv li.out{opacity:.5}.rklv li.out .nm{text-decoration:line-through}
+.rklv .empty{padding:4px 0;font-size:.82rem}
 .twgrid4{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));gap:20px;align-items:start}
 .twstack{display:flex;flex-direction:column;gap:20px;min-width:0}
 .twpaths{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:16px;align-items:start}
@@ -642,6 +664,7 @@ footer{color:var(--dim);font-size:.78rem}
 
   <nav class="tabs" role="tablist" aria-label="Pages">
     <button type="button" role="tab" id="tab-thisweek" data-view="thisweek" aria-selected="false">This Week</button>
+    <button type="button" role="tab" id="tab-rankings" data-view="rankings" aria-selected="false">Rankings</button>
     <button type="button" role="tab" id="tab-winners" data-view="winners" aria-selected="true">Winners</button>
     <button type="button" role="tab" id="tab-players" data-view="players" aria-selected="false">Players</button>
     <button type="button" role="tab" id="tab-hosting" data-view="hosting" aria-selected="false">Hosts</button>
@@ -810,6 +833,20 @@ footer{color:var(--dim);font-size:.78rem}
       <ul class="twl" id="tw-dng"></ul>
     </section>
   </div>
+  </div>
+
+  <div class="view" id="view-rankings" role="tabpanel" aria-labelledby="tab-rankings" hidden>
+  <section class="panel rkhead">
+    <div class="panel-head"><h2>Rodman’s Rankings</h2><span class="sub" id="rk-sub"></span></div>
+    <div class="twstats" id="rk-stats"></div>
+  </section>
+  <div class="wpathbar"><div class="seg" role="radiogroup" aria-label="Path" id="rkpath">
+    <button type="button" data-rk="-1" class="s-all" aria-pressed="true">All paths</button>
+    <button type="button" data-rk="0" class="s-lead" aria-pressed="false">Lead</button>
+    <button type="button" data-rk="1" class="s-rhy" aria-pressed="false">Rhythm</button>
+    <button type="button" data-rk="2" class="s-bass" aria-pressed="false">Bass</button>
+  </div></div>
+  <div id="rk-body" class="rkbody"></div>
   </div>
 
   <div class="view" id="view-winners" role="tabpanel" aria-labelledby="tab-winners">
@@ -1478,14 +1515,14 @@ $("tl").addEventListener("click",e=>{
 });
 
 function showView(v){
-  ["thisweek","hosting","players","winners","scores","songs"].forEach(k=>{const on=k===v;$("view-"+k).hidden=!on;$("tab-"+k).setAttribute("aria-selected",on)});
+  ["thisweek","rankings","hosting","players","winners","scores","songs"].forEach(k=>{const on=k===v;$("view-"+k).hidden=!on;$("tab-"+k).setAttribute("aria-selected",on)});
   tip.hidden=true;
-  $("pfilter").hidden=v==="scores"||v==="songs"||v==="thisweek";
+  $("pfilter").hidden=v==="scores"||v==="songs"||v==="thisweek"||v==="rankings";
   if(v==="thisweek"&&window.__twReady)renderThisWeek();
   if(v==="hosting"){renderUpcoming(); if(!logScrolled)requestAnimationFrame(scrollLogToCurrent)}
 }
 document.querySelector(".tabs").addEventListener("click",e=>{const b=e.target.closest("button[data-view]");if(b)showView(b.dataset.view)});
-{const H={"#thisweek":"thisweek","#hosts":"hosting","#players":"players","#winners":"winners","#scoreboard":"scores","#songs":"songs"};let v=H[location.hash]||null; showView(["thisweek","hosting","scores","winners","songs","players"].includes(v)?v:"thisweek");}
+{const H={"#thisweek":"thisweek","#rankings":"rankings","#hosts":"hosting","#players":"players","#winners":"winners","#scoreboard":"scores","#songs":"songs"};let v=H[location.hash]||null; showView(["thisweek","rankings","hosting","scores","winners","songs","players"].includes(v)?v:"thisweek");}
 const SB=__SCORES__;
 // ---------- win rates & rank-ups (from scoreboards, weeks 440+) ----------
 const WR=__WINS__;
@@ -2012,7 +2049,7 @@ $("view-songs").addEventListener("mouseleave",()=>tip.hidden=true);
 
 // ---------- floating bubble showing which filters are on in the current tab ----------
 const fbub=document.createElement("div"); fbub.id="fbub"; fbub.setAttribute("role","status"); fbub.setAttribute("aria-live","polite"); fbub.hidden=true; document.body.appendChild(fbub);
-function curView(){return ["thisweek","hosting","players","winners","songs","scores"].find(k=>!$("view-"+k).hidden)}
+function curView(){return ["thisweek","rankings","hosting","players","winners","songs","scores"].find(k=>!$("view-"+k).hidden)}
 function activeFilters(){
   const v=curView(), f=[];
   if((v==="hosting"||v==="players"||v==="winners")&&activeOnly)f.push(["Active players only",()=>setActiveOnly(false)]);
@@ -2413,6 +2450,28 @@ $("view-thisweek").addEventListener("click",e=>{
   if(on){m.classList.add("act"); tip.textContent=m.dataset.tip; tip.hidden=false; const r=m.getBoundingClientRect(); placeTip(r.left+r.width/2,r.bottom)}
   else tip.hidden=true;
 });
+// ---------- Rodman's Rankings (from the "Rodman's Rankings" tab of the scoreboard sheet) ----------
+const RK=__RANKINGS__;
+let rkPath=-1;
+function renderRankings(){
+  document.querySelectorAll("#rkpath button").forEach(b=>b.setAttribute("aria-pressed",+b.dataset.rk===rkPath));
+  $("rk-sub").textContent=RK.weeks?`Weeks ${RK.weeks}${RK.updated?` · updated ${RK.updated}`:""}`:"Not available";
+  const L=RK.listed||[];
+  $("rk-stats").innerHTML=(RK.rules?`<span>${esc(RK.rules.replace(/^Rules:\s*/i,"Points: "))}</span>`:"")+(L[0]?`<span><b>${esc(L[0])}</b> players listed</span>`:"")+["Lead","Rhythm","Bass"].map((k,i)=>L[i+1]?`<span><b>${esc(L[i+1])}</b> ${k.toLowerCase()}</span>`:"").join("");
+  const LT={Beginner:"B",Intermediate:"I",Advanced:"A",Masterclass:"M"};
+  $("rk-body").innerHTML=(RK.paths||[]).filter(p=>rkPath<0||PATHS.indexOf(p.path)===rkPath).map(p=>{const pi=PATHS.indexOf(p.path);
+    return `<section class="panel rkpath" style="--pc:${PATH_C[pi]}"><div class="panel-head"><h2>${esc(p.path)}</h2><span class="sub">${p.levels.reduce((a,l)=>a+l.rows.filter(r=>r[3]!=="Out").length,0)} ranked</span></div><div class="rklevels">${p.levels.map(l=>{
+      const tc=TIER_C[LT[l.level]]||"var(--fg)";
+      return `<div class="rklv" style="--tc:${tc}"><h3>${esc(l.level)}<small>${l.rows.filter(r=>r[3]!=="Out").length} players</small></h3>${l.rows.length?`<ol>${l.rows.map(([rk,n,pts,ch])=>{
+        const out=ch==="Out", cls=out?"out":rk==="1"?"p1":rk==="2"?"p2":rk==="3"?"p3":"";
+        const cc=/↑/.test(ch)?"up":/↓/.test(ch)?"down":/new/i.test(ch)?"new":"";
+        const tipc=/↑/.test(ch)?`Up ${ch.replace(/\D/g,"")} since last week`:/↓/.test(ch)?`Down ${ch.replace(/\D/g,"")} since last week`:/new/i.test(ch)?"New in the rankings this week":out?"Dropped out of the last 10 weeks":"No change";
+        return `<li class="${cls}"><span class="rr">${esc(rk)}</span><span class="nm" data-name="${esc(n)}"${byName[n]?` data-goplayer="${esc(n)}"`:""}>${esc(n)}</span><span class="pts">${esc(pts)}</span><span class="chg ${cc}" data-tip="${tipc}">${esc(ch)}</span></li>`}).join("")}</ol>`:`<div class="empty">Nobody ranked</div>`}</div>`}).join("")}</div></section>`}).join("")||`<div class="empty">The rankings tab wasn't found in the sheet.</div>`;
+}
+$("rkpath").addEventListener("click",e=>{const b=e.target.closest("button[data-rk]");if(b){rkPath=+b.dataset.rk;renderRankings()}});
+$("view-rankings").addEventListener("mousemove",e=>{const p=e.target.closest("[data-tip]");if(!p){tip.hidden=true;return}tip.textContent=p.dataset.tip;tip.hidden=false;placeTip(e.clientX,e.clientY)});
+$("view-rankings").addEventListener("mouseleave",()=>tip.hidden=true);
+renderRankings();
 window.__twReady=true;
 if(curView()==="thisweek")renderThisWeek();
 </script>
