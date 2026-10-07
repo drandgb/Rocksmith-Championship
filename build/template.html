@@ -465,8 +465,9 @@ footer .updated{display:block;margin-top:4px}
 .evenbadge{flex-basis:100%;order:-1;font:700 .62rem var(--f-display);letter-spacing:.1em;text-transform:uppercase;color:#ffd36e;text-shadow:0 0 8px rgba(255,211,110,.6)}
 @media (prefers-reduced-motion:no-preference){.twl li.riv.even{animation:evenrim 4s linear infinite}}
 @keyframes evenrim{0%{background-position:0 0,0% 50%;box-shadow:0 0 12px rgba(255,126,182,.55),0 0 26px rgba(143,123,255,.4)}50%{background-position:0 0,100% 50%;box-shadow:0 0 16px rgba(63,208,224,.6),0 0 32px rgba(255,211,110,.45)}100%{background-position:0 0,0% 50%;box-shadow:0 0 12px rgba(255,126,182,.55),0 0 26px rgba(143,123,255,.4)}}
-.ups .pill[data-hl]:hover{color:var(--fg)}
-.ups .pill.act{color:var(--fg);border-color:var(--fg);background:color-mix(in srgb,var(--accent) 18%,var(--panel2))}
+.ups .pill.rkpath{color:var(--pc);border-color:color-mix(in srgb,var(--pc) 55%,transparent);background:color-mix(in srgb,var(--pc) 14%,transparent)}
+.ups .pill.rkpath:hover{background:color-mix(in srgb,var(--pc) 24%,transparent)}
+.ups .pill.rkpath.act{color:#10131a;background:var(--pc);border-color:var(--pc)}
 #twsb{border-radius:999px;padding:7px 16px;font-weight:700;color:#1a1406;background:var(--s-orange);border:1px solid var(--s-orange);box-shadow:0 0 12px color-mix(in srgb,var(--s-orange) 40%,transparent);cursor:pointer}
 #twsb:hover{filter:brightness(1.1)}
 @media (max-width:640px){#twsb{order:10;flex:1 1 100%;max-width:92%;margin:4px auto 0;text-align:center;padding:9px 16px}}
@@ -1320,7 +1321,7 @@ function showPlayer(name){
         <div${D.first?` data-hl="${D.first}" data-tip="Click to highlight Week ${D.first}"`:""}><small>First week</small><b>${D.first??"–"}</b>${dfw?`<span class="sub"> · ${fmt(dfw[1])}</span>`:""}</div>
         <div><small>Play rate</small><b>${(D.rate*100).toFixed(D.rate>=1?0:1)}%</b></div>
       </div>
-      ${(()=>{const u=WR.ups.filter(x=>x[0]===n).sort((a,b)=>a[4]-b[4]);return u.length?`<div class="ups">Rank changes: ${u.map(([,p,a,b,w])=>`<span class="pill hol" data-hl="${w}" data-tip="Click to highlight Week ${w}" style="cursor:pointer">${PATHS[p]} ${a}${"BIAM".indexOf(b)<"BIAM".indexOf(a)?"↘":"↗"}${b} · wk ${w}</span>`).join("")}</div>`:""})()}
+      ${(()=>{const u=WR.ups.filter(x=>x[0]===n).sort((a,b)=>a[4]-b[4]);return u.length?`<div class="ups">Rank changes: ${u.map(([,p,a,b,w])=>`<span class="pill hol rkpath" data-hl="${w}" data-tip="Click to highlight Week ${w}" style="cursor:pointer;--pc:${PATH_C[p]}">${PATHS[p]} ${a}${"BIAM".indexOf(b)<"BIAM".indexOf(a)?"↘":"↗"}${b} · wk ${w}</span>`).join("")}</div>`:""})()}
       ${WR.wins[n]||hosts[n]?`<div class="golinks">${WR.wins[n]?`<button type="button" class="clear" data-wprofile="${esc(n)}">Open win profile ›</button>`:""}${hosts[n]?`<button type="button" class="clear" data-gohost="${esc(n)}">Open host profile ›</button>`:""}</div>`:""}
     </div>
     <div style="min-width:0">
