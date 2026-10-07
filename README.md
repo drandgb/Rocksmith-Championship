@@ -29,6 +29,7 @@ The whole app is one self-contained `index.html`. It has no build step, no serve
 
 ### 🏆 Winners
 - Switch between **All paths / Lead / Rhythm / Bass**.
+- **Seasons**: pick a year (or All time) to see that year's Hall of fame, Most wins, Win rates and Rank changes. Winner lookup follows the season too.
 - **Hall of fame** podium for the most challenge wins.
 - **🔥 Hot streaks**: players who won a challenge in each of the last 2+ weeks. 🔥🔥 means 5+ weeks and 🔥🔥🔥 means 10+.
 - **Most wins** and **Win rates** (top 20). Hover a win-rate bar to see wins vs. entries.
