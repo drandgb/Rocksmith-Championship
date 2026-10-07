@@ -977,7 +977,7 @@ footer{color:var(--dim);font-size:.78rem}
 
   <footer>Data: Rodman’s Rocksmith 2014 Championship Google Sheets (older attendance also from the Championship Metrics workbook). Player stats run through week 675; scoreboards cover weeks 440–676. Weeks 1–16 have no recorded host in the source.
   <span class="updated disclaimer">Unofficial fan project. Not affiliated with Ubisoft or Rocksmith.</span>
-  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-07T18:22:52+00:00">October 7, 2026</span></span>
+  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-07T18:44:41+00:00">October 7, 2026</span></span>
   </footer>
 </div>
 <div class="tip" id="tip" hidden></div>
@@ -1945,7 +1945,12 @@ function renderSongs(){
   Object.entries(SB.weeks).forEach(([w,ch])=>ch.forEach(c=>{ if(sPath>=0&&c[0]!==sPath)return; if(!c[3]||/^n\/a$/i.test(c[3]))return; const t=tierOf(c[2]); if(!t)return; const [artist,title]=splitSong(c[3]); cards.push({w:+w,p:c[0],t:tierByRating(t,c[4]),card:t,artist,title,song:c[3],diff:c[4],n:c[6].length,who:c[6].map(e=>SB.names[e[0]].replace(/[*~]+$/,""))}); }));
   SONGS_OLD.forEach(([w,p,t,b,song,diff])=>{ if(sPath>=0&&p!==sPath)return; const [artist,title]=splitSong(song); cards.push({w,p,t:tierByRating(t,diff),card:t,artist,title,song,diff,n:null}); });
   // host filter: only songs from weeks this host hosted
-  if(sHost){const hw=new Set(WEEKS.filter(w=>w[2]===sHost).map(w=>w[0])); for(let i=cards.length-1;i>=0;i--)if(!hw.has(cards[i].w))cards.splice(i,1)}
+  // a God challenge that runs for several weeks was picked by the host of its first week, so the whole run counts for them
+  if(sHost){const hw=new Set(WEEKS.filter(w=>w[2]===sHost).map(w=>w[0]));
+    const gk=c=>c.p+"|"+c.song.toLowerCase().replace(/\s+/g," ").trim(), godW={};
+    cards.forEach(c=>{if(c.card==="G")(godW[gk(c)]=godW[gk(c)]||new Set()).add(c.w)});
+    const pickWeek=c=>{if(c.card!=="G")return c.w; const s=godW[gk(c)]; let w=c.w; while(s.has(w-1))w--; return w};
+    for(let i=cards.length-1;i>=0;i--)if(!hw.has(pickWeek(cards[i])))cards.splice(i,1)}
   $("shost").value=sHost||""; $("shost").closest("label").classList.toggle("on",!!sHost);
   // known band-name typos in the source sheets
   const ARTIST_FIX={};
