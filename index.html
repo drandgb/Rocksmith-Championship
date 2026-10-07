@@ -516,6 +516,12 @@ footer .updated{display:block;margin-top:4px}
 @media (prefers-reduced-motion:no-preference){.medal-m.perfect svg,.medal-m.classgem svg{animation:gemglow 2.6s ease-in-out infinite}}
 @keyframes gemglow{0%,100%{opacity:1}50%{opacity:.82}}
 .medal-m.wm{position:relative;width:28px;height:30px}
+.medal-m.pod,.medal-m.diamond{margin-right:9px}
+.medal-m.diamond svg{width:30px;height:30px;overflow:visible;filter:drop-shadow(0 0 3px var(--ec)) drop-shadow(0 0 9px var(--ec)) drop-shadow(0 0 16px rgba(199,125,255,.55))}
+.medal-m.diamond .spk{transform-box:fill-box;transform-origin:center;opacity:0}
+@media (prefers-reduced-motion:no-preference){.medal-m.diamond .spk{animation:sparkle 2.2s ease-in-out infinite}.medal-m.diamond .spk.s2{animation-delay:1.1s}.medal-m.diamond svg{animation:dglow 3s ease-in-out infinite}}
+@keyframes sparkle{0%,60%,100%{opacity:0;transform:scale(.3) rotate(0)}75%{opacity:1;transform:scale(1.2) rotate(45deg)}}
+@keyframes dglow{0%,100%{filter:drop-shadow(0 0 3px var(--ec)) drop-shadow(0 0 8px var(--ec)) drop-shadow(0 0 14px rgba(199,125,255,.45))}50%{filter:drop-shadow(0 0 5px #fff) drop-shadow(0 0 12px var(--ec)) drop-shadow(0 0 22px rgba(199,125,255,.75))}}
 .medal-m.wm svg{width:28px;height:30px;filter:drop-shadow(0 0 3px var(--ec)) drop-shadow(0 0 8px color-mix(in srgb,var(--ec) 55%,transparent))}
 .medal-m.wm::after{content:"";position:absolute;inset:2px 3px 4px;border-radius:40%;background:linear-gradient(115deg,transparent 35%,rgba(255,255,255,.6) 48%,transparent 60%);background-size:250% 100%;background-position:120% 0;pointer-events:none;mix-blend-mode:screen}
 @media (prefers-reduced-motion:no-preference){.medal-m.wm::after{animation:shine 3.4s ease-in-out infinite}.medal-m.wm:nth-child(3n+2)::after{animation-delay:.7s}.medal-m.wm:nth-child(3n)::after{animation-delay:1.4s}}
@@ -892,7 +898,7 @@ footer{color:var(--dim);font-size:.78rem}
 
   <footer>Data: Rodman’s Rocksmith 2014 Championship Google Sheets (older attendance also from the Championship Metrics workbook). Player stats run through week 675; scoreboards cover weeks 440–676. Weeks 1–16 have no recorded host in the source.
   <span class="updated disclaimer">Unofficial fan project. Not affiliated with Ubisoft or Rocksmith.</span>
-  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-07T14:13:02+00:00">October 7, 2026</span></span>
+  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-07T15:57:27+00:00">October 7, 2026</span></span>
   </footer>
 </div>
 <div class="tip" id="tip" hidden></div>
@@ -1552,7 +1558,29 @@ function tripleWeeks(name,done){
   return {reg};
 }
 function tieSvg(col){return `<svg viewBox="0 0 28 30" aria-hidden="true"><circle cx="14" cy="15" r="12" fill="${col}"/><path d="M14 3a12 12 0 0 1 0 24z" fill="rgba(0,0,0,.18)"/><rect x="8" y="11" width="12" height="2.6" rx="1.3" fill="#1a1406" opacity=".8"/><rect x="8" y="16.4" width="12" height="2.6" rx="1.3" fill="#1a1406" opacity=".8"/><path d="M6 10a9 9 0 0 1 6-5" stroke="rgba(255,255,255,.55)" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg>`}
-function winMedals(per,done,bestN,streak,total,trip,ties){
+// podium medals: how often a player finished 1st, 2nd or 3rd among eligible players on a challenge (completed weeks,
+// God challenges only in their final week). God challenges are counted separately and get diamonds.
+function podiumCounts(name,done,path=-1){
+  const out={reg:[[],[],[]],god:[[],[],[]]};
+  done.forEach(w=>(SB.weeks[w]||[]).forEach(card=>{
+    if(path>=0&&card[0]!==path)return; if(card[7])return;
+    const el=card[6].filter(x=>x[4]>=0).slice(0,3);
+    el.forEach((e,i)=>{if(SB.names[e[0]].replace(/[*~]+$/,"")===name)out[/^god|tribute/i.test(card[2])?"god":"reg"][i].push(w)});
+  }));
+  return out;
+}
+const POD_COL=["#f5c84a","#c9d0dc","#d8925a"], POD_NAME=["Gold","Silver","Bronze"], POD_PLACE=["1st","2nd","3rd"];
+function podSvg(col){return `<svg viewBox="0 0 28 30" aria-hidden="true"><path d="M8 0h5l2 8-4 2zM20 0h-5l-2 8 4 2z" fill="#4f7dff"/><circle cx="14" cy="19" r="10" fill="${col}"/><circle cx="14" cy="19" r="7.4" fill="none" stroke="rgba(0,0,0,.22)" stroke-width="1.2"/><path d="M10 14a7 7 0 0 1 6-2" stroke="rgba(255,255,255,.6)" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg>`}
+function diamondSvg(i){const tint=["#bff6ff","#e6ecf5","#ffd2b0"][i], deep=["#4fd6ff","#9aa6bb","#d8925a"][i];
+  return `<svg viewBox="0 0 30 30" aria-hidden="true"><defs><linearGradient id="dg${i}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff"/><stop offset=".35" stop-color="${tint}"/><stop offset=".7" stop-color="${deep}"/><stop offset="1" stop-color="#c77dff"/></linearGradient></defs><polygon points="8,4 22,4 29,12 15,28 1,12" fill="url(#dg${i})"/><polygon points="8,4 22,4 18.5,12 11.5,12" fill="rgba(255,255,255,.65)"/><polygon points="1,12 11.5,12 15,28" fill="rgba(255,255,255,.18)"/><polygon points="29,12 18.5,12 15,28" fill="rgba(60,0,120,.22)"/><polygon points="11.5,12 18.5,12 15,28" fill="rgba(255,255,255,.35)"/><polygon points="8,4 1,12 11.5,12" fill="rgba(255,255,255,.4)"/><polygon points="22,4 29,12 18.5,12" fill="rgba(80,40,160,.18)"/><polygon points="8,4 22,4 29,12 15,28 1,12" fill="none" stroke="rgba(255,255,255,.8)" stroke-width=".7"/><path class="spk" d="M24 1.5l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8z" fill="#fff"/><path class="spk s2" d="M4.5 18l.6 1.4 1.4.6-1.4.6-.6 1.4-.6-1.4-1.4-.6 1.4-.6z" fill="#fff"/></svg>`}
+function podiumMedals(pod){
+  const rows=[], reg=[], god=[];
+  pod.reg.forEach((ws,i)=>{if(ws.length)reg.push(`<span class="medal-m wm pod" style="--ec:${POD_COL[i]};cursor:pointer" data-hl="${[...new Set(ws)].join(",")}" data-tip="${POD_NAME[i]} medal · finished ${POD_PLACE[i]} on a challenge ${ws.length} time${ws.length===1?"":"s"} · click to highlight">${podSvg(POD_COL[i])}<b>${ws.length}</b></span>`)});
+  pod.god.forEach((ws,i)=>{if(ws.length)god.push(`<span class="medal-m wm diamond d${i}" style="--ec:${["#7fe9ff","#e6ecf5","#ffb27a"][i]};cursor:pointer" data-hl="${[...new Set(ws)].join(",")}" data-tip="${POD_NAME[i]} God diamond · finished ${POD_PLACE[i]} on a God challenge ${ws.length} time${ws.length===1?"":"s"} · click to highlight">${diamondSvg(i)}<b>${ws.length}</b></span>`)});
+  if(reg.length)rows.push(reg); if(god.length)rows.push(god);
+  return rows.map(r=>`<div class="medals">${r.join("")}</div>`).join("");
+}
+function winMedals(per,done,bestN,streak,total,trip,ties,pod){
   const rows=[], asc=done.slice().sort((a,b)=>a-b), rec=w=>w?` (collected Week ${w})`:"";
   const mk=(svg,num,tip)=>{const c=(svg.match(/fill="(#[0-9a-fA-F]{6})"/)||[])[1]||"#4fd6ff";return `<span class="medal-m wm" style="--ec:${c}" data-tip="${tip}">${svg}<b>${num}</b></span>`};
   const firstK=k=>asc.find(w=>per[w][1]>=k);
@@ -1565,7 +1593,7 @@ function winMedals(per,done,bestN,streak,total,trip,ties){
   if(ts.length)rows.push(ts.map((x,i)=>mk(coinSvg(tierCol(i,TOTAL_WIN_STEPS.length)),x,`${x}-win medal · won ${x}+ challenges${rec(totalAt(x))}`)));
   if(trip&&trip.reg.length)rows.push(trip.reg.map(w=>`<span class="medal-m wm" style="--ec:#ffc94f;cursor:pointer" data-hl="${w}" data-tip="Triple crown · won a challenge on Lead, Rhythm and Bass in the same week${rec(w)}">${crownSvg("#ffc94f")}<b>${w}</b></span>`));
   if(ties&&ties.length)rows.push(ties.slice().sort((a,b)=>a-b).map(w=>`<span class="medal-m wm" style="--ec:#ff7eb6;cursor:pointer" data-hl="${w}" data-tip="Close win medal · won on the tiebreak with the same % as the runner-up${rec(w)}">${tieSvg("#ff7eb6")}<b>${w}</b></span>`));
-  return rows.map(r=>`<div class="medals">${r.join("")}</div>`).join("");
+  return (pod?podiumMedals(pod):"")+rows.map(r=>`<div class="medals">${r.join("")}</div>`).join("");
 }
 function showWinner(name){
   const v=wv(name,wPath);
@@ -1628,7 +1656,7 @@ function showWinner(name){
       <div class="golinks"><button type="button" class="clear" data-profile="${esc(name)}">Open player profile ›</button>${hosts[name]?`<button type="button" class="clear" data-gohost="${esc(name)}">Open host profile ›</button>`:""}</div>
     </div>
     <div style="min-width:0">
-      ${winMedals(per,doneAll,A.best?per[A.best][1]:0,A.bestRun,v?v[1]:0,A.trip,A.ties)}
+      ${winMedals(per,doneAll,A.best?per[A.best][1]:0,A.bestRun,v?v[1]:0,A.trip,A.ties,podiumCounts(name,doneAll,wPath))}
       <div class="scroll"><div class="pres wpres${wYear?" yf":""}" id="wpres">${grid}</div></div>
       <div class="pres-legend wleg">${[["var(--wg1)","1 win",w=>per[w][1]===1],["var(--wg2)","2 wins",w=>per[w][1]===2],["var(--wg3)","3+ wins",w=>per[w][1]>=3],["#3a4254","Played, no win",w=>per[w][0]&&!per[w][1]],["repeating-linear-gradient(45deg,var(--lost) 0 2px,var(--panel2) 2px 4px)","Didn't play",w=>!per[w][0]]].map(([bg,lab,f])=>{const ws=doneAll.filter(f);return `<span${ws.length?` data-hl="${ws.join(",")}" title="Click to highlight these ${ws.length} week${ws.length===1?"":"s"}"`:""}><i class="sw" style="background:${bg}"></i>${lab}</span>`}).join("")}<span><i class="sw" style="background:repeating-linear-gradient(-45deg,color-mix(in srgb,var(--s-blue) 80%,transparent) 0 2px,var(--panel2) 2px 4px)"></i>This week</span></div>
     </div></div>`;
@@ -1960,7 +1988,7 @@ function allMedalsHtml(name){
     let best=null; done.forEach(w=>{if(per[w][1]>0&&(!best||per[w][1]>per[best][1]))best=w});
     let run=0,bestRun=0; done.slice().sort((a,b)=>a-b).forEach(w=>{run=per[w][1]>0?run+1:0; if(run>bestRun)bestRun=run});
     const ties=[]; done.forEach(w=>(SB.weeks[w]||[]).forEach(card=>{if(card[7])return;const el=card[6].filter(x=>x[4]>=0); if(el.length<2)return; if(SB.names[el[0][0]].replace(/[*~]+$/,"")!==name)return; if(Math.round((el[0][1]-el[1][1])*100)===0)ties.push(w)}));
-    const v=wv(name,-1), m=winMedals(per,done,best?per[best][1]:0,bestRun,v?v[1]:0,tripleWeeks(name,done),ties);
+    const v=wv(name,-1), m=winMedals(per,done,best?per[best][1]:0,bestRun,v?v[1]:0,tripleWeeks(name,done),ties,podiumCounts(name,done));
     if(m)html+=`<div class="ms">Win medals</div>${m}`;
   }
   return medalCache[name]=html;
