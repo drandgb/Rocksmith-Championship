@@ -68,6 +68,7 @@ The whole app is one self-contained `index.html`. It has no build step, no serve
   | Masterclass | 8–9.5 |
   | God tier | 10+ |
 
+- **Picked by**: pick a host to see only the songs from the weeks they hosted (their song picks). Every list and Band lookup follow it. Host lookup has a **Song picks ›** button that opens this.
 - **Band lookup** with level, path and song filters.
 - **Most played songs**: hover to see who played each song, grouped by week.
 - **Most replayed songs**.

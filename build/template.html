@@ -311,7 +311,10 @@ button.clear:hover{border-color:var(--accent)}
 .card .empty{padding:14px;color:var(--dim);font-size:.85rem}
 .card .aka{display:block;font-size:.7rem;color:var(--dim)}
 .legendline{color:var(--muted);font-size:.8rem;margin:0}
-.wpathbar{display:flex;justify-content:center}
+.wpathbar{display:flex;justify-content:center;align-items:center;gap:10px 16px;flex-wrap:wrap}
+.shostpick{display:flex;align-items:center;gap:8px;font-size:.82rem;color:var(--muted)}
+.shostpick select{background:var(--panel2);color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:6px 10px;font:inherit;max-width:60vw}
+.shostpick.on select{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
 #wpath button{padding:10px 20px;font-size:.9rem}
 #pfilter .s-all[aria-pressed="true"],#pfilter .s-act[aria-pressed="true"]{background:var(--s-green)}
 #pfilter button{padding:6px 12px;font-size:.75rem}
@@ -862,7 +865,7 @@ footer{color:var(--dim);font-size:.78rem}
     <button type="button" data-sp="0" class="s-lead" aria-pressed="false">Lead</button>
     <button type="button" data-sp="1" class="s-rhy" aria-pressed="false">Rhythm</button>
     <button type="button" data-sp="2" class="s-bass" aria-pressed="false">Bass</button>
-  </div></div>
+  </div><label class="shostpick"><span>Picked by</span><select id="shost" aria-label="Only songs picked by this host"><option value="">All hosts</option></select></label></div>
   <section class="now" id="songstats" aria-label="Song totals"></section>
 
   <div class="grid2 even">
@@ -1876,6 +1879,7 @@ const tierOf=l=>/^god/i.test(l)?"G":/master/i.test(l)?"M":/^adv/i.test(l)?"A":/^
 // level from the difficulty rating when there is one: under 4 Beginner, 4–5.5 Intermediate, 6–7.5 Advanced, 8–9.5 Masterclass, 10+ God tier
 const tierByRating=(t,d)=>d==null||d<=0?t:d<4?"B":d<6?"I":d<8?"A":d<10?"M":"G";
 const splitSong=t=>{const i=t.indexOf(" - ");return i>0?[t.slice(0,i).trim(),t.slice(i+3).trim()]:["Unknown",t.trim()]};
+let sHost=null; // Songs: only the weeks this host hosted (their song picks)
 let sPath=-1, songCards=[], bandName=null, bandTier=null, bandPathF=null, bandSong=null, lvlPlayed=null, lvlReplay=null;
 function renderSongs(){
   TIER_LABEL.G=sPath<0?"God tier":["God of Guitar","God of Rhythm","God of Bass"][sPath];
@@ -1883,6 +1887,9 @@ function renderSongs(){
   const cards=[];
   Object.entries(SB.weeks).forEach(([w,ch])=>ch.forEach(c=>{ if(sPath>=0&&c[0]!==sPath)return; if(!c[3]||/^n\/a$/i.test(c[3]))return; const t=tierOf(c[2]); if(!t)return; const [artist,title]=splitSong(c[3]); cards.push({w:+w,p:c[0],t:tierByRating(t,c[4]),card:t,artist,title,song:c[3],diff:c[4],n:c[6].length,who:c[6].map(e=>SB.names[e[0]].replace(/[*~]+$/,""))}); }));
   SONGS_OLD.forEach(([w,p,t,b,song,diff])=>{ if(sPath>=0&&p!==sPath)return; const [artist,title]=splitSong(song); cards.push({w,p,t:tierByRating(t,diff),card:t,artist,title,song,diff,n:null}); });
+  // host filter: only songs from weeks this host hosted
+  if(sHost){const hw=new Set(WEEKS.filter(w=>w[2]===sHost).map(w=>w[0])); for(let i=cards.length-1;i>=0;i--)if(!hw.has(cards[i].w))cards.splice(i,1)}
+  $("shost").value=sHost||""; $("shost").closest("label").classList.toggle("on",!!sHost);
   // known band-name typos in the source sheets
   const ARTIST_FIX={};
   cards.forEach(c=>{if(ARTIST_FIX[c.artist])c.artist=ARTIST_FIX[c.artist]});
@@ -1931,7 +1938,7 @@ function renderSongs(){
     const tipTxt=`${ti} — played ${np} times over ${ws.length} weeks\n`+lines.join("\n");
     return `<li data-tip="${esc(tipTxt)}"><div><b class="songlink" data-band="${esc(a)}" data-song="${esc(ti)}">${esc(ti)}</b><small><span data-band="${esc(a)}" class="bandlink">${esc(a)}</span> · first wk ${ws[0]} · latest wk ${ws[ws.length-1]}</small><div class="chips">${[...new Set(v.map(c=>c.t))].sort((x,y)=>TIER_ORDER.indexOf(x)-TIER_ORDER.indexOf(y)).map(t=>lvPill(t,"lvr",lvlReplay)).join("")}</div></div><span class="cnt"><b>${np}</b>times played</span></li>`}).join("")||`<li class="empty">No songs have been used in more than one week.</li>`;
   $("bqlist").innerHTML=Object.entries(bands).sort((a,b)=>b[1].length-a[1].length).map(([a])=>`<option value="${esc(a)}"></option>`).join("");
-  showBand(bandName&&bands[bandName]?bandName:featured[0][0]);
+  if(featured.length)showBand(bandName&&bands[bandName]?bandName:featured[0][0]); else $("bcard").innerHTML=`<div class="empty">No songs on record for ${esc(sHost||"this filter")}.</div>`;
   try{localStorage.setItem("rsc-spath",String(sPath))}catch(e){}
 }
 function showBand(name){
@@ -2005,6 +2012,7 @@ function activeFilters(){
     if(bandName&&bandSong)f.push([`Band lookup: ${bandSong}`,()=>{bandSong=null;showBand(bandName)}]);
     if(bandName&&bandPathF!=null)f.push([`Band lookup: ${PATHS[bandPathF]}`,()=>{bandPathF=null;showBand(bandName)}]);
   }
+  if(v==="songs"&&sHost)f.push([`Picked by: ${sHost}`,()=>{sHost=null;renderSongs()}]);
   if(v==="scores"&&sbFind)f.push([`Player: ${sbFind}`,()=>{sbFind="";$("sbfind").value="";sbRender()}]);
   return f;
 }
@@ -2124,7 +2132,7 @@ function showHost(name){
         <div${bestLen?` data-hl="${spanStr}" data-tip="(Week ${b[0]}${bestLen>1?`–${b[1]}`:""})"`:""}><small>Most in a row</small><b>${bestLen} wk${bestLen===1?"":"s"}</b></div>
         ${hYear?(()=>{const cnt={};WEEKS.forEach(([w,d,ho],i)=>{if(i<=curIdx&&d.slice(0,4)===hYear&&ho&&ho!==LOST)cnt[ho]=(cnt[ho]||0)+1});const rk=ws.length?1+Object.values(cnt).filter(n=>n>ws.length).length:null;return `<div><small>Rank in ${hYear}</small><b>${rk?"#"+rk:"–"}</b><span class="sub"> of ${Object.keys(cnt).length} host${Object.keys(cnt).length===1?"":"s"}</span></div>`})():`<div><small>Years hosting</small><b>${years.length}</b><span class="sub"> · ${yearsTxt}</span></div>`}
       </div>
-      ${byName[name]||WR.wins[name]?`<div class="golinks">${byName[name]?`<button type="button" class="clear" data-goplayer="${esc(name)}">Open player profile ›</button>`:""}${WR.wins[name]?`<button type="button" class="clear" data-gowin="${esc(name)}">Open win profile ›</button>`:""}</div>`:""}
+      ${byName[name]||WR.wins[name]?`<div class="golinks">${byName[name]?`<button type="button" class="clear" data-goplayer="${esc(name)}">Open player profile ›</button>`:""}${WR.wins[name]?`<button type="button" class="clear" data-gowin="${esc(name)}">Open win profile ›</button>`:""}<button type="button" class="clear" data-gosongs="${esc(name)}">Song picks ›</button></div>`:`<div class="golinks"><button type="button" class="clear" data-gosongs="${esc(name)}">Song picks ›</button></div>`}
       ${!hYear&&future.length?`<div class="ups">Coming up: ${future.map(w=>`<span class="pill hol">wk ${w} · ${fmt(WEEKS[w-1][1])}</span>`).join("")}</div>`:""}
     </div>
     <div style="min-width:0">
@@ -2239,6 +2247,12 @@ function addMedalHl(box){
  const _p=showPlayer; showPlayer=function(n){_p(n);addMedalHl($("pcard"))};
  const _h=showHost; showHost=function(n){_h(n);addMedalHl($("hcard"))};
  addMedalHl($("wcard")); addMedalHl($("pcard")); addMedalHl($("hcard"));}
+
+// ---------- Songs: filter to one host's song picks ----------
+$("shost").innerHTML=`<option value="">All hosts</option>`+hostList.map(h=>`<option value="${esc(h.name)}">${esc(h.name)} (${h.n})</option>`).join("");
+$("shost").addEventListener("change",e=>{sHost=e.target.value||null; bandName=null; renderSongs(); updateBubble()});
+document.addEventListener("click",e=>{const b=e.target.closest("[data-gosongs]"); if(!b)return; e.stopPropagation(); tip.hidden=true; mcard.hidden=true;
+  sHost=b.dataset.gosongs; bandName=null; showView("songs"); renderSongs(); updateBubble(); scrollTo({top:0})},true);
 
 // ---------- Refresh: re-download the page past the browser cache, then reload ----------
 $("refreshbtn").addEventListener("click",async()=>{
