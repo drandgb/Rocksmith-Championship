@@ -20,7 +20,7 @@ The whole app is one self-contained `index.html`. It has no build step, no serve
 - The page the site opens on (links ending in #winners, #players, #hosts, #songs or #scoreboard open that tab instead). Shows the current week; use ‹ › to step back through earlier weeks.
 - **Back from a break**: who played after missing last week, with the week they last played.
 - **New this week**: first-time players, with the rank they started at on each path.
-- **Anniversaries**: active players who first joined in this calendar week in an earlier year.
+- **Anniversaries**: players who first joined in this calendar week in an earlier year (only those active in the past year when "Active only" is on). ✓ playing means they played that week.
 - **Streaks at stake**: active play streaks with no score yet this week (on past weeks: streaks that ended).
 - **New medals** collected this week. Click one to ring it and show what it is for. While a week is still running, player medals are provisional and win medals are added once it ends.
 - An **Open scoreboard** button opens the week shown on the Scoreboard.
