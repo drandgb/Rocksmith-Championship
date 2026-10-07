@@ -279,8 +279,8 @@ button.clear:hover{border-color:var(--accent)}
 .seg button{background:var(--panel2);border:0;color:var(--muted);font:700 .85rem var(--f-display);letter-spacing:.08em;text-transform:uppercase;padding:8px 16px;cursor:pointer;border-right:1px solid var(--line)}
 .seg button:last-child{border-right:0}
 .seg button[aria-pressed="true"]{color:var(--bg)}
-.seg .s-lead[aria-pressed="true"]{background:var(--s-red)}
-.seg .s-rhy[aria-pressed="true"]{background:var(--s-yellow)}
+.seg .s-lead[aria-pressed="true"]{background:var(--s-orange)}
+.seg .s-rhy[aria-pressed="true"]{background:var(--s-green)}
 .seg .s-bass[aria-pressed="true"]{background:var(--s-blue)}
 #sbfind{background:var(--panel2);color:var(--fg);border:1px solid var(--line);border-radius:6px;padding:7px 10px;font:inherit;font-size:.88rem;flex:0 1 240px;min-width:0}
 .sbstats{display:flex;flex-wrap:wrap;gap:8px 22px;font-size:.85rem;color:var(--muted)}
@@ -506,6 +506,8 @@ footer .updated{display:block;margin-top:4px}
 .twgrid4{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));gap:20px;align-items:start}
 .twstack{display:flex;flex-direction:column;gap:20px;min-width:0}
 .twpaths{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:16px;align-items:start}
+.twpath li.riv:not(.even){border-color:color-mix(in srgb,var(--pc) 45%,var(--line));background:linear-gradient(135deg,color-mix(in srgb,var(--pc) 12%,var(--panel2)),var(--panel2) 70%);box-shadow:inset 3px 0 0 var(--pc)}
+.twpath li.riv .vs{color:var(--pc)}
 .twpath h3{font:700 .85rem var(--f-display);letter-spacing:.08em;text-transform:uppercase;margin:0 0 8px;padding-left:8px;border-left:3px solid var(--pc)}
 .stats .rivbox{grid-column:1/-1;box-shadow:inset 3px 0 0 var(--pc);cursor:help}
 .stats .rivbox[data-hl]{cursor:pointer}
@@ -695,7 +697,7 @@ footer{color:var(--dim);font-size:.78rem}
     <div class="podium" id="podium"></div>
   </section>
 
-  <section class="panel">
+  <section class="panel glowrim starry lit" style="--rc:#ffd36e">
     <div class="panel-head"><h2>Perfect attendance</h2><span class="sub">Never missed a week since joining</span></div>
     <div class="badges" id="perfect"></div>
   </section>
@@ -1466,7 +1468,7 @@ const SB=__SCORES__;
 // ---------- win rates & rank-ups (from scoreboards, weeks 440+) ----------
 const WR=__WINS__;
 const TIER_NAME={B:"Beginner",I:"Intermediate",A:"Advanced",M:"Masterclass"};
-const PATHS=["Lead","Rhythm","Bass"], PATH_C=["var(--s-red)","var(--s-yellow)","var(--s-blue)"];
+const PATHS=["Lead","Rhythm","Bass"], PATH_C=["var(--s-orange)","var(--s-green)","var(--s-blue)"];
 let wPath=-1;
 const PATH_WORD=["lead","rhythm","bass"];
 const wv=(n,p)=>{const v=WR.wins[n];if(!v)return null;return p<0?v.reduce((a,x)=>[a[0]+x[0],a[1]+x[1],a[2]+x[2]],[0,0,0]):v[p]};
@@ -1569,7 +1571,7 @@ function trophiesSvg(col,k){
 }
 function boltSvg(col){return `<svg viewBox="0 0 28 30" aria-hidden="true"><circle cx="14" cy="15" r="12" fill="${col}"/><path d="M16 4 8 17h6l-2 9 8-13h-6z" fill="#1a1406" opacity=".8"/></svg>`}
 function coinSvg(col){return `<svg viewBox="0 0 28 30" aria-hidden="true"><path d="M8 0h5l2 8-4 2zM20 0h-5l-2 8 4 2z" fill="var(--s-red)"/><circle cx="14" cy="19" r="10" fill="${col}"/><path d="M14 12l2 4.2 4.6.6-3.3 3.2.8 4.6-4.1-2.2-4.1 2.2.8-4.6-3.3-3.2 4.6-.6z" fill="rgba(0,0,0,.25)"/></svg>`}
-function crownSvg(col){return `<svg viewBox="0 0 28 30" aria-hidden="true"><path d="M3 10l5.5 5L14 6l5.5 9L25 10l-2.5 14h-17z" fill="${col}"/><rect x="5.5" y="23" width="17" height="3.5" rx="1" fill="${col}"/><circle cx="9" cy="20" r="1.8" fill="#ff5d6c"/><circle cx="14" cy="19.4" r="1.8" fill="#5be38a"/><circle cx="19" cy="20" r="1.8" fill="#4f9dff"/><path d="M6 11l2.5 2.3L12 8.5z" fill="rgba(255,255,255,.4)"/></svg>`}
+function crownSvg(col){return `<svg viewBox="0 0 28 30" aria-hidden="true"><path d="M3 10l5.5 5L14 6l5.5 9L25 10l-2.5 14h-17z" fill="${col}"/><rect x="5.5" y="23" width="17" height="3.5" rx="1" fill="${col}"/><circle cx="9" cy="20" r="1.8" fill="#ff9a3d"/><circle cx="14" cy="19.4" r="1.8" fill="#5be38a"/><circle cx="19" cy="20" r="1.8" fill="#4f9dff"/><path d="M6 11l2.5 2.3L12 8.5z" fill="rgba(255,255,255,.4)"/></svg>`}
 // weeks where the player won at least one challenge (any level, regular or bonus) on each of Lead, Rhythm and Bass
 function tripleWeeks(name,done){
   const reg=[];
