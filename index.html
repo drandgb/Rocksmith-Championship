@@ -282,7 +282,6 @@ button.clear:hover{border-color:var(--accent)}
 .seg .s-lead[aria-pressed="true"]{background:var(--s-orange)}
 .seg .s-rhy[aria-pressed="true"]{background:var(--s-green)}
 .seg .s-bass[aria-pressed="true"]{background:var(--s-blue)}
-#wseason button[aria-pressed="true"]{background:var(--accent)}
 #sbfind{background:var(--panel2);color:var(--fg);border:1px solid var(--line);border-radius:6px;padding:7px 10px;font:inherit;font-size:.88rem;flex:0 1 240px;min-width:0}
 .sbstats{display:flex;flex-wrap:wrap;gap:8px 22px;font-size:.85rem;color:var(--muted)}
 .sbstats b{color:var(--fg);font-family:var(--f-display);font-size:1.05rem}
@@ -313,6 +312,7 @@ button.clear:hover{border-color:var(--accent)}
 .card .aka{display:block;font-size:.7rem;color:var(--dim)}
 .legendline{color:var(--muted);font-size:.8rem;margin:0}
 .wpathbar{display:flex;justify-content:center;align-items:center;gap:10px 16px;flex-wrap:wrap}
+@media (max-width:480px){.wpathbar .seg{display:flex;max-width:100%}.wpathbar .seg button{flex:1 1 auto;min-width:0;white-space:nowrap;padding:8px 9px;font-size:.7rem;letter-spacing:.03em}}
 .shostpick{display:flex;align-items:center;gap:8px;font-size:.82rem;color:var(--muted)}
 .shostpick select{background:var(--panel2);color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:6px 10px;font:inherit;max-width:60vw}
 .shostpick.on select{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
@@ -818,7 +818,7 @@ footer{color:var(--dim);font-size:.78rem}
     <button type="button" data-rp="0" class="s-lead" aria-pressed="false">Lead</button>
     <button type="button" data-rp="1" class="s-rhy" aria-pressed="false">Rhythm</button>
     <button type="button" data-rp="2" class="s-bass" aria-pressed="false">Bass</button>
-  </div><div class="seg" role="radiogroup" aria-label="Season" id="wseason"></div></div>
+  </div><label class="shostpick"><span>Season</span><select id="wseason" aria-label="Season"></select></label></div>
   <section class="panel hof">
     <div class="panel-head"><h2>Hall of fame</h2><span class="sub" id="whof-sub"></span></div>
     <div class="podium" id="wpodium"></div>
@@ -940,7 +940,7 @@ footer{color:var(--dim);font-size:.78rem}
 
   <footer>Data: Rodman’s Rocksmith 2014 Championship Google Sheets (older attendance also from the Championship Metrics workbook). Player stats run through week 675; scoreboards cover weeks 440–676. Weeks 1–16 have no recorded host in the source.
   <span class="updated disclaimer">Unofficial fan project. Not affiliated with Ubisoft or Rocksmith.</span>
-  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-07T17:28:16+00:00">October 7, 2026</span></span>
+  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-07T17:33:01+00:00">October 7, 2026</span></span>
   </footer>
 </div>
 <div class="tip" id="tip" hidden></div>
@@ -1796,15 +1796,15 @@ function markHot(){
 }
 function renderWinners(){
   document.querySelectorAll("#wpath button").forEach(b=>b.setAttribute("aria-pressed",+b.dataset.rp===wPath));
-  document.querySelectorAll("#wseason button").forEach(b=>b.setAttribute("aria-pressed",(b.dataset.season||null)===wSeason));
+  $("wseason").value=wSeason||""; $("wseason").closest("label").classList.toggle("on",!!wSeason);
   renderWinnersPodium(); renderWins(); renderRankups();
   showWinner(wPicked&&wName?wName:winEntries().sort((a,b)=>b[1][1]-a[1][1])[0][0]);
   markHot();
   try{localStorage.setItem("rsc-wpath",String(wPath))}catch(e){}
 }
 {const ys=[...new Set(Object.keys(SB.weeks).map(Number).filter(w=>w<=DATA_WEEK).map(yearOfWeek))].filter(Boolean).sort().reverse();
- $("wseason").innerHTML=`<button type="button" data-season="" class="s-all" aria-pressed="true">All time</button>`+ys.map(y=>`<button type="button" data-season="${y}" aria-pressed="false">${y}</button>`).join("");}
-$("wseason").addEventListener("click",e=>{const b=e.target.closest("button[data-season]"); if(!b)return; wSeason=b.dataset.season||null; wYear=wSeason; renderWinners(); updateBubble()});
+ $("wseason").innerHTML=`<option value="">All time</option>`+ys.map(y=>`<option value="${y}">${y}</option>`).join("");}
+$("wseason").addEventListener("change",e=>{wSeason=e.target.value||null; wYear=wSeason; renderWinners(); updateBubble()});
 $("wpath").addEventListener("click",e=>{const b=e.target.closest("button[data-rp]");if(b){wPath=+b.dataset.rp;ruPath=wPath;renderWinners()}});
 $("rufilter").addEventListener("click",e=>{const b=e.target.closest("button[data-rp]");if(b){ruPath=+b.dataset.rp;renderRankups()}});
 // rank-up markers on the scoreboard: first week a player appears in their new class
