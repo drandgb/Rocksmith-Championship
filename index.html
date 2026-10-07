@@ -486,6 +486,19 @@ footer .updated{display:block;margin-top:4px}
 #twsb{border-radius:999px;padding:7px 16px;font-weight:700;color:#1a1406;background:var(--s-orange);border:1px solid var(--s-orange);box-shadow:0 0 12px color-mix(in srgb,var(--s-orange) 40%,transparent);cursor:pointer}
 #twsb:hover{filter:brightness(1.1)}
 @media (max-width:640px){#twsb{order:10;flex:1 1 100%;max-width:92%;margin:4px auto 0;text-align:center;padding:9px 16px}}
+/* This Week: colored glowing rims on boxes that have something in them */
+.panel.glowrim.lit{position:relative;border-color:color-mix(in srgb,var(--rc) 70%,var(--line));box-shadow:0 0 0 1px color-mix(in srgb,var(--rc) 25%,transparent),0 0 14px color-mix(in srgb,var(--rc) 30%,transparent)}
+@media (prefers-reduced-motion:no-preference){.panel.glowrim.lit{animation:rimglow 3.2s ease-in-out infinite}}
+@keyframes rimglow{0%,100%{box-shadow:0 0 0 1px color-mix(in srgb,var(--rc) 22%,transparent),0 0 10px color-mix(in srgb,var(--rc) 22%,transparent)}50%{box-shadow:0 0 0 1px color-mix(in srgb,var(--rc) 40%,transparent),0 0 22px color-mix(in srgb,var(--rc) 42%,transparent)}}
+.panel.starry.lit::before,.panel.starry.lit::after{content:"";position:absolute;inset:-4px;border-radius:12px;pointer-events:none;
+  background:radial-gradient(circle,#fff 0 1.2px,transparent 2.2px) 6% 0/auto no-repeat,radial-gradient(circle,#ffe9a8 0 1.4px,transparent 2.6px) 31% 0/auto no-repeat,radial-gradient(circle,#fff 0 1px,transparent 2px) 58% 0/auto no-repeat,radial-gradient(circle,#d6c8ff 0 1.3px,transparent 2.4px) 86% 0/auto no-repeat,
+    radial-gradient(circle,#fff 0 1.2px,transparent 2.2px) 100% 28%/auto no-repeat,radial-gradient(circle,#ffe9a8 0 1px,transparent 2px) 100% 71%/auto no-repeat,
+    radial-gradient(circle,#d6c8ff 0 1.3px,transparent 2.4px) 77% 100%/auto no-repeat,radial-gradient(circle,#fff 0 1.1px,transparent 2.2px) 44% 100%/auto no-repeat,radial-gradient(circle,#ffe9a8 0 1.4px,transparent 2.6px) 14% 100%/auto no-repeat,
+    radial-gradient(circle,#fff 0 1px,transparent 2px) 0 62%/auto no-repeat,radial-gradient(circle,#d6c8ff 0 1.2px,transparent 2.2px) 0 22%/auto no-repeat;
+  background-size:8px 8px}
+.panel.starry.lit::after{transform:scale(-1,-1);opacity:.6}
+@media (prefers-reduced-motion:no-preference){.panel.starry.lit::before{animation:twinkle 2.4s ease-in-out infinite}.panel.starry.lit::after{animation:twinkle 2.4s ease-in-out 1.2s infinite}}
+@keyframes twinkle{0%,100%{opacity:.25}50%{opacity:1}}
 /* amber glowing rim for the streak boxes */
 .panel.amber{border-color:color-mix(in srgb,#ffb020 70%,var(--line));box-shadow:0 0 0 1px rgba(255,176,32,.25),0 0 14px rgba(255,160,40,.28),inset 0 0 18px rgba(255,160,40,.06)}
 @media (prefers-reduced-motion:no-preference){.panel.amber{animation:amberglow 3.2s ease-in-out infinite}}
@@ -745,11 +758,11 @@ footer{color:var(--dim);font-size:.78rem}
     </div>
     <div class="twstats" id="tw-stats"></div>
   </section>
-  <section class="panel">
+  <section class="panel glowrim" style="--rc:#f5c84a">
     <div class="panel-head"><h2>🏅 New medals</h2><span class="sub" id="tw-med-sub"></span></div>
     <ul class="twl cols" id="tw-med"></ul>
   </section>
-  <section class="panel">
+  <section class="panel glowrim" style="--rc:#ff4f5e">
     <div class="panel-head"><h2>⚔️ Rivals</h2><span class="sub" id="tw-riv-sub"></span></div>
     <div class="twpaths" id="tw-riv"></div>
   </section>
@@ -759,11 +772,11 @@ footer{color:var(--dim);font-size:.78rem}
       <div class="panel-head"><h2>👋 Back from a break</h2><span class="sub" id="tw-back-sub"></span></div>
       <ul class="twl" id="tw-back"></ul>
     </section>
-    <section class="panel">
+    <section class="panel glowrim" style="--rc:#3fcf7a">
       <div class="panel-head"><h2>🌱 New this week</h2><span class="sub" id="tw-new-sub"></span></div>
       <ul class="twl" id="tw-new"></ul>
     </section>
-    <section class="panel">
+    <section class="panel glowrim starry" style="--rc:#c9b8ff">
       <div class="panel-head"><h2>🎂 Anniversaries</h2><span class="sub" id="tw-ann-sub"></span></div>
       <ul class="twl" id="tw-ann"></ul>
     </section>
@@ -903,7 +916,7 @@ footer{color:var(--dim);font-size:.78rem}
 
   <footer>Data: Rodman’s Rocksmith 2014 Championship Google Sheets (older attendance also from the Championship Metrics workbook). Player stats run through week 675; scoreboards cover weeks 440–676. Weeks 1–16 have no recorded host in the source.
   <span class="updated disclaimer">Unofficial fan project. Not affiliated with Ubisoft or Rocksmith.</span>
-  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-07T16:25:16+00:00">October 7, 2026</span></span>
+  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-07T16:29:12+00:00">October 7, 2026</span></span>
   </footer>
 </div>
 <div class="tip" id="tip" hidden></div>
@@ -2316,6 +2329,8 @@ function renderThisWeek(){
   $("tw-dng").innerHTML=dng.length?dng.map(x=>`<li>${twName(x.n)}<span class="rt ${x.k>=52?"crit":x.k>=10?"hot":""}">🔥 ${x.k}<small>week${x.k===1?"":"s"}</small></span></li>`).join(""):twEmpty(live?"Every active streak is safe this week. 🎉":"No streaks ended this week.");
   $("tw-med-sub").textContent=live?"Collected this week · player medals are provisional, win medals are added when the week ends":"Collected this week · click a medal to see what it is for";
   $("tw-med").innerHTML=med.length?med.map(x=>`<li>${twName(x.n)}<span class="dt">${twPl(x.m.length,"new medal")}</span><div class="medals">${x.m.join("")}</div></li>`).join(""):twEmpty("No new medals this week.");
+  const lit=(id,on)=>$(id).closest("section").classList.toggle("lit",!!on);
+  lit("tw-med",med.length); lit("tw-new",fresh.length); lit("tw-ann",ann.length); lit("tw-riv",SB.weeks[w]&&[0,1,2].some(pi=>Object.keys(rivalsOfWeek(w,pi)).length));
   $("tw-riv-sub").textContent=ents.length?"Each player's closest match within their own rank: smallest average % gap on the ranked challenges they both played (no playing up or down, no God challenges)":"";
   const r2=v=>Math.round(v*100)/100;
   $("tw-riv").innerHTML=!SB.weeks[w]?`<ul class="twl">${twEmpty(`No scoreboard for week ${w} (scoreboards start at week ${SB_W[0]}).`)}</ul>`:[0,1,2].map(pi=>{const pairs=pairsFor(pi);
