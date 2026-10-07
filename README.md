@@ -24,7 +24,7 @@ The whole app is one self-contained `index.html`. It has no build step, no serve
 - **Streaks at stake**: active play streaks with no score yet this week (on past weeks: streaks that ended).
 - **New medals** collected this week. Click one to ring it and show what it is for. While a week is still running, player medals are provisional and win medals are added once it ends.
 - An **Open scoreboard** button opens the week shown on the Scoreboard.
-- Boxes with something in them get a glowing rim: gold for New medals, red for Rivals, green for New this week and a starry rim for Anniversaries.
+- Boxes with something in them get a glowing rim: gold for New medals, red for Rivals, green for New this week, a starry rim for Anniversaries, a sunny vacation rim for Back from a break, amber for Streaks at stake and a gloomy rainy blue for Streaks that ended.
 - **Rivals**, split into Lead, Rhythm and Bass (dead-even pairs get a glowing rim): each player's closest match within their own rank on that path: the opponent with the smallest average % gap on the ranked challenges they both played. Playing up or down and God challenges don't count.
 
 ### 🏆 Winners
