@@ -33,7 +33,7 @@ The whole app is one self-contained `index.html`. It has no build step, no serve
 - **Most wins** and **Win rates** (top 20). Hover a win-rate bar to see wins vs. entries.
 - **Winner lookup**:
   - **Stats:** weeks with a win, total wins, best week, longest win streak, triple crowns, close wins (won on the tiebreak) and Lead, Rhythm and Bass rivals (the player who was most often their closest match within the same rank on that path; click to highlight those weeks).
-  - **Medals:** 🥇🥈🥉 gold, silver and bronze medals (how many times they finished 1st, 2nd or 3rd on a challenge), 💎 God diamonds (the same for God challenges), 🏆 best-week trophies, ⚡ win-streak bolts, 🎖️ total-win ribbons, 👑 triple crowns (won Lead, Rhythm and Bass in the same week) and 🟰 close-win medals.
+  - **Medals:** 🥇🥈🥉 gold, silver and bronze medals (how many times they finished 1st, 2nd or 3rd on a challenge), 💎 God diamonds (the same for God challenges), 🏆 best-week trophies, ⚡ win-streak bolts, 👑 triple crowns (won Lead, Rhythm and Bass in the same week) and 🟰 close-win medals.
   - **Week chart:** heat colors for 1, 2 and 3+ wins.
   - **Year filter:** click a year label to see that year's stats only.
 - **Rank changes**: class promotions ↗ and demotions ↘ over the past year.
@@ -82,7 +82,7 @@ The whole app is one self-contained `index.html`. It has no build step, no serve
 ## Getting around
 
 - **Hover any name** on any tab to see all of that person's medals: player, win and host.
-- **Click a medal** in any lookup to highlight the week it was collected (rank-change pills in Player lookup do the same). Click a streak, best week, crown or legend item to highlight those weeks.
+- **Click a medal** in any lookup to highlight the week it was collected (streak medals highlight the whole run of weeks) (rank-change pills in Player lookup do the same). Click a streak, best week, crown or legend item to highlight those weeks.
 - **Click a week** in a lookup chart, Rank changes, the Week log or the host leaderboard to open it on the Scoreboard.
 - **Jump between lookups**: Player, Winner and Host lookup link to each other.
 - **"Filters on" bubble**: shows which filters are active on the current tab. Click ✕ to clear one, or *Clear all*.
