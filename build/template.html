@@ -112,6 +112,9 @@ button.forum{background:none;cursor:pointer;font:inherit;font-size:.85rem}
 .log tr.cur td{background:color-mix(in srgb,var(--accent) 10%,transparent)}
 .dimtxt{color:var(--dim);font-style:italic}
 
+#filterbar{display:none !important} /* the "Filters on" bubble already shows and clears the host filter */
+.nowlink{cursor:pointer;transition:background .15s}
+.nowlink:hover{background:color-mix(in srgb,var(--accent) 10%,var(--panel))}
 .filterbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:.88rem}
 .hmedals{flex-basis:100%}
 .medals.yrm{gap:4px 11px;padding-right:8px}
@@ -975,8 +978,8 @@ function renderNow(){
   const openNote=openM.length?openM.map(w=>fmtShort(w[1])).join(", "):"Every week has a host";
   const curHost=cur[2]&&cur[2]!==LOST?`<span data-name="${esc(cur[2])}">${esc(cur[2])}</span>`:'<span class="pill open">NEEDS HOST</span>';
   $("now").innerHTML=`
-   <div><div class="k">This week</div><div class="v num">Week ${cur[0]}</div><div class="n">Started ${fmt(cur[1])}</div></div>
-   <div><div class="k">Current host</div><div class="v">${curHost}</div><div class="n">${hostRankNote()}</div></div>
+   <div class="nowlink" data-sbw="${cur[0]}" title="Open Week ${cur[0]} on the Scoreboard"><div class="k">This week</div><div class="v num">Week ${cur[0]}</div><div class="n">Started ${fmt(cur[1])}</div></div>
+   <div${cur[2]&&cur[2]!==LOST?` class="nowlink" data-gohost="${esc(cur[2])}" title="Open ${esc(cur[2])} in Host lookup"`:""}><div class="k">Current host</div><div class="v">${curHost}</div><div class="n">${hostRankNote()}</div></div>
    <div><div class="k">Open slots this month</div><div class="v num">${openM.length} <span class="of">of ${monthWeeks.length}</span></div><div class="n">${openNote}</div></div>
    <div><div class="k">Running for</div><div class="v num">${span}</div><div class="n">${totalHosted} weeks hosted · ${hostList.length} hosts</div></div>`;
 }
