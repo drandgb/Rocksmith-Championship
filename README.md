@@ -39,7 +39,7 @@ The whole app is one self-contained `index.html`. It has no build step, no serve
 - **Most wins** and **Win rates** (top 20). Hover a win-rate bar to see wins vs. entries.
 - **Winner lookup**:
   - **Stats:** weeks with a win, total wins, best week, longest win streak, triple crowns, close wins (won on the tiebreak) and Lead, Rhythm and Bass rivals (the player who was most often their closest match within the same rank on that path; click to highlight those weeks).
-  - **Medals:** 🥇🥈🥉 gold, silver and bronze medals (how many times they finished 1st, 2nd or 3rd on a challenge), 💎 God diamonds (the same for God challenges), 🏆 win-week trophies (one cup per win; the number is how many weeks they won that many), ⚡ win-streak bolts, 👑 triple crowns (won Lead, Rhythm and Bass in the same week) and 🟰 close-win medals.
+  - **Medals:** 🥇🥈🥉 gold, silver and bronze medals (how many times they finished 1st, 2nd or 3rd on a challenge), 💎 God diamonds (the same for God challenges), 🏆 win-week trophies (one cup per win; the number is how many weeks they won that many), ⚡ win-streak bolts (3, 5, 10, 15… weeks in a row), 👑 triple crowns (won Lead, Rhythm and Bass in the same week) and 🟰 close-win medals.
   - **Week chart:** heat colors for 1, 2 and 3+ wins.
   - **Year filter:** click a year label to see that year's stats only.
 - **Rank changes**: class promotions ↗ and demotions ↘ over the past year.
