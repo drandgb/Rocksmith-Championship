@@ -499,16 +499,21 @@ footer .updated{display:block;margin-top:4px}
 .panel.starry.lit::after{transform:scale(-1,-1);opacity:.6}
 @media (prefers-reduced-motion:no-preference){.panel.starry.lit::before{animation:twinkle 2.4s ease-in-out infinite}.panel.starry.lit::after{animation:twinkle 2.4s ease-in-out 1.2s infinite}}
 @keyframes twinkle{0%,100%{opacity:.25}50%{opacity:1}}
-/* Back from a break: a sunny vacation rim (sand, sunset and sea) */
-.panel.vacation.lit{border:1px solid transparent;background:linear-gradient(var(--panel),var(--panel)) padding-box,linear-gradient(120deg,#ffd36e,#ff8a5c,#ff6fa5,#3fd0e0,#2fb8a8,#ffd36e) border-box;background-size:100% 100%,300% 300%;box-shadow:0 0 14px rgba(63,208,224,.25),0 0 22px rgba(255,170,90,.18)}
-@media (prefers-reduced-motion:no-preference){.panel.vacation.lit{animation:vacay 7s linear infinite}}
+/* Back from a break: a tropical rim (palm green, lagoon, hibiscus, mango) with a palm and a flower */
+.panel.vacation.lit{position:relative;border:2px solid transparent;background:linear-gradient(var(--panel),var(--panel)) padding-box,linear-gradient(120deg,#2ecc71,#00c2c7,#3fd0e0,#ff5e8a,#ffb703,#2ecc71) border-box;background-size:100% 100%,300% 300%;box-shadow:0 0 14px rgba(0,194,199,.3),0 0 26px rgba(255,94,138,.15)}
+.panel.vacation.lit::before{content:"🌴";position:absolute;top:-12px;right:10px;font-size:20px;filter:drop-shadow(0 2px 3px rgba(0,0,0,.5))}
+.panel.vacation.lit::after{content:"🌺";position:absolute;bottom:-11px;left:10px;font-size:17px;filter:drop-shadow(0 2px 3px rgba(0,0,0,.5))}
+@media (prefers-reduced-motion:no-preference){.panel.vacation.lit{animation:vacay 7s linear infinite}.panel.vacation.lit::before{animation:sway 3.4s ease-in-out infinite;transform-origin:50% 100%}}
 @keyframes vacay{0%{background-position:0 0,0% 50%}50%{background-position:0 0,100% 50%}100%{background-position:0 0,0% 50%}}
+@keyframes sway{0%,100%{transform:rotate(-6deg)}50%{transform:rotate(6deg)}}
 /* Streaks that ended: a gloomy, melancholic blue rim with a slow drizzle */
 .panel.gloom{position:relative;overflow:hidden;border-color:#3d5a80;box-shadow:0 0 0 1px rgba(80,110,160,.25),0 0 16px rgba(60,90,150,.3),inset 0 0 26px rgba(40,60,110,.25)}
-.panel.gloom::before{content:"";position:absolute;inset:0;pointer-events:none;opacity:.18;background:repeating-linear-gradient(105deg,transparent 0 14px,rgba(150,180,230,.55) 14px 15px,transparent 15px 34px);background-size:100% 200%}
-@media (prefers-reduced-motion:no-preference){.panel.gloom{animation:gloomglow 6s ease-in-out infinite}.panel.gloom::before{animation:drizzle 3s linear infinite}}
+.panel.gloom::before{content:"";position:absolute;inset:-20px;pointer-events:none;transform:skewX(-14deg);opacity:.5;
+  background:radial-gradient(1px 8px at 50% 50%,rgba(170,200,255,.75),transparent),radial-gradient(1px 6px at 50% 50%,rgba(150,180,240,.6),transparent),radial-gradient(1.2px 10px at 50% 50%,rgba(190,215,255,.8),transparent);
+  background-size:37px 90px,53px 130px,71px 170px;background-position:0 0,17px 41px,33px 87px}
+@media (prefers-reduced-motion:no-preference){.panel.gloom{animation:gloomglow 6s ease-in-out infinite}.panel.gloom::before{animation:drizzle 1.6s linear infinite}}
 @keyframes gloomglow{0%,100%{box-shadow:0 0 0 1px rgba(80,110,160,.2),0 0 10px rgba(60,90,150,.22),inset 0 0 22px rgba(40,60,110,.2)}50%{box-shadow:0 0 0 1px rgba(90,120,170,.35),0 0 20px rgba(60,90,150,.38),inset 0 0 30px rgba(40,60,110,.3)}}
-@keyframes drizzle{from{background-position:0 0}to{background-position:-40px 120px}}
+@keyframes drizzle{from{background-position:0 0,17px 41px,33px 87px}to{background-position:0 90px,17px 171px,33px 257px}}
 /* amber glowing rim for the streak boxes */
 .panel.amber{border-color:color-mix(in srgb,#ffb020 70%,var(--line));box-shadow:0 0 0 1px rgba(255,176,32,.25),0 0 14px rgba(255,160,40,.28),inset 0 0 18px rgba(255,160,40,.06)}
 @media (prefers-reduced-motion:no-preference){.panel.amber{animation:amberglow 3.2s ease-in-out infinite}}
@@ -516,8 +521,11 @@ footer .updated{display:block;margin-top:4px}
 .twgrid4{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));gap:20px;align-items:start}
 .twstack{display:flex;flex-direction:column;gap:20px;min-width:0}
 .twpaths{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:16px;align-items:start}
-.twpath li.riv:not(.even){border-color:color-mix(in srgb,var(--pc) 45%,var(--line));background:linear-gradient(135deg,color-mix(in srgb,var(--pc) 12%,var(--panel2)),var(--panel2) 70%);box-shadow:inset 3px 0 0 var(--pc)}
+.twpath li.riv:not(.even){border:1.5px solid color-mix(in srgb,var(--pc) 75%,var(--line));background:color-mix(in srgb,var(--pc) 9%,var(--panel2));box-shadow:0 0 8px color-mix(in srgb,var(--pc) 28%,transparent),inset 0 0 10px color-mix(in srgb,var(--pc) 10%,transparent)}
 .twpath li.riv .vs{color:var(--pc)}
+.twtiers{flex-basis:100%;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.twtiers .tier{padding:4px 6px}
+.twtiers .tier b{font-size:1rem}
 .twpath h3{font:700 .85rem var(--f-display);letter-spacing:.08em;text-transform:uppercase;margin:0 0 8px;padding-left:8px;border-left:3px solid var(--pc)}
 .stats .rivbox{grid-column:1/-1;box-shadow:inset 3px 0 0 var(--pc);cursor:help}
 .stats .rivbox[data-hl]{cursor:pointer}
@@ -2333,7 +2341,11 @@ function renderThisWeek(){
   $("tw-back-sub").textContent=`Played week ${w} after missing week ${w-1}`;
   $("tw-back").innerHTML=back.length?back.map(x=>`<li>${twName(x.n)}<span class="dt">last played ${twWk(x.prev)}</span><span class="rt">${x.gap>=52?`${(x.gap/52).toFixed(1).replace(/\.0$/,"")} yr`:twPl(x.gap,"wk")}<small>away</small></span></li>`).join(""):twEmpty(live?"Nobody back from a break yet.":"Nobody came back from a break this week.");
   $("tw-new-sub").textContent=live?"First scores ever, so far":"First week in the championship";
-  $("tw-new").innerHTML=fresh.length?fresh.map(n=>{const cs=ents.filter(x=>x.n===n).map(x=>`${PATHS[x.c[0]]} ${x.c[2]}`); return `<li>${twName(n)}<span class="dt">${esc([...new Set(cs)].join(" · "))}</span><span class="pill new" style="width:auto">NEW</span></li>`}).join(""):twEmpty(live?"No new players yet this week.":"No new players this week.");
+  // starting rank per path: the level they played at their own class (no * mark); playing up or down doesn't count
+  const startRanks=n=>[0,1,2].map(pi=>{const own=ents.filter(x=>x.n===n&&x.c[0]===pi&&!/[*]/.test(SB.names[x.e[0]])).map(x=>tierOf(x.c[2])).filter(l=>"BIAM".includes(l||"-"));
+    if(own.length)return own.sort((a,b)=>"BIAM".indexOf(b)-"BIAM".indexOf(a))[0];
+    const p=byName[n]; const t=p&&p[8]?p[8][pi].toUpperCase():"?"; return "BIAM".includes(t)?t:"?"});
+  $("tw-new").innerHTML=fresh.length?fresh.map(n=>{const r=startRanks(n); return `<li>${twName(n)}<span class="pill new" style="width:auto">NEW</span><div class="twtiers">${["Lead","Rhythm","Bass"].map((k,i)=>`<div class="tier" style="--tc:${TIER_C[r[i]]||"var(--muted)"}" title="${r[i]==="?"?`No ${k} rank yet`:`Started ${k} as ${TIER_NAME[r[i]]}`}"><small>${k}</small><b>${r[i]==="?"?"–":r[i]}</b></div>`).join("")}</div></li>`}).join(""):twEmpty(live?"No new players yet this week.":"No new players this week.");
   $("tw-ann-sub").textContent="First played this week in an earlier year (active players)";
   $("tw-ann").innerHTML=ann.length?ann.map(a=>`<li>${twName(a.n)}<span class="dt">joined ${twWk(a.first)} · ${fmt(a.fd)}${set.has(a.n)?' <span class="ok">✓ playing</span>':""}</span><span class="rt">🎂 ${a.yrs}<small>year${a.yrs===1?"":"s"}</small></span></li>`).join(""):twEmpty("No anniversaries this week.");
   $("tw-dng-h").textContent=live?"⏳ Streaks at stake":"💔 Streaks that ended";
