@@ -193,6 +193,12 @@ button.clear:hover{border-color:var(--accent)}
 @media (max-width:640px){.rings{grid-template-columns:repeat(4,minmax(0,1fr));gap:14px 8px}.ring .nm{font-size:.66rem;letter-spacing:-.01em}}
 @media (max-width:360px){.rings{grid-template-columns:repeat(3,minmax(0,1fr))}}
 .ring.full .nm::before{content:"★ ";color:var(--s-yellow)}
+.ring.glow svg{overflow:visible;filter:drop-shadow(0 0 4px var(--gc)) drop-shadow(0 0 10px var(--gc))}
+@media (prefers-reduced-motion:no-preference){.ring.glow svg{animation:ringglow 2.4s ease-in-out infinite}}
+@keyframes ringglow{0%,100%{filter:drop-shadow(0 0 3px var(--gc)) drop-shadow(0 0 7px var(--gc))}50%{filter:drop-shadow(0 0 6px var(--gc)) drop-shadow(0 0 16px var(--gc))}}
+.badge.pbar svg.shiny{filter:drop-shadow(0 0 4px rgba(255,211,110,.8)) drop-shadow(0 0 10px rgba(255,170,60,.45))}
+@media (prefers-reduced-motion:no-preference){.badge.pbar svg.shiny{animation:starglow 2.8s ease-in-out infinite}}
+@keyframes starglow{0%,100%{filter:drop-shadow(0 0 3px rgba(255,211,110,.7)) drop-shadow(0 0 8px rgba(255,170,60,.35))}50%{filter:drop-shadow(0 0 7px rgba(255,230,150,.95)) drop-shadow(0 0 16px rgba(255,170,60,.6))}}
 
 .badges{display:flex;flex-direction:column;gap:8px}
 .badge.pbar{display:flex;align-items:center;gap:14px;text-align:left;height:var(--h);padding:8px 18px}
@@ -662,13 +668,6 @@ footer{color:var(--dim);font-size:.78rem}
   </section>
 
 
-  <section class="panel">
-    <div class="panel-head"><h2>Most active in past year</h2><span class="sub" id="yr-sub"></span></div>
-    <div class="rings" id="yrings"></div>
-  </section>
-
-
-
   <div class="grid2 even">
     <section class="panel">
       <div class="panel-head"><h2>Active play streaks</h2><span class="sub">Top 20 · still going</span></div>
@@ -679,6 +678,14 @@ footer{color:var(--dim);font-size:.78rem}
       <div class="bars" id="b-played"></div>
     </section>
   </div>
+
+  <section class="panel">
+    <div class="panel-head"><h2>Most active in past year</h2><span class="sub" id="yr-sub"></span></div>
+    <div class="rings" id="yrings"></div>
+  </section>
+
+
+
 
   <section class="panel profile">
     <div class="panel-head"><h2>Player lookup</h2><span class="sub">Click any name on this page, or search</span></div>
@@ -874,7 +881,7 @@ footer{color:var(--dim);font-size:.78rem}
     <p class="legendline"><span class="mk">*</span> outside own class (faded = playing down, not counted for wins) · <span class="mk">~</span> FreeBird · <span class="pct100">100%</span> full score or Master Mode · click a name to open their profile</p>
   </div>
 
-  <footer>Data: the Rocksmith 2014 Championship scoreboard sheet (older attendance also from the Championship Metrics workbook). Player stats run through week 675; scoreboards cover weeks 440–676. Weeks 1–16 have no recorded host in the source. <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-07T03:58:28+00:00">October 6, 2026</span></span></footer>
+  <footer>Data: the Rocksmith 2014 Championship scoreboard sheet (older attendance also from the Championship Metrics workbook). Player stats run through week 675; scoreboards cover weeks 440–676. Weeks 1–16 have no recorded host in the source. <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-07T04:20:36+00:00">October 7, 2026</span></span></footer>
 </div>
 <div class="tip" id="tip" hidden></div>
 
@@ -1127,6 +1134,8 @@ const RING_PILL_SPACE=`<span class="pill new" style="visibility:hidden" aria-hid
 const newPill=n=>isNewPlayer(n)?`<span class="pill new" data-tip="Joined in the last ${NEW_WINDOW} weeks (around 1 year).">NEW</span>`:"";
 const actPill=n=>isNewPlayer(n)?newPill(n):(isActivePlayer(n)?`<span class="pill on" data-tip="Played at least once in the last ${ACTIVE_PLAYER_WINDOW} weeks (around 1 year).">ACTIVE</span>`:(byName[n]?`<span class="pill off" data-tip="Hasn't played in the last ${ACTIVE_PLAYER_WINDOW} weeks (around 1 year).">INACTIVE</span>`:""));
 const STR=["var(--s-red)","var(--s-yellow)","var(--s-blue)","var(--s-orange)","var(--s-green)","var(--s-purple)"];
+const STAR_PATH="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9z";
+const shinyStar=i=>`<svg class="shiny" viewBox="0 0 24 24" aria-hidden="true"><defs><linearGradient id="sg${i}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff3b0"/><stop offset=".45" stop-color="#ffd23f"/><stop offset="1" stop-color="#e79a1e"/></linearGradient><linearGradient id="sh${i}" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".5" stop-color="#fff" stop-opacity=".85"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient><clipPath id="sc${i}"><path d="${STAR_PATH}"/></clipPath></defs><path fill="url(#sg${i})" stroke="#b8741a" stroke-width=".5" d="${STAR_PATH}"/><path d="M12 2.5l2.9 6L12 12z M12 12l9.5-2.6-6.6-.9z" fill="#fff" opacity=".28"/><g clip-path="url(#sc${i})"><rect x="-14" y="-4" width="8" height="32" fill="url(#sh${i})" transform="rotate(20 12 12)"><animate attributeName="x" values="-14;-14;30" keyTimes="0;.55;1" dur="3.2s" begin="${(i*0.4).toFixed(1)}s" repeatCount="indefinite"/></rect></g></svg>`;
 const STAR=`<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="var(--s-yellow)" d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9z"/></svg>`;
 const RATE_BRACKETS=[[100,"var(--s-yellow)","100%"],[90,"var(--s-green)","90s"],[80,"var(--s-blue)","80s"],[70,"var(--s-purple)","70s"],[60,"var(--s-orange)","60s"],[50,"var(--s-red)","50s"],[0,"#6b7489","Under 50"]];
 const rateColor=p=>RATE_BRACKETS.find(([min])=>p>=min)[1];
@@ -1153,7 +1162,7 @@ function renderRecords(){
    const W1=WEEKS[from-1], W2=WEEKS[DATA_WEEK-1];
    $("yr-sub").textContent=`Top 20 · weeks played out of the last ${Y} (weeks ${from}–${DATA_WEEK}${W1&&W2?", "+fmtShort(W1[1])+" "+W1[1].slice(0,4)+" – "+fmtShort(W2[1])+" "+W2[1].slice(0,4):""})`;
    $("yrings").innerHTML=yr.map(([n,c])=>{const p=c/Y*100, col=p>=75?"var(--s-green)":p>=50?"var(--s-blue)":p>=25?"var(--s-orange)":"var(--s-red)";
-     return `<div class="ring"><svg viewBox="0 0 84 84" role="img" aria-label="${esc(n)} ${c} of ${Y} weeks"><circle class="rt" cx="42" cy="42" r="${R}"/><circle class="rv" cx="42" cy="42" r="${R}" stroke="${col}" stroke-dasharray="${C.toFixed(1)}" stroke-dashoffset="${(C*(1-c/Y)).toFixed(1)}"/><text x="42" y="38">${c}</text><text class="of" x="42" y="54">of ${Y}</text></svg><span class="nmrow"><span class="nm" data-player="${esc(n)}">${esc(n)}</span>${newPill(n)||RING_PILL_SPACE}</span></div>`}).join("");}
+     return `<div class="ring${c>=Y?" glow":""}" style="--gc:${col}"${c>=Y?` data-tip="Played all ${Y} of the last ${Y} weeks"`:""}><svg viewBox="0 0 84 84" role="img" aria-label="${esc(n)} ${c} of ${Y} weeks"><circle class="rt" cx="42" cy="42" r="${R}"/><circle class="rv" cx="42" cy="42" r="${R}" stroke="${col}" stroke-dasharray="${C.toFixed(1)}" stroke-dashoffset="${(C*(1-c/Y)).toFixed(1)}"/><text x="42" y="38">${c}</text><text class="of" x="42" y="54">of ${Y}</text></svg><span class="nmrow"><span class="nm" data-player="${esc(n)}">${esc(n)}</span>${newPill(n)||RING_PILL_SPACE}</span></div>`}).join("");}
   {const list=PLAYERS.filter(p=>isNewPlayer(p[0])&&(!activeOnly||pAct(p))).sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0]));
    $("new-h").textContent="New in past year";
    $("new-sub").textContent=`${list.length} player${list.length===1?"":"s"} joined in the last ${NEW_WINDOW} weeks · newest first`;
@@ -1161,7 +1170,7 @@ function renderRecords(){
      return `<div class="nrow"><div><span class="nm" data-player="${esc(n)}" title="${esc(n)}">${esc(n)}</span><span class="j">Joined wk ${first}${w?" · "+fmtShort(w[1]):""}</span></div><span class="track"><span class="fill" style="width:${Math.max(3,played/since*100)}%"></span></span><span class="val" title="${played} of ${since} weeks since joining">${played}/${since} wks<span class="j">Last played wk ${last}</span></span></div>`}).join("")||`<div class="empty">No new players yet this year.</div>`;}
   // one column, highest first; each box's height grows with the number of weeks
   const pmax=Math.max(...PERFECT.map(p=>p[1]),1);
-  $("perfect").innerHTML=PERFECT.slice().sort((a,b)=>b[1]-a[1]).map(([n,v])=>`<div class="badge pbar" style="--h:${Math.round(52+120*v/pmax)}px">${STAR}<div class="pnm"><div class="nmrow"><span class="nm" data-player="${esc(n)}">${esc(n)}</span>${newPill(n)}</div></div><div class="wk">${v}<small>weeks, every one played</small></div></div>`).join("");
+  $("perfect").innerHTML=PERFECT.slice().sort((a,b)=>b[1]-a[1]).map(([n,v],i)=>`<div class="badge pbar" style="--h:${Math.round(52+120*v/pmax)}px">${shinyStar(i)}<div class="pnm"><div class="nmrow"><span class="nm" data-player="${esc(n)}">${esc(n)}</span>${newPill(n)}</div></div><div class="wk">${v}<small>weeks, every one played</small></div></div>`).join("");
   renderParts();
   $("plist").innerHTML=PLAYERS.slice().sort((a,b)=>b[3]-a[3]).map(p=>`<option value="${esc(p[0])}"></option>`).join("");
 }
@@ -1315,11 +1324,11 @@ function showPlayer(name){
       ${pYear?`<div class="yrtag"><b>${pYear} only</b><button type="button" class="clear" data-pyear="${pYear}">Show all years</button></div>`:""}
       <div class="stats">
         <div><small>Weeks played</small><b>${D.played}</b></div>
-        <div${D.latest?` data-hl="${D.latest}" data-tip="Click to highlight Week ${D.latest}"`:""}><small>Latest week</small><b>${D.latest??"–"}</b>${dlw?`<span class="sub"> · ${fmt(dlw[1])}</span>`:""}</div>
+        <div><small>Play rate</small><b>${(D.rate*100).toFixed(D.rate>=1?0:1)}%</b></div>
         <div${actR?` data-hl="${span(actR)}" data-tip="(Week ${actR[0]}${actR[1]>actR[0]?`–${actR[1]}`:""})"`:""}><small>Active streak</small><b>${streak} wk${streak===1?"":"s"}</b></div>
         <div${D.bestR?` data-hl="${span(D.bestR)}" data-tip="(Week ${D.bestR[0]}${D.bestR[1]>D.bestR[0]?`–${D.bestR[1]}`:""})"`:""}><small>Best streak</small><b>${D.longest} wk${D.longest===1?"":"s"}</b></div>
         <div${D.first?` data-hl="${D.first}" data-tip="Click to highlight Week ${D.first}"`:""}><small>First week</small><b>${D.first??"–"}</b>${dfw?`<span class="sub"> · ${fmt(dfw[1])}</span>`:""}</div>
-        <div><small>Play rate</small><b>${(D.rate*100).toFixed(D.rate>=1?0:1)}%</b></div>
+        <div${D.latest?` data-hl="${D.latest}" data-tip="Click to highlight Week ${D.latest}"`:""}><small>Latest week</small><b>${D.latest??"–"}</b>${dlw?`<span class="sub"> · ${fmt(dlw[1])}</span>`:""}</div>
       </div>
       ${(()=>{const u=WR.ups.filter(x=>x[0]===n).sort((a,b)=>a[4]-b[4]);return u.length?`<div class="ups">Rank changes: ${u.map(([,p,a,b,w])=>`<span class="pill hol rkpath" data-hl="${w}" data-tip="Click to highlight Week ${w}" style="cursor:pointer;--pc:${PATH_C[p]}">${PATHS[p]} ${a}${"BIAM".indexOf(b)<"BIAM".indexOf(a)?"↘":"↗"}${b} · wk ${w}</span>`).join("")}</div>`:""})()}
       ${WR.wins[n]||hosts[n]?`<div class="golinks">${WR.wins[n]?`<button type="button" class="clear" data-wprofile="${esc(n)}">Open win profile ›</button>`:""}${hosts[n]?`<button type="button" class="clear" data-gohost="${esc(n)}">Open host profile ›</button>`:""}</div>`:""}
