@@ -175,6 +175,11 @@ button.clear:hover{border-color:var(--accent)}
 .brow .fill::after{content:"";position:absolute;right:0;top:50%;width:12px;height:12px;margin-top:-6px;border-radius:50%;background:var(--fg);box-shadow:0 0 8px var(--c)}
 .brow .val{font-family:var(--f-mono);font-size:.8rem;font-variant-numeric:tabular-nums;text-align:right;min-width:3.5em}
 .brow.top .nm{font-weight:600}
+:is(#view-players,#view-winners) .brow.top .rk{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;font:700 .7rem var(--f-display);color:#10131a;background:radial-gradient(circle at 35% 30%,color-mix(in srgb,var(--rkm) 45%,#fff),var(--rkm) 65%);box-shadow:0 0 6px color-mix(in srgb,var(--rkm) 45%,transparent)}
+.brow.top:nth-child(1){--rkm:#f5c84a}.brow.top:nth-child(2){--rkm:#c9d0dc}.brow.top:nth-child(3){--rkm:#d8925a}
+.pod .medal{position:relative;overflow:hidden;background:radial-gradient(circle at 32% 28%,color-mix(in srgb,var(--m) 35%,#fff),var(--m) 55%,color-mix(in srgb,var(--m) 75%,#000));text-shadow:0 1px 0 rgba(255,255,255,.35)}
+.pod .medal::after{content:"";position:absolute;inset:0;border-radius:50%;background:linear-gradient(115deg,transparent 35%,rgba(255,255,255,.7) 48%,transparent 60%);background-size:250% 100%;background-position:120% 0;pointer-events:none;mix-blend-mode:screen}
+@media (prefers-reduced-motion:no-preference){.pod .medal::after{animation:shine 3.6s ease-in-out infinite}.pod:nth-child(2) .medal::after{animation-delay:.6s}.pod:nth-child(3) .medal::after{animation-delay:1.2s}}
 .flame .fill{background:linear-gradient(90deg,var(--s-red),var(--s-orange) 60%,var(--s-yellow))}
 
 .rings{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:18px 12px}
@@ -193,9 +198,10 @@ button.clear:hover{border-color:var(--accent)}
 @media (max-width:640px){.rings{grid-template-columns:repeat(4,minmax(0,1fr));gap:14px 8px}.ring .nm{font-size:.66rem;letter-spacing:-.01em}}
 @media (max-width:360px){.rings{grid-template-columns:repeat(3,minmax(0,1fr))}}
 .ring.full .nm::before{content:"★ ";color:var(--s-yellow)}
-.ring.glow svg{overflow:visible;filter:drop-shadow(0 0 4px var(--gc)) drop-shadow(0 0 10px var(--gc))}
-@media (prefers-reduced-motion:no-preference){.ring.glow svg{animation:ringglow 2.4s ease-in-out infinite}}
-@keyframes ringglow{0%,100%{filter:drop-shadow(0 0 3px var(--gc)) drop-shadow(0 0 7px var(--gc))}50%{filter:drop-shadow(0 0 6px var(--gc)) drop-shadow(0 0 16px var(--gc))}}
+.ring.glow svg{overflow:visible}
+.ring.glow .rv{filter:drop-shadow(0 0 2px var(--gc)) drop-shadow(0 0 5px color-mix(in srgb,var(--gc) 60%,transparent))}
+@media (prefers-reduced-motion:no-preference){.ring.glow .rv{animation:ringglow 2.4s ease-in-out infinite}}
+@keyframes ringglow{0%,100%{filter:drop-shadow(0 0 1px var(--gc)) drop-shadow(0 0 4px color-mix(in srgb,var(--gc) 50%,transparent))}50%{filter:drop-shadow(0 0 3px var(--gc)) drop-shadow(0 0 8px color-mix(in srgb,var(--gc) 60%,transparent))}}
 .badge.pbar svg.shiny{filter:drop-shadow(0 0 4px rgba(255,211,110,.8)) drop-shadow(0 0 10px rgba(255,170,60,.45))}
 @media (prefers-reduced-motion:no-preference){.badge.pbar svg.shiny{animation:starglow 2.8s ease-in-out infinite}}
 @keyframes starglow{0%,100%{filter:drop-shadow(0 0 3px rgba(255,211,110,.7)) drop-shadow(0 0 8px rgba(255,170,60,.35))}50%{filter:drop-shadow(0 0 7px rgba(255,230,150,.95)) drop-shadow(0 0 16px rgba(255,170,60,.6))}}
@@ -882,7 +888,7 @@ footer{color:var(--dim);font-size:.78rem}
   </div>
 
   <footer>Data: Rodman’s Rocksmith 2014 Championship Google Sheets (older attendance also from the Championship Metrics workbook). Player stats run through week 675; scoreboards cover weeks 440–676. Weeks 1–16 have no recorded host in the source.
-  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-07T04:29:19+00:00">October 7, 2026</span></span>
+  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-07T04:41:05+00:00">October 7, 2026</span></span>
   <span class="updated disclaimer">Unofficial fan project. Not affiliated with Ubisoft or Rocksmith.</span>
   </footer>
 </div>
@@ -1158,7 +1164,7 @@ function renderRecords(){
   const R=34, C=2*Math.PI*R;
   $("rings").innerHTML=RECORDS["Highest play rates"].map(([n,v],i)=>{
     const p=numOf(v), full=p>=100, col=rateColor(p);
-    return `<div class="ring${full?" full":""}"><svg viewBox="0 0 84 84" role="img" aria-label="${esc(n)} ${p}%"><circle class="rt" cx="42" cy="42" r="${R}"/><circle class="rv" cx="42" cy="42" r="${R}" stroke="${col}" stroke-dasharray="${C.toFixed(1)}" stroke-dashoffset="${(C*(1-p/100)).toFixed(1)}"/><text x="42" y="42">${p%1===0?p:p.toFixed(1)}%</text></svg><span class="nmrow"><span class="nm" data-player="${esc(n)}">${esc(n)}</span>${newPill(n)||RING_PILL_SPACE}</span></div>`;
+    return `<div class="ring${full?" full glow":""}" style="--gc:${col}"><svg viewBox="0 0 84 84" role="img" aria-label="${esc(n)} ${p}%"><circle class="rt" cx="42" cy="42" r="${R}"/><circle class="rv" cx="42" cy="42" r="${R}" stroke="${col}" stroke-dasharray="${C.toFixed(1)}" stroke-dashoffset="${(C*(1-p/100)).toFixed(1)}"/><text x="42" y="42">${p%1===0?p:p.toFixed(1)}%</text></svg><span class="nmrow"><span class="nm" data-player="${esc(n)}">${esc(n)}</span>${newPill(n)||RING_PILL_SPACE}</span></div>`;
   }).join("");
   {const Y=52, from=DATA_WEEK-Y+1;
    const yr=PLAYERS.map(p=>{const b=presOf(p);let c=0;for(let w=from;w<=DATA_WEEK;w++)if(b[w-PRES_START]==="1")c++;return [p[0],c,p[3]]}).filter(x=>x[1]>0).sort((a,b)=>b[1]-a[1]||b[2]-a[2]).slice(0,20);
