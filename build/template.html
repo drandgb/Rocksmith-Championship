@@ -486,6 +486,10 @@ footer .updated{display:block;margin-top:4px}
 #twsb{border-radius:999px;padding:7px 16px;font-weight:700;color:#1a1406;background:var(--s-orange);border:1px solid var(--s-orange);box-shadow:0 0 12px color-mix(in srgb,var(--s-orange) 40%,transparent);cursor:pointer}
 #twsb:hover{filter:brightness(1.1)}
 @media (max-width:640px){#twsb{order:10;flex:1 1 100%;max-width:92%;margin:4px auto 0;text-align:center;padding:9px 16px}}
+/* amber glowing rim for the streak boxes */
+.panel.amber{border-color:color-mix(in srgb,#ffb020 70%,var(--line));box-shadow:0 0 0 1px rgba(255,176,32,.25),0 0 14px rgba(255,160,40,.28),inset 0 0 18px rgba(255,160,40,.06)}
+@media (prefers-reduced-motion:no-preference){.panel.amber{animation:amberglow 3.2s ease-in-out infinite}}
+@keyframes amberglow{0%,100%{box-shadow:0 0 0 1px rgba(255,176,32,.22),0 0 10px rgba(255,160,40,.22),inset 0 0 16px rgba(255,160,40,.05)}50%{box-shadow:0 0 0 1px rgba(255,190,60,.4),0 0 20px rgba(255,160,40,.4),inset 0 0 22px rgba(255,160,40,.09)}}
 .twgrid4{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));gap:20px;align-items:start}
 .twstack{display:flex;flex-direction:column;gap:20px;min-width:0}
 .twpaths{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:16px;align-items:start}
@@ -764,7 +768,7 @@ footer{color:var(--dim);font-size:.78rem}
       <ul class="twl" id="tw-ann"></ul>
     </section>
     </div>
-    <section class="panel">
+    <section class="panel amber">
       <div class="panel-head"><h2 id="tw-dng-h">⏳ Streaks at stake</h2><span class="sub" id="tw-dng-sub"></span></div>
       <ul class="twl" id="tw-dng"></ul>
     </section>
@@ -784,7 +788,7 @@ footer{color:var(--dim);font-size:.78rem}
     <div class="podium-base" aria-hidden="true"></div>
   </section>
 
-  <section class="panel">
+  <section class="panel amber">
     <div class="panel-head"><h2>🔥 Hot streaks</h2><span class="sub" id="hot-sub"></span></div>
     <div class="bars" id="b-hot"></div>
   </section>
@@ -1717,7 +1721,7 @@ $("wcard").addEventListener("click",e=>{
   scrollTo({top:0,behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth"});
 });
 // hot streak: won at least one challenge in each of the most recent completed weeks
-const HOT_MIN=3;
+const HOT_MIN=2;
 function hotStreaks(p){
   const lastDone=Math.max(...Object.keys(SB.weeks).map(Number).filter(w=>w<cur[0]));
   const winnersOf=w=>{const set=new Set();(SB.weeks[w]||[]).forEach(card=>{if(p>=0&&card[0]!==p)return;if(card[7])return;const e=card[6].find(x=>x[4]>=0);if(e)set.add(SB.names[e[0]].replace(/[*~]+$/,""))});return set};
