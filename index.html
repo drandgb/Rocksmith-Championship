@@ -517,6 +517,7 @@ footer .updated{display:block;margin-top:4px}
 @keyframes gemglow{0%,100%{opacity:1}50%{opacity:.82}}
 .medal-m.wm{position:relative;width:28px;height:30px}
 .medal-m.pod,.medal-m.diamond{margin-right:9px}
+.medal-m.wm.tro{width:auto;margin-right:7px}
 .medal-m.diamond svg{width:30px;height:30px;overflow:visible;filter:drop-shadow(0 0 3px var(--ec)) drop-shadow(0 0 9px var(--ec)) drop-shadow(0 0 16px rgba(199,125,255,.55))}
 .medal-m.diamond .spk{transform-box:fill-box;transform-origin:center;opacity:0}
 @media (prefers-reduced-motion:no-preference){.medal-m.diamond .spk{animation:sparkle 2.2s ease-in-out infinite}.medal-m.diamond .spk.s2{animation-delay:1.1s}.medal-m.diamond svg{animation:dglow 3s ease-in-out infinite}}
@@ -898,7 +899,7 @@ footer{color:var(--dim);font-size:.78rem}
 
   <footer>Data: Rodman’s Rocksmith 2014 Championship Google Sheets (older attendance also from the Championship Metrics workbook). Player stats run through week 675; scoreboards cover weeks 440–676. Weeks 1–16 have no recorded host in the source.
   <span class="updated disclaimer">Unofficial fan project. Not affiliated with Ubisoft or Rocksmith.</span>
-  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-07T16:08:01+00:00">October 7, 2026</span></span>
+  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-07T16:10:59+00:00">October 7, 2026</span></span>
   </footer>
 </div>
 <div class="tip" id="tip" hidden></div>
@@ -1542,6 +1543,13 @@ const TOTAL_WIN_STEPS=[1,5,10,25,50,75,100,150,200,250,300,400,500,750,1000];
 const COOL=["#6fe8d0","#4fd6ff","#4f9dff","#6f7cff","#9b6bff","#c77dff"];
 const tierCol=(i,n)=>{const f=n<=1?1:i/(n-1);return COOL[Math.min(COOL.length-1,Math.round(f*(COOL.length-1)))]};
 function trophySvg(col){return `<svg viewBox="0 0 28 30" aria-hidden="true"><path d="M7 3h14v6a7 7 0 0 1-14 0z" fill="${col}"/><path d="M7 5H3a4 4 0 0 0 5 6M21 5h4a4 4 0 0 1-5 6" fill="none" stroke="${col}" stroke-width="2"/><rect x="12" y="15" width="4" height="6" fill="${col}"/><rect x="8" y="21" width="12" height="4" rx="1" fill="${col}"/><path d="M9 4h4v6a4 4 0 0 1-4-3z" fill="rgba(255,255,255,.35)"/></svg>`}
+// best-week trophy: a row of k overlapping cups (one per win that week, up to 8)
+function trophiesSvg(col,k){
+  const n=Math.min(k,8), s=n===1?1:.78, cw=28*s, step=n===1?0:cw*.55, W=Math.round(cw+step*(n-1));
+  const cup=`<path d="M7 3h14v6a7 7 0 0 1-14 0z" fill="${col}"/><path d="M7 5H3a4 4 0 0 0 5 6M21 5h4a4 4 0 0 1-5 6" fill="none" stroke="${col}" stroke-width="2"/><rect x="12" y="15" width="4" height="6" fill="${col}"/><rect x="8" y="21" width="12" height="4" rx="1" fill="${col}"/><path d="M9 4h4v6a4 4 0 0 1-4-3z" fill="rgba(255,255,255,.35)"/>`;
+  const cups=[]; for(let i=n-1;i>=0;i--)cups.push(`<g transform="translate(${(i*step).toFixed(2)} ${n===1?0:(30-26*s)/2+2}) scale(${s})" opacity="${n===1?1:(1-0.06*i).toFixed(2)}">${cup}</g>`);
+  return `<svg viewBox="0 0 ${W} 30" style="width:${W}px" aria-hidden="true">${cups.join("")}</svg>`;
+}
 function boltSvg(col){return `<svg viewBox="0 0 28 30" aria-hidden="true"><circle cx="14" cy="15" r="12" fill="${col}"/><path d="M16 4 8 17h6l-2 9 8-13h-6z" fill="#1a1406" opacity=".8"/></svg>`}
 function coinSvg(col){return `<svg viewBox="0 0 28 30" aria-hidden="true"><path d="M8 0h5l2 8-4 2zM20 0h-5l-2 8 4 2z" fill="var(--s-red)"/><circle cx="14" cy="19" r="10" fill="${col}"/><path d="M14 12l2 4.2 4.6.6-3.3 3.2.8 4.6-4.1-2.2-4.1 2.2.8-4.6-3.3-3.2 4.6-.6z" fill="rgba(0,0,0,.25)"/></svg>`}
 function crownSvg(col){return `<svg viewBox="0 0 28 30" aria-hidden="true"><path d="M3 10l5.5 5L14 6l5.5 9L25 10l-2.5 14h-17z" fill="${col}"/><rect x="5.5" y="23" width="17" height="3.5" rx="1" fill="${col}"/><circle cx="9" cy="20" r="1.8" fill="#ff5d6c"/><circle cx="14" cy="19.4" r="1.8" fill="#5be38a"/><circle cx="19" cy="20" r="1.8" fill="#4f9dff"/><path d="M6 11l2.5 2.3L12 8.5z" fill="rgba(255,255,255,.4)"/></svg>`}
@@ -1579,8 +1587,7 @@ function podiumMedals(pod){
   const rows=[], reg=[], god=[];
   pod.reg.forEach((ws,i)=>{if(ws.length)reg.push(`<span class="medal-m wm pod" style="--ec:${POD_COL[i]};cursor:pointer" data-hl="${[...new Set(ws)].join(",")}" data-tip="${POD_NAME[i]} medal · finished ${POD_PLACE[i]} on a challenge ${ws.length} time${ws.length===1?"":"s"} · click to highlight">${podSvg(POD_COL[i])}<b>${ws.length}</b></span>`)});
   pod.god.forEach((ws,i)=>{if(ws.length)god.push(`<span class="medal-m wm diamond d${i}" style="--ec:${["#7fe9ff","#e6ecf5","#ffb27a"][i]};cursor:pointer" data-hl="${[...new Set(ws)].join(",")}" data-tip="${POD_NAME[i]} God diamond · finished ${POD_PLACE[i]} on a God challenge ${ws.length} time${ws.length===1?"":"s"} · click to highlight">${diamondSvg(i)}<b>${ws.length}</b></span>`)});
-  if(reg.length)rows.push(reg); if(god.length)rows.push(god);
-  return rows.map(r=>`<div class="medals">${r.join("")}</div>`).join("");
+  return {reg,god};
 }
 function winMedals(per,done,bestN,streak,total,trip,ties,pod){
   const rows=[], asc=done.slice().sort((a,b)=>a-b), rec=w=>w?` (collected Week ${w})`:"";
@@ -1589,12 +1596,14 @@ function winMedals(per,done,bestN,streak,total,trip,ties,pod){
   const streakAt=x=>{let r=0;for(const w of asc){r=per[w][1]>0?r+1:0;if(r>=x)return w}};
   const winRun=(end,x)=>{if(end==null)return ""; const i=asc.indexOf(end); return asc.slice(i-x+1,i+1).join(",")};
   const totalAt=x=>{let t=0;for(const w of asc){t+=per[w][1];if(t>=x)return w}};
-  if(bestN>0){const r=[];for(let k=1;k<=bestN;k++)r.push(mk(trophySvg(tierCol(k-1,Math.max(bestN,3))),k,`${k}-win week trophy · won ${k}+ challenge${k===1?"":"s"} in a single week${rec(firstK(k))}`));rows.push(r)}
+  const P=pod?podiumMedals(pod):{reg:[],god:[]};
+  if(P.reg.length)rows.push(P.reg);
+  if(bestN>0||P.god.length){const r=[...P.god];for(let k=1;k<=bestN;k++)r.push(mk(trophiesSvg(tierCol(k-1,Math.max(bestN,3)),k),k,`${k}-win week trophy · won ${k}+ challenge${k===1?"":"s"} in a single week${rec(firstK(k))}`).replace('class="medal-m wm"','class="medal-m wm tro"'));rows.push(r)}
   const ss=[];for(let x=2;x<=streak;x++)ss.push(x);
   if(ss.length)rows.push(ss.map((x,i)=>mk(boltSvg(tierCol(i,Math.max(ss.length,3))),x,`${x}-week win streak medal · won a challenge ${x} weeks in a row${rec(streakAt(x))}`).replace('<span class="medal-m wm"',`<span class="medal-m wm" data-hl="${winRun(streakAt(x),x)}" style="cursor:pointer"`)));
   if(trip&&trip.reg.length)rows.push(trip.reg.map(w=>`<span class="medal-m wm" style="--ec:#ffc94f;cursor:pointer" data-hl="${w}" data-tip="Triple crown · won a challenge on Lead, Rhythm and Bass in the same week${rec(w)}">${crownSvg("#ffc94f")}<b>${w}</b></span>`));
   if(ties&&ties.length)rows.push(ties.slice().sort((a,b)=>a-b).map(w=>`<span class="medal-m wm" style="--ec:#ff7eb6;cursor:pointer" data-hl="${w}" data-tip="Close win medal · won on the tiebreak with the same % as the runner-up${rec(w)}">${tieSvg("#ff7eb6")}<b>${w}</b></span>`));
-  return (pod?podiumMedals(pod):"")+rows.map(r=>`<div class="medals">${r.join("")}</div>`).join("");
+  return rows.map(r=>`<div class="medals">${r.join("")}</div>`).join("");
 }
 function showWinner(name){
   const v=wv(name,wPath);
