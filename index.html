@@ -898,7 +898,7 @@ footer{color:var(--dim);font-size:.78rem}
 
   <footer>Data: Rodman’s Rocksmith 2014 Championship Google Sheets (older attendance also from the Championship Metrics workbook). Player stats run through week 675; scoreboards cover weeks 440–676. Weeks 1–16 have no recorded host in the source.
   <span class="updated disclaimer">Unofficial fan project. Not affiliated with Ubisoft or Rocksmith.</span>
-  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-07T15:57:27+00:00">October 7, 2026</span></span>
+  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-07T16:08:01+00:00">October 7, 2026</span></span>
   </footer>
 </div>
 <div class="tip" id="tip" hidden></div>
@@ -1228,6 +1228,8 @@ function renderParts(){
 }
 
 // player lookup
+// the weeks of a run of `len` weeks ending at `end`, for highlighting streak medals
+const weekRange=(end,len)=>end==null?"":Array.from({length:len},(_,i)=>end-len+1+i).join(",");
 const presOf=p=>{const bits=[...p[7]].map(h=>parseInt(h,16).toString(2).padStart(4,"0")).join("");return bits.slice(0,PARTS.length)};
 const TIER_C={M:"var(--s-purple)",A:"var(--s-blue)",I:"var(--s-green)",B:"var(--s-yellow)",F:"var(--s-red)"};
 
@@ -1285,7 +1287,7 @@ function medalsFor(p,bitsOv){
   for(let y=1;y<=Math.floor(longest/52);y++){
     const sw=bestStart!=null?WEEKS[bestStart+y*52-2]:null, ly=sw?lunarYear(new Date(sw[1]+"T12:00:00")):null;
     const col=ly?ELEMENT_COL[ly.element]:FLAME_HEAT[Math.min(y,FLAME_HEAT.length)-1];
-    flames.push(`<span data-tip="${y}-year streak medal · played at least ${y*52} weeks in a row${ly?` · reached in the Year of the ${ly.element} ${ly.animal}`:""}${bestStart!=null?` (collected Week ${bestStart+y*52-1})`:""}" class="medal-m flm" style="--ec:${col}">${medalSvg("streak",col,"")}<span class="ani">${ly?ANIMAL_EMOJI[ly.animal]:""}</span><b>${y}</b></span>`);
+    flames.push(`<span${bestStart!=null?` data-hl="${weekRange(bestStart+y*52-1,y*52)}"`:""} data-tip="${y}-year streak medal · played at least ${y*52} weeks in a row${ly?` · reached in the Year of the ${ly.element} ${ly.animal}`:""}${bestStart!=null?` (collected Week ${bestStart+y*52-1})`:""}" class="medal-m flm" style="--ec:${col}">${medalSvg("streak",col,"")}<span class="ani">${ly?ANIMAL_EMOJI[ly.animal]:""}</span><b>${y}</b></span>`);
   }
   // lower tier: ember medals for streaks under a year (5, 10, 15 ... 50 weeks), dated by when a run first got that long
   const embers=[];
@@ -1293,7 +1295,7 @@ function medalsFor(p,bitsOv){
    for(let i=0;i<bits.length;i++){ r=bits[i]==="1"?r+1:0; for(let k=5;k<=50&&k<=r;k+=5) if(reach[k]==null) reach[k]=i+PRES_START; }
    for(let k=5;k<=50;k+=5){ if(reach[k]==null) break;
      const col=EMBER_HEAT[k/5-1];
-     embers.push(`<span data-tip="${k}-week streak ember · played ${k} weeks in a row (collected Week ${reach[k]})" class="medal-m flm ember" style="--ec:${col}">${medalSvg("streak",col,"")}<b>${k}</b></span>`);
+     embers.push(`<span data-hl="${weekRange(reach[k],k)}" data-tip="${k}-week streak ember · played ${k} weeks in a row (collected Week ${reach[k]})" class="medal-m flm ember" style="--ec:${col}">${medalSvg("streak",col,"")}<b>${k}</b></span>`);
    }}
   {const cg=classGem(p); if(cg) gems.unshift(cg);}
   // sword: the week the player joined
@@ -1585,12 +1587,11 @@ function winMedals(per,done,bestN,streak,total,trip,ties,pod){
   const mk=(svg,num,tip)=>{const c=(svg.match(/fill="(#[0-9a-fA-F]{6})"/)||[])[1]||"#4fd6ff";return `<span class="medal-m wm" style="--ec:${c}" data-tip="${tip}">${svg}<b>${num}</b></span>`};
   const firstK=k=>asc.find(w=>per[w][1]>=k);
   const streakAt=x=>{let r=0;for(const w of asc){r=per[w][1]>0?r+1:0;if(r>=x)return w}};
+  const winRun=(end,x)=>{if(end==null)return ""; const i=asc.indexOf(end); return asc.slice(i-x+1,i+1).join(",")};
   const totalAt=x=>{let t=0;for(const w of asc){t+=per[w][1];if(t>=x)return w}};
   if(bestN>0){const r=[];for(let k=1;k<=bestN;k++)r.push(mk(trophySvg(tierCol(k-1,Math.max(bestN,3))),k,`${k}-win week trophy · won ${k}+ challenge${k===1?"":"s"} in a single week${rec(firstK(k))}`));rows.push(r)}
   const ss=[];for(let x=2;x<=streak;x++)ss.push(x);
-  if(ss.length)rows.push(ss.map((x,i)=>mk(boltSvg(tierCol(i,Math.max(ss.length,3))),x,`${x}-week win streak medal · won a challenge ${x} weeks in a row${rec(streakAt(x))}`)));
-  const ts=TOTAL_WIN_STEPS.filter(x=>total>=x);
-  if(ts.length)rows.push(ts.map((x,i)=>mk(coinSvg(tierCol(i,TOTAL_WIN_STEPS.length)),x,`${x}-win medal · won ${x}+ challenges${rec(totalAt(x))}`)));
+  if(ss.length)rows.push(ss.map((x,i)=>mk(boltSvg(tierCol(i,Math.max(ss.length,3))),x,`${x}-week win streak medal · won a challenge ${x} weeks in a row${rec(streakAt(x))}`).replace('<span class="medal-m wm"',`<span class="medal-m wm" data-hl="${winRun(streakAt(x),x)}" style="cursor:pointer"`)));
   if(trip&&trip.reg.length)rows.push(trip.reg.map(w=>`<span class="medal-m wm" style="--ec:#ffc94f;cursor:pointer" data-hl="${w}" data-tip="Triple crown · won a challenge on Lead, Rhythm and Bass in the same week${rec(w)}">${crownSvg("#ffc94f")}<b>${w}</b></span>`));
   if(ties&&ties.length)rows.push(ties.slice().sort((a,b)=>a-b).map(w=>`<span class="medal-m wm" style="--ec:#ff7eb6;cursor:pointer" data-hl="${w}" data-tip="Close win medal · won on the tiebreak with the same % as the runner-up${rec(w)}">${tieSvg("#ff7eb6")}<b>${w}</b></span>`));
   return (pod?podiumMedals(pod):"")+rows.map(r=>`<div class="medals">${r.join("")}</div>`).join("");
@@ -2016,7 +2017,7 @@ function hostMedals(name){
   let run=0,best=0,prev=null; const reachAt={};
   ws.forEach(([w])=>{run=prev===w-1?run+1:1;prev=w;if(run>best)best=run;HOST_STREAK_STEPS.forEach(x=>{if(run>=x&&reachAt[x]==null)reachAt[x]=w})});
   const st=HOST_STREAK_STEPS.filter(x=>best>=x);
-  if(st.length)rows.push(st.map((x,i)=>{const c=hostCol(i,HOST_STREAK_STEPS.length);return mk(chainSvg(c),c,x,`${x}-week hosting streak medal · hosted ${x} weeks in a row${rec(reachAt[x])}`)}));
+  if(st.length)rows.push(st.map((x,i)=>{const c=hostCol(i,HOST_STREAK_STEPS.length);return mk(chainSvg(c),c,x,`${x}-week hosting streak medal · hosted ${x} weeks in a row${rec(reachAt[x])}`).replace('<span class="medal-m wm"',`<span class="medal-m wm" data-hl="${weekRange(reachAt[x],x)}" style="cursor:pointer"`)}));
   // one medal for every calendar year hosted
   const yrs={}; ws.forEach(([w,d])=>{const y=d.slice(0,4);(yrs[y]=yrs[y]||[]).push(w)});
   const ys=Object.keys(yrs).sort();
