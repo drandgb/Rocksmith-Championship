@@ -29,6 +29,7 @@ The whole app is one self-contained `index.html`. It has no build step, no serve
 
 ### 📊 Rankings
 - **Rodman’s Rankings**, straight from the *Rodman´s Rankings* tab of the scoreboard sheet: the leaderboard for the last 10 weeks (1st–4th place on a challenge scores 10/5/3/1 points), for every path and level, with each player's rank change since last week.
+- Lead, Rhythm and Bass boxes (like the tier boxes in the player lookup) pick the level shown for each path: click one to cycle All → Beginner → Intermediate → Advanced → Masterclass; “Show all levels” resets them.
 - Filter by **All paths / Lead / Rhythm / Bass**. Click a name to open their Player lookup.
 
 ### 🏆 Winners

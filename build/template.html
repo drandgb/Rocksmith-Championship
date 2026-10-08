@@ -401,7 +401,7 @@ button.clear.sblatest:hover{background:var(--accent);color:var(--accent-ink)}
 .wpres i.np{background:repeating-linear-gradient(45deg,var(--lost) 0 2px,var(--panel2) 2px 4px)}
 #view-songs .brow.notag{grid-template-columns:1.6em minmax(90px,16em) minmax(40px,1fr) auto}
 #spath button{padding:10px 20px;font-size:.9rem}
-#spath .s-all[aria-pressed="true"],#rkpath .s-all[aria-pressed="true"]{background:var(--accent)}
+#spath .s-all[aria-pressed="true"]{background:var(--accent)}
 .tiers5{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:14px}
 @media (max-width:900px){.tiers5{grid-template-columns:repeat(auto-fit,minmax(180px,1fr))}}
 .tcol{border-top:3px solid var(--tc);background:linear-gradient(180deg,color-mix(in srgb,var(--tc) 10%,transparent),transparent 60%);border-radius:8px;padding:10px 10px 6px;min-width:0}
@@ -577,7 +577,17 @@ footer .updated{display:block;margin-top:4px}
 @keyframes rkshine{from{background-position:0% 0}to{background-position:250% 0}}
 .rkinfo{cursor:help}
 .rkinfo .infoi{font-size:.8em;color:var(--muted);vertical-align:1px}
-.rkbody{display:flex;flex-direction:column;gap:20px}
+.rkbody{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px}
+.rkbody>.rkpath.full,.rkbody>.empty{grid-column:1/-1}
+@media (max-width:900px){.rkbody{grid-template-columns:minmax(0,1fr)}}
+.rkbody>.rkpath:not(.full) .rklevels{grid-template-columns:minmax(0,1fr)}
+/* path level pickers: like the player lookup's tier boxes, click to cycle All → B → I → A → M */
+.rktiers{display:flex;gap:10px}
+.rktiers .tier{cursor:pointer;font:inherit;color:inherit;min-width:86px;border-top:3px solid var(--pc);transition:background .15s,box-shadow .15s}
+.rktiers .tier:hover{background:color-mix(in srgb,var(--pc) 14%,var(--panel2))}
+.rktiers .tier:focus-visible{outline:2px solid var(--fg);outline-offset:2px}
+.rktiers .tier small{color:var(--pc)}
+.rktiers .tier i{font-style:normal;font-size:.62rem;color:var(--muted);margin-top:1px}
 .rkpath{border-top:3px solid var(--pc)}
 .rkpath>.panel-head h2{color:var(--pc)}
 .rklevels{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
@@ -900,12 +910,7 @@ footer{color:var(--dim);font-size:.78rem}
     <div class="panel-head"><h2 class="rkinfo" data-tip="How Rodman’s Rankings work: each path (Lead, Rhythm, Bass) and level (Beginner to Masterclass) has its own leaderboard covering the last 10 weeks. Finishing 1st, 2nd, 3rd or 4th on a challenge at that level earns 10, 5, 3 or 1 points, and a player’s points over those 10 weeks are added up. Players with the same points share a rank. The arrows show how many places a player moved since last week’s rankings; New means they just entered the list, and Out means they no longer have points in the last 10 weeks. Kept by Rodman in the scoreboard sheet.">Rodman’s Rankings <span class="infoi" aria-hidden="true">ⓘ</span></h2><span class="sub" id="rk-sub"></span></div>
     <div class="twstats" id="rk-stats"></div>
   </section>
-  <div class="wpathbar"><div class="seg" role="radiogroup" aria-label="Path" id="rkpath">
-    <button type="button" data-rk="-1" class="s-all" aria-pressed="true">All paths</button>
-    <button type="button" data-rk="0" class="s-lead" aria-pressed="false">Lead</button>
-    <button type="button" data-rk="1" class="s-rhy" aria-pressed="false">Rhythm</button>
-    <button type="button" data-rk="2" class="s-bass" aria-pressed="false">Bass</button>
-  </div></div>
+  <div class="wpathbar"><div class="tiers rktiers" id="rkpath" aria-label="Level shown for each path"></div><button type="button" class="clear" id="rkall" hidden>Show all levels</button></div>
   <div id="rk-body" class="rkbody"></div>
   </div>
 
@@ -2582,15 +2587,17 @@ $("view-thisweek").addEventListener("click",e=>{
 });
 // ---------- Rodman's Rankings (from the "Rodman's Rankings" tab of the scoreboard sheet) ----------
 const RK=__RANKINGS__;
-let rkPath=-1;
+const RK_CYC=["","B","I","A","M"]; let rkLv=["","",""]; // level shown per path (Lead, Rhythm, Bass); "" = all
 function renderRankings(){
-  document.querySelectorAll("#rkpath button").forEach(b=>b.setAttribute("aria-pressed",+b.dataset.rk===rkPath));
+  $("rkpath").innerHTML=["Lead","Rhythm","Bass"].map((k,i)=>{const t=rkLv[i], nx=RK_CYC[(RK_CYC.indexOf(t)+1)%RK_CYC.length];
+    return `<button type="button" class="tier" data-rk="${i}" style="--pc:${PATH_C[i]};--tc:${t?TIER_C[t]:"var(--fg)"}" title="${k}: showing ${t?TIER_NAME[t]:"all levels"} · click for ${nx?TIER_NAME[nx]:"all levels"}"><small>${k}</small><b>${t||"All"}</b><i>${t?TIER_NAME[t]:"all levels"}</i></button>`}).join("");
+  $("rkall").hidden=!rkLv.some(Boolean);
   $("rk-sub").textContent=RK.weeks?`Weeks ${RK.weeks}${RK.updated?` · updated ${RK.updated}`:""}`:"Not available";
   const L=RK.listed||[];
   $("rk-stats").innerHTML=(L[0]?`<span><b>${esc(L[0])}</b> players listed</span>`:"")+["Lead","Rhythm","Bass"].map((k,i)=>L[i+1]?`<span><b>${esc(L[i+1])}</b> ${k.toLowerCase()}</span>`:"").join("");
   const LT={Beginner:"B",Intermediate:"I",Advanced:"A",Masterclass:"M"};
-  $("rk-body").innerHTML=(RK.paths||[]).filter(p=>rkPath<0||PATHS.indexOf(p.path)===rkPath).map(p=>{const pi=PATHS.indexOf(p.path);
-    return `<section class="panel rkpath" style="--pc:${PATH_C[pi]}"><div class="panel-head"><h2>${esc(p.path)}</h2><span class="sub">${p.levels.reduce((a,l)=>a+l.rows.filter(r=>r[3]!=="Out").length,0)} ranked</span></div><div class="rklevels">${p.levels.map(l=>{
+  $("rk-body").innerHTML=(RK.paths||[]).map(p=>{const pi=PATHS.indexOf(p.path), sel=rkLv[pi]||"", lv=p.levels.filter(l=>!sel||LT[l.level]===sel);
+    return `<section class="panel rkpath${sel?"":" full"}" style="--pc:${PATH_C[pi]}"><div class="panel-head"><h2>${esc(p.path)}</h2><span class="sub">${lv.reduce((a,l)=>a+l.rows.filter(r=>r[3]!=="Out").length,0)} ranked</span></div><div class="rklevels">${lv.map(l=>{
       const tc=TIER_C[LT[l.level]]||"var(--fg)";
       return `<div class="rklv" style="--tc:${tc}"><h3>${esc(l.level)}<small>${l.rows.filter(r=>r[3]!=="Out").length} players</small></h3>${l.rows.length?`<ol>${l.rows.map(([rk,n,pts,ch])=>{
         const out=ch==="Out", cls=out?"out":rk==="1"?"p1":rk==="2"?"p2":rk==="3"?"p3":"";
@@ -2598,7 +2605,8 @@ function renderRankings(){
         const tipc=/↑/.test(ch)?`Up ${ch.replace(/\D/g,"")} since last week`:/↓/.test(ch)?`Down ${ch.replace(/\D/g,"")} since last week`:/new/i.test(ch)?"New in the rankings this week":out?"Dropped out of the last 10 weeks":"No change";
         return `<li class="${cls}"><span class="rr">${esc(rk)}</span><span class="nm" data-name="${esc(n)}"${byName[n]?` data-goplayer="${esc(n)}"`:""}>${esc(n)}</span><span class="pts">${esc(pts)}</span><span class="chg ${cc}" data-tip="${tipc}">${esc(ch)}</span></li>`}).join("")}</ol>`:`<div class="empty">Nobody ranked</div>`}</div>`}).join("")}</div></section>`}).join("")||`<div class="empty">The rankings tab wasn't found in the sheet.</div>`;
 }
-$("rkpath").addEventListener("click",e=>{const b=e.target.closest("button[data-rk]");if(b){rkPath=+b.dataset.rk;renderRankings()}});
+$("rkpath").addEventListener("click",e=>{const b=e.target.closest("button[data-rk]");if(!b)return;const i=+b.dataset.rk;rkLv[i]=RK_CYC[(RK_CYC.indexOf(rkLv[i])+1)%RK_CYC.length];tip.hidden=true;renderRankings();$("rkpath").querySelector(`[data-rk="${i}"]`).focus()});
+$("rkall").addEventListener("click",()=>{rkLv=["","",""];renderRankings()});
 $("view-rankings").addEventListener("mousemove",e=>{const p=e.target.closest("[data-tip]");if(!p){tip.hidden=true;return}tip.textContent=p.dataset.tip;tip.hidden=false;placeTip(e.clientX,e.clientY)});
 $("view-rankings").addEventListener("mouseleave",()=>tip.hidden=true);
 renderRankings();
