@@ -6,8 +6,7 @@
  *  - Every 5 minutes a timer checks that mark. If the sheet changed, it asks GitHub to run the
  *    "Quick update (current week)" Action once, so a burst of edits only causes one update.
  *  - The site is usually live 2-3 minutes after the Action starts.
- *  - The "Website" menu has "Update website now (drand)" for an instant update and "Full rescan (drand)"
- *    to re-read every week tab after correcting an older week.
+ *  - "Update website now (drand)" and "Full rescan (drand)" live in the sheet's Rocksmith CS menu (see below).
  *
  * Setup (once): see the steps in the README, "Update the site straight from the sheet".
  */
@@ -17,15 +16,9 @@ const WORKFLOW = 'quick-update.yml';
 const CHECK_EVERY_MINUTES = 5;
 const TOKEN_PROPERTY = 'drandWebsiteToken';   // name of the script property that holds the GitHub token
 
-// Adds the "Website" menu when the sheet is opened (installed as its own trigger, so it doesn't clash with
-// an onOpen() the sheet's existing scripts may already have).
-function addWebsiteMenu() {
-  SpreadsheetApp.getUi()
-    .createMenu('Website')
-    .addItem('Update website now (drand)', 'updateWebsiteNow')
-    .addItem('Full rescan (drand)', 'fullRescanNow')
-    .addToUi();
-}
+// Menu items: add these two lines to the sheet's existing menu (the "Rocksmith CS" menu in its onOpen), before .addToUi():
+//   .addItem('Update website now (drand)', 'updateWebsiteNow')
+//   .addItem('Full rescan (drand)', 'fullRescanNow')
 
 // Installable trigger "On change": remember that the sheet changed.
 function markChanged() {
@@ -82,6 +75,5 @@ function installTriggers() {
   ScriptApp.getProjectTriggers().filter(t => mine.includes(t.getHandlerFunction())).forEach(t => ScriptApp.deleteTrigger(t));
   ScriptApp.newTrigger('markChanged').forSpreadsheet(SpreadsheetApp.getActive()).onChange().create();
   ScriptApp.newTrigger('updateIfChanged').timeBased().everyMinutes(CHECK_EVERY_MINUTES).create();
-  ScriptApp.newTrigger('addWebsiteMenu').forSpreadsheet(SpreadsheetApp.getActive()).onOpen().create();
   markChanged();
 }
