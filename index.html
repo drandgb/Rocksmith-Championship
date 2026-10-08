@@ -495,6 +495,17 @@ footer .updated{display:block;margin-top:4px}
 #twsb{border-radius:999px;padding:7px 16px;font-weight:700;color:#1a1406;background:var(--s-orange);border:1px solid var(--s-orange);box-shadow:0 0 12px color-mix(in srgb,var(--s-orange) 40%,transparent);cursor:pointer}
 #twsb:hover{filter:brightness(1.1)}
 @media (max-width:640px){#twsb{order:10;flex:1 1 100%;max-width:92%;margin:4px auto 0;text-align:center;padding:9px 16px}}
+/* Hall of fame: a victorious gold rim with musical notes dancing around the border */
+.panel.hof{position:relative;border:2px solid transparent;
+  background:linear-gradient(var(--panel),var(--panel)) padding-box,linear-gradient(120deg,#f5c84a,#fff1b8,#d8925a,#f5c84a,#c9d0dc,#f5c84a) border-box;background-size:100% 100%,300% 300%;
+  box-shadow:0 0 0 1px rgba(245,200,74,.25),0 0 22px rgba(245,200,74,.35),0 0 48px rgba(255,170,60,.18),inset 0 0 30px rgba(245,200,74,.07)}
+@media (prefers-reduced-motion:no-preference){.panel.hof{animation:hofrim 6s linear infinite,hofglow 3.4s ease-in-out infinite}}
+@keyframes hofrim{0%{background-position:0 0,0% 50%}50%{background-position:0 0,100% 50%}100%{background-position:0 0,0% 50%}}
+@keyframes hofglow{0%,100%{box-shadow:0 0 0 1px rgba(245,200,74,.2),0 0 18px rgba(245,200,74,.3),0 0 40px rgba(255,170,60,.14),inset 0 0 26px rgba(245,200,74,.06)}50%{box-shadow:0 0 0 1px rgba(255,220,120,.45),0 0 30px rgba(245,200,74,.5),0 0 64px rgba(255,170,60,.28),inset 0 0 36px rgba(245,200,74,.1)}}
+.hofnotes{position:absolute;inset:0;pointer-events:none;z-index:1}
+.hofnotes span{position:absolute;font-size:var(--fs,15px);color:#ffd36e;text-shadow:0 0 6px rgba(255,200,80,.9),0 0 14px rgba(255,170,60,.6);transform:translate(-50%,-50%) rotate(var(--r,0deg));line-height:1}
+@media (prefers-reduced-motion:no-preference){.hofnotes span{animation:notebob var(--d,3s) ease-in-out var(--dl,0s) infinite}}
+@keyframes notebob{0%,100%{transform:translate(-50%,-50%) rotate(var(--r,0deg)) translateY(0);opacity:.75}50%{transform:translate(-50%,-50%) rotate(calc(var(--r,0deg) * -1)) translateY(-6px);opacity:1}}
 /* This Week: colored glowing rims on boxes that have something in them */
 .panel.glowrim.lit{position:relative;border-color:color-mix(in srgb,var(--rc) 70%,var(--line));box-shadow:0 0 0 1px color-mix(in srgb,var(--rc) 25%,transparent),0 0 14px color-mix(in srgb,var(--rc) 30%,transparent)}
 @media (prefers-reduced-motion:no-preference){.panel.glowrim.lit{animation:rimglow 3.2s ease-in-out infinite}}
@@ -990,7 +1001,7 @@ footer{color:var(--dim);font-size:.78rem}
 
   <footer>Data: Rodman’s Rocksmith 2014 Championship Google Sheets (older attendance also from the Championship Metrics workbook). Player stats run through week 675; scoreboards cover weeks 440–676. Weeks 1–16 have no recorded host in the source.
   <span class="updated disclaimer">Unofficial fan project. Not affiliated with Ubisoft or Rocksmith.</span>
-  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-08T02:03:59+00:00">October 7, 2026</span></span>
+  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-08T02:07:28+00:00">October 7, 2026</span></span>
   </footer>
 </div>
 <div class="tip" id="tip" hidden></div>
@@ -2344,6 +2355,12 @@ $("shost").innerHTML=`<option value="">All hosts</option>`+hostList.map(h=>`<opt
 $("shost").addEventListener("change",e=>{sHost=e.target.value||null; bandName=null; renderSongs(); updateBubble()});
 document.addEventListener("click",e=>{const b=e.target.closest("[data-gosongs]"); if(!b)return; e.stopPropagation(); tip.hidden=true; mcard.hidden=true;
   sHost=b.dataset.gosongs; bandName=null; showView("songs"); renderSongs(); updateBubble(); scrollTo({top:0})},true);
+
+// ---------- Hall of fame: musical notes around the border ----------
+document.querySelectorAll(".panel.hof").forEach(p=>{
+  const N=["♪","♫","♬","♩","♪","♫"], spots=[[3,0],[18,0],[36,0],[64,0],[82,0],[97,0],[100,28],[100,64],[96,100],[74,100],[52,100],[28,100],[6,100],[0,70],[0,32]];
+  p.insertAdjacentHTML("beforeend",`<div class="hofnotes" aria-hidden="true">${spots.map(([x,y],i)=>`<span style="left:${x}%;top:${y}%;--fs:${16+(i*7)%10}px;--r:${(i%2?1:-1)*(8+(i*5)%14)}deg;--d:${(2.6+(i*0.37)%1.6).toFixed(2)}s;--dl:${((i*0.29)%1.5).toFixed(2)}s">${N[i%N.length]}</span>`).join("")}</div>`);
+});
 
 // ---------- the six string colors under the title light up as you pass over them (or tap them) ----------
 document.querySelectorAll(".strings i").forEach(s=>{
