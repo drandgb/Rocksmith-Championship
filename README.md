@@ -35,11 +35,11 @@ The whole app is one self-contained `index.html`. It has no build step, no serve
 - Switch between **All paths / Lead / Rhythm / Bass**.
 - **Seasons**: pick a year (or All time) to see that year's Hall of fame, Most wins, Win rates and Rank changes. Winner lookup follows the season too.
 - **Hall of fame** podium for the most challenge wins.
-- **🔥 Hot streaks**: players who won a challenge in each of the last 2+ weeks. 🔥🔥 means 5+ weeks and 🔥🔥🔥 means 10+.
+- **🔥 Hot streaks**: players who won a challenge in each of the last 2+ weeks. Their 🔥 next to their name glows brighter the longer the streak.
 - **Most wins** and **Win rates** (top 20). Hover a win-rate bar to see wins vs. entries.
 - **Winner lookup**:
   - **Stats:** weeks with a win, total wins, best week, longest win streak, triple crowns, close wins (won on the tiebreak) and Lead, Rhythm and Bass rivals (the player who was most often their closest match within the same rank on that path; click to highlight those weeks).
-  - **Medals:** 🥇🥈🥉 gold, silver and bronze medals (how many times they finished 1st, 2nd or 3rd on a challenge), 💎 God diamonds (the same for God challenges), 🏆 win-week trophies (one cup per win; the number is how many weeks they won that many), ⚡ win-streak bolts (2, 3, 4, 5, 10, 15, 20, 25, 30, 40, 50… weeks in a row), 👑 triple crowns (won Lead, Rhythm and Bass in the same week) and 🟰 close-win medals.
+  - **Medals:** 🥇🥈🥉 gold, silver and bronze medals (how many times they finished 1st, 2nd or 3rd on a challenge), 💎 God diamonds (the same for God challenges), 🏆 win-week trophies (one cup per win; the number is how many weeks they won that many), ⚡ win-streak bolts (2, 3, 4, 5, 10, 15, 20, 25, 30, 40, 50… weeks in a row), 👑 triple crowns (won Lead, Rhythm and Bass in the same week) and 🟰 close-win medals, ⚔️ rivalry wins (beat their closest rival of the week).
   - **Week chart:** heat colors for 1, 2 and 3+ wins.
   - **Year filter:** click a year label to see that year's stats only.
 - **Rank changes**: class promotions ↗ and demotions ↘ over the past year.
