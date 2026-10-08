@@ -622,8 +622,8 @@ footer .updated{display:block;margin-top:4px}
 }
 @keyframes shine{0%{background-position:120% 0}55%,100%{background-position:-60% 0}}
 @keyframes flicker{0%,100%{transform:scale(1);opacity:1}40%{transform:scale(1.04,1.07);opacity:.9}70%{transform:scale(.98,1.02)}}
-.hot{margin-left:4px;cursor:help;font-size:.9em;display:inline-block;--heat:0;
-  filter:brightness(calc(.85 + var(--heat)*.6)) saturate(calc(1 + var(--heat)*.6)) drop-shadow(0 0 calc(1px + var(--heat)*3px) rgba(255,140,40,calc(.3 + var(--heat)*.7))) drop-shadow(0 0 calc(var(--heat)*5px) rgba(255,210,90,calc(var(--heat)*.8)))}
+.hot{margin-left:2px;padding:0 3px;cursor:help;font-size:.9em;display:inline-block;--heat:0;
+  filter:brightness(calc(.85 + var(--heat)*.5)) saturate(calc(1 + var(--heat)*.5)) drop-shadow(0 0 calc(.5px + var(--heat)*2px) rgba(255,150,50,calc(.25 + var(--heat)*.55)))}
 @media (prefers-reduced-motion:no-preference){.hot{animation:flick calc(2.2s - var(--heat)*1.2s) ease-in-out infinite}}
 @keyframes flick{0%,100%{transform:scale(1)}50%{transform:scale(calc(1.04 + var(--heat)*.1))}}
 .pod .hot{font-size:.85em}
@@ -1001,7 +1001,7 @@ footer{color:var(--dim);font-size:.78rem}
 
   <footer>Data: Rodman’s Rocksmith 2014 Championship Google Sheets (older attendance also from the Championship Metrics workbook). Player stats run through week 675; scoreboards cover weeks 440–676. Weeks 1–16 have no recorded host in the source.
   <span class="updated disclaimer">Unofficial fan project. Not affiliated with Ubisoft or Rocksmith.</span>
-  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-08T02:07:28+00:00">October 7, 2026</span></span>
+  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-08T02:10:46+00:00">October 7, 2026</span></span>
   </footer>
 </div>
 <div class="tip" id="tip" hidden></div>
