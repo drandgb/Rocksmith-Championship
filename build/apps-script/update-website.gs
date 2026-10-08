@@ -14,6 +14,7 @@
 const REPO = 'drandgb/Rocksmith-Championship';
 const WORKFLOW = 'quick-update.yml';
 const CHECK_EVERY_MINUTES = 5;
+const TOKEN_PROPERTY = 'drandWebsiteToken';   // name of the script property that holds the GitHub token
 
 // Adds the "Website" menu when the sheet is opened (installed as its own trigger, so it doesn't clash with
 // an onOpen() the sheet's existing scripts may already have).
@@ -41,14 +42,14 @@ function updateWebsiteNow() {
   const ok = startQuickUpdate_();
   PropertiesService.getScriptProperties().deleteProperty('CHANGED');
   SpreadsheetApp.getActive().toast(ok ? 'Website update started. It should be live in about 2-3 minutes.'
-                                      : 'Could not start the update. Check the GITHUB_TOKEN in Project Settings.',
+                                      : 'Could not start the update. Check the ' + TOKEN_PROPERTY + ' script property in Project Settings.',
                                    'Website', 8);
 }
 
 // Asks GitHub to run the quick update Action. Returns true if GitHub accepted it.
 function startQuickUpdate_() {
-  const token = PropertiesService.getScriptProperties().getProperty('GITHUB_TOKEN');
-  if (!token) { console.error('No GITHUB_TOKEN script property.'); return false; }
+  const token = PropertiesService.getScriptProperties().getProperty(TOKEN_PROPERTY);
+  if (!token) { console.error('No ' + TOKEN_PROPERTY + ' script property.'); return false; }
   const res = UrlFetchApp.fetch(`https://api.github.com/repos/${REPO}/actions/workflows/${WORKFLOW}/dispatches`, {
     method: 'post',
     contentType: 'application/json',
