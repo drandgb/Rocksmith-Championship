@@ -71,6 +71,21 @@ function startWorkflow_(workflow) {
   return ok;
 }
 
+// Another way to save the token: run this from the editor, then switch to the sheet's browser tab and paste
+// the token into the box that pops up there. It saves it as the script property and checks it with GitHub.
+function setWebsiteToken() {
+  const ui = SpreadsheetApp.getUi();
+  const r = ui.prompt('Website token', 'Paste the GitHub token (it starts with github_pat_):', ui.ButtonSet.OK_CANCEL);
+  if (r.getSelectedButton() !== ui.Button.OK) return;
+  const token = r.getResponseText().trim();
+  if (!token) { ui.alert('No token entered.'); return; }
+  PropertiesService.getScriptProperties().setProperty(TOKEN_PROPERTY, token);
+  const res = UrlFetchApp.fetch(`https://api.github.com/repos/${REPO}/actions/workflows/${WORKFLOW}`, {
+    headers: { Authorization: 'Bearer ' + token, Accept: 'application/vnd.github+json' }, muteHttpExceptions: true });
+  ui.alert(res.getResponseCode() === 200 ? 'Token saved, and GitHub accepted it.'
+           : 'Token saved, but GitHub said ' + res.getResponseCode() + ': ' + (tryMessage_(res.getContentText()) || 'no details'));
+}
+
 // Run this once from the editor to create the triggers (it removes old copies of its own triggers first).
 function installTriggers() {
   // only remove this script's own triggers, never the sheet's other ones
