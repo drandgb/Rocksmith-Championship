@@ -148,7 +148,7 @@ GitHub's hourly schedule often runs late. A small Apps Script in the scoreboard 
 3. **Save the token.** In the Apps Script editor, open *Project Settings* (gear icon) → *Script properties* → *Add script property*. Name: `drandWebsiteToken`, value: the token.
 4. **Turn it on.** Back in the editor, pick `installTriggers` in the function list and click *Run*. Approve the permissions Google asks for.
 
-After that, edits to the sheet start a site update within about 5 minutes, and the update is live 2–3 minutes later. A burst of edits only causes one update. Reload the sheet to see a new **Website → Update website now** menu for an instant update.
+After that, edits to the sheet start a site update within about 5 minutes, and the update is live 2–3 minutes later. A burst of edits only causes one update. Reload the sheet to see a new **Website → Update website now (drand)** menu for an instant update.
 
 Anyone who can edit the script can see the token, but it can only start Actions in this repo. To turn it off, delete its three triggers (`markChanged`, `updateIfChanged`, `addWebsiteMenu`) under *Triggers* (clock icon) in the Apps Script editor.
 
