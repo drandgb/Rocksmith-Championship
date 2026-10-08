@@ -1001,6 +1001,7 @@ footer{color:var(--dim);font-size:.78rem}
 
   <footer>Data: Rodman’s Rocksmith 2014 Championship Google Sheets (older attendance also from the Championship Metrics workbook). Player stats run through week __DATAWEEK__; scoreboards cover weeks 440–__SBMAX__. Weeks 1–16 have no recorded host in the source.
   <span class="updated disclaimer">Unofficial fan project. Not affiliated with Ubisoft or Rocksmith.</span>
+  <span class="updated" id="sheetedit-row" hidden>Sheet last edited: <span id="sheetedit" data-iso="__SHEET_EDITED__"></span></span>
   <span class="updated">Last updated: <span id="builtat" data-iso="__BUILT_ISO__">__BUILT__</span></span>
   </footer>
 </div>
@@ -2381,6 +2382,9 @@ $("refreshbtn").addEventListener("click",async()=>{
 // ---------- show "Last updated" in the viewer's own time zone ----------
 // "Last updated" = the last time an Action checked the spreadsheet (asked from GitHub's public API, so it moves
 // every hour even when nothing changed). Falls back to when this page was built.
+// "Sheet last edited": the time the scoreboard sheet was last changed (sent by the sheet's updateWebsite script)
+{const el=$("sheetedit"), d=new Date(el.dataset.iso||"");
+ if(el.dataset.iso&&!isNaN(d)){el.textContent=d.toLocaleString(undefined,{year:"numeric",month:"long",day:"numeric",hour:"numeric",minute:"2-digit",timeZoneName:"short"});$("sheetedit-row").hidden=false}}
 {const el=$("builtat"), show=d=>{if(!isNaN(d))el.textContent=d.toLocaleString(undefined,{year:"numeric",month:"long",day:"numeric",hour:"numeric",minute:"2-digit",timeZoneName:"short"})};
  show(new Date(el.dataset.iso));
  const api="https://api.github.com/repos/drandgb/rocksmith-championship/actions/workflows/";

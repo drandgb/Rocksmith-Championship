@@ -23,5 +23,7 @@ python3 parse_weeks.py
 python3 build_sb.py
 python3 build_players.py
 python3 build_rankings.py
+# when the sheet was last edited: sent by the sheet's updateWebsite script; kept in the cache between runs
+if [[ "${SHEET_EDITED:-}" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9:.]+Z$ ]]; then printf '"%s"' "$SHEET_EDITED" > cache/sheet_edited.json; fi
 OUT="${OUT:-../../index.html}" python3 render.py
 cp cache/*.json ../data/cache/

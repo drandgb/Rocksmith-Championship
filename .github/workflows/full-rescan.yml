@@ -4,6 +4,11 @@ on:
   schedule:
     - cron: "7 7 * * 0"     # Sundays 07:47 UTC (3:47am New York); re-reads every week tab, so corrections to old weeks show up
   workflow_dispatch:          # "Run workflow" button on the Actions tab
+    inputs:
+      edited:
+        description: "When the scoreboard sheet was last edited (ISO time, sent by the sheet's updateWebsite script)"
+        required: false
+        default: ""
 
 permissions:
   contents: write
@@ -27,6 +32,8 @@ jobs:
         run: pip install openpyxl==3.1.5
 
       - name: Download the sheet and build index.html
+        env:
+          SHEET_EDITED: ${{ inputs.edited }}
         run: |
           export BUILD_DATE=$(TZ=America/New_York date +%F)
           MODE=full ./build/build.sh 2>&1 | tee build.log
