@@ -1704,8 +1704,8 @@ function diamondSvg(i){const tint=["#bff6ff","#e6ecf5","#ffd2b0"][i], deep=["#4f
   return `<svg viewBox="0 0 30 30" aria-hidden="true"><defs><linearGradient id="dg${i}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff"/><stop offset=".35" stop-color="${tint}"/><stop offset=".7" stop-color="${deep}"/><stop offset="1" stop-color="#c77dff"/></linearGradient></defs><polygon points="8,4 22,4 29,12 15,28 1,12" fill="url(#dg${i})"/><polygon points="8,4 22,4 18.5,12 11.5,12" fill="rgba(255,255,255,.65)"/><polygon points="1,12 11.5,12 15,28" fill="rgba(255,255,255,.18)"/><polygon points="29,12 18.5,12 15,28" fill="rgba(60,0,120,.22)"/><polygon points="11.5,12 18.5,12 15,28" fill="rgba(255,255,255,.35)"/><polygon points="8,4 1,12 11.5,12" fill="rgba(255,255,255,.4)"/><polygon points="22,4 29,12 18.5,12" fill="rgba(80,40,160,.18)"/><polygon points="8,4 22,4 29,12 15,28 1,12" fill="none" stroke="rgba(255,255,255,.8)" stroke-width=".7"/><path class="spk" d="M24 1.5l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8z" fill="#fff"/><path class="spk s2" d="M4.5 18l.6 1.4 1.4.6-1.4.6-.6 1.4-.6-1.4-1.4-.6 1.4-.6z" fill="#fff"/></svg>`}
 function podiumMedals(pod){
   const rows=[], reg=[], god=[];
-  pod.reg.forEach((ws,i)=>{if(ws.length)reg.push(`<span class="medal-m wm pod" style="--ec:${POD_COL[i]};cursor:pointer" data-hl="${[...new Set(ws)].join(",")}" data-tip="${POD_NAME[i]} medal · finished ${POD_PLACE[i]} on a challenge ${ws.length} time${ws.length===1?"":"s"} · click to highlight">${podSvg(POD_COL[i])}<b>${ws.length}</b></span>`)});
-  pod.god.forEach((ws,i)=>{if(ws.length)god.push(`<span class="medal-m wm diamond d${i}" style="--ec:${["#7fe9ff","#e6ecf5","#ffb27a"][i]};cursor:pointer" data-hl="${[...new Set(ws)].join(",")}" data-tip="${POD_NAME[i]} God diamond · finished ${POD_PLACE[i]} on a God challenge ${ws.length} time${ws.length===1?"":"s"} · click to highlight">${diamondSvg(i)}<b>${ws.length}</b></span>`)});
+  pod.reg.forEach((ws,i)=>{if(ws.length)reg.push(`<span class="medal-m wm pod" style="--ec:${POD_COL[i]};cursor:pointer" data-all="${ws.join(",")}" data-hl="${[...new Set(ws)].join(",")}" data-tip="${POD_NAME[i]} medal · finished ${POD_PLACE[i]} on a challenge ${ws.length} time${ws.length===1?"":"s"} · click to highlight">${podSvg(POD_COL[i])}<b>${ws.length}</b></span>`)});
+  pod.god.forEach((ws,i)=>{if(ws.length)god.push(`<span class="medal-m wm diamond d${i}" style="--ec:${["#7fe9ff","#e6ecf5","#ffb27a"][i]};cursor:pointer" data-all="${ws.join(",")}" data-hl="${[...new Set(ws)].join(",")}" data-tip="${POD_NAME[i]} God diamond · finished ${POD_PLACE[i]} on a God challenge ${ws.length} time${ws.length===1?"":"s"} · click to highlight">${diamondSvg(i)}<b>${ws.length}</b></span>`)});
   return {reg,god};
 }
 // rivalry wins: weeks (finished) where this player's closest rival on a path lost the rivalry to them
@@ -1727,8 +1727,8 @@ function winMedals(per,done,bestN,streak,total,trip,ties,pod,rivw){
   // triple crowns and close wins: one medal each, the count is how many times; the weeks light up on the chart when clicked
   const tc=[];
   if(trip&&trip.reg.length)tc.push(`<span class="medal-m wm" style="--ec:#ffc94f;cursor:pointer" data-hl="${trip.reg.join(",")}" data-tip="Triple crown · won a challenge on Lead, Rhythm and Bass in the same week · ${trip.reg.length} time${trip.reg.length===1?"":"s"} · click to highlight">${crownSvg("#ffc94f")}<b>${trip.reg.length}</b></span>`);
-  if(ties&&ties.length)tc.push(`<span class="medal-m wm" style="--ec:#ff7eb6;cursor:pointer" data-hl="${[...new Set(ties)].sort((a,b)=>a-b).join(",")}" data-tip="Close win medal · won on the tiebreak with the same % as the runner-up · ${ties.length} time${ties.length===1?"":"s"} · click to highlight">${tieSvg("#ff7eb6")}<b>${ties.length}</b></span>`);
-  if(rivw&&rivw.length)tc.push(`<span class="medal-m wm" style="--ec:#ff6b6b;cursor:pointer" data-hl="${[...new Set(rivw)].sort((a,b)=>a-b).join(",")}" data-tip="Rivalry win · beat their closest rival of the week (same rank, ranked challenges) · ${rivw.length} time${rivw.length===1?"":"s"} · click to highlight">${swordsSvg("#ff6b6b")}<b>${rivw.length}</b></span>`);
+  if(ties&&ties.length)tc.push(`<span class="medal-m wm" style="--ec:#ff7eb6;cursor:pointer" data-all="${ties.join(",")}" data-hl="${[...new Set(ties)].sort((a,b)=>a-b).join(",")}" data-tip="Close win medal · won on the tiebreak with the same % as the runner-up · ${ties.length} time${ties.length===1?"":"s"} · click to highlight">${tieSvg("#ff7eb6")}<b>${ties.length}</b></span>`);
+  if(rivw&&rivw.length)tc.push(`<span class="medal-m wm" style="--ec:#ff6b6b;cursor:pointer" data-all="${rivw.join(",")}" data-hl="${[...new Set(rivw)].sort((a,b)=>a-b).join(",")}" data-tip="Rivalry win · beat their closest rival of the week (same rank, ranked challenges) · ${rivw.length} time${rivw.length===1?"":"s"} · click to highlight">${swordsSvg("#ff6b6b")}<b>${rivw.length}</b></span>`);
   if(P.reg.length||P.god.length||tc.length)rows.push([...P.reg,...P.god,...tc]);
   // best-week trophies: one per number of wins in a week; the count is how many weeks had exactly that many wins
   if(bestN>0){const r=[];for(let k=1;k<=bestN;k++){const ws=asc.filter(w=>per[w][1]===k); if(!ws.length)continue;
@@ -2425,7 +2425,12 @@ function twMedals(n,w,live){
   // a medal is new this week if it was collected this week, or (for medals counted every time, like gold medals,
   // trophies, triple crowns and close wins) if this week is one of the weeks it was earned. Same order as the lookups.
   const isNew=m=>{const tp=m.dataset.tip||""; if(/collected Week \d+\)/.test(tp))return new RegExp(`collected Week ${w}\\)`).test(tp); return (m.dataset.hl||"").split(",").includes(String(w))};
-  const grab=(html,kind)=>{box.innerHTML=html; box.querySelectorAll(".medal-m").forEach(m=>{if(isNew(m)){m.removeAttribute("data-hl");m.style.cursor="";m.dataset.mk=kind;m.dataset.mn=n;out.push(m.outerHTML)}})};
+  // medals earned again and again show "+N" for how many were earned this week (the career total is in the hover text)
+  const thisWeekOnly=m=>{const tp=m.dataset.tip||""; if(/collected Week \d+\)/.test(tp))return;
+    const k=(m.dataset.all||m.dataset.hl||"").split(",").filter(x=>x===String(w)).length||1, b=m.querySelector("b");
+    const tot=b?b.textContent:""; if(b)b.textContent="+"+k;
+    m.dataset.tip=tp.replace(/ · (\d+) times? · click to highlight$/,"").replace(/ · click to highlight$/,"")+` · +${k} this week${tot?` (${tot} all time)`:""}`};
+  const grab=(html,kind)=>{box.innerHTML=html; box.querySelectorAll(".medal-m").forEach(m=>{if(isNew(m)){thisWeekOnly(m);m.removeAttribute("data-hl");m.style.cursor="";m.dataset.mk=kind;m.dataset.mn=n;out.push(m.outerHTML)}})};
   let p=byName[n];
   if(live){ // provisional: this week's attendance added to the player's history
     const pad="0".repeat(Math.max(0,w-1-DATA_WEEK)), bits=(twBits[n]||"")+pad+"1";
