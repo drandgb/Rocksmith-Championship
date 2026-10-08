@@ -1903,7 +1903,8 @@ function sbRender(){
   $("sbprev").disabled=sbWeek===SB_WEEKS[SB_WEEKS.length-1];
   $("sbnext").disabled=sbWeek===SB_WEEKS[0];
   $("sblatest").hidden=sbWeek===SB_WEEKS[0]; $("sblatest").textContent=`Back to latest week (${SB_WEEKS[0]}) ›`;
-  $("sbmeta").innerHTML=wk?`${fmt(wk[1])}${wk[2]&&wk[2]!==LOST?` · hosted by <b>${esc(wk[2])}</b>`:""}`:"";
+  const sbLive=sbWeek>DATA_WEEK&&sbWeek===cur[0];
+  $("sbmeta").innerHTML=(sbLive?'<span class="pill new" style="width:auto">IN PROGRESS</span> ':'<span class="pill done" style="width:auto">CONCLUDED</span> ')+(wk?`${fmt(wk[1])}${wk[2]&&wk[2]!==LOST?` · hosted by <b>${esc(wk[2])}</b>`:""}`:"");
   document.querySelectorAll("#sbseg button").forEach(b=>b.setAttribute("aria-pressed",+b.dataset.path===sbPath));
   const all=ch.flatMap(c=>c[6]), players=new Set(all.map(e=>SB.names[e[0]].replace(/[*~]+$/,"")));
   const pathEnts=ch.filter(c=>c[0]===sbPath).flatMap(c=>c[6]);
