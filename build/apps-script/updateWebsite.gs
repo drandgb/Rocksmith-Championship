@@ -24,7 +24,8 @@ const TOKEN_PROPERTY = 'drandWebsiteToken';   // name of the script property tha
 
 // Installable trigger "On change": remember that the sheet changed.
 function markChanged() {
-  PropertiesService.getScriptProperties().setProperty('CHANGED', String(Date.now()));
+  const now = String(Date.now());
+  PropertiesService.getScriptProperties().setProperties({ CHANGED: now, LAST_EDIT: now });
 }
 
 // Time-driven trigger: if the sheet changed since the last update, start one.
@@ -51,6 +52,11 @@ function fullRescanNow() {
                                    'Website', 8);
 }
 
+function lastEditIso_() {
+  const t = Number(PropertiesService.getScriptProperties().getProperty('LAST_EDIT') || 0);
+  return t ? new Date(t).toISOString() : '';
+}
+
 // Asks GitHub to run the quick update Action. Returns true if GitHub accepted it.
 function startQuickUpdate_() { return startWorkflow_(WORKFLOW); }
 
@@ -62,7 +68,8 @@ function startWorkflow_(workflow) {
     method: 'post',
     contentType: 'application/json',
     headers: { Authorization: 'Bearer ' + token, Accept: 'application/vnd.github+json' },
-    payload: JSON.stringify({ ref: 'main' }),
+    // also tell the site when the sheet was last edited, for the "Sheet last edited" line in its footer
+    payload: JSON.stringify({ ref: 'main', inputs: { edited: lastEditIso_() } }),
     muteHttpExceptions: true,
   });
   const ok = res.getResponseCode() === 204;
