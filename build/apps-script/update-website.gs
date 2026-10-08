@@ -6,7 +6,8 @@
  *  - Every 5 minutes a timer checks that mark. If the sheet changed, it asks GitHub to run the
  *    "Quick update (current week)" Action once, so a burst of edits only causes one update.
  *  - The site is usually live 2-3 minutes after the Action starts.
- *  - There is also a menu, "Website → Update website now", for an instant update.
+ *  - The "Website" menu has "Update website now (drand)" for an instant update and "Full rescan (drand)"
+ *    to re-read every week tab after correcting an older week.
  *
  * Setup (once): see the steps in the README, "Update the site straight from the sheet".
  */
@@ -22,6 +23,7 @@ function addWebsiteMenu() {
   SpreadsheetApp.getUi()
     .createMenu('Website')
     .addItem('Update website now (drand)', 'updateWebsiteNow')
+    .addItem('Full rescan (drand)', 'fullRescanNow')
     .addToUi();
 }
 
@@ -46,11 +48,22 @@ function updateWebsiteNow() {
                                    'Website', 8);
 }
 
+// Menu item: re-read every week tab (use after correcting an older week). Takes a few minutes.
+function fullRescanNow() {
+  const ok = startWorkflow_('full-rescan.yml');
+  SpreadsheetApp.getActive().toast(ok ? 'Full rescan started. It should be live in about 5 minutes.'
+                                      : 'Could not start the rescan. Check the ' + TOKEN_PROPERTY + ' script property in Project Settings.',
+                                   'Website', 8);
+}
+
 // Asks GitHub to run the quick update Action. Returns true if GitHub accepted it.
-function startQuickUpdate_() {
+function startQuickUpdate_() { return startWorkflow_(WORKFLOW); }
+
+// Asks GitHub to run one of the site's Actions. Returns true if GitHub accepted it.
+function startWorkflow_(workflow) {
   const token = PropertiesService.getScriptProperties().getProperty(TOKEN_PROPERTY);
   if (!token) { console.error('No ' + TOKEN_PROPERTY + ' script property.'); return false; }
-  const res = UrlFetchApp.fetch(`https://api.github.com/repos/${REPO}/actions/workflows/${WORKFLOW}/dispatches`, {
+  const res = UrlFetchApp.fetch(`https://api.github.com/repos/${REPO}/actions/workflows/${workflow}/dispatches`, {
     method: 'post',
     contentType: 'application/json',
     headers: { Authorization: 'Bearer ' + token, Accept: 'application/vnd.github+json' },
