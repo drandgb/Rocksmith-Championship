@@ -25,7 +25,7 @@ The whole app is one self-contained `index.html`. It has no build step, no serve
 - **New medals** collected this week. Click one to ring it and show what it is for. While a week is still running, player medals are provisional and win medals are added once it ends.
 - An **Open scoreboard** button opens the week shown on the Scoreboard.
 - Boxes with something in them get a glowing rim: gold for New medals, red for Rivals, green for New this week, a starry rim for Anniversaries, a tropical rim (with a swaying palm) for Back from a break, amber for Streaks at stake and a gloomy rainy blue for Streaks that ended.
-- **Rivals**, split into Lead, Rhythm and Bass (dead-even pairs get a glowing rim): each player's closest match within their own rank on that path: the opponent with the smallest average % gap on the ranked challenges they both played. Playing up or down and God challenges don't count.
+- **Rivals**, split into Lead, Rhythm and Bass (dead-even pairs get a glowing rim). Once a week is over, each pair gets a 🏆 winner: whoever beat the other on more of their shared challenges (then the higher total %): each player's closest match within their own rank on that path: the opponent with the smallest average % gap on the ranked challenges they both played. Playing up or down and God challenges don't count.
 
 ### 📊 Rankings
 - **Rodman’s Rankings**, straight from the *Rodman´s Rankings* tab of the scoreboard sheet: the leaderboard for the last 10 weeks (1st–4th place on a challenge scores 10/5/3/1 points), for every path and level, with each player's rank change since last week.

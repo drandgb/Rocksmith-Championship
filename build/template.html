@@ -552,6 +552,10 @@ footer .updated{display:block;margin-top:4px}
 .twtiers{flex-basis:100%;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
 .twtiers .tier{padding:4px 6px}
 .twtiers .tier b{font-size:1rem}
+.twl .rwin .nm{color:#ffd36e;text-shadow:0 0 8px rgba(255,211,110,.45)}
+.twl .rcrown{margin-right:3px;font-size:.9em}
+.twl .rlose .nm{opacity:.55;font-weight:500}
+.twl .rverdict{flex-basis:100%;order:4;font:700 .74rem var(--f-display);letter-spacing:.02em;color:#ffd36e;cursor:help}
 .twpath h3{font:700 .85rem var(--f-display);letter-spacing:.08em;text-transform:uppercase;margin:0 0 8px;padding-left:8px;border-left:3px solid var(--pc)}
 .stats .rivbox{grid-column:1/-1;box-shadow:inset 3px 0 0 var(--pc);cursor:help}
 .stats .rivbox[data-hl]{cursor:pointer}
@@ -1598,11 +1602,12 @@ function rivalsOfWeek(w,path=-1){
   const byCard=new Map(); ents.forEach(x=>{if(x.e[1]==null||!ranked(x))return; if(!byCard.has(x.c))byCard.set(x.c,[]); byCard.get(x.c).push(x)});
   const H={};
   byCard.forEach((xs,c)=>{for(const a of xs)for(const b of xs){if(a.n===b.n)continue;
-    const gap=Math.abs(a.e[1]-b.e[1]), sg=Math.abs((a.e[2]||0)-(b.e[2]||0)), h=((H[a.n]=H[a.n]||{})[b.n]=H[a.n][b.n]||{k:0,sum:0,ssum:0,best:null});
-    h.k++; h.sum+=gap; h.ssum+=sg; if(!h.best||gap<h.best.gap||(gap===h.best.gap&&sg<h.best.sg))h.best={gap,sg,c,me:a,them:b}}});
+    const gap=Math.abs(a.e[1]-b.e[1]), sg=Math.abs((a.e[2]||0)-(b.e[2]||0)), h=((H[a.n]=H[a.n]||{})[b.n]=H[a.n][b.n]||{k:0,sum:0,ssum:0,best:null,w:0,l:0,pa:0,pb:0});
+    h.k++; h.sum+=gap; h.ssum+=sg; h.pa+=a.e[1]; h.pb+=b.e[1];
+    const beat=a.e[1]-b.e[1]||(a.e[2]||0)-(b.e[2]||0)||(a.e[3]||0)-(b.e[3]||0); if(beat>0)h.w++; else if(beat<0)h.l++; if(!h.best||gap<h.best.gap||(gap===h.best.gap&&sg<h.best.sg))h.best={gap,sg,c,me:a,them:b}}});
   const riv={};
   Object.entries(H).forEach(([a,opp])=>{let r=null; Object.entries(opp).forEach(([b,h])=>{const avg=h.sum/h.k, savg=h.ssum/h.k;
-    if(!r||avg<r.avg||(avg===r.avg&&(h.k>r.k||(h.k===r.k&&savg<r.savg))))r={me:a,them:b,avg,savg,k:h.k,best:h.best}}); riv[a]=r});
+    if(!r||avg<r.avg||(avg===r.avg&&(h.k>r.k||(h.k===r.k&&savg<r.savg))))r={me:a,them:b,avg,savg,k:h.k,best:h.best,w:h.w,l:h.l,pa:h.pa,pb:h.pb}}); riv[a]=r});
   return rivalCache[ck]=riv;
 }
 // how often each opponent was a player's rival, over a set of weeks: [[opponent, [weeks]], ...] most often first
@@ -2445,7 +2450,12 @@ function renderThisWeek(){
   $("tw-riv").innerHTML=!SB.weeks[w]?`<ul class="twl">${twEmpty(`No scoreboard for week ${w} (scoreboards start at week ${SB_W[0]}).`)}</ul>`:[0,1,2].map(pi=>{const pairs=pairsFor(pi);
     return `<div class="twpath" style="--pc:${PATH_C[pi]}"><h3>${PATHS[pi]}</h3><ul class="twl">${pairs.length?pairs.map(r=>{
     const c=r.best.c, g=r2(r.avg);
-    return `<li class="riv${g===0?" even":""}">${g===0?'<span class="evenbadge" title="Same average % on every shared challenge">🤝 Dead even</span>':""}${twName(r.me)}<span class="vs" title="${r.mutual?"Each other's closest rival":"Closest rival"}">${r.mutual?"⇄":"→"}</span>${twName(r.them)}<span class="rt">${g===0?"0.00% gap":`${g.toFixed(2)}% gap`}<small>${r.k===1?"1 shared challenge":`avg over ${r.k} shared challenges`}</small></span><span class="dt">closest: <span class="wkl" data-sbw="${w}" data-sbp="${pi}" data-sbn="${esc(r.me)}" title="Open this challenge on the Scoreboard">${esc(c[2])}</span> · ${esc(c[3])} · ${r.best.me.e[1]}% vs ${r.best.them.e[1]}%</span></li>`}).join(""):twEmpty(`No ${PATHS[pi].toLowerCase()} rivals yet.`)}</ul></div>`}).join("");
+    // once the week is over, the rivalry goes to whoever beat the other on more shared challenges (then higher total %)
+    const res=live?0:(r.w-r.l)||(Math.round((r.pa-r.pb)*100)), wn=res>0?r.me:res<0?r.them:null;
+    const nm=n=>wn?`<span class="${n===wn?"rwin":"rlose"}">${n===wn?'<span class="rcrown" aria-hidden="true">🏆</span>':""}${twName(n)}</span>`:twName(n);
+    const score=Math.max(r.w,r.l)+"–"+Math.min(r.w,r.l);
+    const verdict=live?"":wn?`<span class="rverdict" data-tip="Won more of the challenges they both played${r.w===r.l?" (tied on challenges, so the higher total % decides)":""}">${esc(wn)} wins the rivalry ${score}</span>`:`<span class="rverdict" data-tip="Same results on every shared challenge">Rivalry tied ${score}</span>`;
+    return `<li class="riv${g===0?" even":""}">${g===0?'<span class="evenbadge" title="Same average % on every shared challenge">🤝 Dead even</span>':""}${nm(r.me)}<span class="vs" title="${r.mutual?"Each other's closest rival":"Closest rival"}">${r.mutual?"⇄":"→"}</span>${nm(r.them)}<span class="rt">${g===0?"0.00% gap":`${g.toFixed(2)}% gap`}<small>${r.k===1?"1 shared challenge":`avg over ${r.k} shared challenges`}</small></span><span class="dt">closest: <span class="wkl" data-sbw="${w}" data-sbp="${pi}" data-sbn="${esc(r.me)}" title="Open this challenge on the Scoreboard">${esc(c[2])}</span> · ${esc(c[3])} · ${r.best.me.e[1]}% vs ${r.best.them.e[1]}%</span>${verdict}</li>`}).join(""):twEmpty(`No ${PATHS[pi].toLowerCase()} rivals yet.`)}</ul></div>`}).join("");
 }
 $("twprev").addEventListener("click",()=>{if(twWeek>TW_MIN){twWeek--;renderThisWeek()}});
 $("twnext").addEventListener("click",()=>{if(twWeek<TW_MAX){twWeek++;renderThisWeek()}});
