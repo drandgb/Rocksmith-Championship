@@ -1045,7 +1045,7 @@ footer{color:var(--dim);font-size:.78rem}
   <footer>Data: Rodman’s Rocksmith 2014 Championship Google Sheets (older attendance also from the Championship Metrics workbook). Player stats run through week 675; scoreboards cover weeks 440–676. Weeks 1–16 have no recorded host in the source.
   <span class="updated disclaimer">Unofficial fan project. Not affiliated with Ubisoft or Rocksmith.</span>
   <span class="updated" id="sheetedit-row" hidden>Sheet last edited: <span id="sheetedit" data-iso="2026-10-08T17:47:35.774Z"></span></span>
-  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-08T17:50:18+00:00">October 8, 2026</span></span>
+  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-08T19:06:42+00:00">October 8, 2026</span></span>
   </footer>
 </div>
 <div class="tip" id="tip" hidden></div>
@@ -1975,6 +1975,8 @@ function sbRender(){
   $("sbstats").innerHTML=`<span><b>${players.size}</b> players this week</span><span><b>${all.length}</b> entries in all paths</span><span><b>${pathEnts.length}</b> ${["lead","rhythm","bass"][sbPath]} entries</span>`;
   const cards=ch.filter(c=>c[0]===sbPath&&(!sbLv[sbPath]||cardLv(c[2])===sbLv[sbPath]));
   const findLc=sbFind.toLowerCase();
+  // "Highlight a player" only suggests players on the cards being shown (this week, path and level)
+  $("sbnames").innerHTML=[...new Set(cards.flatMap(c=>c[6].map(e=>SB.names[e[0]].replace(/[*~]+$/,""))))].sort((a,b)=>a.localeCompare(b,undefined,{sensitivity:"base"})).map(n=>`<option value="${esc(n)}"></option>`).join("");
   $("sbcards").innerHTML=cards.map(([p,slot,lvl,song,diff,extra,ents,cont])=>{
     const tc=tierColor(lvl), dash=song.indexOf(" - ");
     const songHtml=song&&song!=="n/a"?(dash>0?`<b class="golink" data-goband="${esc(song.slice(0,dash).trim())}" data-gosong="${esc(song.slice(dash+3).trim())}" title="Show this song in Band lookup">${esc(song.slice(dash+3))}</b><small class="golink" data-goband="${esc(song.slice(0,dash).trim())}" title="Show this band in Band lookup">${esc(song.slice(0,dash))}</small>`:`<b>${esc(song)}</b>`):`<small>No song this week</small>`;
@@ -1996,7 +1998,6 @@ function sbRender(){
   try{localStorage.setItem("rsc-sb",JSON.stringify({w:sbWeek,p:sbPath}))}catch(e){}
 }
 $("sbweek").innerHTML=SB_WEEKS.map(w=>`<option value="${w}">Week ${w}</option>`).join("");
-$("sbnames").innerHTML=SB.names.map(n=>n.replace(/[*~]+$/,"")).filter((n,i,a)=>a.indexOf(n)===i).sort((a,b)=>a.localeCompare(b)).map(n=>`<option value="${esc(n)}"></option>`).join("");
 $("sbweek").addEventListener("change",e=>{sbWeek=+e.target.value;sbRender()});
 $("sbprev").addEventListener("click",()=>{const i=SB_WEEKS.indexOf(sbWeek);if(i<SB_WEEKS.length-1){sbWeek=SB_WEEKS[i+1];sbRender()}});
 $("sbnext").addEventListener("click",()=>{const i=SB_WEEKS.indexOf(sbWeek);if(i>0){sbWeek=SB_WEEKS[i-1];sbRender()}});
