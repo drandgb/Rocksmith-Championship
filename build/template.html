@@ -2369,7 +2369,10 @@ const twMedalCache={};
 function twMedals(n,w,live){
   const k=n+"|"+w; if(twMedalCache[k])return twMedalCache[k];
   const box=document.createElement("div"), out=[];
-  const grab=(html,kind)=>{box.innerHTML=html; box.querySelectorAll(".medal-m").forEach(m=>{if(new RegExp(`collected Week ${w}\\)`).test(m.dataset.tip||"")){m.removeAttribute("data-hl");m.style.cursor="";m.dataset.mk=kind;m.dataset.mn=n;out.push(m.outerHTML)}})};
+  // a medal is new this week if it was collected this week, or (for medals counted every time, like gold medals,
+  // trophies, triple crowns and close wins) if this week is one of the weeks it was earned. Same order as the lookups.
+  const isNew=m=>{const tp=m.dataset.tip||""; if(/collected Week \d+\)/.test(tp))return new RegExp(`collected Week ${w}\\)`).test(tp); return (m.dataset.hl||"").split(",").includes(String(w))};
+  const grab=(html,kind)=>{box.innerHTML=html; box.querySelectorAll(".medal-m").forEach(m=>{if(isNew(m)){m.removeAttribute("data-hl");m.style.cursor="";m.dataset.mk=kind;m.dataset.mn=n;out.push(m.outerHTML)}})};
   let p=byName[n];
   if(live){ // provisional: this week's attendance added to the player's history
     const pad="0".repeat(Math.max(0,w-1-DATA_WEEK)), bits=(twBits[n]||"")+pad+"1";
