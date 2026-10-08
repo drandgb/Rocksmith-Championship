@@ -977,7 +977,7 @@ footer{color:var(--dim);font-size:.78rem}
 
   <footer>Data: Rodman’s Rocksmith 2014 Championship Google Sheets (older attendance also from the Championship Metrics workbook). Player stats run through week 675; scoreboards cover weeks 440–676. Weeks 1–16 have no recorded host in the source.
   <span class="updated disclaimer">Unofficial fan project. Not affiliated with Ubisoft or Rocksmith.</span>
-  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-07T23:49:12+00:00">October 7, 2026</span></span>
+  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-08T00:13:15+00:00">October 7, 2026</span></span>
   </footer>
 </div>
 <div class="tip" id="tip" hidden></div>
@@ -2410,7 +2410,8 @@ function renderThisWeek(){
   const med=[...cand].map(n=>({n,m:twMedals(n,w,live&&set.has(n))})).filter(x=>x.m.length).sort((a,b)=>b.m.length-a.m.length||a.n.localeCompare(b.n));
   // rival pairs for each path (mutual pairs shown once)
   const pairsFor=pi=>{const riv=SB.weeks[w]?rivalsOfWeek(w,pi):{}, pairs=[], done=new Set();
-    Object.values(riv).sort((a,b)=>a.avg-b.avg||b.k-a.k||a.savg-b.savg||a.me.localeCompare(b.me)).forEach(r=>{
+    const lvl=r=>"BIAM".indexOf(tierOf(r.best.c[2])||"M"); // Beginner first, then Intermediate, Advanced, Masterclass
+    Object.values(riv).sort((a,b)=>lvl(a)-lvl(b)||a.avg-b.avg||b.k-a.k||a.savg-b.savg||a.me.localeCompare(b.me)).forEach(r=>{
       if(done.has(r.me))return; const o=riv[r.them], mutual=!!o&&o.them===r.me;
       if(mutual)done.add(r.them); done.add(r.me); pairs.push({...r,mutual});
     }); return pairs};
