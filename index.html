@@ -1023,7 +1023,7 @@ footer{color:var(--dim);font-size:.78rem}
   <footer>Data: Rodman’s Rocksmith 2014 Championship Google Sheets (older attendance also from the Championship Metrics workbook). Player stats run through week 675; scoreboards cover weeks 440–676. Weeks 1–16 have no recorded host in the source.
   <span class="updated disclaimer">Unofficial fan project. Not affiliated with Ubisoft or Rocksmith.</span>
   <span class="updated" id="sheetedit-row" hidden>Sheet last edited: <span id="sheetedit" data-iso=""></span></span>
-  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-08T11:36:54+00:00">October 8, 2026</span></span>
+  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-08T11:46:01+00:00">October 8, 2026</span></span>
   </footer>
 </div>
 <div class="tip" id="tip" hidden></div>
@@ -2559,7 +2559,7 @@ function renderRankings(){
   document.querySelectorAll("#rkpath button").forEach(b=>b.setAttribute("aria-pressed",+b.dataset.rk===rkPath));
   $("rk-sub").textContent=RK.weeks?`Weeks ${RK.weeks}${RK.updated?` · updated ${RK.updated}`:""}`:"Not available";
   const L=RK.listed||[];
-  $("rk-stats").innerHTML=(RK.rules?`<span>${esc(RK.rules.replace(/^Rules:\s*/i,"Points: "))}</span>`:"")+(L[0]?`<span><b>${esc(L[0])}</b> players listed</span>`:"")+["Lead","Rhythm","Bass"].map((k,i)=>L[i+1]?`<span><b>${esc(L[i+1])}</b> ${k.toLowerCase()}</span>`:"").join("");
+  $("rk-stats").innerHTML=(L[0]?`<span><b>${esc(L[0])}</b> players listed</span>`:"")+["Lead","Rhythm","Bass"].map((k,i)=>L[i+1]?`<span><b>${esc(L[i+1])}</b> ${k.toLowerCase()}</span>`:"").join("");
   const LT={Beginner:"B",Intermediate:"I",Advanced:"A",Masterclass:"M"};
   $("rk-body").innerHTML=(RK.paths||[]).filter(p=>rkPath<0||PATHS.indexOf(p.path)===rkPath).map(p=>{const pi=PATHS.indexOf(p.path);
     return `<section class="panel rkpath" style="--pc:${PATH_C[pi]}"><div class="panel-head"><h2>${esc(p.path)}</h2><span class="sub">${p.levels.reduce((a,l)=>a+l.rows.filter(r=>r[3]!=="Out").length,0)} ranked</span></div><div class="rklevels">${p.levels.map(l=>{
