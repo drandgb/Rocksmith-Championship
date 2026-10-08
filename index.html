@@ -287,7 +287,7 @@ button.clear:hover{border-color:var(--accent)}
 .seg .s-lead[aria-pressed="true"]{background:var(--s-orange)}
 .seg .s-rhy[aria-pressed="true"]{background:var(--s-green)}
 .seg .s-bass[aria-pressed="true"]{background:var(--s-blue)}
-#sbfind{background:var(--panel2);color:var(--fg);border:1px solid var(--line);border-radius:6px;padding:7px 10px;font:inherit;font-size:.88rem;flex:0 1 240px;min-width:0}
+#sbfind{-webkit-appearance:none;appearance:none;cursor:pointer;padding-right:28px!important;background:var(--panel2) url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2710%27 height=%276%27%3E%3Cpath d=%27M1 1l4 4 4-4%27 fill=%27none%27 stroke=%27%238b93a7%27 stroke-width=%271.6%27/%3E%3C/svg%3E") no-repeat right 10px center;color:var(--fg);border:1px solid var(--line);border-radius:6px;padding:7px 10px;font:inherit;font-size:.88rem;flex:0 1 240px;min-width:0}
 .sbstats{display:flex;flex-wrap:wrap;gap:8px 22px;font-size:.85rem;color:var(--muted)}
 .sbstats b{color:var(--fg);font-family:var(--f-display);font-size:1.05rem}
 .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr));gap:14px}
@@ -590,7 +590,7 @@ footer .updated{display:block;margin-top:4px}
 .rktiers .tier i{font-style:normal;font-size:.62rem;color:var(--muted);margin-top:1px}
 /* Scoreboard: pick a path, click it again to cycle its level */
 .sbtiers .tier{min-width:78px;padding:5px 8px}
-@media (max-width:640px){.sbtiers{width:100%;justify-content:center}}
+@media (max-width:640px){.sbtiers{width:100%;justify-content:center}#sbfind{flex:1 1 100%}}
 .sbtiers .tier[aria-pressed="false"]{opacity:.5}
 .sbtiers .tier[aria-pressed="false"]:hover{opacity:.85}
 .sbtiers .tier[aria-pressed="true"]{background:color-mix(in srgb,var(--pc) 16%,var(--panel2));box-shadow:0 0 0 1px var(--pc)}
@@ -1034,7 +1034,7 @@ footer{color:var(--dim);font-size:.78rem}
       <div class="sbtools">
         <div class="tiers rktiers sbtiers" id="sbseg" aria-label="Path and level"></div>
         <button type="button" class="clear sblatest" id="sblatest" hidden>Back to latest week ›</button>
-        <input id="sbfind" type="search" list="sbnames" placeholder="Highlight a player" aria-label="Highlight a player" autocomplete="off"><datalist id="sbnames"></datalist>
+        <select id="sbfind" aria-label="Highlight a player"></select>
       </div>
       <div class="sbstats" id="sbstats"></div>
     </section>
@@ -1045,7 +1045,7 @@ footer{color:var(--dim);font-size:.78rem}
   <footer>Data: Rodman’s Rocksmith 2014 Championship Google Sheets (older attendance also from the Championship Metrics workbook). Player stats run through week 675; scoreboards cover weeks 440–676. Weeks 1–16 have no recorded host in the source.
   <span class="updated disclaimer">Unofficial fan project. Not affiliated with Ubisoft or Rocksmith.</span>
   <span class="updated" id="sheetedit-row" hidden>Sheet last edited: <span id="sheetedit" data-iso="2026-10-08T17:47:35.774Z"></span></span>
-  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-08T19:06:42+00:00">October 8, 2026</span></span>
+  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-08T20:25:56+00:00">October 8, 2026</span></span>
   </footer>
 </div>
 <div class="tip" id="tip" hidden></div>
@@ -1976,7 +1976,11 @@ function sbRender(){
   const cards=ch.filter(c=>c[0]===sbPath&&(!sbLv[sbPath]||cardLv(c[2])===sbLv[sbPath]));
   const findLc=sbFind.toLowerCase();
   // "Highlight a player" only suggests players on the cards being shown (this week, path and level)
-  $("sbnames").innerHTML=[...new Set(cards.flatMap(c=>c[6].map(e=>SB.names[e[0]].replace(/[*~]+$/,""))))].sort((a,b)=>a.localeCompare(b,undefined,{sensitivity:"base"})).map(n=>`<option value="${esc(n)}"></option>`).join("");
+  // (a plain dropdown so it works on iPhone Safari, which doesn't show datalist suggestions)
+  {const names=[...new Set(cards.flatMap(c=>c[6].map(e=>SB.names[e[0]].replace(/[*~]+$/,""))))].sort((a,b)=>a.localeCompare(b,undefined,{sensitivity:"base"}));
+   const hit=names.find(n=>n.toLowerCase()===findLc);
+   $("sbfind").innerHTML=`<option value="">${names.length?"Highlight a player":"No players here"}</option>`+(sbFind&&!hit?`<option value="${esc(sbFind)}">${esc(sbFind)} (not on these cards)</option>`:"")+names.map(n=>`<option value="${esc(n)}">${esc(n)}</option>`).join("");
+   $("sbfind").value=hit||sbFind;}
   $("sbcards").innerHTML=cards.map(([p,slot,lvl,song,diff,extra,ents,cont])=>{
     const tc=tierColor(lvl), dash=song.indexOf(" - ");
     const songHtml=song&&song!=="n/a"?(dash>0?`<b class="golink" data-goband="${esc(song.slice(0,dash).trim())}" data-gosong="${esc(song.slice(dash+3).trim())}" title="Show this song in Band lookup">${esc(song.slice(dash+3))}</b><small class="golink" data-goband="${esc(song.slice(0,dash).trim())}" title="Show this band in Band lookup">${esc(song.slice(0,dash))}</small>`:`<b>${esc(song)}</b>`):`<small>No song this week</small>`;
@@ -2005,7 +2009,7 @@ $("sbnext").addEventListener("click",()=>{const i=SB_WEEKS.indexOf(sbWeek);if(i>
 $("sbseg").addEventListener("click",e=>{const b=e.target.closest("button[data-path]");if(!b)return;const i=+b.dataset.path;
   if(i===sbPath)sbLv[i]=SB_CYC[(SB_CYC.indexOf(sbLv[i])+1)%SB_CYC.length]; else sbPath=i;
   tip.hidden=true;sbRender();$("sbseg").querySelector(`[data-path="${i}"]`).focus()});
-$("sbfind").addEventListener("input",e=>{sbFind=e.target.value.trim();sbRender()});
+$("sbfind").addEventListener("change",e=>{sbFind=e.target.value.trim();sbRender()});
 $("view-scores").addEventListener("click",e=>{
   const el=e.target.closest("[data-player]"); if(!el)return;
   const n=el.dataset.player; if(!byName[n])return;
