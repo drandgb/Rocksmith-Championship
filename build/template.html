@@ -539,24 +539,39 @@ footer .updated{display:block;margin-top:4px}
 @media (prefers-reduced-motion:no-preference){.panel.amber{animation:amberglow 3.2s ease-in-out infinite}}
 @keyframes amberglow{0%,100%{box-shadow:0 0 0 1px rgba(255,176,32,.22),0 0 10px rgba(255,160,40,.22),inset 0 0 16px rgba(255,160,40,.05)}50%{box-shadow:0 0 0 1px rgba(255,190,60,.4),0 0 20px rgba(255,160,40,.4),inset 0 0 22px rgba(255,160,40,.09)}}
 /* Rodman's Rankings */
-/* Rodman's Rankings header: a Bulls red & black / Wizards navy rim with charging bulls and wizard stars */
+/* Rodman's Rankings header: a red, black and white rim with charging bulls, a magic wand, rays of light and lightning */
 .panel.rkhead{position:relative;border:2px solid transparent;
-  background:linear-gradient(var(--panel),var(--panel)) padding-box,linear-gradient(120deg,#ce1141,#111,#002b5c,#e31837,#c4ced4,#002b5c,#111,#ce1141) border-box;background-size:100% 100%,300% 300%;
-  box-shadow:0 0 0 1px rgba(206,17,65,.3),0 0 22px rgba(206,17,65,.35),0 0 46px rgba(0,43,92,.45),inset 0 0 30px rgba(0,43,92,.18)}
+  background:linear-gradient(var(--panel),var(--panel)) padding-box,linear-gradient(120deg,#ce1141,#111,#e31837,#fff,#a30d2d,#111,#ff4d6d,#ce1141) border-box;background-size:100% 100%,300% 300%;
+  box-shadow:0 0 0 1px rgba(206,17,65,.3),0 0 22px rgba(206,17,65,.4),0 0 46px rgba(160,10,40,.35),inset 0 0 30px rgba(206,17,65,.12)}
 @media (prefers-reduced-motion:no-preference){.panel.rkhead{animation:hofrim 7s linear infinite,rkglow 3.6s ease-in-out infinite}}
-@keyframes rkglow{0%,100%{box-shadow:0 0 0 1px rgba(206,17,65,.25),0 0 18px rgba(206,17,65,.3),0 0 40px rgba(0,43,92,.4),inset 0 0 26px rgba(0,43,92,.15)}50%{box-shadow:0 0 0 1px rgba(227,24,55,.5),0 0 30px rgba(227,24,55,.5),0 0 64px rgba(0,60,130,.6),inset 0 0 36px rgba(0,43,92,.25)}}
+@keyframes rkglow{0%,100%{box-shadow:0 0 0 1px rgba(206,17,65,.25),0 0 18px rgba(206,17,65,.35),0 0 40px rgba(160,10,40,.3),inset 0 0 26px rgba(206,17,65,.1)}50%{box-shadow:0 0 0 1px rgba(255,90,110,.5),0 0 30px rgba(227,24,55,.55),0 0 64px rgba(200,20,50,.45),inset 0 0 36px rgba(206,17,65,.18)}}
+/* lightning: the whole box flashes white now and then */
+.panel.rkhead::after{content:"";position:absolute;inset:-2px;border-radius:inherit;pointer-events:none;opacity:0;box-shadow:0 0 0 2px #fff,0 0 26px 6px rgba(255,255,255,.75),inset 0 0 40px rgba(255,230,235,.35)}
+@media (prefers-reduced-motion:no-preference){.panel.rkhead::after{animation:strike 7s linear infinite}}
+@keyframes strike{0%,86%,100%{opacity:0}87%{opacity:.95}88%{opacity:.1}89.5%{opacity:.8}91%{opacity:0}}
 .rknotes{position:absolute;inset:0;pointer-events:none;z-index:1}
-.rknotes span{position:absolute;line-height:1;transform:translate(-50%,-50%) rotate(var(--r,0deg));font-size:var(--fs,16px)}
-.rknotes .star{color:#e8edf2;text-shadow:0 0 6px #fff,0 0 12px #4f8cff,0 0 20px #ce1141}
+.rknotes>span{position:absolute;line-height:1;transform:translate(-50%,-50%) rotate(var(--r,0deg));font-size:var(--fs,16px)}
 .rknotes .bull{filter:drop-shadow(0 0 4px rgba(227,24,55,.9)) drop-shadow(0 0 10px rgba(227,24,55,.5))}
-.rknotes .wiz{filter:drop-shadow(0 0 5px rgba(79,140,255,.9)) drop-shadow(0 0 12px rgba(120,80,255,.5))}
-@media (prefers-reduced-motion:no-preference){.rknotes .star{animation:twinkle2 var(--d,2.4s) ease-in-out var(--dl,0s) infinite}.rknotes .bull{animation:charge 2.8s ease-in-out var(--dl,0s) infinite}.rknotes .wiz{animation:notebob 3.2s ease-in-out var(--dl,0s) infinite}}
-@keyframes twinkle2{0%,100%{opacity:.35;transform:translate(-50%,-50%) rotate(var(--r,0deg)) scale(.8)}50%{opacity:1;transform:translate(-50%,-50%) rotate(calc(var(--r,0deg) + 25deg)) scale(1.2)}}
+.rknotes .wand{filter:drop-shadow(0 0 5px rgba(255,255,255,.9)) drop-shadow(0 0 12px rgba(255,80,110,.7))}
+/* magical plumes: little fans of light rays */
+.rknotes .rays{width:30px;height:30px}
+.rknotes .rays i{position:absolute;left:50%;bottom:50%;width:2px;height:14px;margin-left:-1px;border-radius:2px;transform-origin:50% 100%;transform:rotate(var(--a));background:linear-gradient(to top,rgba(255,255,255,.95),rgba(255,120,140,.6) 55%,transparent);filter:drop-shadow(0 0 3px rgba(255,90,110,.9))}
+/* lightning bolts that flicker on the border */
+.rknotes .bolt{width:20px;height:32px;opacity:0}
+.rknotes .bolt svg{width:100%;height:100%;filter:drop-shadow(0 0 4px #fff) drop-shadow(0 0 10px rgba(255,60,90,.9))}
+@media (prefers-reduced-motion:no-preference){
+  .rknotes .bull{animation:charge 2.8s ease-in-out var(--dl,0s) infinite}
+  .rknotes .wand{animation:notebob 3.2s ease-in-out var(--dl,0s) infinite}
+  .rknotes .rays{animation:plume var(--d,2.6s) ease-in-out var(--dl,0s) infinite}
+  .rknotes .bolt{animation:boltflash 7s linear var(--dl,0s) infinite}}
+.rknotes .rays{opacity:.8}
+@keyframes plume{0%,100%{opacity:.35;transform:translate(-50%,-50%) rotate(var(--r,0deg)) scale(.75)}50%{opacity:1;transform:translate(-50%,-50%) rotate(var(--r,0deg)) scale(1.15)}}
+@keyframes boltflash{0%,85%,100%{opacity:0}86%{opacity:1}87.5%{opacity:.2}89%{opacity:1}91%{opacity:0}}
 @keyframes charge{0%,100%{transform:translate(-50%,-50%) rotate(var(--r,0deg))}45%{transform:translate(calc(-50% + 3px),-50%) rotate(var(--r,0deg))}55%{transform:translate(calc(-50% - 2px),-50%) rotate(var(--r,0deg))}}
-/* spectacular title lettering */
+/* spectacular title lettering: reds to white */
 .rkhead h2.rkinfo{font:900 clamp(1.5rem,4.2vw,2.3rem)/1.05 var(--f-display);letter-spacing:.06em;
-  background:linear-gradient(100deg,#ff4d6d 0%,#fff 28%,#ce1141 45%,#c4ced4 60%,#4f8cff 78%,#fff 100%);background-size:250% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;
-  filter:drop-shadow(0 2px 0 rgba(0,0,0,.55)) drop-shadow(0 0 10px rgba(206,17,65,.45)) drop-shadow(0 0 18px rgba(0,60,140,.45))}
+  background:linear-gradient(100deg,#a30d2d 0%,#ff4d6d 22%,#fff 40%,#e31837 58%,#ffd0d8 76%,#ce1141 100%);background-size:250% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(0 2px 0 rgba(0,0,0,.6)) drop-shadow(0 0 10px rgba(227,24,55,.55)) drop-shadow(0 0 20px rgba(255,255,255,.18))}
 .rkhead h2.rkinfo .infoi{-webkit-text-fill-color:var(--muted);color:var(--muted);font-size:.45em;vertical-align:.5em}
 @media (prefers-reduced-motion:no-preference){.rkhead h2.rkinfo{animation:rkshine 5s linear infinite}}
 @keyframes rkshine{from{background-position:0% 0}to{background-position:250% 0}}
@@ -2378,11 +2393,13 @@ $("shost").addEventListener("change",e=>{sHost=e.target.value||null; bandName=nu
 document.addEventListener("click",e=>{const b=e.target.closest("[data-gosongs]"); if(!b)return; e.stopPropagation(); tip.hidden=true; mcard.hidden=true;
   sHost=b.dataset.gosongs; bandName=null; showView("songs"); renderSongs(); updateBubble(); scrollTo({top:0})},true);
 
-// ---------- Rodman's Rankings header: bulls, wizards and stars around the border ----------
+// ---------- Rodman's Rankings header: bulls, a wand, plumes of light and lightning around the border ----------
 document.querySelectorAll(".panel.rkhead").forEach(p=>{
-  const items=[["bull",0,0,"🐂",22,-8],["star",14,0,"★",14,0],["star",30,0,"✦",12,0],["wiz",50,0,"🧙",20,6],["star",68,0,"★",13,0],["star",84,0,"✦",12,0],["bull",100,0,"🐂",22,8],
-               ["star",100,50,"★",14,0],["bull",100,100,"🐂",22,-8],["star",82,100,"✦",12,0],["star",64,100,"★",13,0],["wiz",46,100,"🪄",18,-20],["star",28,100,"★",14,0],["star",12,100,"✦",12,0],["bull",0,100,"🐂",22,8],["star",0,50,"★",14,0]];
-  p.insertAdjacentHTML("beforeend",`<div class="rknotes" aria-hidden="true">${items.map(([c,x,y,ch,fs,r],i)=>`<span class="${c}" style="left:${x}%;top:${y}%;--fs:${fs}px;--r:${r}deg;--d:${(2+(i*0.31)%1.4).toFixed(2)}s;--dl:${((i*0.27)%1.6).toFixed(2)}s">${ch}</span>`).join("")}</div>`);
+  const rays=n=>Array.from({length:n},(_,k)=>`<i style="--a:${-60+k*120/(n-1)}deg"></i>`).join("");
+  const bolt=`<svg viewBox="0 0 16 26" aria-hidden="true"><path d="M10 0 2 14h5l-3 12 10-16H9l3-10z" fill="#fff"/></svg>`;
+  const items=[["bull",0,0,"🐂",22,-8],["rays",16,0,rays(5),0,0],["bolt",32,0,bolt,0,-12],["wand",50,0,"🪄",20,-20],["rays",66,0,rays(5),0,0],["bolt",80,0,bolt,0,14],["bull",100,0,"🐂",22,8],
+               ["rays",100,50,rays(5),0,90],["bull",100,100,"🐂",22,-8],["bolt",84,100,bolt,0,170],["rays",62,100,rays(5),0,180],["rays",38,100,rays(5),0,180],["bolt",18,100,bolt,0,-170],["bull",0,100,"🐂",22,8],["rays",0,50,rays(5),0,-90]];
+  p.insertAdjacentHTML("beforeend",`<div class="rknotes" aria-hidden="true">${items.map(([c,x,y,ch,fs,r],i)=>`<span class="${c}" style="left:${x}%;top:${y}%;${fs?`--fs:${fs}px;`:""}--r:${r}deg;--d:${(2.2+(i*0.33)%1.4).toFixed(2)}s;--dl:${c==="bolt"?(i*0.13%0.6).toFixed(2):((i*0.27)%1.6).toFixed(2)}s">${ch}</span>`).join("")}</div>`);
 });
 
 // ---------- Hall of fame: musical notes around the border ----------
