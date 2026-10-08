@@ -33,8 +33,13 @@ h2{font-size:1.05rem;letter-spacing:.06em;text-transform:uppercase;color:var(--f
 header.top{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-end;justify-content:space-between}
 .brand .eyebrow{font-family:var(--f-mono);font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
 .brand h1{font-size:clamp(1.6rem,4vw,2.4rem);font-weight:800;letter-spacing:.01em}
-.strings{display:flex;gap:3px;margin-top:8px}
-.strings i{display:block;height:3px;width:34px;border-radius:2px}
+.strings{display:flex;gap:3px;margin-top:8px;padding:6px 0;margin-bottom:-6px}
+.strings i{display:block;height:3px;width:34px;border-radius:2px;position:relative;transition:box-shadow .25s,filter .25s,transform .25s}
+.strings i::before{content:"";position:absolute;inset:-8px 0}   /* bigger hover target */
+/* hovering a string "presses" it: it lights up and rings like a plucked string */
+.strings i.on{filter:brightness(1.35);box-shadow:0 0 6px var(--sc),0 0 14px var(--sc),0 0 22px color-mix(in srgb,var(--sc) 60%,transparent);transform:scaleY(1.6)}
+@media (prefers-reduced-motion:no-preference){.strings i.on{animation:pluck .45s ease-out}}
+@keyframes pluck{0%{transform:scaleY(2.6) translateY(-1px)}25%{transform:scaleY(1.2) translateY(1px)}50%{transform:scaleY(2) translateY(-.5px)}100%{transform:scaleY(1.6)}}
 .links{display:flex;flex-wrap:wrap;gap:8px}
 button.forum{background:none;cursor:pointer;font:inherit;font-size:.85rem}
 .refresh.spin{opacity:.6;pointer-events:none}
@@ -660,7 +665,7 @@ footer{color:var(--dim);font-size:.78rem}
     <div class="brand">
       <div class="eyebrow">CustomsForge · Weekly CDLC challenge</div>
       <h1>Rocksmith Championship</h1>
-      <div class="strings" aria-hidden="true"><i style="background:var(--s-red)"></i><i style="background:var(--s-yellow)"></i><i style="background:var(--s-blue)"></i><i style="background:var(--s-orange)"></i><i style="background:var(--s-green)"></i><i style="background:var(--s-purple)"></i></div>
+      <div class="strings" aria-hidden="true"><i style="--sc:var(--s-red);background:var(--sc)"></i><i style="--sc:var(--s-yellow);background:var(--sc)"></i><i style="--sc:var(--s-blue);background:var(--sc)"></i><i style="--sc:var(--s-orange);background:var(--sc)"></i><i style="--sc:var(--s-green);background:var(--sc)"></i><i style="--sc:var(--s-purple);background:var(--sc)"></i></div>
     </div>
     <nav class="links">
       <button type="button" class="forum refresh" id="refreshbtn" title="Load the newest version of the site, skipping the browser's saved copy">↻ Refresh</button>
@@ -2339,6 +2344,13 @@ $("shost").innerHTML=`<option value="">All hosts</option>`+hostList.map(h=>`<opt
 $("shost").addEventListener("change",e=>{sHost=e.target.value||null; bandName=null; renderSongs(); updateBubble()});
 document.addEventListener("click",e=>{const b=e.target.closest("[data-gosongs]"); if(!b)return; e.stopPropagation(); tip.hidden=true; mcard.hidden=true;
   sHost=b.dataset.gosongs; bandName=null; showView("songs"); renderSongs(); updateBubble(); scrollTo({top:0})},true);
+
+// ---------- the six string colors under the title light up as you pass over them (or tap them) ----------
+document.querySelectorAll(".strings i").forEach(s=>{
+  const on=()=>{s.classList.remove("on"); void s.offsetWidth; s.classList.add("on")};
+  s.addEventListener("mouseenter",on); s.addEventListener("mouseleave",()=>s.classList.remove("on"));
+  s.addEventListener("touchstart",()=>{on(); setTimeout(()=>s.classList.remove("on"),700)},{passive:true});
+});
 
 // ---------- Refresh: re-download the page past the browser cache, then reload ----------
 $("refreshbtn").addEventListener("click",async()=>{
