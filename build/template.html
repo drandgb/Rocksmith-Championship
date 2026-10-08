@@ -552,6 +552,7 @@ footer .updated{display:block;margin-top:4px}
 .twtiers{flex-basis:100%;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
 .twtiers .tier{padding:4px 6px}
 .twtiers .tier b{font-size:1rem}
+.pill.done{display:inline-flex;justify-content:center;background:color-mix(in srgb,var(--s-green) 16%,transparent);color:var(--s-green);border:1px solid color-mix(in srgb,var(--s-green) 45%,transparent)}
 .twl .rwin .nm{color:#ffd36e;text-shadow:0 0 8px rgba(255,211,110,.45)}
 .twl .rcrown{margin-right:3px;font-size:.9em}
 .twl .rlose .nm{opacity:.55;font-weight:500}
@@ -2397,7 +2398,7 @@ function renderThisWeek(){
   $("twnow").hidden=w===TW_MAX; $("twsb").hidden=!SB.weeks[w]; $("twsb").dataset.sbw=w; $("twsb").title=`Open week ${w} on the Scoreboard`; $("twnow").textContent=`Back to ${TW_LIVE?"this":"the latest"} week (${TW_MAX}) ›`;
   const start=W?new Date(W[1]+"T12:00:00"):null, end=start?new Date(start.getTime()+6*864e5):null;
   const left=end?Math.ceil((new Date(W[1]+"T00:00:00").getTime()+7*864e5-Date.now())/864e5):0;
-  $("tw-title").innerHTML=`${SB.weeks[w]?`<span class="golink" data-sbw="${w}" title="Open this week on the Scoreboard">Week ${w}</span>`:`Week ${w}`}${live?' <span class="pill new" style="width:auto">IN PROGRESS</span>':""}`;
+  $("tw-title").innerHTML=`${SB.weeks[w]?`<span class="golink" data-sbw="${w}" title="Open this week on the Scoreboard">Week ${w}</span>`:`Week ${w}`}${live?' <span class="pill new" style="width:auto">IN PROGRESS</span>':' <span class="pill done" style="width:auto">CONCLUDED</span>'}`;
   $("tw-meta").innerHTML=W?`${fmtShort(W[1])} – ${fmt(iso(end))}${W[2]&&W[2]!==LOST?` · hosted by <span class="nm" data-name="${esc(W[2])}" data-gohost="${esc(W[2])}" style="cursor:pointer;font-weight:700;color:var(--fg)">${esc(W[2])}</span>`:""}${live&&left>0?` · ${twPl(left,"day")} left`:""}`:"";
   const ents=SB.weeks[w]?twEntries(w):[];
   // back from a break
