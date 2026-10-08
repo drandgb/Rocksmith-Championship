@@ -138,13 +138,13 @@ History that doesn't change (attendance from the old Metrics workbook and songs 
 
 ### Update the site straight from the sheet (optional, recommended)
 
-GitHub's hourly schedule often runs late. A small Apps Script in the scoreboard sheet can start the quick update itself a few minutes after any edit. The script is in [`build/apps-script/update-website.gs`](build/apps-script/update-website.gs).
+GitHub's hourly schedule often runs late. A small Apps Script in the scoreboard sheet can start the quick update itself a few minutes after any edit. The script is in [`build/apps-script/updateWebsite.gs`](build/apps-script/updateWebsite.gs).
 
 1. **Make a GitHub token.** On GitHub go to *Settings → Developer settings → Personal access tokens → Fine-grained tokens → Generate new token*.
    - **Repository access:** *Only select repositories* → `drandgb/Rocksmith-Championship`.
    - **Permissions → Repository permissions → Actions:** *Read and write*. Nothing else is needed.
    - Pick an expiration (for example, 1 year) and copy the token.
-2. **Add the script.** In the scoreboard sheet, open *Extensions → Apps Script*. If the project already has code, leave it alone and add a new file with **+ → Script** named `update-website`. Paste in `update-website.gs` and save.
+2. **Add the script.** In the scoreboard sheet, open *Extensions → Apps Script*. If the project already has code, leave it alone and add a new file with **+ → Script** named `updateWebsite`. Paste in `updateWebsite.gs` and save.
 3. **Save the token.** In the Apps Script editor, open *Project Settings* (gear icon) → *Script properties* → *Add script property*. Name: `drandWebsiteToken`, value: the token.
 4. **Turn it on.** Back in the editor, pick `installTriggers` in the function list and click *Run*. Approve the permissions Google asks for.
 
