@@ -14,6 +14,8 @@
 const REPO = 'drandgb/Rocksmith-Championship';
 const WORKFLOW = 'quick-update.yml';
 const CHECK_EVERY_MINUTES = 5;
+let LAST_ERROR = '';
+function tryMessage_(s) { try { return JSON.parse(s).message; } catch (e) { return s.slice(0, 120); } }
 const TOKEN_PROPERTY = 'drandWebsiteToken';   // name of the script property that holds the GitHub token
 
 // Menu items: add these two lines to the sheet's existing menu (the "Rocksmith CS" menu in its onOpen), before .addToUi():
@@ -37,7 +39,7 @@ function updateWebsiteNow() {
   const ok = startQuickUpdate_();
   PropertiesService.getScriptProperties().deleteProperty('CHANGED');
   SpreadsheetApp.getActive().toast(ok ? 'Website update started. It should be live in about 2-3 minutes.'
-                                      : 'Could not start the update. Check the ' + TOKEN_PROPERTY + ' script property in Project Settings.',
+                                      : 'Could not start the update (' + LAST_ERROR + ').',
                                    'Website', 8);
 }
 
@@ -45,7 +47,7 @@ function updateWebsiteNow() {
 function fullRescanNow() {
   const ok = startWorkflow_('full-rescan.yml');
   SpreadsheetApp.getActive().toast(ok ? 'Full rescan started. It should be live in about 5 minutes.'
-                                      : 'Could not start the rescan. Check the ' + TOKEN_PROPERTY + ' script property in Project Settings.',
+                                      : 'Could not start the rescan (' + LAST_ERROR + ').',
                                    'Website', 8);
 }
 
@@ -55,7 +57,7 @@ function startQuickUpdate_() { return startWorkflow_(WORKFLOW); }
 // Asks GitHub to run one of the site's Actions. Returns true if GitHub accepted it.
 function startWorkflow_(workflow) {
   const token = PropertiesService.getScriptProperties().getProperty(TOKEN_PROPERTY);
-  if (!token) { console.error('No ' + TOKEN_PROPERTY + ' script property.'); return false; }
+  if (!token) { LAST_ERROR = 'no script property named ' + TOKEN_PROPERTY; console.error(LAST_ERROR); return false; }
   const res = UrlFetchApp.fetch(`https://api.github.com/repos/${REPO}/actions/workflows/${workflow}/dispatches`, {
     method: 'post',
     contentType: 'application/json',
@@ -64,7 +66,8 @@ function startWorkflow_(workflow) {
     muteHttpExceptions: true,
   });
   const ok = res.getResponseCode() === 204;
-  if (!ok) console.error('GitHub said ' + res.getResponseCode() + ': ' + res.getContentText());
+  if (!ok) { LAST_ERROR = 'GitHub said ' + res.getResponseCode() + ': ' + (tryMessage_(res.getContentText()) || 'no details');
+             console.error(LAST_ERROR); }
   return ok;
 }
 
