@@ -144,13 +144,13 @@ GitHub's hourly schedule often runs late. A small Apps Script in the scoreboard 
    - **Repository access:** *Only select repositories* → `drandgb/Rocksmith-Championship`.
    - **Permissions → Repository permissions → Actions:** *Read and write*. Nothing else is needed.
    - Pick an expiration (for example, 1 year) and copy the token.
-2. **Add the script.** In the scoreboard sheet, open *Extensions → Apps Script*, delete what's there, paste in `update-website.gs` and save.
+2. **Add the script.** In the scoreboard sheet, open *Extensions → Apps Script*. If the project already has code, leave it alone and add a new file with **+ → Script** named `update-website`. Paste in `update-website.gs` and save.
 3. **Save the token.** In the Apps Script editor, open *Project Settings* (gear icon) → *Script properties* → *Add script property*. Name: `GITHUB_TOKEN`, value: the token.
 4. **Turn it on.** Back in the editor, pick `installTriggers` in the function list and click *Run*. Approve the permissions Google asks for.
 
 After that, edits to the sheet start a site update within about 5 minutes, and the update is live 2–3 minutes later. A burst of edits only causes one update. Reload the sheet to see a new **Website → Update website now** menu for an instant update.
 
-Anyone who can edit the script can see the token, but it can only start Actions in this repo. To turn it off, delete the triggers under *Triggers* (clock icon) in the Apps Script editor.
+Anyone who can edit the script can see the token, but it can only start Actions in this repo. To turn it off, delete its three triggers (`markChanged`, `updateIfChanged`, `addWebsiteMenu`) under *Triggers* (clock icon) in the Apps Script editor.
 
 To build by hand: `./build/build.sh` (downloads the sheet) or `./build/build.sh path/to/scoreboard.xlsx`; add `MODE=quick` in front for a quick update. You need Python 3 with `openpyxl`.
 
