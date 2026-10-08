@@ -977,7 +977,7 @@ footer{color:var(--dim);font-size:.78rem}
 
   <footer>Data: Rodman’s Rocksmith 2014 Championship Google Sheets (older attendance also from the Championship Metrics workbook). Player stats run through week 675; scoreboards cover weeks 440–676. Weeks 1–16 have no recorded host in the source.
   <span class="updated disclaimer">Unofficial fan project. Not affiliated with Ubisoft or Rocksmith.</span>
-  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-08T00:13:15+00:00">October 7, 2026</span></span>
+  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-08T01:33:38+00:00">October 7, 2026</span></span>
   </footer>
 </div>
 <div class="tip" id="tip" hidden></div>
@@ -2369,7 +2369,10 @@ const twMedalCache={};
 function twMedals(n,w,live){
   const k=n+"|"+w; if(twMedalCache[k])return twMedalCache[k];
   const box=document.createElement("div"), out=[];
-  const grab=(html,kind)=>{box.innerHTML=html; box.querySelectorAll(".medal-m").forEach(m=>{if(new RegExp(`collected Week ${w}\\)`).test(m.dataset.tip||"")){m.removeAttribute("data-hl");m.style.cursor="";m.dataset.mk=kind;m.dataset.mn=n;out.push(m.outerHTML)}})};
+  // a medal is new this week if it was collected this week, or (for medals counted every time, like gold medals,
+  // trophies, triple crowns and close wins) if this week is one of the weeks it was earned. Same order as the lookups.
+  const isNew=m=>{const tp=m.dataset.tip||""; if(/collected Week \d+\)/.test(tp))return new RegExp(`collected Week ${w}\\)`).test(tp); return (m.dataset.hl||"").split(",").includes(String(w))};
+  const grab=(html,kind)=>{box.innerHTML=html; box.querySelectorAll(".medal-m").forEach(m=>{if(isNew(m)){m.removeAttribute("data-hl");m.style.cursor="";m.dataset.mk=kind;m.dataset.mn=n;out.push(m.outerHTML)}})};
   let p=byName[n];
   if(live){ // provisional: this week's attendance added to the player's history
     const pad="0".repeat(Math.max(0,w-1-DATA_WEEK)), bits=(twBits[n]||"")+pad+"1";
