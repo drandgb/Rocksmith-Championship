@@ -145,7 +145,7 @@ GitHub's hourly schedule often runs late. A small Apps Script in the scoreboard 
    - **Permissions → Repository permissions → Actions:** *Read and write*. Nothing else is needed.
    - Pick an expiration (for example, 1 year) and copy the token.
 2. **Add the script.** In the scoreboard sheet, open *Extensions → Apps Script*. If the project already has code, leave it alone and add a new file with **+ → Script** named `update-website`. Paste in `update-website.gs` and save.
-3. **Save the token.** In the Apps Script editor, open *Project Settings* (gear icon) → *Script properties* → *Add script property*. Name: `GITHUB_TOKEN`, value: the token.
+3. **Save the token.** In the Apps Script editor, open *Project Settings* (gear icon) → *Script properties* → *Add script property*. Name: `drandWebsiteToken`, value: the token.
 4. **Turn it on.** Back in the editor, pick `installTriggers` in the function list and click *Run*. Approve the permissions Google asks for.
 
 After that, edits to the sheet start a site update within about 5 minutes, and the update is live 2–3 minutes later. A burst of edits only causes one update. Reload the sheet to see a new **Website → Update website now** menu for an instant update.
