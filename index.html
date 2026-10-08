@@ -1038,7 +1038,7 @@ footer{color:var(--dim);font-size:.78rem}
   <footer>Data: Rodman’s Rocksmith 2014 Championship Google Sheets (older attendance also from the Championship Metrics workbook). Player stats run through week 675; scoreboards cover weeks 440–676. Weeks 1–16 have no recorded host in the source.
   <span class="updated disclaimer">Unofficial fan project. Not affiliated with Ubisoft or Rocksmith.</span>
   <span class="updated" id="sheetedit-row" hidden>Sheet last edited: <span id="sheetedit" data-iso=""></span></span>
-  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-08T12:04:38+00:00">October 8, 2026</span></span>
+  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-08T12:08:16+00:00">October 8, 2026</span></span>
   </footer>
 </div>
 <div class="tip" id="tip" hidden></div>
@@ -2403,9 +2403,13 @@ document.querySelectorAll(".panel.rkhead").forEach(p=>{
   // scattered four-point sparkles like the ones off the wand, at uneven spots along (and just off) the border
   const spark=`<svg viewBox="0 0 16 16"><path d="M8 0C8.6 5.4 10.6 7.4 16 8 10.6 8.6 8.6 10.6 8 16 7.4 10.6 5.4 8.6 0 8 5.4 7.4 7.4 5.4 8 0z" fill="#ffd23f"/><path d="M8 4.5C8.3 7 9 7.7 11.5 8 9 8.3 8.3 9 8 11.5 7.7 9 7 8.3 4.5 8 7 7.7 7.7 7 8 4.5z" fill="#fffbe0"/></svg>`;
   const rnd=(i,k)=>{const x=Math.sin(i*12.9898+k*78.233)*43758.5453; return x-Math.floor(x)};
-  for(let i=0;i<28;i++){const side=i%4, along=5+rnd(i,1)*90, off=(rnd(i,2)-.5)*16;
-    const [x,y]=side===0?[along,off/2.2]:side===1?[100+off/6,10+rnd(i,3)*80]:side===2?[along,100+off/2.2]:[off/6,10+rnd(i,3)*80];
-    items.push(["spark",+x.toFixed(1),+y.toFixed(1),spark,0,Math.round(rnd(i,4)*40-20),6+Math.round(rnd(i,5)*10)])}
+  // fewer of them, kept clear of the bulls in the corners and the wand/bolts on the edges
+  const busy=[[0,0],[100,0],[100,100],[0,100],[50,0],[32,0],[80,0],[84,100],[18,100]];
+  for(let i=0,n=0;n<14&&i<200;i++){const side=i%4, along=12+rnd(i,1)*76, off=(rnd(i,2)-.5)*12;
+    const [x,y]=side===0?[along,off/2.2]:side===1?[100+off/6,28+rnd(i,3)*44]:side===2?[along,100+off/2.2]:[off/6,28+rnd(i,3)*44];
+    if(busy.some(([bx,by])=>Math.abs(bx-x)<(bx%100?6:12)&&Math.abs(by-y)<20)) continue;
+    if(items.some(([c,sx,sy])=>c==="spark"&&Math.abs(sx-x)<7&&Math.abs(sy-y)<20)) continue;
+    items.push(["spark",+x.toFixed(1),+y.toFixed(1),spark,0,Math.round(rnd(i,4)*40-20),6+Math.round(rnd(i,5)*6)]); n++}
   p.insertAdjacentHTML("beforeend",`<div class="rknotes" aria-hidden="true">${items.map(([c,x,y,ch,fs,r,sz],i)=>`<span class="${c}" style="left:${x}%;top:${y}%;${fs?`--fs:${fs}px;`:""}${sz?`--sz:${sz}px;`:""}--r:${r}deg;--d:${(2.2+(i*0.33)%1.4).toFixed(2)}s;--dl:${c==="bolt"?(i*0.13%0.6).toFixed(2):((i*0.27)%1.6).toFixed(2)}s">${ch}</span>`).join("")}</div>`);
 });
 
