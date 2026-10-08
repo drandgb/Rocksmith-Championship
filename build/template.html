@@ -2410,7 +2410,8 @@ function renderThisWeek(){
   const med=[...cand].map(n=>({n,m:twMedals(n,w,live&&set.has(n))})).filter(x=>x.m.length).sort((a,b)=>b.m.length-a.m.length||a.n.localeCompare(b.n));
   // rival pairs for each path (mutual pairs shown once)
   const pairsFor=pi=>{const riv=SB.weeks[w]?rivalsOfWeek(w,pi):{}, pairs=[], done=new Set();
-    Object.values(riv).sort((a,b)=>a.avg-b.avg||b.k-a.k||a.savg-b.savg||a.me.localeCompare(b.me)).forEach(r=>{
+    const lvl=r=>"BIAM".indexOf(tierOf(r.best.c[2])||"M"); // Beginner first, then Intermediate, Advanced, Masterclass
+    Object.values(riv).sort((a,b)=>lvl(a)-lvl(b)||a.avg-b.avg||b.k-a.k||a.savg-b.savg||a.me.localeCompare(b.me)).forEach(r=>{
       if(done.has(r.me))return; const o=riv[r.them], mutual=!!o&&o.them===r.me;
       if(mutual)done.add(r.them); done.add(r.me); pairs.push({...r,mutual});
     }); return pairs};
