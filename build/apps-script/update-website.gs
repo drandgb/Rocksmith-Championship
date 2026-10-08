@@ -15,8 +15,9 @@ const REPO = 'drandgb/Rocksmith-Championship';
 const WORKFLOW = 'quick-update.yml';
 const CHECK_EVERY_MINUTES = 5;
 
-// Adds the "Website" menu when the sheet is opened.
-function onOpen() {
+// Adds the "Website" menu when the sheet is opened (installed as its own trigger, so it doesn't clash with
+// an onOpen() the sheet's existing scripts may already have).
+function addWebsiteMenu() {
   SpreadsheetApp.getUi()
     .createMenu('Website')
     .addItem('Update website now', 'updateWebsiteNow')
@@ -60,10 +61,13 @@ function startQuickUpdate_() {
   return ok;
 }
 
-// Run this once from the editor to create both triggers (it removes old copies first).
+// Run this once from the editor to create the triggers (it removes old copies of its own triggers first).
 function installTriggers() {
-  ScriptApp.getProjectTriggers().forEach(t => ScriptApp.deleteTrigger(t));
+  // only remove this script's own triggers, never the sheet's other ones
+  const mine = ['markChanged', 'updateIfChanged', 'addWebsiteMenu'];
+  ScriptApp.getProjectTriggers().filter(t => mine.includes(t.getHandlerFunction())).forEach(t => ScriptApp.deleteTrigger(t));
   ScriptApp.newTrigger('markChanged').forSpreadsheet(SpreadsheetApp.getActive()).onChange().create();
   ScriptApp.newTrigger('updateIfChanged').timeBased().everyMinutes(CHECK_EVERY_MINUTES).create();
+  ScriptApp.newTrigger('addWebsiteMenu').forSpreadsheet(SpreadsheetApp.getActive()).onOpen().create();
   markChanged();
 }
