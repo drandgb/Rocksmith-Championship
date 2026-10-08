@@ -80,6 +80,7 @@ The whole app is one self-contained `index.html`. It has no build step, no serve
 - **Most replayed songs**.
 
 ### 📋 Scoreboard
+- Lead, Rhythm and Bass boxes pick the path; click the selected path again to cycle its level (All → Beginner → Intermediate → Advanced → Masterclass → God → All). Bonus songs show with their level.
 - Every challenge card for weeks 440 onward, by path and level.
 - Medals go only to eligible players. Players playing down are faded, renamed players show as *"as OldName"*, and rank-ups are tagged.
 - Click a song or band name to open it in Band lookup.

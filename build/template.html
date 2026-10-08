@@ -588,6 +588,11 @@ footer .updated{display:block;margin-top:4px}
 .rktiers .tier:focus-visible{outline:2px solid var(--fg);outline-offset:2px}
 .rktiers .tier small{color:var(--pc)}
 .rktiers .tier i{font-style:normal;font-size:.62rem;color:var(--muted);margin-top:1px}
+/* Scoreboard: pick a path, click it again to cycle its level */
+.sbtiers .tier{min-width:78px;padding:5px 8px}
+.sbtiers .tier[aria-pressed="false"]{opacity:.5}
+.sbtiers .tier[aria-pressed="false"]:hover{opacity:.85}
+.sbtiers .tier[aria-pressed="true"]{background:color-mix(in srgb,var(--pc) 16%,var(--panel2));box-shadow:0 0 0 1px var(--pc)}
 .rkpath{border-top:3px solid var(--pc)}
 .rkpath>.panel-head h2{color:var(--pc)}
 .rklevels{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
@@ -1026,11 +1031,7 @@ footer{color:var(--dim);font-size:.78rem}
         <button type="button" class="navbtn" id="sbnext" aria-label="Next week">›</button>
       </div>
       <div class="sbtools">
-        <div class="seg" id="sbseg" role="radiogroup" aria-label="Arrangement">
-          <button type="button" data-path="0" class="s-lead" aria-pressed="true">Lead</button>
-          <button type="button" data-path="1" class="s-rhy" aria-pressed="false">Rhythm</button>
-          <button type="button" data-path="2" class="s-bass" aria-pressed="false">Bass</button>
-        </div>
+        <div class="tiers rktiers sbtiers" id="sbseg" aria-label="Path and level"></div>
         <button type="button" class="clear sblatest" id="sblatest" hidden>Back to latest week ›</button>
         <input id="sbfind" type="search" list="sbnames" placeholder="Highlight a player" aria-label="Highlight a player" autocomplete="off"><datalist id="sbnames"></datalist>
       </div>
@@ -1953,6 +1954,9 @@ renderLB(); renderTL(); renderLog(); renderUpcoming();
 // ---------- scoreboard ----------
 const SB_WEEKS=Object.keys(SB.weeks).map(Number).sort((a,b)=>b-a);
 let sbWeek=SB_WEEKS[0], sbPath=0, sbFind="";
+const SB_CYC=["","B","I","A","M","G"]; let sbLv=["","",""]; // level shown per path; "" = all cards
+const cardLv=l=>/god/i.test(l)?"G":/master/i.test(l)?"M":/^adv/i.test(l)?"A":/^int/i.test(l)?"I":/begin/i.test(l)?"B":"";
+const LV_NAME={...TIER_NAME,G:"God of…"};
 const tierColor=l=>/god/i.test(l)?"var(--s-red)":/master/i.test(l)?"var(--s-purple)":/adv/i.test(l)?"var(--s-blue)":/inter|int\//i.test(l)?"var(--s-green)":/begin/i.test(l)?"var(--s-yellow)":"var(--s-orange)";
 const fmtNum=v=>v==null?"":v.toLocaleString("en-US");
 function sbRender(){
@@ -1963,11 +1967,12 @@ function sbRender(){
   $("sblatest").hidden=sbWeek===SB_WEEKS[0]; $("sblatest").textContent=`Back to latest week (${SB_WEEKS[0]}) ›`;
   const sbLive=sbWeek>DATA_WEEK&&sbWeek===cur[0];
   $("sbmeta").innerHTML=(sbLive?'<span class="pill new" style="width:auto">IN PROGRESS</span> ':'<span class="pill done" style="width:auto">CONCLUDED</span> ')+(wk?`${fmt(wk[1])}${wk[2]&&wk[2]!==LOST?` · hosted by <b>${esc(wk[2])}</b>`:""}`:"");
-  document.querySelectorAll("#sbseg button").forEach(b=>b.setAttribute("aria-pressed",+b.dataset.path===sbPath));
+  $("sbseg").innerHTML=["Lead","Rhythm","Bass"].map((k,i)=>{const t=sbLv[i], on=i===sbPath, nx=SB_CYC[(SB_CYC.indexOf(t)+1)%SB_CYC.length];
+    return `<button type="button" class="tier" data-path="${i}" aria-pressed="${on}" style="--pc:${PATH_C[i]};--tc:${t?(TIER_C[t]||"var(--s-red)"):"var(--fg)"}" title="${on?`${k}: showing ${t?LV_NAME[t]:"all levels"} · click for ${nx?LV_NAME[nx]:"all levels"}`:`Show ${k}`}"><small>${k}</small><b>${t||"All"}</b><i>${t?LV_NAME[t]:"all levels"}</i></button>`}).join("");
   const all=ch.flatMap(c=>c[6]), players=new Set(all.map(e=>SB.names[e[0]].replace(/[*~]+$/,"")));
   const pathEnts=ch.filter(c=>c[0]===sbPath).flatMap(c=>c[6]);
   $("sbstats").innerHTML=`<span><b>${players.size}</b> players this week</span><span><b>${all.length}</b> entries in all paths</span><span><b>${pathEnts.length}</b> ${["lead","rhythm","bass"][sbPath]} entries</span>`;
-  const cards=ch.filter(c=>c[0]===sbPath);
+  const cards=ch.filter(c=>c[0]===sbPath&&(!sbLv[sbPath]||cardLv(c[2])===sbLv[sbPath]));
   const findLc=sbFind.toLowerCase();
   $("sbcards").innerHTML=cards.map(([p,slot,lvl,song,diff,extra,ents,cont])=>{
     const tc=tierColor(lvl), dash=song.indexOf(" - ");
@@ -1986,7 +1991,7 @@ function sbRender(){
       return `<tr class="${me}${e[4]<0?" down":""}"><td>${rk}</td><td class="n"><span data-player="${esc(base)}">${esc(base)}</span>${marks}${up}${SB.aka&&SB.aka[e[0]]?`<span class="aka">as ${esc(SB.aka[e[0]])}</span>`:""}</td><td>${pct}</td><td>${fmtNum(e[2])}</td><td>${fmtNum(e[3])}</td></tr>`;
     }).join("");
     return `<article class="card" style="--tc:${tc}"><div class="ch"><div class="lv"><span>${esc(lvl)}</span>${diff!=null?`<span class="diff" title="Difficulty rating">${diff}</span>`:""}</div><div class="song">${songHtml}</div>${extra?`<div class="note">${esc(extra)}</div>`:""}${cont?`<div class="note">⏳ Continues next week · the winner is decided in its final week</div>`:""}</div>${ents.length?`<table><thead><tr><th>#</th><th>Player</th><th>%</th><th>Streak</th><th>Score</th></tr></thead><tbody>${rows}</tbody></table>`:`<div class="empty">No entries yet</div>`}</article>`;
-  }).join("");
+  }).join("")||(sbLv[sbPath]?`<div class="empty">No ${LV_NAME[sbLv[sbPath]]} ${PATHS[sbPath]} challenge this week</div>`:"");
   try{localStorage.setItem("rsc-sb",JSON.stringify({w:sbWeek,p:sbPath}))}catch(e){}
 }
 $("sbweek").innerHTML=SB_WEEKS.map(w=>`<option value="${w}">Week ${w}</option>`).join("");
@@ -1994,7 +1999,10 @@ $("sbnames").innerHTML=SB.names.map(n=>n.replace(/[*~]+$/,"")).filter((n,i,a)=>a
 $("sbweek").addEventListener("change",e=>{sbWeek=+e.target.value;sbRender()});
 $("sbprev").addEventListener("click",()=>{const i=SB_WEEKS.indexOf(sbWeek);if(i<SB_WEEKS.length-1){sbWeek=SB_WEEKS[i+1];sbRender()}});
 $("sbnext").addEventListener("click",()=>{const i=SB_WEEKS.indexOf(sbWeek);if(i>0){sbWeek=SB_WEEKS[i-1];sbRender()}});
-$("sbseg").addEventListener("click",e=>{const b=e.target.closest("button[data-path]");if(b){sbPath=+b.dataset.path;sbRender()}});
+// click a path to show it; click the shown path again to cycle its level: All → B → I → A → M → God → All
+$("sbseg").addEventListener("click",e=>{const b=e.target.closest("button[data-path]");if(!b)return;const i=+b.dataset.path;
+  if(i===sbPath)sbLv[i]=SB_CYC[(SB_CYC.indexOf(sbLv[i])+1)%SB_CYC.length]; else sbPath=i;
+  tip.hidden=true;sbRender();$("sbseg").querySelector(`[data-path="${i}"]`).focus()});
 $("sbfind").addEventListener("input",e=>{sbFind=e.target.value.trim();sbRender()});
 $("view-scores").addEventListener("click",e=>{
   const el=e.target.closest("[data-player]"); if(!el)return;
