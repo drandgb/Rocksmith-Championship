@@ -21,7 +21,7 @@ const TOKEN_PROPERTY = 'drandWebsiteToken';   // name of the script property tha
 function addWebsiteMenu() {
   SpreadsheetApp.getUi()
     .createMenu('Website')
-    .addItem('Update website now', 'updateWebsiteNow')
+    .addItem('Update website now (drand)', 'updateWebsiteNow')
     .addToUi();
 }
 
