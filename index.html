@@ -1088,7 +1088,7 @@ footer{color:var(--dim);font-size:.78rem}
   <footer>Data: Rodman’s Rocksmith 2014 Championship Google Sheets (older attendance also from the Championship Metrics workbook). Player stats run through week 675; scoreboards cover weeks 440–676. Weeks 1–16 have no recorded host in the source.
   <span class="updated disclaimer">Unofficial fan project. Not affiliated with Ubisoft or Rocksmith.</span>
   <span class="updated" id="sheetedit-row" hidden>Sheet last edited: <span id="sheetedit" data-iso="2026-10-09T15:12:03.389Z"></span></span>
-  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-09T17:05:50+00:00">October 9, 2026</span></span>
+  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-09T17:11:25+00:00">October 9, 2026</span></span>
   </footer>
 </div>
 <div class="tip" id="tip" hidden></div>
@@ -2667,8 +2667,13 @@ function renderThisWeek(){
     const lvl=r=>"BIAM".indexOf(tierOf(r.best.c[2])||"M"); // Beginner first, then Intermediate, Advanced, Masterclass
     Object.values(riv).sort((a,b)=>lvl(a)-lvl(b)||a.avg-b.avg||b.k-a.k||a.savg-b.savg||a.me.localeCompare(b.me)).forEach(r=>{
       if(done.has(r.me))return; const o=riv[r.them], mutual=!!o&&o.them===r.me;
-      if(mutual)done.add(r.them); done.add(r.me); pairs.push({...r,mutual});
-    }); const f=twRivLv[pi]; return f?pairs.filter(r=>(tierOf(r.best.c[2])||"M")===f):pairs};
+      if(mutual)done.add(r.them); done.add(r.me);
+      // a mutual pair is listed from the alphabetically first player's side
+      const lc=s=>s.toLowerCase(); pairs.push(mutual&&lc(r.them)<lc(r.me)?{...o,mutual}:{...r,mutual});
+    });
+    // within each level (Beginner first ... Masterclass), pairs in alphabetical order of the first name
+    pairs.sort((a,b)=>lvl(a)-lvl(b)||a.me.localeCompare(b.me,undefined,{sensitivity:"base"})||a.them.localeCompare(b.them,undefined,{sensitivity:"base"}));
+    const f=twRivLv[pi]; return f?pairs.filter(r=>(tierOf(r.best.c[2])||"M")===f):pairs};
   // header stats
   const hol=W&&W[3]?W[3].split(/,\s*/).map(h=>`<span class="pill hol">${holEmoji(h)}${esc(h)}</span>`).join(""):"";
   $("tw-stats").innerHTML=`<span><b>${names.length}</b> player${names.length===1?"":"s"}${live?" so far":""}</span>${ents.length?`<span><b>${ents.length}</b> entries</span>`:""}<span><b>${back.length}</b> back</span><span><b>${fresh.length}</b> new</span>${hol}`;
