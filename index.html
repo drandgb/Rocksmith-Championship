@@ -657,7 +657,10 @@ footer .updated{display:block;margin-top:4px}
 .twl .rarrow{margin-right:3px;font-size:.7em;color:#5fe39a;vertical-align:1px}
 .twl .rverdict.rlive{color:#7dffb0}
 .twl .rverdict{flex-basis:100%;order:4;font:700 .74rem var(--f-display);letter-spacing:.02em;color:#ffd36e;cursor:help}
-.twpath h3{font:700 .85rem var(--f-display);letter-spacing:.08em;text-transform:uppercase;margin:0 0 8px;padding-left:8px;border-left:3px solid var(--pc)}
+.twpath h3{font:700 .85rem var(--f-display);letter-spacing:.08em;text-transform:uppercase;margin:0 0 8px;padding-left:8px;border-left:3px solid var(--pc);display:flex;align-items:center;gap:10px}
+.twpath .rivlv{min-width:34px;height:22px;padding:0 7px;border-radius:6px;background:var(--panel2);border:1px solid color-mix(in srgb,var(--tc) 55%,var(--line));color:var(--tc);font:800 .74rem var(--f-display);letter-spacing:.04em;cursor:pointer;text-transform:none}
+.twpath .rivlv:hover{background:color-mix(in srgb,var(--tc) 18%,var(--panel2))}
+.twpath .rivlv:focus-visible{outline:2px solid var(--fg);outline-offset:1px}
 .stats .rivbox{grid-column:1/-1;box-shadow:inset 3px 0 0 var(--pc);cursor:help}
 .stats .rivbox[data-hl]{cursor:pointer}
 .stats .rivnm{cursor:pointer;overflow-wrap:anywhere}
@@ -1084,7 +1087,7 @@ footer{color:var(--dim);font-size:.78rem}
   <footer>Data: Rodman’s Rocksmith 2014 Championship Google Sheets (older attendance also from the Championship Metrics workbook). Player stats run through week 675; scoreboards cover weeks 440–676. Weeks 1–16 have no recorded host in the source.
   <span class="updated disclaimer">Unofficial fan project. Not affiliated with Ubisoft or Rocksmith.</span>
   <span class="updated" id="sheetedit-row" hidden>Sheet last edited: <span id="sheetedit" data-iso="2026-10-09T15:12:03.389Z"></span></span>
-  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-09T16:58:13+00:00">October 9, 2026</span></span>
+  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-09T17:04:38+00:00">October 9, 2026</span></span>
   </footer>
 </div>
 <div class="tip" id="tip" hidden></div>
@@ -2594,6 +2597,7 @@ $("refreshbtn").addEventListener("click",async()=>{
 const TW_LIVE=cur[0]>DATA_WEEK?cur[0]:null;
 const TW_MIN=3, TW_MAX=Math.max(DATA_WEEK,cur[0]);
 let twWeek=TW_MAX;
+const twRivLv=["","",""], TW_CYC=["","B","I","A","M"]; // rivals level filter per path ("" = all)
 const twBits={}; PLAYERS.forEach(p=>twBits[p[0]]=presOf(p));
 const twLiveSet=TW_LIVE?new Set(twEntries(TW_LIVE).map(x=>x.n)):new Set();
 // did name play week w?
@@ -2663,7 +2667,7 @@ function renderThisWeek(){
     Object.values(riv).sort((a,b)=>lvl(a)-lvl(b)||a.avg-b.avg||b.k-a.k||a.savg-b.savg||a.me.localeCompare(b.me)).forEach(r=>{
       if(done.has(r.me))return; const o=riv[r.them], mutual=!!o&&o.them===r.me;
       if(mutual)done.add(r.them); done.add(r.me); pairs.push({...r,mutual});
-    }); return pairs};
+    }); const f=twRivLv[pi]; return f?pairs.filter(r=>(tierOf(r.best.c[2])||"M")===f):pairs};
   // header stats
   const hol=W&&W[3]?W[3].split(/,\s*/).map(h=>`<span class="pill hol">${holEmoji(h)}${esc(h)}</span>`).join(""):"";
   $("tw-stats").innerHTML=`<span><b>${names.length}</b> player${names.length===1?"":"s"}${live?" so far":""}</span>${ents.length?`<span><b>${ents.length}</b> entries</span>`:""}<span><b>${back.length}</b> back</span><span><b>${fresh.length}</b> new</span>${hol}`;
@@ -2689,7 +2693,8 @@ function renderThisWeek(){
   $("tw-riv-sub").textContent=ents.length?"Each player's closest match within their own rank: smallest average % gap on the ranked challenges they both played (no playing up or down, no God challenges)":"";
   const r2=v=>Math.round(v*100)/100;
   $("tw-riv").innerHTML=!SB.weeks[w]?`<ul class="twl">${twEmpty(`No scoreboard for week ${w} (scoreboards start at week ${SB_W[0]}).`)}</ul>`:[0,1,2].map(pi=>{const pairs=pairsFor(pi);
-    return `<div class="twpath" style="--pc:${PATH_C[pi]}"><h3>${PATHS[pi]}</h3><ul class="twl">${pairs.length?pairs.map(r=>{
+    const f=twRivLv[pi], nx=TW_CYC[(TW_CYC.indexOf(f)+1)%TW_CYC.length];
+    return `<div class="twpath" style="--pc:${PATH_C[pi]}"><h3>${PATHS[pi]}<button type="button" class="rivlv" data-rivlv="${pi}" style="--tc:${f?TIER_C[f]:"var(--fg)"}" title="Showing ${f?TIER_NAME[f]:"all levels"} · click for ${nx?TIER_NAME[nx]:"all levels"}">${f||"All"}</button></h3><ul class="twl">${pairs.length?pairs.map(r=>{
     const c=r.best.c, g=r2(r.avg);
     // once the week is over, the rivalry goes to whoever beat the other on more shared challenges (level on challenges is a tie)
     // while the week is still running, the same rule shows who is ahead so far
@@ -2698,7 +2703,7 @@ function renderThisWeek(){
     const nm=n=>!wn?twName(n):live?(n===wn?`<span class="rlead"><span class="rarrow" aria-hidden="true">▲</span>${twName(n)}</span>`:twName(n)):`<span class="${n===wn?"rwin":"rlose"}">${n===wn?'<span class="rcrown" aria-hidden="true">🏆</span>':""}${twName(n)}</span>`;
     const score=Math.max(r.w,r.l)+"–"+Math.min(r.w,r.l);
     const verdict=live?(wn?`<span class="rverdict rlive" data-tip="Ahead so far: won more of the challenges they both played. Final once the week ends.">${esc(wn)} leads ${score} so far</span>`:`<span class="rverdict rlive" data-tip="Level so far: each has won the same number of the challenges they both played">Tied ${score} so far</span>`):wn?`<span class="rverdict" data-tip="Won more of the challenges they both played">${esc(wn)} wins the rivalry ${score}</span>`:`<span class="rverdict" data-tip="Each won the same number of the challenges they both played">Rivalry tied ${score}</span>`;
-    return `<li class="riv${g===0?" even":""}">${g===0?'<span class="evenbadge" title="Same average % on every shared challenge">🤝 Dead even</span>':""}${(()=>{const L=cardLv(c[2]);return L?`<span class="lvbox" style="--tc:${TIER_C[L]}" title="Rivals at ${TIER_NAME[L]}">${L}</span>`:""})()}${nm(r.me)}<span class="vs" title="${r.mutual?"Each other's closest rival":"Closest rival"}">${r.mutual?"⇄":"→"}</span>${nm(r.them)}<span class="rshared">${r.list.map(s=>`<span class="rs"><span class="rsong" data-sbw="${w}" data-sbp="${pi}" data-sbn="${esc(r.me)}" title="${esc(s.c[2])} · open this challenge on the Scoreboard">${esc(s.c[3])}</span><span class="rpct"><b class="${s.beat>0?"up":""}">${s.a}%</b> vs <b class="${s.beat<0?"up":""}">${s.b}%</b></span></span>`).join("")}</span>${verdict}</li>`}).join(""):twEmpty(`No ${PATHS[pi].toLowerCase()} rivals yet.`)}</ul></div>`}).join("");
+    return `<li class="riv${g===0?" even":""}">${g===0?'<span class="evenbadge" title="Same average % on every shared challenge">🤝 Dead even</span>':""}${(()=>{const L=cardLv(c[2]);return L?`<span class="lvbox" style="--tc:${TIER_C[L]}" title="Rivals at ${TIER_NAME[L]}">${L}</span>`:""})()}${nm(r.me)}<span class="vs" title="${r.mutual?"Each other's closest rival":"Closest rival"}">${r.mutual?"⇄":"→"}</span>${nm(r.them)}<span class="rshared">${r.list.map(s=>`<span class="rs"><span class="rsong" data-sbw="${w}" data-sbp="${pi}" data-sbn="${esc(r.me)}" title="${esc(s.c[2])} · open this challenge on the Scoreboard">${esc(s.c[3])}</span><span class="rpct"><b class="${s.beat>0?"up":""}">${s.a}%</b> vs <b class="${s.beat<0?"up":""}">${s.b}%</b></span></span>`).join("")}</span>${verdict}</li>`}).join(""):twEmpty(twRivLv[pi]?`No ${TIER_NAME[twRivLv[pi]]} ${PATHS[pi].toLowerCase()} rivals this week.`:`No ${PATHS[pi].toLowerCase()} rivals yet.`)}</ul></div>`}).join("");
 }
 $("twprev").addEventListener("click",()=>{if(twWeek>TW_MIN){twWeek--;renderThisWeek()}});
 $("twnext").addEventListener("click",()=>{if(twWeek<TW_MAX){twWeek++;renderThisWeek()}});
@@ -2707,6 +2712,8 @@ $("view-thisweek").addEventListener("mousemove",e=>{const p=e.target.closest("[d
 $("view-thisweek").addEventListener("mouseleave",()=>tip.hidden=true);
 // click a new medal: ring it like in the lookups and show its hover text (handy on phones too)
 $("view-thisweek").addEventListener("click",e=>{
+  const rb=e.target.closest("[data-rivlv]"); // level box next to each path: All → B → I → A → M → All
+  if(rb){const i=+rb.dataset.rivlv; twRivLv[i]=TW_CYC[(TW_CYC.indexOf(twRivLv[i])+1)%TW_CYC.length]; tip.hidden=true; renderThisWeek(); const nb=document.querySelector(`[data-rivlv="${i}"]`); if(nb)nb.focus(); return}
   const m=e.target.closest(".medal-m[data-mk]");
   const on=m&&!m.classList.contains("act");
   $("view-thisweek").querySelectorAll(".medal-m.act").forEach(x=>x.classList.remove("act"));
