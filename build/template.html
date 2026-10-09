@@ -324,6 +324,7 @@ button.clear:hover{border-color:var(--accent)}
 .card .pct100,.legendline .pct100{color:var(--s-red);font-weight:700}
 .card tr.down td{opacity:.55}
 .card tr.me td{background:color-mix(in srgb,var(--accent) 18%,transparent)}
+.card tr.me{cursor:pointer}
 .card .empty{padding:14px;color:var(--dim);font-size:.85rem}
 .card .aka{display:block;font-size:.7rem;color:var(--dim)}
 .legendline{color:var(--muted);font-size:.8rem;margin:0}
@@ -2127,6 +2128,9 @@ $("sbseg").addEventListener("click",e=>{const b=e.target.closest("button[data-pa
   if(i===sbPath)sbLv[i]=SB_CYC[(SB_CYC.indexOf(sbLv[i])+1)%SB_CYC.length]; else sbPath=i;
   tip.hidden=true;sbRender();$("sbseg").querySelector(`[data-path="${i}"]`).focus()});
 $("sbfind").addEventListener("change",e=>{sbFind=e.target.value.trim();sbRender()});
+// clicking a highlighted player's row anywhere that isn't a link (like their name) clears the highlight
+$("sbcards").addEventListener("click",e=>{const tr=e.target.closest("tr.me"); if(!tr||e.target.closest("[data-player],a,.golink,[data-goband]"))return;
+  sbFind=""; tip.hidden=true; sbRender()});
 $("view-scores").addEventListener("click",e=>{
   const el=e.target.closest("[data-player]"); if(!el)return;
   const n=el.dataset.player; if(!byName[n])return;
