@@ -67,6 +67,8 @@ create policy votes_delete on public.votes for delete to authenticated using (pl
 grant select on public.claims, public.votes to anon, authenticated;
 grant insert, update, delete on public.claims, public.votes to authenticated;
 grant select on public.admins to authenticated;
+grant usage on schema public to anon, authenticated;
+grant execute on function public.is_admin(), public.my_player() to anon, authenticated;
 
 -- After logging in on the site once, make yourself an admin (put your email in):
 --   insert into public.admins (user_id) select id from auth.users where email = 'you@example.com';
