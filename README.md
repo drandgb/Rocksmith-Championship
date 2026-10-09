@@ -66,7 +66,7 @@ The whole app is one self-contained `index.html`. It has no build step, no serve
 
 ### 🎵 Songs
 - Songs in Most played, Most replayed and the Band lookup table have an **Ignition** pill with the song's most recent Ignition4 link from the scoreboard sheet.
-- Official Rocksmith songs (on-disc and DLC) get a grey **Official** pill instead (hover: not available on Ignition), on the Songs page and Scoreboard cards. The list of official songs is `build/data/official.json`, taken from a copy of the Ignition4 database where Ubisoft's songs are flagged official.
+- Official Rocksmith songs (on-disc and DLC) get a grey **Official** pill instead (hover: not available on Ignition), on the Songs page and Scoreboard cards. The list of official songs is `build/data/official.json`.
 - Most featured and most played bands. Bands by difficulty, plus the easiest and toughest bands:
 
   | Level | Rating |
