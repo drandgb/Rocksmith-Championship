@@ -2817,7 +2817,7 @@ if(curView()==="thisweek")renderThisWeek();
 
 // ---------- accounts: log in with an emailed link, claim your player profile, rate this week's songs ----------
 // Uses a Supabase project (set SUPA_URL and SUPA_KEY; both are public by design). Leave them empty to hide all of this.
-var SUPA_URL="", SUPA_KEY="";
+var SUPA_URL="https://yeyzdxjqwdkswulrnver.supabase.co", SUPA_KEY="sb_publishable_pxGhrlKyONzLc1fomC2vsw_EoNlhCeG";
 var ACCT={on:false,sb:null,user:null,claim:null,admin:false,claims:[],weeks:{},loading:{}};
 function acctPlayerOf(e){return SB.names[e[0]].replace(/[*~]+$/,"")}
 // the rating box on a Scoreboard card: a picker for your own rating while the week runs, the players' average once it's over
@@ -2892,7 +2892,7 @@ $("acctbtn").addEventListener("click",()=>{acctDraw();$("acct").showModal()});
 $("acctclose").addEventListener("click",()=>$("acct").close());
 $("acct").addEventListener("click",e=>{if(e.target===$("acct"))$("acct").close()});
 if(SUPA_URL&&SUPA_KEY){
-  const s=document.createElement("script"); s.src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js";
+  const s=document.createElement("script"); s.src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.min.js";
   s.onload=()=>{ACCT.sb=window.supabase.createClient(SUPA_URL,SUPA_KEY); ACCT.on=true; acctBtn(); acctRefresh();
     ACCT.sb.auth.onAuthStateChange((ev)=>{if(ev==="SIGNED_IN"||ev==="SIGNED_OUT")acctRefresh()})};
   document.head.appendChild(s);
