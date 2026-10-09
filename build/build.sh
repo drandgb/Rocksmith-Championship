@@ -21,6 +21,7 @@ cd work
 python3 build_weeks.py
 python3 parse_weeks.py
 python3 build_sb.py
+python3 build_links.py
 python3 build_players.py
 python3 build_rankings.py
 # when the sheet was last edited: sent by the sheet's updateWebsite script; kept in the cache between runs
