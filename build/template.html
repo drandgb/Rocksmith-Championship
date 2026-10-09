@@ -1030,16 +1030,17 @@ footer{color:var(--dim);font-size:.78rem}
   </div><label class="shostpick"><span>Picked by</span><select id="shost" aria-label="Only songs picked by this host"><option value="">All hosts</option></select></label></div>
   <section class="now" id="songstats" aria-label="Song totals"></section>
 
-  <div class="grid2 even">
-    <section class="panel">
-      <div class="panel-head"><h2>Most featured bands</h2><span class="sub">Top 20 · challenges using their songs</span></div>
-      <div class="bars" id="b-featured"></div>
-    </section>
-    <section class="panel">
-      <div class="panel-head"><h2>Most played bands</h2><span class="sub">Top 20 · scores posted on their songs since week 440</span></div>
-      <div class="bars" id="b-playedbands"></div>
-    </section>
-  </div>
+  <section class="panel">
+    <div class="panel-head"><h2>Most played songs</h2><span class="sub">Top 20 · different players who posted a score on the song since week 440</span></div>
+    <div class="lvfilter" id="sl-f"></div>
+    <ol class="songlist" id="songlist"></ol>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head"><h2>Most replayed songs</h2><span class="sub">Top 20 · songs brought back the most times · a multi-week God challenge counts once</span></div>
+    <div class="lvfilter" id="rl-f"></div>
+    <ol class="songlist" id="replaylist"></ol>
+  </section>
 
   <section class="panel">
     <div class="panel-head"><h2>Bands by difficulty</h2><span class="sub">Click a band to look it up · most featured bands at each level · level set by the difficulty rating: under 4 Beginner, 4–5.5 Intermediate, 6–7.5 Advanced, 8–9.5 Masterclass, 10 God tier</span></div>
@@ -1064,17 +1065,16 @@ footer{color:var(--dim);font-size:.78rem}
     <div id="bcard"></div>
   </section>
 
-  <section class="panel">
-    <div class="panel-head"><h2>Most played songs</h2><span class="sub">Top 20 · different players who posted a score on the song since week 440</span></div>
-    <div class="lvfilter" id="sl-f"></div>
-    <ol class="songlist" id="songlist"></ol>
-  </section>
-
-  <section class="panel">
-    <div class="panel-head"><h2>Most replayed songs</h2><span class="sub">Top 20 · songs brought back the most times · a multi-week God challenge counts once</span></div>
-    <div class="lvfilter" id="rl-f"></div>
-    <ol class="songlist" id="replaylist"></ol>
-  </section>
+  <div class="grid2 even">
+    <section class="panel">
+      <div class="panel-head"><h2>Most featured bands</h2><span class="sub">Top 20 · challenges using their songs</span></div>
+      <div class="bars" id="b-featured"></div>
+    </section>
+    <section class="panel">
+      <div class="panel-head"><h2>Most played bands</h2><span class="sub">Top 20 · scores posted on their songs since week 440</span></div>
+      <div class="bars" id="b-playedbands"></div>
+    </section>
+  </div>
   </div>
 
   <div class="view" id="view-scores" role="tabpanel" aria-labelledby="tab-scores" hidden>
