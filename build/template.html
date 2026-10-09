@@ -1841,7 +1841,7 @@ function podiumMedals(pod){
 function rivalryWins(name,done,path=-1){
   const n=twCanon(name), out=[];
   done.forEach(w=>{if(w>DATA_WEEK)return; (path<0?[0,1,2]:[path]).forEach(pi=>{const r=rivalsOfWeek(w,pi)[n]; if(!r)return;
-    const res=(r.w-r.l)||Math.round((r.pa-r.pb)*100); if(res>0)out.push(w)})});
+    if(r.w>r.l)out.push(w)})}); // a rivalry level on challenges is a tie, not a win
   return out;
 }
 function swordsSvg(col){return `<svg viewBox="0 0 28 30" aria-hidden="true"><circle cx="14" cy="15" r="12" fill="${col}"/><path d="M6 11a9 9 0 0 1 5-5.5" stroke="rgba(255,255,255,.55)" stroke-width="1.6" fill="none" stroke-linecap="round"/><g stroke="#1a1406" stroke-opacity=".55" stroke-width=".7"><path d="M20.6 6.2h2.6v2.6l-9.6 9.6-2.6-2.6z" fill="#f4f7fb"/><path d="M7.4 6.2H4.8v2.6l9.6 9.6 2.6-2.6z" fill="#e2e8f0"/></g><path d="M9.4 18.4l2.4 2.4M18.6 18.4l-2.4 2.4" stroke="#d9a441" stroke-width="2.2" stroke-linecap="round"/><path d="M10 20.4l-2.8 2.8M18 20.4l2.8 2.8" stroke="#8a5a2b" stroke-width="2.2" stroke-linecap="round"/></svg>`}
@@ -2681,13 +2681,13 @@ function renderThisWeek(){
   $("tw-riv").innerHTML=!SB.weeks[w]?`<ul class="twl">${twEmpty(`No scoreboard for week ${w} (scoreboards start at week ${SB_W[0]}).`)}</ul>`:[0,1,2].map(pi=>{const pairs=pairsFor(pi);
     return `<div class="twpath" style="--pc:${PATH_C[pi]}"><h3>${PATHS[pi]}</h3><ul class="twl">${pairs.length?pairs.map(r=>{
     const c=r.best.c, g=r2(r.avg);
-    // once the week is over, the rivalry goes to whoever beat the other on more shared challenges (then higher total %)
+    // once the week is over, the rivalry goes to whoever beat the other on more shared challenges (level on challenges is a tie)
     // while the week is still running, the same rule shows who is ahead so far
-    // (while it's running, level on challenges counts as level; the total % only settles it once the week ends)
-    const res=live?(r.w-r.l):(r.w-r.l)||(Math.round((r.pa-r.pb)*100)), wn=res>0?r.me:res<0?r.them:null;
+    // level on challenges is a tie (while the week runs and once it ends)
+    const res=r.w-r.l, wn=res>0?r.me:res<0?r.them:null;
     const nm=n=>!wn?twName(n):live?(n===wn?`<span class="rlead"><span class="rarrow" aria-hidden="true">▲</span>${twName(n)}</span>`:twName(n)):`<span class="${n===wn?"rwin":"rlose"}">${n===wn?'<span class="rcrown" aria-hidden="true">🏆</span>':""}${twName(n)}</span>`;
     const score=Math.max(r.w,r.l)+"–"+Math.min(r.w,r.l);
-    const verdict=live?(wn?`<span class="rverdict rlive" data-tip="Ahead so far: won more of the challenges they both played. Final once the week ends.">${esc(wn)} leads ${score} so far</span>`:`<span class="rverdict rlive" data-tip="Level so far: each has won the same number of the challenges they both played">Tied ${score} so far</span>`):wn?`<span class="rverdict" data-tip="Won more of the challenges they both played${r.w===r.l?" (tied on challenges, so the higher total % decides)":""}">${esc(wn)} wins the rivalry ${score}</span>`:`<span class="rverdict" data-tip="Same results on every shared challenge">Rivalry tied ${score}</span>`;
+    const verdict=live?(wn?`<span class="rverdict rlive" data-tip="Ahead so far: won more of the challenges they both played. Final once the week ends.">${esc(wn)} leads ${score} so far</span>`:`<span class="rverdict rlive" data-tip="Level so far: each has won the same number of the challenges they both played">Tied ${score} so far</span>`):wn?`<span class="rverdict" data-tip="Won more of the challenges they both played">${esc(wn)} wins the rivalry ${score}</span>`:`<span class="rverdict" data-tip="Each won the same number of the challenges they both played">Rivalry tied ${score}</span>`;
     return `<li class="riv${g===0?" even":""}">${g===0?'<span class="evenbadge" title="Same average % on every shared challenge">🤝 Dead even</span>':""}${nm(r.me)}<span class="vs" title="${r.mutual?"Each other's closest rival":"Closest rival"}">${r.mutual?"⇄":"→"}</span>${nm(r.them)}<span class="rt">${g===0?"0.00% gap":`${g.toFixed(2)}% gap`}<small>${r.k===1?"1 shared challenge":`avg over ${r.k} shared challenges`}</small></span><span class="dt">closest: <span class="wkl" data-sbw="${w}" data-sbp="${pi}" data-sbn="${esc(r.me)}" title="Open this challenge on the Scoreboard">${esc(c[2])}</span> · ${esc(c[3])} · ${r.best.me.e[1]}% vs ${r.best.them.e[1]}%</span>${verdict}</li>`}).join(""):twEmpty(`No ${PATHS[pi].toLowerCase()} rivals yet.`)}</ul></div>`}).join("");
 }
 $("twprev").addEventListener("click",()=>{if(twWeek>TW_MIN){twWeek--;renderThisWeek()}});
