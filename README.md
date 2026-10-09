@@ -170,3 +170,16 @@ To build by hand: `./build/build.sh` (downloads the sheet) or `./build/build.sh 
 - Thanks to every host and player who has kept the challenge running week after week since 2013. 🤘
 
 *Unofficial fan project. Not affiliated with Ubisoft or Rocksmith.*
+
+## Player accounts and song ratings (optional)
+
+Players can log in with an emailed link (no password), claim their player profile and rate the difficulty of this week's challenges they played. The players' average shows on each Scoreboard card once the week is over. It's off until a Supabase project is connected:
+
+1. Create a free project at supabase.com.
+2. In **Authentication → URL Configuration**, set the Site URL (and a Redirect URL) to `https://drandgb.github.io/Rocksmith-Championship/`.
+3. In **Authentication → Emails → SMTP settings**, connect an email sender (a dedicated Gmail with an app password works: `smtp.gmail.com`, port 587).
+4. In **SQL Editor**, run `build/supabase/schema.sql`.
+5. Put the project URL and the anon/publishable key into `SUPA_URL` and `SUPA_KEY` in `build/template.html` (both are public by design; never use the service_role key).
+6. Log in on the site once, then run the two lines at the bottom of `schema.sql` with your email to make yourself an admin. Admins approve or remove profile claims from the 👤 account dialog.
+
+Rules (enforced by the database): one account per player name, one name per account, claims start pending until an admin approves them, and only an approved player can vote, once per challenge (voting again replaces the vote).
