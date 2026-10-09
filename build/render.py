@@ -4,7 +4,7 @@ d = datetime.date.fromisoformat(os.environ["BUILD_DATE"]) if os.environ.get("BUI
 sb = json.load(open("scores.json"))
 t = open("template.html").read()
 for key, f in [("__WEEKS__", "weeks.json"), ("__PLAYERS__", "players.json"), ("__PARTS__", "parts.json"),
-               ("__SCORES__", "scores.json"), ("__WINS__", "wins.json"), ("__SONGS_OLD__", "songs_old.json"), ("__RANKINGS__", "rankings.json")]:
+               ("__SCORES__", "scores.json"), ("__WINS__", "wins.json"), ("__SONGS_OLD__", "songs_old.json"), ("__RANKINGS__", "rankings.json"), ("__OFFICIAL__", "official.json")]:
     assert key in t, key
     t = t.replace(key, open(f).read())
 t = (t.replace("__BUILT__", f"{d:%B} {d.day}, {d.year}")
