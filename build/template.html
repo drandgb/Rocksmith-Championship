@@ -1850,7 +1850,9 @@ function winMedals(per,done,bestN,streak,total,trip,ties,pod,rivw,mast){
   if(ties&&ties.length)xr.push(`<span class="medal-m wm" style="--ec:#ff7eb6;cursor:pointer" data-all="${ties.join(",")}" data-hl="${[...new Set(ties)].sort((a,b)=>a-b).join(",")}" data-tip="Close win medal · won on the tiebreak with the same % as the runner-up · ${ties.length} time${ties.length===1?"":"s"} · click to highlight">${tieSvg("#ff7eb6")}<b>${ties.length}</b></span>`);
   if(rivw&&rivw.length)xr.push(`<span class="medal-m wm" style="--ec:#ff6b6b;cursor:pointer" data-all="${rivw.join(",")}" data-hl="${[...new Set(rivw)].sort((a,b)=>a-b).join(",")}" data-tip="Rivalry win · beat their closest rival of the week (same rank, ranked challenges) · ${rivw.length} time${rivw.length===1?"":"s"} · click to highlight">${swordsSvg("#ff6b6b")}<b>${rivw.length}</b></span>`);
   if(mast&&mast.length)xr.push(`<span class="medal-m wm" style="--ec:#ff4d6d;cursor:pointer" data-all="${mast.join(",")}" data-hl="${[...new Set(mast)].join(",")}" data-tip="100% mastery · scored 100% on a challenge, whatever the place or class · ${mast.length} time${mast.length===1?"":"s"} · click to highlight">${masterySvg("#e8335a")}<b>${mast.length}</b></span>`);
-  if(P.reg.length||P.god.length||tc.length)rows.push([...P.reg,...P.god,...tc]);
+  // God diamonds get their own row first, then the triple crown leading the gold, silver and bronze medals
+  if(P.god.length)rows.push(P.god);
+  if(P.reg.length||tc.length)rows.push([...tc,...P.reg]);
   if(xr.length)rows.push(xr);
   // best-week trophies: one per number of wins in a week; the count is how many weeks had exactly that many wins
   if(bestN>0){const r=[];for(let k=1;k<=bestN;k++){const ws=asc.filter(w=>per[w][1]===k); if(!ws.length)continue;
