@@ -40,7 +40,7 @@ The whole app is one self-contained `index.html`. It has no build step, no serve
 - **Most wins** and **Win rates** (top 20). Hover a win-rate bar to see wins vs. entries.
 - **Winner lookup**:
   - **Stats:** weeks with a win, total wins, best week, longest win streak, triple crowns, close wins (won on the tiebreak) and Lead, Rhythm and Bass rivals (the player who was most often their closest match within the same rank on that path; click to highlight those weeks).
-  - **Medals:** 🥇🥈🥉 gold, silver and bronze medals (how many times they finished 1st, 2nd or 3rd on a challenge), 💎 God diamonds in a golden laurel wreath (the same for God challenges), 🏆 win-week trophies (one cup per win; the number is how many weeks they won that many), 🔥 win-streak flames (2, 3, 4, 5, 10, 15, 20, 25, 30, 40, 50… weeks in a row), 👑 triple crowns (won Lead, Rhythm and Bass in the same week) and 🟰 close-win medals, ⚔️ rivalry wins (beat their closest rival of the week) and 💯 100% mastery medals (every 100% score, whatever the place or class).
+  - **Medals:** 🥇🥈🥉 gold, silver and bronze medals (how many times they finished 1st, 2nd or 3rd on a challenge), 💎 God diamonds in a golden laurel wreath (the same for God challenges), 🏆 win-week trophies (one cup per win; the number is how many weeks they won that many), 🔥 win-streak flames (2, 3, 4, 5, 10, 15, 20, 25, 30, 40, 50… weeks in a row), 👑 triple crowns (won Lead, Rhythm and Bass in the same week) and 🟰 close-win medals, and ⚔️ rivalry wins (beat their closest rival of the week).
   - **Week chart:** heat colors for 1, 2 and 3+ wins.
   - **Year filter:** click a year label to see that year's stats only.
 - **Rank changes**: class promotions ↗ and demotions ↘ over the past year.
@@ -52,7 +52,7 @@ The whole app is one self-contained `index.html`. It has no build step, no serve
 - **Player lookup**:
   - **Stats:** weeks played, first and latest week, active and best streak, play rate.
   - **Highest score** and **highest note streak** on any scoreboard challenge, with the song and week; click either to open it on the Scoreboard.
-  - **Medals:** perfect-attendance gem, class gems (one for every class up to the highest reached, so Advanced also gives Beginner and Intermediate; dated by the first rank-up into that class when there is a record; gems are always collected in order, so a date later than a higher class's date is left off as a missing record), lunar-year medallions (zodiac animal, colored by element) and ⚡ play-streak bolts (2, 3, 4, 5, 10 … 50 weeks in a row) and yearly streak bolts (with that year's zodiac animal).
+  - **Medals:** perfect-attendance gem, 💯 100% mastery medal (every 100% score, whatever the place or class), class gems (one for every class up to the highest reached, so Advanced also gives Beginner and Intermediate; dated by the first rank-up into that class when there is a record; gems are always collected in order, so a date later than a higher class's date is left off as a missing record), lunar-year medallions (zodiac animal, colored by element) and ⚡ play-streak bolts (2, 3, 4, 5, 10 … 50 weeks in a row) and yearly streak bolts (with that year's zodiac animal).
   - **Year filter:** click a year label to see that year's stats only.
 
 ### 🎙️ Hosts
