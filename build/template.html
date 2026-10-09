@@ -2691,7 +2691,9 @@ function renderRankings(){
   {const m=String(RK.weeks||"").match(/(\d+)\D+(\d+)/);
    $("rk-sub").innerHTML=RK.weeks?`<span class="rkweeks" data-tip="The rankings cover these 10 weeks"><small>Weeks</small><b>${m?m[1]:esc(RK.weeks)}</b>${m?`<i>–</i><b>${m[2]}</b>`:""}</span>${RK.updated?`<span class="rkupd">updated ${esc(RK.updated)}</span>`:""}`:"Not available";}
   const L=RK.listed||[];
-  $("rk-stats").innerHTML=(L[0]?`<span><b>${esc(L[0])}</b> players listed</span>`:"")+["Lead","Rhythm","Bass"].map((k,i)=>L[i+1]?`<span><b>${esc(L[i+1])}</b> ${k.toLowerCase()}</span>`:"").join("");
+  // the sheet's "listed" total counts ranking places (a player ranked on two paths counts twice), so also show unique players
+  const uniq=new Set((RK.paths||[]).flatMap(p=>p.levels.flatMap(l=>l.rows.filter(r=>r[3]!=="Out").map(r=>r[1])))).size;
+  $("rk-stats").innerHTML=(L[0]?`<span data-tip="Ranking places across all paths (a player ranked on more than one path counts once for each)" style="cursor:help"><b>${esc(L[0])}</b> rankings</span>`:"")+(uniq?`<span data-tip="Different players ranked on at least one path" style="cursor:help"><b>${uniq}</b> players</span>`:"")+["Lead","Rhythm","Bass"].map((k,i)=>L[i+1]?`<span><b>${esc(L[i+1])}</b> ${k.toLowerCase()}</span>`:"").join("");
   const LT={Beginner:"B",Intermediate:"I",Advanced:"A",Masterclass:"M"};
   $("rk-body").innerHTML=(RK.paths||[]).map(p=>{const pi=PATHS.indexOf(p.path), sel=rkLv[pi]||"", lv=p.levels.filter(l=>!sel||LT[l.level]===sel);
     return `<section class="panel rkpath${sel?"":" full"}" style="--pc:${PATH_C[pi]}"><div class="panel-head"><h2>${esc(p.path)}</h2><span class="sub">${lv.reduce((a,l)=>a+l.rows.filter(r=>r[3]!=="Out").length,0)} ranked</span></div><div class="rklevels">${lv.map(l=>{
