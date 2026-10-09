@@ -653,6 +653,7 @@ footer .updated{display:block;margin-top:4px}
 .twl .rshared .rpct{white-space:nowrap;flex:none}
 .twl .rshared b{display:inline;color:var(--fg);font-weight:700;font-size:inherit}
 .twl .rshared b.up{color:#7dffb0}
+.twl .rtie{color:#ffd36e;font-weight:800;margin-left:1px;cursor:help}
 .twl .rlead .nm{color:#7dffb0;text-shadow:0 0 8px rgba(70,230,140,.45)}
 .twl .rarrow{margin-right:3px;font-size:.7em;color:#5fe39a;vertical-align:1px}
 .twl .rverdict.rlive{color:#7dffb0}
@@ -1088,7 +1089,7 @@ footer{color:var(--dim);font-size:.78rem}
   <footer>Data: Rodman’s Rocksmith 2014 Championship Google Sheets (older attendance also from the Championship Metrics workbook). Player stats run through week 675; scoreboards cover weeks 440–676. Weeks 1–16 have no recorded host in the source.
   <span class="updated disclaimer">Unofficial fan project. Not affiliated with Ubisoft or Rocksmith.</span>
   <span class="updated" id="sheetedit-row" hidden>Sheet last edited: <span id="sheetedit" data-iso="2026-10-09T17:42:39.714Z"></span></span>
-  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-09T17:45:28+00:00">October 9, 2026</span></span>
+  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-09T17:47:47+00:00">October 9, 2026</span></span>
   </footer>
 </div>
 <div class="tip" id="tip" hidden></div>
@@ -1757,7 +1758,7 @@ function rivalsOfWeek(w,path=-1){
   byCard.forEach((xs,c)=>{for(const a of xs)for(const b of xs){if(a.n===b.n)continue;
     const gap=Math.abs(a.e[1]-b.e[1]), sg=Math.abs((a.e[2]||0)-(b.e[2]||0)), h=((H[a.n]=H[a.n]||{})[b.n]=H[a.n][b.n]||{k:0,sum:0,ssum:0,best:null,w:0,l:0,pa:0,pb:0,list:[]});
     h.k++; h.sum+=gap; h.ssum+=sg; h.pa+=a.e[1]; h.pb+=b.e[1];
-    const beat=a.e[1]-b.e[1]||(a.e[2]||0)-(b.e[2]||0)||(a.e[3]||0)-(b.e[3]||0); h.list.push({c,a:a.e[1],b:b.e[1],beat}); if(beat>0)h.w++; else if(beat<0)h.l++; if(!h.best||gap<h.best.gap||(gap===h.best.gap&&sg<h.best.sg))h.best={gap,sg,c,me:a,them:b}}});
+    const beat=a.e[1]-b.e[1]||(a.e[2]||0)-(b.e[2]||0)||(a.e[3]||0)-(b.e[3]||0); h.list.push({c,a:a.e[1],b:b.e[1],beat,sa:a.e[2],sb:b.e[2],ca:a.e[3],cb:b.e[3]}); if(beat>0)h.w++; else if(beat<0)h.l++; if(!h.best||gap<h.best.gap||(gap===h.best.gap&&sg<h.best.sg))h.best={gap,sg,c,me:a,them:b}}});
   const riv={};
   Object.entries(H).forEach(([a,opp])=>{let r=null; Object.entries(opp).forEach(([b,h])=>{const avg=h.sum/h.k, savg=h.ssum/h.k;
     if(!r||avg<r.avg||(avg===r.avg&&(h.k>r.k||(h.k===r.k&&savg<r.savg))))r={me:a,them:b,avg,savg,k:h.k,best:h.best,w:h.w,l:h.l,pa:h.pa,pb:h.pb,list:h.list.slice().sort((x,y)=>x.c[1]-y.c[1])}}); riv[a]=r});
@@ -2709,7 +2710,13 @@ function renderThisWeek(){
     const nm=n=>!wn?twName(n):live?(n===wn?`<span class="rlead"><span class="rarrow" aria-hidden="true">▲</span>${twName(n)}</span>`:twName(n)):`<span class="${n===wn?"rwin":"rlose"}">${n===wn?'<span class="rcrown" aria-hidden="true">🏆</span>':""}${twName(n)}</span>`;
     const score=Math.max(r.w,r.l)+"–"+Math.min(r.w,r.l);
     const verdict=live?(wn?`<span class="rverdict rlive" data-tip="Ahead so far: won more of the challenges they both played. Final once the week ends.">${esc(wn)} leads ${score} so far</span>`:`<span class="rverdict rlive" data-tip="Level so far: each has won the same number of the challenges they both played">Tied ${score} so far</span>`):wn?`<span class="rverdict" data-tip="Won more of the challenges they both played">${esc(wn)} wins the rivalry ${score}</span>`:`<span class="rverdict" data-tip="Each won the same number of the challenges they both played">Rivalry tied ${score}</span>`;
-    return `<li class="riv${g===0?" even":""}">${g===0?'<span class="evenbadge" title="Same average % on every shared challenge">🤝 Dead even</span>':""}${(()=>{const L=cardLv(c[2]);return L?`<button type="button" class="lvbox${twRivLv[pi]===L?" on":""}" data-rivlv="${pi}" data-lv="${L}" style="--tc:${TIER_C[L]}" title="${twRivLv[pi]===L?`Showing ${TIER_NAME[L]} rivals only · click to show all levels`:`Rivals at ${TIER_NAME[L]} · click to show only ${TIER_NAME[L]} ${PATHS[pi]} rivals`}">${L}</button>`:""})()}${nm(r.me)}<span class="vs" title="${r.mutual?"Each other's closest rival":"Closest rival"}">${r.mutual?"⇄":"→"}</span>${nm(r.them)}<span class="rshared">${r.list.map(s=>`<span class="rs"><span class="rsong" data-sbw="${w}" data-sbp="${pi}" data-sbn="${esc(r.me)}" title="${esc(s.c[2])} · open this challenge on the Scoreboard">${esc(s.c[3])}</span><span class="rpct"><b class="${s.beat>0?"up":""}">${s.a}%</b> vs <b class="${s.beat<0?"up":""}">${s.b}%</b></span></span>`).join("")}</span>${verdict}</li>`}).join(""):twEmpty(twRivLv[pi]?`No ${TIER_NAME[twRivLv[pi]]} ${PATHS[pi].toLowerCase()} rivals this week.`:`No ${PATHS[pi].toLowerCase()} rivals yet.`)}</ul></div>`}).join("");
+    return `<li class="riv${g===0?" even":""}">${g===0?'<span class="evenbadge" title="Same average % on every shared challenge">🤝 Dead even</span>':""}${(()=>{const L=cardLv(c[2]);return L?`<button type="button" class="lvbox${twRivLv[pi]===L?" on":""}" data-rivlv="${pi}" data-lv="${L}" style="--tc:${TIER_C[L]}" title="${twRivLv[pi]===L?`Showing ${TIER_NAME[L]} rivals only · click to show all levels`:`Rivals at ${TIER_NAME[L]} · click to show only ${TIER_NAME[L]} ${PATHS[pi]} rivals`}">${L}</button>`:""})()}${nm(r.me)}<span class="vs" title="${r.mutual?"Each other's closest rival":"Closest rival"}">${r.mutual?"⇄":"→"}</span>${nm(r.them)}<span class="rshared">${r.list.map(s=>`<span class="rs"><span class="rsong" data-sbw="${w}" data-sbp="${pi}" data-sbn="${esc(r.me)}" title="${esc(s.c[2])} · open this challenge on the Scoreboard">${esc(s.c[3])}</span><span class="rpct">${(()=>{
+      // same mastery %: an asterisk on the winner, whose hover says what decided it (note streak, then score)
+      let tie="";
+      if(s.a===s.b){const fn=v=>v==null?"–":v.toLocaleString("en-US");
+        tie=(s.sa||0)!==(s.sb||0)?`Same %, decided by note streak: ${fn(s.sa)} vs ${fn(s.sb)}`:(s.ca||0)!==(s.cb||0)?`Same % and note streak (${fn(s.sa)}), decided by score: ${fn(s.ca)} vs ${fn(s.cb)}`:"Same %, note streak and score";}
+      const ast=side=>tie&&((side>0&&s.beat>0)||(side<0&&s.beat<0)||(!s.beat&&side>0))?`<span class="rtie" data-tip="${tie}">*</span>`:"";
+      return `<b class="${s.beat>0?"up":""}">${s.a}%${ast(1)}</b> vs <b class="${s.beat<0?"up":""}">${s.b}%${ast(-1)}</b>`})()}</span></span>`).join("")}</span>${verdict}</li>`}).join(""):twEmpty(twRivLv[pi]?`No ${TIER_NAME[twRivLv[pi]]} ${PATHS[pi].toLowerCase()} rivals this week.`:`No ${PATHS[pi].toLowerCase()} rivals yet.`)}</ul></div>`}).join("");
 }
 $("twprev").addEventListener("click",()=>{if(twWeek>TW_MIN){twWeek--;renderThisWeek()}});
 $("twnext").addEventListener("click",()=>{if(twWeek<TW_MAX){twWeek++;renderThisWeek()}});
