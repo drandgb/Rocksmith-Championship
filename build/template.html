@@ -2667,8 +2667,13 @@ function renderThisWeek(){
     const lvl=r=>"BIAM".indexOf(tierOf(r.best.c[2])||"M"); // Beginner first, then Intermediate, Advanced, Masterclass
     Object.values(riv).sort((a,b)=>lvl(a)-lvl(b)||a.avg-b.avg||b.k-a.k||a.savg-b.savg||a.me.localeCompare(b.me)).forEach(r=>{
       if(done.has(r.me))return; const o=riv[r.them], mutual=!!o&&o.them===r.me;
-      if(mutual)done.add(r.them); done.add(r.me); pairs.push({...r,mutual});
-    }); const f=twRivLv[pi]; return f?pairs.filter(r=>(tierOf(r.best.c[2])||"M")===f):pairs};
+      if(mutual)done.add(r.them); done.add(r.me);
+      // a mutual pair is listed from the alphabetically first player's side
+      const lc=s=>s.toLowerCase(); pairs.push(mutual&&lc(r.them)<lc(r.me)?{...o,mutual}:{...r,mutual});
+    });
+    // within each level (Beginner first ... Masterclass), pairs in alphabetical order of the first name
+    pairs.sort((a,b)=>lvl(a)-lvl(b)||a.me.localeCompare(b.me,undefined,{sensitivity:"base"})||a.them.localeCompare(b.them,undefined,{sensitivity:"base"}));
+    const f=twRivLv[pi]; return f?pairs.filter(r=>(tierOf(r.best.c[2])||"M")===f):pairs};
   // header stats
   const hol=W&&W[3]?W[3].split(/,\s*/).map(h=>`<span class="pill hol">${holEmoji(h)}${esc(h)}</span>`).join(""):"";
   $("tw-stats").innerHTML=`<span><b>${names.length}</b> player${names.length===1?"":"s"}${live?" so far":""}</span>${ents.length?`<span><b>${ents.length}</b> entries</span>`:""}<span><b>${back.length}</b> back</span><span><b>${fresh.length}</b> new</span>${hol}`;
