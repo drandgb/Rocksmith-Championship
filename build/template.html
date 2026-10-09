@@ -311,6 +311,25 @@ a.dl,.offpill{display:inline-flex;align-items:center;gap:4px;font:700 .66rem var
 a.dl:hover{background:color-mix(in srgb,var(--tc) 24%,transparent)}
 a.dl:focus-visible{outline:2px solid var(--fg);outline-offset:1px}
 a.dl svg,.offpill svg{width:11px;height:11px}
+/* accounts: login dialog, claims and song ratings */
+.acctdlg{background:var(--panel);color:var(--fg);border:1px solid var(--line);border-radius:12px;padding:18px 20px;width:min(440px,calc(100vw - 32px));box-shadow:0 20px 60px rgba(0,0,0,.55)}
+.acctdlg::backdrop{background:rgba(5,7,12,.6)}
+.acctdlg h3{margin:0 0 10px;font:700 1.05rem var(--f-display)}
+.acctdlg p{margin:6px 0;color:var(--muted);font-size:.88rem;line-height:1.45}
+.acctdlg input,.acctdlg select{width:100%;box-sizing:border-box;background:var(--panel2);color:var(--fg);border:1px solid var(--line);border-radius:6px;padding:8px 10px;font:inherit;margin:6px 0}
+.acctdlg .row{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.acctdlg .btn{background:var(--accent);color:var(--accent-ink);border:0;border-radius:6px;padding:8px 14px;font:700 .85rem var(--f-display);cursor:pointer}
+.acctdlg .btn.ghost{background:none;color:var(--accent);border:1px solid var(--line)}
+.acctdlg .msg{color:#7dffb0}.acctdlg .err{color:#ff8a9e}
+.acctdlg .adm{margin-top:14px;border-top:1px solid var(--line);padding-top:10px}
+.acctdlg .adm li{display:flex;align-items:center;gap:8px;justify-content:space-between;padding:4px 0;font-size:.88rem}
+.acctdlg .adm ul{list-style:none;margin:4px 0;padding:0;max-height:220px;overflow:auto}
+.acctdlg .adm small{color:var(--muted)}
+.acctclose{margin-top:12px}
+.card .prate{display:flex;align-items:center;gap:8px;margin-top:6px;font-size:.78rem;color:var(--muted)}
+.card .prate b{color:var(--fg);font:700 .9rem var(--f-mono)}
+.card .prate select{background:var(--panel2);color:var(--fg);border:1px solid color-mix(in srgb,var(--tc) 55%,var(--line));border-radius:5px;padding:2px 6px;font:700 .8rem var(--f-mono);cursor:pointer}
+.card .prate .ok{color:#7dffb0}
 .dl.offpill{color:#c3cbd9;border-color:rgba(154,166,187,.55);background:rgba(154,166,187,.12);cursor:help}
 .songlist .dl,.bandtbl .dl{--tc:var(--accent);margin-left:6px;vertical-align:1px;padding:2px 7px}
 /* Ignition pill pinned to the top right of the row, beside the title, without widening the count column */
@@ -785,6 +804,7 @@ footer{color:var(--dim);font-size:.78rem}
       <div class="strings" aria-hidden="true"><i style="--sc:var(--s-red);background:var(--sc)"></i><i style="--sc:var(--s-yellow);background:var(--sc)"></i><i style="--sc:var(--s-blue);background:var(--sc)"></i><i style="--sc:var(--s-orange);background:var(--sc)"></i><i style="--sc:var(--s-green);background:var(--sc)"></i><i style="--sc:var(--s-purple);background:var(--sc)"></i></div>
     </div>
     <nav class="links">
+      <button type="button" class="forum acctbtn" id="acctbtn" hidden>👤 Log in</button>
       <button type="button" class="forum refresh" id="refreshbtn" title="Load the newest version of the site, skipping the browser's saved copy">↻ Refresh</button>
       <a class="forum" href="https://customsforge.com/forum/38-rocksmith-championship/" target="_blank" rel="noopener">Championship forum ↗</a>
       <a class="forum" href="https://docs.google.com/spreadsheets/d/1WN-m8wF0lVkQ4cLWHBa009SkqDoPk0xN-C4-llcrXXs/edit?gid=871655614#gid=871655614" target="_blank" rel="noopener">Scoreboard sheet ↗</a>
@@ -1103,6 +1123,7 @@ footer{color:var(--dim);font-size:.78rem}
   <span class="updated">Last updated: <span id="builtat" data-iso="__BUILT_ISO__">__BUILT__</span></span>
   </footer>
 </div>
+<dialog id="acct" class="acctdlg" aria-label="Your account"><div id="acctbody"></div><button type="button" class="clear acctclose" id="acctclose">Close</button></dialog>
 <div class="tip" id="tip" hidden></div>
 
 <script>
@@ -2126,7 +2147,7 @@ function sbRender(){
       const up=!raw.includes("*")&&lvLetter&&RU_KEY.has(`${sbWeek}|${base}|${p}|${lvLetter}`)?`<span class="rkup" data-tip="First week in ${TIER_NAME[lvLetter]} ${PATHS[p]} after ranking up">RANKED UP</span>`:"";
       return `<tr class="${me}${e[4]<0?" down":""}"><td>${rk}</td><td class="n"><span data-player="${esc(base)}">${esc(base)}</span>${marks}${up}${SB.aka&&SB.aka[e[0]]?`<span class="aka">as ${esc(SB.aka[e[0]])}</span>`:""}</td><td>${pct}</td><td>${fmtNum(e[2])}</td><td>${fmtNum(e[3])}</td></tr>`;
     }).join("");
-    return `<article class="card" style="--tc:${tc}"><div class="ch"><div class="lv"><span>${esc(lvl)}</span><div class="lvr">${(()=>{const id=SB.links&&SB.links[sbWeek]&&SB.links[sbWeek][p*9+slot];return songPill(song,id)})()}${diff!=null?`<span class="diff" title="Difficulty rating">${diff}</span>`:""}</div></div><div class="song">${songHtml}</div>${extra?`<div class="note">${esc(extra)}</div>`:""}${cont?`<div class="note">⏳ Continues next week · the winner is decided in its final week</div>`:""}</div>${ents.length?`<table><thead><tr><th>#</th><th>Player</th><th>%</th><th>Streak</th><th>Score</th></tr></thead><tbody>${rows}</tbody></table>`:`<div class="empty">No entries yet</div>`}</article>`;
+    return `<article class="card" style="--tc:${tc}"><div class="ch"><div class="lv"><span>${esc(lvl)}</span><div class="lvr">${(()=>{const id=SB.links&&SB.links[sbWeek]&&SB.links[sbWeek][p*9+slot];return songPill(song,id)})()}${diff!=null?`<span class="diff" title="Difficulty rating">${diff}</span>`:""}</div></div><div class="song">${songHtml}</div>${extra?`<div class="note">${esc(extra)}</div>`:""}${cont?`<div class="note">⏳ Continues next week · the winner is decided in its final week</div>`:""}${acctCard(sbWeek,p,slot,ents,sbLive)}</div>${ents.length?`<table><thead><tr><th>#</th><th>Player</th><th>%</th><th>Streak</th><th>Score</th></tr></thead><tbody>${rows}</tbody></table>`:`<div class="empty">No entries yet</div>`}</article>`;
   }).join("")||(sbLv[sbPath]?`<div class="empty">No ${LV_NAME[sbLv[sbPath]]} ${PATHS[sbPath]} challenge this week</div>`:"");
   try{localStorage.setItem("rsc-sb",JSON.stringify({w:sbWeek,p:sbPath}))}catch(e){}
 }
@@ -2793,4 +2814,87 @@ $("view-rankings").addEventListener("mouseleave",()=>tip.hidden=true);
 renderRankings();
 window.__twReady=true;
 if(curView()==="thisweek")renderThisWeek();
+
+// ---------- accounts: log in with an emailed link, claim your player profile, rate this week's songs ----------
+// Uses a Supabase project (set SUPA_URL and SUPA_KEY; both are public by design). Leave them empty to hide all of this.
+var SUPA_URL="", SUPA_KEY="";
+var ACCT={on:false,sb:null,user:null,claim:null,admin:false,claims:[],weeks:{},loading:{}};
+function acctPlayerOf(e){return SB.names[e[0]].replace(/[*~]+$/,"")}
+// the rating box on a Scoreboard card: a picker for your own rating while the week runs, the players' average once it's over
+function acctCard(w,p,slot,ents,live){
+  if(typeof ACCT==="undefined"||!ACCT||!ACCT.on)return "";
+  const V=ACCT.weeks[w]; if(!V){acctLoadWeek(w);return ""}
+  const k=p*9+slot, list=V[k]||[];
+  if(!live){if(!list.length)return "";
+    const avg=list.reduce((a,v)=>a+v.r,0)/list.length;
+    return `<div class="prate" data-tip="Average of the difficulty ratings given by players who played it">Players' rating <b>${(Math.round(avg*10)/10).toFixed(1)}</b> · ${list.length} vote${list.length===1?"":"s"}</div>`}
+  const me=ACCT.claim&&ACCT.claim.status==="approved"?ACCT.claim.player:null;
+  if(!me||!ents.some(e=>acctPlayerOf(e)===me))return "";
+  const mine=list.find(v=>v.p===me), opts=[];
+  for(let r=1;r<=10;r+=.5)opts.push(`<option value="${r}"${mine&&mine.r===r?" selected":""}>${r}</option>`);
+  return `<div class="prate">Your rating <select data-rate="${w}|${p}|${slot}" aria-label="Your difficulty rating for this song"><option value="">–</option>${opts.join("")}</select>${mine?'<span class="ok">✓ saved</span>':'<span>players\' average shows when the week ends</span>'}</div>`;
+}
+async function acctLoadWeek(w){
+  if(ACCT.loading[w]||!ACCT.sb)return; ACCT.loading[w]=true;
+  const {data,error}=await ACCT.sb.from("votes").select("player,path,slot,rating").eq("week",w);
+  ACCT.loading[w]=false; if(error)return;
+  const V={}; (data||[]).forEach(v=>(V[v.path*9+v.slot]=V[v.path*9+v.slot]||[]).push({p:v.player,r:+v.rating}));
+  ACCT.weeks[w]=V; if(sbWeek===w)sbRender();
+}
+document.addEventListener("change",async e=>{
+  const s=e.target.closest("select[data-rate]"); if(!s||!ACCT.claim)return;
+  const [w,p,slot]=s.dataset.rate.split("|").map(Number), player=ACCT.claim.player;
+  const r=s.value?+s.value:null;
+  const q=r==null?ACCT.sb.from("votes").delete().match({player,week:w,path:p,slot})
+                 :ACCT.sb.from("votes").upsert({player,week:w,path:p,slot,rating:r,user_id:ACCT.user.id,updated_at:new Date().toISOString()});
+  const {error}=await q; if(error){alert("Couldn't save your rating: "+error.message);return}
+  delete ACCT.weeks[w]; acctLoadWeek(w);
+});
+// header button and dialog
+function acctBtn(){const b=$("acctbtn"); b.hidden=!ACCT.on; b.textContent=ACCT.claim&&ACCT.claim.status==="approved"?"👤 "+ACCT.claim.player:ACCT.user?"👤 Account":"👤 Log in"}
+async function acctRefresh(){
+  const {data:{session}}=await ACCT.sb.auth.getSession(); ACCT.user=session?session.user:null;
+  const {data:cl}=await ACCT.sb.from("claims").select("user_id,player,status,created_at"); ACCT.claims=cl||[];
+  ACCT.claim=ACCT.user?ACCT.claims.find(c=>c.user_id===ACCT.user.id)||null:null;
+  ACCT.admin=false; if(ACCT.user){const {data:ad}=await ACCT.sb.from("admins").select("user_id").eq("user_id",ACCT.user.id); ACCT.admin=!!(ad&&ad.length)}
+  acctBtn(); if($("acct").open)acctDraw(); ACCT.weeks={}; sbRender();
+}
+function acctDraw(msg,err){
+  const b=$("acctbody"), note=(msg?`<p class="msg">${esc(msg)}</p>`:"")+(err?`<p class="err">${esc(err)}</p>`:"");
+  if(!ACCT.user){b.innerHTML=`<h3>Log in</h3><p>Type your email and we'll send you a login link. No password needed.</p><input id="acctemail" type="email" autocomplete="email" placeholder="you@example.com"><div class="row"><button type="button" class="btn" data-acct="send">Email me a login link</button></div>${note}`;return}
+  let h=`<h3>Your account</h3><p>Logged in as ${esc(ACCT.user.email||"")}</p>`;
+  if(!ACCT.claim){const taken=new Set(ACCT.claims.map(c=>c.player));
+    const names=PLAYERS.map(p=>p[0]).filter(n=>!taken.has(n)).sort((a,c)=>a.localeCompare(c,undefined,{sensitivity:"base"}));
+    h+=`<p>Which player are you? Pick your name to claim your profile. An admin checks each claim before you can rate songs.</p><select id="acctname"><option value="">Choose your player name…</option>${names.map(n=>`<option>${esc(n)}</option>`).join("")}</select><div class="row"><button type="button" class="btn" data-acct="claim">Claim this profile</button></div>`}
+  else if(ACCT.claim.status==="pending")h+=`<p>You've claimed <b>${esc(ACCT.claim.player)}</b>. It's waiting for an admin to approve it.</p><div class="row"><button type="button" class="btn ghost" data-acct="unclaim">Withdraw claim</button></div>`;
+  else h+=`<p>You're <b>${esc(ACCT.claim.player)}</b>. On the Scoreboard, this week's challenges you've played have a rating picker; the players' average shows once the week is over.</p>`;
+  h+=`<div class="row"><button type="button" class="btn ghost" data-acct="logout">Log out</button></div>`;
+  if(ACCT.admin){const pend=ACCT.claims.filter(c=>c.status==="pending"), appr=ACCT.claims.filter(c=>c.status==="approved").sort((a,c)=>a.player.localeCompare(c.player));
+    h+=`<div class="adm"><h3>Admin · claims</h3><p>${pend.length?"Waiting for approval:":"No claims waiting."}</p><ul>${pend.map(c=>`<li><span>${esc(c.player)} <small>${new Date(c.created_at).toLocaleDateString()}</small></span><span><button type="button" class="btn" data-acct="approve" data-uid="${c.user_id}">Approve</button> <button type="button" class="btn ghost" data-acct="reject" data-uid="${c.user_id}">Reject</button></span></li>`).join("")}</ul>${appr.length?`<p>Approved (${appr.length}):</p><ul>${appr.map(c=>`<li><span>${esc(c.player)}</span><button type="button" class="btn ghost" data-acct="reject" data-uid="${c.user_id}">Remove</button></li>`).join("")}</ul>`:""}</div>`}
+  b.innerHTML=h+note;
+}
+$("acctbody").addEventListener("click",async e=>{
+  const b=e.target.closest("[data-acct]"); if(!b)return; const a=b.dataset.acct, sb=ACCT.sb; b.disabled=true;
+  try{
+    if(a==="send"){const em=$("acctemail").value.trim(); if(!/^\S+@\S+\.\S+$/.test(em)){acctDraw("","Please type a valid email.");return}
+      const {error}=await sb.auth.signInWithOtp({email:em,options:{emailRedirectTo:location.origin+location.pathname}});
+      error?acctDraw("",error.message):acctDraw("Check your inbox for the login link. It opens this page logged in.");return}
+    if(a==="logout"){await sb.auth.signOut(); await acctRefresh(); acctDraw(); return}
+    if(a==="claim"){const n=$("acctname").value; if(!n){acctDraw("","Pick your player name first.");return}
+      const {error}=await sb.from("claims").insert({user_id:ACCT.user.id,player:n}); if(error){acctDraw("",/duplicate|unique/i.test(error.message)?"Someone already claimed that name. Message the admin if it's yours.":error.message);return}}
+    if(a==="unclaim"){const {error}=await sb.from("claims").delete().eq("user_id",ACCT.user.id); if(error){acctDraw("",error.message);return}}
+    if(a==="approve"){const {error}=await sb.from("claims").update({status:"approved"}).eq("user_id",b.dataset.uid); if(error){acctDraw("",error.message);return}}
+    if(a==="reject"){if(!confirm("Remove this claim?"))return; const {error}=await sb.from("claims").delete().eq("user_id",b.dataset.uid); if(error){acctDraw("",error.message);return}}
+    await acctRefresh(); acctDraw();
+  }finally{b.disabled=false}
+});
+$("acctbtn").addEventListener("click",()=>{acctDraw();$("acct").showModal()});
+$("acctclose").addEventListener("click",()=>$("acct").close());
+$("acct").addEventListener("click",e=>{if(e.target===$("acct"))$("acct").close()});
+if(SUPA_URL&&SUPA_KEY){
+  const s=document.createElement("script"); s.src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js";
+  s.onload=()=>{ACCT.sb=window.supabase.createClient(SUPA_URL,SUPA_KEY); ACCT.on=true; acctBtn(); acctRefresh();
+    ACCT.sb.auth.onAuthStateChange((ev)=>{if(ev==="SIGNED_IN"||ev==="SIGNED_OUT")acctRefresh()})};
+  document.head.appendChild(s);
+}
 </script>
