@@ -1414,6 +1414,21 @@ function gemSvg(col,label){
 // class gem: highest class the player has reached on any path (player list or rank history)
 // class gems: one for every class up to the highest the player has reached on any path (player list or rank history).
 // Reaching Advanced also gives the Beginner and Intermediate gems. Each is dated by the first rank-up into that class.
+// class gems are celestial emerald-cut stones (like the God diamonds): a rectangular step cut, starlit and twinkling
+const CG_TINT={B:"#fff2b8",I:"#c8ffd9",A:"#cfe6ff",M:"#ead9ff"}, CG_DEEP={B:"#f2b92c",I:"#2fc46c",A:"#3f8cff",M:"#9a5cff"};
+let cgN=0; // unique gradient ids, so a gem never borrows a gradient from a hidden copy
+function classGemSvg(tc){const g="cg"+tc+(cgN++), tint=CG_TINT[tc], deep=CG_DEEP[tc];
+  return `<svg viewBox="0 0 30 30" aria-hidden="true"><defs><linearGradient id="${g}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff"/><stop offset=".3" stop-color="${tint}"/><stop offset=".72" stop-color="${deep}"/><stop offset="1" stop-color="#7a4dff"/></linearGradient></defs>`
+   +`<polygon points="9,2 21,2 25,6 25,24 21,28 9,28 5,24 5,6" fill="url(#${g})"/>`
+   +`<polygon points="9,2 21,2 18.5,7.5 11.5,7.5" fill="rgba(255,255,255,.55)"/>`
+   +`<polygon points="5,6 9,2 11.5,7.5 10,9" fill="rgba(255,255,255,.4)"/><polygon points="25,6 21,2 18.5,7.5 20,9" fill="rgba(255,255,255,.22)"/>`
+   +`<polygon points="5,6 10,9 10,21 5,24" fill="rgba(255,255,255,.22)"/><polygon points="25,6 20,9 20,21 25,24" fill="rgba(60,0,120,.22)"/>`
+   +`<polygon points="5,24 10,21 11.5,22.5 9,28" fill="rgba(60,0,120,.15)"/><polygon points="25,24 20,21 18.5,22.5 21,28" fill="rgba(60,0,120,.3)"/>`
+   +`<polygon points="9,28 11.5,22.5 18.5,22.5 21,28" fill="rgba(60,0,120,.25)"/>`
+   +`<polygon points="11.5,7.5 18.5,7.5 20,9 20,21 18.5,22.5 11.5,22.5 10,21 10,9" fill="rgba(255,255,255,.18)" stroke="rgba(255,255,255,.55)" stroke-width=".5"/>`
+   +`<path d="M12 10.5h6M12 19.5h6" stroke="rgba(255,255,255,.35)" stroke-width=".5"/>`
+   +`<polygon points="9,2 21,2 25,6 25,24 21,28 9,28 5,24 5,6" fill="none" stroke="rgba(255,255,255,.85)" stroke-width=".7"/>`
+   +`<path class="spk" d="M25 .5l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8z" fill="#fff"/><path class="spk s2" d="M4 17l.6 1.4 1.4.6-1.4.6-.6 1.4-.6-1.4-1.4-.6 1.4-.6z" fill="#fff"/></svg>`}
 function classGem(p){
   const n=p[0], ord="BIAM", seen={};
   (p[8]||"").toUpperCase().split("").forEach((t,i)=>{if(ord.includes(t)){(seen[t]=seen[t]||new Set()).add(PATHS[i])}});
@@ -1427,7 +1442,7 @@ function classGem(p){
   return cls.map(tc=>{
     const col=TIER_C[tc], name=TIER_NAME[tc], recW=dated[tc]??null;
     const top=tc;
-    return `<span class="medal-m wm classgem" style="--gc:${col}" data-tip="${name} gem · reached ${name}${tc==="M"?"":" class"} in any path${recW?` (collected Week ${recW})`:""}"><svg viewBox="0 0 30 30" aria-hidden="true"><polygon points="8,3 22,3 29,11 15,28 1,11" fill="${col}"/><polygon points="8,3 22,3 19,11 11,11" fill="rgba(255,255,255,.5)"/><polygon points="1,11 11,11 15,28" fill="rgba(0,0,0,.15)"/><polygon points="29,11 19,11 15,28" fill="rgba(0,0,0,.28)"/><polygon points="11,11 19,11 15,28" fill="rgba(255,255,255,.12)"/><polygon points="8,3 22,3 29,11 15,28 1,11" fill="none" stroke="rgba(0,0,0,.35)" stroke-width=".8"/></svg><b>${top}</b></span>`;
+    return `<span class="medal-m wm classgem diamond" style="--gc:${col};--ec:${CG_DEEP[tc]}" data-tip="${name} gem · reached ${name}${tc==="M"?"":" class"} in any path${recW?` (collected Week ${recW})`:""}">${classGemSvg(tc)}<b>${top}</b></span>`;
   }).join("");
 }
 function medalsFor(p,bitsOv){
