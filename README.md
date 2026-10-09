@@ -81,7 +81,7 @@ The whole app is one self-contained `index.html`. It has no build step, no serve
 - **Most replayed songs**.
 
 ### 📋 Scoreboard
-- A **Download** pill on each card links to the song on Ignition4 (CustomsForge), taken from the song title's link on the scoreboard sheet.
+- An **Ignition** pill (with a download arrow) on each card links to the song on Ignition4 (CustomsForge), taken from the song title's link on the scoreboard sheet.
 - Lead, Rhythm and Bass boxes pick the path; click the selected path again to cycle its level (All → Beginner → Intermediate → Advanced → Masterclass → God → All). Bonus songs show with their level.
 - Every challenge card for weeks 440 onward, by path and level.
 - Medals go only to eligible players. Players playing down are faded, renamed players show as *"as OldName"*, and rank-ups are tagged.
