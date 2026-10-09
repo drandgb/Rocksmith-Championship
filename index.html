@@ -1120,7 +1120,7 @@ footer{color:var(--dim);font-size:.78rem}
   <footer>Data: Rodman’s Rocksmith 2014 Championship Google Sheets (older attendance also from the Championship Metrics workbook). Player stats run through week 675; scoreboards cover weeks 440–676. Weeks 1–16 have no recorded host in the source.
   <span class="updated disclaimer">Unofficial fan project. Not affiliated with Ubisoft or Rocksmith.</span>
   <span class="updated" id="sheetedit-row" hidden>Sheet last edited: <span id="sheetedit" data-iso="2026-10-09T18:08:57.146Z"></span></span>
-  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-09T23:30:20+00:00">October 9, 2026</span></span>
+  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-09T23:47:35+00:00">October 9, 2026</span></span>
   </footer>
 </div>
 <dialog id="acct" class="acctdlg" aria-label="Your account"><div id="acctbody"></div><button type="button" class="clear acctclose" id="acctclose">Close</button></dialog>
@@ -2891,7 +2891,8 @@ $("acctbody").addEventListener("click",async e=>{
 $("acctbtn").addEventListener("click",()=>{acctDraw();$("acct").showModal()});
 $("acctclose").addEventListener("click",()=>$("acct").close());
 $("acct").addEventListener("click",e=>{if(e.target===$("acct"))$("acct").close()});
-if(SUPA_URL&&SUPA_KEY){
+// only on the real site (copies of the page elsewhere, like a preview, can't reach the login server)
+if(SUPA_URL&&SUPA_KEY&&/(^|\.)github\.io$|^localhost$|^127\.0\.0\.1$/.test(location.hostname)){
   const s=document.createElement("script"); s.src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.min.js";
   s.onload=()=>{ACCT.sb=window.supabase.createClient(SUPA_URL,SUPA_KEY); ACCT.on=true; acctBtn(); acctRefresh();
     ACCT.sb.auth.onAuthStateChange((ev)=>{if(ev==="SIGNED_IN"||ev==="SIGNED_OUT")acctRefresh()})};
