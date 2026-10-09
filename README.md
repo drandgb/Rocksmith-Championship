@@ -51,6 +51,7 @@ The whole app is one self-contained `index.html`. It has no build step, no serve
 - Longest careers, highest play rates, and players new in the past year.
 - **Player lookup**:
   - **Stats:** weeks played, first and latest week, active and best streak, play rate.
+  - **Highest score** and **highest note streak** on any scoreboard challenge, with the song and week; click either to open it on the Scoreboard.
   - **Medals:** perfect-attendance gem, class gems (one for every class up to the highest reached, so Advanced also gives Beginner and Intermediate; dated by the first rank-up into that class when there is a record; gems are always collected in order, so a date later than a higher class's date is left off as a missing record), lunar-year medallions (zodiac animal, colored by element) and ⚡ play-streak bolts (2, 3, 4, 5, 10 … 50 weeks in a row) and yearly streak bolts (with that year's zodiac animal).
   - **Year filter:** click a year label to see that year's stats only.
 

@@ -256,6 +256,7 @@ button.clear:hover{border-color:var(--accent)}
 .tier{display:flex;flex-direction:column;align-items:center;min-width:0;padding:6px 8px;border-radius:8px;background:var(--panel2);border:1px solid var(--line)}
 .tier small{font-size:.66rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
 .tier b{font:800 1.2rem var(--f-display);color:var(--tc)}
+.stats .pbx .sub{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:.78rem}
 .stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:8px;overflow:hidden}
 .stats div{background:var(--panel2);padding:8px 10px}
 .stats small{display:block;font-size:.68rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
@@ -1513,6 +1514,16 @@ function showPlayer(name){
     D.bestR=b; D.longest=b?b[1]-b[0]+1:0;
   }
   const dfw=D.first?WEEKS[D.first-1]:null, dlw=D.latest?WEEKS[D.latest-1]:null;
+  // highest score and highest note streak on any scoreboard card (weeks 440 on), within the chosen year if one is picked
+  const PB=(()=>{let sc=null,st=null;
+    Object.keys(SB.weeks).forEach(wk=>{const w=+wk, d=WEEKS[w-1]; if(pYear&&!(d&&String(d[1]).startsWith(pYear)))return;
+      SB.weeks[w].forEach(card=>{if(card[7])return; card[6].forEach(e=>{if(SB.names[e[0]].replace(/[*~]+$/,"")!==n)return;
+        if(e[3]!=null&&(!sc||e[3]>sc.v))sc={v:e[3],w,c:card};
+        if(e[2]!=null&&(!st||e[2]>st.v))st={v:e[2],w,c:card};})})});
+    return {sc,st}})();
+  const pbBox=(lab,r,what)=>{if(!r)return `<div><small>${lab}</small><b>–</b></div>`;
+    const song=r.c[3]&&r.c[3]!=="n/a"?r.c[3].replace(/^.*? - /,""):"";
+    return `<div class="pbx" data-pbest="${r.w}|${r.c[0]}" style="cursor:pointer" data-tip="${what} · ${esc(r.c[3]||"")} · ${PATHS[r.c[0]]} ${esc(r.c[2])} · Week ${r.w} · click to open it on the Scoreboard"><small>${lab}</small><b>${r.v.toLocaleString("en-US")}</b><span class="sub">Wk ${r.w} · ${esc(song)}</span></div>`};
   $("pcard").innerHTML=`<div class="pc">
     <div>
       <h3>${esc(n)} ${actPill(n)}</h3>
@@ -1525,6 +1536,7 @@ function showPlayer(name){
         <div${D.bestR?` data-hl="${span(D.bestR)}" data-tip="(Week ${D.bestR[0]}${D.bestR[1]>D.bestR[0]?`–${D.bestR[1]}`:""})"`:""}><small>Best streak</small><b>${D.longest} wk${D.longest===1?"":"s"}</b></div>
         <div${D.first?` data-hl="${D.first}" data-tip="Click to highlight Week ${D.first}"`:""}><small>First week</small><b>${D.first??"–"}</b>${dfw?`<span class="sub"> · ${fmt(dfw[1])}</span>`:""}</div>
         <div${D.latest?` data-hl="${D.latest}" data-tip="Click to highlight Week ${D.latest}"`:""}><small>Latest week</small><b>${D.latest??"–"}</b>${dlw?`<span class="sub"> · ${fmt(dlw[1])}</span>`:""}</div>
+        ${PB.sc||PB.st?pbBox("Highest score",PB.sc,"Highest score on a challenge")+pbBox("Highest note streak",PB.st,"Longest note streak on a challenge"):""}
       </div>
       ${(()=>{const u=WR.ups.filter(x=>x[0]===n).sort((a,b)=>a[4]-b[4]);return u.length?`<div class="ups">Rank changes: ${u.map(([,p,a,b,w])=>`<span class="pill hol rkpath" data-hl="${w}" data-tip="Click to highlight Week ${w}" style="cursor:pointer;--pc:${PATH_C[p]}">${PATHS[p]} ${a}${"BIAM".indexOf(b)<"BIAM".indexOf(a)?"↘":"↗"}${b} · wk ${w}</span>`).join("")}</div>`:""})()}
       ${WR.wins[n]||hosts[n]?`<div class="golinks">${WR.wins[n]?`<button type="button" class="clear" data-wprofile="${esc(n)}">Open win profile ›</button>`:""}${hosts[n]?`<button type="button" class="clear" data-gohost="${esc(n)}">Open host profile ›</button>`:""}</div>`:""}
@@ -1542,6 +1554,9 @@ $("pcard").addEventListener("click",e=>{
   if(yb){pYear=pYear===yb.dataset.pyear?null:yb.dataset.pyear;showPlayer($("pq").value.trim());return}
   const wb=e.target.closest("[data-wprofile]");
   if(wb){const n=wb.dataset.wprofile;wPicked=true;showView("winners");showWinner(n);markHot();$("wcard").closest("section").scrollIntoView({block:"start"});return}
+  const pb=e.target.closest("[data-pbest]");
+  if(pb){const [w,pp]=pb.dataset.pbest.split("|").map(Number); sbWeek=w; sbPath=pp; sbLv[pp]=""; sbFind=$("pq").value.trim(); tip.hidden=true;
+    showView("scores"); sbRender(); scrollTo({top:0,behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth"}); return}
   const h=e.target.closest("[data-hl]");
   if(h){
     const g=$("ppres"), was=h.classList.contains("act");
