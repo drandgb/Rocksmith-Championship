@@ -312,7 +312,12 @@ a.dl:hover{background:color-mix(in srgb,var(--tc) 24%,transparent)}
 a.dl:focus-visible{outline:2px solid var(--fg);outline-offset:1px}
 a.dl svg{width:11px;height:11px}
 .songlist a.dl,.bandtbl a.dl{--tc:var(--accent);margin-left:6px;vertical-align:1px;padding:2px 7px}
-.songlist .chips a.dl{margin-left:2px;align-self:center}
+/* Ignition pill pinned to the top right of the row, beside the title, without widening the count column */
+.songlist li{position:relative}
+.songlist .cnt a.dl{position:absolute;top:7px;right:0;margin:0}
+.songlist li:has(.cnt a.dl) .cnt{padding-top:26px}
+.songlist li:has(.cnt a.dl) > div > b.songlink{display:block;padding-right:24px}
+@media (max-width:640px){.songlist li:has(.cnt a.dl) > div > b.songlink{padding-right:46px}.songlist .cnt a.dl{font-size:.6rem;padding:2px 6px}}
 .bandtbl a.dl{display:flex;width:max-content;margin:4px 0 0}
 .card table{width:100%;border-collapse:collapse;font-size:.85rem}
 .card th{font-weight:500;color:var(--dim);font-size:.68rem;letter-spacing:.08em;text-transform:uppercase;text-align:right;padding:6px 10px 4px 0;border-bottom:1px solid var(--line)}
@@ -1093,7 +1098,7 @@ footer{color:var(--dim);font-size:.78rem}
   <footer>Data: Rodman’s Rocksmith 2014 Championship Google Sheets (older attendance also from the Championship Metrics workbook). Player stats run through week 675; scoreboards cover weeks 440–676. Weeks 1–16 have no recorded host in the source.
   <span class="updated disclaimer">Unofficial fan project. Not affiliated with Ubisoft or Rocksmith.</span>
   <span class="updated" id="sheetedit-row" hidden>Sheet last edited: <span id="sheetedit" data-iso="2026-10-09T18:08:57.146Z"></span></span>
-  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-09T18:29:21+00:00">October 9, 2026</span></span>
+  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-09T18:36:49+00:00">October 9, 2026</span></span>
   </footer>
 </div>
 <div class="tip" id="tip" hidden></div>
@@ -2217,14 +2222,14 @@ function renderSongs(){
     // players grouped by the week they played it, latest week first
     const byWk={}; v.forEach(c=>(c.who||[]).forEach(n=>{const m=(byWk[c.w]=byWk[c.w]||{});(m[n]=m[n]||new Set()).add(c.p)}));
     const tipTxt=`${ti} — ${Object.keys(who).length} players\n`+Object.keys(byWk).map(Number).sort((a,b)=>b-a).map(w=>`\nWeek ${w}\n`+Object.entries(byWk[w]).sort((a,b)=>b[1].size-a[1].size||a[0].localeCompare(b[0])).map(([n,ps])=>`• ${n} · ${[...ps].sort().map(p=>PATHS[p]).join(", ")}`).join("\n")).join("\n");
-    return `<li data-tip="${esc(tipTxt)}"><div><b class="songlink" data-band="${esc(a)}" data-song="${esc(ti)}">${esc(ti)}</b><small><span data-band="${esc(a)}" class="bandlink">${esc(a)}</span> · ${v.length} challenge${v.length===1?"":"s"}</small><div class="chips">${tiers.map(t=>lvPill(t,"lvp",lvlPlayed)).join("")}${(()=>{const id=IG_LATEST(sg);return id?igPill(id):""})()}</div></div><span class="cnt"><b>${n}</b>players attempted</span></li>`}).join("");
+    return `<li data-tip="${esc(tipTxt)}"><div><b class="songlink" data-band="${esc(a)}" data-song="${esc(ti)}">${esc(ti)}</b><small><span data-band="${esc(a)}" class="bandlink">${esc(a)}</span> · ${v.length} challenge${v.length===1?"":"s"}</small><div class="chips">${tiers.map(t=>lvPill(t,"lvp",lvlPlayed)).join("")}</div></div><span class="cnt">${(()=>{const id=IG_LATEST(sg);return id?igPill(id):""})()}<b>${n}</b>players attempted</span></li>`}).join("");
   // a multi-week God challenge (same song in back-to-back weeks as a God challenge) counts as one play
   const plays=(ws,v)=>{let n=0,prev=null;const god=w=>v.some(c=>c.w===w&&c.card==="G");ws.forEach(w=>{if(!(prev!=null&&w===prev+1&&god(w)&&god(prev)))n++;prev=w});return n};
   const replay=byLvl(lvlReplay).map(([sg,v])=>{const ws=[...new Set(v.map(c=>c.w))].sort((a,b)=>a-b);return [sg,ws,v,plays(ws,v)]}).filter(x=>x[3]>1).sort((a,b)=>b[3]-a[3]||b[1][b[1].length-1]-a[1][a[1].length-1]).slice(0,20);
   $("replaylist").innerHTML=replay.map(([sg,ws,v,np])=>{const [a,ti]=splitSong(sg);
     const lines=ws.slice().reverse().map(w=>{const cs=v.filter(c=>c.w===w);return `Week ${w} · `+cs.map(c=>`${PATHS[c.p]} ${TIER_LABEL[c.t]}${c.diff!=null?" ("+c.diff+")":""}`).join(", ")});
     const tipTxt=`${ti} — played ${np} times over ${ws.length} weeks\n`+lines.join("\n");
-    return `<li data-tip="${esc(tipTxt)}"><div><b class="songlink" data-band="${esc(a)}" data-song="${esc(ti)}">${esc(ti)}</b><small><span data-band="${esc(a)}" class="bandlink">${esc(a)}</span> · first wk ${ws[0]} · latest wk ${ws[ws.length-1]}</small><div class="chips">${[...new Set(v.map(c=>c.t))].sort((x,y)=>TIER_ORDER.indexOf(x)-TIER_ORDER.indexOf(y)).map(t=>lvPill(t,"lvr",lvlReplay)).join("")}${(()=>{const id=IG_LATEST(sg);return id?igPill(id):""})()}</div></div><span class="cnt"><b>${np}</b>times played</span></li>`}).join("")||`<li class="empty">No songs have been used in more than one week.</li>`;
+    return `<li data-tip="${esc(tipTxt)}"><div><b class="songlink" data-band="${esc(a)}" data-song="${esc(ti)}">${esc(ti)}</b><small><span data-band="${esc(a)}" class="bandlink">${esc(a)}</span> · first wk ${ws[0]} · latest wk ${ws[ws.length-1]}</small><div class="chips">${[...new Set(v.map(c=>c.t))].sort((x,y)=>TIER_ORDER.indexOf(x)-TIER_ORDER.indexOf(y)).map(t=>lvPill(t,"lvr",lvlReplay)).join("")}</div></div><span class="cnt">${(()=>{const id=IG_LATEST(sg);return id?igPill(id):""})()}<b>${np}</b>times played</span></li>`}).join("")||`<li class="empty">No songs have been used in more than one week.</li>`;
   $("bqlist").innerHTML=Object.entries(bands).sort((a,b)=>b[1].length-a[1].length).map(([a])=>`<option value="${esc(a)}"></option>`).join("");
   if(featured.length)showBand(bandName&&bands[bandName]?bandName:featured[0][0]); else $("bcard").innerHTML=`<div class="empty">No songs on record for ${esc(sHost||"this filter")}.</div>`;
   try{localStorage.setItem("rsc-spath",String(sPath))}catch(e){}
