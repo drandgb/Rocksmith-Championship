@@ -1088,7 +1088,7 @@ footer{color:var(--dim);font-size:.78rem}
   <footer>Data: Rodman’s Rocksmith 2014 Championship Google Sheets (older attendance also from the Championship Metrics workbook). Player stats run through week 675; scoreboards cover weeks 440–676. Weeks 1–16 have no recorded host in the source.
   <span class="updated disclaimer">Unofficial fan project. Not affiliated with Ubisoft or Rocksmith.</span>
   <span class="updated" id="sheetedit-row" hidden>Sheet last edited: <span id="sheetedit" data-iso="2026-10-09T15:12:03.389Z"></span></span>
-  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-09T17:13:17+00:00">October 9, 2026</span></span>
+  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-09T17:20:56+00:00">October 9, 2026</span></span>
   </footer>
 </div>
 <div class="tip" id="tip" hidden></div>
@@ -2671,8 +2671,8 @@ function renderThisWeek(){
       // a mutual pair is listed from the alphabetically first player's side
       const lc=s=>s.toLowerCase(); pairs.push(mutual&&lc(r.them)<lc(r.me)?{...o,mutual}:{...r,mutual});
     });
-    // pairs in alphabetical order of the first name shown in each box
-    pairs.sort((a,b)=>a.me.localeCompare(b.me,undefined,{sensitivity:"base"})||a.them.localeCompare(b.them,undefined,{sensitivity:"base"}));
+    // grouped by level (Beginner first ... Masterclass), then alphabetical by the first name shown in each box
+    pairs.sort((a,b)=>lvl(a)-lvl(b)||a.me.localeCompare(b.me,undefined,{sensitivity:"base"})||a.them.localeCompare(b.them,undefined,{sensitivity:"base"}));
     const f=twRivLv[pi]; return f?pairs.filter(r=>(tierOf(r.best.c[2])||"M")===f):pairs};
   // header stats
   const hol=W&&W[3]?W[3].split(/,\s*/).map(h=>`<span class="pill hol">${holEmoji(h)}${esc(h)}</span>`).join(""):"";
