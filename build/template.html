@@ -2671,8 +2671,8 @@ function renderThisWeek(){
       // a mutual pair is listed from the alphabetically first player's side
       const lc=s=>s.toLowerCase(); pairs.push(mutual&&lc(r.them)<lc(r.me)?{...o,mutual}:{...r,mutual});
     });
-    // within each level (Beginner first ... Masterclass), pairs in alphabetical order of the first name
-    pairs.sort((a,b)=>lvl(a)-lvl(b)||a.me.localeCompare(b.me,undefined,{sensitivity:"base"})||a.them.localeCompare(b.them,undefined,{sensitivity:"base"}));
+    // pairs in alphabetical order of the first name shown in each box
+    pairs.sort((a,b)=>a.me.localeCompare(b.me,undefined,{sensitivity:"base"})||a.them.localeCompare(b.them,undefined,{sensitivity:"base"}));
     const f=twRivLv[pi]; return f?pairs.filter(r=>(tierOf(r.best.c[2])||"M")===f):pairs};
   // header stats
   const hol=W&&W[3]?W[3].split(/,\s*/).map(h=>`<span class="pill hol">${holEmoji(h)}${esc(h)}</span>`).join(""):"";
