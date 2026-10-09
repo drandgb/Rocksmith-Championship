@@ -1765,7 +1765,17 @@ function rivalryWins(name,done,path=-1){
   return out;
 }
 function swordsSvg(col){return `<svg viewBox="0 0 28 30" aria-hidden="true"><circle cx="14" cy="15" r="12" fill="${col}"/><path d="M6 11a9 9 0 0 1 5-5.5" stroke="rgba(255,255,255,.55)" stroke-width="1.6" fill="none" stroke-linecap="round"/><g stroke="#1a1406" stroke-opacity=".55" stroke-width=".7"><path d="M20.6 6.2h2.6v2.6l-9.6 9.6-2.6-2.6z" fill="#f4f7fb"/><path d="M7.4 6.2H4.8v2.6l9.6 9.6 2.6-2.6z" fill="#e2e8f0"/></g><path d="M9.4 18.4l2.4 2.4M18.6 18.4l-2.4 2.4" stroke="#d9a441" stroke-width="2.2" stroke-linecap="round"/><path d="M10 20.4l-2.8 2.8M18 20.4l2.8 2.8" stroke="#8a5a2b" stroke-width="2.2" stroke-linecap="round"/></svg>`}
-function winMedals(per,done,bestN,streak,total,trip,ties,pod,rivw){
+// 100% mastery: every time the player scored 100% on a challenge, whatever their place or class (God challenges count once, in their final week)
+function masteryWeeks(name,done,path=-1){
+  const out=[];
+  done.forEach(w=>(SB.weeks[w]||[]).forEach(card=>{
+    if(path>=0&&card[0]!==path)return; if(card[7])return;
+    card[6].forEach(e=>{if(e[1]!=null&&e[1]>=100&&SB.names[e[0]].replace(/[*~]+$/,"")===name)out.push(w)});
+  }));
+  return out.sort((a,b)=>a-b);
+}
+function masterySvg(col){return `<svg viewBox="0 0 28 30" aria-hidden="true"><circle cx="14" cy="15" r="12" fill="${col}"/><circle cx="14" cy="15" r="9.4" fill="none" stroke="rgba(255,255,255,.55)" stroke-width="1.2"/><path d="M6.5 11a8.5 8.5 0 0 1 4.5-4.8" stroke="rgba(255,255,255,.7)" stroke-width="1.6" fill="none" stroke-linecap="round"/><text x="14" y="17.6" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-weight="900" font-size="9.5" fill="#fff" stroke="rgba(90,0,20,.55)" stroke-width=".5" letter-spacing="-.3">100</text><path d="M14 3.4l.9 1.9 2 .3-1.5 1.4.4 2-1.8-1-1.8 1 .4-2-1.5-1.4 2-.3z" fill="#ffe066"/></svg>`}
+function winMedals(per,done,bestN,streak,total,trip,ties,pod,rivw,mast){
   const rows=[], asc=done.slice().sort((a,b)=>a-b), rec=w=>w?` (collected Week ${w})`:"";
   const mk=(svg,num,tip)=>{const c=(svg.match(/fill="(#[0-9a-fA-F]{6})"/)||[])[1]||"#4fd6ff";return `<span class="medal-m wm" style="--ec:${c}" data-tip="${tip}">${svg}<b>${num}</b></span>`};
   const firstK=k=>asc.find(w=>per[w][1]>=k);
@@ -1778,6 +1788,7 @@ function winMedals(per,done,bestN,streak,total,trip,ties,pod,rivw){
   if(trip&&trip.reg.length)tc.push(`<span class="medal-m wm" style="--ec:#ffc94f;cursor:pointer" data-hl="${trip.reg.join(",")}" data-tip="Triple crown · won a challenge on Lead, Rhythm and Bass in the same week · ${trip.reg.length} time${trip.reg.length===1?"":"s"} · click to highlight">${crownSvg("#ffc94f")}<b>${trip.reg.length}</b></span>`);
   if(ties&&ties.length)tc.push(`<span class="medal-m wm" style="--ec:#ff7eb6;cursor:pointer" data-all="${ties.join(",")}" data-hl="${[...new Set(ties)].sort((a,b)=>a-b).join(",")}" data-tip="Close win medal · won on the tiebreak with the same % as the runner-up · ${ties.length} time${ties.length===1?"":"s"} · click to highlight">${tieSvg("#ff7eb6")}<b>${ties.length}</b></span>`);
   if(rivw&&rivw.length)tc.push(`<span class="medal-m wm" style="--ec:#ff6b6b;cursor:pointer" data-all="${rivw.join(",")}" data-hl="${[...new Set(rivw)].sort((a,b)=>a-b).join(",")}" data-tip="Rivalry win · beat their closest rival of the week (same rank, ranked challenges) · ${rivw.length} time${rivw.length===1?"":"s"} · click to highlight">${swordsSvg("#ff6b6b")}<b>${rivw.length}</b></span>`);
+  if(mast&&mast.length)tc.push(`<span class="medal-m wm" style="--ec:#ff4d6d;cursor:pointer" data-all="${mast.join(",")}" data-hl="${[...new Set(mast)].join(",")}" data-tip="100% mastery · scored 100% on a challenge, whatever the place or class · ${mast.length} time${mast.length===1?"":"s"} · click to highlight">${masterySvg("#e8335a")}<b>${mast.length}</b></span>`);
   if(P.reg.length||P.god.length||tc.length)rows.push([...P.reg,...P.god,...tc]);
   // best-week trophies: one per number of wins in a week; the count is how many weeks had exactly that many wins
   if(bestN>0){const r=[];for(let k=1;k<=bestN;k++){const ws=asc.filter(w=>per[w][1]===k); if(!ws.length)continue;
@@ -1848,7 +1859,7 @@ function showWinner(name){
       <div class="golinks"><button type="button" class="clear" data-profile="${esc(name)}">Open player profile ›</button>${hosts[name]?`<button type="button" class="clear" data-gohost="${esc(name)}">Open host profile ›</button>`:""}</div>
     </div>
     <div style="min-width:0">
-      ${winMedals(per,doneAll,A.best?per[A.best][1]:0,A.bestRun,v?v[1]:0,A.trip,A.ties,podiumCounts(name,doneAll,wPath),rivalryWins(name,doneAll,wPath))}
+      ${winMedals(per,doneAll,A.best?per[A.best][1]:0,A.bestRun,v?v[1]:0,A.trip,A.ties,podiumCounts(name,doneAll,wPath),rivalryWins(name,doneAll,wPath),masteryWeeks(name,doneAll,wPath))}
       <div class="scroll"><div class="pres wpres${wYear?" yf":""}" id="wpres">${grid}</div></div>
       <div class="pres-legend wleg">${[["var(--wg1)","1 win",w=>per[w][1]===1],["var(--wg2)","2 wins",w=>per[w][1]===2],["var(--wg3)","3+ wins",w=>per[w][1]>=3],["#3a4254","Played, no win",w=>per[w][0]&&!per[w][1]],["repeating-linear-gradient(45deg,var(--lost) 0 2px,var(--panel2) 2px 4px)","Didn't play",w=>!per[w][0]]].map(([bg,lab,f])=>{const ws=doneAll.filter(f);return `<span${ws.length?` data-hl="${ws.join(",")}" title="Click to highlight these ${ws.length} week${ws.length===1?"":"s"}"`:""}><i class="sw" style="background:${bg}"></i>${lab}</span>`}).join("")}<span><i class="sw" style="background:repeating-linear-gradient(-45deg,color-mix(in srgb,var(--s-blue) 80%,transparent) 0 2px,var(--panel2) 2px 4px)"></i>This week</span></div>
     </div></div>`;
@@ -2207,12 +2218,12 @@ function allMedalsHtml(name){
   let html="";
   const p=byName[name];
   if(p){const m=medalsFor(p); if(m)html+=`<div class="ms">Player medals</div>${m}`}
-  if(WR.wins[name]){
+  if(WR.wins[name]||masteryWeeks(name,SB_W.filter(w=>w!==cur[0])).length){
     const per=playerWeekWins(name,-1), done=SB_W.filter(w=>w!==cur[0]);
     let best=null; done.forEach(w=>{if(per[w][1]>0&&(!best||per[w][1]>per[best][1]))best=w});
     let run=0,bestRun=0; done.slice().sort((a,b)=>a-b).forEach(w=>{run=per[w][1]>0?run+1:0; if(run>bestRun)bestRun=run});
     const ties=[]; done.forEach(w=>(SB.weeks[w]||[]).forEach(card=>{if(card[7])return;const el=card[6].filter(x=>x[4]>=0); if(el.length<2)return; if(SB.names[el[0][0]].replace(/[*~]+$/,"")!==name)return; if(Math.round((el[0][1]-el[1][1])*100)===0)ties.push(w)}));
-    const v=wv(name,-1), m=winMedals(per,done,best?per[best][1]:0,bestRun,v?v[1]:0,tripleWeeks(name,done),ties,podiumCounts(name,done),rivalryWins(name,done));
+    const v=wv(name,-1), m=winMedals(per,done,best?per[best][1]:0,bestRun,v?v[1]:0,tripleWeeks(name,done),ties,podiumCounts(name,done),rivalryWins(name,done),masteryWeeks(name,done));
     if(m)html+=`<div class="ms">Win medals</div>${m}`;
   }
   return medalCache[name]=html;
@@ -2521,7 +2532,7 @@ function twMedals(n,w,live){
     grab(medalsFor([n,first,w,played,played/(w-first+1),twStreakTo(n,w),best,"",p?p[8]:""],p?bits:"0".repeat(w-PRES_START)+"1"),"player");
   } else {
     if(p&&p[2]>=w)grab(medalsFor(p),"player");
-    if(WR.wins[n]&&twPlayed(n,w)){box.innerHTML=allMedalsHtml(n); const ms=[...box.children]; let sec=""; const win=[]; ms.forEach(el=>{if(el.classList.contains("ms"))sec=el.textContent;else if(/Win/.test(sec))win.push(el.outerHTML)}); grab(win.join(""),"win")}
+    if(twPlayed(n,w)&&/Win medals/.test(allMedalsHtml(n))){box.innerHTML=allMedalsHtml(n); const ms=[...box.children]; let sec=""; const win=[]; ms.forEach(el=>{if(el.classList.contains("ms"))sec=el.textContent;else if(/Win/.test(sec))win.push(el.outerHTML)}); grab(win.join(""),"win")}
   }
   if(hosts[n])grab(hostMedals(n),"host");
   return twMedalCache[k]=out;
