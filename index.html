@@ -367,6 +367,7 @@ a.dl svg,.offpill svg{width:11px;height:11px}
 .alist .asong{flex:1 1 10em;min-width:0;cursor:pointer;font-weight:600}
 .alist .asong:hover{text-decoration:underline}
 .alist li.unpl{opacity:.5}
+.alist .srate{margin-left:0;flex:none}
 .alist li.unpl:hover{opacity:.85}
 .alist .dl{flex:none}
 .alist .aplace,.alist .arank{font:700 .9rem var(--f-display);margin-left:auto;white-space:nowrap}
@@ -1204,7 +1205,7 @@ footer{color:var(--dim);font-size:.78rem}
   <footer>Data: Rodman’s Rocksmith 2014 Championship Google Sheets (older attendance also from the Championship Metrics workbook). Player stats run through week 675; scoreboards cover weeks 440–676. Weeks 1–16 have no recorded host in the source.
   <span class="updated disclaimer">Unofficial fan project. Not affiliated with Ubisoft or Rocksmith.</span>
   <span class="updated" id="sheetedit-row" hidden>Sheet last edited: <span id="sheetedit" data-iso="2026-10-09T18:08:57.146Z"></span></span>
-  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-10T08:30:51+00:00">October 10, 2026</span></span>
+  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-10T08:48:40+00:00">October 10, 2026</span></span>
   </footer>
 </div>
 <dialog id="acct" class="acctdlg" aria-label="Your profile"><div id="acctbody"></div><button type="button" class="clear acctclose" id="acctclose">Close</button></dialog>
@@ -3023,7 +3024,8 @@ async function acctLoadWeek(){
     if(!best[id]||String(v.updated_at)>String(best[id].t))best[id]={k,p:v.player,r:+v.rating,t:v.updated_at};
   });
   const S={}; Object.values(best).forEach(x=>(S[x.k]=S[x.k]||[]).push({p:x.p,r:x.r}));
-  ACCT.songs=S; ACCT.mine=mine; sbRender(); if(typeof renderSongs==="function"&&!$("view-songs").hidden)renderSongs();
+  ACCT.songs=S; ACCT.mine=mine; sbRender();
+  {const tw=document.getElementById("acct-tw"); if(tw&&$("acct").open&&ACCT.claim)tw.innerHTML=acctThisWeek(ACCT.claim.player);} if(typeof renderSongs==="function"&&!$("view-songs").hidden)renderSongs();
 }
 // a song's rating boxes on the Songs page, one per path in the path's colour: the players' average for the song on
 // that path (★), or the host ratings' average. Hover lists every week it was used; logged-in players click to rate.
@@ -3145,6 +3147,15 @@ const VERIFY_EMOJI={"Aardvark": "🐜", "Alpaca": "🦙", "Armadillo": "🦔", "
 function animalTag(a){if(!a)return "";const base=a.replace(/ \d+$/,"");return `<span class="animal" data-tip="Verification animal">${VERIFY_EMOJI[base]||"🐾"} ${esc(a)}</span>`}
 function animalNote(){return ACCT.animal?`<p class="animalnote">Your verification animal is ${animalTag(ACCT.animal)}. Keep it to yourself: if an admin needs to check that this account (or a host sign-up) is really yours, they'll ask you for it.</p>`:""}
 // Your account: this week's scoreboard places, rivals and Rodman's Rankings positions for the player
+// one challenge's rating box (players' average for the song on that path, else the host rating); click to rate
+function cardRateBox(p,song,diff){
+  if(acctOn()&&!ACCT.songs)acctLoadWeek();
+  const list=songVotes(p,song), can=acctCanRate(), mine=can?list.find(v=>v.p===ACCT.claim.player):null;
+  const avg=list.length?(Math.round(list.reduce((a,v)=>a+v.r,0)/list.length*10)/10).toFixed(1):null;
+  const val=avg||(diff!=null?diff:"–");
+  const tipTxt=`Initial host rating: ${diff!=null?diff:"none"}`+(list.length?`\nPlayers' average: ${avg} from ${list.length} rating${list.length===1?"":"s"}\n`+list.map(v=>`• ${v.p}: ${v.r}`).join("\n"):"\nNo player ratings yet")+(can?(mine?`\n\nYour rating: ${mine.r} · click to change`:"\n\nClick to give your rating"):"");
+  return `<span class="srate${list.length?" upd":""}${can?" canrate":""}${mine?" mine":""}" style="--pc:${PATH_C[p]}" data-tip="${esc(tipTxt)}">${val}${can?rateSelect(p,song,mine):""}</span>`;
+}
 function acctThisWeek(n){
   const w=TW_MAX, key=n.toLowerCase(), cards=SB.weeks[w]||[];
   // scoreboard: every challenge this week, with their place and %; ones they haven't played yet are dimmed
@@ -3152,7 +3163,7 @@ function acctThisWeek(n){
     let place=0, me=null; c[6].forEach((e,i)=>{const elig=e[4]>=0; if(elig)place++; if(!me&&SB.names[e[0]].replace(/[*~]+$/,"").toLowerCase()===key)me={e,i,place:elig?place:0}});
     const L=cardLv(c[2]), id=SB.links&&SB.links[w]&&SB.links[w][c[0]*9+c[1]];
     const pl=me&&me.place&&me.place<=3?["🥇","🥈","🥉"][me.place-1]:"";
-    sb.push(`<li class="${me?"":"unpl"}" style="--pc:${PATH_C[c[0]]}"><span class="apath">${PATHS[c[0]]}</span>${L?`<span class="lvchip" style="--tc:${L==="G"?"var(--s-red)":TIER_C[L]}">${L==="G"?esc(c[2]):TIER_NAME[L]}</span>`:`<span class="lvchip">${esc(c[2])}</span>`}<span class="asong" data-sbw="${w}" data-sbp="${c[0]}"${me?` data-sbn="${esc(n)}"`:""} title="Open this challenge on the Scoreboard">${esc(c[3])}</span>${songPill(c[3],id)}${me?`<span class="aplace">${pl}#${me.i+1}<small> of ${c[6].length}</small></span><span class="apct">${me.e[1]!=null?me.e[1]+"%":"–"}</span>`:`<span class="aplace"><small>Not played yet · ${c[6].length} played</small></span>`}</li>`)});
+    sb.push(`<li class="${me?"":"unpl"}" style="--pc:${PATH_C[c[0]]}"><span class="apath">${PATHS[c[0]]}</span>${L?`<span class="lvchip" style="--tc:${L==="G"?"var(--s-red)":TIER_C[L]}">${L==="G"?esc(c[2]):TIER_NAME[L]}</span>`:`<span class="lvchip">${esc(c[2])}</span>`}<span class="asong" data-sbw="${w}" data-sbp="${c[0]}"${me?` data-sbn="${esc(n)}"`:""} title="Open this challenge on the Scoreboard">${esc(c[3])}</span>${cardRateBox(c[0],c[3],c[4])}${songPill(c[3],id)}${me?`<span class="aplace">${pl}#${me.i+1}<small> of ${c[6].length}</small></span><span class="apct">${me.e[1]!=null?me.e[1]+"%":"–"}</span>`:`<span class="aplace"><small>Not played yet · ${c[6].length} played</small></span>`}</li>`)});
   // rivals: the This Week page's rival boxes that include them (all levels), copied over
   let riv="";
   if(cards.length){const saveW=twWeek, saveLv=twRivLv.slice(); twWeek=w; twRivLv.fill(""); renderThisWeek();
