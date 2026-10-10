@@ -1135,7 +1135,7 @@ footer{color:var(--dim);font-size:.78rem}
   <footer>Data: Rodman’s Rocksmith 2014 Championship Google Sheets (older attendance also from the Championship Metrics workbook). Player stats run through week 675; scoreboards cover weeks 440–676. Weeks 1–16 have no recorded host in the source.
   <span class="updated disclaimer">Unofficial fan project. Not affiliated with Ubisoft or Rocksmith.</span>
   <span class="updated" id="sheetedit-row" hidden>Sheet last edited: <span id="sheetedit" data-iso="2026-10-09T18:08:57.146Z"></span></span>
-  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-10T00:25:42+00:00">October 9, 2026</span></span>
+  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-10T00:28:58+00:00">October 9, 2026</span></span>
   </footer>
 </div>
 <dialog id="acct" class="acctdlg" aria-label="Your account"><div id="acctbody"></div><button type="button" class="clear acctclose" id="acctclose">Close</button></dialog>
@@ -2837,8 +2837,8 @@ var SUPA_URL="https://yeyzdxjqwdkswulrnver.supabase.co", SUPA_KEY="sb_publishabl
 var ACCT={on:false,sb:null,user:null,claim:null,admin:false,claims:[],weeks:{},loading:{},tab:"me"};
 function acctPlayerOf(e){return SB.names[e[0]].replace(/[*~]+$/,"")}
 function acctOn(){return typeof ACCT!=="undefined"&&!!ACCT&&ACCT.on}
-// can the logged-in player rate this card? (approved, and they posted a score on it)
-function acctCanRate(ents){const me=ACCT.claim&&ACCT.claim.status==="approved"?ACCT.claim.player:null; return !!me&&ents.some(e=>acctPlayerOf(e)===me)}
+// can the logged-in player rate this card? (any approved player can rate any song, played or not)
+function acctCanRate(ents){return !!(ACCT.claim&&ACCT.claim.status==="approved")}
 // the difficulty badge: the host's rating, or the average of the players' ratings once any are in.
 // Hover shows the host's initial rating and every player's rating; players who played it click it to rate.
 function rateBadge(w,p,slot,diff,ents){
@@ -2914,7 +2914,7 @@ function acctDraw(msg,err){
     const names=PLAYERS.map(p=>p[0]).filter(n=>!taken.has(n)).sort((a,c)=>a.localeCompare(c,undefined,{sensitivity:"base"}));
     h+=`<p>Which player are you? Pick your name to claim your profile. An admin checks each claim before you can rate songs.</p><select id="acctname"><option value="">Choose your player name…</option>${names.map(n=>`<option>${esc(n)}</option>`).join("")}</select><div class="row"><button type="button" class="btn" data-acct="claim">Claim this profile</button></div>`}
   else if(ACCT.claim.status==="pending")h+=`<p>You've claimed <b>${esc(ACCT.claim.player)}</b>. It's waiting for an admin to approve it.</p><div class="row"><button type="button" class="btn ghost" data-acct="unclaim">Withdraw claim</button></div>`;
-  else h+=`<p>Hi <b>${esc(ACCT.claim.player)}</b>! This is your personal stats page. You can head to the Scoreboard and submit your own ratings for any song you've played by clicking its rating number.</p>${acctProfile(ACCT.claim.player)}`;
+  else h+=`<p>Hi <b>${esc(ACCT.claim.player)}</b>! This is your personal stats page. You can head to the Scoreboard and submit your own ratings for any song by clicking its rating number.</p>${acctProfile(ACCT.claim.player)}`;
   if(ACCT.tab!=="admin")h+=`<div class="row"><button type="button" class="btn ghost" data-acct="logout">Log out</button></div>`;
   if(ACCT.admin&&ACCT.tab==="admin"){const pend=ACCT.claims.filter(c=>c.status==="pending"), appr=ACCT.claims.filter(c=>c.status==="approved").sort((a,c)=>a.player.localeCompare(c.player));
     h+=`<div class="adm acctsec"><h3>Claims</h3><p>${pend.length?"Waiting for approval:":"No claims waiting."}</p><ul>${pend.map(c=>`<li><span>${esc(c.player)} <small>${new Date(c.created_at).toLocaleDateString()}</small></span><span><button type="button" class="btn" data-acct="approve" data-uid="${c.user_id}">Approve</button> <button type="button" class="btn ghost" data-acct="reject" data-uid="${c.user_id}">Reject</button></span></li>`).join("")}</ul>${appr.length?`<p>Approved (${appr.length}):</p><ul>${appr.map(c=>`<li><span>${esc(c.player)}</span><button type="button" class="btn ghost" data-acct="reject" data-uid="${c.user_id}">Remove</button></li>`).join("")}</ul>`:""}</div>`}
