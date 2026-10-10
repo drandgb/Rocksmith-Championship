@@ -1377,7 +1377,7 @@ function renderTL(){
       // upcoming weeks aren't hosted yet: a booked host (sheet or sign-up) is an outline in their colour
       const sg=!h&&i>curIdx&&typeof ACCT!=="undefined"&&ACCT&&acctOn()&&ACCT.hostSign[wk]?ACCT.hostSign[wk].player:null; if(sg)h=sg;
       let cls="c", st="";
-      if(h===LOST)cls+=" lost"; else if(!h)cls+=" open"; else if(i>curIdx){cls+=" sched";st=`--sc:${hc(h)}`} else if(i===curIdx){cls+=" now";st=`--sc:${hc(h)}`} else st=`background:${hc(h)}`;
+      if(h===LOST)cls+=" lost"; else if(!h)cls+=" open"; else if(i>curIdx){cls+=" sched";st=`--sc:${hc(h)}`} else st=`background:${hc(h)}`;
       if(i===curIdx)cls+=" cur";
       if(!matches(h))cls+=" fade";
       html+=`<div class="${cls}" style="${st}" data-w="${i}"></div>`;
@@ -2530,7 +2530,7 @@ function showHost(name){
     grid+=`<div class="yr hyr${hYear===y?" sel":""}" data-hyear="${y}" title="${hYear===y?"Show all years":`Show stats for ${y} only`}">${y}</div>`+"<i class='pre'></i>".repeat(off)+arr.map(([w,d,ho,i])=>{
       const sg=!ho&&i>=curIdx?signedBy(w):null; if(sg)ho=same(sg)?name:sg;
       const now=i===curIdx&&!sg&&ho&&ho!==LOST, fut=i>curIdx||!!sg, mine=ho===name;
-      const cls=now?(mine?"hc":"ho"):mine?(fut?"hf":"hh"):fut?"hn":ho===LOST?"hl":ho?"ho":"hn";
+      const cls=now?(mine?"hf":"ho"):mine?(fut?"hf":"hh"):fut?"hn":ho===LOST?"hl":ho?"ho":"hn";
       const who=now?(mine?"hosting this week (counted)":`${ho} hosting this week`):fut?(mine?(sg?"signed up to host":"scheduled to host"):ho?`${ho} ${sg?"signed up":"scheduled"}`:"open"):mine?"hosted":ho===LOST?"no record":ho?`hosted by ${ho}`:"open";
       return `<i class="${cls}${hYear===y?" iny":""}" data-hw="${w}" title="Week ${w} · ${fmt(d)} · ${esc(who)}${SB.weeks[w]?" · click to open the Scoreboard":""}"></i>`}).join("")+"<i class='pre'></i>".repeat(Math.max(0,53-off-arr.length));
   });
@@ -2552,7 +2552,7 @@ function showHost(name){
     <div style="min-width:0">
       ${hostMedals(name)}
       <div class="scroll"><div class="pres${hYear?" yf":""}" id="hpres" style="--hcol:${col}">${grid}</div></div>
-      <div class="pres-legend"><span><i class="sw" style="background:${col}"></i>Hosted</span>${cur[2]===name?`<span><i class="sw" style="background:repeating-linear-gradient(45deg,${col} 0 1.5px,transparent 1.5px 4px);box-shadow:inset 0 0 0 1.5px ${col}"></i>This week</span>`:""}<span><i class="sw" style="box-shadow:inset 0 0 0 1.5px ${col}"></i>Scheduled</span><span><i class="sw" style="background:#3a4254"></i>Someone else</span><span><i class="sw" style="background:var(--panel2)"></i>Open</span><span><i class="sw" style="background:repeating-linear-gradient(45deg,var(--lost) 0 2px,var(--panel2) 2px 4px)"></i>No record</span></div>
+      <div class="pres-legend"><span><i class="sw" style="background:${col}"></i>Hosted</span><span><i class="sw" style="box-shadow:inset 0 0 0 1.5px ${col}"></i>Scheduled</span><span><i class="sw" style="background:#3a4254"></i>Someone else</span><span><i class="sw" style="background:var(--panel2)"></i>Open</span><span><i class="sw" style="background:repeating-linear-gradient(45deg,var(--lost) 0 2px,var(--panel2) 2px 4px)"></i>No record</span></div>
     </div></div>`;
 }
 $("hq").addEventListener("change",e=>showHost(e.target.value.trim()));
