@@ -536,6 +536,9 @@ button.clear.sblatest:hover{background:var(--accent);color:var(--accent-ink)}
 .songlist .cnt{text-align:right;font:.72rem var(--f-body);color:var(--muted);white-space:nowrap}
 .songlist .cnt b{display:block;font:700 1.1rem var(--f-display);color:var(--fg)}
 .songlist .chips{display:flex;gap:3px;flex-wrap:wrap;margin-top:3px}
+.srates{display:inline-flex;gap:4px;margin-left:6px;vertical-align:1px}
+.srates .srate,.srates .srate+.srate{margin-left:0}
+@media (max-width:600px){.songlist .chips .srates{flex-basis:100%;margin:3px 0 0}}
 .bchips{display:flex;flex-direction:column;gap:5px;margin-bottom:12px}
 .bchips .brow1{display:flex;flex-wrap:wrap;gap:4px}
 .lvclick{cursor:pointer}
@@ -1201,7 +1204,7 @@ footer{color:var(--dim);font-size:.78rem}
   <footer>Data: Rodman’s Rocksmith 2014 Championship Google Sheets (older attendance also from the Championship Metrics workbook). Player stats run through week 675; scoreboards cover weeks 440–676. Weeks 1–16 have no recorded host in the source.
   <span class="updated disclaimer">Unofficial fan project. Not affiliated with Ubisoft or Rocksmith.</span>
   <span class="updated" id="sheetedit-row" hidden>Sheet last edited: <span id="sheetedit" data-iso="2026-10-09T18:08:57.146Z"></span></span>
-  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-10T03:12:17+00:00">October 9, 2026</span></span>
+  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-10T03:28:17+00:00">October 9, 2026</span></span>
   </footer>
 </div>
 <dialog id="acct" class="acctdlg" aria-label="Your profile"><div id="acctbody"></div><button type="button" class="clear acctclose" id="acctclose">Close</button></dialog>
@@ -3034,7 +3037,7 @@ function songRateBox(cards){
       +(all.length?`\n\nPlayers' average: ${avg(all)} from ${all.length} rating${all.length===1?"":"s"}\n`+list.map(v=>`• ${v.p}: ${v.r}`).join("\n"):"\n\nNo player ratings yet")
       +(can?(mine?`\n\nYour rating: ${mine.r} · click to change`:"\n\nClick to give your rating"):"");
     return `<span class="srate${all.length?" upd":""}${can?" canrate":""}${mine?" mine":""}" style="--pc:${PATH_C[p]}" data-tip="${esc(tipTxt)}">${val}${can?rateSelect(p,pc[0].song,mine):""}</span>`;
-  }).join("");
+  }).join("").replace(/^(.+)$/s,'<span class="srates">$1</span>');
 }
 document.addEventListener("change",async e=>{
   const s=e.target.closest("select[data-rate]"); if(!s||!ACCT.claim)return;
