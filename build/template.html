@@ -312,7 +312,7 @@ a.dl:hover{background:color-mix(in srgb,var(--tc) 24%,transparent)}
 a.dl:focus-visible{outline:2px solid var(--fg);outline-offset:1px}
 a.dl svg,.offpill svg{width:11px;height:11px}
 /* accounts: login dialog, claims and song ratings */
-.acctdlg{background:var(--panel);color:var(--fg);border:1px solid var(--line);border-radius:12px;padding:18px 20px;width:min(440px,calc(100vw - 32px));box-shadow:0 20px 60px rgba(0,0,0,.55)}
+.acctdlg{background:var(--panel);color:var(--fg);border:1px solid var(--line);border-radius:12px;padding:18px 20px;width:min(640px,calc(100vw - 32px));max-height:calc(100vh - 40px);overflow:auto;box-shadow:0 20px 60px rgba(0,0,0,.55)}
 .acctdlg::backdrop{background:rgba(5,7,12,.6)}
 .acctdlg h3{margin:0 0 10px;font:700 1.05rem var(--f-display)}
 .acctdlg p{margin:6px 0;color:var(--muted);font-size:.88rem;line-height:1.45}
@@ -326,6 +326,9 @@ a.dl svg,.offpill svg{width:11px;height:11px}
 .acctdlg .adm ul{list-style:none;margin:4px 0;padding:0;max-height:220px;overflow:auto}
 .acctdlg .adm small{color:var(--muted)}
 .acctclose{margin-top:12px}
+.acctdlg .acctstats{margin:10px 0}
+.acctdlg .acctmedals .ms{font:700 .72rem var(--f-display);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:10px 0 6px}
+.acctdlg .acctmedals .medals{display:flex;flex-wrap:wrap;gap:6px 10px;margin-bottom:8px}
 .card .prate{display:flex;align-items:center;gap:8px;margin-top:6px;font-size:.78rem;color:var(--muted)}
 .card .prate b{color:var(--fg);font:700 .9rem var(--f-mono)}
 .card .prate select{background:var(--panel2);color:var(--fg);border:1px solid color-mix(in srgb,var(--tc) 55%,var(--line));border-radius:5px;padding:2px 6px;font:700 .8rem var(--f-mono);cursor:pointer}
@@ -2850,6 +2853,18 @@ document.addEventListener("change",async e=>{
   const {error}=await q; if(error){alert("Couldn't save your rating: "+error.message);return}
   delete ACCT.weeks[w]; acctLoadWeek(w);
 });
+// your profile in the account dialog: the main stat boxes and all your medals (same as hovering your name)
+function acctProfile(n){
+  const p=byName[n]; if(!p)return "";
+  const [,first,latest,played,rate,streak,longest]=p, v=wv(n,-1), fw=WEEKS[first-1], lw=WEEKS[latest-1];
+  let sc=null,st=null; Object.keys(SB.weeks).forEach(w=>SB.weeks[w].forEach(c=>{if(c[7])return; c[6].forEach(e=>{if(SB.names[e[0]].replace(/[*~]+$/,"")!==n)return;
+    if(e[3]!=null&&(!sc||e[3]>sc.v))sc={v:e[3],w:+w,s:c[3]}; if(e[2]!=null&&(!st||e[2]>st.v))st={v:e[2],w:+w,s:c[3]}})}));
+  const box=(lab,val,sub,tip)=>`<div${tip?` data-tip="${esc(tip)}"`:""}><small>${lab}</small><b>${val}</b>${sub?`<span class="sub"> · ${sub}</span>`:""}</div>`;
+  const sn=s=>esc(String(s||"").replace(/^.*? - /,""));
+  return `<div class="stats acctstats">${box("Weeks played",played)}${box("Play rate",(rate*100).toFixed(rate>=1?0:1)+"%")}${box("Active streak",streak+" wk"+(streak===1?"":"s"))}${box("Best streak",longest+" wk"+(longest===1?"":"s"))}${box("First week",first,fw?fmt(fw[1]):"")}${box("Latest week",latest,lw?fmt(lw[1]):"")}${v?box("Challenges won",v[1]):""}${sc?box("Highest score",sc.v.toLocaleString("en-US"),"wk "+sc.w,sn(sc.s)):""}${st?box("Highest note streak",st.v.toLocaleString("en-US"),"wk "+st.w,sn(st.s)):""}</div>
+    <div class="acctmedals">${allMedalsHtml(n)||'<p>No medals yet.</p>'}</div>
+    <div class="row"><button type="button" class="btn ghost" data-acct="profile">Open my full profile ›</button></div>`;
+}
 // header button and dialog
 function acctBtn(){const b=$("acctbtn"); b.hidden=!ACCT.on; b.textContent=ACCT.claim&&ACCT.claim.status==="approved"?"👤 "+ACCT.claim.player:ACCT.user?"👤 Account":"👤 Log in"}
 async function acctRefresh(){
@@ -2867,7 +2882,7 @@ function acctDraw(msg,err){
     const names=PLAYERS.map(p=>p[0]).filter(n=>!taken.has(n)).sort((a,c)=>a.localeCompare(c,undefined,{sensitivity:"base"}));
     h+=`<p>Which player are you? Pick your name to claim your profile. An admin checks each claim before you can rate songs.</p><select id="acctname"><option value="">Choose your player name…</option>${names.map(n=>`<option>${esc(n)}</option>`).join("")}</select><div class="row"><button type="button" class="btn" data-acct="claim">Claim this profile</button></div>`}
   else if(ACCT.claim.status==="pending")h+=`<p>You've claimed <b>${esc(ACCT.claim.player)}</b>. It's waiting for an admin to approve it.</p><div class="row"><button type="button" class="btn ghost" data-acct="unclaim">Withdraw claim</button></div>`;
-  else h+=`<p>You're <b>${esc(ACCT.claim.player)}</b>. On the Scoreboard, this week's challenges you've played have a rating picker; the players' average shows once the week is over.</p>`;
+  else h+=`<p>You're <b>${esc(ACCT.claim.player)}</b>. On the Scoreboard, this week's challenges you've played have a rating picker; the players' average shows once the week is over.</p>${acctProfile(ACCT.claim.player)}`;
   h+=`<div class="row"><button type="button" class="btn ghost" data-acct="logout">Log out</button></div>`;
   if(ACCT.admin){const pend=ACCT.claims.filter(c=>c.status==="pending"), appr=ACCT.claims.filter(c=>c.status==="approved").sort((a,c)=>a.player.localeCompare(c.player));
     h+=`<div class="adm"><h3>Admin · claims</h3><p>${pend.length?"Waiting for approval:":"No claims waiting."}</p><ul>${pend.map(c=>`<li><span>${esc(c.player)} <small>${new Date(c.created_at).toLocaleDateString()}</small></span><span><button type="button" class="btn" data-acct="approve" data-uid="${c.user_id}">Approve</button> <button type="button" class="btn ghost" data-acct="reject" data-uid="${c.user_id}">Reject</button></span></li>`).join("")}</ul>${appr.length?`<p>Approved (${appr.length}):</p><ul>${appr.map(c=>`<li><span>${esc(c.player)}</span><button type="button" class="btn ghost" data-acct="reject" data-uid="${c.user_id}">Remove</button></li>`).join("")}</ul>`:""}</div>`}
@@ -2879,6 +2894,7 @@ $("acctbody").addEventListener("click",async e=>{
     if(a==="send"){const em=$("acctemail").value.trim(); if(!/^\S+@\S+\.\S+$/.test(em)){acctDraw("","Please type a valid email.");return}
       const {error}=await sb.auth.signInWithOtp({email:em,options:{emailRedirectTo:location.origin+location.pathname}});
       error?acctDraw("",error.message):acctDraw("Check your inbox for the login link. It opens this page logged in.");return}
+    if(a==="profile"){$("acct").close(); showView("players"); showPlayer(ACCT.claim.player); $("pcard").closest("section").scrollIntoView({block:"start"}); return}
     if(a==="logout"){await sb.auth.signOut(); await acctRefresh(); acctDraw(); return}
     if(a==="claim"){const n=$("acctname").value; if(!n){acctDraw("","Pick your player name first.");return}
       const {error}=await sb.from("claims").insert({user_id:ACCT.user.id,player:n}); if(error){acctDraw("",/duplicate|unique/i.test(error.message)?"Someone already claimed that name. Message the admin if it's yours.":error.message);return}}
@@ -2888,8 +2904,11 @@ $("acctbody").addEventListener("click",async e=>{
     await acctRefresh(); acctDraw();
   }finally{b.disabled=false}
 });
-$("acctbtn").addEventListener("click",()=>{acctDraw();$("acct").showModal()});
+$("acctbtn").addEventListener("click",()=>{acctDraw();$("acct").showModal();$("acct").appendChild(tip)});
 $("acctclose").addEventListener("click",()=>$("acct").close());
+// hover text inside the dialog (the tip moves into the dialog while it's open, so it shows above it)
+$("acct").addEventListener("close",()=>{tip.hidden=true;document.body.appendChild(tip)});
+$("acct").addEventListener("mousemove",e=>{const p=e.target.closest("[data-tip]");if(!p){tip.hidden=true;return}tip.textContent=p.dataset.tip;tip.hidden=false;placeTip(e.clientX,e.clientY)});
 $("acct").addEventListener("click",e=>{if(e.target===$("acct"))$("acct").close()});
 // only on the real site (copies of the page elsewhere, like a preview, can't reach the login server)
 if(SUPA_URL&&SUPA_KEY&&/(^|\.)github\.io$|^localhost$|^127\.0\.0\.1$/.test(location.hostname)){
