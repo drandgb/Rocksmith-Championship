@@ -68,6 +68,7 @@ button.forum{background:none;cursor:pointer;font:inherit;font-size:.85rem}
 .animalnote .animal{color:var(--fg);font-weight:600}
 .up .wk b.sblink{cursor:pointer;text-decoration:underline dotted;text-underline-offset:3px}
 .up .wk b.sblink:hover{color:var(--fg)}
+.pill.open[data-tip]{cursor:help}
 .pill.signed{cursor:help;background:color-mix(in srgb,var(--accent) 16%,transparent);color:var(--accent);border:1px solid color-mix(in srgb,var(--accent) 45%,transparent);font-size:.6rem;padding:1px 6px}
 .hostbtn{position:relative;cursor:pointer;font:inherit;font-family:var(--f-mono);font-size:.7rem}
 button.pill.hostbtn:hover,.pill.hostbtn:hover{background:color-mix(in srgb,var(--open) 32%,transparent)}
@@ -1169,7 +1170,7 @@ footer{color:var(--dim);font-size:.78rem}
   <footer>Data: Rodman’s Rocksmith 2014 Championship Google Sheets (older attendance also from the Championship Metrics workbook). Player stats run through week 675; scoreboards cover weeks 440–676. Weeks 1–16 have no recorded host in the source.
   <span class="updated disclaimer">Unofficial fan project. Not affiliated with Ubisoft or Rocksmith.</span>
   <span class="updated" id="sheetedit-row" hidden>Sheet last edited: <span id="sheetedit" data-iso="2026-10-09T18:08:57.146Z"></span></span>
-  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-10T02:00:21+00:00">October 9, 2026</span></span>
+  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-10T02:05:54+00:00">October 9, 2026</span></span>
   </footer>
 </div>
 <dialog id="acct" class="acctdlg" aria-label="Your account"><div id="acctbody"></div><button type="button" class="clear acctclose" id="acctclose">Close</button></dialog>
@@ -2544,6 +2545,9 @@ $("hcard").addEventListener("click",e=>{
   const w=+c.dataset.hw; if(!SB.weeks[w])return;
   sbWeek=w; showView("scores"); sbRender(); scrollTo({top:0});
 });
+// hover text on Coming up and the status strip (HOST NEEDED, SIGNED UP, sign-up buttons)
+["upcoming","now"].forEach(id=>$(id).addEventListener("mousemove",e=>{const p=e.target.closest("[data-tip]");if(!p){tip.hidden=true;return}tip.textContent=p.dataset.tip;tip.hidden=false;placeTip(e.clientX,e.clientY)}));
+["upcoming","now"].forEach(id=>$(id).addEventListener("mouseleave",()=>{tip.hidden=true}));
 $("hcard").addEventListener("mousemove",e=>{const p=e.target.closest("[data-tip]");if(!p){tip.hidden=true;return}tip.textContent=p.dataset.tip;tip.hidden=false;placeTip(e.clientX,e.clientY)});
 $("hcard").addEventListener("mouseleave",()=>tip.hidden=true);
 window.__hostReady=true;
@@ -3031,10 +3035,10 @@ function hostSlot(w,i,label){
   const on=typeof ACCT!=="undefined"&&ACCT&&acctOn(), s=on?ACCT.hostSign[w[0]]:null;
   if(s){const mine=ACCT.claim&&ACCT.claim.status==="approved"&&s.player===ACCT.claim.player;
     return `<span class="who" data-name="${esc(s.player)}">${esc(s.player)}</span> <span class="pill signed" data-tip="${esc(s.player)} signed up to host this week. It's added to the schedule once the admin puts it in the sheet.">SIGNED UP</span>${mine||ACCT.admin?` <button type="button" class="hostx" data-hostdrop="${w[0]}" title="${mine?"Withdraw your sign-up":"Remove this sign-up"}">✕</button>`:""}`}
-  if(!on||i>hostAhead())return `<span class="pill open">${label}</span>`;
+  if(!on||i>hostAhead())return `<span class="pill open" data-tip="${esc(hostWarnHelp())}">${label}</span>`;
   if(ACCT.admin)return `<span class="pill open hostbtn" data-tip="Sign someone up to host Week ${w[0]}">${label} · SIGN UP<select data-hostpick="${w[0]}" aria-label="Sign someone up to host Week ${w[0]}"><option value="">Sign up a host…</option>${hostOptions()}</select></span>`;
   if(hostVerified())return `<button type="button" class="pill open hostbtn" data-hostsign="${w[0]}" data-tip="Sign up to host Week ${w[0]}">${label} · SIGN UP</button>`;
-  return `<span class="pill open">${label}</span>`;
+  return `<span class="pill open" data-tip="${esc(hostWarnHelp())}">${label}</span>`;
 }
 async function hostAct(week,player,drop){
   const w=WEEKS.concat().find(x=>x[0]===week)||weekAt(curIdx+(week-WEEKS[curIdx][0])), when=`Week ${week} (${fmtShort(w[1])})`;
