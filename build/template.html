@@ -2847,6 +2847,13 @@ function acctOn(){return typeof ACCT!=="undefined"&&!!ACCT&&ACCT.on}
 // can the logged-in player rate this card? (any approved player can rate any song, played or not)
 function acctCanRate(ents){return !!(ACCT.claim&&ACCT.claim.status==="approved")}
 // the difficulty badge: the host's rating, or the average of the players' ratings once any are in.
+// every week a song was used on a path, newest first, with the host's initial rating that week
+function hostRatingsOf(p,song){
+  const k=acctSongKey(song), out=[];
+  Object.entries(SB.weeks).forEach(([w,ch])=>ch.forEach(c=>{if(c[0]===p&&c[3]&&acctSongKey(c[3])===k)out.push({w:+w,t:tierOf(c[2]),d:c[4]})}));
+  SONGS_OLD.forEach(([w,pp,tt,b,s,d])=>{if(pp===p&&s&&acctSongKey(s)===k)out.push({w,t:tt,d})});
+  return out.sort((a,b)=>b.w-a.w);
+}
 // Hover shows the host's initial rating and every player's rating; players who played it click it to rate.
 function rateBadge(w,p,slot,diff,ents){
   const plain=diff!=null?`<span class="diff" title="Difficulty rating">${diff}</span>`:"";
@@ -2857,7 +2864,8 @@ function rateBadge(w,p,slot,diff,ents){
   if(!list.length&&!can)return plain;
   const avg=list.length?Math.round(list.reduce((a,v)=>a+v.r,0)/list.length*10)/10:null;
   const mine=can?list.find(v=>v.p===ACCT.claim.player):null;
-  const tipTxt=`Initial rating: ${diff!=null?diff:"none"}`+(list.length?`\nPlayers' average: ${avg} from ${list.length} rating${list.length===1?"":"s"}\n`+list.map(v=>`• ${v.p}: ${v.r}`).join("\n"):"\nNo player ratings yet")+(can?(mine?`\n\nYour rating: ${mine.r} · click to change`:"\n\nClick to give your rating"):"");
+  const card=(SB.weeks[w]||[]).find(c=>c[0]===p&&c[1]===slot), others=card?hostRatingsOf(p,card[3]).filter(x=>x.w!==w):[];
+  const tipTxt=`Initial host rating: ${diff!=null?diff:"none"}`+(others.length?`\nOther weeks' initial host ratings:\n`+others.map(x=>`• Week ${x.w} · ${TIER_LABEL[x.t]||x.t}: ${x.d!=null?x.d:"–"}`).join("\n")+"\n":"")+(list.length?`\nPlayers' average: ${avg} from ${list.length} rating${list.length===1?"":"s"}\n`+list.map(v=>`• ${v.p}: ${v.r}`).join("\n"):"\nNo player ratings yet")+(can?(mine?`\n\nYour rating: ${mine.r} · click to change`:"\n\nClick to give your rating"):"");
   const label=list.length?avg.toFixed(1):diff!=null?diff:"–";
   if(!can)return `<span class="diff${list.length?" upd":""}" data-tip="${esc(tipTxt)}">${label}</span>`;
   // the badge itself is the rating dropdown: an invisible select laid over it, so clicking the number opens the list
@@ -2903,9 +2911,9 @@ function songRateBox(cards){
     const rc=pc.filter(c=>c.slot!=null).sort((a,b)=>b.w-a.w);
     const hostR=pc.map(c=>c.diff).filter(d=>d!=null&&d>0);
     const lines=[], all=[];
-    rc.forEach(c=>{const l=acctOn()&&ACCT.weeks[c.w]?(ACCT.weeks[c.w][c.p*9+c.slot]||[]):[];
+    pc.slice().sort((a,b)=>b.w-a.w).forEach(c=>{const l=c.slot!=null&&acctOn()&&ACCT.weeks[c.w]?(ACCT.weeks[c.w][c.p*9+c.slot]||[]):[];
       l.forEach(v=>all.push(v.r));
-      lines.push(`Week ${c.w} · ${TIER_LABEL[c.card]||""}: initial ${c.diff!=null?c.diff:"–"}`+(l.length?` · players ${avg(l.map(v=>v.r))} (${l.map(v=>`${v.p} ${v.r}`).join(", ")})`:""))});
+      lines.push(`Week ${c.w} · ${TIER_LABEL[c.card]||""}: initial host rating ${c.diff!=null?c.diff:"–"}`+(l.length?` · players ${avg(l.map(v=>v.r))} (${l.map(v=>`${v.p} ${v.r}`).join(", ")})`:""))});
     if(!all.length&&!hostR.length)return "";
     const val=all.length?avg(all):avg(hostR), last=rc[0];
     const tipTxt=`${PATHS[p]} — `+(all.length?`players' average ${val} from ${all.length} rating${all.length===1?"":"s"}`:`host rating${hostR.length>1?"s average":""} ${val}`)+(lines.length?"\n\n"+lines.slice(0,12).join("\n")+(lines.length>12?`\n… and ${lines.length-12} more`:""):"")+(last&&acctOn()?"\n\nClick to open its latest challenge on the Scoreboard and rate it":"");
