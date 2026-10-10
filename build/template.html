@@ -343,7 +343,9 @@ a.dl svg,.offpill svg{width:11px;height:11px}
 .card .prate .ok{color:#7dffb0}
 .card .diff.upd{border-color:color-mix(in srgb,var(--tc) 70%,var(--line));color:var(--tc);cursor:help}
 .card .diff.upd::after{content:"★";font-size:.6em;margin-left:2px;vertical-align:2px}
-.card .diff.canrate{cursor:pointer;box-shadow:0 0 0 1px color-mix(in srgb,var(--tc) 40%,transparent)}
+.card .diff.canrate{cursor:pointer;position:relative;box-shadow:0 0 0 1px color-mix(in srgb,var(--tc) 40%,transparent)}
+.card .diff.canrate select{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;font-size:16px;-webkit-appearance:none;appearance:none}
+.card .diff.mine{box-shadow:0 0 0 1px var(--tc),0 0 6px color-mix(in srgb,var(--tc) 55%,transparent)}
 .card .diff.canrate:hover{background:color-mix(in srgb,var(--tc) 20%,var(--panel2))}
 .dl.offpill{color:#c3cbd9;border-color:rgba(154,166,187,.55);background:rgba(154,166,187,.12);cursor:help}
 .songlist .dl,.bandtbl .dl{--tc:var(--accent);margin-left:6px;vertical-align:1px;padding:2px 7px}
@@ -2176,7 +2178,6 @@ $("sbseg").addEventListener("click",e=>{const b=e.target.closest("button[data-pa
   tip.hidden=true;sbRender();$("sbseg").querySelector(`[data-path="${i}"]`).focus()});
 $("sbfind").addEventListener("change",e=>{sbFind=e.target.value.trim();sbRender()});
 // clicking a highlighted player's row anywhere that isn't a link (like their name) clears the highlight
-$("sbcards").addEventListener("click",e=>{const ro=e.target.closest("[data-rateopen]"); if(ro){const k=ro.dataset.rateopen; ACCT.openKey=ACCT.openKey===k?null:k; tip.hidden=true; sbRender(); return}});
 $("sbcards").addEventListener("click",e=>{const tr=e.target.closest("tr.me"); if(!tr||e.target.closest("[data-player],a,.golink,[data-goband]"))return;
   sbFind=""; tip.hidden=true; sbRender()});
 $("view-scores").addEventListener("click",e=>{
@@ -2850,11 +2851,17 @@ function rateBadge(w,p,slot,diff,ents){
   const can=acctCanRate(ents);
   if(!list.length&&!can)return plain;
   const avg=list.length?Math.round(list.reduce((a,v)=>a+v.r,0)/list.length*10)/10:null;
-  const tipTxt=`Initial rating: ${diff!=null?diff:"none"}`+(list.length?`\nPlayers' average: ${avg} from ${list.length} rating${list.length===1?"":"s"}\n`+list.map(v=>`• ${v.p}: ${v.r}`).join("\n"):"\nNo player ratings yet")+(can?"\n\nClick to give your rating":"");
-  return `<span class="diff${list.length?" upd":""}${can?" canrate":""}"${can?` data-rateopen="${w}|${p}|${slot}"`:""} data-tip="${esc(tipTxt)}">${list.length?avg.toFixed(1):diff!=null?diff:"–"}</span>`;
+  const mine=can?list.find(v=>v.p===ACCT.claim.player):null;
+  const tipTxt=`Initial rating: ${diff!=null?diff:"none"}`+(list.length?`\nPlayers' average: ${avg} from ${list.length} rating${list.length===1?"":"s"}\n`+list.map(v=>`• ${v.p}: ${v.r}`).join("\n"):"\nNo player ratings yet")+(can?(mine?`\n\nYour rating: ${mine.r} · click to change`:"\n\nClick to give your rating"):"");
+  const label=list.length?avg.toFixed(1):diff!=null?diff:"–";
+  if(!can)return `<span class="diff${list.length?" upd":""}" data-tip="${esc(tipTxt)}">${label}</span>`;
+  // the badge itself is the rating dropdown: an invisible select laid over it, so clicking the number opens the list
+  const opts=[];for(let r=1;r<=10;r+=.5)opts.push(`<option value="${r}"${mine&&mine.r===r?" selected":""}>${r}</option>`);
+  return `<span class="diff canrate${list.length?" upd":""}${mine?" mine":""}" data-tip="${esc(tipTxt)}">${label}<select data-rate="${w}|${p}|${slot}" aria-label="Your difficulty rating for this song"><option value=""${mine?"":" selected"}>${mine?"Remove my rating":"Your rating…"}</option>${opts.join("")}</select></span>`;
 }
 // the rating picker on a card, opened by clicking its difficulty badge
 function acctCard(w,p,slot,ents,live){
+  return ""; // (the rating dropdown now lives inside the difficulty badge)
   if(!acctOn()||ACCT.openKey!==`${w}|${p}|${slot}`||!acctCanRate(ents))return "";
   const list=(ACCT.weeks[w]||{})[p*9+slot]||[], me=ACCT.claim.player, mine=list.find(v=>v.p===me), opts=[];
   for(let r=1;r<=10;r+=.5)opts.push(`<option value="${r}"${mine&&mine.r===r?" selected":""}>${r}</option>`);
