@@ -55,6 +55,14 @@ button.forum{background:none;cursor:pointer;font:inherit;font-size:.85rem}
 .now .n{font-size:.8rem;color:var(--muted)}
 .pill{display:inline-block;font-family:var(--f-mono);font-size:.7rem;padding:2px 7px;border-radius:999px;letter-spacing:.04em;vertical-align:middle}
 .pill.open{background:color-mix(in srgb,var(--open) 18%,transparent);color:var(--open);border:1px solid color-mix(in srgb,var(--open) 50%,transparent)}
+.pill.signed{cursor:help;background:color-mix(in srgb,var(--accent) 16%,transparent);color:var(--accent);border:1px solid color-mix(in srgb,var(--accent) 45%,transparent);font-size:.6rem;padding:1px 6px}
+.hostbtn{position:relative;cursor:pointer;font:inherit;font-family:var(--f-mono);font-size:.7rem}
+button.pill.hostbtn:hover,.pill.hostbtn:hover{background:color-mix(in srgb,var(--open) 32%,transparent)}
+.hostbtn select{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;font-size:16px;-webkit-appearance:none;appearance:none}
+.hostx{background:none;border:0;color:var(--muted);cursor:pointer;font-size:.8rem;padding:0 3px}
+.hostx:hover{color:var(--open)}
+.acctdlg .hostsec ul{list-style:none;padding:0;margin:0 0 8px}
+.acctdlg .hostsec li{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--line);font-size:.85rem}
 .pill.on{cursor:help;background:color-mix(in srgb,var(--s-green) 16%,transparent);color:var(--s-green);border:1px solid color-mix(in srgb,var(--s-green) 45%,transparent)}
 .pill.hol{background:var(--panel2);color:var(--muted);border:1px solid var(--line);font-family:var(--f-body);letter-spacing:0}
 
@@ -1144,7 +1152,7 @@ footer{color:var(--dim);font-size:.78rem}
   <footer>Data: Rodman’s Rocksmith 2014 Championship Google Sheets (older attendance also from the Championship Metrics workbook). Player stats run through week 675; scoreboards cover weeks 440–676. Weeks 1–16 have no recorded host in the source.
   <span class="updated disclaimer">Unofficial fan project. Not affiliated with Ubisoft or Rocksmith.</span>
   <span class="updated" id="sheetedit-row" hidden>Sheet last edited: <span id="sheetedit" data-iso="2026-10-09T18:08:57.146Z"></span></span>
-  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-10T01:08:34+00:00">October 9, 2026</span></span>
+  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-10T01:13:14+00:00">October 9, 2026</span></span>
   </footer>
 </div>
 <dialog id="acct" class="acctdlg" aria-label="Your account"><div id="acctbody"></div><button type="button" class="clear acctclose" id="acctclose">Close</button></dialog>
@@ -1229,7 +1237,7 @@ function renderNow(){
   const monthWeeks=WEEKS.filter(w=>w[1].slice(0,7)===ym);
   const openM=monthWeeks.filter(w=>!w[2]);
   const openNote=openM.length?openM.map(w=>fmtShort(w[1])).join(", "):"Every week has a host";
-  const curHost=cur[2]&&cur[2]!==LOST?`<span data-name="${esc(cur[2])}">${esc(cur[2])}</span>`:'<span class="pill open">NEEDS HOST</span>';
+  const curHost=cur[2]&&cur[2]!==LOST?`<span data-name="${esc(cur[2])}">${esc(cur[2])}</span>`:hostSlot(cur,0,"NEEDS HOST");
   $("now").innerHTML=`
    <div class="nowlink" data-sbw="${cur[0]}" title="Open Week ${cur[0]} on the Scoreboard"><div class="k">This week</div><div class="v num">Week ${cur[0]}</div><div class="n">Started ${fmt(cur[1])}</div></div>
    <div${cur[2]&&cur[2]!==LOST?` class="nowlink" data-gohost="${esc(cur[2])}" title="Open ${esc(cur[2])} in Host lookup"`:""}><div class="k">Current host</div><div class="v">${curHost}</div><div class="n">${hostRankNote()}</div></div>
@@ -1274,7 +1282,7 @@ function weekAt(i){
 function upRow(i){
   const w=weekAt(curIdx+i);
   const hol=w[3]?w[3].split(/,\s*/).map(h=>`<span class="pill hol holf" data-hol="${esc(h)}" title="Show only weeks with ${esc(h)}">${holEmoji(h)}${esc(h)}</span>`).join(""):"";
-  const who=w[2]?`<span class="who" data-name="${esc(w[2])}">${esc(w[2])}</span>`:`<span class="pill open">HOST NEEDED</span>`;
+  const who=w[2]?`<span class="who" data-name="${esc(w[2])}">${esc(w[2])}</span>`:hostSlot(w,i);
   const yr=w[1].slice(0,4)!==cur[1].slice(0,4)?`<span class="yy">${w[1].slice(0,4)}</span>`:"";
   return `<li class="${i===0?"cur":""}"><div class="wk"><b>${w[0]}</b>${fmtShort(w[1])}${yr}</div><div>${who}${i===0?' <span class="sub">· now</span>':""}<div class="meta">${hol}</div></div></li>`;
 }
@@ -2842,7 +2850,7 @@ if(curView()==="thisweek")renderThisWeek();
 // ---------- accounts: log in with an emailed link, claim your player profile, rate this week's songs ----------
 // Uses a Supabase project (set SUPA_URL and SUPA_KEY; both are public by design). Leave them empty to hide all of this.
 var SUPA_URL="https://yeyzdxjqwdkswulrnver.supabase.co", SUPA_KEY="sb_publishable_pxGhrlKyONzLc1fomC2vsw_EoNlhCeG";
-var ACCT={on:false,sb:null,user:null,claim:null,admin:false,claims:[],songs:null,mine:{},loading:{},tab:"me"};
+var ACCT={on:false,sb:null,user:null,claim:null,admin:false,claims:[],hostSign:{},songs:null,mine:{},loading:{},tab:"me"};
 function acctSongKey(s){return String(s||"").toLowerCase().replace(/[^a-z0-9]+/g,"")}
 function acctPlayerOf(e){return SB.names[e[0]].replace(/[*~]+$/,"")}
 function acctOn(){return typeof ACCT!=="undefined"&&!!ACCT&&ACCT.on}
@@ -2949,6 +2957,52 @@ function acctMount(n){
   if(WR.wins[n])put("wcard","acct-w",()=>{showWinner(n);markHot()});
   if(hosts[n])put("hcard","acct-h",()=>showHost(n));
 }
+// ---------- host sign-ups ----------
+// A verified host (an approved player who has hosted before) can sign up for an open week in the next 8 weeks;
+// admins can sign anyone up. The schedule sheet wins: once it names a host for a week, that's who shows.
+const HOST_AHEAD=8;
+function hostVerified(){if(!acctOn()||!ACCT.claim||ACCT.claim.status!=="approved")return false;
+  const n=ACCT.claim.player.toLowerCase(); return Object.keys(hosts).some(h=>h.toLowerCase()===n)}
+function hostOpenWeeks(){const out=[];for(let i=0;i<=HOST_AHEAD;i++){const w=weekAt(curIdx+i);if(!w[2])out.push([w,i])}return out}
+async function hostLoad(){if(!ACCT.sb)return;
+  const {data,error}=await ACCT.sb.from("host_signups").select("week,player,created_at").gte("week",WEEKS[curIdx][0]);
+  if(error)return; ACCT.hostSign={}; (data||[]).forEach(r=>ACCT.hostSign[r.week]=r); renderUpcoming(); renderNow();
+}
+function hostNames(){const s=new Set([...PLAYERS.map(p=>p[0]),...Object.keys(hosts)]);return [...s].sort((a,b)=>a.localeCompare(b,undefined,{sensitivity:"base"}))}
+// what shows for a week the sheet has no host for: a sign-up, a sign-up button, or "HOST NEEDED"
+function hostSlot(w,i,label){
+  label=label||"HOST NEEDED";
+  const on=typeof ACCT!=="undefined"&&ACCT&&acctOn(), s=on?ACCT.hostSign[w[0]]:null;
+  if(s){const mine=ACCT.claim&&ACCT.claim.status==="approved"&&s.player===ACCT.claim.player;
+    return `<span class="who" data-name="${esc(s.player)}">${esc(s.player)}</span> <span class="pill signed" data-tip="${esc(s.player)} signed up to host this week. It's added to the schedule once the admin puts it in the sheet.">SIGNED UP</span>${mine||ACCT.admin?` <button type="button" class="hostx" data-hostdrop="${w[0]}" title="${mine?"Withdraw your sign-up":"Remove this sign-up"}">✕</button>`:""}`}
+  if(!on||i>HOST_AHEAD)return `<span class="pill open">${label}</span>`;
+  if(ACCT.admin)return `<span class="pill open hostbtn" data-tip="Sign someone up to host Week ${w[0]}">${label} · SIGN UP<select data-hostpick="${w[0]}" aria-label="Sign someone up to host Week ${w[0]}"><option value="">Sign up a host…</option>${ACCT.claim&&ACCT.claim.status==="approved"?`<option>${esc(ACCT.claim.player)}</option>`:""}${hostNames().map(n=>`<option>${esc(n)}</option>`).join("")}</select></span>`;
+  if(hostVerified())return `<button type="button" class="pill open hostbtn" data-hostsign="${w[0]}" data-tip="Sign up to host Week ${w[0]}">${label} · SIGN UP</button>`;
+  return `<span class="pill open">${label}</span>`;
+}
+async function hostAct(week,player,drop){
+  const w=WEEKS.concat().find(x=>x[0]===week)||weekAt(curIdx+(week-WEEKS[curIdx][0])), when=`Week ${week} (${fmtShort(w[1])})`;
+  if(drop){if(!confirm(`Remove ${ACCT.hostSign[week]?ACCT.hostSign[week].player:"the"} sign-up for ${when}?`))return;
+    const {error}=await ACCT.sb.from("host_signups").delete().eq("week",week); if(error){alert("Couldn't remove it: "+error.message);return}}
+  else{if(!confirm(`Sign ${player===ACCT.claim?.player?"yourself":player} up to host ${when}?`))return;
+    const {error}=await ACCT.sb.from("host_signups").insert({week,player,user_id:ACCT.user.id});
+    if(error){alert(/duplicate|unique/i.test(error.message)?"Someone just signed up for that week.":"Couldn't sign up: "+error.message)}}
+  await hostLoad(); if($("acct").open)acctDraw();
+}
+document.addEventListener("click",e=>{
+  const a=e.target.closest("[data-hostsign]"); if(a&&ACCT.claim){e.stopPropagation();hostAct(+a.dataset.hostsign,ACCT.claim.player);return}
+  const d=e.target.closest("[data-hostdrop]"); if(d){e.stopPropagation();hostAct(+d.dataset.hostdrop,null,true)}
+},true);
+document.addEventListener("change",e=>{const s=e.target.closest("select[data-hostpick]"); if(!s||!s.value)return; const v=s.value; s.value=""; hostAct(+s.dataset.hostpick,v)});
+// the Hosting section in Your account, and Host sign-ups in Admin
+function hostSection(admin){
+  const open=hostOpenWeeks();
+  if(admin){const all=Object.values(ACCT.hostSign).sort((a,b)=>a.week-b.week);
+    return `<div class="adm acctsec hostsec"><h3>Host sign-ups</h3><p>${all.length?"Add these to the schedule sheet. Once the sheet names the host, the sign-up is no longer needed.":"No sign-ups yet."}</p><ul>${all.map(s=>{const w=weekAt(curIdx+(s.week-WEEKS[curIdx][0]));return `<li><span>Week ${s.week} · ${fmtShort(w[1])} · <b>${esc(s.player)}</b>${w[2]?` <small>(sheet: ${esc(w[2])})</small>`:""}</span><button type="button" class="btn ghost" data-hostdrop="${s.week}">Remove</button></li>`}).join("")}</ul>
+      <p>Open weeks:</p><ul>${open.map(([w,i])=>`<li><span>Week ${w[0]} · ${fmtShort(w[1])}</span><span>${hostSlot(w,i)}</span></li>`).join("")||"<li>Every week in the next 8 has a host.</li>"}</ul></div>`}
+  if(!hostVerified())return "";
+  return `<div class="acctsec hostsec"><h3>Hosting</h3><p>Open weeks in the next ${HOST_AHEAD}. Sign up to host one; the admin adds it to the schedule.</p><ul>${open.map(([w,i])=>`<li><span>Week ${w[0]} · ${fmtShort(w[1])}</span><span>${hostSlot(w,i)}</span></li>`).join("")||"<li>Every week in the next 8 has a host.</li>"}</ul></div>`;
+}
 function acctProfile(n){
   return `<div class="acctsec"><h3>Player profile</h3><div id="acct-p"></div></div>${WR.wins[n]?`<div class="acctsec"><h3>Win profile</h3><div id="acct-w"></div></div>`:""}${hosts[n]?`<div class="acctsec"><h3>Host profile</h3><div id="acct-h"></div></div>`:""}`;
 }
@@ -2961,7 +3015,7 @@ async function acctRefresh(){
   const {data:cl}=await ACCT.sb.from("claims").select("user_id,player,status,created_at"); ACCT.claims=cl||[];
   ACCT.claim=ACCT.user?ACCT.claims.find(c=>c.user_id===ACCT.user.id)||null:null;
   ACCT.admin=false; if(ACCT.user){const {data:ad}=await ACCT.sb.from("admins").select("user_id").eq("user_id",ACCT.user.id); ACCT.admin=!!(ad&&ad.length)}
-  acctBtn(); if($("acct").open)acctDraw(); ACCT.songs=null; sbRender();
+  await hostLoad(); acctBtn(); if($("acct").open)acctDraw(); ACCT.songs=null; sbRender();
 }
 function acctDraw(msg,err){
   acctUnmount();
@@ -2977,10 +3031,10 @@ function acctDraw(msg,err){
     const names=PLAYERS.map(p=>p[0]).filter(n=>!taken.has(n)).sort((a,c)=>a.localeCompare(c,undefined,{sensitivity:"base"}));
     h+=`<p>Which player are you? Pick your name to claim your profile. An admin checks each claim before you can rate songs.</p><select id="acctname"><option value="">Choose your player name…</option>${names.map(n=>`<option>${esc(n)}</option>`).join("")}</select><div class="row"><button type="button" class="btn" data-acct="claim">Claim this profile</button></div>`}
   else if(ACCT.claim.status==="pending")h+=`<p>You've claimed <b>${esc(ACCT.claim.player)}</b>. It's waiting for an admin to approve it.</p><div class="row"><button type="button" class="btn ghost" data-acct="unclaim">Withdraw claim</button></div>`;
-  else h+=`<p>Hi <b>${esc(ACCT.claim.player)}</b>! This is your personal stats page. You can head to the Scoreboard and submit your own ratings for any song by clicking its rating number.</p>${acctProfile(ACCT.claim.player)}`;
+  else h+=`<p>Hi <b>${esc(ACCT.claim.player)}</b>! This is your personal stats page. You can head to the Scoreboard and submit your own ratings for any song by clicking its rating number.</p>${hostSection(false)}${acctProfile(ACCT.claim.player)}`;
   if(ACCT.tab!=="admin")h+=`<div class="row"><button type="button" class="btn ghost" data-acct="logout">Log out</button></div>`;
   if(ACCT.admin&&ACCT.tab==="admin"){const pend=ACCT.claims.filter(c=>c.status==="pending"), appr=ACCT.claims.filter(c=>c.status==="approved").sort((a,c)=>a.player.localeCompare(c.player));
-    h+=`<div class="adm acctsec"><h3>Claims</h3><p>${pend.length?"Waiting for approval:":"No claims waiting."}</p><ul>${pend.map(c=>`<li><span>${esc(c.player)} <small>${new Date(c.created_at).toLocaleDateString()}</small></span><span><button type="button" class="btn" data-acct="approve" data-uid="${c.user_id}">Approve</button> <button type="button" class="btn ghost" data-acct="reject" data-uid="${c.user_id}">Reject</button></span></li>`).join("")}</ul>${appr.length?`<p>Approved (${appr.length}):</p><ul>${appr.map(c=>`<li><span>${esc(c.player)}</span><button type="button" class="btn ghost" data-acct="reject" data-uid="${c.user_id}">Remove</button></li>`).join("")}</ul>`:""}</div>`}
+    h+=`<div class="adm acctsec"><h3>Claims</h3><p>${pend.length?"Waiting for approval:":"No claims waiting."}</p><ul>${pend.map(c=>`<li><span>${esc(c.player)} <small>${new Date(c.created_at).toLocaleDateString()}</small></span><span><button type="button" class="btn" data-acct="approve" data-uid="${c.user_id}">Approve</button> <button type="button" class="btn ghost" data-acct="reject" data-uid="${c.user_id}">Reject</button></span></li>`).join("")}</ul>${appr.length?`<p>Approved (${appr.length}):</p><ul>${appr.map(c=>`<li><span>${esc(c.player)}</span><button type="button" class="btn ghost" data-acct="reject" data-uid="${c.user_id}">Remove</button></li>`).join("")}</ul>`:""}</div>${hostSection(true)}`}
   b.innerHTML=h+note;
   if(ACCT.tab!=="admin"&&ACCT.claim&&ACCT.claim.status==="approved")acctMount(ACCT.claim.player);
 }
