@@ -1239,7 +1239,7 @@ footer{color:var(--dim);font-size:.78rem}
   <footer>Data: Rodman’s Rocksmith 2014 Championship Google Sheets (older attendance also from the Championship Metrics workbook). Player stats run through week 675; scoreboards cover weeks 440–676. Weeks 1–16 have no recorded host in the source.
   <span class="updated disclaimer">Unofficial fan project. Not affiliated with Ubisoft or Rocksmith.</span>
   <span class="updated" id="sheetedit-row" hidden>Sheet last edited: <span id="sheetedit" data-iso="2026-10-09T18:08:57.146Z"></span></span>
-  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-10T12:36:56+00:00">October 10, 2026</span></span>
+  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-10T13:15:06+00:00">October 10, 2026</span></span>
   </footer>
 </div>
 <dialog id="acct" class="acctdlg" aria-label="Your profile"><div id="acctbody"></div><button type="button" class="clear acctclose" id="acctclose">Close</button></dialog>
@@ -2407,6 +2407,10 @@ function renderSongs(){
   // merge spelling/case variants of the same band or song under the most common spelling
   const canon=(key)=>{const cnt={};cards.forEach(c=>{const k=c[key].toLowerCase().replace(/^the /,'').replace(/\s+/g,' ').trim();(cnt[k]=cnt[k]||{})[c[key]]=(cnt[k][c[key]]||0)+1});const best={};Object.entries(cnt).forEach(([k,v])=>best[k]=Object.entries(v).sort((a,b)=>b[1]-a[1])[0][0]);cards.forEach(c=>c[key]=best[c[key].toLowerCase().replace(/^the /,'').replace(/\s+/g,' ').trim()])};
   canon('artist'); cards.forEach(c=>c.song=c.artist+' - '+c.title); canon('song');
+  // a God challenge that runs several weeks in a row has one initial rating: the run's most recent week.
+  // The earlier weeks of the run are marked cont and left out of rating counts and averages.
+  {const g=new Set(cards.filter(c=>c.card==="G").map(c=>c.p+"|"+acctSongKey(c.song)+"|"+c.w));
+   cards.forEach(c=>{c.cont=c.card==="G"&&g.has(c.p+"|"+acctSongKey(c.song)+"|"+(c.w+1))});}
   const scored=cards.filter(c=>c.n!=null);
   songCards=cards;
   const by=(key)=>{const m={};cards.forEach(c=>{const k=key(c);(m[k]=m[k]||[]).push(c)});return m};
@@ -2427,9 +2431,9 @@ function renderSongs(){
   // with one host's picks there are too few challenges per band for a minimum, so any rated band counts
   const MINC=sHost?1:5;
   document.querySelectorAll(".minc").forEach(el=>el.textContent=sHost?"any number of challenges":"min 5 challenges");
-  const tough=Object.entries(bands).map(([a,v])=>{const d=v.filter(c=>c.diff!=null);return [a,d.length?d.reduce((s,c)=>s+c.diff,0)/d.length:0,d.length]}).filter(x=>x[2]>=MINC).sort((a,b)=>b[1]-a[1]).slice(0,20).map(([a,d])=>[a,Math.round(d*10)/10]);
+  const tough=Object.entries(bands).map(([a,v])=>{const d=v.filter(c=>c.diff!=null&&!c.cont);return [a,d.length?d.reduce((s,c)=>s+c.diff,0)/d.length:0,d.length]}).filter(x=>x[2]>=MINC).sort((a,b)=>b[1]-a[1]).slice(0,20).map(([a,d])=>[a,Math.round(d*10)/10]);
   $("b-tough").innerHTML=barRows(tough,(n,i)=>"var(--s-red)","",false);
-  const easy=Object.entries(bands).map(([a,v])=>{const d=v.filter(c=>c.diff!=null);return [a,d.length?d.reduce((s,c)=>s+c.diff,0)/d.length:0,d.length]}).filter(x=>x[2]>=MINC).sort((a,b)=>a[1]-b[1]).slice(0,20).map(([a,d])=>[a,Math.round(d*10)/10]);
+  const easy=Object.entries(bands).map(([a,v])=>{const d=v.filter(c=>c.diff!=null&&!c.cont);return [a,d.length?d.reduce((s,c)=>s+c.diff,0)/d.length:0,d.length]}).filter(x=>x[2]>=MINC).sort((a,b)=>a[1]-b[1]).slice(0,20).map(([a,d])=>[a,Math.round(d*10)/10]);
   {const max=Math.max(...easy.map(x=>x[1]));
    $("b-easy").innerHTML=easy.map(([n,x],i)=>`<div class="brow${i<3?" top":""} notag" style="--c:var(--s-green)"><span class="rk">${i+1}</span><span class="nm" data-band="${esc(n)}" title="${esc(n)}">${esc(n)}</span><span class="track"><span class="fill" style="width:${Math.max(2,x/10*100)}%;animation-delay:${i*30}ms"></span></span><span class="val">${x}</span></div>`).join("");}
   // a level pill in either list narrows that list to challenges at that level
@@ -2460,7 +2464,7 @@ function showBand(name){
   if(!list.length){$("bcard").innerHTML=`<div class="empty">No challenges for “${esc(name)}”${sPath<0?"":" on "+PATHS[sPath]}. Pick a band from the list as you type.</div>`;return}
   if(list[0].artist!==bandName){bandPathF=null;bandSong=null;}
   name=list[0].artist; bandName=name; $("bq").value=name;
-  const rated=list.filter(c=>c.diff!=null&&c.diff>0), avg=rated.length?rated.reduce((a,c)=>a+c.diff,0)/rated.length:null;
+  const rated=list.filter(c=>c.diff!=null&&c.diff>0&&!c.cont), avg=rated.length?rated.reduce((a,c)=>a+c.diff,0)/rated.length:null;
   const scores=list.reduce((a,c)=>a+(c.n||0),0);
   if(bandPathF!=null&&!list.some(c=>c.p===bandPathF))bandPathF=null;
   if(bandSong&&!list.some(c=>c.title.toLowerCase()===bandSong.toLowerCase()))bandSong=null;
@@ -2488,7 +2492,7 @@ function showBand(name){
       </div>
     </div>
     <div style="min-width:0"><div class="bandscroll"><table class="bandtbl"><thead><tr><th>Song</th><th>Levels</th><th>Paths</th><th class="r">Ratings</th><th class="r" data-tip="How many challenges used this song. Each path counts separately, so one week on Lead, Rhythm and Bass is 3." style="cursor:help;text-decoration:underline dotted">Challenges</th><th class="r" data-tip="Latest first" style="cursor:help">Weeks</th></tr></thead><tbody>${
-      songsArr.map(([ti,v])=>{const lv=[...new Set(v.map(c=>c.t))].sort((a,b)=>TIER_ORDER.indexOf(a)-TIER_ORDER.indexOf(b));const ps=[...new Set(v.map(c=>c.p))].sort();const r=[...new Set(v.map(c=>c.diff).filter(d=>d!=null&&d>0))].sort((a,b)=>a-b);const ws=[...new Set(v.map(c=>c.w))].sort((a,b)=>b-a);
+      songsArr.map(([ti,v])=>{const lv=[...new Set(v.map(c=>c.t))].sort((a,b)=>TIER_ORDER.indexOf(a)-TIER_ORDER.indexOf(b));const ps=[...new Set(v.map(c=>c.p))].sort();const r=[...new Set(v.filter(c=>!c.cont).map(c=>c.diff).filter(d=>d!=null&&d>0))].sort((a,b)=>a-b);const ws=[...new Set(v.map(c=>c.w))].sort((a,b)=>b-a);
         return `<tr><td><b>${esc(ti)}</b>${songRateBox(v)}${songPill(name+" - "+ti,IG_LATEST(name+" - "+ti))}</td><td><div class="chips">${lv.map(t=>`<span class="lvchip lvclick" data-btier="${t}" style="--tc:${TIER_COL[t]}" title="Show only ${TIER_LABEL[t]} songs">${TIER_LABEL[t]}</span>`).join("")}</div></td><td><div class="pstack">${ps.map(p=>`<span class="pth lvclick${bandPathF===p?" sel":""}" data-bpath="${p}" style="--pc:${PATH_C[p]}" title="Show only ${PATHS[p]} songs">${PATHS[p]}</span>`).join("")}</div></td><td class="r"><div class="pstack rt">${ps.map(p=>{const rr=[...new Set(v.filter(c=>c.p===p).map(c=>c.diff).filter(d=>d!=null&&d>0))].sort((a,b)=>a-b);return `<span>${rr.join(" / ")||"–"}</span>`}).join("")}</div></td><td class="r num">${v.length}</td><td class="r wks">${ws.map(w=>SB.weeks[w]?`<span data-sbw="${w}" title="Open Week ${w} on the Scoreboard">${w}</span>`:w).join(", ")}</td></tr>`}).join("")
     }${songsArr.length?"":`<tr><td colspan="6" class="dimtxt" style="padding:14px 0">No ${TIER_LABEL[bandTier]||""} challenges for ${esc(name)}. <button type="button" class="clear" data-btier="">Show all levels</button></td></tr>`}</tbody></table></div></div></div>`;
 }
@@ -3051,7 +3055,9 @@ function hostRatingsOf(p,song){
   const k=acctSongKey(song), out=[];
   Object.entries(SB.weeks).forEach(([w,ch])=>ch.forEach(c=>{if(c[0]===p&&c[3]&&acctSongKey(c[3])===k)out.push({w:+w,t:tierOf(c[2]),d:c[4]})}));
   SONGS_OLD.forEach(([w,pp,tt,b,s,d])=>{if(pp===p&&s&&acctSongKey(s)===k)out.push({w,t:tt,d})});
-  return out.sort((a,b)=>b.w-a.w);
+  // a multi-week God run counts once, with the initial rating of its most recent week
+  const god=new Set(out.filter(x=>x.t==="G").map(x=>x.w));
+  return out.filter(x=>!(x.t==="G"&&god.has(x.w+1))).sort((a,b)=>b.w-a.w);
 }
 // the rating dropdown laid invisibly over a rating badge, so clicking the number opens the list.
 // A player has one rating per song per path; it's stored against the song's latest challenge on that path.
@@ -3109,13 +3115,15 @@ function songRateBox(cards){
   const can=acctOn()&&acctCanRate();
   return [0,1,2].map(p=>{
     const pc=cards.filter(c=>c.p===p).sort((a,b)=>b.w-a.w); if(!pc.length)return "";
-    const hostR=pc.map(c=>c.diff).filter(d=>d!=null&&d>0);
+    const hostR=pc.filter(c=>!c.cont).map(c=>c.diff).filter(d=>d!=null&&d>0);
     const list=acctOn()?songVotes(p,pc[0].song):[], all=list.map(v=>v.r);
     if(!all.length&&!hostR.length&&!can)return "";
     const mine=can?list.find(v=>v.p===ACCT.claim.player):null;
     const val=all.length?avg(all):hostR.length?avg(hostR):"–";
-    const lines=pc.map(c=>`• Week ${c.w} · ${TIER_LABEL[c.card]||""}: ${c.diff!=null?c.diff:"–"}`);
-    const tipTxt=`${PATHS[p]}\n`+(hostR.length?`Initial host rating${pc.length>1?"s":""}:\n`+lines.slice(0,12).join("\n")+(lines.length>12?`\n… and ${lines.length-12} more`:""):"No host rating")
+    const lines=pc.filter(c=>!c.cont).map(c=>{let st=c.w; if(c.card==="G")while(pc.some(x=>x.card==="G"&&x.w===st-1))st--;
+      const wk=st<c.w?`Weeks ${st}–${c.w}`:`Week ${c.w}`;
+      return `• ${wk} · ${TIER_LABEL[c.card]||""}: ${c.diff!=null?c.diff:"–"}`});
+    const tipTxt=`${PATHS[p]}\n`+(hostR.length?`Initial host rating${lines.length>1?"s":""}:\n`+lines.slice(0,12).join("\n")+(lines.length>12?`\n… and ${lines.length-12} more`:""):"No host rating")
       +(all.length?`\n\nPlayers' average: ${avg(all)} from ${all.length} rating${all.length===1?"":"s"}\n`+list.map(v=>`• ${v.p}: ${v.r}`).join("\n"):"\n\nNo player ratings yet")
       +(can?(mine?`\n\nYour rating: ${mine.r} · click to change`:"\n\nClick to give your rating"):"");
     return `<span class="srate${all.length?" upd":""}${can?" canrate":""}${mine?" mine":""}" style="--pc:${PATH_C[p]}" data-tip="${esc(tipTxt)}">${val}${can?rateSelect(p,pc[0].song,mine):""}</span>`;
