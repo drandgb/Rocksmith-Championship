@@ -333,6 +333,7 @@ a.dl svg,.offpill svg{width:11px;height:11px}
 .acctclose{margin-top:12px}
 .acctdlg{width:min(980px,calc(100vw - 24px))}
 .acctdlg .acctsec{margin-top:16px;border-top:1px solid var(--line);padding-top:12px}
+.acctdlg .adm.acctsec{border-top:0;margin-top:0;padding-top:2px}
 .acctdlg .acctsec>h3{font:700 .8rem var(--f-display);letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin:0 0 10px}
 .acctdlg .acctmedals .ms{font:700 .72rem var(--f-display);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:10px 0 6px}
 .acctdlg .acctmedals .medals{display:flex;flex-wrap:wrap;gap:6px 10px;margin-bottom:8px}
@@ -2906,7 +2907,7 @@ function acctDraw(msg,err){
   const pendN=ACCT.admin?ACCT.claims.filter(c=>c.status==="pending").length:0;
   if(!ACCT.admin)ACCT.tab="me";
   // tabs: Your account, and (for admins) Admin · claims with a badge for claims waiting
-  const tabs=ACCT.admin?`<div class="accttabs" role="tablist"><button type="button" role="tab" data-accttab="me" aria-selected="${ACCT.tab!=="admin"}">Your account</button><button type="button" role="tab" data-accttab="admin" aria-selected="${ACCT.tab==="admin"}">Admin · claims${pendN?`<span class="nbadge" title="${pendN} claim${pendN===1?"":"s"} waiting for approval">${pendN}</span>`:""}</button></div>`:"";
+  const tabs=ACCT.admin?`<div class="accttabs" role="tablist"><button type="button" role="tab" data-accttab="me" aria-selected="${ACCT.tab!=="admin"}">Your account</button><button type="button" role="tab" data-accttab="admin" aria-selected="${ACCT.tab==="admin"}">Admin${pendN?`<span class="nbadge" title="${pendN} claim${pendN===1?"":"s"} waiting for approval">${pendN}</span>`:""}</button></div>`:"";
   let h=tabs+(ACCT.tab==="admin"?"":`${tabs?"":"<h3>Your account</h3>"}<p>Logged in as ${esc(ACCT.user.email||"")}</p>`);
   if(ACCT.tab==="admin"){}
   else if(!ACCT.claim){const taken=new Set(ACCT.claims.map(c=>c.player));
@@ -2916,7 +2917,7 @@ function acctDraw(msg,err){
   else h+=`<p>Hi <b>${esc(ACCT.claim.player)}</b>! This is your personal stats page. You can head to the Scoreboard and submit your own ratings for any song you've played by clicking its rating number.</p>${acctProfile(ACCT.claim.player)}`;
   if(ACCT.tab!=="admin")h+=`<div class="row"><button type="button" class="btn ghost" data-acct="logout">Log out</button></div>`;
   if(ACCT.admin&&ACCT.tab==="admin"){const pend=ACCT.claims.filter(c=>c.status==="pending"), appr=ACCT.claims.filter(c=>c.status==="approved").sort((a,c)=>a.player.localeCompare(c.player));
-    h+=`<div class="adm"><p>${pend.length?"Waiting for approval:":"No claims waiting."}</p><ul>${pend.map(c=>`<li><span>${esc(c.player)} <small>${new Date(c.created_at).toLocaleDateString()}</small></span><span><button type="button" class="btn" data-acct="approve" data-uid="${c.user_id}">Approve</button> <button type="button" class="btn ghost" data-acct="reject" data-uid="${c.user_id}">Reject</button></span></li>`).join("")}</ul>${appr.length?`<p>Approved (${appr.length}):</p><ul>${appr.map(c=>`<li><span>${esc(c.player)}</span><button type="button" class="btn ghost" data-acct="reject" data-uid="${c.user_id}">Remove</button></li>`).join("")}</ul>`:""}</div>`}
+    h+=`<div class="adm acctsec"><h3>Claims</h3><p>${pend.length?"Waiting for approval:":"No claims waiting."}</p><ul>${pend.map(c=>`<li><span>${esc(c.player)} <small>${new Date(c.created_at).toLocaleDateString()}</small></span><span><button type="button" class="btn" data-acct="approve" data-uid="${c.user_id}">Approve</button> <button type="button" class="btn ghost" data-acct="reject" data-uid="${c.user_id}">Reject</button></span></li>`).join("")}</ul>${appr.length?`<p>Approved (${appr.length}):</p><ul>${appr.map(c=>`<li><span>${esc(c.player)}</span><button type="button" class="btn ghost" data-acct="reject" data-uid="${c.user_id}">Remove</button></li>`).join("")}</ul>`:""}</div>`}
   b.innerHTML=h+note;
   if(ACCT.tab!=="admin"&&ACCT.claim&&ACCT.claim.status==="approved")acctMount(ACCT.claim.player);
 }
