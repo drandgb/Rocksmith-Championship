@@ -2338,6 +2338,9 @@ const IG_LATEST=(()=>{const m={}, norm=s=>String(s).toLowerCase().replace(/\s+/g
 const splitSong=t=>{const i=t.indexOf(" - ");return i>0?[t.slice(0,i).trim(),t.slice(i+3).trim()]:["Unknown",t.trim()]};
 let sHost=null; // Songs: only the weeks this host hosted (their song picks)
 let sPath=-1, songCards=[], bandName=null, bandTier=null, bandPathF=null, bandSong=null, lvlPlayed=null, lvlReplay=null;
+// one level filter for the whole Songs page: Most played, Most replayed and Band lookup always share it
+function setSongLv(t){lvlPlayed=lvlReplay=bandTier=t||null}
+function songLvToggle(t){setSongLv(t&&lvlPlayed!==t?t:null); renderSongs(); if(typeof updateBubble==="function")updateBubble()}
 function renderSongs(){
   TIER_LABEL.G=sPath<0?"God tier":["God of Guitar","God of Rhythm","God of Bass"][sPath];
   document.querySelectorAll("#spath button").forEach(b=>b.setAttribute("aria-pressed",+b.dataset.sp===sPath));
@@ -2409,11 +2412,10 @@ function renderSongs(){
 function showBand(name){
   const list=songCards.filter(c=>c.artist.toLowerCase()===String(name).toLowerCase());
   if(!list.length){$("bcard").innerHTML=`<div class="empty">No challenges for “${esc(name)}”${sPath<0?"":" on "+PATHS[sPath]}. Pick a band from the list as you type.</div>`;return}
-  if(list[0].artist!==bandName){bandTier=null;bandPathF=null;bandSong=null;}
+  if(list[0].artist!==bandName){bandPathF=null;bandSong=null;}
   name=list[0].artist; bandName=name; $("bq").value=name;
   const rated=list.filter(c=>c.diff!=null&&c.diff>0), avg=rated.length?rated.reduce((a,c)=>a+c.diff,0)/rated.length:null;
   const scores=list.reduce((a,c)=>a+(c.n||0),0);
-  if(bandTier&&!list.some(c=>c.t===bandTier))bandTier=null;
   if(bandPathF!=null&&!list.some(c=>c.p===bandPathF))bandPathF=null;
   if(bandSong&&!list.some(c=>c.title.toLowerCase()===bandSong.toLowerCase()))bandSong=null;
   const shown=list.filter(c=>(!bandTier||c.t===bandTier)&&(bandPathF==null||c.p===bandPathF)&&(!bandSong||c.title.toLowerCase()===bandSong.toLowerCase()));
@@ -2442,12 +2444,12 @@ function showBand(name){
     <div style="min-width:0"><div class="bandscroll"><table class="bandtbl"><thead><tr><th>Song</th><th>Levels</th><th>Paths</th><th class="r">Ratings</th><th class="r" data-tip="How many challenges used this song. Each path counts separately, so one week on Lead, Rhythm and Bass is 3." style="cursor:help;text-decoration:underline dotted">Challenges</th><th class="r" data-tip="Latest first" style="cursor:help">Weeks</th></tr></thead><tbody>${
       songsArr.map(([ti,v])=>{const lv=[...new Set(v.map(c=>c.t))].sort((a,b)=>TIER_ORDER.indexOf(a)-TIER_ORDER.indexOf(b));const ps=[...new Set(v.map(c=>c.p))].sort();const r=[...new Set(v.map(c=>c.diff).filter(d=>d!=null&&d>0))].sort((a,b)=>a-b);const ws=[...new Set(v.map(c=>c.w))].sort((a,b)=>b-a);
         return `<tr><td><b>${esc(ti)}</b>${songRateBox(v)}${songPill(name+" - "+ti,IG_LATEST(name+" - "+ti))}</td><td><div class="chips">${lv.map(t=>`<span class="lvchip lvclick" data-btier="${t}" style="--tc:${TIER_COL[t]}" title="Show only ${TIER_LABEL[t]} songs">${TIER_LABEL[t]}</span>`).join("")}</div></td><td><div class="pstack">${ps.map(p=>`<span class="pth lvclick${bandPathF===p?" sel":""}" data-bpath="${p}" style="--pc:${PATH_C[p]}" title="Show only ${PATHS[p]} songs">${PATHS[p]}</span>`).join("")}</div></td><td class="r"><div class="pstack rt">${ps.map(p=>{const rr=[...new Set(v.filter(c=>c.p===p).map(c=>c.diff).filter(d=>d!=null&&d>0))].sort((a,b)=>a-b);return `<span>${rr.join(" / ")||"–"}</span>`}).join("")}</div></td><td class="r num">${v.length}</td><td class="r wks">${ws.map(w=>SB.weeks[w]?`<span data-sbw="${w}" title="Open Week ${w} on the Scoreboard">${w}</span>`:w).join(", ")}</td></tr>`}).join("")
-    }</tbody></table></div></div></div>`;
+    }${songsArr.length?"":`<tr><td colspan="6" class="dimtxt" style="padding:14px 0">No ${TIER_LABEL[bandTier]||""} challenges for ${esc(name)}. <button type="button" class="clear" data-btier="">Show all levels</button></td></tr>`}</tbody></table></div></div></div>`;
 }
 $("bq").addEventListener("change",e=>showBand(e.target.value.trim()));
-$("bcard").addEventListener("click",e=>{const bs=e.target.closest("[data-bsong]");if(bs){e.stopPropagation();bandSong=null;showBand(bandName);return}const bp=e.target.closest("[data-bpath]");if(bp){e.stopPropagation();const p=bp.dataset.bpath===""?null:+bp.dataset.bpath;bandPathF=(p!=null&&bandPathF!==p)?p:null;if(bp.dataset.bpath===""&&sPath>=0){sPath=-1;renderSongs()}else showBand(bandName);return}const b=e.target.closest("[data-btier]");if(!b)return;e.stopPropagation();const t=b.dataset.btier||null;bandTier=(t&&bandTier!==t)?t:null;showBand(bandName)});
+$("bcard").addEventListener("click",e=>{const bs=e.target.closest("[data-bsong]");if(bs){e.stopPropagation();bandSong=null;showBand(bandName);return}const bp=e.target.closest("[data-bpath]");if(bp){e.stopPropagation();const p=bp.dataset.bpath===""?null:+bp.dataset.bpath;bandPathF=(p!=null&&bandPathF!==p)?p:null;if(bp.dataset.bpath===""&&sPath>=0){sPath=-1;renderSongs()}else showBand(bandName);return}const b=e.target.closest("[data-btier]");if(!b)return;e.stopPropagation();songLvToggle(b.dataset.btier||null)});
 $("bq").addEventListener("keydown",e=>{if(e.key==="Enter")showBand(e.target.value.trim())});
-$("view-songs").addEventListener("click",e=>{const el=e.target.closest("[data-band],[data-player]");if(!el)return;showBand(el.dataset.band||el.dataset.player);if(el.dataset.song){bandSong=el.dataset.song;bandTier=null;bandPathF=null;showBand(bandName)}if(el.dataset.ltier){bandTier=el.dataset.ltier;bandPathF=null;showBand(bandName)}$("bcard").closest("section").scrollIntoView({behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth",block:"start"})});
+$("view-songs").addEventListener("click",e=>{const el=e.target.closest("[data-band],[data-player]");if(!el)return;showBand(el.dataset.band||el.dataset.player);if(el.dataset.song){bandSong=el.dataset.song;bandPathF=null;showBand(bandName)}if(el.dataset.ltier){bandPathF=null;setSongLv(el.dataset.ltier);renderSongs();showBand(bandName)}$("bcard").closest("section").scrollIntoView({behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth",block:"start"})});
 $("spath").addEventListener("click",e=>{const b=e.target.closest("button[data-sp]");if(b){sPath=+b.dataset.sp;renderSongs()}});
 try{const r=localStorage.getItem("rsc-spath");if(r!==null&&["0","1","2"].includes(r))sPath=+r}catch(e){}
 renderSongs();
@@ -2472,9 +2474,7 @@ function activeFilters(){
   }
   if(v==="songs"){
     if(sPath>=0)f.push([`Path: ${PATHS[sPath]}`,()=>document.querySelector('#spath [data-sp="-1"]').click()]);
-    if(bandName&&bandTier)f.push([`Band lookup: ${TIER_LABEL[bandTier]||bandTier}`,()=>{bandTier=null;showBand(bandName)}]);
-    if(lvlPlayed)f.push([`Most played: ${TIER_LABEL[lvlPlayed]}`,()=>{lvlPlayed=null;renderSongs()}]);
-    if(lvlReplay)f.push([`Most replayed: ${TIER_LABEL[lvlReplay]}`,()=>{lvlReplay=null;renderSongs()}]);
+    if(lvlPlayed)f.push([`Level: ${TIER_LABEL[lvlPlayed]||lvlPlayed}`,()=>songLvToggle(null)]);
     if(bandName&&bandSong)f.push([`Band lookup: ${bandSong}`,()=>{bandSong=null;showBand(bandName)}]);
     if(bandName&&bandPathF!=null)f.push([`Band lookup: ${PATHS[bandPathF]}`,()=>{bandPathF=null;showBand(bandName)}]);
   }
@@ -2688,7 +2688,7 @@ $("view-scores").addEventListener("click",e=>{
   tip.hidden=true; showView("songs");
   if(!m){$("bq").value=g.dataset.goband;$("bcard").innerHTML=`<div class="empty">“${esc(g.dataset.goband)}” isn't in the song list yet.</div>`;$("bcard").closest("section").scrollIntoView({block:"start"});return}
   showBand(m.band);
-  bandTier=null; bandPathF=null; bandSong=m.song; showBand(bandName);
+  if(lvlPlayed){setSongLv(null);renderSongs()} bandPathF=null; bandSong=m.song; showBand(bandName);
   $("bcard").closest("section").scrollIntoView({block:"start"});
 });
 
@@ -2790,9 +2790,7 @@ $("refreshbtn").addEventListener("click",async()=>{
 // ---------- level pills in Most played / Most replayed songs filter that list ----------
 ["sl-f","rl-f","songlist","replaylist"].forEach(id=>$(id).addEventListener("click",e=>{
   const b=e.target.closest("[data-lvp],[data-lvr]"); if(!b)return; e.stopPropagation(); tip.hidden=true;
-  if(b.dataset.lvp!=null){const t=b.dataset.lvp||null; lvlPlayed=(t&&lvlPlayed!==t)?t:null}
-  else {const t=b.dataset.lvr||null; lvlReplay=(t&&lvlReplay!==t)?t:null}
-  renderSongs(); updateBubble();
+  songLvToggle((b.dataset.lvp!=null?b.dataset.lvp:b.dataset.lvr)||null);
 }));
 
 // ---------- This Week: who's back, who's new, anniversaries, new medals, streaks in danger and rivals ----------
