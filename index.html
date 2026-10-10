@@ -1169,7 +1169,7 @@ footer{color:var(--dim);font-size:.78rem}
   <footer>Data: Rodman’s Rocksmith 2014 Championship Google Sheets (older attendance also from the Championship Metrics workbook). Player stats run through week 675; scoreboards cover weeks 440–676. Weeks 1–16 have no recorded host in the source.
   <span class="updated disclaimer">Unofficial fan project. Not affiliated with Ubisoft or Rocksmith.</span>
   <span class="updated" id="sheetedit-row" hidden>Sheet last edited: <span id="sheetedit" data-iso="2026-10-09T18:08:57.146Z"></span></span>
-  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-10T01:58:11+00:00">October 9, 2026</span></span>
+  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-10T02:00:21+00:00">October 9, 2026</span></span>
   </footer>
 </div>
 <dialog id="acct" class="acctdlg" aria-label="Your account"><div id="acctbody"></div><button type="button" class="clear acctclose" id="acctclose">Close</button></dialog>
@@ -2753,6 +2753,15 @@ function twMedals(n,w,live){
 // and then vanish when someone has already signed up.
 const HOST_WAIT=/(^|\.)github\.io$|^localhost$|^127\.0\.0\.1$/.test(location.hostname);
 let hostReady=!HOST_WAIT; if(HOST_WAIT)setTimeout(()=>{if(!hostReady){hostReady=true;renderHostWarn()}},6000);
+// what the banner tells someone who can't sign up yet
+function hostWarnHelp(){
+  const on=typeof ACCT!=="undefined"&&ACCT&&acctOn();
+  if(!on)return "Want to host? Message Rodman.";
+  if(!ACCT.user)return "Hosted before? Log in and claim your player profile; once an admin approves it, you can sign up here. First time hosting? Message Rodman.";
+  if(!ACCT.claim)return "Hosted before? Claim your player profile from the 👤 Account button; once an admin approves it, you can sign up here. First time hosting? Message Rodman.";
+  if(ACCT.claim.status!=="approved")return "Your profile claim is waiting for admin approval. Once it's approved you can sign up here.";
+  return "Want to host? Message Rodman.";
+}
 function renderHostWarn(){
   const el=$("twwarn"); if(!el)return; const w=weekAt(curIdx+1);
   if(!hostReady){el.hidden=true;return}
@@ -2760,7 +2769,7 @@ function renderHostWarn(){
   if(w[2]||signed){el.hidden=true;return}
   el.hidden=false;
   const act=hostSlot(w,1,"HOST NEEDED"), can=/data-host(sign|pick)/.test(act);
-  el.innerHTML=`<span class="ic">⚠</span><div><b>Host still needed for next week!</b><small>Week ${w[0]} starts ${fmt(w[1])} and nobody has signed up to host it yet.${can?"":typeof ACCT!=="undefined"&&ACCT&&acctOn()&&!ACCT.user?" Hosted before? Log in to sign up, or message Rodman.":" Want to host? Message Rodman."}</small></div>${can?act.replace(/HOST NEEDED · SIGN UP/,"SIGN UP TO HOST"):""}`;
+  el.innerHTML=`<span class="ic">⚠</span><div><b>Host still needed for next week!</b><small>Week ${w[0]} starts ${fmt(w[1])} and nobody has signed up to host it yet.${can?"":" "+hostWarnHelp()}</small></div>${can?act.replace(/HOST NEEDED · SIGN UP/,"SIGN UP TO HOST"):""}`;
 }
 function renderThisWeek(){
   renderHostWarn();
