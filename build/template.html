@@ -358,6 +358,24 @@ a.dl svg,.offpill svg{width:11px;height:11px}
 .acctdlg{width:min(980px,calc(100vw - 24px))}
 .acctdlg .acctsec{margin-top:16px;border-top:1px solid var(--line);padding-top:12px}
 .acctdlg .adm.acctsec{border-top:0;margin-top:0;padding-top:2px}
+.acctdlg .acctsec>h3 small{font:400 .72rem var(--f-body);letter-spacing:0;text-transform:none;color:var(--muted);margin-left:8px}
+.acctdlg .dim{color:var(--muted);font-size:.85rem}
+.alist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.alist li{display:flex;align-items:center;gap:6px 10px;flex-wrap:wrap;padding:7px 10px;background:var(--panel2);border-radius:8px;border-left:3px solid var(--pc)}
+.alist .apath{font:700 .72rem var(--f-display);letter-spacing:.08em;text-transform:uppercase;color:var(--pc);min-width:4.2em}
+.alist .lvchip{font:700 .66rem var(--f-mono);padding:1px 6px;border-radius:4px;color:#10131a;background:var(--tc,var(--muted))}
+.alist .asong{flex:1 1 10em;min-width:0;cursor:pointer;font-weight:600}
+.alist .asong:hover{text-decoration:underline}
+.alist .aplace,.alist .arank{font:700 .9rem var(--f-display);margin-left:auto;white-space:nowrap}
+.alist .arank{margin-left:0}
+.alist .arank.p1{color:#f5c84a}.alist .arank.p2{color:#c9d0dc}.alist .arank.p3{color:#d8925a}
+.alist small{font:400 .72rem var(--f-body);color:var(--muted)}
+.alist .apct,.alist .apts{font-family:var(--f-mono);font-size:.85rem;min-width:4.5em;text-align:right}
+.alist .apts{margin-left:auto}
+.alist .chg{font-family:var(--f-mono);font-size:.78rem;min-width:2.5em;text-align:right;color:var(--muted)}
+.alist .chg.up{color:var(--s-green)}.alist .chg.down{color:var(--s-red)}.alist .chg.new{color:var(--accent)}
+.acctriv .twpath{margin-bottom:10px}
+.acctriv .twpath h3{font:700 .72rem var(--f-display);letter-spacing:.08em;text-transform:uppercase;color:var(--pc);margin:0 0 6px}
 .acctdlg .acctsec>h3{font:700 .8rem var(--f-display);letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin:0 0 10px}
 .acctdlg .acctmedals .ms{font:700 .72rem var(--f-display);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:10px 0 6px}
 .acctdlg .acctmedals .medals{display:flex;flex-wrap:wrap;gap:6px 10px;margin-bottom:8px}
@@ -2610,6 +2628,7 @@ if(matchMedia("(hover: hover)").matches){
 document.addEventListener("click",e=>{
   const c=e.target.closest("[data-sbw]"); if(!c)return;
   const w=+c.dataset.sbw; if(!SB.weeks[w])return;
+  {const d=document.getElementById("acct"); if(d&&d.open&&d.contains(c))d.close();}
   e.stopPropagation(); tip.hidden=true;
   sbWeek=w; if(c.dataset.sbp!=null)sbPath=+c.dataset.sbp;
   if(c.dataset.sbn){sbFind=c.dataset.sbn;$("sbfind").value=sbFind}
@@ -2636,6 +2655,7 @@ $("view-scores").addEventListener("click",e=>{
 // ---------- links between Player, Winner and Host lookup ----------
 document.addEventListener("click",e=>{
   const b=e.target.closest("[data-goplayer],[data-gowin],[data-gohost]"); if(!b)return;
+  {const d=document.getElementById("acct"); if(d&&d.open&&d.contains(b)&&b.closest("#acct-tw"))d.close();}
   e.stopPropagation(); tip.hidden=true; mcard.hidden=true;
   if(b.dataset.goplayer){const n=b.dataset.goplayer;showView("players");showPlayer(n);$("pcard").closest("section").scrollIntoView({block:"start"})}
   else if(b.dataset.gowin){const n=b.dataset.gowin;wPicked=true;showView("winners");showWinner(n);markHot();$("wcard").closest("section").scrollIntoView({block:"start"})}
@@ -3095,6 +3115,29 @@ function hostSection(admin){
 const VERIFY_EMOJI={"Aardvark": "🐜", "Alpaca": "🦙", "Armadillo": "🦔", "Axolotl": "🦎", "Badger": "🦡", "Bat": "🦇", "Bear": "🐻", "Beaver": "🦫", "Bee": "🐝", "Bison": "🦬", "Boar": "🐗", "Butterfly": "🦋", "Camel": "🐫", "Cat": "🐈", "Chameleon": "🦎", "Cheetah": "🐆", "Chicken": "🐔", "Chipmunk": "🐿️", "Cow": "🐄", "Crab": "🦀", "Crocodile": "🐊", "Deer": "🦌", "Dodo": "🦤", "Dog": "🐕", "Dolphin": "🐬", "Donkey": "🫏", "Dove": "🕊️", "Dragon": "🐉", "Duck": "🦆", "Eagle": "🦅", "Elephant": "🐘", "Flamingo": "🦩", "Fox": "🦊", "Frog": "🐸", "Giraffe": "🦒", "Goat": "🐐", "Gorilla": "🦍", "Hamster": "🐹", "Hedgehog": "🦔", "Hippo": "🦛", "Horse": "🐎", "Hummingbird": "🐦", "Jellyfish": "🪼", "Kangaroo": "🦘", "Koala": "🐨", "Ladybug": "🐞", "Leopard": "🐆", "Lion": "🦁", "Lizard": "🦎", "Llama": "🦙", "Lobster": "🦞", "Mammoth": "🦣", "Monkey": "🐒", "Moose": "🫎", "Mouse": "🐁", "Octopus": "🐙", "Orangutan": "🦧", "Otter": "🦦", "Owl": "🦉", "Ox": "🐂", "Panda": "🐼", "Parrot": "🦜", "Peacock": "🦚", "Penguin": "🐧", "Pig": "🐖", "Poodle": "🐩", "Rabbit": "🐇", "Raccoon": "🦝", "Ram": "🐏", "Rhino": "🦏", "Rooster": "🐓", "Scorpion": "🦂", "Seal": "🦭", "Shark": "🦈", "Sheep": "🐑", "Shrimp": "🦐", "Skunk": "🦨", "Sloth": "🦥", "Snail": "🐌", "Snake": "🐍", "Spider": "🕷️", "Squid": "🦑", "Swan": "🦢", "Tiger": "🐅", "Turkey": "🦃", "Turtle": "🐢", "T-Rex": "🦖", "Unicorn": "🦄", "Whale": "🐋", "Wolf": "🐺", "Zebra": "🦓"};
 function animalTag(a){if(!a)return "";const base=a.replace(/ \d+$/,"");return `<span class="animal" data-tip="Verification animal">${VERIFY_EMOJI[base]||"🐾"} ${esc(a)}</span>`}
 function animalNote(){return ACCT.animal?`<p class="animalnote">Your verification animal is ${animalTag(ACCT.animal)}. Keep it to yourself: if an admin needs to check that this account (or a host sign-up) is really yours, they'll ask you for it.</p>`:""}
+// Your account: this week's scoreboard places, rivals and Rodman's Rankings positions for the player
+function acctThisWeek(n){
+  const w=TW_MAX, key=n.toLowerCase(), cards=SB.weeks[w]||[];
+  // scoreboard: every challenge they've posted on this week, with their place on the card
+  const sb=[]; cards.forEach(c=>{let place=0; c[6].forEach((e,i)=>{const elig=e[4]>=0; if(elig)place++;
+    if(SB.names[e[0]].replace(/[*~]+$/,"").toLowerCase()!==key)return;
+    const L=cardLv(c[2]), pl=elig&&place<=3?["🥇","🥈","🥉"][place-1]:"";
+    sb.push(`<li style="--pc:${PATH_C[c[0]]}"><span class="apath">${PATHS[c[0]]}</span>${L?`<span class="lvchip" style="--tc:${L==="G"?"var(--s-red)":TIER_C[L]}">${L==="G"?esc(c[2]):TIER_NAME[L]}</span>`:`<span class="lvchip">${esc(c[2])}</span>`}<span class="asong" data-sbw="${w}" data-sbp="${c[0]}" data-sbn="${esc(n)}" title="Open this challenge on the Scoreboard">${esc(c[3])}</span><span class="aplace">${pl}#${i+1}<small> of ${c[6].length}</small></span><span class="apct">${e[1]!=null?e[1]+"%":"–"}</span></li>`)})});
+  // rivals: the This Week page's rival boxes that include them (all levels), copied over
+  let riv="";
+  if(cards.length){const saveW=twWeek, saveLv=twRivLv.slice(); twWeek=w; twRivLv.fill(""); renderThisWeek();
+    riv=[...document.querySelectorAll("#tw-riv .twpath")].map(pp=>{const lis=[...pp.querySelectorAll("li.riv")].filter(li=>[...li.querySelectorAll("[data-name]")].some(x=>x.dataset.name.toLowerCase()===key));
+      if(!lis.length)return ""; const h=pp.querySelector("h3").firstChild.textContent;
+      return `<div class="twpath" style="${pp.getAttribute("style")}"><h3>${esc(h)}</h3><ul class="twl">${lis.map(li=>{const c=li.cloneNode(true);c.querySelectorAll(".lvbox").forEach(b=>{const s=document.createElement("span");s.className="lvbox";s.style.cssText=b.style.cssText;s.textContent=b.textContent;b.replaceWith(s)});return c.outerHTML}).join("")}</ul></div>`}).join("");
+    twWeek=saveW; twRivLv.splice(0,3,...saveLv); renderThisWeek();}
+  // Rodman's Rankings: every path and level they're ranked in
+  const rk=[]; (RK.paths||[]).forEach(pp=>{const pi=PATHS.indexOf(pp.path); pp.levels.forEach(l=>l.rows.forEach(([r,nm,pts,ch])=>{if(String(nm).toLowerCase()!==key||ch==="Out")return;
+    const LT={Beginner:"B",Intermediate:"I",Advanced:"A",Masterclass:"M"}[l.level], cc=/↑/.test(ch)?"up":/↓/.test(ch)?"down":/new/i.test(ch)?"new":"";
+    rk.push(`<li style="--pc:${PATH_C[pi]}"><span class="apath">${esc(pp.path)}</span><span class="lvchip" style="--tc:${TIER_C[LT]||"var(--fg)"}">${esc(l.level)}</span><span class="arank${r==="1"?" p1":r==="2"?" p2":r==="3"?" p3":""}">#${esc(r)}<small> of ${l.rows.filter(x=>x[3]!=="Out").length}</small></span><span class="apts">${esc(pts)} pts</span><span class="chg ${cc}">${esc(ch)}</span></li>`)}))});
+  return `<div class="acctsec"><h3>This week's scoreboard <small>Week ${w}</small></h3>${sb.length?`<ul class="alist">${sb.join("")}</ul>`:`<p class="dim">No scores posted this week yet.</p>`}</div>
+    <div class="acctsec acctriv"><h3>This week's rivals</h3>${riv||`<p class="dim">No rivals this week yet.</p>`}</div>
+    <div class="acctsec"><h3>Rodman's Rankings ${RK.weeks?`<small>Weeks ${esc(RK.weeks)}</small>`:""}</h3>${rk.length?`<ul class="alist">${rk.join("")}</ul>`:`<p class="dim">Not ranked right now.</p>`}<div class="row"><button type="button" class="btn ghost" data-goview="rankings">Open Rodman's Rankings ›</button></div></div>`;
+}
 function acctProfile(n){
   return `<div class="acctsec"><h3>Player profile</h3><div id="acct-p"></div></div>${WR.wins[n]?`<div class="acctsec"><h3>Win profile</h3><div id="acct-w"></div></div>`:""}${hosts[n]?`<div class="acctsec"><h3>Host profile</h3><div id="acct-h"></div></div>`:""}`;
 }
@@ -3125,7 +3168,7 @@ function acctDraw(msg,err){
     const names=PLAYERS.map(p=>p[0]).filter(n=>!taken.has(n)).sort((a,c)=>a.localeCompare(c,undefined,{sensitivity:"base"}));
     h+=`<p>Which player are you? Pick your name to claim your profile. An admin checks each claim before you can rate songs.</p><select id="acctname"><option value="">Choose your player name…</option>${names.map(n=>`<option>${esc(n)}</option>`).join("")}</select><div class="row"><button type="button" class="btn" data-acct="claim">Claim this profile</button></div>`}
   else if(ACCT.claim.status==="pending")h+=`<p>You've claimed <b>${esc(ACCT.claim.player)}</b>. It's waiting for an admin to approve it.</p>${animalNote()}<div class="row"><button type="button" class="btn ghost" data-acct="unclaim">Withdraw claim</button></div>`;
-  else h+=`<p>Hi <b>${esc(ACCT.claim.player)}</b>! This is your personal stats page. You can head to the Scoreboard and submit your own ratings for any song by clicking its rating number.</p>${animalNote()}${acctProfile(ACCT.claim.player)}`;
+  else h+=`<p>Hi <b>${esc(ACCT.claim.player)}</b>! This is your personal stats page. You can head to the Scoreboard and submit your own ratings for any song by clicking its rating number.</p>${animalNote()}<div id="acct-tw">${acctThisWeek(ACCT.claim.player)}</div>${acctProfile(ACCT.claim.player)}`;
   if(ACCT.tab!=="admin")h+=`<div class="row"><button type="button" class="btn ghost" data-acct="logout">Log out</button></div>`;
   if(ACCT.admin&&ACCT.tab==="admin"){const pend=ACCT.claims.filter(c=>c.status==="pending"), appr=ACCT.claims.filter(c=>c.status==="approved").sort((a,c)=>a.player.localeCompare(c.player));
     h+=`<div class="adm acctsec"><h3>Claims</h3><p>${pend.length?"Waiting for approval:":"No claims waiting."}</p><ul>${pend.map(c=>`<li><span>${esc(c.player)} ${animalTag(ACCT.animals[c.user_id])} <small>${new Date(c.created_at).toLocaleDateString()}</small></span><span><button type="button" class="btn" data-acct="approve" data-uid="${c.user_id}">Approve</button> <button type="button" class="btn ghost" data-acct="reject" data-uid="${c.user_id}">Reject</button></span></li>`).join("")}</ul>${appr.length?`<p>Approved (${appr.length}):</p><ul>${appr.map(c=>`<li><span>${esc(c.player)} ${animalTag(ACCT.animals[c.user_id])}</span><button type="button" class="btn ghost" data-acct="reject" data-uid="${c.user_id}">Remove</button></li>`).join("")}</ul>`:""}</div>${hostSection(true)}`}
@@ -3153,7 +3196,9 @@ $("acctclose").addEventListener("click",()=>$("acct").close());
 // hover text inside the dialog (the tip moves into the dialog while it's open, so it shows above it)
 $("acct").addEventListener("close",()=>{tip.hidden=true;document.body.appendChild(tip);acctUnmount()});
 // links inside the moved lookup cards go to other pages: close the dialog so the page shows
-$("acct").addEventListener("click",e=>{if(e.target.closest("#acct-p,#acct-w,#acct-h")&&e.target.closest("[data-pwk],[data-wprofile],[data-gohost],[data-pbest],[data-goplayer],[data-player],[data-sbw],[data-goband],[data-gosongs]"))$("acct").close()});
+$("acct").addEventListener("click",e=>{const gv=e.target.closest("[data-goview]");if(gv){$("acct").close();showView(gv.dataset.goview);scrollTo({top:0});return}
+  if(e.target.closest("#acct-tw")&&e.target.closest("[data-sbw],[data-goplayer]")){$("acct").close();return}
+  if(e.target.closest("#acct-p,#acct-w,#acct-h")&&e.target.closest("[data-pwk],[data-wprofile],[data-gohost],[data-pbest],[data-goplayer],[data-player],[data-sbw],[data-goband],[data-gosongs]"))$("acct").close()});
 $("acct").addEventListener("mousemove",e=>{const p=e.target.closest("[data-tip]");if(!p){tip.hidden=true;return}tip.textContent=p.dataset.tip;tip.hidden=false;placeTip(e.clientX,e.clientY)});
 $("acct").addEventListener("click",e=>{if(e.target===$("acct"))$("acct").close()});
 // only on the real site (copies of the page elsewhere, like a preview, can't reach the login server)
