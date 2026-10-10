@@ -1204,7 +1204,7 @@ footer{color:var(--dim);font-size:.78rem}
   <span class="updated">Last updated: <span id="builtat" data-iso="__BUILT_ISO__">__BUILT__</span></span>
   </footer>
 </div>
-<dialog id="acct" class="acctdlg" aria-label="Your account"><div id="acctbody"></div><button type="button" class="clear acctclose" id="acctclose">Close</button></dialog>
+<dialog id="acct" class="acctdlg" aria-label="Your profile"><div id="acctbody"></div><button type="button" class="clear acctclose" id="acctclose">Close</button></dialog>
 <div class="tip" id="tip" hidden></div>
 
 <script>
@@ -2813,7 +2813,7 @@ function hostWarnHelp(){
   const on=typeof ACCT!=="undefined"&&ACCT&&acctOn();
   if(!on)return "Want to host? Message Rodman.";
   if(!ACCT.user)return "Hosted before? Log in and claim your player profile; once an admin approves it, you can sign up here. First time hosting? Message Rodman.";
-  if(!ACCT.claim)return "Hosted before? Claim your player profile from the 👤 Account button; once an admin approves it, you can sign up here. First time hosting? Message Rodman.";
+  if(!ACCT.claim)return "Hosted before? Claim your player profile from the 👤 Profile button; once an admin approves it, you can sign up here. First time hosting? Message Rodman.";
   if(ACCT.claim.status!=="approved")return "Your profile claim is waiting for admin approval. Once it's approved you can sign up here.";
   return "Want to host? Message Rodman.";
 }
@@ -3146,7 +3146,7 @@ function acctProfile(n){
   return `<div class="acctsec"><h3>Player profile</h3><div id="acct-p"></div></div>${WR.wins[n]?`<div class="acctsec"><h3>Win profile</h3><div id="acct-w"></div></div>`:""}${hosts[n]?`<div class="acctsec"><h3>Host profile</h3><div id="acct-h"></div></div>`:""}`;
 }
 // header button and dialog
-function acctBtn(){const b=$("acctbtn"); b.hidden=!ACCT.on; b.textContent=ACCT.claim&&ACCT.claim.status==="approved"?"👤 "+ACCT.claim.player:ACCT.user?"👤 Account":"👤 Log in";
+function acctBtn(){const b=$("acctbtn"); b.hidden=!ACCT.on; b.textContent=ACCT.claim&&ACCT.claim.status==="approved"?"👤 "+ACCT.claim.player:ACCT.user?"👤 Profile":"👤 Log in";
   const n=ACCT.admin?ACCT.claims.filter(c=>c.status==="pending").length:0; // admins: how many claims are waiting
   if(n)b.insertAdjacentHTML("beforeend",`<span class="nbadge" title="${n} claim${n===1?"":"s"} waiting for approval">${n}</span>`);
   try{localStorage.setItem("rsc-acctbtn",b.innerHTML)}catch(e){} // shown straight away on the next visit while the login loads
@@ -3162,14 +3162,14 @@ async function acctRefresh(){
 }
 function acctDraw(msg,err){
   acctUnmount();
-  if(!ACCT.ready){$("acctbody").innerHTML=`<h3>Your account</h3><p class="dim">Loading…</p>`;return}
+  if(!ACCT.ready){$("acctbody").innerHTML=`<h3>Your profile</h3><p class="dim">Loading…</p>`;return}
   const b=$("acctbody"), note=(msg?`<p class="msg">${esc(msg)}</p>`:"")+(err?`<p class="err">${esc(err)}</p>`:"");
   if(!ACCT.user){b.innerHTML=`<h3>Log in</h3><p>Logging in lets you claim your player profile, so you can view your own stats page and submit one rating per song for each path (Lead, Rhythm and Bass) on the Scoreboard.</p><p>Type your email and we'll send you a login link. No password needed.</p><input id="acctemail" type="email" autocomplete="email" placeholder="you@example.com"><div class="row"><button type="button" class="btn" data-acct="send">Email me a login link</button></div>${note}`;return}
   const pendN=ACCT.admin?ACCT.claims.filter(c=>c.status==="pending").length:0;
   if(!ACCT.admin)ACCT.tab="me";
   // tabs: Your account, and (for admins) Admin · claims with a badge for claims waiting
-  const tabs=ACCT.admin?`<div class="accttabs" role="tablist"><button type="button" role="tab" data-accttab="me" aria-selected="${ACCT.tab!=="admin"}">Your account</button><button type="button" role="tab" data-accttab="admin" aria-selected="${ACCT.tab==="admin"}">Admin${pendN?`<span class="nbadge" title="${pendN} claim${pendN===1?"":"s"} waiting for approval">${pendN}</span>`:""}</button></div>`:"";
-  let h=tabs+(ACCT.tab==="admin"?"":`${tabs?"":"<h3>Your account</h3>"}`);
+  const tabs=ACCT.admin?`<div class="accttabs" role="tablist"><button type="button" role="tab" data-accttab="me" aria-selected="${ACCT.tab!=="admin"}">Your profile</button><button type="button" role="tab" data-accttab="admin" aria-selected="${ACCT.tab==="admin"}">Admin${pendN?`<span class="nbadge" title="${pendN} claim${pendN===1?"":"s"} waiting for approval">${pendN}</span>`:""}</button></div>`:"";
+  let h=tabs+(ACCT.tab==="admin"?"":`${tabs?"":"<h3>Your profile</h3>"}`);
   if(ACCT.tab==="admin"){}
   else if(!ACCT.claim){const taken=new Set(ACCT.claims.map(c=>c.player));
     const names=PLAYERS.map(p=>p[0]).filter(n=>!taken.has(n)).sort((a,c)=>a.localeCompare(c,undefined,{sensitivity:"base"}));
