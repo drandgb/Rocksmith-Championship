@@ -20,11 +20,15 @@ create table if not exists public.votes (
   week       int  not null,
   path       smallint not null check (path between 0 and 2),
   slot       smallint not null check (slot between 0 and 8),
+  song       text,                -- the song when it was rated, so ratings follow a song that's moved to another level
   rating     numeric(3,1) not null check (rating between 1 and 10 and rating * 2 = floor(rating * 2)),
   user_id    uuid not null default auth.uid() references auth.users on delete cascade,
   updated_at timestamptz not null default now(),
   primary key (player, week, path, slot)
 );
+
+-- (for a project set up before the song column existed)
+alter table public.votes add column if not exists song text;
 
 create or replace function public.is_admin() returns boolean
   language sql stable security definer set search_path = public

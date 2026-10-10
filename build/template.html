@@ -2835,6 +2835,7 @@ if(curView()==="thisweek")renderThisWeek();
 // Uses a Supabase project (set SUPA_URL and SUPA_KEY; both are public by design). Leave them empty to hide all of this.
 var SUPA_URL="https://yeyzdxjqwdkswulrnver.supabase.co", SUPA_KEY="sb_publishable_pxGhrlKyONzLc1fomC2vsw_EoNlhCeG";
 var ACCT={on:false,sb:null,user:null,claim:null,admin:false,claims:[],weeks:{},loading:{},tab:"me"};
+function acctSongKey(s){return String(s||"").toLowerCase().replace(/[^a-z0-9]+/g,"")}
 function acctPlayerOf(e){return SB.names[e[0]].replace(/[*~]+$/,"")}
 function acctOn(){return typeof ACCT!=="undefined"&&!!ACCT&&ACCT.on}
 // can the logged-in player rate this card? (any approved player can rate any song, played or not)
@@ -2861,17 +2862,30 @@ function acctCard(w,p,slot,ents,live){
 }
 async function acctLoadWeek(w){
   if(ACCT.loading[w]||!ACCT.sb)return; ACCT.loading[w]=true;
-  const {data,error}=await ACCT.sb.from("votes").select("player,path,slot,rating").eq("week",w);
+  const {data,error}=await ACCT.sb.from("votes").select("player,path,slot,rating,song,updated_at").eq("week",w);
   ACCT.loading[w]=false; if(error)return;
-  const V={}; (data||[]).forEach(v=>(V[v.path*9+v.slot]=V[v.path*9+v.slot]||[]).push({p:v.player,r:+v.rating}));
+  // ratings follow the song: each rating is saved with its song, and shows on whichever card of that week and path
+  // has that song now (so a host moving a song to another level keeps its ratings); if the song is gone, it's hidden.
+  // A player's newest rating wins if they have more than one for the same card.
+  const cards=SB.weeks[w]||[], best={};
+  (data||[]).forEach(v=>{
+    let slot=v.slot;
+    if(v.song){const n=acctSongKey(v.song), here=cards.find(c=>c[0]===v.path&&c[1]===v.slot&&acctSongKey(c[3])===n), moved=cards.find(c=>c[0]===v.path&&acctSongKey(c[3])===n);
+      const c=here||moved; if(!c)return; slot=c[1]}
+    const k=v.path*9+slot, id=k+"|"+v.player;
+    if(!best[id]||String(v.updated_at)>String(best[id].t))best[id]={k,p:v.player,r:+v.rating,t:v.updated_at};
+  });
+  const V={}; Object.values(best).forEach(x=>(V[x.k]=V[x.k]||[]).push({p:x.p,r:x.r}));
   ACCT.weeks[w]=V; if(sbWeek===w)sbRender();
 }
 document.addEventListener("change",async e=>{
   const s=e.target.closest("select[data-rate]"); if(!s||!ACCT.claim)return;
   const [w,p,slot]=s.dataset.rate.split("|").map(Number), player=ACCT.claim.player;
-  const r=s.value?+s.value:null;
+  const r=s.value?+s.value:null, card=(SB.weeks[w]||[]).find(c=>c[0]===p&&c[1]===slot), song=card?card[3]:null;
+  // clear this player's older ratings of the same song on this path (left at another slot after a song moved)
+  if(song)await ACCT.sb.from("votes").delete().match({player,week:w,path:p,song}).neq("slot",slot);
   const q=r==null?ACCT.sb.from("votes").delete().match({player,week:w,path:p,slot})
-                 :ACCT.sb.from("votes").upsert({player,week:w,path:p,slot,rating:r,user_id:ACCT.user.id,updated_at:new Date().toISOString()});
+                 :ACCT.sb.from("votes").upsert({player,week:w,path:p,slot,song,rating:r,user_id:ACCT.user.id,updated_at:new Date().toISOString()});
   const {error}=await q; if(error){alert("Couldn't save your rating: "+error.message);return}
   delete ACCT.weeks[w]; acctLoadWeek(w);
 });
