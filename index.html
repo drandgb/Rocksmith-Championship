@@ -321,7 +321,12 @@ a.dl svg,.offpill svg{width:11px;height:11px}
 .acctdlg .btn{background:var(--accent);color:var(--accent-ink);border:0;border-radius:6px;padding:8px 14px;font:700 .85rem var(--f-display);cursor:pointer}
 .acctdlg .btn.ghost{background:none;color:var(--accent);border:1px solid var(--line)}
 .acctdlg .msg{color:#7dffb0}.acctdlg .err{color:#ff8a9e}
-.acctdlg .adm{margin-top:14px;border-top:1px solid var(--line);padding-top:10px}
+.acctdlg .adm{margin-top:4px}
+.accttabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin:-4px 0 12px}
+.accttabs button{background:none;border:0;border-bottom:2px solid transparent;color:var(--muted);font:700 .78rem var(--f-display);letter-spacing:.08em;text-transform:uppercase;padding:8px 10px;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.accttabs button[aria-selected="true"]{color:var(--fg);border-bottom-color:var(--accent)}
+.nbadge{display:inline-flex;align-items:center;justify-content:center;min-width:17px;height:17px;padding:0 5px;border-radius:9px;background:#ff4d6d;color:#fff;font:800 .66rem/1 var(--f-display);letter-spacing:0;box-shadow:0 0 8px rgba(255,77,109,.6)}
+#acctbtn .nbadge{margin-left:6px;vertical-align:1px}
 .acctdlg .adm li{display:flex;align-items:center;gap:8px;justify-content:space-between;padding:4px 0;font-size:.88rem}
 .acctdlg .adm ul{list-style:none;margin:4px 0;padding:0;max-height:220px;overflow:auto}
 .acctdlg .adm small{color:var(--muted)}
@@ -1129,7 +1134,7 @@ footer{color:var(--dim);font-size:.78rem}
   <footer>Data: Rodman’s Rocksmith 2014 Championship Google Sheets (older attendance also from the Championship Metrics workbook). Player stats run through week 675; scoreboards cover weeks 440–676. Weeks 1–16 have no recorded host in the source.
   <span class="updated disclaimer">Unofficial fan project. Not affiliated with Ubisoft or Rocksmith.</span>
   <span class="updated" id="sheetedit-row" hidden>Sheet last edited: <span id="sheetedit" data-iso="2026-10-09T18:08:57.146Z"></span></span>
-  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-10T00:14:41+00:00">October 9, 2026</span></span>
+  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-10T00:19:11+00:00">October 9, 2026</span></span>
   </footer>
 </div>
 <dialog id="acct" class="acctdlg" aria-label="Your account"><div id="acctbody"></div><button type="button" class="clear acctclose" id="acctclose">Close</button></dialog>
@@ -2828,7 +2833,7 @@ if(curView()==="thisweek")renderThisWeek();
 // ---------- accounts: log in with an emailed link, claim your player profile, rate this week's songs ----------
 // Uses a Supabase project (set SUPA_URL and SUPA_KEY; both are public by design). Leave them empty to hide all of this.
 var SUPA_URL="https://yeyzdxjqwdkswulrnver.supabase.co", SUPA_KEY="sb_publishable_pxGhrlKyONzLc1fomC2vsw_EoNlhCeG";
-var ACCT={on:false,sb:null,user:null,claim:null,admin:false,claims:[],weeks:{},loading:{}};
+var ACCT={on:false,sb:null,user:null,claim:null,admin:false,claims:[],weeks:{},loading:{},tab:"me"};
 function acctPlayerOf(e){return SB.names[e[0]].replace(/[*~]+$/,"")}
 function acctOn(){return typeof ACCT!=="undefined"&&!!ACCT&&ACCT.on}
 // can the logged-in player rate this card? (approved, and they posted a score on it)
@@ -2884,7 +2889,9 @@ function acctProfile(n){
   return `<div class="acctsec"><h3>Player profile</h3><div id="acct-p"></div></div>${WR.wins[n]?`<div class="acctsec"><h3>Win profile</h3><div id="acct-w"></div></div>`:""}${hosts[n]?`<div class="acctsec"><h3>Host profile</h3><div id="acct-h"></div></div>`:""}`;
 }
 // header button and dialog
-function acctBtn(){const b=$("acctbtn"); b.hidden=!ACCT.on; b.textContent=ACCT.claim&&ACCT.claim.status==="approved"?"👤 "+ACCT.claim.player:ACCT.user?"👤 Account":"👤 Log in"}
+function acctBtn(){const b=$("acctbtn"); b.hidden=!ACCT.on; b.textContent=ACCT.claim&&ACCT.claim.status==="approved"?"👤 "+ACCT.claim.player:ACCT.user?"👤 Account":"👤 Log in";
+  const n=ACCT.admin?ACCT.claims.filter(c=>c.status==="pending").length:0; // admins: how many claims are waiting
+  if(n)b.insertAdjacentHTML("beforeend",`<span class="nbadge" title="${n} claim${n===1?"":"s"} waiting for approval">${n}</span>`)}
 async function acctRefresh(){
   const {data:{session}}=await ACCT.sb.auth.getSession(); ACCT.user=session?session.user:null;
   const {data:cl}=await ACCT.sb.from("claims").select("user_id,player,status,created_at"); ACCT.claims=cl||[];
@@ -2896,19 +2903,25 @@ function acctDraw(msg,err){
   acctUnmount();
   const b=$("acctbody"), note=(msg?`<p class="msg">${esc(msg)}</p>`:"")+(err?`<p class="err">${esc(err)}</p>`:"");
   if(!ACCT.user){b.innerHTML=`<h3>Log in</h3><p>Type your email and we'll send you a login link. No password needed.</p><input id="acctemail" type="email" autocomplete="email" placeholder="you@example.com"><div class="row"><button type="button" class="btn" data-acct="send">Email me a login link</button></div>${note}`;return}
-  let h=`<h3>Your account</h3><p>Logged in as ${esc(ACCT.user.email||"")}</p>`;
-  if(!ACCT.claim){const taken=new Set(ACCT.claims.map(c=>c.player));
+  const pendN=ACCT.admin?ACCT.claims.filter(c=>c.status==="pending").length:0;
+  if(!ACCT.admin)ACCT.tab="me";
+  // tabs: Your account, and (for admins) Admin · claims with a badge for claims waiting
+  const tabs=ACCT.admin?`<div class="accttabs" role="tablist"><button type="button" role="tab" data-accttab="me" aria-selected="${ACCT.tab!=="admin"}">Your account</button><button type="button" role="tab" data-accttab="admin" aria-selected="${ACCT.tab==="admin"}">Admin · claims${pendN?`<span class="nbadge" title="${pendN} claim${pendN===1?"":"s"} waiting for approval">${pendN}</span>`:""}</button></div>`:"";
+  let h=tabs+(ACCT.tab==="admin"?"":`${tabs?"":"<h3>Your account</h3>"}<p>Logged in as ${esc(ACCT.user.email||"")}</p>`);
+  if(ACCT.tab==="admin"){}
+  else if(!ACCT.claim){const taken=new Set(ACCT.claims.map(c=>c.player));
     const names=PLAYERS.map(p=>p[0]).filter(n=>!taken.has(n)).sort((a,c)=>a.localeCompare(c,undefined,{sensitivity:"base"}));
     h+=`<p>Which player are you? Pick your name to claim your profile. An admin checks each claim before you can rate songs.</p><select id="acctname"><option value="">Choose your player name…</option>${names.map(n=>`<option>${esc(n)}</option>`).join("")}</select><div class="row"><button type="button" class="btn" data-acct="claim">Claim this profile</button></div>`}
   else if(ACCT.claim.status==="pending")h+=`<p>You've claimed <b>${esc(ACCT.claim.player)}</b>. It's waiting for an admin to approve it.</p><div class="row"><button type="button" class="btn ghost" data-acct="unclaim">Withdraw claim</button></div>`;
   else h+=`<p>You're <b>${esc(ACCT.claim.player)}</b>. On the Scoreboard, click the difficulty number on any challenge you've played to give your own rating.</p>${acctProfile(ACCT.claim.player)}`;
-  h+=`<div class="row"><button type="button" class="btn ghost" data-acct="logout">Log out</button></div>`;
-  if(ACCT.admin){const pend=ACCT.claims.filter(c=>c.status==="pending"), appr=ACCT.claims.filter(c=>c.status==="approved").sort((a,c)=>a.player.localeCompare(c.player));
-    h+=`<div class="adm"><h3>Admin · claims</h3><p>${pend.length?"Waiting for approval:":"No claims waiting."}</p><ul>${pend.map(c=>`<li><span>${esc(c.player)} <small>${new Date(c.created_at).toLocaleDateString()}</small></span><span><button type="button" class="btn" data-acct="approve" data-uid="${c.user_id}">Approve</button> <button type="button" class="btn ghost" data-acct="reject" data-uid="${c.user_id}">Reject</button></span></li>`).join("")}</ul>${appr.length?`<p>Approved (${appr.length}):</p><ul>${appr.map(c=>`<li><span>${esc(c.player)}</span><button type="button" class="btn ghost" data-acct="reject" data-uid="${c.user_id}">Remove</button></li>`).join("")}</ul>`:""}</div>`}
+  if(ACCT.tab!=="admin")h+=`<div class="row"><button type="button" class="btn ghost" data-acct="logout">Log out</button></div>`;
+  if(ACCT.admin&&ACCT.tab==="admin"){const pend=ACCT.claims.filter(c=>c.status==="pending"), appr=ACCT.claims.filter(c=>c.status==="approved").sort((a,c)=>a.player.localeCompare(c.player));
+    h+=`<div class="adm"><p>${pend.length?"Waiting for approval:":"No claims waiting."}</p><ul>${pend.map(c=>`<li><span>${esc(c.player)} <small>${new Date(c.created_at).toLocaleDateString()}</small></span><span><button type="button" class="btn" data-acct="approve" data-uid="${c.user_id}">Approve</button> <button type="button" class="btn ghost" data-acct="reject" data-uid="${c.user_id}">Reject</button></span></li>`).join("")}</ul>${appr.length?`<p>Approved (${appr.length}):</p><ul>${appr.map(c=>`<li><span>${esc(c.player)}</span><button type="button" class="btn ghost" data-acct="reject" data-uid="${c.user_id}">Remove</button></li>`).join("")}</ul>`:""}</div>`}
   b.innerHTML=h+note;
-  if(ACCT.claim&&ACCT.claim.status==="approved")acctMount(ACCT.claim.player);
+  if(ACCT.tab!=="admin"&&ACCT.claim&&ACCT.claim.status==="approved")acctMount(ACCT.claim.player);
 }
 $("acctbody").addEventListener("click",async e=>{
+  const tb=e.target.closest("[data-accttab]"); if(tb){ACCT.tab=tb.dataset.accttab; acctDraw(); return}
   const b=e.target.closest("[data-acct]"); if(!b)return; const a=b.dataset.acct, sb=ACCT.sb; b.disabled=true;
   try{
     if(a==="send"){const em=$("acctemail").value.trim(); if(!/^\S+@\S+\.\S+$/.test(em)){acctDraw("","Please type a valid email.");return}
