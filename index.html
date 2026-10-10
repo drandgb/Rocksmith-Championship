@@ -79,7 +79,7 @@ button.forum{background:none;cursor:pointer;font:inherit;font-size:.85rem}
 .twnp .npsong:hover{text-decoration:underline}
 .twnp .nprate{font-family:var(--f-mono);font-size:.8rem;color:var(--muted)}
 .twnp .dl{flex:none}
-.pill.up{background:color-mix(in srgb,var(--s-blue) 18%,transparent);color:var(--s-blue);border:1px solid color-mix(in srgb,var(--s-blue) 50%,transparent);cursor:help}
+.pill.nextwk{background:color-mix(in srgb,var(--s-blue) 18%,transparent);color:var(--s-blue);border:1px solid color-mix(in srgb,var(--s-blue) 50%,transparent);cursor:help}
 .pill.signed{cursor:help;background:color-mix(in srgb,var(--accent) 16%,transparent);color:var(--accent);border:1px solid color-mix(in srgb,var(--accent) 45%,transparent);font-size:.6rem;padding:1px 6px}
 .hostbtn{position:relative;cursor:pointer;font:inherit;font-family:var(--f-mono);font-size:.7rem}
 button.pill.hostbtn:hover,.pill.hostbtn:hover{background:color-mix(in srgb,var(--open) 32%,transparent)}
@@ -616,6 +616,11 @@ footer .updated{display:block;margin-top:4px}
 .twtitle h2 .golink{cursor:pointer}
 .twarrow{background:var(--panel2);border:1px solid var(--line);color:var(--fg);border-radius:8px;width:36px;height:36px;font-size:1.3rem;cursor:pointer}
 .twarrow:disabled{opacity:.35;cursor:default}
+.twarrow.glow{border-color:var(--s-blue);color:var(--s-blue);box-shadow:0 0 0 1px var(--s-blue),0 0 14px color-mix(in srgb,var(--s-blue) 60%,transparent);animation:twglow 1.8s ease-in-out infinite}
+@keyframes twglow{50%{box-shadow:0 0 0 1px var(--s-blue),0 0 4px color-mix(in srgb,var(--s-blue) 30%,transparent)}}
+@media (prefers-reduced-motion:reduce){.twarrow.glow{animation:none}}
+.twpv-hide{display:none!important}
+.twnp .npn{display:block;font-size:.72rem;font-weight:400;color:var(--s-green)}
 .twstats{display:flex;flex-wrap:wrap;gap:8px 18px;margin-top:12px;color:var(--muted);font-size:.9rem}
 .twstats b{color:var(--fg);font-family:var(--f-display);font-size:1.1rem}
 .twstats .pill.hol{cursor:default}
@@ -1251,7 +1256,7 @@ footer{color:var(--dim);font-size:.78rem}
   <footer>Data: Rodman’s Rocksmith 2014 Championship Google Sheets (older attendance also from the Championship Metrics workbook). Player stats run through week 675; scoreboards cover weeks 440–677. Weeks 1–16 have no recorded host in the source.
   <span class="updated disclaimer">Unofficial fan project. Not affiliated with Ubisoft or Rocksmith.</span>
   <span class="updated" id="sheetedit-row" hidden>Sheet last edited: <span id="sheetedit" data-iso="2026-10-09T18:08:57.146Z"></span></span>
-  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-10T16:43:58+00:00">October 10, 2026</span></span>
+  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-10T16:52:12+00:00">October 10, 2026</span></span>
   </footer>
 </div>
 <dialog id="acct" class="acctdlg" aria-label="Your profile"><div id="acctbody"></div><button type="button" class="clear acctclose" id="acctclose">Close</button></dialog>
@@ -2316,7 +2321,7 @@ function sbRender(){
   $("sblatest").hidden=sbWeek===SB_HOME; $("sblatest").textContent=`Back to this week (${SB_HOME}) ›`;
   const sbLive=sbWeek>DATA_WEEK&&sbWeek===cur[0];
   const sbNext=sbWeek>cur[0];
-  $("sbmeta").innerHTML=(sbNext?'<span class="pill up" style="width:auto" data-tip="A preview of next week: it starts at 3 pm EST (20:00 UTC) on its start Saturday">UPCOMING</span> ':sbLive?'<span class="pill new" style="width:auto">IN PROGRESS</span> ':'<span class="pill done" style="width:auto">CONCLUDED</span> ')+(wk?`${fmt(wk[1])}${wk[2]&&wk[2]!==LOST?` · hosted by <b>${esc(wk[2])}</b>`:""}`:"");
+  $("sbmeta").innerHTML=(sbNext?'<span class="pill nextwk" style="width:auto" data-tip="Next week: scores can be posted already. It becomes the current week, and this week&#39;s winners are decided, at 3 pm EST (20:00 UTC) on its start Saturday">UPCOMING</span> ':sbLive?'<span class="pill new" style="width:auto">IN PROGRESS</span> ':'<span class="pill done" style="width:auto">CONCLUDED</span> ')+(wk?`${fmt(wk[1])}${wk[2]&&wk[2]!==LOST?` · hosted by <b>${esc(wk[2])}</b>`:""}`:"");
   $("sbseg").innerHTML=["Lead","Rhythm","Bass"].map((k,i)=>{const t=sbLv[i], on=i===sbPath, nx=SB_CYC[(SB_CYC.indexOf(t)+1)%SB_CYC.length];
     return `<button type="button" class="tier" data-path="${i}" aria-pressed="${on}" style="--pc:${PATH_C[i]};--tc:${t?(TIER_C[t]||"var(--s-red)"):"var(--fg)"}" title="${on?`${k}: showing ${t?LV_NAME[t]:"all levels"} · click for ${nx?LV_NAME[nx]:"all levels"}`:`Show ${k}`}"><small>${k}</small><b>${t||"All"}</b><i>${t?LV_NAME[t]:"all levels"}</i></button>`}).join("");
   const all=ch.flatMap(c=>c[6]), players=new Set(all.map(e=>SB.names[e[0]].replace(/[*~]+$/,"")));
@@ -2861,6 +2866,8 @@ $("refreshbtn").addEventListener("click",async()=>{
 // player medals are provisional (win medals are added once the week is over).
 const TW_LIVE=cur[0]>DATA_WEEK?cur[0]:null;
 const TW_MIN=3, TW_MAX=Math.max(DATA_WEEK,cur[0]);
+// next week, once its tab is on the scoreboard sheet: a preview one step past the current week
+const TW_NEXT=SB.weeks[TW_MAX+1]&&SB.weeks[TW_MAX+1].length?TW_MAX+1:null;
 let twWeek=TW_MAX;
 const twRivLv=["","",""]; // rivals level filter per path ("" = all)
 const twBits={}; PLAYERS.forEach(p=>twBits[p[0]]=presOf(p));
@@ -2924,23 +2931,35 @@ function renderHostWarn(){
   const act=hostSlot(w,1,"HOST NEEDED"), can=/data-host(sign|pick)/.test(act);
   el.innerHTML=`<span class="ic">⚠</span><div><b>Host still needed for next week!</b><small>Week ${w[0]} starts ${fmt(w[1])} and nobody has signed up to host it yet.${can?"":" "+hostWarnHelp()}</small></div>${can?act.replace(/HOST NEEDED · SIGN UP/,"SIGN UP TO HOST"):""}`;
 }
-// next week's songs, once its tab is on the scoreboard sheet (shown while looking at the current week)
+// next week's preview (the › arrow past the current week, once next week's tab is on the scoreboard sheet)
 function renderNextPreview(){
-  const el=$("twpreview"); if(!el)return; const nw=cur[0]+1, ch=SB.weeks[nw];
-  if(!ch||!ch.length||twWeek!==TW_MAX){el.hidden=true;return}
-  const W=weekAt(curIdx+1), host=W&&W[2]&&W[2]!==LOST?W[2]:null;
+  const el=$("twpreview"), nw=TW_NEXT, ch=nw&&SB.weeks[nw]; if(!el)return;
+  const on=!!ch&&twWeek===nw;
+  // in the preview, only the week header and the preview show
+  [...$("view-thisweek").children].forEach(c=>{if(c.id==="twpreview"||c.classList.contains("twhead")||c.id==="twwarn")return; c.classList.toggle("twpv-hide",on)});
+  if(!on){el.hidden=true;return false}
+  const W=weekAt(curIdx+(nw-cur[0])), host=W&&W[2]&&W[2]!==LOST?W[2]:null;
+  const ents=ch.flatMap(c=>c[6]), players=new Set(ents.map(e=>SB.names[e[0]].replace(/[*~]+$/,"")));
+  $("twprev").disabled=false; $("twnext").disabled=true; $("twnext").classList.remove("glow");
+  $("twnow").hidden=false; $("twnow").textContent=`Back to this week (${TW_MAX}) ›`;
+  $("twsb").hidden=false; $("twsb").dataset.sbw=nw; $("twsb").title=`Open week ${nw} on the Scoreboard`;
+  $("tw-title").innerHTML=`<span class="golink" data-sbw="${nw}" title="Open this week on the Scoreboard">Week ${nw}</span> <span class="pill nextwk" style="width:auto">UPCOMING</span>`;
+  $("tw-meta").innerHTML=W?`Starts ${fmt(W[1])} at 3 pm EST (20:00 UTC)${host?` · hosted by <span class="nm" data-name="${esc(host)}" data-gohost="${esc(host)}" style="cursor:pointer;font-weight:700;color:var(--fg)">${esc(host)}</span>`:" · host needed"}`:"";
+  $("tw-stats").innerHTML=`<span><b>${players.size}</b> player${players.size===1?"":"s"} posted so far</span><span><b>${ents.length}</b> entr${ents.length===1?"y":"ies"}</span>`;
   const cols=[0,1,2].map(p=>{const cs=ch.filter(c=>c[0]===p&&c[3]&&!/^n\/a$/i.test(c[3])).sort((a,b)=>a[1]-b[1]); if(!cs.length)return "";
     return `<div class="twnp" style="--pc:${PATH_C[p]}"><h3>${PATHS[p]}</h3><ul>${cs.map(c=>{const L=cardLv(c[2]), id=SB.links&&SB.links[nw]&&SB.links[nw][c[0]*9+c[1]];
-      return `<li><span class="lvchip" style="--tc:${L==="G"?"var(--s-red)":TIER_C[L]||"var(--muted)"}">${L==="G"?esc(c[2]):TIER_NAME[L]||esc(c[2])}</span><span class="npsong" data-sbw="${nw}" data-sbp="${p}" title="Open the preview on the Scoreboard">${esc(c[3])}</span><span class="nprate" title="Initial host rating">${c[4]!=null?c[4]:"–"}</span>${songPill(c[3],id)}</li>`}).join("")}</ul></div>`}).join("");
+      return `<li><span class="lvchip" style="--tc:${L==="G"?"var(--s-red)":TIER_C[L]||"var(--muted)"}">${L==="G"?esc(c[2]):TIER_NAME[L]||esc(c[2])}</span><span class="npsong" data-sbw="${nw}" data-sbp="${p}" title="Open on the Scoreboard">${esc(c[3])}${c[6].length?`<small class="npn">${c[6].length} posted so far</small>`:""}</span><span class="nprate" title="Initial host rating">${c[4]!=null?c[4]:"–"}</span>${songPill(c[3],id)}</li>`}).join("")}</ul></div>`}).join("");
   el.hidden=false;
-  el.innerHTML=`<div class="panel-head"><h2>Next week's songs</h2><span class="sub">Week ${nw}${W?` · starts ${fmt(W[1])} at 3 pm EST (20:00 UTC)`:""}${host?` · hosted by <b>${esc(host)}</b>`:""}</span></div>
-    <p class="sub" style="margin:0 0 10px">A preview: the week opens for scores once it starts.</p><div class="twnpcols">${cols}</div>
-    <div style="margin-top:12px"><button type="button" class="clear" data-sbw="${nw}">Preview Week ${nw} on the Scoreboard ›</button></div>`;
+  el.innerHTML=`<div class="panel-head"><h2>Week ${nw}'s songs</h2><span class="sub">Scores can be posted already</span></div>
+    <p class="sub" style="margin:0 0 12px">Week ${nw} becomes the current week, and Week ${TW_MAX}'s winners are decided, at 3 pm EST (20:00 UTC) on ${W?fmt(W[1]):"its start Saturday"}. Scores posted before then already count for Week ${nw}.</p><div class="twnpcols">${cols}</div>`;
+  return true;
 }
 function renderThisWeek(){
-  renderHostWarn(); renderNextPreview();
+  renderHostWarn(); if(renderNextPreview())return;
   const w=twWeek, W=WEEKS[w-1], live=w===TW_LIVE, names=twNames(w), set=new Set(names);
-  $("twprev").disabled=w<=TW_MIN; $("twnext").disabled=w>=TW_MAX;
+  $("twprev").disabled=w<=TW_MIN; $("twnext").disabled=w>=TW_MAX&&!TW_NEXT;
+  // the › arrow glows when next week's songs are up to preview
+  $("twnext").classList.toggle("glow",w===TW_MAX&&!!TW_NEXT); $("twnext").title=w===TW_MAX&&TW_NEXT?`Preview next week (Week ${TW_NEXT})`:"Next week";
   $("twnow").hidden=w===TW_MAX; $("twsb").hidden=!SB.weeks[w]; $("twsb").dataset.sbw=w; $("twsb").title=`Open week ${w} on the Scoreboard`; $("twnow").textContent=`Back to ${TW_LIVE?"this":"the latest"} week (${TW_MAX}) ›`;
   const start=W?new Date(W[1]+"T12:00:00"):null, end=start?new Date(start.getTime()+6*864e5):null;
   const left=end?Math.ceil((new Date(W[1]+"T00:00:00").getTime()+7*864e5-Date.now())/864e5):0;
@@ -3019,7 +3038,7 @@ function renderThisWeek(){
       return `<b class="${s.beat>0?"up":""}">${s.a}%${ast(1)}</b> vs <b class="${s.beat<0?"up":""}">${s.b}%${ast(-1)}</b>`})()}</span></span>`).join("")}</span>${verdict}</li>`}).join(""):twEmpty(twRivLv[pi]?`No ${TIER_NAME[twRivLv[pi]]} ${PATHS[pi].toLowerCase()} rivals this week.`:`No ${PATHS[pi].toLowerCase()} rivals yet.`)}</ul></div>`}).join("");
 }
 $("twprev").addEventListener("click",()=>{if(twWeek>TW_MIN){twWeek--;renderThisWeek()}});
-$("twnext").addEventListener("click",()=>{if(twWeek<TW_MAX){twWeek++;renderThisWeek()}});
+$("twnext").addEventListener("click",()=>{if(twWeek<TW_MAX){twWeek++;renderThisWeek()}else if(TW_NEXT&&twWeek===TW_MAX){twWeek=TW_NEXT;renderThisWeek()}});
 $("twnow").addEventListener("click",()=>{twWeek=TW_MAX;renderThisWeek()});
 $("view-thisweek").addEventListener("mousemove",e=>{const p=e.target.closest("[data-tip]");if(!p){tip.hidden=true;return}tip.textContent=p.dataset.tip;tip.hidden=false;placeTip(e.clientX,e.clientY)});
 $("view-thisweek").addEventListener("mouseleave",()=>tip.hidden=true);
