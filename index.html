@@ -1161,7 +1161,7 @@ footer{color:var(--dim);font-size:.78rem}
   <footer>Data: Rodman’s Rocksmith 2014 Championship Google Sheets (older attendance also from the Championship Metrics workbook). Player stats run through week 675; scoreboards cover weeks 440–676. Weeks 1–16 have no recorded host in the source.
   <span class="updated disclaimer">Unofficial fan project. Not affiliated with Ubisoft or Rocksmith.</span>
   <span class="updated" id="sheetedit-row" hidden>Sheet last edited: <span id="sheetedit" data-iso="2026-10-09T18:08:57.146Z"></span></span>
-  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-10T01:23:03+00:00">October 9, 2026</span></span>
+  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-10T01:27:53+00:00">October 9, 2026</span></span>
   </footer>
 </div>
 <dialog id="acct" class="acctdlg" aria-label="Your account"><div id="acctbody"></div><button type="button" class="clear acctclose" id="acctclose">Close</button></dialog>
@@ -1296,8 +1296,8 @@ function upRow(i){
   return `<li class="${i===0?"cur":""}"><div class="wk"><b>${w[0]}</b>${fmtShort(w[1])}${yr}</div><div>${who}${i===0?' <span class="sub">· now</span>':""}<div class="meta">${hol}</div></div></li>`;
 }
 // this week plus the weeks hosts can sign up for (HOST_AHEAD)
-const HOST_AHEAD=8; // how many weeks ahead hosts can sign up
-let upCount=9;
+const HOST_AHEAD=9; // how many weeks ahead hosts can sign up
+let upCount=10;
 function renderUpcoming(){
   const ul=$("upcoming"); upCount=HOST_AHEAD+1;
   ul.innerHTML=[...Array(upCount)].map((_,i)=>upRow(i)).join("");
@@ -2968,7 +2968,7 @@ function acctMount(n){
   if(hosts[n])put("hcard","acct-h",()=>showHost(n));
 }
 // ---------- host sign-ups ----------
-// A verified host (an approved player who has hosted before) can sign up for an open week in the next 8 weeks;
+// A verified host (an approved player who has hosted before) can sign up for an open week in the next HOST_AHEAD weeks;
 // admins can sign anyone up. The schedule sheet wins: once it names a host for a week, that's who shows.
 function hostVerified(){if(!acctOn()||!ACCT.claim||ACCT.claim.status!=="approved")return false;
   const n=ACCT.claim.player.toLowerCase(); return Object.keys(hosts).some(h=>h.toLowerCase()===n)}
@@ -3008,9 +3008,9 @@ function hostSection(admin){
   const open=hostOpenWeeks();
   if(admin){const all=Object.values(ACCT.hostSign).sort((a,b)=>a.week-b.week);
     return `<div class="adm acctsec hostsec"><h3>Host sign-ups</h3><p>${all.length?"Add these to the schedule sheet. Once the sheet names the host, the sign-up is no longer needed.":"No sign-ups yet."}</p><ul>${all.map(s=>{const w=weekAt(curIdx+(s.week-WEEKS[curIdx][0]));return `<li><span>Week ${s.week} · ${fmtShort(w[1])} · <b>${esc(s.player)}</b>${w[2]?` <small>(sheet: ${esc(w[2])})</small>`:""}</span><button type="button" class="btn ghost" data-hostdrop="${s.week}">Remove</button></li>`}).join("")}</ul>
-      <p>Open weeks:</p><ul>${open.map(([w,i])=>`<li><span>Week ${w[0]} · ${fmtShort(w[1])}</span><span>${hostSlot(w,i)}</span></li>`).join("")||"<li>Every week in the next 8 has a host.</li>"}</ul></div>`}
+      <p>Open weeks:</p><ul>${open.map(([w,i])=>`<li><span>Week ${w[0]} · ${fmtShort(w[1])}</span><span>${hostSlot(w,i)}</span></li>`).join("")||`<li>Every week in the next ${HOST_AHEAD} has a host.</li>`}</ul></div>`}
   if(!hostVerified())return "";
-  return `<div class="acctsec hostsec"><h3>Hosting</h3><p>Open weeks in the next ${HOST_AHEAD}. Sign up to host one; the admin adds it to the schedule.</p><ul>${open.map(([w,i])=>`<li><span>Week ${w[0]} · ${fmtShort(w[1])}</span><span>${hostSlot(w,i)}</span></li>`).join("")||"<li>Every week in the next 8 has a host.</li>"}</ul></div>`;
+  return `<div class="acctsec hostsec"><h3>Hosting</h3><p>Open weeks in the next ${HOST_AHEAD}. Sign up to host one; the admin adds it to the schedule.</p><ul>${open.map(([w,i])=>`<li><span>Week ${w[0]} · ${fmtShort(w[1])}</span><span>${hostSlot(w,i)}</span></li>`).join("")||`<li>Every week in the next ${HOST_AHEAD} has a host.</li>`}</ul></div>`;
 }
 function acctProfile(n){
   return `<div class="acctsec"><h3>Player profile</h3><div id="acct-p"></div></div>${WR.wins[n]?`<div class="acctsec"><h3>Win profile</h3><div id="acct-w"></div></div>`:""}${hosts[n]?`<div class="acctsec"><h3>Host profile</h3><div id="acct-h"></div></div>`:""}`;
