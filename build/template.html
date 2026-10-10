@@ -2753,7 +2753,7 @@ function renderHostWarn(){
   if(w[2]||signed){el.hidden=true;return}
   el.hidden=false;
   const act=hostSlot(w,1,"HOST NEEDED"), can=/data-host(sign|pick)/.test(act);
-  el.innerHTML=`<span class="ic">⚠</span><div><b>Host still needed for next week!</b><small>Week ${w[0]} starts ${fmt(w[1])} and nobody has signed up to host it yet.${can?"":typeof ACCT!=="undefined"&&ACCT&&acctOn()&&!ACCT.user?" Hosted before? Log in to sign up, or message the admin.":" Want to host? Message the admin."}</small></div>${can?act.replace(/HOST NEEDED · SIGN UP/,"SIGN UP TO HOST"):""}`;
+  el.innerHTML=`<span class="ic">⚠</span><div><b>Host still needed for next week!</b><small>Week ${w[0]} starts ${fmt(w[1])} and nobody has signed up to host it yet.${can?"":typeof ACCT!=="undefined"&&ACCT&&acctOn()&&!ACCT.user?" Hosted before? Log in to sign up, or message Rodman.":" Want to host? Message Rodman."}</small></div>${can?act.replace(/HOST NEEDED · SIGN UP/,"SIGN UP TO HOST"):""}`;
 }
 function renderThisWeek(){
   renderHostWarn();
