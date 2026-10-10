@@ -1295,22 +1295,13 @@ function upRow(i){
   const yr=w[1].slice(0,4)!==cur[1].slice(0,4)?`<span class="yy">${w[1].slice(0,4)}</span>`:"";
   return `<li class="${i===0?"cur":""}"><div class="wk"><b>${w[0]}</b>${fmtShort(w[1])}${yr}</div><div>${who}${i===0?' <span class="sub">· now</span>':""}<div class="meta">${hol}</div></div></li>`;
 }
-let upCount=10;
+// this week plus the weeks hosts can sign up for (HOST_AHEAD)
+const HOST_AHEAD=8; // how many weeks ahead hosts can sign up
+let upCount=9;
 function renderUpcoming(){
-  const ul=$("upcoming");
-  ul.innerHTML=[...Array(10)].map((_,i)=>upRow(i)).join(""); upCount=10;
-  const upSec=ul.closest("section"), lbSec=$("lb").closest("section");
-  const stacked=getComputedStyle(upSec.parentElement).gridTemplateColumns.split(" ").length<2;
-  if(!$("view-hosting").hidden && !stacked){
-    const cs=getComputedStyle(upSec);
-    const avail=lbSec.offsetHeight-(ul.getBoundingClientRect().top-upSec.getBoundingClientRect().top)-parseFloat(cs.paddingBottom)-parseFloat(cs.borderBottomWidth);
-    while(upCount<80){
-      ul.insertAdjacentHTML("beforeend",upRow(upCount));
-      if(ul.offsetHeight>avail){ul.lastElementChild.remove();break}
-      upCount++;
-    }
-  }
-  $("upsub").textContent=`Next ${upCount} weeks`;
+  const ul=$("upcoming"); upCount=HOST_AHEAD+1;
+  ul.innerHTML=[...Array(upCount)].map((_,i)=>upRow(i)).join("");
+  $("upsub").textContent=`This week + next ${HOST_AHEAD}`;
 }
 let upTimer; addEventListener("resize",()=>{clearTimeout(upTimer);upTimer=setTimeout(renderUpcoming,150)});
 document.fonts&&document.fonts.ready.then(()=>renderUpcoming());
@@ -2979,7 +2970,6 @@ function acctMount(n){
 // ---------- host sign-ups ----------
 // A verified host (an approved player who has hosted before) can sign up for an open week in the next 8 weeks;
 // admins can sign anyone up. The schedule sheet wins: once it names a host for a week, that's who shows.
-const HOST_AHEAD=8;
 function hostVerified(){if(!acctOn()||!ACCT.claim||ACCT.claim.status!=="approved")return false;
   const n=ACCT.claim.player.toLowerCase(); return Object.keys(hosts).some(h=>h.toLowerCase()===n)}
 function hostOpenWeeks(){const out=[];for(let i=0;i<=HOST_AHEAD;i++){const w=weekAt(curIdx+i);if(!w[2])out.push([w,i])}return out}
