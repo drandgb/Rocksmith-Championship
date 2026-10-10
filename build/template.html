@@ -381,6 +381,9 @@ a.dl svg,.offpill svg{width:11px;height:11px}
 .alist .asong:hover{text-decoration:underline}
 .alist li.unpl{opacity:.5}
 .admrow{display:flex;gap:8px;flex-wrap:wrap}
+.acctdlg .ratelog{list-style:none;margin:0;padding:0;max-height:320px;overflow:auto}
+.acctdlg .ratelog li{display:block;padding:6px 0;border-bottom:1px solid var(--line);font-size:.84rem}
+.acctdlg .ratelog small{color:var(--muted)}
 .alist li.aplayed{background:color-mix(in srgb,var(--pc) 14%,var(--panel2));box-shadow:inset 0 0 0 1.5px color-mix(in srgb,var(--pc) 70%,transparent)}
 .alist .playedtag{font:800 .62rem var(--f-mono);letter-spacing:.06em;padding:1px 6px;border-radius:4px;color:#10131a;background:var(--pc)}
 .acctdlg .admrow select{flex:1 1 12em;width:auto;margin:0}
@@ -1294,10 +1297,13 @@ const fmtShort=iso=>new Date(iso+"T12:00:00").toLocaleDateString("en-US",{month:
 
 // current week = latest week whose start date is today or earlier
 const todayISO=(()=>{const d=new Date();return new Date(d.getTime()-d.getTimezoneOffset()*6e4).toISOString().slice(0,10)})();
-// a new week starts once BOTH its WeekNNN tab is on the scoreboard sheet AND it's past 3 pm EST (20:00 UTC)
+// a new week starts once BOTH its WeekNNN tab is on the scoreboard sheet AND it's past 8 pm Central European time (CET/CEST)
 // on its start Saturday; until then the previous week is still the current one
 const SB_TAB_MAX=__SBMAX__;
-function nyAt(iso){const [y,m,d]=iso.split("-").map(Number); return Date.UTC(y,m-1,d,20)} // 3 pm EST = 20:00 UTC
+function nyAt(iso){const [y,m,d]=iso.split("-").map(Number); let t=Date.UTC(y,m-1,d,19); // 8 pm CET (19:00 UTC); 18:00 UTC in summer (CEST)
+  const hr=+new Intl.DateTimeFormat("en-GB",{timeZone:"Europe/Berlin",hour:"numeric",hourCycle:"h23"}).format(new Date(t));
+  return hr===20?t:t-36e5}
+const WEEK_END_TXT="8 pm CET"; // when a week ends (Central European time)
 let curIdx=0; WEEKS.forEach((w,i)=>{if(w[1]<=todayISO&&(i===0||(w[0]<=SB_TAB_MAX&&Date.now()>=nyAt(w[1]))))curIdx=i});
 const cur=WEEKS[curIdx];
 // a future year only shows up (timelines, year lists) once it has started or has a host booked
@@ -2321,7 +2327,7 @@ function sbRender(){
   $("sblatest").hidden=sbWeek===SB_HOME; $("sblatest").textContent=`Back to this week (${SB_HOME}) ›`;
   const sbLive=sbWeek>DATA_WEEK&&sbWeek===cur[0];
   const sbNext=sbWeek>cur[0];
-  $("sbmeta").innerHTML=(sbNext?'<span class="pill nextwk" style="width:auto" data-tip="Next week: scores can be posted already. It becomes the current week, and this week&#39;s winners are decided, at 3 pm EST (20:00 UTC) on its start Saturday">UPCOMING</span> ':sbLive?'<span class="pill new" style="width:auto">IN PROGRESS</span> ':'<span class="pill done" style="width:auto">CONCLUDED</span> ')+(wk?`${fmt(wk[1])}${wk[2]&&wk[2]!==LOST?` · hosted by <b>${esc(wk[2])}</b>`:""}`:"");
+  $("sbmeta").innerHTML=(sbNext?'<span class="pill nextwk" style="width:auto" data-tip="Next week: scores can be posted already. It becomes the current week, and this week&#39;s winners are decided, at 8 pm CET (Central European time) on its start Saturday">UPCOMING</span> ':sbLive?'<span class="pill new" style="width:auto">IN PROGRESS</span> ':'<span class="pill done" style="width:auto">CONCLUDED</span> ')+(wk?`${fmt(wk[1])}${wk[2]&&wk[2]!==LOST?` · hosted by <b>${esc(wk[2])}</b>`:""}`:"");
   $("sbseg").innerHTML=["Lead","Rhythm","Bass"].map((k,i)=>{const t=sbLv[i], on=i===sbPath, nx=SB_CYC[(SB_CYC.indexOf(t)+1)%SB_CYC.length];
     return `<button type="button" class="tier" data-path="${i}" aria-pressed="${on}" style="--pc:${PATH_C[i]};--tc:${t?(TIER_C[t]||"var(--s-red)"):"var(--fg)"}" title="${on?`${k}: showing ${t?LV_NAME[t]:"all levels"} · click for ${nx?LV_NAME[nx]:"all levels"}`:`Show ${k}`}"><small>${k}</small><b>${t||"All"}</b><i>${t?LV_NAME[t]:"all levels"}</i></button>`}).join("");
   const all=ch.flatMap(c=>c[6]), players=new Set(all.map(e=>SB.names[e[0]].replace(/[*~]+$/,"")));
@@ -2944,14 +2950,14 @@ function renderNextPreview(){
   $("twnow").hidden=false; $("twnow").textContent=`Back to this week (${TW_MAX}) ›`;
   $("twsb").hidden=false; $("twsb").dataset.sbw=nw; $("twsb").title=`Open week ${nw} on the Scoreboard`;
   $("tw-title").innerHTML=`<span class="golink" data-sbw="${nw}" title="Open this week on the Scoreboard">Week ${nw}</span> <span class="pill nextwk" style="width:auto">UPCOMING</span>`;
-  $("tw-meta").innerHTML=W?`Starts ${fmt(W[1])} at 3 pm EST (20:00 UTC)${host?` · hosted by <span class="nm" data-name="${esc(host)}" data-gohost="${esc(host)}" style="cursor:pointer;font-weight:700;color:var(--fg)">${esc(host)}</span>${W[2]?"":" (signed up)"}`:` · <span data-tip="No host for Week ${nw} in the schedule sheet yet, and nobody has signed up on the site">host needed</span>`}`:"";
+  $("tw-meta").innerHTML=W?`Starts ${fmt(W[1])} at 8 pm CET${host?` · hosted by <span class="nm" data-name="${esc(host)}" data-gohost="${esc(host)}" style="cursor:pointer;font-weight:700;color:var(--fg)">${esc(host)}</span>${W[2]?"":" (signed up)"}`:` · <span data-tip="No host for Week ${nw} in the schedule sheet yet, and nobody has signed up on the site">host needed</span>`}`:"";
   $("tw-stats").innerHTML=`<span><b>${players.size}</b> player${players.size===1?"":"s"} posted so far</span><span><b>${ents.length}</b> entr${ents.length===1?"y":"ies"}</span>`;
   const cols=[0,1,2].map(p=>{const cs=ch.filter(c=>c[0]===p&&c[3]&&!/^n\/a$/i.test(c[3])).sort((a,b)=>a[1]-b[1]); if(!cs.length)return "";
     return `<div class="twnp" style="--pc:${PATH_C[p]}"><h3>${PATHS[p]}</h3><ul>${cs.map(c=>{const L=cardLv(c[2]), id=SB.links&&SB.links[nw]&&SB.links[nw][c[0]*9+c[1]];
       return `<li><span class="lvchip" style="--tc:${L==="G"?"var(--s-red)":TIER_C[L]||"var(--muted)"}">${L==="G"?esc(c[2]):TIER_NAME[L]||esc(c[2])}</span><span class="npsong" data-sbw="${nw}" data-sbp="${p}" title="Open on the Scoreboard">${esc(c[3])}${c[6].length?`<small class="npn">${c[6].length} posted so far</small>`:""}</span><span class="nprate" title="Initial host rating">${c[4]!=null?c[4]:"–"}</span>${songPill(c[3],id)}</li>`}).join("")}</ul></div>`}).join("");
   el.hidden=false;
   el.innerHTML=`<div class="panel-head"><h2>Week ${nw}'s songs</h2><span class="sub">Scores can be posted already</span></div>
-    <p class="sub" style="margin:0 0 12px">Week ${nw} becomes the current week, and Week ${TW_MAX}'s winners are decided, at 3 pm EST (20:00 UTC) on ${W?fmt(W[1]):"its start Saturday"}. Scores posted before then already count for Week ${nw}.</p><div class="twnpcols">${cols}</div>`;
+    <p class="sub" style="margin:0 0 12px">Week ${nw} becomes the current week, and Week ${TW_MAX}'s winners are decided, at 8 pm CET (Central European time) on ${W?fmt(W[1]):"its start Saturday"}. Scores posted before then already count for Week ${nw}.</p><div class="twnpcols">${cols}</div>`;
   return true;
 }
 function renderThisWeek(){
@@ -3136,7 +3142,7 @@ function rateBadge(w,p,slot,diff,ents){
   const R=songRating(p,card[3]);
   if(!R.n&&!can)return plain;
   const mine=can?list.find(v=>v.p===ACCT.claim.player):null;
-  const tipTxt=`This week's initial host rating: ${diff!=null?diff:"none"}\n\n`+R.tip+(can?(mine?`\n\nYour rating: ${mine.r} · click to change`:"\n\nClick to give your rating"):"");
+  const tipTxt=R.tip+(can?(mine?`\n\nYour rating: ${mine.r} · click to change`:"\n\nClick to give your rating"):"");
   const label=R.avg||(diff!=null?diff:"–");
   if(!can)return `<span class="diff${list.length?" upd":""}" data-tip="${esc(tipTxt)}">${label}</span>`;
   return `<span class="diff canrate${list.length?" upd":""}${mine?" mine":""}" data-tip="${esc(tipTxt)}">${label}${rateSelect(p,card[3],mine)}</span>`;
@@ -3186,7 +3192,8 @@ document.addEventListener("change",async e=>{
   const p=+s.dataset.rate, song=s.dataset.song, player=as||ACCT.claim.player, k=p+"|"+acctSongKey(song);
   const r=s.value?+s.value:null;
   // an admin changing a rating the player gave themselves has to confirm it first
-  if(as){const cur=songVotes(p,song).find(v=>v.p===as), own=ACCT.claims.find(c=>c.player===as&&c.status==="approved");
+  const prevAs=as?songVotes(p,song).find(v=>v.p===as):null;
+  if(as){const cur=prevAs, own=ACCT.claims.find(c=>c.player===as&&c.status==="approved");
     if(cur&&own&&cur.u===own.user_id&&!confirm(`${as} rated ${song} (${PATHS[p]}) ${cur.r} themselves. Are you sure you want to ${r==null?"remove their rating":`replace it with ${r}`}?`)){s.value=String(cur.r);return}}
   // the song's latest challenge on this path holds the rating (Scoreboard weeks first, then the older weeks)
   let at=null;
@@ -3199,6 +3206,8 @@ document.addEventListener("change",async e=>{
   const q=r==null?ACCT.sb.from("votes").delete().match({player,week:at.week,path:p,slot:at.slot})
                  :ACCT.sb.from("votes").upsert({player,week:at.week,path:p,slot:at.slot,song:at.song,rating:r,user_id:ACCT.user.id,updated_at:new Date().toISOString()});
   const {error}=await q; if(error){alert("Couldn't save your rating: "+error.message);return}
+  // admin changes on behalf of a player go in the ratings log (Admin tab)
+  if(as){await ACCT.sb.from("rating_log").insert({admin_player:ACCT.claim?ACCT.claim.player:null,player,path:p,song:at.song,old_rating:prevAs?prevAs.r:null,new_rating:r}); await ratingLogLoad()}
   ACCT.songs=null; acctLoadWeek();
 });
 // your profile in the account dialog: the real player, win and host lookup cards, moved into the dialog while it's open
@@ -3288,8 +3297,19 @@ function animalNote(){return ACCT.animal?`<p class="animalnote">Your verificatio
 function cardRateBox(p,song,diff){
   if(acctOn()&&!ACCT.songs)acctLoadWeek();
   const R=songRating(p,song), can=acctCanRate(), mine=can?R.players.find(v=>v.p===ACCT.claim.player):null;
-  const tipTxt=`This week's initial host rating: ${diff!=null?diff:"none"}\n\n`+R.tip+(can?(mine?`\n\nYour rating: ${mine.r} · click to change`:"\n\nClick to give your rating"):"");
+  const tipTxt=R.tip+(can?(mine?`\n\nYour rating: ${mine.r} · click to change`:"\n\nClick to give your rating"):"");
   return `<span class="srate${R.players.length?" upd":""}${can?" canrate":""}${mine?" mine":""}" style="--pc:${PATH_C[p]}" data-tip="${esc(tipTxt)}">${R.avg||(diff!=null?diff:"–")}${can?rateSelect(p,song,mine):""}</span>`;
+}
+// the log of ratings admins gave or changed on behalf of players (newest first)
+async function ratingLogLoad(){if(!ACCT.sb||!ACCT.admin)return;
+  const {data,error}=await ACCT.sb.from("rating_log").select("at,admin_player,player,path,song,old_rating,new_rating").order("at",{ascending:false}).limit(100);
+  ACCT.ratingLog=error?null:(data||[]); const el=$("admratelog"); if(el)el.outerHTML=ratingLogSection()}
+function ratingLogSection(){
+  const L=ACCT.ratingLog;
+  const rows=(L||[]).map(x=>{const d=new Date(x.at), when=d.toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"})+" "+d.toLocaleTimeString("en-US",{hour:"numeric",minute:"2-digit"});
+    const ch=x.old_rating==null?`gave <b>${x.new_rating}</b>`:x.new_rating==null?`removed <b>${x.old_rating}</b>`:`changed <b>${x.old_rating}</b> → <b>${x.new_rating}</b>`;
+    return `<li><span><small>${esc(when)}</small> · <b>${esc(x.admin_player||"an admin")}</b> ${ch} for <b>${esc(x.player)}</b> · ${esc(x.song||"")}${x.path!=null?` (${PATHS[x.path]})`:""}</span></li>`}).join("");
+  return `<div class="adm acctsec" id="admratelog"><h3>Ratings log</h3>${L==null?`<p class="dim">The log isn't set up yet (run rating_log.sql in Supabase).</p>`:rows?`<ul class="ratelog">${rows}</ul>`:`<p class="dim">No ratings given for players yet.</p>`}</div>`;
 }
 // Admin tab: give or change ratings on behalf of a player (e.g. one who sent their ratings by message)
 function adminRateSection(){
@@ -3358,6 +3378,7 @@ async function acctRefresh(){
   ACCT.admin=false; if(ACCT.user){const {data:ad}=await ACCT.sb.from("admins").select("user_id").eq("user_id",ACCT.user.id); ACCT.admin=!!(ad&&ad.length)}
   ACCT.animal=null; ACCT.animals={};
   if(ACCT.user){const {data:an}=await ACCT.sb.from("player_animals").select("user_id,animal"); (an||[]).forEach(r=>{ACCT.animals[r.user_id]=r.animal; if(r.user_id===ACCT.user.id)ACCT.animal=r.animal})}
+  ACCT.ratingLog=undefined; if(ACCT.admin)await ratingLogLoad();
   await hostLoad(); ACCT.ready=true; acctBtn(); if($("acct").open)acctDraw(); ACCT.songs=null; sbRender();
 }
 function acctDraw(msg,err){
@@ -3382,7 +3403,7 @@ function acctDraw(msg,err){
   else if(ACCT.claim.status==="pending")h+=`<p>You've claimed <b>${esc(ACCT.claim.player)}</b>. It's waiting for an admin to approve it. Your verification animal is under Manage account.</p><div class="row"><button type="button" class="btn ghost" data-acct="unclaim">Withdraw claim</button></div>`;
   else h+=`<p>Hi <b>${esc(ACCT.claim.player)}</b>! This is your personal stats page. You can submit your own ratings for any song by clicking its rating number.</p><div id="acct-tw">${acctThisWeek(ACCT.claim.player)}</div>${acctProfile(ACCT.claim.player)}`;
   if(ACCT.admin&&ACCT.tab==="admin"){const pend=ACCT.claims.filter(c=>c.status==="pending"), appr=ACCT.claims.filter(c=>c.status==="approved").sort((a,c)=>a.player.localeCompare(c.player));
-    h+=`<div class="adm acctsec"><h3>Claims</h3><p>${pend.length?"Waiting for approval:":"No claims waiting."}</p><ul>${pend.map(c=>`<li><span>${esc(c.player)} ${animalTag(ACCT.animals[c.user_id])} <small>${new Date(c.created_at).toLocaleDateString()}</small></span><span><button type="button" class="btn" data-acct="approve" data-uid="${c.user_id}">Approve</button> <button type="button" class="btn ghost" data-acct="reject" data-uid="${c.user_id}">Reject</button></span></li>`).join("")}</ul>${appr.length?`<p>Approved (${appr.length}):</p><ul>${appr.map(c=>`<li><span>${esc(c.player)} ${animalTag(ACCT.animals[c.user_id])}</span><button type="button" class="btn ghost" data-acct="reject" data-uid="${c.user_id}">Remove</button></li>`).join("")}</ul>`:""}</div>${hostSection(true)}${adminRateSection()}`}
+    h+=`<div class="adm acctsec"><h3>Claims</h3><p>${pend.length?"Waiting for approval:":"No claims waiting."}</p><ul>${pend.map(c=>`<li><span>${esc(c.player)} ${animalTag(ACCT.animals[c.user_id])} <small>${new Date(c.created_at).toLocaleDateString()}</small></span><span><button type="button" class="btn" data-acct="approve" data-uid="${c.user_id}">Approve</button> <button type="button" class="btn ghost" data-acct="reject" data-uid="${c.user_id}">Reject</button></span></li>`).join("")}</ul>${appr.length?`<p>Approved (${appr.length}):</p><ul>${appr.map(c=>`<li><span>${esc(c.player)} ${animalTag(ACCT.animals[c.user_id])}</span><button type="button" class="btn ghost" data-acct="reject" data-uid="${c.user_id}">Remove</button></li>`).join("")}</ul>`:""}</div>${hostSection(true)}${adminRateSection()}${ratingLogSection()}`}
   // redrawing keeps the popup where it was scrolled to (e.g. after changing a rating in the Admin tab)
   const dlg=$("acct"), keep=[dlg.scrollTop,b.scrollTop];
   b.innerHTML=h+note;
