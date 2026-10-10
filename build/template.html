@@ -399,6 +399,9 @@ a.dl svg,.offpill svg{width:11px;height:11px}
 .card .diff.canrate{cursor:pointer;position:relative;box-shadow:0 0 0 1px color-mix(in srgb,var(--tc) 40%,transparent)}
 .card .diff.canrate select{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;font-size:16px;-webkit-appearance:none;appearance:none}
 .card .diff.mine{box-shadow:0 0 0 1px var(--tc),0 0 6px color-mix(in srgb,var(--tc) 55%,transparent)}
+/* your own rating is in: a green check badge on the corner of the rating box (Scoreboard, Songs page, Your profile) */
+.card .diff.mine::before,.srate.mine::before{content:"✓";position:absolute;top:-6px;right:-6px;width:13px;height:13px;border-radius:50%;background:var(--s-green);color:#10131a;font:900 9px/13px Arial,sans-serif;text-align:center;box-shadow:0 0 0 2px var(--panel);pointer-events:none;z-index:1}
+.srate.mine{position:relative}
 .card .diff.canrate:hover{background:color-mix(in srgb,var(--tc) 20%,var(--panel2))}
 .dl.offpill{color:#c3cbd9;border-color:rgba(154,166,187,.55);background:rgba(154,166,187,.12);cursor:help}
 .songlist .dl,.bandtbl .dl{--tc:var(--accent);margin-left:6px;vertical-align:1px;padding:2px 7px}
@@ -1777,7 +1780,7 @@ function setHost(h){
   renderLB(); renderTL(); renderLog();
 }
 
-["lb","lbspan"].forEach(id=>$(id).addEventListener("click",e=>{const tr=e.target.closest("tr[data-host]");if(tr)setHost(tr.dataset.host)}));
+["lb","lbspan"].forEach(id=>$(id).addEventListener("click",e=>{const tr=e.target.closest("tr[data-host]");if(!tr||e.target.closest("[data-sbw]"))return;setHost(tr.dataset.host);if(selHost&&hosts[selHost])$("hcard").closest("section").scrollIntoView({behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth",block:"start"})}));
 ["lb","lbspan"].forEach(id=>$(id).addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){const tr=e.target.closest("tr[data-host]");if(tr){e.preventDefault();setHost(tr.dataset.host)}}}));
 $("fclear").addEventListener("click",()=>setHost(selHost));
 $("legend").addEventListener("click",e=>{const b=e.target.closest("button[data-host]");if(!b)return; if(b.dataset.host==="__all"){if(selHost)setHost(selHost)} else setHost(b.dataset.host)});
