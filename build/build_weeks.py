@@ -44,19 +44,21 @@ for w in range(1, last + 1):
     weeks.append([w, d.isoformat(), host, ann])  # other holidays are worked out in the page from the calendar
 
 # latest completed week: started at least 7 days ago, and the next week has begun. A week only ends once
-# BOTH the next week's WeekNNN tab exists on the scoreboard sheet AND it's past 3 pm New York time
-# (15:00 America/New_York, i.e. 19:00 or 20:00 UTC) on the Saturday the next week starts.
+# BOTH the next week's WeekNNN tab exists on the scoreboard sheet AND it's past 3 pm EST (20:00 UTC) on the
+# Saturday the next week starts. The real clock is used (BUILD_DATE only sets the date the workflows build for;
+# a BUILD_DATE other than today, for testing, is treated as the end of that day).
+UTC = datetime.timezone.utc
+now = datetime.datetime.now(UTC)
 from zoneinfo import ZoneInfo
-NY = ZoneInfo("America/New_York")
-now = (datetime.datetime.combine(today, datetime.time(23, 59), NY) if os.environ.get("BUILD_DATE")
-       else datetime.datetime.now(NY))
+if os.environ.get("BUILD_DATE") and today != now.astimezone(ZoneInfo("America/New_York")).date():
+    now = datetime.datetime.combine(today, datetime.time(23, 59), UTC)
 tabs = {int(m.group(1)) for s in wb.sheetnames for m in [re.match(r"Week(\d+)$", s)] if m}
 starts = {w: datetime.date.fromisoformat(d) for w, d, h, a in weeks}
 def next_started(w):
     n = w + 1
     if n not in starts: return False
     if tabs and n >= min(tabs) and n not in tabs: return False   # scoreboard era: the tab must exist
-    return now >= datetime.datetime.combine(starts[n], datetime.time(15, 0), NY)
+    return now >= datetime.datetime.combine(starts[n], datetime.time(20, 0), UTC)   # 3 pm EST = 20:00 UTC
 done = [w for w, d, h, a in weeks if datetime.date.fromisoformat(d) + datetime.timedelta(days=7) <= today and next_started(w)]
 data_week = max(done)
 json.dump(weeks, open("weeks.json", "w"), separators=(",", ":"))
