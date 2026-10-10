@@ -63,6 +63,9 @@ button.forum{background:none;cursor:pointer;font:inherit;font-size:.85rem}
 .twwarn>div{flex:1;min-width:0}
 .twwarn .hostbtn{flex:none;color:#fff;background:var(--s-red);border-color:var(--s-red);font-weight:700}
 .twwarn .hostbtn:hover{background:color-mix(in srgb,var(--s-red) 80%,#fff)!important}
+.animal{display:inline-block;font-size:.78rem;padding:1px 7px;border-radius:999px;background:var(--panel2);border:1px solid var(--line);white-space:nowrap;cursor:help}
+.animalnote{font-size:.85rem;color:var(--muted)}
+.animalnote .animal{color:var(--fg);font-weight:600}
 .pill.signed{cursor:help;background:color-mix(in srgb,var(--accent) 16%,transparent);color:var(--accent);border:1px solid color-mix(in srgb,var(--accent) 45%,transparent);font-size:.6rem;padding:1px 6px}
 .hostbtn{position:relative;cursor:pointer;font:inherit;font-family:var(--f-mono);font-size:.7rem}
 button.pill.hostbtn:hover,.pill.hostbtn:hover{background:color-mix(in srgb,var(--open) 32%,transparent)}
@@ -2880,7 +2883,7 @@ if(curView()==="thisweek")renderThisWeek();
 // ---------- accounts: log in with an emailed link, claim your player profile, rate this week's songs ----------
 // Uses a Supabase project (set SUPA_URL and SUPA_KEY; both are public by design). Leave them empty to hide all of this.
 var SUPA_URL="https://yeyzdxjqwdkswulrnver.supabase.co", SUPA_KEY="sb_publishable_pxGhrlKyONzLc1fomC2vsw_EoNlhCeG";
-var ACCT={on:false,sb:null,user:null,claim:null,admin:false,claims:[],hostSign:{},songs:null,mine:{},loading:{},tab:"me"};
+var ACCT={on:false,sb:null,user:null,claim:null,admin:false,claims:[],hostSign:{},animal:null,animals:{},songs:null,mine:{},loading:{},tab:"me"};
 function acctSongKey(s){return String(s||"").toLowerCase().replace(/[^a-z0-9]+/g,"")}
 function acctPlayerOf(e){return SB.names[e[0]].replace(/[*~]+$/,"")}
 function acctOn(){return typeof ACCT!=="undefined"&&!!ACCT&&ACCT.on}
@@ -2994,7 +2997,7 @@ function hostVerified(){if(!acctOn()||!ACCT.claim||ACCT.claim.status!=="approved
   const n=ACCT.claim.player.toLowerCase(); return Object.keys(hosts).some(h=>h.toLowerCase()===n)}
 function hostOpenWeeks(){const out=[];for(let i=0;i<=hostAhead();i++){const w=weekAt(curIdx+i);if(!w[2])out.push([w,i])}return out}
 async function hostLoad(){if(!ACCT.sb)return;
-  const {data,error}=await ACCT.sb.from("host_signups").select("week,player,created_at").gte("week",WEEKS[curIdx][0]);
+  const {data,error}=await ACCT.sb.from("host_signups").select("week,player,user_id,created_at").gte("week",WEEKS[curIdx][0]);
   if(error)return; ACCT.hostSign={}; (data||[]).forEach(r=>ACCT.hostSign[r.week]=r); renderUpcoming(); renderNow(); renderHostWarn(); if(hName&&hosts[hName])showHost(hName);
 }
 function hostNames(){const m=new Map();[...PLAYERS.map(p=>p[0]),...Object.keys(hosts)].forEach(n=>m.set(n.toLowerCase(),n));return [...m.values()].sort((a,b)=>a.localeCompare(b,undefined,{sensitivity:"base"}))}
@@ -3027,11 +3030,15 @@ document.addEventListener("change",e=>{const s=e.target.closest("select[data-hos
 function hostSection(admin){
   const open=hostOpenWeeks();
   if(admin){const all=Object.values(ACCT.hostSign).sort((a,b)=>a.week-b.week);
-    return `<div class="adm acctsec hostsec"><h3>Host sign-ups</h3><p>${all.length?"Add these to the schedule sheet. Once the sheet names the host, the sign-up is no longer needed.":"No sign-ups yet."}</p><ul>${all.map(s=>{const w=weekAt(curIdx+(s.week-WEEKS[curIdx][0]));return `<li><span>Week ${s.week} · ${fmtShort(w[1])} · <b>${esc(s.player)}</b>${w[2]?` <small>(sheet: ${esc(w[2])})</small>`:""}</span><button type="button" class="btn ghost" data-hostdrop="${s.week}">Remove</button></li>`}).join("")}</ul>
+    return `<div class="adm acctsec hostsec"><h3>Host sign-ups</h3><p>${all.length?"Add these to the schedule sheet. Once the sheet names the host, the sign-up is no longer needed.":"No sign-ups yet."}</p><ul>${all.map(s=>{const w=weekAt(curIdx+(s.week-WEEKS[curIdx][0]));return `<li><span>Week ${s.week} · ${fmtShort(w[1])} · <b>${esc(s.player)}</b> ${(()=>{const by=ACCT.claims.find(c=>c.user_id===s.user_id);return by&&by.player!==s.player?`<small>signed up by ${esc(by.player)}</small> `:""})()}${animalTag(ACCT.animals[s.user_id])}${w[2]?` <small>(sheet: ${esc(w[2])})</small>`:""}</span><button type="button" class="btn ghost" data-hostdrop="${s.week}">Remove</button></li>`}).join("")}</ul>
       <p>Open weeks:</p><ul>${open.map(([w,i])=>`<li><span>Week ${w[0]} · ${fmtShort(w[1])}</span><span>${hostSlot(w,i)}</span></li>`).join("")||`<li>Every week in the next ${hostAhead()} has a host.</li>`}</ul></div>`}
   if(!hostVerified())return "";
   return `<div class="acctsec hostsec"><h3>Hosting</h3><p>Open weeks in the next ${hostAhead()}. Sign up to host one; the admin adds it to the schedule.</p><ul>${open.map(([w,i])=>`<li><span>Week ${w[0]} · ${fmtShort(w[1])}</span><span>${hostSlot(w,i)}</span></li>`).join("")||`<li>Every week in the next ${hostAhead()} has a host.</li>`}</ul></div>`;
 }
+// verification animals: one per player, seen only by the player and admins (see animals.sql)
+const VERIFY_EMOJI={"Aardvark": "🐜", "Alpaca": "🦙", "Armadillo": "🦔", "Axolotl": "🦎", "Badger": "🦡", "Bat": "🦇", "Bear": "🐻", "Beaver": "🦫", "Bee": "🐝", "Bison": "🦬", "Boar": "🐗", "Butterfly": "🦋", "Camel": "🐫", "Cat": "🐈", "Chameleon": "🦎", "Cheetah": "🐆", "Chicken": "🐔", "Chipmunk": "🐿️", "Cow": "🐄", "Crab": "🦀", "Crocodile": "🐊", "Deer": "🦌", "Dodo": "🦤", "Dog": "🐕", "Dolphin": "🐬", "Donkey": "🫏", "Dove": "🕊️", "Dragon": "🐉", "Duck": "🦆", "Eagle": "🦅", "Elephant": "🐘", "Flamingo": "🦩", "Fox": "🦊", "Frog": "🐸", "Giraffe": "🦒", "Goat": "🐐", "Gorilla": "🦍", "Hamster": "🐹", "Hedgehog": "🦔", "Hippo": "🦛", "Horse": "🐎", "Hummingbird": "🐦", "Jellyfish": "🪼", "Kangaroo": "🦘", "Koala": "🐨", "Ladybug": "🐞", "Leopard": "🐆", "Lion": "🦁", "Lizard": "🦎", "Llama": "🦙", "Lobster": "🦞", "Mammoth": "🦣", "Monkey": "🐒", "Moose": "🫎", "Mouse": "🐁", "Octopus": "🐙", "Orangutan": "🦧", "Otter": "🦦", "Owl": "🦉", "Ox": "🐂", "Panda": "🐼", "Parrot": "🦜", "Peacock": "🦚", "Penguin": "🐧", "Pig": "🐖", "Poodle": "🐩", "Rabbit": "🐇", "Raccoon": "🦝", "Ram": "🐏", "Rhino": "🦏", "Rooster": "🐓", "Scorpion": "🦂", "Seal": "🦭", "Shark": "🦈", "Sheep": "🐑", "Shrimp": "🦐", "Skunk": "🦨", "Sloth": "🦥", "Snail": "🐌", "Snake": "🐍", "Spider": "🕷️", "Squid": "🦑", "Swan": "🦢", "Tiger": "🐅", "Turkey": "🦃", "Turtle": "🐢", "T-Rex": "🦖", "Unicorn": "🦄", "Whale": "🐋", "Wolf": "🐺", "Zebra": "🦓"};
+function animalTag(a){if(!a)return "";const base=a.replace(/ \d+$/,"");return `<span class="animal" data-tip="Verification animal">${VERIFY_EMOJI[base]||"🐾"} ${esc(a)}</span>`}
+function animalNote(){return ACCT.animal?`<p class="animalnote">Your verification animal is ${animalTag(ACCT.animal)}. Keep it to yourself: if an admin needs to check that this account (or a host sign-up) is really yours, they'll ask you for it.</p>`:""}
 function acctProfile(n){
   return `<div class="acctsec"><h3>Player profile</h3><div id="acct-p"></div></div>${WR.wins[n]?`<div class="acctsec"><h3>Win profile</h3><div id="acct-w"></div></div>`:""}${hosts[n]?`<div class="acctsec"><h3>Host profile</h3><div id="acct-h"></div></div>`:""}`;
 }
@@ -3044,6 +3051,8 @@ async function acctRefresh(){
   const {data:cl}=await ACCT.sb.from("claims").select("user_id,player,status,created_at"); ACCT.claims=cl||[];
   ACCT.claim=ACCT.user?ACCT.claims.find(c=>c.user_id===ACCT.user.id)||null:null;
   ACCT.admin=false; if(ACCT.user){const {data:ad}=await ACCT.sb.from("admins").select("user_id").eq("user_id",ACCT.user.id); ACCT.admin=!!(ad&&ad.length)}
+  ACCT.animal=null; ACCT.animals={};
+  if(ACCT.user){const {data:an}=await ACCT.sb.from("player_animals").select("user_id,animal"); (an||[]).forEach(r=>{ACCT.animals[r.user_id]=r.animal; if(r.user_id===ACCT.user.id)ACCT.animal=r.animal})}
   await hostLoad(); acctBtn(); if($("acct").open)acctDraw(); ACCT.songs=null; sbRender();
 }
 function acctDraw(msg,err){
@@ -3059,11 +3068,11 @@ function acctDraw(msg,err){
   else if(!ACCT.claim){const taken=new Set(ACCT.claims.map(c=>c.player));
     const names=PLAYERS.map(p=>p[0]).filter(n=>!taken.has(n)).sort((a,c)=>a.localeCompare(c,undefined,{sensitivity:"base"}));
     h+=`<p>Which player are you? Pick your name to claim your profile. An admin checks each claim before you can rate songs.</p><select id="acctname"><option value="">Choose your player name…</option>${names.map(n=>`<option>${esc(n)}</option>`).join("")}</select><div class="row"><button type="button" class="btn" data-acct="claim">Claim this profile</button></div>`}
-  else if(ACCT.claim.status==="pending")h+=`<p>You've claimed <b>${esc(ACCT.claim.player)}</b>. It's waiting for an admin to approve it.</p><div class="row"><button type="button" class="btn ghost" data-acct="unclaim">Withdraw claim</button></div>`;
-  else h+=`<p>Hi <b>${esc(ACCT.claim.player)}</b>! This is your personal stats page. You can head to the Scoreboard and submit your own ratings for any song by clicking its rating number.</p>${hostSection(false)}${acctProfile(ACCT.claim.player)}`;
+  else if(ACCT.claim.status==="pending")h+=`<p>You've claimed <b>${esc(ACCT.claim.player)}</b>. It's waiting for an admin to approve it.</p>${animalNote()}<div class="row"><button type="button" class="btn ghost" data-acct="unclaim">Withdraw claim</button></div>`;
+  else h+=`<p>Hi <b>${esc(ACCT.claim.player)}</b>! This is your personal stats page. You can head to the Scoreboard and submit your own ratings for any song by clicking its rating number.</p>${animalNote()}${hostSection(false)}${acctProfile(ACCT.claim.player)}`;
   if(ACCT.tab!=="admin")h+=`<div class="row"><button type="button" class="btn ghost" data-acct="logout">Log out</button></div>`;
   if(ACCT.admin&&ACCT.tab==="admin"){const pend=ACCT.claims.filter(c=>c.status==="pending"), appr=ACCT.claims.filter(c=>c.status==="approved").sort((a,c)=>a.player.localeCompare(c.player));
-    h+=`<div class="adm acctsec"><h3>Claims</h3><p>${pend.length?"Waiting for approval:":"No claims waiting."}</p><ul>${pend.map(c=>`<li><span>${esc(c.player)} <small>${new Date(c.created_at).toLocaleDateString()}</small></span><span><button type="button" class="btn" data-acct="approve" data-uid="${c.user_id}">Approve</button> <button type="button" class="btn ghost" data-acct="reject" data-uid="${c.user_id}">Reject</button></span></li>`).join("")}</ul>${appr.length?`<p>Approved (${appr.length}):</p><ul>${appr.map(c=>`<li><span>${esc(c.player)}</span><button type="button" class="btn ghost" data-acct="reject" data-uid="${c.user_id}">Remove</button></li>`).join("")}</ul>`:""}</div>${hostSection(true)}`}
+    h+=`<div class="adm acctsec"><h3>Claims</h3><p>${pend.length?"Waiting for approval:":"No claims waiting."}</p><ul>${pend.map(c=>`<li><span>${esc(c.player)} ${animalTag(ACCT.animals[c.user_id])} <small>${new Date(c.created_at).toLocaleDateString()}</small></span><span><button type="button" class="btn" data-acct="approve" data-uid="${c.user_id}">Approve</button> <button type="button" class="btn ghost" data-acct="reject" data-uid="${c.user_id}">Reject</button></span></li>`).join("")}</ul>${appr.length?`<p>Approved (${appr.length}):</p><ul>${appr.map(c=>`<li><span>${esc(c.player)} ${animalTag(ACCT.animals[c.user_id])}</span><button type="button" class="btn ghost" data-acct="reject" data-uid="${c.user_id}">Remove</button></li>`).join("")}</ul>`:""}</div>${hostSection(true)}`}
   b.innerHTML=h+note;
   if(ACCT.tab!=="admin"&&ACCT.claim&&ACCT.claim.status==="approved")acctMount(ACCT.claim.player);
 }
