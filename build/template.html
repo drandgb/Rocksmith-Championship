@@ -572,6 +572,9 @@ footer .updated{display:block;margin-top:4px}
 .evenbadge{flex-basis:100%;order:-1;font:700 .62rem var(--f-display);letter-spacing:.1em;text-transform:uppercase;color:#ffd36e;text-shadow:0 0 8px rgba(255,211,110,.6)}
 @media (prefers-reduced-motion:no-preference){.twl li.riv.even{animation:evenrim 4s linear infinite}}
 @keyframes evenrim{0%{background-position:0 0,0% 50%;box-shadow:0 0 12px rgba(255,126,182,.55),0 0 26px rgba(143,123,255,.4)}50%{background-position:0 0,100% 50%;box-shadow:0 0 16px rgba(63,208,224,.6),0 0 32px rgba(255,211,110,.45)}100%{background-position:0 0,0% 50%;box-shadow:0 0 12px rgba(255,126,182,.55),0 0 26px rgba(143,123,255,.4)}}
+.ups .pill.hup[data-hl]{cursor:pointer}
+.ups .pill.hup[data-hl]:hover{color:var(--fg);border-color:var(--accent)}
+.ups .pill.hup.act{color:#10131a;background:var(--accent);border-color:var(--accent)}
 .ups .pill.rkpath{color:var(--pc);border-color:color-mix(in srgb,var(--pc) 55%,transparent);background:color-mix(in srgb,var(--pc) 14%,transparent)}
 .ups .pill.rkpath:hover{background:color-mix(in srgb,var(--pc) 24%,transparent)}
 .ups .pill.rkpath.act{color:#10131a;background:var(--pc);border-color:var(--pc)}
@@ -2513,7 +2516,7 @@ function showHost(name){
         ${hYear?(()=>{const cnt={};WEEKS.forEach(([w,d,ho],i)=>{if(i<=curIdx&&d.slice(0,4)===hYear&&ho&&ho!==LOST)cnt[ho]=(cnt[ho]||0)+1});const rk=ws.length?1+Object.values(cnt).filter(n=>n>ws.length).length:null;return `<div><small>Rank in ${hYear}</small><b>${rk?"#"+rk:"–"}</b><span class="sub"> of ${Object.keys(cnt).length} host${Object.keys(cnt).length===1?"":"s"}</span></div>`})():`<div><small>Years hosting</small><b>${years.length}</b><span class="sub"> · ${yearsTxt}</span></div>`}
       </div>
       ${byName[name]||WR.wins[name]?`<div class="golinks">${byName[name]?`<button type="button" class="clear" data-goplayer="${esc(name)}">Open player profile ›</button>`:""}${WR.wins[name]?`<button type="button" class="clear" data-gowin="${esc(name)}">Open win profile ›</button>`:""}<button type="button" class="clear" data-gosongs="${esc(name)}">Song picks ›</button></div>`:`<div class="golinks"><button type="button" class="clear" data-gosongs="${esc(name)}">Song picks ›</button></div>`}
-      ${!hYear&&future.length?`<div class="ups">Coming up: ${future.map(w=>{const wk=weekAt(curIdx+(w-WEEKS[curIdx][0]));return `<span class="pill hol">wk ${w} · ${fmt(wk[1])}${wk[2]?"":" · signed up"}</span>`}).join("")}</div>`:""}
+      ${!hYear&&future.length?`<div class="ups">Coming up: ${future.map(w=>{const wk=weekAt(curIdx+(w-WEEKS[curIdx][0]));return `<span class="pill hol hup"${w<=WEEKS[WEEKS.length-1][0]?` data-hl="${w}" data-tip="Click to highlight Week ${w}"`:""}>wk ${w} · ${fmt(wk[1])}${wk[2]?"":" · signed up"}</span>`}).join("")}</div>`:""}
     </div>
     <div style="min-width:0">
       ${hostMedals(name)}
