@@ -1201,7 +1201,7 @@ footer{color:var(--dim);font-size:.78rem}
   <footer>Data: Rodman’s Rocksmith 2014 Championship Google Sheets (older attendance also from the Championship Metrics workbook). Player stats run through week 675; scoreboards cover weeks 440–676. Weeks 1–16 have no recorded host in the source.
   <span class="updated disclaimer">Unofficial fan project. Not affiliated with Ubisoft or Rocksmith.</span>
   <span class="updated" id="sheetedit-row" hidden>Sheet last edited: <span id="sheetedit" data-iso="2026-10-09T18:08:57.146Z"></span></span>
-  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-10T03:01:40+00:00">October 9, 2026</span></span>
+  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-10T03:07:17+00:00">October 9, 2026</span></span>
   </footer>
 </div>
 <dialog id="acct" class="acctdlg" aria-label="Your profile"><div id="acctbody"></div><button type="button" class="clear acctclose" id="acctclose">Close</button></dialog>
@@ -1331,7 +1331,7 @@ function weekAt(i){
 function upRow(i){
   const w=weekAt(curIdx+i);
   const hol=w[3]?w[3].split(/,\s*/).map(h=>`<span class="pill hol holf" data-hol="${esc(h)}" title="Show only weeks with ${esc(h)}">${holEmoji(h)}${esc(h)}</span>`).join(""):"";
-  const who=w[2]?`<span class="who" data-name="${esc(w[2])}">${esc(w[2])}</span>`:hostSlot(w,i);
+  const who=w[2]?(i>0&&w[2]!==LOST?hostBooked(w):`<span class="who" data-name="${esc(w[2])}">${esc(w[2])}</span>`):hostSlot(w,i);
   const yr=w[1].slice(0,4)!==cur[1].slice(0,4)?`<span class="yy">${w[1].slice(0,4)}</span>`:"";
   return `<li class="${i===0?"cur":""}"><div class="wk"><b${i===0&&SB.weeks[w[0]]?` class="sblink" data-sbw="${w[0]}" title="Open Week ${w[0]} on the Scoreboard"`:""}>${w[0]}</b>${fmtShort(w[1])}${yr}</div><div>${who}${i===0?' <span class="sub">· now</span>':""}<div class="meta">${hol}</div></div></li>`;
 }
@@ -3075,6 +3075,19 @@ async function hostLoad(){if(!ACCT.sb)return;
   hostReady=true; if(error){renderHostWarn();return} ACCT.hostSign={}; (data||[]).forEach(r=>ACCT.hostSign[r.week]=r); renderUpcoming(); renderNow(); renderHostWarn(); renderLog(); renderTL(); if(hName&&hosts[hName])showHost(hName);
 }
 // admin sign-up list: hosts by latest week hosted (most recently active first), then other players A–Z
+// an upcoming week the schedule sheet already names a host for: shown like a sign-up (SIGNED UP, and ✕ for them or an admin)
+function hostBooked(w){
+  const on=typeof ACCT!=="undefined"&&ACCT&&acctOn();
+  const mine=on&&ACCT.claim&&ACCT.claim.status==="approved"&&ACCT.claim.player.toLowerCase()===w[2].toLowerCase();
+  return `<span class="who" data-name="${esc(w[2])}">${esc(w[2])}</span> <span class="pill signed" data-tip="${esc(w[2])} is booked to host this week in the schedule sheet.">SIGNED UP</span>${on&&(mine||ACCT.admin)?` <button type="button" class="hostx" data-hostsheet="${w[0]}" title="${mine?"Withdraw":"Remove this host"}">✕</button>`:""}`;
+}
+// ✕ on a week booked in the schedule sheet: the site can't change the sheet, so say who to ask (and drop any site sign-up)
+document.addEventListener("click",async e=>{const x=e.target.closest("[data-hostsheet]"); if(!x)return; e.stopPropagation();
+  const wk=+x.dataset.hostsheet, w=weekAt(curIdx+(wk-WEEKS[curIdx][0]));
+  if(ACCT.hostSign[wk]&&ACCT.hostSign[wk].player.toLowerCase()===String(w[2]).toLowerCase()){if(!confirm(`Remove the site sign-up for Week ${wk}? ${w[2]} is also in the schedule sheet, which has to be changed there.`))return;
+    const {error}=await ACCT.sb.from("host_signups").delete().eq("week",wk); if(error){alert("Couldn't remove it: "+error.message);return} await hostLoad(); if($("acct").open)acctDraw(); return}
+  alert(ACCT.admin?`Week ${wk} (${fmtShort(w[1])}) is booked for ${w[2]} in the schedule sheet. Remove it there; the site updates with the next update.`:`Week ${wk} is booked for you in the schedule sheet. Message Rodman to withdraw.`);
+},true);
 function hostOptions(){
   const hs=hostList.slice().sort((a,b)=>b.last-a.last||b.n-a.n), seen=new Set(hs.map(h=>h.name.toLowerCase()));
   const rest=PLAYERS.map(p=>p[0]).filter(n=>!seen.has(n.toLowerCase())).sort((a,b)=>a.localeCompare(b,undefined,{sensitivity:"base"}));
@@ -3108,8 +3121,12 @@ document.addEventListener("change",e=>{const s=e.target.closest("select[data-hos
 // the Hosting section in Your account, and Host sign-ups in Admin
 function hostSection(admin){
   const open=hostOpenWeeks();
-  if(admin){const all=Object.values(ACCT.hostSign).sort((a,b)=>a.week-b.week);
-    return `<div class="adm acctsec hostsec"><h3>Host sign-ups</h3><p>${all.length?"Add these to the schedule sheet. Once the sheet names the host, the sign-up is no longer needed.":"No sign-ups yet."}</p><ul>${all.map(s=>{const w=weekAt(curIdx+(s.week-WEEKS[curIdx][0]));return `<li><span>Week ${s.week} · ${fmtShort(w[1])} · <b>${esc(s.player)}</b> ${(()=>{const by=ACCT.claims.find(c=>c.user_id===s.user_id);return by&&by.player!==s.player?`<small>signed up by ${esc(by.player)}</small> `:""})()}${animalTag(ACCT.animals[s.user_id])}${w[2]?` <small>(sheet: ${esc(w[2])})</small>`:""}</span><button type="button" class="btn ghost" data-hostdrop="${s.week}">Remove</button></li>`}).join("")}</ul>
+  if(admin){
+    // site sign-ups, plus upcoming weeks already booked in the schedule sheet
+    const all=Object.values(ACCT.hostSign).map(s=>({...s})), have=new Set(all.map(s=>s.week));
+    for(let i=1;i<=hostAhead();i++){const w=weekAt(curIdx+i); if(w[2]&&w[2]!==LOST&&!have.has(w[0]))all.push({week:w[0],player:w[2],sheet:true})}
+    all.sort((a,b)=>a.week-b.week);
+    return `<div class="adm acctsec hostsec"><h3>Host sign-ups</h3><p>${all.length?"Upcoming hosts. Add site sign-ups to the schedule sheet; weeks marked “in the schedule sheet” are already there.":"No sign-ups yet."}</p><ul>${all.map(s=>{const w=weekAt(curIdx+(s.week-WEEKS[curIdx][0]));return `<li><span>Week ${s.week} · ${fmtShort(w[1])} · <b>${esc(s.player)}</b> ${(()=>{const by=ACCT.claims.find(c=>c.user_id===s.user_id);return by&&by.player!==s.player?`<small>signed up by ${esc(by.player)}</small> `:""})()}${s.sheet?"":animalTag(ACCT.animals[s.user_id])}${s.sheet?` <small>in the schedule sheet</small>`:w[2]?` <small>(sheet: ${esc(w[2])})</small>`:""}</span><button type="button" class="btn ghost" ${s.sheet?"data-hostsheet":"data-hostdrop"}="${s.week}">Remove</button></li>`}).join("")}</ul>
       <p>Open weeks:</p><ul>${open.map(([w,i])=>`<li><span>Week ${w[0]} · ${fmtShort(w[1])}</span><span>${hostSlot(w,i)}</span></li>`).join("")||`<li>Every week in the next ${hostAhead()} has a host.</li>`}</ul></div>`}
   if(!hostVerified())return "";
   return `<div class="acctsec hostsec"><h3>Hosting</h3><p>Open weeks in the next ${hostAhead()}. Sign up to host one; the admin adds it to the schedule.</p><ul>${open.map(([w,i])=>`<li><span>Week ${w[0]} · ${fmtShort(w[1])}</span><span>${hostSlot(w,i)}</span></li>`).join("")||`<li>Every week in the next ${hostAhead()} has a host.</li>`}</ul></div>`;
