@@ -367,6 +367,23 @@ a.dl svg,.offpill svg{width:11px;height:11px}
 .alist .asong{flex:1 1 10em;min-width:0;cursor:pointer;font-weight:600}
 .alist .asong:hover{text-decoration:underline}
 .alist li.unpl{opacity:.5}
+/* the scoreboard rows: path · level · song · rating + pill · place · %. On a wide screen they sit on one line;
+   on a phone each row is the same three lines: path and level, then the song, then the rating, pill, place and % */
+.alist .ar1,.alist .ar3{display:contents}
+@media (max-width:640px){
+  .alist li:has(.ar1){display:grid;grid-template-columns:minmax(0,1fr);gap:6px}
+  .alist .ar1{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .alist .ar3{display:grid;grid-template-columns:auto auto minmax(0,1fr) auto auto;align-items:center;gap:8px}
+  .alist .ar3 .aplace{grid-column:4;margin-left:0;justify-self:end}
+  .alist .ar3 .apct{grid-column:5;min-width:0}
+  .alist li.unpl .ar3 .aplace{grid-column:3/-1;text-align:right;white-space:normal;line-height:1.2}
+  .alist .ar3 .srate{min-width:3.3em;justify-content:center}
+  .alist .ar3 .aplace small{font-size:.7rem}
+  .alist .ar3 .npsep{display:none}
+  .alist .ar3 .npn{display:block}
+  .alist .ar3 .apct,.alist .ar3 .aplace{line-height:1.2}
+  .alist li:has(.ar1) .asong{flex:none}
+}
 .alist li.myrank{box-shadow:inset 0 0 0 1.5px var(--rc),0 0 10px color-mix(in srgb,var(--rc) 35%,transparent);background:color-mix(in srgb,var(--rc) 10%,var(--panel2))}
 .alist li.myrank.unpl{opacity:.8}
 .alist .rankedtag{font:800 .6rem var(--f-mono);letter-spacing:.08em;padding:1px 5px;border-radius:4px;color:var(--rc);border:1px solid var(--rc)}
@@ -376,6 +393,7 @@ a.dl svg,.offpill svg{width:11px;height:11px}
 .alist .aplace,.alist .arank{font:700 .9rem var(--f-display);margin-left:auto;white-space:nowrap}
 .alist .arank{margin-left:0}
 .alist .arank.p1{color:#f5c84a}.alist .arank.p2{color:#c9d0dc}.alist .arank.p3{color:#d8925a}
+.alist .npsep{font-style:normal}
 .alist small{font:400 .72rem var(--f-body);color:var(--muted)}
 .alist .apct,.alist .apts{font-family:var(--f-mono);font-size:.85rem;min-width:4.5em;text-align:right}
 .alist .apts{margin-left:auto}
@@ -1213,7 +1231,7 @@ footer{color:var(--dim);font-size:.78rem}
   <footer>Data: Rodman’s Rocksmith 2014 Championship Google Sheets (older attendance also from the Championship Metrics workbook). Player stats run through week 675; scoreboards cover weeks 440–676. Weeks 1–16 have no recorded host in the source.
   <span class="updated disclaimer">Unofficial fan project. Not affiliated with Ubisoft or Rocksmith.</span>
   <span class="updated" id="sheetedit-row" hidden>Sheet last edited: <span id="sheetedit" data-iso="2026-10-09T18:08:57.146Z"></span></span>
-  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-10T10:33:41+00:00">October 10, 2026</span></span>
+  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-10T10:38:48+00:00">October 10, 2026</span></span>
   </footer>
 </div>
 <dialog id="acct" class="acctdlg" aria-label="Your profile"><div id="acctbody"></div><button type="button" class="clear acctclose" id="acctclose">Close</button></dialog>
@@ -3191,7 +3209,7 @@ function acctThisWeek(n){
     const L=cardLv(c[2]), id=SB.links&&SB.links[w]&&SB.links[w][c[0]*9+c[1]];
     const pl=me&&me.place&&me.place<=3?["🥇","🥈","🥉"][me.place-1]:"";
     const ranked=L&&L!=="G"&&L===rankOf(c[0]);
-    sb.push(`<li class="${me?"":"unpl"}${ranked?" myrank":""}" style="--pc:${PATH_C[c[0]]};--rc:${TIER_C[L]||"var(--fg)"}"${ranked?` data-tip="Your ranked challenge: you're ${TIER_NAME[L]} on ${PATHS[c[0]]}, so this one counts for Rodman's Rankings"`:""}><span class="apath">${PATHS[c[0]]}</span>${ranked?`<span class="rankedtag">RANKED</span>`:""}${L?`<span class="lvchip" style="--tc:${L==="G"?"var(--s-red)":TIER_C[L]}">${L==="G"?esc(c[2]):TIER_NAME[L]}</span>`:`<span class="lvchip">${esc(c[2])}</span>`}<span class="asong" data-sbw="${w}" data-sbp="${c[0]}"${me?` data-sbn="${esc(n)}"`:""} title="Open this challenge on the Scoreboard">${esc(c[3])}</span>${cardRateBox(c[0],c[3],c[4])}${songPill(c[3],id)}${me?`<span class="aplace">${pl}#${me.i+1}<small> of ${c[6].length}</small></span><span class="apct">${me.e[1]!=null?me.e[1]+"%":"–"}</span>`:`<span class="aplace"><small>Not played yet · ${c[6].length} played</small></span>`}</li>`)});
+    sb.push(`<li class="${me?"":"unpl"}${ranked?" myrank":""}" style="--pc:${PATH_C[c[0]]};--rc:${TIER_C[L]||"var(--fg)"}"${ranked?` data-tip="Your ranked challenge: you're ${TIER_NAME[L]} on ${PATHS[c[0]]}, so this one counts for Rodman's Rankings"`:""}><span class="ar1"><span class="apath">${PATHS[c[0]]}</span>${ranked?`<span class="rankedtag">RANKED</span>`:""}${L?`<span class="lvchip" style="--tc:${L==="G"?"var(--s-red)":TIER_C[L]}">${L==="G"?esc(c[2]):TIER_NAME[L]}</span>`:`<span class="lvchip">${esc(c[2])}</span>`}</span><span class="asong" data-sbw="${w}" data-sbp="${c[0]}"${me?` data-sbn="${esc(n)}"`:""} title="Open this challenge on the Scoreboard">${esc(c[3])}</span><span class="ar3">${cardRateBox(c[0],c[3],c[4])}${songPill(c[3],id)}${me?`<span class="aplace">${pl}#${me.i+1}<small> of ${c[6].length}</small></span><span class="apct">${me.e[1]!=null?me.e[1]+"%":"–"}</span>`:`<span class="aplace"><small>Not played yet<i class="npsep"> · </i><span class="npn">${c[6].length} played</span></small></span>`}</span></li>`)});
   // rivals: the This Week page's rival boxes that include them (all levels), copied over
   let riv="";
   if(cards.length){const saveW=twWeek, saveLv=twRivLv.slice(); twWeek=w; twRivLv.fill(""); renderThisWeek();
