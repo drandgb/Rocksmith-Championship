@@ -343,6 +343,10 @@ a.dl svg,.offpill svg{width:11px;height:11px}
 .card .prate .ok{color:#7dffb0}
 .card .diff.upd{border-color:color-mix(in srgb,var(--tc) 70%,var(--line));color:var(--tc);cursor:help}
 .card .diff.upd::after{content:"★";font-size:.6em;margin-left:2px;vertical-align:2px}
+.srate{display:inline-flex;align-items:center;font:700 .76rem var(--f-mono);padding:1px 7px;border-radius:5px;background:var(--panel2);border:1px solid var(--line);color:var(--fg);cursor:help;vertical-align:1px;margin-left:6px}
+.srate[data-sbw]{cursor:pointer}
+.srate.upd{border-color:color-mix(in srgb,var(--accent) 60%,var(--line));color:var(--accent)}
+.srate.upd::after{content:"★";font-size:.62em;margin-left:2px;vertical-align:2px}
 .card .diff.canrate{cursor:pointer;position:relative;box-shadow:0 0 0 1px color-mix(in srgb,var(--tc) 40%,transparent)}
 .card .diff.canrate select{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;font-size:16px;-webkit-appearance:none;appearance:none}
 .card .diff.mine{box-shadow:0 0 0 1px var(--tc),0 0 6px color-mix(in srgb,var(--tc) 55%,transparent)}
@@ -2218,7 +2222,7 @@ function renderSongs(){
   TIER_LABEL.G=sPath<0?"God tier":["God of Guitar","God of Rhythm","God of Bass"][sPath];
   document.querySelectorAll("#spath button").forEach(b=>b.setAttribute("aria-pressed",+b.dataset.sp===sPath));
   const cards=[];
-  Object.entries(SB.weeks).forEach(([w,ch])=>ch.forEach(c=>{ if(sPath>=0&&c[0]!==sPath)return; if(!c[3]||/^n\/a$/i.test(c[3]))return; const t=tierOf(c[2]); if(!t)return; const [artist,title]=splitSong(c[3]); cards.push({w:+w,p:c[0],t:tierByRating(t,c[4]),card:t,artist,title,song:c[3],diff:c[4],n:c[6].length,who:c[6].map(e=>SB.names[e[0]].replace(/[*~]+$/,""))}); }));
+  Object.entries(SB.weeks).forEach(([w,ch])=>ch.forEach(c=>{ if(sPath>=0&&c[0]!==sPath)return; if(!c[3]||/^n\/a$/i.test(c[3]))return; const t=tierOf(c[2]); if(!t)return; const [artist,title]=splitSong(c[3]); cards.push({w:+w,p:c[0],t:tierByRating(t,c[4]),card:t,artist,title,song:c[3],diff:c[4],n:c[6].length,slot:c[1],who:c[6].map(e=>SB.names[e[0]].replace(/[*~]+$/,""))}); }));
   SONGS_OLD.forEach(([w,p,t,b,song,diff])=>{ if(sPath>=0&&p!==sPath)return; const [artist,title]=splitSong(song); cards.push({w,p,t:tierByRating(t,diff),card:t,artist,title,song,diff,n:null}); });
   // host filter: only songs from weeks this host hosted
   // a God challenge that runs for several weeks was picked by the host of its first week, so the whole run counts for them
@@ -2270,14 +2274,14 @@ function renderSongs(){
     // players grouped by the week they played it, latest week first
     const byWk={}; v.forEach(c=>(c.who||[]).forEach(n=>{const m=(byWk[c.w]=byWk[c.w]||{});(m[n]=m[n]||new Set()).add(c.p)}));
     const tipTxt=`${ti} — ${Object.keys(who).length} players\n`+Object.keys(byWk).map(Number).sort((a,b)=>b-a).map(w=>`\nWeek ${w}\n`+Object.entries(byWk[w]).sort((a,b)=>b[1].size-a[1].size||a[0].localeCompare(b[0])).map(([n,ps])=>`• ${n} · ${[...ps].sort().map(p=>PATHS[p]).join(", ")}`).join("\n")).join("\n");
-    return `<li data-tip="${esc(tipTxt)}"><div><b class="songlink" data-band="${esc(a)}" data-song="${esc(ti)}">${esc(ti)}</b><small><span data-band="${esc(a)}" class="bandlink">${esc(a)}</span> · ${v.length} challenge${v.length===1?"":"s"}</small><div class="chips">${tiers.map(t=>lvPill(t,"lvp",lvlPlayed)).join("")}</div></div><span class="cnt">${songPill(sg,IG_LATEST(sg))}<b>${n}</b>players attempted</span></li>`}).join("");
+    return `<li data-tip="${esc(tipTxt)}"><div><b class="songlink" data-band="${esc(a)}" data-song="${esc(ti)}">${esc(ti)}</b><small><span data-band="${esc(a)}" class="bandlink">${esc(a)}</span> · ${v.length} challenge${v.length===1?"":"s"}</small><div class="chips">${tiers.map(t=>lvPill(t,"lvp",lvlPlayed)).join("")}${songRateBox(v)}</div></div><span class="cnt">${songPill(sg,IG_LATEST(sg))}<b>${n}</b>players attempted</span></li>`}).join("");
   // a multi-week God challenge (same song in back-to-back weeks as a God challenge) counts as one play
   const plays=(ws,v)=>{let n=0,prev=null;const god=w=>v.some(c=>c.w===w&&c.card==="G");ws.forEach(w=>{if(!(prev!=null&&w===prev+1&&god(w)&&god(prev)))n++;prev=w});return n};
   const replay=byLvl(lvlReplay).map(([sg,v])=>{const ws=[...new Set(v.map(c=>c.w))].sort((a,b)=>a-b);return [sg,ws,v,plays(ws,v)]}).filter(x=>x[3]>1).sort((a,b)=>b[3]-a[3]||b[1][b[1].length-1]-a[1][a[1].length-1]).slice(0,20);
   $("replaylist").innerHTML=replay.map(([sg,ws,v,np])=>{const [a,ti]=splitSong(sg);
     const lines=ws.slice().reverse().map(w=>{const cs=v.filter(c=>c.w===w);return `Week ${w} · `+cs.map(c=>`${PATHS[c.p]} ${TIER_LABEL[c.t]}${c.diff!=null?" ("+c.diff+")":""}`).join(", ")});
     const tipTxt=`${ti} — played ${np} times over ${ws.length} weeks\n`+lines.join("\n");
-    return `<li data-tip="${esc(tipTxt)}"><div><b class="songlink" data-band="${esc(a)}" data-song="${esc(ti)}">${esc(ti)}</b><small><span data-band="${esc(a)}" class="bandlink">${esc(a)}</span> · first wk ${ws[0]} · latest wk ${ws[ws.length-1]}</small><div class="chips">${[...new Set(v.map(c=>c.t))].sort((x,y)=>TIER_ORDER.indexOf(x)-TIER_ORDER.indexOf(y)).map(t=>lvPill(t,"lvr",lvlReplay)).join("")}</div></div><span class="cnt">${songPill(sg,IG_LATEST(sg))}<b>${np}</b>times played</span></li>`}).join("")||`<li class="empty">No songs have been used in more than one week.</li>`;
+    return `<li data-tip="${esc(tipTxt)}"><div><b class="songlink" data-band="${esc(a)}" data-song="${esc(ti)}">${esc(ti)}</b><small><span data-band="${esc(a)}" class="bandlink">${esc(a)}</span> · first wk ${ws[0]} · latest wk ${ws[ws.length-1]}</small><div class="chips">${[...new Set(v.map(c=>c.t))].sort((x,y)=>TIER_ORDER.indexOf(x)-TIER_ORDER.indexOf(y)).map(t=>lvPill(t,"lvr",lvlReplay)).join("")}${songRateBox(v)}</div></div><span class="cnt">${songPill(sg,IG_LATEST(sg))}<b>${np}</b>times played</span></li>`}).join("")||`<li class="empty">No songs have been used in more than one week.</li>`;
   $("bqlist").innerHTML=Object.entries(bands).sort((a,b)=>b[1].length-a[1].length).map(([a])=>`<option value="${esc(a)}"></option>`).join("");
   if(featured.length)showBand(bandName&&bands[bandName]?bandName:featured[0][0]); else $("bcard").innerHTML=`<div class="empty">No songs on record for ${esc(sHost||"this filter")}.</div>`;
   try{localStorage.setItem("rsc-spath",String(sPath))}catch(e){}
@@ -2317,7 +2321,7 @@ function showBand(name){
     </div>
     <div style="min-width:0"><div class="bandscroll"><table class="bandtbl"><thead><tr><th>Song</th><th>Levels</th><th>Paths</th><th class="r">Ratings</th><th class="r" data-tip="How many challenges used this song. Each path counts separately, so one week on Lead, Rhythm and Bass is 3." style="cursor:help;text-decoration:underline dotted">Challenges</th><th class="r" data-tip="Latest first" style="cursor:help">Weeks</th></tr></thead><tbody>${
       songsArr.map(([ti,v])=>{const lv=[...new Set(v.map(c=>c.t))].sort((a,b)=>TIER_ORDER.indexOf(a)-TIER_ORDER.indexOf(b));const ps=[...new Set(v.map(c=>c.p))].sort();const r=[...new Set(v.map(c=>c.diff).filter(d=>d!=null&&d>0))].sort((a,b)=>a-b);const ws=[...new Set(v.map(c=>c.w))].sort((a,b)=>b-a);
-        return `<tr><td><b>${esc(ti)}</b>${songPill(name+" - "+ti,IG_LATEST(name+" - "+ti))}</td><td><div class="chips">${lv.map(t=>`<span class="lvchip lvclick" data-btier="${t}" style="--tc:${TIER_COL[t]}" title="Show only ${TIER_LABEL[t]} songs">${TIER_LABEL[t]}</span>`).join("")}</div></td><td><div class="pstack">${ps.map(p=>`<span class="pth lvclick${bandPathF===p?" sel":""}" data-bpath="${p}" style="--pc:${PATH_C[p]}" title="Show only ${PATHS[p]} songs">${PATHS[p]}</span>`).join("")}</div></td><td class="r"><div class="pstack rt">${ps.map(p=>{const rr=[...new Set(v.filter(c=>c.p===p).map(c=>c.diff).filter(d=>d!=null&&d>0))].sort((a,b)=>a-b);return `<span>${rr.join(" / ")||"–"}</span>`}).join("")}</div></td><td class="r num">${v.length}</td><td class="r wks">${ws.map(w=>SB.weeks[w]?`<span data-sbw="${w}" title="Open Week ${w} on the Scoreboard">${w}</span>`:w).join(", ")}</td></tr>`}).join("")
+        return `<tr><td><b>${esc(ti)}</b>${songRateBox(v)}${songPill(name+" - "+ti,IG_LATEST(name+" - "+ti))}</td><td><div class="chips">${lv.map(t=>`<span class="lvchip lvclick" data-btier="${t}" style="--tc:${TIER_COL[t]}" title="Show only ${TIER_LABEL[t]} songs">${TIER_LABEL[t]}</span>`).join("")}</div></td><td><div class="pstack">${ps.map(p=>`<span class="pth lvclick${bandPathF===p?" sel":""}" data-bpath="${p}" style="--pc:${PATH_C[p]}" title="Show only ${PATHS[p]} songs">${PATHS[p]}</span>`).join("")}</div></td><td class="r"><div class="pstack rt">${ps.map(p=>{const rr=[...new Set(v.filter(c=>c.p===p).map(c=>c.diff).filter(d=>d!=null&&d>0))].sort((a,b)=>a-b);return `<span>${rr.join(" / ")||"–"}</span>`}).join("")}</div></td><td class="r num">${v.length}</td><td class="r wks">${ws.map(w=>SB.weeks[w]?`<span data-sbw="${w}" title="Open Week ${w} on the Scoreboard">${w}</span>`:w).join(", ")}</td></tr>`}).join("")
     }</tbody></table></div></div></div>`;
 }
 $("bq").addEventListener("change",e=>showBand(e.target.value.trim()));
@@ -2867,23 +2871,41 @@ function acctCard(w,p,slot,ents,live){
   for(let r=1;r<=10;r+=.5)opts.push(`<option value="${r}"${mine&&mine.r===r?" selected":""}>${r}</option>`);
   return `<div class="prate">Your rating <select data-rate="${w}|${p}|${slot}" aria-label="Your difficulty rating for this song"><option value="">${mine?"Remove":"–"}</option>${opts.join("")}</select>${mine?'<span class="ok">✓ saved</span>':""}</div>`;
 }
+// all ratings are loaded at once (it's a small table) and sorted into ACCT.weeks[week][path*9+slot]
 async function acctLoadWeek(w){
-  if(ACCT.loading[w]||!ACCT.sb)return; ACCT.loading[w]=true;
-  const {data,error}=await ACCT.sb.from("votes").select("player,path,slot,rating,song,updated_at").eq("week",w);
-  ACCT.loading[w]=false; if(error)return;
+  if(ACCT.loading.all||!ACCT.sb)return; ACCT.loading.all=true;
+  const {data,error}=await ACCT.sb.from("votes").select("player,week,path,slot,rating,song,updated_at");
+  ACCT.loading.all=false; if(error)return;
   // ratings follow the song: each rating is saved with its song, and shows on whichever card of that week and path
   // has that song now (so a host moving a song to another level keeps its ratings); if the song is gone, it's hidden.
   // A player's newest rating wins if they have more than one for the same card.
-  const cards=SB.weeks[w]||[], best={};
+  const best={};
   (data||[]).forEach(v=>{
-    let slot=v.slot;
+    const cards=SB.weeks[v.week]||[]; let slot=v.slot;
     if(v.song){const n=acctSongKey(v.song), here=cards.find(c=>c[0]===v.path&&c[1]===v.slot&&acctSongKey(c[3])===n), moved=cards.find(c=>c[0]===v.path&&acctSongKey(c[3])===n);
       const c=here||moved; if(!c)return; slot=c[1]}
-    const k=v.path*9+slot, id=k+"|"+v.player;
-    if(!best[id]||String(v.updated_at)>String(best[id].t))best[id]={k,p:v.player,r:+v.rating,t:v.updated_at};
+    const k=v.path*9+slot, id=v.week+"|"+k+"|"+v.player;
+    if(!best[id]||String(v.updated_at)>String(best[id].t))best[id]={w:v.week,k,p:v.player,r:+v.rating,t:v.updated_at};
   });
-  const V={}; Object.values(best).forEach(x=>(V[x.k]=V[x.k]||[]).push({p:x.p,r:x.r}));
-  ACCT.weeks[w]=V; if(sbWeek===w)sbRender();
+  const W={}; Object.keys(SB.weeks).forEach(x=>W[x]={});
+  Object.values(best).forEach(x=>{const V=W[x.w]=W[x.w]||{};(V[x.k]=V[x.k]||[]).push({p:x.p,r:x.r})});
+  ACCT.weeks=W; sbRender(); if(typeof renderSongs==="function"&&!$("view-songs").hidden)renderSongs();
+}
+// a song's rating box on the Songs page: the players' average over all its challenges (★), or the host ratings' average.
+// Hover lists each challenge; clicking opens its latest challenge on the Scoreboard, where players can rate it.
+function songRateBox(cards){
+  if(acctOn()&&!Object.keys(ACCT.weeks).length)acctLoadWeek();
+  const rc=cards.filter(c=>c.slot!=null);
+  const hostR=cards.map(c=>c.diff).filter(d=>d!=null&&d>0);
+  const lines=[], all=[];
+  rc.slice().sort((a,b)=>b.w-a.w).forEach(c=>{const l=acctOn()&&ACCT.weeks[c.w]?(ACCT.weeks[c.w][c.p*9+c.slot]||[]):[];
+    l.forEach(v=>all.push(v.r));
+    lines.push(`Week ${c.w} · ${PATHS[c.p]} ${TIER_LABEL[c.card]||""}: initial ${c.diff!=null?c.diff:"–"}`+(l.length?` · players ${(Math.round(l.reduce((a,v)=>a+v.r,0)/l.length*10)/10).toFixed(1)} (${l.map(v=>`${v.p} ${v.r}`).join(", ")})`:""))});
+  if(!all.length&&!hostR.length)return "";
+  const avg=a=>(Math.round(a.reduce((x,y)=>x+y,0)/a.length*10)/10).toFixed(1);
+  const val=all.length?avg(all):avg(hostR), last=rc.slice().sort((a,b)=>b.w-a.w)[0];
+  const tipTxt=(all.length?`Players' average ${val} from ${all.length} rating${all.length===1?"":"s"}`:`Host rating${hostR.length>1?"s average":""} ${val}`)+(lines.length?"\n\n"+lines.slice(0,12).join("\n")+(lines.length>12?`\n… and ${lines.length-12} more`:""):"")+(last&&acctOn()?"\n\nClick to open its latest challenge on the Scoreboard and rate it":"");
+  return `<span class="srate${all.length?" upd":""}"${last?` data-sbw="${last.w}" data-sbp="${last.p}"`:""} data-tip="${esc(tipTxt)}">${val}</span>`;
 }
 document.addEventListener("change",async e=>{
   const s=e.target.closest("select[data-rate]"); if(!s||!ACCT.claim)return;
@@ -2924,7 +2946,7 @@ async function acctRefresh(){
 function acctDraw(msg,err){
   acctUnmount();
   const b=$("acctbody"), note=(msg?`<p class="msg">${esc(msg)}</p>`:"")+(err?`<p class="err">${esc(err)}</p>`:"");
-  if(!ACCT.user){b.innerHTML=`<h3>Log in</h3><p>Type your email and we'll send you a login link. No password needed.</p><input id="acctemail" type="email" autocomplete="email" placeholder="you@example.com"><div class="row"><button type="button" class="btn" data-acct="send">Email me a login link</button></div>${note}`;return}
+  if(!ACCT.user){b.innerHTML=`<h3>Log in</h3><p>Logging in lets you claim your player profile, so you can view your own stats page and submit one rating per song for each path (Lead, Rhythm and Bass) on the Scoreboard.</p><p>Type your email and we'll send you a login link. No password needed.</p><input id="acctemail" type="email" autocomplete="email" placeholder="you@example.com"><div class="row"><button type="button" class="btn" data-acct="send">Email me a login link</button></div>${note}`;return}
   const pendN=ACCT.admin?ACCT.claims.filter(c=>c.status==="pending").length:0;
   if(!ACCT.admin)ACCT.tab="me";
   // tabs: Your account, and (for admins) Admin · claims with a badge for claims waiting
