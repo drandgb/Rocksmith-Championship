@@ -444,7 +444,7 @@ a.dl svg,.offpill svg{width:11px;height:11px}
 .actfilter{margin-left:auto;margin-bottom:6px}
 #pfilter .s-all[aria-pressed="true"],#wpath .s-all[aria-pressed="true"],#rufilter .s-all[aria-pressed="true"]{background:var(--accent)}
 .ruf{margin-bottom:12px}
-.rulist{list-style:none;margin:0;padding:0;columns:300px auto;column-gap:28px}
+.rulist{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr));column-gap:28px}
 .rulist li{break-inside:avoid}
 .rulist li{display:grid;grid-template-columns:6.4em minmax(0,1fr) auto;gap:10px;align-items:center;padding:7px 0;border-bottom:1px solid color-mix(in srgb,var(--line) 55%,transparent);font-size:.86rem}
 .rulist .w{font-family:var(--f-mono);font-size:.75rem;color:var(--muted);line-height:1.2}
@@ -477,6 +477,7 @@ button.clear.sblatest:hover{background:var(--accent);color:var(--accent-ink)}
 .rulist .move.down i{color:var(--s-red)}
 .rkup{display:inline-block;margin-left:5px;font:700 .6rem var(--f-display);letter-spacing:.06em;padding:1px 5px;border-radius:4px;background:color-mix(in srgb,var(--s-green) 20%,transparent);color:var(--s-green);border:1px solid color-mix(in srgb,var(--s-green) 45%,transparent);cursor:help;vertical-align:middle}
 .pc .ups{margin-top:10px;font-size:.82rem;color:var(--muted);display:flex;flex-wrap:wrap;gap:6px}
+.pc .ups.pcwide{grid-column:1/-1;margin-top:-6px;align-items:center}
 .newlist{columns:340px auto;column-gap:28px}
 .nrow{display:grid;grid-template-columns:minmax(0,9em) 1fr auto;gap:10px;align-items:center;padding:7px 0;border-bottom:1px solid color-mix(in srgb,var(--line) 55%,transparent);break-inside:avoid;font-size:.86rem}
 .nrow .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -1731,14 +1732,15 @@ function showPlayer(name){
         <div${D.latest?` data-hl="${D.latest}" data-tip="Click to highlight Week ${D.latest}"`:""}><small>Latest week</small><b>${D.latest??"–"}</b>${dlw?`<span class="sub"> · ${fmt(dlw[1])}</span>`:""}</div>
         ${PB.sc||PB.st?pbBox("Highest score",PB.sc,"Highest score on a challenge")+pbBox("Highest note streak",PB.st,"Longest note streak on a challenge"):""}
       </div>
-      ${(()=>{const u=WR.ups.filter(x=>x[0]===n).sort((a,b)=>a[4]-b[4]);return u.length?`<div class="ups">Rank changes: ${u.map(([,p,a,b,w])=>`<span class="pill hol rkpath" data-hl="${w}" data-tip="Click to highlight Week ${w}" style="cursor:pointer;--pc:${PATH_C[p]}">${PATHS[p]} ${a}${"BIAM".indexOf(b)<"BIAM".indexOf(a)?"↘":"↗"}${b} · wk ${w}</span>`).join("")}</div>`:""})()}
       ${WR.wins[n]||hosts[n]?`<div class="golinks">${WR.wins[n]?`<button type="button" class="clear" data-wprofile="${esc(n)}">Open win profile ›</button>`:""}${hosts[n]?`<button type="button" class="clear" data-gohost="${esc(n)}">Open host profile ›</button>`:""}</div>`:""}
     </div>
     <div style="min-width:0">
       ${medalsFor(p)}
       <div class="scroll"><div class="pres${pYear?" yf":""}" id="ppres">${grid}</div></div>
       <div class="pres-legend"><span><i class="sw" style="background:var(--s-green)"></i>Played</span><span><i class="sw" style="background:var(--panel2)"></i>Missed</span></div>
-    </div></div>`;
+    </div>
+      ${(()=>{const u=WR.ups.filter(x=>x[0]===n).sort((a,b)=>b[4]-a[4]||b[1]-a[1]);return u.length?`<div class="ups pcwide">Rank changes: ${u.map(([,p,a,b,w])=>`<span class="pill hol rkpath" data-hl="${w}" data-tip="Click to highlight Week ${w}" style="cursor:pointer;--pc:${PATH_C[p]}">${PATHS[p]} ${a}${"BIAM".indexOf(b)<"BIAM".indexOf(a)?"↘":"↗"}${b} · wk ${w}</span>`).join("")}</div>`:""})()}
+    </div>`;
   $("pq").value=n;
 }
 $("pq").addEventListener("change",e=>showPlayer(e.target.value.trim()));
@@ -2587,13 +2589,14 @@ function showHost(name){
         ${hYear?(()=>{const cnt={};WEEKS.forEach(([w,d,ho],i)=>{if(i<=curIdx&&d.slice(0,4)===hYear&&ho&&ho!==LOST)cnt[ho]=(cnt[ho]||0)+1});const rk=ws.length?1+Object.values(cnt).filter(n=>n>ws.length).length:null;return `<div><small>Rank in ${hYear}</small><b>${rk?"#"+rk:"–"}</b><span class="sub"> of ${Object.keys(cnt).length} host${Object.keys(cnt).length===1?"":"s"}</span></div>`})():`<div><small>Years hosting</small><b>${years.length}</b><span class="sub"> · ${yearsTxt}</span></div>`}
       </div>
       ${byName[name]||WR.wins[name]?`<div class="golinks">${byName[name]?`<button type="button" class="clear" data-goplayer="${esc(name)}">Open player profile ›</button>`:""}${WR.wins[name]?`<button type="button" class="clear" data-gowin="${esc(name)}">Open win profile ›</button>`:""}<button type="button" class="clear" data-gosongs="${esc(name)}">Song picks ›</button></div>`:`<div class="golinks"><button type="button" class="clear" data-gosongs="${esc(name)}">Song picks ›</button></div>`}
-      ${!hYear&&future.length?`<div class="ups">Coming up: ${future.map(w=>{const wk=weekAt(curIdx+(w-WEEKS[curIdx][0]));return `<span class="pill hol hup"${w<=WEEKS[WEEKS.length-1][0]?` data-hl="${w}" data-tip="Click to highlight Week ${w}"`:""}>wk ${w} · ${fmt(wk[1])}${w===cur[0]?" · now":wk[2]?"":" · signed up"}</span>`}).join("")}</div>`:""}
     </div>
     <div style="min-width:0">
       ${hostMedals(name)}
       <div class="scroll"><div class="pres${hYear?" yf":""}" id="hpres" style="--hcol:${col}">${grid}</div></div>
       <div class="pres-legend"><span><i class="sw" style="background:${col}"></i>Hosted</span><span><i class="sw" style="box-shadow:inset 0 0 0 1.5px ${col}"></i>Scheduled</span><span><i class="sw" style="background:#3a4254"></i>Someone else</span><span><i class="sw" style="background:var(--panel2)"></i>Open</span><span><i class="sw" style="background:repeating-linear-gradient(45deg,var(--lost) 0 2px,var(--panel2) 2px 4px)"></i>No record</span></div>
-    </div></div>`;
+    </div>
+      ${!hYear&&future.length?`<div class="ups pcwide">Coming up: ${future.map(w=>{const wk=weekAt(curIdx+(w-WEEKS[curIdx][0]));return `<span class="pill hol hup"${w<=WEEKS[WEEKS.length-1][0]?` data-hl="${w}" data-tip="Click to highlight Week ${w}"`:""}>wk ${w} · ${fmt(wk[1])}${w===cur[0]?" · now":wk[2]?"":" · signed up"}</span>`}).join("")}</div>`:""}
+    </div>`;
 }
 $("hq").addEventListener("change",e=>showHost(e.target.value.trim()));
 $("hq").addEventListener("keydown",e=>{if(e.key==="Enter")showHost(e.target.value.trim())});
