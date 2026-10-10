@@ -3144,7 +3144,9 @@ function acctProfile(n){
 // header button and dialog
 function acctBtn(){const b=$("acctbtn"); b.hidden=!ACCT.on; b.textContent=ACCT.claim&&ACCT.claim.status==="approved"?"👤 "+ACCT.claim.player:ACCT.user?"👤 Account":"👤 Log in";
   const n=ACCT.admin?ACCT.claims.filter(c=>c.status==="pending").length:0; // admins: how many claims are waiting
-  if(n)b.insertAdjacentHTML("beforeend",`<span class="nbadge" title="${n} claim${n===1?"":"s"} waiting for approval">${n}</span>`)}
+  if(n)b.insertAdjacentHTML("beforeend",`<span class="nbadge" title="${n} claim${n===1?"":"s"} waiting for approval">${n}</span>`);
+  try{localStorage.setItem("rsc-acctbtn",b.innerHTML)}catch(e){} // shown straight away on the next visit while the login loads
+}
 async function acctRefresh(){
   const {data:{session}}=await ACCT.sb.auth.getSession(); ACCT.user=session?session.user:null;
   const {data:cl}=await ACCT.sb.from("claims").select("user_id,player,status,created_at"); ACCT.claims=cl||[];
@@ -3152,10 +3154,11 @@ async function acctRefresh(){
   ACCT.admin=false; if(ACCT.user){const {data:ad}=await ACCT.sb.from("admins").select("user_id").eq("user_id",ACCT.user.id); ACCT.admin=!!(ad&&ad.length)}
   ACCT.animal=null; ACCT.animals={};
   if(ACCT.user){const {data:an}=await ACCT.sb.from("player_animals").select("user_id,animal"); (an||[]).forEach(r=>{ACCT.animals[r.user_id]=r.animal; if(r.user_id===ACCT.user.id)ACCT.animal=r.animal})}
-  await hostLoad(); acctBtn(); if($("acct").open)acctDraw(); ACCT.songs=null; sbRender();
+  await hostLoad(); ACCT.ready=true; acctBtn(); if($("acct").open)acctDraw(); ACCT.songs=null; sbRender();
 }
 function acctDraw(msg,err){
   acctUnmount();
+  if(!ACCT.ready){$("acctbody").innerHTML=`<h3>Your account</h3><p class="dim">Loading…</p>`;return}
   const b=$("acctbody"), note=(msg?`<p class="msg">${esc(msg)}</p>`:"")+(err?`<p class="err">${esc(err)}</p>`:"");
   if(!ACCT.user){b.innerHTML=`<h3>Log in</h3><p>Logging in lets you claim your player profile, so you can view your own stats page and submit one rating per song for each path (Lead, Rhythm and Bass) on the Scoreboard.</p><p>Type your email and we'll send you a login link. No password needed.</p><input id="acctemail" type="email" autocomplete="email" placeholder="you@example.com"><div class="row"><button type="button" class="btn" data-acct="send">Email me a login link</button></div>${note}`;return}
   const pendN=ACCT.admin?ACCT.claims.filter(c=>c.status==="pending").length:0;
@@ -3203,8 +3206,10 @@ $("acct").addEventListener("mousemove",e=>{const p=e.target.closest("[data-tip]"
 $("acct").addEventListener("click",e=>{if(e.target===$("acct"))$("acct").close()});
 // only on the real site (copies of the page elsewhere, like a preview, can't reach the login server)
 if(SUPA_URL&&SUPA_KEY&&/(^|\.)github\.io$|^localhost$|^127\.0\.0\.1$/.test(location.hostname)){
-  const s=document.createElement("script"); s.src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.min.js"; s.onerror=()=>{hostReady=true;renderHostWarn()};
-  s.onload=()=>{ACCT.sb=window.supabase.createClient(SUPA_URL,SUPA_KEY); ACCT.on=true; acctBtn(); acctRefresh();
+  const s=document.createElement("script"); s.src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.min.js"; s.onerror=()=>{hostReady=true;renderHostWarn();$("acctbtn").hidden=true};
+  // show the button right away with what it said last visit, so it doesn't flash "Log in" before the login loads
+  {const b=$("acctbtn"); let last=null; try{last=localStorage.getItem("rsc-acctbtn")}catch(e){} if(last)b.innerHTML=last; b.hidden=false;}
+  s.onload=()=>{ACCT.sb=window.supabase.createClient(SUPA_URL,SUPA_KEY); ACCT.on=true; acctRefresh();
     ACCT.sb.auth.onAuthStateChange((ev)=>{if(ev==="SIGNED_IN"||ev==="SIGNED_OUT")acctRefresh()})};
   document.head.appendChild(s);
 }
