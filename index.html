@@ -1180,7 +1180,7 @@ footer{color:var(--dim);font-size:.78rem}
   <footer>Data: Rodman’s Rocksmith 2014 Championship Google Sheets (older attendance also from the Championship Metrics workbook). Player stats run through week 675; scoreboards cover weeks 440–676. Weeks 1–16 have no recorded host in the source.
   <span class="updated disclaimer">Unofficial fan project. Not affiliated with Ubisoft or Rocksmith.</span>
   <span class="updated" id="sheetedit-row" hidden>Sheet last edited: <span id="sheetedit" data-iso="2026-10-09T18:08:57.146Z"></span></span>
-  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-10T02:39:23+00:00">October 9, 2026</span></span>
+  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-10T02:45:29+00:00">October 9, 2026</span></span>
   </footer>
 </div>
 <dialog id="acct" class="acctdlg" aria-label="Your account"><div id="acctbody"></div><button type="button" class="clear acctclose" id="acctclose">Close</button></dialog>
@@ -2530,7 +2530,7 @@ function showHost(name){
     grid+=`<div class="yr hyr${hYear===y?" sel":""}" data-hyear="${y}" title="${hYear===y?"Show all years":`Show stats for ${y} only`}">${y}</div>`+"<i class='pre'></i>".repeat(off)+arr.map(([w,d,ho,i])=>{
       const sg=!ho&&i>=curIdx?signedBy(w):null; if(sg)ho=same(sg)?name:sg;
       const now=i===curIdx&&!sg&&ho&&ho!==LOST, fut=i>curIdx||!!sg, mine=ho===name;
-      const cls=now?(mine?"hf":"ho"):mine?(fut?"hf":"hh"):fut?"hn":ho===LOST?"hl":ho?"ho":"hn";
+      const cls=now?(mine?"hh":"ho"):mine?(fut?"hf":"hh"):fut?"hn":ho===LOST?"hl":ho?"ho":"hn";
       const who=now?(mine?"hosting this week (counted)":`${ho} hosting this week`):fut?(mine?(sg?"signed up to host":"scheduled to host"):ho?`${ho} ${sg?"signed up":"scheduled"}`:"open"):mine?"hosted":ho===LOST?"no record":ho?`hosted by ${ho}`:"open";
       return `<i class="${cls}${hYear===y?" iny":""}" data-hw="${w}" title="Week ${w} · ${fmt(d)} · ${esc(who)}${SB.weeks[w]?" · click to open the Scoreboard":""}"></i>`}).join("")+"<i class='pre'></i>".repeat(Math.max(0,53-off-arr.length));
   });
