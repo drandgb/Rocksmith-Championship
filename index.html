@@ -1256,7 +1256,7 @@ footer{color:var(--dim);font-size:.78rem}
   <footer>Data: Rodman’s Rocksmith 2014 Championship Google Sheets (older attendance also from the Championship Metrics workbook). Player stats run through week 675; scoreboards cover weeks 440–677. Weeks 1–16 have no recorded host in the source.
   <span class="updated disclaimer">Unofficial fan project. Not affiliated with Ubisoft or Rocksmith.</span>
   <span class="updated" id="sheetedit-row" hidden>Sheet last edited: <span id="sheetedit" data-iso="2026-10-09T18:08:57.146Z"></span></span>
-  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-10T16:52:12+00:00">October 10, 2026</span></span>
+  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-10T16:55:48+00:00">October 10, 2026</span></span>
   </footer>
 </div>
 <dialog id="acct" class="acctdlg" aria-label="Your profile"><div id="acctbody"></div><button type="button" class="clear acctclose" id="acctclose">Close</button></dialog>
@@ -2938,13 +2938,13 @@ function renderNextPreview(){
   // in the preview, only the week header and the preview show
   [...$("view-thisweek").children].forEach(c=>{if(c.id==="twpreview"||c.classList.contains("twhead")||c.id==="twwarn")return; c.classList.toggle("twpv-hide",on)});
   if(!on){el.hidden=true;return false}
-  const W=weekAt(curIdx+(nw-cur[0])), host=W&&W[2]&&W[2]!==LOST?W[2]:null;
+  const W=weekAt(curIdx+(nw-cur[0])), sg=acctOn()&&ACCT.hostSign[nw]?ACCT.hostSign[nw].player:null, host=W&&W[2]&&W[2]!==LOST?W[2]:sg;
   const ents=ch.flatMap(c=>c[6]), players=new Set(ents.map(e=>SB.names[e[0]].replace(/[*~]+$/,"")));
   $("twprev").disabled=false; $("twnext").disabled=true; $("twnext").classList.remove("glow");
   $("twnow").hidden=false; $("twnow").textContent=`Back to this week (${TW_MAX}) ›`;
   $("twsb").hidden=false; $("twsb").dataset.sbw=nw; $("twsb").title=`Open week ${nw} on the Scoreboard`;
   $("tw-title").innerHTML=`<span class="golink" data-sbw="${nw}" title="Open this week on the Scoreboard">Week ${nw}</span> <span class="pill nextwk" style="width:auto">UPCOMING</span>`;
-  $("tw-meta").innerHTML=W?`Starts ${fmt(W[1])} at 3 pm EST (20:00 UTC)${host?` · hosted by <span class="nm" data-name="${esc(host)}" data-gohost="${esc(host)}" style="cursor:pointer;font-weight:700;color:var(--fg)">${esc(host)}</span>`:" · host needed"}`:"";
+  $("tw-meta").innerHTML=W?`Starts ${fmt(W[1])} at 3 pm EST (20:00 UTC)${host?` · hosted by <span class="nm" data-name="${esc(host)}" data-gohost="${esc(host)}" style="cursor:pointer;font-weight:700;color:var(--fg)">${esc(host)}</span>${W[2]?"":" (signed up)"}`:` · <span data-tip="No host for Week ${nw} in the schedule sheet yet, and nobody has signed up on the site">host needed</span>`}`:"";
   $("tw-stats").innerHTML=`<span><b>${players.size}</b> player${players.size===1?"":"s"} posted so far</span><span><b>${ents.length}</b> entr${ents.length===1?"y":"ies"}</span>`;
   const cols=[0,1,2].map(p=>{const cs=ch.filter(c=>c[0]===p&&c[3]&&!/^n\/a$/i.test(c[3])).sort((a,b)=>a[1]-b[1]); if(!cs.length)return "";
     return `<div class="twnp" style="--pc:${PATH_C[p]}"><h3>${PATHS[p]}</h3><ul>${cs.map(c=>{const L=cardLv(c[2]), id=SB.links&&SB.links[nw]&&SB.links[nw][c[0]*9+c[1]];
@@ -3220,7 +3220,7 @@ function hostVerified(){if(!acctOn()||!ACCT.claim||ACCT.claim.status!=="approved
 function hostOpenWeeks(){const out=[];for(let i=0;i<=hostAhead();i++){const w=weekAt(curIdx+i);if(!w[2])out.push([w,i])}return out}
 async function hostLoad(){if(!ACCT.sb)return;
   const {data,error}=await ACCT.sb.from("host_signups").select("week,player,user_id,created_at").gte("week",WEEKS[curIdx][0]);
-  hostReady=true; if(error){renderHostWarn();return} ACCT.hostSign={}; (data||[]).forEach(r=>ACCT.hostSign[r.week]=r); renderUpcoming(); renderNow(); renderHostWarn(); renderLog(); renderTL(); if(hName&&hosts[hName])showHost(hName);
+  hostReady=true; if(error){renderHostWarn();return} ACCT.hostSign={}; (data||[]).forEach(r=>ACCT.hostSign[r.week]=r); renderUpcoming(); renderNow(); renderHostWarn(); renderLog(); renderTL(); if(twWeek===TW_NEXT)renderThisWeek(); if(hName&&hosts[hName])showHost(hName);
 }
 // admin sign-up list: hosts by latest week hosted (most recently active first), then other players A–Z
 // an upcoming week the schedule sheet already names a host for: shown like a sign-up (SIGNED UP, and ✕ for them or an admin)
