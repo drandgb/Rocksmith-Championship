@@ -1239,7 +1239,7 @@ footer{color:var(--dim);font-size:.78rem}
   <footer>Data: Rodman’s Rocksmith 2014 Championship Google Sheets (older attendance also from the Championship Metrics workbook). Player stats run through week 675; scoreboards cover weeks 440–676. Weeks 1–16 have no recorded host in the source.
   <span class="updated disclaimer">Unofficial fan project. Not affiliated with Ubisoft or Rocksmith.</span>
   <span class="updated" id="sheetedit-row" hidden>Sheet last edited: <span id="sheetedit" data-iso="2026-10-09T18:08:57.146Z"></span></span>
-  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-10T11:18:59+00:00">October 10, 2026</span></span>
+  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-10T11:23:35+00:00">October 10, 2026</span></span>
   </footer>
 </div>
 <dialog id="acct" class="acctdlg" aria-label="Your profile"><div id="acctbody"></div><button type="button" class="clear acctclose" id="acctclose">Close</button></dialog>
@@ -3080,7 +3080,7 @@ async function acctLoadWeek(){
   });
   const S={}; Object.values(best).forEach(x=>(S[x.k]=S[x.k]||[]).push({p:x.p,r:x.r,u:x.u}));
   ACCT.songs=S; ACCT.mine=mine; ACCT.rows=rows; sbRender();
-  if($("acct").open&&ACCT.tab==="admin")acctDraw();
+  if($("acct").open&&ACCT.tab==="admin")admRateRedraw();
   {const tw=document.getElementById("acct-tw"); if(tw&&$("acct").open&&ACCT.claim)tw.innerHTML=acctThisWeek(ACCT.claim.player);} if(typeof renderSongs==="function"&&!$("view-songs").hidden)renderSongs();
 }
 // a song's rating boxes on the Songs page, one per path in the path's colour: the players' average for the song on
@@ -3232,13 +3232,16 @@ function adminRateSection(){
       const ent=c[6].find(e=>SB.names[e[0]].replace(/[*~]+$/,"").toLowerCase()===key);
       const opts=[];for(let r=1;r<=10;r+=.5)opts.push(`<option value="${r}"${cur&&cur.r===r?" selected":""}>${r}</option>`);
       return `<li class="${ent?"aplayed":""}" style="--pc:${PATH_C[c[0]]}"${ent?` data-tip="${esc(pl)} posted a score on this one"`:""}><span class="apath">${PATHS[c[0]]}</span><span class="lvchip" style="--tc:${L==="G"?"var(--s-red)":TIER_C[L]||"var(--muted)"}">${L==="G"?esc(c[2]):TIER_NAME[L]||esc(c[2])}</span><span class="asong">${esc(c[3])}</span>${ent?`<span class="playedtag">PLAYED${ent[1]!=null?` · ${ent[1]}%`:""}</span>`:""}<span class="dim">host ${c[4]!=null?c[4]:"–"}</span><select class="admrate" data-rate="${c[0]}" data-song="${esc(c[3])}" data-as="${esc(pl)}" aria-label="${esc(pl)}'s rating"><option value=""${cur?"":" selected"}>${cur?"Remove rating":"No rating"}</option>${opts.join("")}</select></li>`}).join("")}
-  return `<div class="adm acctsec"><h3>Ratings for a player</h3><p class="dim">Give or change a player's ratings for them. They count exactly like the player's own (one per song per path).</p>
+  return `<div class="adm acctsec" id="admrate"><h3>Ratings for a player</h3><p class="dim">Give or change a player's ratings for them. They count exactly like the player's own (one per song per path).</p>
     <div class="row admrow"><select data-admrate="p" aria-label="Player"><option value="">Choose a player…</option>${groups.map(([w,ns])=>`<optgroup label="Last played Week ${w}">${ns.map(n=>`<option${n===pl?" selected":""}>${esc(n)}</option>`).join("")}</optgroup>`).join("")}</select>
     <select data-admrate="w" aria-label="Week">${weeks.map(w=>`<option value="${w}"${w===wk?" selected":""}>Week ${w}</option>`).join("")}</select></div>
     ${pl?(rows?`<ul class="alist">${rows}</ul>`:`<p class="dim">No challenges on the scoreboard for Week ${wk}.</p>`):""}</div>`;
 }
 document.addEventListener("change",e=>{const s=e.target.closest("select[data-admrate]"); if(!s)return;
-  if(s.dataset.admrate==="p")ACCT.admRateP=s.value; else ACCT.admRateW=+s.value; acctDraw()});
+  if(s.dataset.admrate==="p")ACCT.admRateP=s.value; else ACCT.admRateW=+s.value; admRateRedraw()});
+// redraw only the ratings section, keeping the popup's scroll position (no jump back to the top)
+function admRateRedraw(){const el=$("admrate"); if(!el){acctDraw();return}
+  const dlg=$("acct"), top=dlg.scrollTop; el.outerHTML=adminRateSection(); dlg.scrollTop=top; requestAnimationFrame(()=>{dlg.scrollTop=top})}
 function acctThisWeek(n){
   const w=TW_MAX, key=n.toLowerCase(), cards=SB.weeks[w]||[];
   // scoreboard: every challenge this week, with their place and %; ones they haven't played yet are dimmed
