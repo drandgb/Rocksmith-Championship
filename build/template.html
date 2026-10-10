@@ -1297,13 +1297,13 @@ const fmtShort=iso=>new Date(iso+"T12:00:00").toLocaleDateString("en-US",{month:
 
 // current week = latest week whose start date is today or earlier
 const todayISO=(()=>{const d=new Date();return new Date(d.getTime()-d.getTimezoneOffset()*6e4).toISOString().slice(0,10)})();
-// a new week starts once BOTH its WeekNNN tab is on the scoreboard sheet AND it's past 8 pm Central European time (CET/CEST)
+// a new week starts once BOTH its WeekNNN tab is on the scoreboard sheet AND it's past 9 pm Central European time (CET/CEST)
 // on its start Saturday; until then the previous week is still the current one
 const SB_TAB_MAX=__SBMAX__;
-function nyAt(iso){const [y,m,d]=iso.split("-").map(Number); let t=Date.UTC(y,m-1,d,19); // 8 pm CET (19:00 UTC); 18:00 UTC in summer (CEST)
+function nyAt(iso){const [y,m,d]=iso.split("-").map(Number); let t=Date.UTC(y,m-1,d,20); // 9 pm CET (20:00 UTC); 19:00 UTC in summer (CEST)
   const hr=+new Intl.DateTimeFormat("en-GB",{timeZone:"Europe/Berlin",hour:"numeric",hourCycle:"h23"}).format(new Date(t));
-  return hr===20?t:t-36e5}
-const WEEK_END_TXT="8 pm CET"; // when a week ends (Central European time)
+  return hr===21?t:t-36e5}
+const WEEK_END_TXT="9 pm CET"; // when a week ends (Central European time)
 let curIdx=0; WEEKS.forEach((w,i)=>{if(w[1]<=todayISO&&(i===0||(w[0]<=SB_TAB_MAX&&Date.now()>=nyAt(w[1]))))curIdx=i});
 const cur=WEEKS[curIdx];
 // a future year only shows up (timelines, year lists) once it has started or has a host booked
@@ -2327,7 +2327,7 @@ function sbRender(){
   $("sblatest").hidden=sbWeek===SB_HOME; $("sblatest").textContent=`Back to this week (${SB_HOME}) ›`;
   const sbLive=sbWeek>DATA_WEEK&&sbWeek===cur[0];
   const sbNext=sbWeek>cur[0];
-  $("sbmeta").innerHTML=(sbNext?'<span class="pill nextwk" style="width:auto" data-tip="Next week: scores can be posted already. It becomes the current week, and this week&#39;s winners are decided, at 8 pm CET (Central European time) on its start Saturday">UPCOMING</span> ':sbLive?'<span class="pill new" style="width:auto">IN PROGRESS</span> ':'<span class="pill done" style="width:auto">CONCLUDED</span> ')+(wk?`${fmt(wk[1])}${wk[2]&&wk[2]!==LOST?` · hosted by <b>${esc(wk[2])}</b>`:""}`:"");
+  $("sbmeta").innerHTML=(sbNext?'<span class="pill nextwk" style="width:auto" data-tip="Next week: scores can be posted already. It becomes the current week, and this week&#39;s winners are decided, at 9 pm CET (Central European time) on its start Saturday">UPCOMING</span> ':sbLive?'<span class="pill new" style="width:auto">IN PROGRESS</span> ':'<span class="pill done" style="width:auto">CONCLUDED</span> ')+(wk?`${fmt(wk[1])}${wk[2]&&wk[2]!==LOST?` · hosted by <b>${esc(wk[2])}</b>`:""}`:"");
   $("sbseg").innerHTML=["Lead","Rhythm","Bass"].map((k,i)=>{const t=sbLv[i], on=i===sbPath, nx=SB_CYC[(SB_CYC.indexOf(t)+1)%SB_CYC.length];
     return `<button type="button" class="tier" data-path="${i}" aria-pressed="${on}" style="--pc:${PATH_C[i]};--tc:${t?(TIER_C[t]||"var(--s-red)"):"var(--fg)"}" title="${on?`${k}: showing ${t?LV_NAME[t]:"all levels"} · click for ${nx?LV_NAME[nx]:"all levels"}`:`Show ${k}`}"><small>${k}</small><b>${t||"All"}</b><i>${t?LV_NAME[t]:"all levels"}</i></button>`}).join("");
   const all=ch.flatMap(c=>c[6]), players=new Set(all.map(e=>SB.names[e[0]].replace(/[*~]+$/,"")));
@@ -2950,14 +2950,14 @@ function renderNextPreview(){
   $("twnow").hidden=false; $("twnow").textContent=`Back to this week (${TW_MAX}) ›`;
   $("twsb").hidden=false; $("twsb").dataset.sbw=nw; $("twsb").title=`Open week ${nw} on the Scoreboard`;
   $("tw-title").innerHTML=`<span class="golink" data-sbw="${nw}" title="Open this week on the Scoreboard">Week ${nw}</span> <span class="pill nextwk" style="width:auto">UPCOMING</span>`;
-  $("tw-meta").innerHTML=W?`Starts ${fmt(W[1])} at 8 pm CET${host?` · hosted by <span class="nm" data-name="${esc(host)}" data-gohost="${esc(host)}" style="cursor:pointer;font-weight:700;color:var(--fg)">${esc(host)}</span>${W[2]?"":" (signed up)"}`:` · <span data-tip="No host for Week ${nw} in the schedule sheet yet, and nobody has signed up on the site">host needed</span>`}`:"";
+  $("tw-meta").innerHTML=W?`Starts ${fmt(W[1])} at 9 pm CET${host?` · hosted by <span class="nm" data-name="${esc(host)}" data-gohost="${esc(host)}" style="cursor:pointer;font-weight:700;color:var(--fg)">${esc(host)}</span>${W[2]?"":" (signed up)"}`:` · <span data-tip="No host for Week ${nw} in the schedule sheet yet, and nobody has signed up on the site">host needed</span>`}`:"";
   $("tw-stats").innerHTML=`<span><b>${players.size}</b> player${players.size===1?"":"s"} posted so far</span><span><b>${ents.length}</b> entr${ents.length===1?"y":"ies"}</span>`;
   const cols=[0,1,2].map(p=>{const cs=ch.filter(c=>c[0]===p&&c[3]&&!/^n\/a$/i.test(c[3])).sort((a,b)=>a[1]-b[1]); if(!cs.length)return "";
     return `<div class="twnp" style="--pc:${PATH_C[p]}"><h3>${PATHS[p]}</h3><ul>${cs.map(c=>{const L=cardLv(c[2]), id=SB.links&&SB.links[nw]&&SB.links[nw][c[0]*9+c[1]];
       return `<li><span class="lvchip" style="--tc:${L==="G"?"var(--s-red)":TIER_C[L]||"var(--muted)"}">${L==="G"?esc(c[2]):TIER_NAME[L]||esc(c[2])}</span><span class="npsong" data-sbw="${nw}" data-sbp="${p}" title="Open on the Scoreboard">${esc(c[3])}${c[6].length?`<small class="npn">${c[6].length} posted so far</small>`:""}</span><span class="nprate" title="Initial host rating">${c[4]!=null?c[4]:"–"}</span>${songPill(c[3],id)}</li>`}).join("")}</ul></div>`}).join("");
   el.hidden=false;
   el.innerHTML=`<div class="panel-head"><h2>Week ${nw}'s songs</h2><span class="sub">Scores can be posted already</span></div>
-    <p class="sub" style="margin:0 0 12px">Week ${nw} becomes the current week, and Week ${TW_MAX}'s winners are decided, at 8 pm CET (Central European time) on ${W?fmt(W[1]):"its start Saturday"}. Scores posted before then already count for Week ${nw}.</p><div class="twnpcols">${cols}</div>`;
+    <p class="sub" style="margin:0 0 12px">Week ${nw} becomes the current week, and Week ${TW_MAX}'s winners are decided, at 9 pm CET (Central European time) on ${W?fmt(W[1]):"its start Saturday"}. Scores posted before then already count for Week ${nw}.</p><div class="twnpcols">${cols}</div>`;
   return true;
 }
 function renderThisWeek(){
