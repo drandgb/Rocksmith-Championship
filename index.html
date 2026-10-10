@@ -1180,7 +1180,7 @@ footer{color:var(--dim);font-size:.78rem}
   <footer>Data: Rodman’s Rocksmith 2014 Championship Google Sheets (older attendance also from the Championship Metrics workbook). Player stats run through week 675; scoreboards cover weeks 440–676. Weeks 1–16 have no recorded host in the source.
   <span class="updated disclaimer">Unofficial fan project. Not affiliated with Ubisoft or Rocksmith.</span>
   <span class="updated" id="sheetedit-row" hidden>Sheet last edited: <span id="sheetedit" data-iso="2026-10-09T18:08:57.146Z"></span></span>
-  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-10T02:32:16+00:00">October 9, 2026</span></span>
+  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-10T02:37:00+00:00">October 9, 2026</span></span>
   </footer>
 </div>
 <dialog id="acct" class="acctdlg" aria-label="Your account"><div id="acctbody"></div><button type="button" class="clear acctclose" id="acctclose">Close</button></dialog>
@@ -1347,19 +1347,19 @@ function renderHostPodium(){
 }
 $("hpodium").addEventListener("click",e=>{const el=e.target.closest("[data-hpick]");if(el)setHost(el.dataset.hpick)});
 function renderLB(){
-  const row=(h,val,max,extra)=>{const active=cur[0]-h.last<=ACTIVE_WINDOW;
+  const wk=w=>`<span${SB.weeks[w]?` data-sbw="${w}" title="Open Week ${w} on the Scoreboard"`:""}>${w}</span>`;
+  const row=(h,val,max,extra,spanRow)=>{const active=cur[0]-h.last<=ACTIVE_WINDOW;
     return `<tr data-host="${esc(h.name)}" class="${selHost&&matches(h.name)?"sel":""}" tabindex="0">
       <td><div class="hostcell"><span class="sw" style="background:${hc(h.name)}"></span>${esc(h.name)} ${active?`<span class="pill on" data-tip="Hosted at least once in the last ${ACTIVE_WINDOW} weeks (around 1 year).">ACTIVE</span>`:`<span class="pill off" data-tip="Hasn't hosted in the last ${ACTIVE_WINDOW} weeks (around 1 year).">INACTIVE</span>`}</div></td>
-      <td class="r num">${val}</td>
-      <td><div class="bar"><span style="width:${val/max*100}%;background:${hc(h.name)}"></span></div></td>${extra}</tr>`};
-  const wk=w=>`<span${SB.weeks[w]?` data-sbw="${w}" title="Open Week ${w} on the Scoreboard"`:""}>${w}</span>`;
+      ${spanRow?`<td class="r num">${wk(h.first)}</td><td><div class="bar"><span style="width:${val/max*100}%;background:${hc(h.name)}"></span></div></td><td class="num">${wk(h.last)}</td><td class="r num">${val}</td>`
+      :`<td class="r num">${val}</td><td><div class="bar"><span style="width:${val/max*100}%;background:${hc(h.name)}"></span></div></td>`}${extra}</tr>`};
   const list=hostsShown(), maxN=list[0].n;
   $("lb").innerHTML=`<thead><tr><th>Host</th><th class="r" data-tip="Weeks hosted, this week included">Weeks</th><th></th></tr></thead><tbody>`+
     list.map(h=>row(h,h.n,maxN,"")).join("")+"</tbody>";
   const span=h=>h.last-h.first+1, bySpan=list.slice().sort((a,b)=>span(b)-span(a)||b.n-a.n);
   const maxS=span(bySpan[0]);
-  $("lbspan").innerHTML=`<thead><tr><th>Host</th><th class="r" data-tip="Weeks from their first hosted week to their latest, including the weeks in between">Span</th><th></th><th class="r">First</th><th class="r">Latest</th></tr></thead><tbody>`+
-    bySpan.map(h=>row(h,span(h),maxS,`<td class="r num">${wk(h.first)}</td><td class="r num">${wk(h.last)}</td>`)).join("")+"</tbody>";
+  $("lbspan").innerHTML=`<thead><tr><th>Host</th><th class="r">First</th><th></th><th>Latest</th><th class="r" data-tip="Weeks from their first hosted week to their latest, including the weeks in between">Span</th></tr></thead><tbody>`+
+    bySpan.map(h=>row(h,span(h),maxS,"",true)).join("")+"</tbody>";
 }
 
 function renderTL(){
