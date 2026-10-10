@@ -2530,7 +2530,7 @@ function showHost(name){
     grid+=`<div class="yr hyr${hYear===y?" sel":""}" data-hyear="${y}" title="${hYear===y?"Show all years":`Show stats for ${y} only`}">${y}</div>`+"<i class='pre'></i>".repeat(off)+arr.map(([w,d,ho,i])=>{
       const sg=!ho&&i>=curIdx?signedBy(w):null; if(sg)ho=same(sg)?name:sg;
       const now=i===curIdx&&!sg&&ho&&ho!==LOST, fut=i>curIdx||!!sg, mine=ho===name;
-      const cls=now?(mine?"hf":"ho"):mine?(fut?"hf":"hh"):fut?"hn":ho===LOST?"hl":ho?"ho":"hn";
+      const cls=now?(mine?"hh":"ho"):mine?(fut?"hf":"hh"):fut?"hn":ho===LOST?"hl":ho?"ho":"hn";
       const who=now?(mine?"hosting this week (counted)":`${ho} hosting this week`):fut?(mine?(sg?"signed up to host":"scheduled to host"):ho?`${ho} ${sg?"signed up":"scheduled"}`:"open"):mine?"hosted":ho===LOST?"no record":ho?`hosted by ${ho}`:"open";
       return `<i class="${cls}${hYear===y?" iny":""}" data-hw="${w}" title="Week ${w} · ${fmt(d)} · ${esc(who)}${SB.weeks[w]?" · click to open the Scoreboard":""}"></i>`}).join("")+"<i class='pre'></i>".repeat(Math.max(0,53-off-arr.length));
   });
