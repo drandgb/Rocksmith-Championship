@@ -114,6 +114,7 @@ button.pill.hostbtn:hover,.pill.hostbtn:hover{background:color-mix(in srgb,var(-
 .tl .c{aspect-ratio:1;border-radius:2px;background:var(--panel2);max-width:100%}
 .tl .c.lost{background:repeating-linear-gradient(45deg,var(--lost) 0 2px,var(--panel2) 2px 4px)}
 .tl .c.open{background:transparent;box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--open) 60%,transparent)}
+.tl .c.now{background:repeating-linear-gradient(45deg,var(--sc) 0 1.5px,transparent 1.5px 4px);box-shadow:inset 0 0 0 1.5px var(--sc),0 0 0 2px var(--fg)}
 .tl .c.sched{background:transparent;box-shadow:inset 0 0 0 1.5px var(--sc)}
 .tl .c.cur{box-shadow:0 0 0 2px var(--fg)}
 .tl .c.fade{opacity:.12}
@@ -833,6 +834,7 @@ footer{color:var(--dim);font-size:.78rem}
 #hcard .pres i.ho{background:#3a4254}
 #hcard .pres i.hl{background:repeating-linear-gradient(45deg,var(--lost) 0 2px,var(--panel2) 2px 4px)}
 #hcard .pres i.hn{background:var(--panel2)}
+#hcard .pres i.hc{background:repeating-linear-gradient(45deg,var(--hcol,var(--accent)) 0 1.5px,transparent 1.5px 4px);box-shadow:inset 0 0 0 1.5px var(--hcol,var(--accent))}
 #hcard .pres i.hf{background:transparent;box-shadow:inset 0 0 0 1.5px var(--hcol,var(--accent))}
 #hcard .pres i[data-hw]{cursor:pointer}
 #hcard .pres i[data-hw]:hover{outline:2px solid var(--fg);outline-offset:1px}
@@ -1171,7 +1173,7 @@ footer{color:var(--dim);font-size:.78rem}
   <footer>Data: Rodman’s Rocksmith 2014 Championship Google Sheets (older attendance also from the Championship Metrics workbook). Player stats run through week 675; scoreboards cover weeks 440–676. Weeks 1–16 have no recorded host in the source.
   <span class="updated disclaimer">Unofficial fan project. Not affiliated with Ubisoft or Rocksmith.</span>
   <span class="updated" id="sheetedit-row" hidden>Sheet last edited: <span id="sheetedit" data-iso="2026-10-09T18:08:57.146Z"></span></span>
-  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-10T02:12:58+00:00">October 9, 2026</span></span>
+  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-10T02:17:43+00:00">October 9, 2026</span></span>
   </footer>
 </div>
 <dialog id="acct" class="acctdlg" aria-label="Your account"><div id="acctbody"></div><button type="button" class="clear acctclose" id="acctclose">Close</button></dialog>
@@ -1217,9 +1219,11 @@ let lastHosted=null; for(let i=curIdx;i>=0;i--){if(WEEKS[i][2]&&WEEKS[i][2]!==LO
 
 // host stats from the schedule itself
 const hosts={};
-// count only weeks that have started; future sign-ups show in Coming up and the timeline
-WEEKS.forEach(([w,d,h],i)=>{ if(i>curIdx||!h||h===LOST)return; const s=hosts[h]||(hosts[h]={name:h,n:0,first:w,last:w,firstD:d,lastD:d}); s.n++; s.last=w; s.lastD=d; });
-const hostList=Object.values(hosts).sort((a,b)=>b.n-a.n||b.last-a.last);
+// count only finished weeks: the current week counts once it ends; booked weeks show in Coming up and the timeline
+WEEKS.forEach(([w,d,h],i)=>{ if(i>=curIdx||!h||h===LOST)return; const s=hosts[h]||(hosts[h]={name:h,n:0,first:w,last:w,firstD:d,lastD:d}); s.n++; s.last=w; s.lastD=d; });
+// a first-time host hosting right now still gets a Host lookup page (with 0 weeks) but no leaderboard row yet
+if(cur[2]&&cur[2]!==LOST&&!hosts[cur[2]])hosts[cur[2]]={name:cur[2],n:0,first:cur[0],last:cur[0],firstD:cur[1],lastD:cur[1]};
+const hostList=Object.values(hosts).filter(h=>h.n>0).sort((a,b)=>b.n-a.n||b.last-a.last);
 const totalHosted=hostList.reduce((a,b)=>a+b.n,0);
 const ACTIVE_WINDOW=52; // hosted within the last ~1 year
 const PAL=["var(--s-orange)","var(--s-blue)","var(--s-green)","var(--s-red)","var(--s-yellow)","var(--s-purple)","#5fd3d0","#ff7ab8","#c9e265","#e8a87c","#8fa8ff","#d98cd9"];
@@ -1367,7 +1371,7 @@ function renderTL(){
       // upcoming weeks aren't hosted yet: a booked host (sheet or sign-up) is an outline in their colour
       const sg=!h&&i>curIdx&&typeof ACCT!=="undefined"&&ACCT&&acctOn()&&ACCT.hostSign[wk]?ACCT.hostSign[wk].player:null; if(sg)h=sg;
       let cls="c", st="";
-      if(h===LOST)cls+=" lost"; else if(!h)cls+=" open"; else if(i>curIdx){cls+=" sched";st=`--sc:${hc(h)}`} else st=`background:${hc(h)}`;
+      if(h===LOST)cls+=" lost"; else if(!h)cls+=" open"; else if(i>curIdx){cls+=" sched";st=`--sc:${hc(h)}`} else if(i===curIdx){cls+=" now";st=`--sc:${hc(h)}`} else st=`background:${hc(h)}`;
       if(i===curIdx)cls+=" cur";
       if(!matches(h))cls+=" fade";
       html+=`<div class="${cls}" style="${st}" data-w="${i}"></div>`;
@@ -1741,7 +1745,7 @@ $("tl").addEventListener("mousemove",e=>{
   const c=e.target.closest("[data-w]"); if(!c){tip.hidden=true;return}
   const w=WEEKS[+c.dataset.w];
   const i=+c.dataset.w, sg=!w[2]&&i>curIdx&&typeof ACCT!=="undefined"&&ACCT&&acctOn()&&ACCT.hostSign[w[0]]?ACCT.hostSign[w[0]].player:null;
-  tip.innerHTML=`<b class="num">Week ${w[0]}</b> · ${fmt(w[1])}<br>${w[2]===LOST?"No host on record":w[2]?(i>curIdx?"Scheduled: ":"")+esc(w[2]):sg?"Signed up: "+esc(sg):"Open slot"}${w[3]?`<br><span class="sub">${esc(w[3])}</span>`:""}`;
+  tip.innerHTML=`<b class="num">Week ${w[0]}</b> · ${fmt(w[1])}<br>${w[2]===LOST?"No host on record":w[2]?(i>curIdx?"Scheduled: ":i===curIdx?"Hosting this week: ":"")+esc(w[2])+(i===curIdx?"<br><span class=\"sub\">Counts once the week ends</span>":""):sg?"Signed up: "+esc(sg):"Open slot"}${w[3]?`<br><span class="sub">${esc(w[3])}</span>`:""}`;
   tip.hidden=false;
   const x=Math.min(e.clientX+12,innerWidth-tip.offsetWidth-8); tip.style.left=x+"px"; tip.style.top=(e.clientY+14)+"px";
 });
@@ -2451,7 +2455,7 @@ function calSvg(col){return `<svg viewBox="0 0 28 30" aria-hidden="true"><circle
 const hostMedalCache={};
 function hostMedals(name){
   if(hostMedalCache[name]!=null)return hostMedalCache[name];
-  const ws=[]; WEEKS.forEach(([w,d,h],i)=>{if(i<=curIdx&&h===name)ws.push([w,d])});
+  const ws=[]; WEEKS.forEach(([w,d,h],i)=>{if(i<curIdx&&h===name)ws.push([w,d])});
   if(!ws.length)return hostMedalCache[name]="";
   const rec=w=>` (collected Week ${w})`, rows=[];
   const mk=(svg,col,num,tip)=>`<span class="medal-m wm" style="--ec:${col}" data-tip="${tip}">${svg}<b>${num}</b></span>`;
@@ -2481,11 +2485,11 @@ function showHost(name){
   const h=hosts[name];
   if(!h){$("hcard").innerHTML=`<div class="empty">No host named “${esc(name)}”. Pick a name from the list as you type.</div>`;return}
   hName=name; $("hq").value=name;
-  const all=[]; WEEKS.forEach(([w,d,ho],i)=>{if(i<=curIdx&&ho===name)all.push(w)});
+  const all=[]; WEEKS.forEach(([w,d,ho],i)=>{if(i<curIdx&&ho===name)all.push(w)});
   // a sign-up (week with no host in the sheet yet) shows like a scheduled week
   const signedBy=w=>typeof ACCT!=="undefined"&&ACCT&&acctOn()&&ACCT.hostSign[w]?ACCT.hostSign[w].player:null;
   const same=x=>!!x&&x.toLowerCase()===name.toLowerCase();
-  const future=WEEKS.filter(([w,d,ho],i)=>i>=curIdx&&(i>curIdx&&ho===name||!ho&&same(signedBy(w)))).map(x=>x[0]);
+  const future=WEEKS.filter(([w,d,ho],i)=>i>=curIdx&&(ho===name||!ho&&same(signedBy(w)))).map(x=>x[0]);
   if(typeof ACCT!=="undefined"&&ACCT&&acctOn())Object.values(ACCT.hostSign).forEach(s=>{if(same(s.player)&&s.week>WEEKS[WEEKS.length-1][0])future.push(s.week)});
   const yearOf=w=>WEEKS[w-1][1].slice(0,4);
   const years=[...new Set(all.map(yearOf))];
@@ -2505,9 +2509,9 @@ function showHost(name){
     const arr=byYear[y], off=Math.floor((new Date(arr[0][1]+"T12:00:00")-new Date(y+"-01-01T12:00:00"))/604800000);
     grid+=`<div class="yr hyr${hYear===y?" sel":""}" data-hyear="${y}" title="${hYear===y?"Show all years":`Show stats for ${y} only`}">${y}</div>`+"<i class='pre'></i>".repeat(off)+arr.map(([w,d,ho,i])=>{
       const sg=!ho&&i>=curIdx?signedBy(w):null; if(sg)ho=same(sg)?name:sg;
-      const fut=i>curIdx||!!sg, mine=ho===name;
-      const cls=mine?(fut?"hf":"hh"):fut?"hn":ho===LOST?"hl":ho?"ho":"hn";
-      const who=fut?(mine?(sg?"signed up to host":"scheduled to host"):ho?`${ho} ${sg?"signed up":"scheduled"}`:"open"):mine?"hosted":ho===LOST?"no record":ho?`hosted by ${ho}`:"open";
+      const now=i===curIdx&&!sg&&ho&&ho!==LOST, fut=i>curIdx||!!sg, mine=ho===name;
+      const cls=now?(mine?"hc":"ho"):mine?(fut?"hf":"hh"):fut?"hn":ho===LOST?"hl":ho?"ho":"hn";
+      const who=now?(mine?"hosting this week (counts once the week ends)":`${ho} hosting this week`):fut?(mine?(sg?"signed up to host":"scheduled to host"):ho?`${ho} ${sg?"signed up":"scheduled"}`:"open"):mine?"hosted":ho===LOST?"no record":ho?`hosted by ${ho}`:"open";
       return `<i class="${cls}${hYear===y?" iny":""}" data-hw="${w}" title="Week ${w} · ${fmt(d)} · ${esc(who)}${SB.weeks[w]?" · click to open the Scoreboard":""}"></i>`}).join("")+"<i class='pre'></i>".repeat(Math.max(0,53-off-arr.length));
   });
   $("hcard").innerHTML=`<div class="pc">
@@ -2516,19 +2520,19 @@ function showHost(name){
       ${hYear?`<div class="yrtag"><b>${hYear} only</b><button type="button" class="clear" data-hyear="${hYear}">Show all years</button></div>`:""}
       <div class="stats" style="margin-top:12px">
         <div><small>Weeks hosted</small><b>${ws.length}</b>${hYear?"":`<span class="sub"> · #${ordinalRank(name)} all time</span>`}</div>
-        <div><small>Share</small><b>${(ws.length/(hYear?Math.max(1,WEEKS.filter(([w,d,ho],i)=>i<=curIdx&&d.slice(0,4)===hYear&&ho&&ho!==LOST).length):totalHosted)*100).toFixed(1)}%</b><span class="sub"> of ${hYear?hYear+"'s":"all"} hosted weeks</span></div>
+        <div><small>Share</small><b>${(ws.length/(hYear?Math.max(1,WEEKS.filter(([w,d,ho],i)=>i<curIdx&&d.slice(0,4)===hYear&&ho&&ho!==LOST).length):totalHosted)*100).toFixed(1)}%</b><span class="sub"> of ${hYear?hYear+"'s":"all"} hosted weeks</span></div>
         <div><small>First week</small><b${ws.length&&SB.weeks[ws[0]]?` data-sbw="${ws[0]}" title="Open Week ${ws[0]} on the Scoreboard"`:""}>${ws.length?ws[0]:"–"}</b>${fw?`<span class="sub"> · ${fmt(fw[1])}</span>`:""}</div>
         <div><small>Latest week</small><b${ws.length&&SB.weeks[ws[ws.length-1]]?` data-sbw="${ws[ws.length-1]}" title="Open Week ${ws[ws.length-1]} on the Scoreboard"`:""}>${ws.length?ws[ws.length-1]:"–"}</b>${lw?`<span class="sub"> · ${fmt(lw[1])}</span>`:""}</div>
         <div${bestLen?` data-hl="${spanStr}" data-tip="(Week ${b[0]}${bestLen>1?`–${b[1]}`:""})"`:""}><small>Most in a row</small><b>${bestLen} wk${bestLen===1?"":"s"}</b></div>
-        ${hYear?(()=>{const cnt={};WEEKS.forEach(([w,d,ho],i)=>{if(i<=curIdx&&d.slice(0,4)===hYear&&ho&&ho!==LOST)cnt[ho]=(cnt[ho]||0)+1});const rk=ws.length?1+Object.values(cnt).filter(n=>n>ws.length).length:null;return `<div><small>Rank in ${hYear}</small><b>${rk?"#"+rk:"–"}</b><span class="sub"> of ${Object.keys(cnt).length} host${Object.keys(cnt).length===1?"":"s"}</span></div>`})():`<div><small>Years hosting</small><b>${years.length}</b><span class="sub"> · ${yearsTxt}</span></div>`}
+        ${hYear?(()=>{const cnt={};WEEKS.forEach(([w,d,ho],i)=>{if(i<curIdx&&d.slice(0,4)===hYear&&ho&&ho!==LOST)cnt[ho]=(cnt[ho]||0)+1});const rk=ws.length?1+Object.values(cnt).filter(n=>n>ws.length).length:null;return `<div><small>Rank in ${hYear}</small><b>${rk?"#"+rk:"–"}</b><span class="sub"> of ${Object.keys(cnt).length} host${Object.keys(cnt).length===1?"":"s"}</span></div>`})():`<div><small>Years hosting</small><b>${years.length}</b><span class="sub"> · ${yearsTxt}</span></div>`}
       </div>
       ${byName[name]||WR.wins[name]?`<div class="golinks">${byName[name]?`<button type="button" class="clear" data-goplayer="${esc(name)}">Open player profile ›</button>`:""}${WR.wins[name]?`<button type="button" class="clear" data-gowin="${esc(name)}">Open win profile ›</button>`:""}<button type="button" class="clear" data-gosongs="${esc(name)}">Song picks ›</button></div>`:`<div class="golinks"><button type="button" class="clear" data-gosongs="${esc(name)}">Song picks ›</button></div>`}
-      ${!hYear&&future.length?`<div class="ups">Coming up: ${future.map(w=>{const wk=weekAt(curIdx+(w-WEEKS[curIdx][0]));return `<span class="pill hol hup"${w<=WEEKS[WEEKS.length-1][0]?` data-hl="${w}" data-tip="Click to highlight Week ${w}"`:""}>wk ${w} · ${fmt(wk[1])}${wk[2]?"":" · signed up"}</span>`}).join("")}</div>`:""}
+      ${!hYear&&future.length?`<div class="ups">Coming up: ${future.map(w=>{const wk=weekAt(curIdx+(w-WEEKS[curIdx][0]));return `<span class="pill hol hup"${w<=WEEKS[WEEKS.length-1][0]?` data-hl="${w}" data-tip="Click to highlight Week ${w}"`:""}>wk ${w} · ${fmt(wk[1])}${w===cur[0]?" · now":wk[2]?"":" · signed up"}</span>`}).join("")}</div>`:""}
     </div>
     <div style="min-width:0">
       ${hostMedals(name)}
       <div class="scroll"><div class="pres${hYear?" yf":""}" id="hpres" style="--hcol:${col}">${grid}</div></div>
-      <div class="pres-legend"><span><i class="sw" style="background:${col}"></i>Hosted</span><span><i class="sw" style="box-shadow:inset 0 0 0 1.5px ${col}"></i>Scheduled</span><span><i class="sw" style="background:#3a4254"></i>Someone else</span><span><i class="sw" style="background:var(--panel2)"></i>Open</span><span><i class="sw" style="background:repeating-linear-gradient(45deg,var(--lost) 0 2px,var(--panel2) 2px 4px)"></i>No record</span></div>
+      <div class="pres-legend"><span><i class="sw" style="background:${col}"></i>Hosted</span>${cur[2]===name?`<span><i class="sw" style="background:repeating-linear-gradient(45deg,${col} 0 1.5px,transparent 1.5px 4px);box-shadow:inset 0 0 0 1.5px ${col}"></i>This week</span>`:""}<span><i class="sw" style="box-shadow:inset 0 0 0 1.5px ${col}"></i>Scheduled</span><span><i class="sw" style="background:#3a4254"></i>Someone else</span><span><i class="sw" style="background:var(--panel2)"></i>Open</span><span><i class="sw" style="background:repeating-linear-gradient(45deg,var(--lost) 0 2px,var(--panel2) 2px 4px)"></i>No record</span></div>
     </div></div>`;
 }
 $("hq").addEventListener("change",e=>showHost(e.target.value.trim()));
