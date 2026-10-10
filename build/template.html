@@ -114,6 +114,7 @@ button.pill.hostbtn:hover,.pill.hostbtn:hover{background:color-mix(in srgb,var(-
 .tl .c{aspect-ratio:1;border-radius:2px;background:var(--panel2);max-width:100%}
 .tl .c.lost{background:repeating-linear-gradient(45deg,var(--lost) 0 2px,var(--panel2) 2px 4px)}
 .tl .c.open{background:transparent;box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--open) 60%,transparent)}
+.tl .c.sched{background:transparent;box-shadow:inset 0 0 0 1.5px var(--sc)}
 .tl .c.cur{box-shadow:0 0 0 2px var(--fg)}
 .tl .c.fade{opacity:.12}
 .tl .c[data-w]{cursor:pointer}
@@ -1362,9 +1363,11 @@ function renderTL(){
     html+=`<div class="yr">${y}</div>`;
     for(let k=0;k<firstWeekOfYear;k++)html+=`<div></div>`;
     idxs.forEach(i=>{
-      const [wk,d,h]=WEEKS[i];
+      let [wk,d,h]=WEEKS[i];
+      // upcoming weeks aren't hosted yet: a booked host (sheet or sign-up) is an outline in their colour
+      const sg=!h&&i>curIdx&&typeof ACCT!=="undefined"&&ACCT&&acctOn()&&ACCT.hostSign[wk]?ACCT.hostSign[wk].player:null; if(sg)h=sg;
       let cls="c", st="";
-      if(h===LOST)cls+=" lost"; else if(!h)cls+=" open"; else st=`background:${hc(h)}`;
+      if(h===LOST)cls+=" lost"; else if(!h)cls+=" open"; else if(i>curIdx){cls+=" sched";st=`--sc:${hc(h)}`} else st=`background:${hc(h)}`;
       if(i===curIdx)cls+=" cur";
       if(!matches(h))cls+=" fade";
       html+=`<div class="${cls}" style="${st}" data-w="${i}"></div>`;
@@ -1737,7 +1740,8 @@ const tip=$("tip");
 $("tl").addEventListener("mousemove",e=>{
   const c=e.target.closest("[data-w]"); if(!c){tip.hidden=true;return}
   const w=WEEKS[+c.dataset.w];
-  tip.innerHTML=`<b class="num">Week ${w[0]}</b> · ${fmt(w[1])}<br>${w[2]===LOST?"No host on record":w[2]?esc(w[2]):"Open slot"}${w[3]?`<br><span class="sub">${esc(w[3])}</span>`:""}`;
+  const i=+c.dataset.w, sg=!w[2]&&i>curIdx&&typeof ACCT!=="undefined"&&ACCT&&acctOn()&&ACCT.hostSign[w[0]]?ACCT.hostSign[w[0]].player:null;
+  tip.innerHTML=`<b class="num">Week ${w[0]}</b> · ${fmt(w[1])}<br>${w[2]===LOST?"No host on record":w[2]?(i>curIdx?"Scheduled: ":"")+esc(w[2]):sg?"Signed up: "+esc(sg):"Open slot"}${w[3]?`<br><span class="sub">${esc(w[3])}</span>`:""}`;
   tip.hidden=false;
   const x=Math.min(e.clientX+12,innerWidth-tip.offsetWidth-8); tip.style.left=x+"px"; tip.style.top=(e.clientY+14)+"px";
 });
@@ -3021,7 +3025,7 @@ function hostVerified(){if(!acctOn()||!ACCT.claim||ACCT.claim.status!=="approved
 function hostOpenWeeks(){const out=[];for(let i=0;i<=hostAhead();i++){const w=weekAt(curIdx+i);if(!w[2])out.push([w,i])}return out}
 async function hostLoad(){if(!ACCT.sb)return;
   const {data,error}=await ACCT.sb.from("host_signups").select("week,player,user_id,created_at").gte("week",WEEKS[curIdx][0]);
-  hostReady=true; if(error){renderHostWarn();return} ACCT.hostSign={}; (data||[]).forEach(r=>ACCT.hostSign[r.week]=r); renderUpcoming(); renderNow(); renderHostWarn(); renderLog(); if(hName&&hosts[hName])showHost(hName);
+  hostReady=true; if(error){renderHostWarn();return} ACCT.hostSign={}; (data||[]).forEach(r=>ACCT.hostSign[r.week]=r); renderUpcoming(); renderNow(); renderHostWarn(); renderLog(); renderTL(); if(hName&&hosts[hName])showHost(hName);
 }
 // admin sign-up list: hosts by latest week hosted (most recently active first), then other players A–Z
 function hostOptions(){
