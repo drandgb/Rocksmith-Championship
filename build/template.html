@@ -3214,7 +3214,10 @@ function cardRateBox(p,song,diff){
 // Admin tab: give or change ratings on behalf of a player (e.g. one who sent their ratings by message)
 function adminRateSection(){
   if(acctOn()&&!ACCT.songs)acctLoadWeek();
-  const names=PLAYERS.map(p=>p[0]).sort((a,b)=>a.localeCompare(b,undefined,{sensitivity:"base"}));
+  // players by their latest week played (this week counts), most recent first; A–Z within the same week
+  const lastOf=p=>typeof twLiveSet!=="undefined"&&twLiveSet.has(p[0])?TW_MAX:p[2];
+  const ordered=PLAYERS.slice().sort((a,b)=>lastOf(b)-lastOf(a)||a[0].localeCompare(b[0],undefined,{sensitivity:"base"}));
+  const groups=[]; ordered.forEach(p=>{const w=lastOf(p); if(!groups.length||groups[groups.length-1][0]!==w)groups.push([w,[]]); groups[groups.length-1][1].push(p[0])});
   const pl=ACCT.admRateP||"", wk=ACCT.admRateW||TW_MAX, weeks=SB_W.slice().reverse();
   let rows="";
   if(pl){const cards=(SB.weeks[wk]||[]).filter(c=>c[3]&&!/^n\/a$/i.test(c[3])).sort((a,b)=>a[0]-b[0]||a[1]-b[1]);
@@ -3222,7 +3225,7 @@ function adminRateSection(){
       const opts=[];for(let r=1;r<=10;r+=.5)opts.push(`<option value="${r}"${cur&&cur.r===r?" selected":""}>${r}</option>`);
       return `<li style="--pc:${PATH_C[c[0]]}"><span class="apath">${PATHS[c[0]]}</span><span class="lvchip" style="--tc:${L==="G"?"var(--s-red)":TIER_C[L]||"var(--muted)"}">${L==="G"?esc(c[2]):TIER_NAME[L]||esc(c[2])}</span><span class="asong">${esc(c[3])}</span><span class="dim">host ${c[4]!=null?c[4]:"–"}</span><select class="admrate" data-rate="${c[0]}" data-song="${esc(c[3])}" data-as="${esc(pl)}" aria-label="${esc(pl)}'s rating"><option value=""${cur?"":" selected"}>${cur?"Remove rating":"No rating"}</option>${opts.join("")}</select></li>`}).join("")}
   return `<div class="adm acctsec"><h3>Ratings for a player</h3><p class="dim">Give or change a player's ratings for them. They count exactly like the player's own (one per song per path).</p>
-    <div class="row admrow"><select data-admrate="p" aria-label="Player"><option value="">Choose a player…</option>${names.map(n=>`<option${n===pl?" selected":""}>${esc(n)}</option>`).join("")}</select>
+    <div class="row admrow"><select data-admrate="p" aria-label="Player"><option value="">Choose a player…</option>${groups.map(([w,ns])=>`<optgroup label="Last played Week ${w}">${ns.map(n=>`<option${n===pl?" selected":""}>${esc(n)}</option>`).join("")}</optgroup>`).join("")}</select>
     <select data-admrate="w" aria-label="Week">${weeks.map(w=>`<option value="${w}"${w===wk?" selected":""}>Week ${w}</option>`).join("")}</select></div>
     ${pl?(rows?`<ul class="alist">${rows}</ul>`:`<p class="dim">No challenges on the scoreboard for Week ${wk}.</p>`):""}</div>`;
 }
