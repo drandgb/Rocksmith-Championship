@@ -1205,7 +1205,7 @@ footer{color:var(--dim);font-size:.78rem}
   <footer>Data: Rodman’s Rocksmith 2014 Championship Google Sheets (older attendance also from the Championship Metrics workbook). Player stats run through week 675; scoreboards cover weeks 440–676. Weeks 1–16 have no recorded host in the source.
   <span class="updated disclaimer">Unofficial fan project. Not affiliated with Ubisoft or Rocksmith.</span>
   <span class="updated" id="sheetedit-row" hidden>Sheet last edited: <span id="sheetedit" data-iso="2026-10-09T18:08:57.146Z"></span></span>
-  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-10T08:58:02+00:00">October 10, 2026</span></span>
+  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-10T09:05:37+00:00">October 10, 2026</span></span>
   </footer>
 </div>
 <dialog id="acct" class="acctdlg" aria-label="Your profile"><div id="acctbody"></div><button type="button" class="clear acctclose" id="acctclose">Close</button></dialog>
@@ -3202,7 +3202,7 @@ function acctDraw(msg,err){
   if(!ACCT.ready){$("acctbody").innerHTML=`<h3>Your profile</h3><p class="dim">Loading…</p>`;return}
   const b=$("acctbody"), note=(msg?`<p class="msg">${esc(msg)}</p>`:"")+(err?`<p class="err">${esc(err)}</p>`:"");
   if(!ACCT.user){b.innerHTML=`<h3>Log in</h3><p>Logging in lets you claim your player profile, so you can view your own stats page and submit one rating per song for each path (Lead, Rhythm and Bass) on the Scoreboard.</p><p>Type your email and we'll send you a login link. No password needed.</p><input id="acctemail" type="email" autocomplete="email" placeholder="you@example.com" value="${esc(ACCT.pendingEmail||"")}"><div class="row"><button type="button" class="btn" data-acct="send">Email me a login link</button></div>${note}
-    <div class="acctsec"><h3>Got a code?</h3><p class="dim">Opened the email on another device? Type the code from the email here to log in on this one.</p><input id="acctcode" inputmode="numeric" autocomplete="one-time-code" maxlength="10" placeholder="Code from the email"><div class="row"><button type="button" class="btn ghost" data-acct="code">Log in with code</button></div></div>`;return}
+    <div class="acctsec"><h3>Got a code?</h3><p class="dim">Opened the email on another device? Type the code from the email here to log in on this one. Make sure your email is filled in above first.</p><input id="acctcode" inputmode="numeric" autocomplete="one-time-code" maxlength="10" placeholder="Code from the email"><div class="row"><button type="button" class="btn ghost" data-acct="code">Log in with code</button></div></div>`;return}
   const pendN=ACCT.admin?ACCT.claims.filter(c=>c.status==="pending").length:0;
   if(!ACCT.admin&&ACCT.tab==="admin")ACCT.tab="me";
   // tabs: Your profile, Manage account, and (for admins) Admin with a badge for claims waiting
