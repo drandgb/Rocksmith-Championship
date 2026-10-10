@@ -173,7 +173,7 @@ To build by hand: `./build/build.sh` (downloads the sheet) or `./build/build.sh 
 
 ## Player accounts and song ratings (optional)
 
-Players can log in with an emailed link (no password) and claim their player profile. On the Scoreboard, an approved player clicks the difficulty number of any challenge to give their own rating. Once a challenge has ratings, its badge shows the players' average (with a ★); hovering it shows the host's initial rating and every player's rating. It's off until a Supabase project is connected:
+Players can log in with an emailed link (no password) and claim their player profile. An approved player gives one rating per song per path: by clicking the difficulty number of a challenge on the Scoreboard, or a song's Lead/Rhythm/Bass rating box in Most played, Most replayed or Band lookup. A rating counts for that song on that path in every week it's used. Once a song has ratings, its badges show the players' average (with a ★); hovering shows the host's initial rating for every week and every player's rating. It's off until a Supabase project is connected:
 
 1. Create a free project at supabase.com.
 2. In **Authentication → URL Configuration**, set the Site URL (and a Redirect URL) to `https://drandgb.github.io/Rocksmith-Championship/`.
