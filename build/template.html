@@ -55,6 +55,14 @@ button.forum{background:none;cursor:pointer;font:inherit;font-size:.85rem}
 .now .n{font-size:.8rem;color:var(--muted)}
 .pill{display:inline-block;font-family:var(--f-mono);font-size:.7rem;padding:2px 7px;border-radius:999px;letter-spacing:.04em;vertical-align:middle}
 .pill.open{background:color-mix(in srgb,var(--open) 18%,transparent);color:var(--open);border:1px solid color-mix(in srgb,var(--open) 50%,transparent)}
+.twwarn{display:flex;align-items:center;gap:12px;margin:0 0 14px;padding:12px 16px;border-radius:12px;background:color-mix(in srgb,var(--s-red) 14%,var(--panel));border:1px solid color-mix(in srgb,var(--s-red) 60%,transparent);color:var(--fg)}
+.twwarn[hidden]{display:none}
+.twwarn .ic{font-size:1.4rem;color:var(--s-red);line-height:1}
+.twwarn b{display:block;color:var(--s-red);font-family:var(--f-display);letter-spacing:.08em;text-transform:uppercase;font-size:.95rem}
+.twwarn small{color:var(--muted);font-size:.8rem}
+.twwarn>div{flex:1;min-width:0}
+.twwarn .hostbtn{flex:none;color:#fff;background:var(--s-red);border-color:var(--s-red);font-weight:700}
+.twwarn .hostbtn:hover{background:color-mix(in srgb,var(--s-red) 80%,#fff)!important}
 .pill.signed{cursor:help;background:color-mix(in srgb,var(--accent) 16%,transparent);color:var(--accent);border:1px solid color-mix(in srgb,var(--accent) 45%,transparent);font-size:.6rem;padding:1px 6px}
 .hostbtn{position:relative;cursor:pointer;font:inherit;font-family:var(--f-mono);font-size:.7rem}
 button.pill.hostbtn:hover,.pill.hostbtn:hover{background:color-mix(in srgb,var(--open) 32%,transparent)}
@@ -977,6 +985,7 @@ footer{color:var(--dim);font-size:.78rem}
   </div>
 
   <div class="view" id="view-thisweek" role="tabpanel" aria-labelledby="tab-thisweek" hidden>
+  <div class="twwarn" id="twwarn" role="alert" hidden></div>
   <section class="panel twhead">
     <div class="twnav">
       <button type="button" class="twarrow" id="twprev" aria-label="Previous week">‹</button>
@@ -2720,7 +2729,17 @@ function twMedals(n,w,live){
   if(hosts[n])grab(hostMedals(n),"host");
   return twMedalCache[k]=out;
 }
+// red banner on This Week while next week has no host in the sheet and nobody has signed up
+function renderHostWarn(){
+  const el=$("twwarn"); if(!el)return; const w=weekAt(curIdx+1);
+  const signed=typeof ACCT!=="undefined"&&ACCT&&acctOn()&&ACCT.hostSign[w[0]];
+  if(w[2]||signed){el.hidden=true;return}
+  el.hidden=false;
+  const act=hostSlot(w,1,"HOST NEEDED"), can=/data-host(sign|pick)/.test(act);
+  el.innerHTML=`<span class="ic">⚠</span><div><b>Host still needed for next week!</b><small>Week ${w[0]} starts ${fmt(w[1])} and nobody has signed up to host it yet.${can?"":typeof ACCT!=="undefined"&&ACCT&&acctOn()&&!ACCT.user?" Hosted before? Log in to sign up, or message the admin.":" Want to host? Message the admin."}</small></div>${can?act.replace(/HOST NEEDED · SIGN UP/,"SIGN UP TO HOST"):""}`;
+}
 function renderThisWeek(){
+  renderHostWarn();
   const w=twWeek, W=WEEKS[w-1], live=w===TW_LIVE, names=twNames(w), set=new Set(names);
   $("twprev").disabled=w<=TW_MIN; $("twnext").disabled=w>=TW_MAX;
   $("twnow").hidden=w===TW_MAX; $("twsb").hidden=!SB.weeks[w]; $("twsb").dataset.sbw=w; $("twsb").title=`Open week ${w} on the Scoreboard`; $("twnow").textContent=`Back to ${TW_LIVE?"this":"the latest"} week (${TW_MAX}) ›`;
@@ -2966,7 +2985,7 @@ function hostVerified(){if(!acctOn()||!ACCT.claim||ACCT.claim.status!=="approved
 function hostOpenWeeks(){const out=[];for(let i=0;i<=HOST_AHEAD;i++){const w=weekAt(curIdx+i);if(!w[2])out.push([w,i])}return out}
 async function hostLoad(){if(!ACCT.sb)return;
   const {data,error}=await ACCT.sb.from("host_signups").select("week,player,created_at").gte("week",WEEKS[curIdx][0]);
-  if(error)return; ACCT.hostSign={}; (data||[]).forEach(r=>ACCT.hostSign[r.week]=r); renderUpcoming(); renderNow();
+  if(error)return; ACCT.hostSign={}; (data||[]).forEach(r=>ACCT.hostSign[r.week]=r); renderUpcoming(); renderNow(); renderHostWarn();
 }
 function hostNames(){const s=new Set([...PLAYERS.map(p=>p[0]),...Object.keys(hosts)]);return [...s].sort((a,b)=>a.localeCompare(b,undefined,{sensitivity:"base"}))}
 // what shows for a week the sheet has no host for: a sign-up, a sign-up button, or "HOST NEEDED"
