@@ -66,6 +66,8 @@ button.forum{background:none;cursor:pointer;font:inherit;font-size:.85rem}
 .animal{display:inline-block;font-size:.78rem;padding:1px 7px;border-radius:999px;background:var(--panel2);border:1px solid var(--line);white-space:nowrap;cursor:help}
 .animalnote{font-size:.85rem;color:var(--muted)}
 .animalnote .animal{color:var(--fg);font-weight:600}
+.up .wk b.sblink{cursor:pointer;text-decoration:underline dotted;text-underline-offset:3px}
+.up .wk b.sblink:hover{color:var(--fg)}
 .pill.signed{cursor:help;background:color-mix(in srgb,var(--accent) 16%,transparent);color:var(--accent);border:1px solid color-mix(in srgb,var(--accent) 45%,transparent);font-size:.6rem;padding:1px 6px}
 .hostbtn{position:relative;cursor:pointer;font:inherit;font-family:var(--f-mono);font-size:.7rem}
 button.pill.hostbtn:hover,.pill.hostbtn:hover{background:color-mix(in srgb,var(--open) 32%,transparent)}
@@ -1167,7 +1169,7 @@ footer{color:var(--dim);font-size:.78rem}
   <footer>Data: Rodman’s Rocksmith 2014 Championship Google Sheets (older attendance also from the Championship Metrics workbook). Player stats run through week 675; scoreboards cover weeks 440–676. Weeks 1–16 have no recorded host in the source.
   <span class="updated disclaimer">Unofficial fan project. Not affiliated with Ubisoft or Rocksmith.</span>
   <span class="updated" id="sheetedit-row" hidden>Sheet last edited: <span id="sheetedit" data-iso="2026-10-09T18:08:57.146Z"></span></span>
-  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-10T01:51:08+00:00">October 9, 2026</span></span>
+  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-10T01:53:04+00:00">October 9, 2026</span></span>
   </footer>
 </div>
 <dialog id="acct" class="acctdlg" aria-label="Your account"><div id="acctbody"></div><button type="button" class="clear acctclose" id="acctclose">Close</button></dialog>
@@ -1299,7 +1301,7 @@ function upRow(i){
   const hol=w[3]?w[3].split(/,\s*/).map(h=>`<span class="pill hol holf" data-hol="${esc(h)}" title="Show only weeks with ${esc(h)}">${holEmoji(h)}${esc(h)}</span>`).join(""):"";
   const who=w[2]?`<span class="who" data-name="${esc(w[2])}">${esc(w[2])}</span>`:hostSlot(w,i);
   const yr=w[1].slice(0,4)!==cur[1].slice(0,4)?`<span class="yy">${w[1].slice(0,4)}</span>`:"";
-  return `<li class="${i===0?"cur":""}"><div class="wk"><b>${w[0]}</b>${fmtShort(w[1])}${yr}</div><div>${who}${i===0?' <span class="sub">· now</span>':""}<div class="meta">${hol}</div></div></li>`;
+  return `<li class="${i===0?"cur":""}"><div class="wk"><b${i===0&&SB.weeks[w[0]]?` class="sblink" data-sbw="${w[0]}" title="Open Week ${w[0]} on the Scoreboard"`:""}>${w[0]}</b>${fmtShort(w[1])}${yr}</div><div>${who}${i===0?' <span class="sub">· now</span>':""}<div class="meta">${hol}</div></div></li>`;
 }
 // this week and the next ones; hosts can sign up for any week shown here (always at least the next HOST_AHEAD).
 // On a wide screen the list grows to match the Host leaderboard beside it.
