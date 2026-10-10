@@ -3068,7 +3068,7 @@ function songAt(w,p,slot){const c=(SB.weeks[w]||[]).find(c=>c[0]===p&&c[1]===slo
   const o=SONGS_OLD.find(o=>o[0]===w&&o[1]===p&&TIER_ORDER.indexOf(o[2])===slot); return o?o[4]:null}
 async function acctLoadWeek(){
   if(ACCT.loading.all||!ACCT.sb)return; ACCT.loading.all=true;
-  const {data,error}=await ACCT.sb.from("votes").select("player,week,path,slot,rating,song,updated_at");
+  const {data,error}=await ACCT.sb.from("votes").select("player,week,path,slot,rating,song,updated_at,user_id");
   ACCT.loading.all=false; if(error)return;
   const best={}, mine={}, rows={}, me=ACCT.claim&&ACCT.claim.player;
   (data||[]).forEach(v=>{
@@ -3076,9 +3076,9 @@ async function acctLoadWeek(){
     const k=v.path+"|"+acctSongKey(song), id=k+"|"+v.player;
     (rows[k+"|"+v.player]=rows[k+"|"+v.player]||[]).push({week:v.week,path:v.path,slot:v.slot});
     if(v.player===me)(mine[k]=mine[k]||[]).push({week:v.week,path:v.path,slot:v.slot});
-    if(!best[id]||String(v.updated_at)>String(best[id].t))best[id]={k,p:v.player,r:+v.rating,t:v.updated_at};
+    if(!best[id]||String(v.updated_at)>String(best[id].t))best[id]={k,p:v.player,r:+v.rating,t:v.updated_at,u:v.user_id};
   });
-  const S={}; Object.values(best).forEach(x=>(S[x.k]=S[x.k]||[]).push({p:x.p,r:x.r}));
+  const S={}; Object.values(best).forEach(x=>(S[x.k]=S[x.k]||[]).push({p:x.p,r:x.r,u:x.u}));
   ACCT.songs=S; ACCT.mine=mine; ACCT.rows=rows; sbRender();
   if($("acct").open&&ACCT.tab==="admin")acctDraw();
   {const tw=document.getElementById("acct-tw"); if(tw&&$("acct").open&&ACCT.claim)tw.innerHTML=acctThisWeek(ACCT.claim.player);} if(typeof renderSongs==="function"&&!$("view-songs").hidden)renderSongs();
@@ -3109,6 +3109,9 @@ document.addEventListener("change",async e=>{
   const as=s.dataset.as&&ACCT.admin&&s.closest(".adm")?s.dataset.as:null; if(!as&&!ACCT.claim)return;
   const p=+s.dataset.rate, song=s.dataset.song, player=as||ACCT.claim.player, k=p+"|"+acctSongKey(song);
   const r=s.value?+s.value:null;
+  // an admin changing a rating the player gave themselves has to confirm it first
+  if(as){const cur=songVotes(p,song).find(v=>v.p===as), own=ACCT.claims.find(c=>c.player===as&&c.status==="approved");
+    if(cur&&own&&cur.u===own.user_id&&!confirm(`${as} rated ${song} (${PATHS[p]}) ${cur.r} themselves. Are you sure you want to ${r==null?"remove their rating":`replace it with ${r}`}?`)){s.value=String(cur.r);return}}
   // the song's latest challenge on this path holds the rating (Scoreboard weeks first, then the older weeks)
   let at=null;
   Object.entries(SB.weeks).forEach(([w,ch])=>ch.forEach(c=>{if(c[0]===p&&c[3]&&acctSongKey(c[3])===acctSongKey(song)&&(!at||+w>at.week))at={week:+w,slot:c[1],song:c[3]}}));
