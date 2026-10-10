@@ -64,8 +64,9 @@ drop policy if exists votes_insert on public.votes;
 drop policy if exists votes_update on public.votes;
 drop policy if exists votes_delete on public.votes;
 create policy votes_read   on public.votes for select using (true);
-create policy votes_insert on public.votes for insert to authenticated with check (player = public.my_player() and user_id = auth.uid());
-create policy votes_update on public.votes for update to authenticated using (player = public.my_player()) with check (player = public.my_player() and user_id = auth.uid());
+-- admins can also give or change ratings on behalf of any player (from the Admin tab)
+create policy votes_insert on public.votes for insert to authenticated with check ((player = public.my_player() or public.is_admin()) and user_id = auth.uid());
+create policy votes_update on public.votes for update to authenticated using (player = public.my_player() or public.is_admin()) with check ((player = public.my_player() or public.is_admin()) and user_id = auth.uid());
 create policy votes_delete on public.votes for delete to authenticated using (player = public.my_player() or public.is_admin());
 
 grant select on public.claims, public.votes to anon, authenticated;
