@@ -1259,7 +1259,7 @@ footer{color:var(--dim);font-size:.78rem}
   <footer>Data: Rodman’s Rocksmith 2014 Championship Google Sheets (older attendance also from the Championship Metrics workbook). Player stats run through week 676; scoreboards cover weeks 440–677. Weeks 1–16 have no recorded host in the source.
   <span class="updated disclaimer">Unofficial fan project. Not affiliated with Ubisoft or Rocksmith.</span>
   <span class="updated" id="sheetedit-row" hidden>Sheet last edited: <span id="sheetedit" data-iso="2026-10-10T17:43:16.513Z"></span></span>
-  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-10T21:26:40+00:00">October 10, 2026</span></span>
+  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-10T21:35:27+00:00">October 10, 2026</span></span>
   </footer>
 </div>
 <dialog id="acct" class="acctdlg" aria-label="Your profile"><div id="acctbody"></div><button type="button" class="clear acctclose" id="acctclose">Close</button></dialog>
@@ -3359,7 +3359,10 @@ function acctThisWeek(n){
   const rk=[]; (RK.paths||[]).forEach(pp=>{const pi=PATHS.indexOf(pp.path); pp.levels.forEach(l=>l.rows.forEach(([r,nm,pts,ch])=>{if(String(nm).toLowerCase()!==key||ch==="Out")return;
     const LT={Beginner:"B",Intermediate:"I",Advanced:"A",Masterclass:"M"}[l.level], cc=/↑/.test(ch)?"up":/↓/.test(ch)?"down":/new/i.test(ch)?"new":"";
     rk.push(`<li style="--pc:${PATH_C[pi]}"><span class="apath">${esc(pp.path)}</span><span class="lvchip" style="--tc:${TIER_C[LT]||"var(--fg)"}">${esc(l.level)}</span><span class="arank${r==="1"?" p1":r==="2"?" p2":r==="3"?" p3":""}">#${esc(r)}<small> of ${l.rows.filter(x=>x[3]!=="Out").length}</small></span><span class="apts">${esc(pts)} pts</span><span class="chg ${cc}">${esc(ch)}</span></li>`)}))});
-  return `<div class="acctsec"><h3>This week's scoreboard <small>Week ${w}</small></h3>${sb.length?`<ul class="alist">${sb.join("")}</ul>`:`<p class="dim">No scoreboard for this week yet.</p>`}</div>
+  // last week's haul: the medals collected in the last finished week, as on that week's This Week page
+  const lw=DATA_WEEK, haul=lw>=TW_MIN?twMedals(n,lw,false):[];
+  return `<div class="acctsec"><h3>Last week's haul <small>Week ${lw}</small></h3>${haul.length?`<div class="medals haul">${haul.join("")}</div><p class="dim" style="margin-top:6px">${twPl(haul.length,"new medal")}</p>`:`<p class="dim">No new medals last week.</p>`}</div>
+    <div class="acctsec"><h3>This week's scoreboard <small>Week ${w}</small></h3>${sb.length?`<ul class="alist">${sb.join("")}</ul>`:`<p class="dim">No scoreboard for this week yet.</p>`}</div>
     <div class="acctsec acctriv"><h3>This week's rivals</h3>${riv||`<p class="dim">No rivals this week yet.</p>`}</div>
     <div class="acctsec"><h3>Rodman's Rankings ${RK.weeks?`<small>Weeks ${esc(RK.weeks)}</small>`:""}</h3>${rk.length?`<ul class="alist">${rk.join("")}</ul>`:`<p class="dim">Not ranked right now.</p>`}<div class="row"><button type="button" class="btn ghost" data-goview="rankings">Open Rodman's Rankings ›</button></div></div>`;
 }
