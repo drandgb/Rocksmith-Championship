@@ -3066,7 +3066,7 @@ function acctDraw(msg,err){
   if(!ACCT.admin)ACCT.tab="me";
   // tabs: Your account, and (for admins) Admin · claims with a badge for claims waiting
   const tabs=ACCT.admin?`<div class="accttabs" role="tablist"><button type="button" role="tab" data-accttab="me" aria-selected="${ACCT.tab!=="admin"}">Your account</button><button type="button" role="tab" data-accttab="admin" aria-selected="${ACCT.tab==="admin"}">Admin${pendN?`<span class="nbadge" title="${pendN} claim${pendN===1?"":"s"} waiting for approval">${pendN}</span>`:""}</button></div>`:"";
-  let h=tabs+(ACCT.tab==="admin"?"":`${tabs?"":"<h3>Your account</h3>"}<p>Logged in as ${esc(ACCT.user.email||"")}</p>`);
+  let h=tabs+(ACCT.tab==="admin"?"":`${tabs?"":"<h3>Your account</h3>"}`);
   if(ACCT.tab==="admin"){}
   else if(!ACCT.claim){const taken=new Set(ACCT.claims.map(c=>c.player));
     const names=PLAYERS.map(p=>p[0]).filter(n=>!taken.has(n)).sort((a,c)=>a.localeCompare(c,undefined,{sensitivity:"base"}));
