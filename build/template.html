@@ -1295,13 +1295,28 @@ function upRow(i){
   const yr=w[1].slice(0,4)!==cur[1].slice(0,4)?`<span class="yy">${w[1].slice(0,4)}</span>`:"";
   return `<li class="${i===0?"cur":""}"><div class="wk"><b>${w[0]}</b>${fmtShort(w[1])}${yr}</div><div>${who}${i===0?' <span class="sub">· now</span>':""}<div class="meta">${hol}</div></div></li>`;
 }
-// this week plus the weeks hosts can sign up for (HOST_AHEAD)
-const HOST_AHEAD=9; // how many weeks ahead hosts can sign up
-let upCount=10;
+// this week and the next ones; hosts can sign up for any week shown here (always at least the next HOST_AHEAD).
+// On a wide screen the list grows to match the Host leaderboard beside it.
+const HOST_AHEAD=9;
+let upCount=HOST_AHEAD+1;
+function hostAhead(){return Math.max(HOST_AHEAD,upCount-1)}
 function renderUpcoming(){
   const ul=$("upcoming"); upCount=HOST_AHEAD+1;
   ul.innerHTML=[...Array(upCount)].map((_,i)=>upRow(i)).join("");
-  $("upsub").textContent=`This week + next ${HOST_AHEAD}`;
+  const upSec=ul.closest("section"), lbSec=$("lb").closest("section");
+  const stacked=getComputedStyle(upSec.parentElement).gridTemplateColumns.split(" ").length<2;
+  if(!$("view-hosting").hidden && !stacked){
+    const cs=getComputedStyle(upSec);
+    const avail=lbSec.offsetHeight-(ul.getBoundingClientRect().top-upSec.getBoundingClientRect().top)-parseFloat(cs.paddingBottom)-parseFloat(cs.borderBottomWidth);
+    while(upCount<80){
+      ul.insertAdjacentHTML("beforeend",upRow(upCount));
+      if(ul.offsetHeight>avail){ul.lastElementChild.remove();break}
+      upCount++;
+    }
+    // rows added after the first ones were drawn before upCount grew: redraw so they get sign-up buttons too
+    ul.innerHTML=[...Array(upCount)].map((_,i)=>upRow(i)).join("");
+  }
+  $("upsub").textContent=`Next ${upCount} weeks`;
 }
 let upTimer; addEventListener("resize",()=>{clearTimeout(upTimer);upTimer=setTimeout(renderUpcoming,150)});
 document.fonts&&document.fonts.ready.then(()=>renderUpcoming());
@@ -2454,7 +2469,11 @@ function showHost(name){
   if(!h){$("hcard").innerHTML=`<div class="empty">No host named “${esc(name)}”. Pick a name from the list as you type.</div>`;return}
   hName=name; $("hq").value=name;
   const all=[]; WEEKS.forEach(([w,d,ho],i)=>{if(i<=curIdx&&ho===name)all.push(w)});
-  const future=WEEKS.filter(([w,d,ho],i)=>i>curIdx&&ho===name).map(x=>x[0]);
+  // a sign-up (week with no host in the sheet yet) shows like a scheduled week
+  const signedBy=w=>typeof ACCT!=="undefined"&&ACCT&&acctOn()&&ACCT.hostSign[w]?ACCT.hostSign[w].player:null;
+  const same=x=>!!x&&x.toLowerCase()===name.toLowerCase();
+  const future=WEEKS.filter(([w,d,ho],i)=>i>=curIdx&&(i>curIdx&&ho===name||!ho&&same(signedBy(w)))).map(x=>x[0]);
+  if(typeof ACCT!=="undefined"&&ACCT&&acctOn())Object.values(ACCT.hostSign).forEach(s=>{if(same(s.player)&&s.week>WEEKS[WEEKS.length-1][0])future.push(s.week)});
   const yearOf=w=>WEEKS[w-1][1].slice(0,4);
   const years=[...new Set(all.map(yearOf))];
   if(hYear&&!WEEKS.some(([w,d],i)=>i<=curIdx&&d.slice(0,4)===hYear))hYear=null;
@@ -2472,9 +2491,10 @@ function showHost(name){
   Object.keys(byYear).forEach(y=>{
     const arr=byYear[y], off=Math.floor((new Date(arr[0][1]+"T12:00:00")-new Date(y+"-01-01T12:00:00"))/604800000);
     grid+=`<div class="yr hyr${hYear===y?" sel":""}" data-hyear="${y}" title="${hYear===y?"Show all years":`Show stats for ${y} only`}">${y}</div>`+"<i class='pre'></i>".repeat(off)+arr.map(([w,d,ho,i])=>{
-      const fut=i>curIdx, mine=ho===name;
+      const sg=!ho&&i>=curIdx?signedBy(w):null; if(sg)ho=same(sg)?name:sg;
+      const fut=i>curIdx||!!sg, mine=ho===name;
       const cls=mine?(fut?"hf":"hh"):fut?"hn":ho===LOST?"hl":ho?"ho":"hn";
-      const who=fut?(mine?"scheduled to host":ho?`${ho} scheduled`:"open"):mine?"hosted":ho===LOST?"no record":ho?`hosted by ${ho}`:"open";
+      const who=fut?(mine?(sg?"signed up to host":"scheduled to host"):ho?`${ho} ${sg?"signed up":"scheduled"}`:"open"):mine?"hosted":ho===LOST?"no record":ho?`hosted by ${ho}`:"open";
       return `<i class="${cls}${hYear===y?" iny":""}" data-hw="${w}" title="Week ${w} · ${fmt(d)} · ${esc(who)}${SB.weeks[w]?" · click to open the Scoreboard":""}"></i>`}).join("")+"<i class='pre'></i>".repeat(Math.max(0,53-off-arr.length));
   });
   $("hcard").innerHTML=`<div class="pc">
@@ -2490,7 +2510,7 @@ function showHost(name){
         ${hYear?(()=>{const cnt={};WEEKS.forEach(([w,d,ho],i)=>{if(i<=curIdx&&d.slice(0,4)===hYear&&ho&&ho!==LOST)cnt[ho]=(cnt[ho]||0)+1});const rk=ws.length?1+Object.values(cnt).filter(n=>n>ws.length).length:null;return `<div><small>Rank in ${hYear}</small><b>${rk?"#"+rk:"–"}</b><span class="sub"> of ${Object.keys(cnt).length} host${Object.keys(cnt).length===1?"":"s"}</span></div>`})():`<div><small>Years hosting</small><b>${years.length}</b><span class="sub"> · ${yearsTxt}</span></div>`}
       </div>
       ${byName[name]||WR.wins[name]?`<div class="golinks">${byName[name]?`<button type="button" class="clear" data-goplayer="${esc(name)}">Open player profile ›</button>`:""}${WR.wins[name]?`<button type="button" class="clear" data-gowin="${esc(name)}">Open win profile ›</button>`:""}<button type="button" class="clear" data-gosongs="${esc(name)}">Song picks ›</button></div>`:`<div class="golinks"><button type="button" class="clear" data-gosongs="${esc(name)}">Song picks ›</button></div>`}
-      ${!hYear&&future.length?`<div class="ups">Coming up: ${future.map(w=>`<span class="pill hol">wk ${w} · ${fmt(WEEKS[w-1][1])}</span>`).join("")}</div>`:""}
+      ${!hYear&&future.length?`<div class="ups">Coming up: ${future.map(w=>{const wk=weekAt(curIdx+(w-WEEKS[curIdx][0]));return `<span class="pill hol">wk ${w} · ${fmt(wk[1])}${wk[2]?"":" · signed up"}</span>`}).join("")}</div>`:""}
     </div>
     <div style="min-width:0">
       ${hostMedals(name)}
@@ -2972,19 +2992,19 @@ function acctMount(n){
 // admins can sign anyone up. The schedule sheet wins: once it names a host for a week, that's who shows.
 function hostVerified(){if(!acctOn()||!ACCT.claim||ACCT.claim.status!=="approved")return false;
   const n=ACCT.claim.player.toLowerCase(); return Object.keys(hosts).some(h=>h.toLowerCase()===n)}
-function hostOpenWeeks(){const out=[];for(let i=0;i<=HOST_AHEAD;i++){const w=weekAt(curIdx+i);if(!w[2])out.push([w,i])}return out}
+function hostOpenWeeks(){const out=[];for(let i=0;i<=hostAhead();i++){const w=weekAt(curIdx+i);if(!w[2])out.push([w,i])}return out}
 async function hostLoad(){if(!ACCT.sb)return;
   const {data,error}=await ACCT.sb.from("host_signups").select("week,player,created_at").gte("week",WEEKS[curIdx][0]);
-  if(error)return; ACCT.hostSign={}; (data||[]).forEach(r=>ACCT.hostSign[r.week]=r); renderUpcoming(); renderNow(); renderHostWarn();
+  if(error)return; ACCT.hostSign={}; (data||[]).forEach(r=>ACCT.hostSign[r.week]=r); renderUpcoming(); renderNow(); renderHostWarn(); if(hName&&hosts[hName])showHost(hName);
 }
-function hostNames(){const s=new Set([...PLAYERS.map(p=>p[0]),...Object.keys(hosts)]);return [...s].sort((a,b)=>a.localeCompare(b,undefined,{sensitivity:"base"}))}
+function hostNames(){const m=new Map();[...PLAYERS.map(p=>p[0]),...Object.keys(hosts)].forEach(n=>m.set(n.toLowerCase(),n));return [...m.values()].sort((a,b)=>a.localeCompare(b,undefined,{sensitivity:"base"}))}
 // what shows for a week the sheet has no host for: a sign-up, a sign-up button, or "HOST NEEDED"
 function hostSlot(w,i,label){
   label=label||"HOST NEEDED";
   const on=typeof ACCT!=="undefined"&&ACCT&&acctOn(), s=on?ACCT.hostSign[w[0]]:null;
   if(s){const mine=ACCT.claim&&ACCT.claim.status==="approved"&&s.player===ACCT.claim.player;
     return `<span class="who" data-name="${esc(s.player)}">${esc(s.player)}</span> <span class="pill signed" data-tip="${esc(s.player)} signed up to host this week. It's added to the schedule once the admin puts it in the sheet.">SIGNED UP</span>${mine||ACCT.admin?` <button type="button" class="hostx" data-hostdrop="${w[0]}" title="${mine?"Withdraw your sign-up":"Remove this sign-up"}">✕</button>`:""}`}
-  if(!on||i>HOST_AHEAD)return `<span class="pill open">${label}</span>`;
+  if(!on||i>hostAhead())return `<span class="pill open">${label}</span>`;
   if(ACCT.admin)return `<span class="pill open hostbtn" data-tip="Sign someone up to host Week ${w[0]}">${label} · SIGN UP<select data-hostpick="${w[0]}" aria-label="Sign someone up to host Week ${w[0]}"><option value="">Sign up a host…</option>${ACCT.claim&&ACCT.claim.status==="approved"?`<option>${esc(ACCT.claim.player)}</option>`:""}${hostNames().map(n=>`<option>${esc(n)}</option>`).join("")}</select></span>`;
   if(hostVerified())return `<button type="button" class="pill open hostbtn" data-hostsign="${w[0]}" data-tip="Sign up to host Week ${w[0]}">${label} · SIGN UP</button>`;
   return `<span class="pill open">${label}</span>`;
@@ -3008,9 +3028,9 @@ function hostSection(admin){
   const open=hostOpenWeeks();
   if(admin){const all=Object.values(ACCT.hostSign).sort((a,b)=>a.week-b.week);
     return `<div class="adm acctsec hostsec"><h3>Host sign-ups</h3><p>${all.length?"Add these to the schedule sheet. Once the sheet names the host, the sign-up is no longer needed.":"No sign-ups yet."}</p><ul>${all.map(s=>{const w=weekAt(curIdx+(s.week-WEEKS[curIdx][0]));return `<li><span>Week ${s.week} · ${fmtShort(w[1])} · <b>${esc(s.player)}</b>${w[2]?` <small>(sheet: ${esc(w[2])})</small>`:""}</span><button type="button" class="btn ghost" data-hostdrop="${s.week}">Remove</button></li>`}).join("")}</ul>
-      <p>Open weeks:</p><ul>${open.map(([w,i])=>`<li><span>Week ${w[0]} · ${fmtShort(w[1])}</span><span>${hostSlot(w,i)}</span></li>`).join("")||`<li>Every week in the next ${HOST_AHEAD} has a host.</li>`}</ul></div>`}
+      <p>Open weeks:</p><ul>${open.map(([w,i])=>`<li><span>Week ${w[0]} · ${fmtShort(w[1])}</span><span>${hostSlot(w,i)}</span></li>`).join("")||`<li>Every week in the next ${hostAhead()} has a host.</li>`}</ul></div>`}
   if(!hostVerified())return "";
-  return `<div class="acctsec hostsec"><h3>Hosting</h3><p>Open weeks in the next ${HOST_AHEAD}. Sign up to host one; the admin adds it to the schedule.</p><ul>${open.map(([w,i])=>`<li><span>Week ${w[0]} · ${fmtShort(w[1])}</span><span>${hostSlot(w,i)}</span></li>`).join("")||`<li>Every week in the next ${HOST_AHEAD} has a host.</li>`}</ul></div>`;
+  return `<div class="acctsec hostsec"><h3>Hosting</h3><p>Open weeks in the next ${hostAhead()}. Sign up to host one; the admin adds it to the schedule.</p><ul>${open.map(([w,i])=>`<li><span>Week ${w[0]} · ${fmtShort(w[1])}</span><span>${hostSlot(w,i)}</span></li>`).join("")||`<li>Every week in the next ${hostAhead()} has a host.</li>`}</ul></div>`;
 }
 function acctProfile(n){
   return `<div class="acctsec"><h3>Player profile</h3><div id="acct-p"></div></div>${WR.wins[n]?`<div class="acctsec"><h3>Win profile</h3><div id="acct-w"></div></div>`:""}${hosts[n]?`<div class="acctsec"><h3>Host profile</h3><div id="acct-h"></div></div>`:""}`;
