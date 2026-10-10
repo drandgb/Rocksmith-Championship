@@ -370,6 +370,8 @@ a.dl svg,.offpill svg{width:11px;height:11px}
 .alist .asong:hover{text-decoration:underline}
 .alist li.unpl{opacity:.5}
 .admrow{display:flex;gap:8px;flex-wrap:wrap}
+.alist li.aplayed{background:color-mix(in srgb,var(--pc) 14%,var(--panel2));box-shadow:inset 0 0 0 1.5px color-mix(in srgb,var(--pc) 70%,transparent)}
+.alist .playedtag{font:800 .62rem var(--f-mono);letter-spacing:.06em;padding:1px 6px;border-radius:4px;color:#10131a;background:var(--pc)}
 .acctdlg .admrow select{flex:1 1 12em;width:auto;margin:0}
 .acctdlg .alist select.admrate{width:auto;flex:none;margin:0 0 0 auto}
 .alist select.admrate{margin-left:auto;font-size:.85rem;padding:3px 6px;background:var(--panel);color:var(--fg);border:1px solid var(--line);border-radius:6px}
@@ -3222,9 +3224,11 @@ function adminRateSection(){
   const pl=ACCT.admRateP||"", wk=ACCT.admRateW||TW_MAX, weeks=SB_W.slice().reverse();
   let rows="";
   if(pl){const cards=(SB.weeks[wk]||[]).filter(c=>c[3]&&!/^n\/a$/i.test(c[3])).sort((a,b)=>a[0]-b[0]||a[1]-b[1]);
+    const key=pl.toLowerCase();
     rows=cards.map(c=>{const L=cardLv(c[2]), cur=songVotes(c[0],c[3]).find(v=>v.p===pl);
+      const ent=c[6].find(e=>SB.names[e[0]].replace(/[*~]+$/,"").toLowerCase()===key);
       const opts=[];for(let r=1;r<=10;r+=.5)opts.push(`<option value="${r}"${cur&&cur.r===r?" selected":""}>${r}</option>`);
-      return `<li style="--pc:${PATH_C[c[0]]}"><span class="apath">${PATHS[c[0]]}</span><span class="lvchip" style="--tc:${L==="G"?"var(--s-red)":TIER_C[L]||"var(--muted)"}">${L==="G"?esc(c[2]):TIER_NAME[L]||esc(c[2])}</span><span class="asong">${esc(c[3])}</span><span class="dim">host ${c[4]!=null?c[4]:"–"}</span><select class="admrate" data-rate="${c[0]}" data-song="${esc(c[3])}" data-as="${esc(pl)}" aria-label="${esc(pl)}'s rating"><option value=""${cur?"":" selected"}>${cur?"Remove rating":"No rating"}</option>${opts.join("")}</select></li>`}).join("")}
+      return `<li class="${ent?"aplayed":""}" style="--pc:${PATH_C[c[0]]}"${ent?` data-tip="${esc(pl)} posted a score on this one"`:""}><span class="apath">${PATHS[c[0]]}</span><span class="lvchip" style="--tc:${L==="G"?"var(--s-red)":TIER_C[L]||"var(--muted)"}">${L==="G"?esc(c[2]):TIER_NAME[L]||esc(c[2])}</span><span class="asong">${esc(c[3])}</span>${ent?`<span class="playedtag">PLAYED${ent[1]!=null?` · ${ent[1]}%`:""}</span>`:""}<span class="dim">host ${c[4]!=null?c[4]:"–"}</span><select class="admrate" data-rate="${c[0]}" data-song="${esc(c[3])}" data-as="${esc(pl)}" aria-label="${esc(pl)}'s rating"><option value=""${cur?"":" selected"}>${cur?"Remove rating":"No rating"}</option>${opts.join("")}</select></li>`}).join("")}
   return `<div class="adm acctsec"><h3>Ratings for a player</h3><p class="dim">Give or change a player's ratings for them. They count exactly like the player's own (one per song per path).</p>
     <div class="row admrow"><select data-admrate="p" aria-label="Player"><option value="">Choose a player…</option>${groups.map(([w,ns])=>`<optgroup label="Last played Week ${w}">${ns.map(n=>`<option${n===pl?" selected":""}>${esc(n)}</option>`).join("")}</optgroup>`).join("")}</select>
     <select data-admrate="w" aria-label="Week">${weeks.map(w=>`<option value="${w}"${w===wk?" selected":""}>Week ${w}</option>`).join("")}</select></div>
