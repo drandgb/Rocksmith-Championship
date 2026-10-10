@@ -368,6 +368,10 @@ a.dl svg,.offpill svg{width:11px;height:11px}
 .alist .asong{flex:1 1 10em;min-width:0;cursor:pointer;font-weight:600}
 .alist .asong:hover{text-decoration:underline}
 .alist li.unpl{opacity:.5}
+.admrow{display:flex;gap:8px;flex-wrap:wrap}
+.acctdlg .admrow select{flex:1 1 12em;width:auto;margin:0}
+.acctdlg .alist select.admrate{width:auto;flex:none;margin:0 0 0 auto}
+.alist select.admrate{margin-left:auto;font-size:.85rem;padding:3px 6px;background:var(--panel);color:var(--fg);border:1px solid var(--line);border-radius:6px}
 /* the scoreboard rows: path · level · song · rating + pill · place · %. On a wide screen they sit on one line;
    on a phone each row is the same three lines: path and level, then the song, then the rating, pill, place and % */
 .alist .ar1,.alist .ar3{display:contents}
@@ -1232,7 +1236,7 @@ footer{color:var(--dim);font-size:.78rem}
   <footer>Data: Rodman’s Rocksmith 2014 Championship Google Sheets (older attendance also from the Championship Metrics workbook). Player stats run through week 675; scoreboards cover weeks 440–676. Weeks 1–16 have no recorded host in the source.
   <span class="updated disclaimer">Unofficial fan project. Not affiliated with Ubisoft or Rocksmith.</span>
   <span class="updated" id="sheetedit-row" hidden>Sheet last edited: <span id="sheetedit" data-iso="2026-10-09T18:08:57.146Z"></span></span>
-  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-10T10:45:43+00:00">October 10, 2026</span></span>
+  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-10T11:01:38+00:00">October 10, 2026</span></span>
   </footer>
 </div>
 <dialog id="acct" class="acctdlg" aria-label="Your profile"><div id="acctbody"></div><button type="button" class="clear acctclose" id="acctclose">Close</button></dialog>
@@ -3063,15 +3067,17 @@ async function acctLoadWeek(){
   if(ACCT.loading.all||!ACCT.sb)return; ACCT.loading.all=true;
   const {data,error}=await ACCT.sb.from("votes").select("player,week,path,slot,rating,song,updated_at");
   ACCT.loading.all=false; if(error)return;
-  const best={}, mine={}, me=ACCT.claim&&ACCT.claim.player;
+  const best={}, mine={}, rows={}, me=ACCT.claim&&ACCT.claim.player;
   (data||[]).forEach(v=>{
     const song=v.song||songAt(v.week,v.path,v.slot); if(!song)return;
     const k=v.path+"|"+acctSongKey(song), id=k+"|"+v.player;
+    (rows[k+"|"+v.player]=rows[k+"|"+v.player]||[]).push({week:v.week,path:v.path,slot:v.slot});
     if(v.player===me)(mine[k]=mine[k]||[]).push({week:v.week,path:v.path,slot:v.slot});
     if(!best[id]||String(v.updated_at)>String(best[id].t))best[id]={k,p:v.player,r:+v.rating,t:v.updated_at};
   });
   const S={}; Object.values(best).forEach(x=>(S[x.k]=S[x.k]||[]).push({p:x.p,r:x.r}));
-  ACCT.songs=S; ACCT.mine=mine; sbRender();
+  ACCT.songs=S; ACCT.mine=mine; ACCT.rows=rows; sbRender();
+  if($("acct").open&&ACCT.tab==="admin")acctDraw();
   {const tw=document.getElementById("acct-tw"); if(tw&&$("acct").open&&ACCT.claim)tw.innerHTML=acctThisWeek(ACCT.claim.player);} if(typeof renderSongs==="function"&&!$("view-songs").hidden)renderSongs();
 }
 // a song's rating boxes on the Songs page, one per path in the path's colour: the players' average for the song on
@@ -3095,8 +3101,10 @@ function songRateBox(cards){
   }).join("").replace(/^(.+)$/s,'<span class="srates">$1</span>');
 }
 document.addEventListener("change",async e=>{
-  const s=e.target.closest("select[data-rate]"); if(!s||!ACCT.claim)return;
-  const p=+s.dataset.rate, song=s.dataset.song, player=ACCT.claim.player, k=p+"|"+acctSongKey(song);
+  const s=e.target.closest("select[data-rate]"); if(!s)return;
+  // data-as: an admin rating on behalf of another player (only offered in the Admin tab)
+  const as=s.dataset.as&&ACCT.admin&&s.closest(".adm")?s.dataset.as:null; if(!as&&!ACCT.claim)return;
+  const p=+s.dataset.rate, song=s.dataset.song, player=as||ACCT.claim.player, k=p+"|"+acctSongKey(song);
   const r=s.value?+s.value:null;
   // the song's latest challenge on this path holds the rating (Scoreboard weeks first, then the older weeks)
   let at=null;
@@ -3104,7 +3112,7 @@ document.addEventListener("change",async e=>{
   if(!at)SONGS_OLD.forEach(o=>{if(o[1]===p&&o[4]&&acctSongKey(o[4])===acctSongKey(song)&&(!at||o[0]>at.week))at={week:o[0],slot:Math.max(0,TIER_ORDER.indexOf(o[2])),song:o[4]}});
   if(!at)return;
   // one rating per song per path: clear this player's other ratings of the song on this path first
-  for(const x of (ACCT.mine[k]||[]))if(!(x.week===at.week&&x.slot===at.slot)){
+  for(const x of ((ACCT.rows||{})[k+"|"+player]||[]))if(!(x.week===at.week&&x.slot===at.slot)){
     const {error}=await ACCT.sb.from("votes").delete().match({player,week:x.week,path:p,slot:x.slot}); if(error){alert("Couldn't save your rating: "+error.message);return}}
   const q=r==null?ACCT.sb.from("votes").delete().match({player,week:at.week,path:p,slot:at.slot})
                  :ACCT.sb.from("votes").upsert({player,week:at.week,path:p,slot:at.slot,song:at.song,rating:r,user_id:ACCT.user.id,updated_at:new Date().toISOString()});
@@ -3137,14 +3145,14 @@ async function hostLoad(){if(!ACCT.sb)return;
 function hostBooked(w){
   const on=typeof ACCT!=="undefined"&&ACCT&&acctOn();
   const mine=on&&ACCT.claim&&ACCT.claim.status==="approved"&&ACCT.claim.player.toLowerCase()===w[2].toLowerCase();
-  return `<span class="who" data-name="${esc(w[2])}">${esc(w[2])}</span> <span class="pill signed" data-tip="${esc(w[2])} is booked to host this week in the schedule sheet.">SIGNED UP</span>${on&&(mine||ACCT.admin)?` <button type="button" class="hostx" data-hostsheet="${w[0]}" title="${mine?"Withdraw":"Remove this host"}">✕</button>`:""}`;
+  return `<span class="who" data-name="${esc(w[2])}">${esc(w[2])}</span> <span class="pill signed" data-tip="${esc(w[2])} is booked to host this week in the schedule sheet.">SIGNED UP</span>${on&&mine?` <button type="button" class="hostx" data-hostsheet="${w[0]}" title="${mine?"Withdraw":"Remove this host"}">✕</button>`:""}`;
 }
 // ✕ on a week booked in the schedule sheet: the site can't change the sheet, so say who to ask (and drop any site sign-up)
 document.addEventListener("click",async e=>{const x=e.target.closest("[data-hostsheet]"); if(!x)return; e.stopPropagation();
   const wk=+x.dataset.hostsheet, w=weekAt(curIdx+(wk-WEEKS[curIdx][0]));
   if(ACCT.hostSign[wk]&&ACCT.hostSign[wk].player.toLowerCase()===String(w[2]).toLowerCase()){if(!confirm(`Remove the site sign-up for Week ${wk}? ${w[2]} is also in the schedule sheet, which has to be changed there.`))return;
     const {error}=await ACCT.sb.from("host_signups").delete().eq("week",wk); if(error){alert("Couldn't remove it: "+error.message);return} await hostLoad(); if($("acct").open)acctDraw(); return}
-  alert(ACCT.admin?`Week ${wk} (${fmtShort(w[1])}) is booked for ${w[2]} in the schedule sheet. Remove it there; the site updates with the next update.`:`Week ${wk} is booked for you in the schedule sheet. Message Rodman to withdraw.`);
+  alert(ACCT.admin&&x.closest(".adm")?`Week ${wk} (${fmtShort(w[1])}) is booked for ${w[2]} in the schedule sheet. Remove it there; the site updates with the next update.`:`Week ${wk} is booked for you in the schedule sheet. Message Rodman to withdraw.`);
 },true);
 function hostOptions(){
   const hs=hostList.slice().sort((a,b)=>b.last-a.last||b.n-a.n), seen=new Set(hs.map(h=>h.name.toLowerCase()));
@@ -3152,13 +3160,13 @@ function hostOptions(){
   return `<optgroup label="Hosts · most recently active first">${hs.map(h=>`<option value="${esc(h.name)}">${esc(h.name)} · last hosted wk ${h.last}</option>`).join("")}</optgroup><optgroup label="Other players">${rest.map(n=>`<option value="${esc(n)}">${esc(n)}</option>`).join("")}</optgroup>`;
 }
 // what shows for a week the sheet has no host for: a sign-up, a sign-up button, or "HOST NEEDED"
-function hostSlot(w,i,label){
-  label=label||"HOST NEEDED";
+function hostSlot(w,i,label,adm){
+  label=label||"HOST NEEDED"; adm=!!adm&&ACCT.admin; // admin powers only inside the Admin tab
   const on=typeof ACCT!=="undefined"&&ACCT&&acctOn(), s=on?ACCT.hostSign[w[0]]:null;
   if(s){const mine=ACCT.claim&&ACCT.claim.status==="approved"&&s.player===ACCT.claim.player;
-    return `<span class="who" data-name="${esc(s.player)}">${esc(s.player)}</span> <span class="pill signed" data-tip="${esc(s.player)} signed up to host this week. It's added to the schedule once the admin puts it in the sheet.">SIGNED UP</span>${mine||ACCT.admin?` <button type="button" class="hostx" data-hostdrop="${w[0]}" title="${mine?"Withdraw your sign-up":"Remove this sign-up"}">✕</button>`:""}`}
+    return `<span class="who" data-name="${esc(s.player)}">${esc(s.player)}</span> <span class="pill signed" data-tip="${esc(s.player)} signed up to host this week. It's added to the schedule once the admin puts it in the sheet.">SIGNED UP</span>${mine||adm?` <button type="button" class="hostx" data-hostdrop="${w[0]}" title="${mine?"Withdraw your sign-up":"Remove this sign-up"}">✕</button>`:""}`}
   if(!on||i>hostAhead())return `<span class="pill open" data-tip="${esc(hostWarnHelp())}">${label}</span>`;
-  if(ACCT.admin)return `<span class="pill open hostbtn" data-tip="Sign someone up to host Week ${w[0]}">${label} · SIGN UP<select data-hostpick="${w[0]}" aria-label="Sign someone up to host Week ${w[0]}"><option value="">Sign up a host…</option>${hostOptions()}</select></span>`;
+  if(adm)return `<span class="pill open hostbtn" data-tip="Sign someone up to host Week ${w[0]}">${label} · SIGN UP<select data-hostpick="${w[0]}" aria-label="Sign someone up to host Week ${w[0]}"><option value="">Sign up a host…</option>${hostOptions()}</select></span>`;
   if(hostVerified())return `<button type="button" class="pill open hostbtn" data-hostsign="${w[0]}" data-tip="Sign up to host Week ${w[0]}">${label} · SIGN UP</button>`;
   return `<span class="pill open" data-tip="${esc(hostWarnHelp())}">${label}</span>`;
 }
@@ -3185,7 +3193,7 @@ function hostSection(admin){
     for(let i=1;i<=hostAhead();i++){const w=weekAt(curIdx+i); if(w[2]&&w[2]!==LOST&&!have.has(w[0]))all.push({week:w[0],player:w[2],sheet:true})}
     all.sort((a,b)=>a.week-b.week);
     return `<div class="adm acctsec hostsec"><h3>Host sign-ups</h3><p>${all.length?"Upcoming hosts. Add site sign-ups to the schedule sheet; weeks marked “in the schedule sheet” are already there.":"No sign-ups yet."}</p><ul>${all.map(s=>{const w=weekAt(curIdx+(s.week-WEEKS[curIdx][0]));return `<li><span>Week ${s.week} · ${fmtShort(w[1])} · <b>${esc(s.player)}</b> ${(()=>{const by=ACCT.claims.find(c=>c.user_id===s.user_id);return by&&by.player!==s.player?`<small>signed up by ${esc(by.player)}</small> `:""})()}${s.sheet?` <small>in the schedule sheet</small>`:w[2]?` <small>(sheet: ${esc(w[2])})</small>`:""}</span><button type="button" class="btn ghost" ${s.sheet?"data-hostsheet":"data-hostdrop"}="${s.week}">Remove</button></li>`}).join("")}</ul>
-      <p>Open weeks:</p><ul>${open.map(([w,i])=>`<li><span>Week ${w[0]} · ${fmtShort(w[1])}</span><span>${hostSlot(w,i)}</span></li>`).join("")||`<li>Every week in the next ${hostAhead()} has a host.</li>`}</ul></div>`}
+      <p>Open weeks:</p><ul>${open.map(([w,i])=>`<li><span>Week ${w[0]} · ${fmtShort(w[1])}</span><span>${hostSlot(w,i,null,true)}</span></li>`).join("")||`<li>Every week in the next ${hostAhead()} has a host.</li>`}</ul></div>`}
   if(!hostVerified())return "";
   return `<div class="acctsec hostsec"><h3>Hosting</h3><p>Open weeks in the next ${hostAhead()}. Sign up to host one; the admin adds it to the schedule.</p><ul>${open.map(([w,i])=>`<li><span>Week ${w[0]} · ${fmtShort(w[1])}</span><span>${hostSlot(w,i)}</span></li>`).join("")||`<li>Every week in the next ${hostAhead()} has a host.</li>`}</ul></div>`;
 }
@@ -3203,6 +3211,23 @@ function cardRateBox(p,song,diff){
   const tipTxt=`Initial host rating: ${diff!=null?diff:"none"}`+(list.length?`\nPlayers' average: ${avg} from ${list.length} rating${list.length===1?"":"s"}\n`+list.map(v=>`• ${v.p}: ${v.r}`).join("\n"):"\nNo player ratings yet")+(can?(mine?`\n\nYour rating: ${mine.r} · click to change`:"\n\nClick to give your rating"):"");
   return `<span class="srate${list.length?" upd":""}${can?" canrate":""}${mine?" mine":""}" style="--pc:${PATH_C[p]}" data-tip="${esc(tipTxt)}">${val}${can?rateSelect(p,song,mine):""}</span>`;
 }
+// Admin tab: give or change ratings on behalf of a player (e.g. one who sent their ratings by message)
+function adminRateSection(){
+  if(acctOn()&&!ACCT.songs)acctLoadWeek();
+  const names=PLAYERS.map(p=>p[0]).sort((a,b)=>a.localeCompare(b,undefined,{sensitivity:"base"}));
+  const pl=ACCT.admRateP||"", wk=ACCT.admRateW||TW_MAX, weeks=SB_W.slice().reverse();
+  let rows="";
+  if(pl){const cards=(SB.weeks[wk]||[]).filter(c=>c[3]&&!/^n\/a$/i.test(c[3])).sort((a,b)=>a[0]-b[0]||a[1]-b[1]);
+    rows=cards.map(c=>{const L=cardLv(c[2]), cur=songVotes(c[0],c[3]).find(v=>v.p===pl);
+      const opts=[];for(let r=1;r<=10;r+=.5)opts.push(`<option value="${r}"${cur&&cur.r===r?" selected":""}>${r}</option>`);
+      return `<li style="--pc:${PATH_C[c[0]]}"><span class="apath">${PATHS[c[0]]}</span><span class="lvchip" style="--tc:${L==="G"?"var(--s-red)":TIER_C[L]||"var(--muted)"}">${L==="G"?esc(c[2]):TIER_NAME[L]||esc(c[2])}</span><span class="asong">${esc(c[3])}</span><span class="dim">host ${c[4]!=null?c[4]:"–"}</span><select class="admrate" data-rate="${c[0]}" data-song="${esc(c[3])}" data-as="${esc(pl)}" aria-label="${esc(pl)}'s rating"><option value=""${cur?"":" selected"}>${cur?"Remove rating":"No rating"}</option>${opts.join("")}</select></li>`}).join("")}
+  return `<div class="adm acctsec"><h3>Ratings for a player</h3><p class="dim">Give or change a player's ratings for them. They count exactly like the player's own (one per song per path).</p>
+    <div class="row admrow"><select data-admrate="p" aria-label="Player"><option value="">Choose a player…</option>${names.map(n=>`<option${n===pl?" selected":""}>${esc(n)}</option>`).join("")}</select>
+    <select data-admrate="w" aria-label="Week">${weeks.map(w=>`<option value="${w}"${w===wk?" selected":""}>Week ${w}</option>`).join("")}</select></div>
+    ${pl?(rows?`<ul class="alist">${rows}</ul>`:`<p class="dim">No challenges on the scoreboard for Week ${wk}.</p>`):""}</div>`;
+}
+document.addEventListener("change",e=>{const s=e.target.closest("select[data-admrate]"); if(!s)return;
+  if(s.dataset.admrate==="p")ACCT.admRateP=s.value; else ACCT.admRateW=+s.value; acctDraw()});
 function acctThisWeek(n){
   const w=TW_MAX, key=n.toLowerCase(), cards=SB.weeks[w]||[];
   // scoreboard: every challenge this week, with their place and %; ones they haven't played yet are dimmed
@@ -3269,7 +3294,7 @@ function acctDraw(msg,err){
   else if(ACCT.claim.status==="pending")h+=`<p>You've claimed <b>${esc(ACCT.claim.player)}</b>. It's waiting for an admin to approve it. Your verification animal is under Manage account.</p><div class="row"><button type="button" class="btn ghost" data-acct="unclaim">Withdraw claim</button></div>`;
   else h+=`<p>Hi <b>${esc(ACCT.claim.player)}</b>! This is your personal stats page. You can submit your own ratings for any song by clicking its rating number.</p><div id="acct-tw">${acctThisWeek(ACCT.claim.player)}</div>${acctProfile(ACCT.claim.player)}`;
   if(ACCT.admin&&ACCT.tab==="admin"){const pend=ACCT.claims.filter(c=>c.status==="pending"), appr=ACCT.claims.filter(c=>c.status==="approved").sort((a,c)=>a.player.localeCompare(c.player));
-    h+=`<div class="adm acctsec"><h3>Claims</h3><p>${pend.length?"Waiting for approval:":"No claims waiting."}</p><ul>${pend.map(c=>`<li><span>${esc(c.player)} ${animalTag(ACCT.animals[c.user_id])} <small>${new Date(c.created_at).toLocaleDateString()}</small></span><span><button type="button" class="btn" data-acct="approve" data-uid="${c.user_id}">Approve</button> <button type="button" class="btn ghost" data-acct="reject" data-uid="${c.user_id}">Reject</button></span></li>`).join("")}</ul>${appr.length?`<p>Approved (${appr.length}):</p><ul>${appr.map(c=>`<li><span>${esc(c.player)} ${animalTag(ACCT.animals[c.user_id])}</span><button type="button" class="btn ghost" data-acct="reject" data-uid="${c.user_id}">Remove</button></li>`).join("")}</ul>`:""}</div>${hostSection(true)}`}
+    h+=`<div class="adm acctsec"><h3>Claims</h3><p>${pend.length?"Waiting for approval:":"No claims waiting."}</p><ul>${pend.map(c=>`<li><span>${esc(c.player)} ${animalTag(ACCT.animals[c.user_id])} <small>${new Date(c.created_at).toLocaleDateString()}</small></span><span><button type="button" class="btn" data-acct="approve" data-uid="${c.user_id}">Approve</button> <button type="button" class="btn ghost" data-acct="reject" data-uid="${c.user_id}">Reject</button></span></li>`).join("")}</ul>${appr.length?`<p>Approved (${appr.length}):</p><ul>${appr.map(c=>`<li><span>${esc(c.player)} ${animalTag(ACCT.animals[c.user_id])}</span><button type="button" class="btn ghost" data-acct="reject" data-uid="${c.user_id}">Remove</button></li>`).join("")}</ul>`:""}</div>${hostSection(true)}${adminRateSection()}`}
   b.innerHTML=h+note;
   if(ACCT.tab==="me"&&ACCT.claim&&ACCT.claim.status==="approved")acctMount(ACCT.claim.player);
 }
