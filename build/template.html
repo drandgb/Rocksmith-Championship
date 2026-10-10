@@ -1666,6 +1666,9 @@ function medalsFor(p,bitsOv){
   else {const b0=first-PRES_START; let k=0; while(b0+k<bits.length&&bits[b0+k]==="1")k++;
     const miss=first+k;
     if(k>=1&&b0+k<bits.length) gems.unshift(`<span class="medal-m wm kintsugi" style="--ec:#f5c84a;cursor:pointer" data-hl="${weekRange(first+k-1,k)}" data-tip="Kintsugi gem · played every week for ${k} week${k===1?"":"s"} after joining, until first missing Week ${miss} (collected Week ${miss})">${kintsugiSvg()}<b>${k}</b></span>`);}
+  // Completionist: scored on every challenge of a finished week (ends the attendance gems row)
+  {const cw=completionistWeeks(n,SB_W.filter(w=>w!==cur[0]));
+   if(cw.length)gems.push(`<span class="medal-m wm" style="--ec:#f5c84a;cursor:pointer" data-all="${cw.join(",")}" data-hl="${cw.join(",")}" data-tip="Completionist · posted a score on every challenge of the week, every song on every path (a multi-week God challenge already played earlier in its run counts) · ${cw.length} week${cw.length===1?"":"s"} · click to highlight">${completionistSvg()}<b>${cw.length}</b></span>`);}
   // 100% mastery: every 100% score on a finished week's challenge, whatever the place or class
   // one medal per class, in that class's gem colour (God stays red)
   const mastBy=masteryByClass(n,SB_W.filter(w=>w!==cur[0]));
@@ -2009,6 +2012,19 @@ function rivalryWins(name,done,path=-1){
 }
 function swordsSvg(col){return `<svg viewBox="0 0 28 30" aria-hidden="true"><circle cx="14" cy="15" r="12" fill="${col}"/><path d="M6 11a9 9 0 0 1 5-5.5" stroke="rgba(255,255,255,.55)" stroke-width="1.6" fill="none" stroke-linecap="round"/><g stroke="#1a1406" stroke-opacity=".55" stroke-width=".7"><path d="M20.6 6.2h2.6v2.6l-9.6 9.6-2.6-2.6z" fill="#f4f7fb"/><path d="M7.4 6.2H4.8v2.6l9.6 9.6 2.6-2.6z" fill="#e2e8f0"/></g><path d="M9.4 18.4l2.4 2.4M18.6 18.4l-2.4 2.4" stroke="#d9a441" stroke-width="2.2" stroke-linecap="round"/><path d="M10 20.4l-2.8 2.8M18 20.4l2.8 2.8" stroke="#8a5a2b" stroke-width="2.2" stroke-linecap="round"/></svg>`}
 // 100% mastery: every time the player scored 100% on a challenge, whatever their place or class (God challenges count once, in their final week)
+// Completionist: weeks where the player posted a score on every challenge (every song and path) of the week.
+// A multi-week God challenge they already played in an earlier week of the run counts; one never attempted doesn't.
+function completionistWeeks(name,done){
+  const key=name.toLowerCase(), mine=c=>c[6].some(e=>SB.names[e[0]].replace(/[*~]+$/,"").toLowerCase()===key);
+  const isGod=l=>/god/i.test(String(l||""));
+  return done.filter(w=>{const cards=(SB.weeks[w]||[]).filter(c=>c[3]&&!/^n\/a$/i.test(c[3]));
+    if(!cards.length||!cards.some(mine))return false;
+    return cards.every(c=>{if(mine(c))return true; if(!isGod(c[2]))return false;
+      const k=acctSongKey(c[3]); // earlier weeks of the same God run
+      for(let pw=w-1;;pw--){const pc=(SB.weeks[pw]||[]).find(x=>x[0]===c[0]&&isGod(x[2])&&acctSongKey(x[3])===k); if(!pc)return false; if(mine(pc))return true}});
+  }).sort((a,b)=>a-b);
+}
+function completionistSvg(){return `<svg viewBox="0 0 30 30" aria-hidden="true"><circle cx="15" cy="15" r="13" fill="#1d2433"/><path d="M15 2.6a12.4 12.4 0 0 1 10.74 6.2" stroke="#ff9a2e" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M26.74 12.6a12.4 12.4 0 0 1-5.37 13.1" stroke="#45d17a" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M17.6 27.2a12.4 12.4 0 0 1-12.3-6" stroke="#3fa0ff" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M3.9 16.9a12.4 12.4 0 0 1 7.6-13.8" stroke="#f5c84a" stroke-width="3" fill="none" stroke-linecap="round"/><circle cx="15" cy="15" r="8.4" fill="#f5c84a"/><circle cx="15" cy="15" r="8.4" fill="none" stroke="rgba(255,255,255,.6)" stroke-width="1"/><path d="M10.8 15.3l3 3 5.6-6.4" stroke="#10131a" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`}
 // 100% scores by the class of the challenge (its level on the scoreboard card)
 const MAST_CLASSES=[["B","Beginner","#e9a91c","#f5c84a"],["I","Intermediate","#22b862","#45d17a"],["A","Advanced","#2f7fef","#3fa0ff"],["M","Masterclass","#8a4cf0","#b277ff"],["G","God","#e8335a","#ff4d6d"]];
 function masteryClassOf(l){l=String(l||"");return /^god/i.test(l)?"G":/master/i.test(l)?"M":/^adv/i.test(l)?"A":/^int/i.test(l)?"I":/begin/i.test(l)?"B":null}
