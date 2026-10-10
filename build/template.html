@@ -69,6 +69,17 @@ button.forum{background:none;cursor:pointer;font:inherit;font-size:.85rem}
 .up .wk b.sblink{cursor:pointer;text-decoration:underline dotted;text-underline-offset:3px}
 .up .wk b.sblink:hover{color:var(--fg)}
 .pill.open[data-tip]{cursor:help}
+.twpreview{border-color:color-mix(in srgb,var(--s-blue) 45%,var(--line))}
+.twnpcols{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:14px}
+.twnp h3{font:700 .75rem var(--f-display);letter-spacing:.1em;text-transform:uppercase;color:var(--pc);margin:0 0 6px;padding-left:8px;border-left:3px solid var(--pc)}
+.twnp ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:5px}
+.twnp li{display:flex;align-items:center;gap:8px;padding:6px 8px;background:var(--panel2);border-radius:7px;font-size:.86rem}
+.twnp .lvchip{font:700 .64rem var(--f-mono);padding:1px 6px;border-radius:4px;color:#10131a;background:var(--tc);flex:none}
+.twnp .npsong{flex:1;min-width:0;cursor:pointer;font-weight:600}
+.twnp .npsong:hover{text-decoration:underline}
+.twnp .nprate{font-family:var(--f-mono);font-size:.8rem;color:var(--muted)}
+.twnp .dl{flex:none}
+.pill.up{background:color-mix(in srgb,var(--s-blue) 18%,transparent);color:var(--s-blue);border:1px solid color-mix(in srgb,var(--s-blue) 50%,transparent);cursor:help}
 .pill.signed{cursor:help;background:color-mix(in srgb,var(--accent) 16%,transparent);color:var(--accent);border:1px solid color-mix(in srgb,var(--accent) 45%,transparent);font-size:.6rem;padding:1px 6px}
 .hostbtn{position:relative;cursor:pointer;font:inherit;font-family:var(--f-mono);font-size:.7rem}
 button.pill.hostbtn:hover,.pill.hostbtn:hover{background:color-mix(in srgb,var(--open) 32%,transparent)}
@@ -1073,6 +1084,7 @@ footer{color:var(--dim);font-size:.78rem}
     </div>
     <div class="twstats" id="tw-stats"></div>
   </section>
+  <section class="panel twpreview" id="twpreview" hidden></section>
   <section class="panel glowrim" style="--rc:#f5c84a">
     <div class="panel-head"><h2>🏅 New medals</h2><span class="sub" id="tw-med-sub"></span></div>
     <ul class="twl cols" id="tw-med"></ul>
@@ -1690,15 +1702,15 @@ function medalsFor(p,bitsOv){
     if(k>=1&&b0+k<bits.length) gems.unshift(`<span class="medal-m wm kintsugi" style="--ec:#f5c84a;cursor:pointer" data-hl="${weekRange(first+k-1,k)}" data-tip="Kintsugi gem · played every week for ${k} week${k===1?"":"s"} after joining, until first missing Week ${miss} (collected Week ${miss})">${kintsugiSvg()}<b>${k}</b></span>`);}
   // Completionist: scored on every challenge of a finished week (leads the class gems row)
   // played guitar (Lead or Rhythm) and played bass: end of the attendance row
-  {const iw=instrumentWeeks(n,SB_W.filter(w=>w!==cur[0]));
+  {const iw=instrumentWeeks(n,SB_W.filter(w=>w<cur[0]));
    [["g","Played guitar","#ffb347","a score on Lead or Rhythm",iw.g],["b","Played bass","#3fa0ff","a score on Bass",iw.b]].forEach(([k,lab,col,what,ws])=>{if(!ws.length)return;
      gems.push(`<span class="medal-m wm" style="--ec:${col};cursor:pointer" data-all="${ws.join(",")}" data-hl="${ws.join(",")}" data-tip="${lab} · weeks with at least ${what}, any level · ${ws.length} week${ws.length===1?"":"s"} (scoreboards since Week ${SB_W[0]}) · click to highlight">${clefSvg(k)}<b>${ws.length}</b></span>`)});}
   let cRow="";
-  {const cw=completionistWeeks(n,SB_W.filter(w=>w!==cur[0]));
+  {const cw=completionistWeeks(n,SB_W.filter(w=>w<cur[0]));
    if(cw.length)cRow=(`<span class="medal-m wm" style="--ec:#f5c84a;cursor:pointer" data-all="${cw.join(",")}" data-hl="${cw.join(",")}" data-tip="Completionist · posted a score on every challenge of the week, every song on every path (a multi-week God challenge already played earlier in its run counts) · ${cw.length} week${cw.length===1?"":"s"} · click to highlight">${completionistSvg()}<b>${cw.length}</b></span>`);}
   // 100% mastery: every 100% score on a finished week's challenge, whatever the place or class
   // one medal per class, in that class's gem colour (God stays red)
-  const mastBy=masteryByClass(n,SB_W.filter(w=>w!==cur[0]));
+  const mastBy=masteryByClass(n,SB_W.filter(w=>w<cur[0]));
   const mRow=MAST_CLASSES.map(([k,label,col,glow])=>{const ws=mastBy[k]; if(!ws.length)return "";
     return `<span class="medal-m wm" style="--ec:${glow};cursor:pointer" data-all="${ws.join(",")}" data-hl="${[...new Set(ws)].join(",")}" data-tip="${label} 100% mastery · scored 100% on a ${label} challenge, whatever the place · ${ws.length} time${ws.length===1?"":"s"} · click to highlight">${masterySvg(col,k==="B"?"#fff":null)}<b>${ws.length}</b></span>`}).join("");
   const cls=cRow+mRow+(cgRow||""); // Completionist, then 100% mastery, then the Beginner to Masterclass gems
@@ -2120,7 +2132,7 @@ function showWinner(name){
   if(!WR.wins[name]){$("wcard").innerHTML=`<div class="empty">No scoreboard entries for “${esc(name)}”. Pick a name from the list as you type.</div>`;return}
   wName=name; $("wq").value=name;
   const per=playerWeekWins(name,wPath);
-  const doneAll=SB_W.filter(w=>w!==cur[0]);
+  const doneAll=SB_W.filter(w=>w<cur[0]);
   const years=[...new Set(SB_W.map(yearOfWeek))];
   if(wYear&&!years.includes(wYear))wYear=null;
   // all the lookup stats for a set of weeks (all time for the medals, or one year when a year is picked)
@@ -2289,7 +2301,8 @@ try{const s=localStorage.getItem("rsc-host"); if(s&&(hosts[s]||CATS[s])){selHost
 renderLB(); renderTL(); renderLog(); renderUpcoming();
 // ---------- scoreboard ----------
 const SB_WEEKS=Object.keys(SB.weeks).map(Number).sort((a,b)=>b-a);
-let sbWeek=SB_WEEKS[0], sbPath=0, sbFind="";
+let sbWeek=SB.weeks[cur[0]]?cur[0]:SB_WEEKS.find(w=>w<=cur[0])||SB_WEEKS[0], sbPath=0, sbFind="";
+const SB_HOME=sbWeek; // "this week" on the Scoreboard (a later week on the sheet is a preview of next week)
 const SB_CYC=["","B","I","A","M","G"]; let sbLv=["","",""]; // level shown per path; "" = all cards
 const cardLv=l=>/god/i.test(l)?"G":/master/i.test(l)?"M":/^adv/i.test(l)?"A":/^int/i.test(l)?"I":/begin/i.test(l)?"B":"";
 const LV_NAME={...TIER_NAME,G:"God of…"};
@@ -2300,9 +2313,10 @@ function sbRender(){
   $("sbweek").value=sbWeek;
   $("sbprev").disabled=sbWeek===SB_WEEKS[SB_WEEKS.length-1];
   $("sbnext").disabled=sbWeek===SB_WEEKS[0];
-  $("sblatest").hidden=sbWeek===SB_WEEKS[0]; $("sblatest").textContent=`Back to latest week (${SB_WEEKS[0]}) ›`;
+  $("sblatest").hidden=sbWeek===SB_HOME; $("sblatest").textContent=`Back to this week (${SB_HOME}) ›`;
   const sbLive=sbWeek>DATA_WEEK&&sbWeek===cur[0];
-  $("sbmeta").innerHTML=(sbLive?'<span class="pill new" style="width:auto">IN PROGRESS</span> ':'<span class="pill done" style="width:auto">CONCLUDED</span> ')+(wk?`${fmt(wk[1])}${wk[2]&&wk[2]!==LOST?` · hosted by <b>${esc(wk[2])}</b>`:""}`:"");
+  const sbNext=sbWeek>cur[0];
+  $("sbmeta").innerHTML=(sbNext?'<span class="pill up" style="width:auto" data-tip="A preview of next week: it starts at 3 pm EST (20:00 UTC) on its start Saturday">UPCOMING</span> ':sbLive?'<span class="pill new" style="width:auto">IN PROGRESS</span> ':'<span class="pill done" style="width:auto">CONCLUDED</span> ')+(wk?`${fmt(wk[1])}${wk[2]&&wk[2]!==LOST?` · hosted by <b>${esc(wk[2])}</b>`:""}`:"");
   $("sbseg").innerHTML=["Lead","Rhythm","Bass"].map((k,i)=>{const t=sbLv[i], on=i===sbPath, nx=SB_CYC[(SB_CYC.indexOf(t)+1)%SB_CYC.length];
     return `<button type="button" class="tier" data-path="${i}" aria-pressed="${on}" style="--pc:${PATH_C[i]};--tc:${t?(TIER_C[t]||"var(--s-red)"):"var(--fg)"}" title="${on?`${k}: showing ${t?LV_NAME[t]:"all levels"} · click for ${nx?LV_NAME[nx]:"all levels"}`:`Show ${k}`}"><small>${k}</small><b>${t||"All"}</b><i>${t?LV_NAME[t]:"all levels"}</i></button>`}).join("");
   const all=ch.flatMap(c=>c[6]), players=new Set(all.map(e=>SB.names[e[0]].replace(/[*~]+$/,"")));
@@ -2389,7 +2403,7 @@ function renderSongs(){
   TIER_LABEL.G=sPath<0?"God tier":["God of Guitar","God of Rhythm","God of Bass"][sPath];
   document.querySelectorAll("#spath button").forEach(b=>b.setAttribute("aria-pressed",+b.dataset.sp===sPath));
   const cards=[];
-  Object.entries(SB.weeks).forEach(([w,ch])=>ch.forEach(c=>{ if(sPath>=0&&c[0]!==sPath)return; if(!c[3]||/^n\/a$/i.test(c[3]))return; const t=tierOf(c[2]); if(!t)return; const [artist,title]=splitSong(c[3]); cards.push({w:+w,p:c[0],t:tierByRating(t,c[4]),card:t,artist,title,song:c[3],diff:c[4],n:c[6].length,slot:c[1],who:c[6].map(e=>SB.names[e[0]].replace(/[*~]+$/,""))}); }));
+  Object.entries(SB.weeks).forEach(([w,ch])=>ch.forEach(c=>{ if(+w>cur[0])return; /* next week's songs aren't played yet */ if(sPath>=0&&c[0]!==sPath)return; if(!c[3]||/^n\/a$/i.test(c[3]))return; const t=tierOf(c[2]); if(!t)return; const [artist,title]=splitSong(c[3]); cards.push({w:+w,p:c[0],t:tierByRating(t,c[4]),card:t,artist,title,song:c[3],diff:c[4],n:c[6].length,slot:c[1],who:c[6].map(e=>SB.names[e[0]].replace(/[*~]+$/,""))}); }));
   SONGS_OLD.forEach(([w,p,t,b,song,diff])=>{ if(sPath>=0&&p!==sPath)return; const [artist,title]=splitSong(song); cards.push({w,p,t:tierByRating(t,diff),card:t,artist,title,song,diff,n:null}); });
   // host filter: only songs from weeks this host hosted
   // a God challenge that runs for several weeks was picked by the host of its first week, so the whole run counts for them
@@ -2558,7 +2572,7 @@ function allMedalsHtml(name){
   const p=byName[name];
   if(p){const m=medalsFor(p); if(m)html+=`<div class="ms">Player medals</div>${m}`}
   if(WR.wins[name]){
-    const per=playerWeekWins(name,-1), done=SB_W.filter(w=>w!==cur[0]);
+    const per=playerWeekWins(name,-1), done=SB_W.filter(w=>w<cur[0]);
     let best=null; done.forEach(w=>{if(per[w][1]>0&&(!best||per[w][1]>per[best][1]))best=w});
     let run=0,bestRun=0; done.slice().sort((a,b)=>a-b).forEach(w=>{run=per[w][1]>0?run+1:0; if(run>bestRun)bestRun=run});
     const ties=[]; done.forEach(w=>(SB.weeks[w]||[]).forEach(card=>{if(card[7])return;const el=card[6].filter(x=>x[4]>=0); if(el.length<2)return; if(SB.names[el[0][0]].replace(/[*~]+$/,"")!==name)return; if(Math.round((el[0][1]-el[1][1])*100)===0)ties.push(w)}));
@@ -2724,7 +2738,7 @@ document.addEventListener("click",e=>{
   showView("scores"); sbRender(); scrollTo({top:0});
 },true);
 
-$("sblatest").addEventListener("click",()=>{sbWeek=SB_WEEKS[0];sbRender()});
+$("sblatest").addEventListener("click",()=>{sbWeek=SB_HOME;sbRender()});
 
 // ---------- scoreboard song and band names open Band lookup on the Songs tab ----------
 $("view-scores").addEventListener("click",e=>{
@@ -2910,8 +2924,21 @@ function renderHostWarn(){
   const act=hostSlot(w,1,"HOST NEEDED"), can=/data-host(sign|pick)/.test(act);
   el.innerHTML=`<span class="ic">⚠</span><div><b>Host still needed for next week!</b><small>Week ${w[0]} starts ${fmt(w[1])} and nobody has signed up to host it yet.${can?"":" "+hostWarnHelp()}</small></div>${can?act.replace(/HOST NEEDED · SIGN UP/,"SIGN UP TO HOST"):""}`;
 }
+// next week's songs, once its tab is on the scoreboard sheet (shown while looking at the current week)
+function renderNextPreview(){
+  const el=$("twpreview"); if(!el)return; const nw=cur[0]+1, ch=SB.weeks[nw];
+  if(!ch||!ch.length||twWeek!==TW_MAX){el.hidden=true;return}
+  const W=weekAt(curIdx+1), host=W&&W[2]&&W[2]!==LOST?W[2]:null;
+  const cols=[0,1,2].map(p=>{const cs=ch.filter(c=>c[0]===p&&c[3]&&!/^n\/a$/i.test(c[3])).sort((a,b)=>a[1]-b[1]); if(!cs.length)return "";
+    return `<div class="twnp" style="--pc:${PATH_C[p]}"><h3>${PATHS[p]}</h3><ul>${cs.map(c=>{const L=cardLv(c[2]), id=SB.links&&SB.links[nw]&&SB.links[nw][c[0]*9+c[1]];
+      return `<li><span class="lvchip" style="--tc:${L==="G"?"var(--s-red)":TIER_C[L]||"var(--muted)"}">${L==="G"?esc(c[2]):TIER_NAME[L]||esc(c[2])}</span><span class="npsong" data-sbw="${nw}" data-sbp="${p}" title="Open the preview on the Scoreboard">${esc(c[3])}</span><span class="nprate" title="Initial host rating">${c[4]!=null?c[4]:"–"}</span>${songPill(c[3],id)}</li>`}).join("")}</ul></div>`}).join("");
+  el.hidden=false;
+  el.innerHTML=`<div class="panel-head"><h2>Next week's songs</h2><span class="sub">Week ${nw}${W?` · starts ${fmt(W[1])} at 3 pm EST (20:00 UTC)`:""}${host?` · hosted by <b>${esc(host)}</b>`:""}</span></div>
+    <p class="sub" style="margin:0 0 10px">A preview: the week opens for scores once it starts.</p><div class="twnpcols">${cols}</div>
+    <div style="margin-top:12px"><button type="button" class="clear" data-sbw="${nw}">Preview Week ${nw} on the Scoreboard ›</button></div>`;
+}
 function renderThisWeek(){
-  renderHostWarn();
+  renderHostWarn(); renderNextPreview();
   const w=twWeek, W=WEEKS[w-1], live=w===TW_LIVE, names=twNames(w), set=new Set(names);
   $("twprev").disabled=w<=TW_MIN; $("twnext").disabled=w>=TW_MAX;
   $("twnow").hidden=w===TW_MAX; $("twsb").hidden=!SB.weeks[w]; $("twsb").dataset.sbw=w; $("twsb").title=`Open week ${w} on the Scoreboard`; $("twnow").textContent=`Back to ${TW_LIVE?"this":"the latest"} week (${TW_MAX}) ›`;
