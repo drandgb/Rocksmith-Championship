@@ -1180,7 +1180,7 @@ footer{color:var(--dim);font-size:.78rem}
   <footer>Data: Rodman’s Rocksmith 2014 Championship Google Sheets (older attendance also from the Championship Metrics workbook). Player stats run through week 675; scoreboards cover weeks 440–676. Weeks 1–16 have no recorded host in the source.
   <span class="updated disclaimer">Unofficial fan project. Not affiliated with Ubisoft or Rocksmith.</span>
   <span class="updated" id="sheetedit-row" hidden>Sheet last edited: <span id="sheetedit" data-iso="2026-10-09T18:08:57.146Z"></span></span>
-  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-10T02:20:57+00:00">October 9, 2026</span></span>
+  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-10T02:32:16+00:00">October 9, 2026</span></span>
   </footer>
 </div>
 <dialog id="acct" class="acctdlg" aria-label="Your account"><div id="acctbody"></div><button type="button" class="clear acctclose" id="acctclose">Close</button></dialog>
@@ -1626,8 +1626,10 @@ function medalsFor(p,bitsOv){
     const miss=first+k;
     if(k>=1&&b0+k<bits.length) gems.unshift(`<span class="medal-m wm kintsugi" style="--ec:#f5c84a;cursor:pointer" data-hl="${weekRange(first+k-1,k)}" data-tip="Kintsugi gem · played every week for ${k} week${k===1?"":"s"} after joining, until first missing Week ${miss} (collected Week ${miss})">${kintsugiSvg()}<b>${k}</b></span>`);}
   // 100% mastery: every 100% score on a finished week's challenge, whatever the place or class
-  const mast=masteryWeeks(n,SB_W.filter(w=>w!==cur[0]));
-  const mRow=mast.length?`<span class="medal-m wm" style="--ec:#ff4d6d;cursor:pointer" data-all="${mast.join(",")}" data-hl="${[...new Set(mast)].join(",")}" data-tip="100% mastery · scored 100% on a challenge, whatever the place or class · ${mast.length} time${mast.length===1?"":"s"} · click to highlight">${masterySvg("#e8335a")}<b>${mast.length}</b></span>`:"";
+  // one medal per class, in that class's gem colour (God stays red)
+  const mastBy=masteryByClass(n,SB_W.filter(w=>w!==cur[0]));
+  const mRow=MAST_CLASSES.map(([k,label,col,glow])=>{const ws=mastBy[k]; if(!ws.length)return "";
+    return `<span class="medal-m wm" style="--ec:${glow};cursor:pointer" data-all="${ws.join(",")}" data-hl="${[...new Set(ws)].join(",")}" data-tip="${label} 100% mastery · scored 100% on a ${label} challenge, whatever the place · ${ws.length} time${ws.length===1?"":"s"} · click to highlight">${masterySvg(col,k==="B"?"#fff":null)}<b>${ws.length}</b></span>`}).join("");
   const cls=mRow+(cgRow||""); // 100% mastery leads the Beginner to Masterclass gems
   return (top.length?`<div class="medals">${top.join("")}</div>`:"")+(gems.length?`<div class="medals">${gems.join("")}</div>`:"")+(cls?`<div class="medals">${cls}</div>`:"")+(embers.length?`<div class="medals">${embers.join("")}</div>`:"")+(flames.length?`<div class="medals">${flames.join("")}</div>`:"");
 }
@@ -1965,6 +1967,17 @@ function rivalryWins(name,done,path=-1){
 }
 function swordsSvg(col){return `<svg viewBox="0 0 28 30" aria-hidden="true"><circle cx="14" cy="15" r="12" fill="${col}"/><path d="M6 11a9 9 0 0 1 5-5.5" stroke="rgba(255,255,255,.55)" stroke-width="1.6" fill="none" stroke-linecap="round"/><g stroke="#1a1406" stroke-opacity=".55" stroke-width=".7"><path d="M20.6 6.2h2.6v2.6l-9.6 9.6-2.6-2.6z" fill="#f4f7fb"/><path d="M7.4 6.2H4.8v2.6l9.6 9.6 2.6-2.6z" fill="#e2e8f0"/></g><path d="M9.4 18.4l2.4 2.4M18.6 18.4l-2.4 2.4" stroke="#d9a441" stroke-width="2.2" stroke-linecap="round"/><path d="M10 20.4l-2.8 2.8M18 20.4l2.8 2.8" stroke="#8a5a2b" stroke-width="2.2" stroke-linecap="round"/></svg>`}
 // 100% mastery: every time the player scored 100% on a challenge, whatever their place or class (God challenges count once, in their final week)
+// 100% scores by the class of the challenge (its level on the scoreboard card)
+const MAST_CLASSES=[["B","Beginner","#e9a91c","#f5c84a"],["I","Intermediate","#22b862","#45d17a"],["A","Advanced","#2f7fef","#3fa0ff"],["M","Masterclass","#8a4cf0","#b277ff"],["G","God","#e8335a","#ff4d6d"]];
+function masteryClassOf(l){l=String(l||"");return /^god/i.test(l)?"G":/master/i.test(l)?"M":/^adv/i.test(l)?"A":/^int/i.test(l)?"I":/begin/i.test(l)?"B":null}
+function masteryByClass(name,done){
+  const out={B:[],I:[],A:[],M:[],G:[]};
+  done.forEach(w=>(SB.weeks[w]||[]).forEach(card=>{
+    if(card[7])return; const k=masteryClassOf(card[2]); if(!k)return;
+    card[6].forEach(e=>{if(e[1]!=null&&e[1]>=100&&SB.names[e[0]].replace(/[*~]+$/,"")===name)out[k].push(w)});
+  }));
+  Object.values(out).forEach(a=>a.sort((x,y)=>x-y)); return out;
+}
 function masteryWeeks(name,done,path=-1){
   const out=[];
   done.forEach(w=>(SB.weeks[w]||[]).forEach(card=>{
@@ -1973,7 +1986,7 @@ function masteryWeeks(name,done,path=-1){
   }));
   return out.sort((a,b)=>a-b);
 }
-function masterySvg(col){return `<svg viewBox="0 0 28 30" aria-hidden="true"><circle cx="14" cy="15" r="12" fill="${col}"/><circle cx="14" cy="15" r="9.4" fill="none" stroke="rgba(255,255,255,.55)" stroke-width="1.2"/><path d="M6.5 11a8.5 8.5 0 0 1 4.5-4.8" stroke="rgba(255,255,255,.7)" stroke-width="1.6" fill="none" stroke-linecap="round"/><text x="14" y="17.6" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-weight="900" font-size="9.5" fill="#fff" stroke="rgba(90,0,20,.55)" stroke-width=".5" letter-spacing="-.3">100</text><path d="M14 3.4l.9 1.9 2 .3-1.5 1.4.4 2-1.8-1-1.8 1 .4-2-1.5-1.4 2-.3z" fill="#ffe066"/></svg>`}
+function masterySvg(col,star){return `<svg viewBox="0 0 28 30" aria-hidden="true"><circle cx="14" cy="15" r="12" fill="${col}"/><circle cx="14" cy="15" r="9.4" fill="none" stroke="rgba(255,255,255,.55)" stroke-width="1.2"/><path d="M6.5 11a8.5 8.5 0 0 1 4.5-4.8" stroke="rgba(255,255,255,.7)" stroke-width="1.6" fill="none" stroke-linecap="round"/><text x="14" y="17.6" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-weight="900" font-size="9.5" fill="#fff" stroke="rgba(0,0,0,.45)" stroke-width=".5" letter-spacing="-.3">100</text><path d="M14 3.4l.9 1.9 2 .3-1.5 1.4.4 2-1.8-1-1.8 1 .4-2-1.5-1.4 2-.3z" fill="${star||"#ffe066"}"/></svg>`}
 function winMedals(per,done,bestN,streak,total,trip,ties,pod,rivw){
   const rows=[], asc=done.slice().sort((a,b)=>a-b), rec=w=>w?` (collected Week ${w})`:"";
   const mk=(svg,num,tip)=>{const c=(svg.match(/fill="(#[0-9a-fA-F]{6})"/)||[])[1]||"#4fd6ff";return `<span class="medal-m wm" style="--ec:${c}" data-tip="${tip}">${svg}<b>${num}</b></span>`};
