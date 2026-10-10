@@ -366,6 +366,9 @@ a.dl svg,.offpill svg{width:11px;height:11px}
 .alist .lvchip{font:700 .66rem var(--f-mono);padding:1px 6px;border-radius:4px;color:#10131a;background:var(--tc,var(--muted))}
 .alist .asong{flex:1 1 10em;min-width:0;cursor:pointer;font-weight:600}
 .alist .asong:hover{text-decoration:underline}
+.alist li.unpl{opacity:.5}
+.alist li.unpl:hover{opacity:.85}
+.alist .dl{flex:none}
 .alist .aplace,.alist .arank{font:700 .9rem var(--f-display);margin-left:auto;white-space:nowrap}
 .alist .arank{margin-left:0}
 .alist .arank.p1{color:#f5c84a}.alist .arank.p2{color:#c9d0dc}.alist .arank.p3{color:#d8925a}
@@ -1198,7 +1201,7 @@ footer{color:var(--dim);font-size:.78rem}
   <footer>Data: Rodman’s Rocksmith 2014 Championship Google Sheets (older attendance also from the Championship Metrics workbook). Player stats run through week 675; scoreboards cover weeks 440–676. Weeks 1–16 have no recorded host in the source.
   <span class="updated disclaimer">Unofficial fan project. Not affiliated with Ubisoft or Rocksmith.</span>
   <span class="updated" id="sheetedit-row" hidden>Sheet last edited: <span id="sheetedit" data-iso="2026-10-09T18:08:57.146Z"></span></span>
-  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-10T02:53:03+00:00">October 9, 2026</span></span>
+  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-10T02:55:00+00:00">October 9, 2026</span></span>
   </footer>
 </div>
 <dialog id="acct" class="acctdlg" aria-label="Your account"><div id="acctbody"></div><button type="button" class="clear acctclose" id="acctclose">Close</button></dialog>
@@ -3118,11 +3121,12 @@ function animalNote(){return ACCT.animal?`<p class="animalnote">Your verificatio
 // Your account: this week's scoreboard places, rivals and Rodman's Rankings positions for the player
 function acctThisWeek(n){
   const w=TW_MAX, key=n.toLowerCase(), cards=SB.weeks[w]||[];
-  // scoreboard: every challenge they've posted on this week, with their place on the card
-  const sb=[]; cards.forEach(c=>{let place=0; c[6].forEach((e,i)=>{const elig=e[4]>=0; if(elig)place++;
-    if(SB.names[e[0]].replace(/[*~]+$/,"").toLowerCase()!==key)return;
-    const L=cardLv(c[2]), pl=elig&&place<=3?["🥇","🥈","🥉"][place-1]:"";
-    sb.push(`<li style="--pc:${PATH_C[c[0]]}"><span class="apath">${PATHS[c[0]]}</span>${L?`<span class="lvchip" style="--tc:${L==="G"?"var(--s-red)":TIER_C[L]}">${L==="G"?esc(c[2]):TIER_NAME[L]}</span>`:`<span class="lvchip">${esc(c[2])}</span>`}<span class="asong" data-sbw="${w}" data-sbp="${c[0]}" data-sbn="${esc(n)}" title="Open this challenge on the Scoreboard">${esc(c[3])}</span><span class="aplace">${pl}#${i+1}<small> of ${c[6].length}</small></span><span class="apct">${e[1]!=null?e[1]+"%":"–"}</span></li>`)})});
+  // scoreboard: every challenge this week, with their place and %; ones they haven't played yet are dimmed
+  const sb=[]; cards.slice().sort((a,b)=>a[0]-b[0]||a[1]-b[1]).forEach(c=>{if(!c[3]||/^n\/a$/i.test(c[3]))return;
+    let place=0, me=null; c[6].forEach((e,i)=>{const elig=e[4]>=0; if(elig)place++; if(!me&&SB.names[e[0]].replace(/[*~]+$/,"").toLowerCase()===key)me={e,i,place:elig?place:0}});
+    const L=cardLv(c[2]), id=SB.links&&SB.links[w]&&SB.links[w][c[0]*9+c[1]];
+    const pl=me&&me.place&&me.place<=3?["🥇","🥈","🥉"][me.place-1]:"";
+    sb.push(`<li class="${me?"":"unpl"}" style="--pc:${PATH_C[c[0]]}"><span class="apath">${PATHS[c[0]]}</span>${L?`<span class="lvchip" style="--tc:${L==="G"?"var(--s-red)":TIER_C[L]}">${L==="G"?esc(c[2]):TIER_NAME[L]}</span>`:`<span class="lvchip">${esc(c[2])}</span>`}<span class="asong" data-sbw="${w}" data-sbp="${c[0]}"${me?` data-sbn="${esc(n)}"`:""} title="Open this challenge on the Scoreboard">${esc(c[3])}</span>${songPill(c[3],id)}${me?`<span class="aplace">${pl}#${me.i+1}<small> of ${c[6].length}</small></span><span class="apct">${me.e[1]!=null?me.e[1]+"%":"–"}</span>`:`<span class="aplace"><small>Not played yet · ${c[6].length} played</small></span>`}</li>`)});
   // rivals: the This Week page's rival boxes that include them (all levels), copied over
   let riv="";
   if(cards.length){const saveW=twWeek, saveLv=twRivLv.slice(); twWeek=w; twRivLv.fill(""); renderThisWeek();
@@ -3134,7 +3138,7 @@ function acctThisWeek(n){
   const rk=[]; (RK.paths||[]).forEach(pp=>{const pi=PATHS.indexOf(pp.path); pp.levels.forEach(l=>l.rows.forEach(([r,nm,pts,ch])=>{if(String(nm).toLowerCase()!==key||ch==="Out")return;
     const LT={Beginner:"B",Intermediate:"I",Advanced:"A",Masterclass:"M"}[l.level], cc=/↑/.test(ch)?"up":/↓/.test(ch)?"down":/new/i.test(ch)?"new":"";
     rk.push(`<li style="--pc:${PATH_C[pi]}"><span class="apath">${esc(pp.path)}</span><span class="lvchip" style="--tc:${TIER_C[LT]||"var(--fg)"}">${esc(l.level)}</span><span class="arank${r==="1"?" p1":r==="2"?" p2":r==="3"?" p3":""}">#${esc(r)}<small> of ${l.rows.filter(x=>x[3]!=="Out").length}</small></span><span class="apts">${esc(pts)} pts</span><span class="chg ${cc}">${esc(ch)}</span></li>`)}))});
-  return `<div class="acctsec"><h3>This week's scoreboard <small>Week ${w}</small></h3>${sb.length?`<ul class="alist">${sb.join("")}</ul>`:`<p class="dim">No scores posted this week yet.</p>`}</div>
+  return `<div class="acctsec"><h3>This week's scoreboard <small>Week ${w}</small></h3>${sb.length?`<ul class="alist">${sb.join("")}</ul>`:`<p class="dim">No scoreboard for this week yet.</p>`}</div>
     <div class="acctsec acctriv"><h3>This week's rivals</h3>${riv||`<p class="dim">No rivals this week yet.</p>`}</div>
     <div class="acctsec"><h3>Rodman's Rankings ${RK.weeks?`<small>Weeks ${esc(RK.weeks)}</small>`:""}</h3>${rk.length?`<ul class="alist">${rk.join("")}</ul>`:`<p class="dim">Not ranked right now.</p>`}<div class="row"><button type="button" class="btn ghost" data-goview="rankings">Open Rodman's Rankings ›</button></div></div>`;
 }
