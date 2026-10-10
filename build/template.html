@@ -536,6 +536,9 @@ button.clear.sblatest:hover{background:var(--accent);color:var(--accent-ink)}
 .songlist .cnt{text-align:right;font:.72rem var(--f-body);color:var(--muted);white-space:nowrap}
 .songlist .cnt b{display:block;font:700 1.1rem var(--f-display);color:var(--fg)}
 .songlist .chips{display:flex;gap:3px;flex-wrap:wrap;margin-top:3px}
+.srates{display:inline-flex;gap:4px;margin-left:6px;vertical-align:1px}
+.srates .srate,.srates .srate+.srate{margin-left:0}
+@media (max-width:600px){.songlist .chips .srates{flex-basis:100%;margin:3px 0 0}}
 .bchips{display:flex;flex-direction:column;gap:5px;margin-bottom:12px}
 .bchips .brow1{display:flex;flex-wrap:wrap;gap:4px}
 .lvclick{cursor:pointer}
@@ -3034,7 +3037,7 @@ function songRateBox(cards){
       +(all.length?`\n\nPlayers' average: ${avg(all)} from ${all.length} rating${all.length===1?"":"s"}\n`+list.map(v=>`• ${v.p}: ${v.r}`).join("\n"):"\n\nNo player ratings yet")
       +(can?(mine?`\n\nYour rating: ${mine.r} · click to change`:"\n\nClick to give your rating"):"");
     return `<span class="srate${all.length?" upd":""}${can?" canrate":""}${mine?" mine":""}" style="--pc:${PATH_C[p]}" data-tip="${esc(tipTxt)}">${val}${can?rateSelect(p,pc[0].song,mine):""}</span>`;
-  }).join("");
+  }).join("").replace(/^(.+)$/s,'<span class="srates">$1</span>');
 }
 document.addEventListener("change",async e=>{
   const s=e.target.closest("select[data-rate]"); if(!s||!ACCT.claim)return;
