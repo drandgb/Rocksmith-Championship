@@ -3166,21 +3166,24 @@ function acctDraw(msg,err){
   const b=$("acctbody"), note=(msg?`<p class="msg">${esc(msg)}</p>`:"")+(err?`<p class="err">${esc(err)}</p>`:"");
   if(!ACCT.user){b.innerHTML=`<h3>Log in</h3><p>Logging in lets you claim your player profile, so you can view your own stats page and submit one rating per song for each path (Lead, Rhythm and Bass) on the Scoreboard.</p><p>Type your email and we'll send you a login link. No password needed.</p><input id="acctemail" type="email" autocomplete="email" placeholder="you@example.com"><div class="row"><button type="button" class="btn" data-acct="send">Email me a login link</button></div>${note}`;return}
   const pendN=ACCT.admin?ACCT.claims.filter(c=>c.status==="pending").length:0;
-  if(!ACCT.admin)ACCT.tab="me";
-  // tabs: Your account, and (for admins) Admin · claims with a badge for claims waiting
-  const tabs=ACCT.admin?`<div class="accttabs" role="tablist"><button type="button" role="tab" data-accttab="me" aria-selected="${ACCT.tab!=="admin"}">Your profile</button><button type="button" role="tab" data-accttab="admin" aria-selected="${ACCT.tab==="admin"}">Admin${pendN?`<span class="nbadge" title="${pendN} claim${pendN===1?"":"s"} waiting for approval">${pendN}</span>`:""}</button></div>`:"";
-  let h=tabs+(ACCT.tab==="admin"?"":`${tabs?"":"<h3>Your profile</h3>"}`);
+  if(!ACCT.admin&&ACCT.tab==="admin")ACCT.tab="me";
+  // tabs: Your profile, Manage account, and (for admins) Admin with a badge for claims waiting
+  const tb=(k,label)=>`<button type="button" role="tab" data-accttab="${k}" aria-selected="${ACCT.tab===k}">${label}</button>`;
+  const tabs=`<div class="accttabs" role="tablist">${tb("me","Your profile")}${tb("manage","Manage account")}${ACCT.admin?tb("admin",`Admin${pendN?`<span class="nbadge" title="${pendN} claim${pendN===1?"":"s"} waiting for approval">${pendN}</span>`:""}`):""}</div>`;
+  let h=tabs;
   if(ACCT.tab==="admin"){}
+  else if(ACCT.tab==="manage"){
+    h+=`<div class="adm acctsec"><h3>Verification animal</h3>${animalNote()||`<p class="dim">You'll get a verification animal once you claim your player profile.</p>`}</div>
+      <div class="acctsec"><h3>Log out</h3><p class="dim">Log out of the site on this device.</p><div class="row"><button type="button" class="btn ghost" data-acct="logout">Log out</button></div></div>`}
   else if(!ACCT.claim){const taken=new Set(ACCT.claims.map(c=>c.player));
     const names=PLAYERS.map(p=>p[0]).filter(n=>!taken.has(n)).sort((a,c)=>a.localeCompare(c,undefined,{sensitivity:"base"}));
     h+=`<p>Which player are you? Pick your name to claim your profile. An admin checks each claim before you can rate songs.</p><select id="acctname"><option value="">Choose your player name…</option>${names.map(n=>`<option>${esc(n)}</option>`).join("")}</select><div class="row"><button type="button" class="btn" data-acct="claim">Claim this profile</button></div>`}
-  else if(ACCT.claim.status==="pending")h+=`<p>You've claimed <b>${esc(ACCT.claim.player)}</b>. It's waiting for an admin to approve it.</p>${animalNote()}<div class="row"><button type="button" class="btn ghost" data-acct="unclaim">Withdraw claim</button></div>`;
-  else h+=`<p>Hi <b>${esc(ACCT.claim.player)}</b>! This is your personal stats page. You can head to the Scoreboard and submit your own ratings for any song by clicking its rating number.</p>${animalNote()}<div id="acct-tw">${acctThisWeek(ACCT.claim.player)}</div>${acctProfile(ACCT.claim.player)}`;
-  if(ACCT.tab!=="admin")h+=`<div class="row"><button type="button" class="btn ghost" data-acct="logout">Log out</button></div>`;
+  else if(ACCT.claim.status==="pending")h+=`<p>You've claimed <b>${esc(ACCT.claim.player)}</b>. It's waiting for an admin to approve it. Your verification animal is under Manage account.</p><div class="row"><button type="button" class="btn ghost" data-acct="unclaim">Withdraw claim</button></div>`;
+  else h+=`<p>Hi <b>${esc(ACCT.claim.player)}</b>! This is your personal stats page. You can head to the Scoreboard and submit your own ratings for any song by clicking its rating number.</p><div id="acct-tw">${acctThisWeek(ACCT.claim.player)}</div>${acctProfile(ACCT.claim.player)}`;
   if(ACCT.admin&&ACCT.tab==="admin"){const pend=ACCT.claims.filter(c=>c.status==="pending"), appr=ACCT.claims.filter(c=>c.status==="approved").sort((a,c)=>a.player.localeCompare(c.player));
     h+=`<div class="adm acctsec"><h3>Claims</h3><p>${pend.length?"Waiting for approval:":"No claims waiting."}</p><ul>${pend.map(c=>`<li><span>${esc(c.player)} ${animalTag(ACCT.animals[c.user_id])} <small>${new Date(c.created_at).toLocaleDateString()}</small></span><span><button type="button" class="btn" data-acct="approve" data-uid="${c.user_id}">Approve</button> <button type="button" class="btn ghost" data-acct="reject" data-uid="${c.user_id}">Reject</button></span></li>`).join("")}</ul>${appr.length?`<p>Approved (${appr.length}):</p><ul>${appr.map(c=>`<li><span>${esc(c.player)} ${animalTag(ACCT.animals[c.user_id])}</span><button type="button" class="btn ghost" data-acct="reject" data-uid="${c.user_id}">Remove</button></li>`).join("")}</ul>`:""}</div>${hostSection(true)}`}
   b.innerHTML=h+note;
-  if(ACCT.tab!=="admin"&&ACCT.claim&&ACCT.claim.status==="approved")acctMount(ACCT.claim.player);
+  if(ACCT.tab==="me"&&ACCT.claim&&ACCT.claim.status==="approved")acctMount(ACCT.claim.player);
 }
 $("acctbody").addEventListener("click",async e=>{
   const tb=e.target.closest("[data-accttab]"); if(tb){ACCT.tab=tb.dataset.accttab; acctDraw(); return}
@@ -3189,7 +3192,7 @@ $("acctbody").addEventListener("click",async e=>{
     if(a==="send"){const em=$("acctemail").value.trim(); if(!/^\S+@\S+\.\S+$/.test(em)){acctDraw("","Please type a valid email.");return}
       const {error}=await sb.auth.signInWithOtp({email:em,options:{emailRedirectTo:location.origin+location.pathname}});
       error?acctDraw("",error.message):acctDraw("Check your inbox for the login link. It opens this page logged in.");return}
-    if(a==="logout"){await sb.auth.signOut(); await acctRefresh(); acctDraw(); return}
+    if(a==="logout"){ACCT.tab="me"; await sb.auth.signOut(); await acctRefresh(); acctDraw(); return}
     if(a==="claim"){const n=$("acctname").value; if(!n){acctDraw("","Pick your player name first.");return}
       const {error}=await sb.from("claims").insert({user_id:ACCT.user.id,player:n}); if(error){acctDraw("",/duplicate|unique/i.test(error.message)?"Someone already claimed that name. Message the admin if it's yours.":error.message);return}}
     if(a==="unclaim"){const {error}=await sb.from("claims").delete().eq("user_id",ACCT.user.id); if(error){acctDraw("",error.message);return}}
