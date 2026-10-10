@@ -345,7 +345,9 @@ a.dl svg,.offpill svg{width:11px;height:11px}
 .card .diff.upd::after{content:"★";font-size:.6em;margin-left:2px;vertical-align:2px}
 .srate{display:inline-flex;align-items:center;font:700 .76rem var(--f-mono);padding:1px 7px;border-radius:5px;background:color-mix(in srgb,var(--pc) 14%,transparent);border:1px solid color-mix(in srgb,var(--pc) 55%,transparent);color:var(--pc);cursor:help;vertical-align:1px;margin-left:6px}
 .srate+.srate{margin-left:4px}
-.srate[data-sbw]{cursor:pointer}
+.srate.canrate{cursor:pointer;position:relative}
+.srate.canrate:hover{background:color-mix(in srgb,var(--pc) 34%,transparent)}
+.srate.canrate select{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;font-size:16px;-webkit-appearance:none;appearance:none}
 .srate.upd{background:color-mix(in srgb,var(--pc) 28%,transparent);border-color:var(--pc)}
 .srate.upd::after{content:"★";font-size:.62em;margin-left:2px;vertical-align:2px}
 .card .diff.canrate{cursor:pointer;position:relative;box-shadow:0 0 0 1px color-mix(in srgb,var(--tc) 40%,transparent)}
@@ -1142,7 +1144,7 @@ footer{color:var(--dim);font-size:.78rem}
   <footer>Data: Rodman’s Rocksmith 2014 Championship Google Sheets (older attendance also from the Championship Metrics workbook). Player stats run through week 675; scoreboards cover weeks 440–676. Weeks 1–16 have no recorded host in the source.
   <span class="updated disclaimer">Unofficial fan project. Not affiliated with Ubisoft or Rocksmith.</span>
   <span class="updated" id="sheetedit-row" hidden>Sheet last edited: <span id="sheetedit" data-iso="2026-10-09T18:08:57.146Z"></span></span>
-  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-10T01:05:32+00:00">October 9, 2026</span></span>
+  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-10T01:08:34+00:00">October 9, 2026</span></span>
   </footer>
 </div>
 <dialog id="acct" class="acctdlg" aria-label="Your account"><div id="acctbody"></div><button type="button" class="clear acctclose" id="acctclose">Close</button></dialog>
@@ -2840,7 +2842,7 @@ if(curView()==="thisweek")renderThisWeek();
 // ---------- accounts: log in with an emailed link, claim your player profile, rate this week's songs ----------
 // Uses a Supabase project (set SUPA_URL and SUPA_KEY; both are public by design). Leave them empty to hide all of this.
 var SUPA_URL="https://yeyzdxjqwdkswulrnver.supabase.co", SUPA_KEY="sb_publishable_pxGhrlKyONzLc1fomC2vsw_EoNlhCeG";
-var ACCT={on:false,sb:null,user:null,claim:null,admin:false,claims:[],weeks:{},loading:{},tab:"me"};
+var ACCT={on:false,sb:null,user:null,claim:null,admin:false,claims:[],songs:null,mine:{},loading:{},tab:"me"};
 function acctSongKey(s){return String(s||"").toLowerCase().replace(/[^a-z0-9]+/g,"")}
 function acctPlayerOf(e){return SB.names[e[0]].replace(/[*~]+$/,"")}
 function acctOn(){return typeof ACCT!=="undefined"&&!!ACCT&&ACCT.on}
@@ -2854,82 +2856,87 @@ function hostRatingsOf(p,song){
   SONGS_OLD.forEach(([w,pp,tt,b,s,d])=>{if(pp===p&&s&&acctSongKey(s)===k)out.push({w,t:tt,d})});
   return out.sort((a,b)=>b.w-a.w);
 }
-// Hover shows the host's initial rating and every player's rating; players who played it click it to rate.
+// the rating dropdown laid invisibly over a rating badge, so clicking the number opens the list.
+// A player has one rating per song per path; it's stored against the song's latest challenge on that path.
+function rateSelect(p,song,mine){
+  const opts=[];for(let r=1;r<=10;r+=.5)opts.push(`<option value="${r}"${mine&&mine.r===r?" selected":""}>${r}</option>`);
+  return `<select data-rate="${p}" data-song="${esc(song)}" aria-label="Your difficulty rating for this song on ${PATHS[p]}"><option value=""${mine?"":" selected"}>${mine?"Remove my rating":"Your rating…"}</option>${opts.join("")}</select>`;
+}
+function songVotes(p,song){return ((ACCT.songs||{})[p+"|"+acctSongKey(song)]||[]).slice().sort((a,b)=>a.p.localeCompare(b.p,undefined,{sensitivity:"base"}))}
+// Scoreboard badge: hover shows the host's initial ratings and every player's rating of the song on this path;
+// logged-in players click it to rate.
 function rateBadge(w,p,slot,diff,ents){
   const plain=diff!=null?`<span class="diff" title="Difficulty rating">${diff}</span>`:"";
   if(!acctOn())return plain;
-  const V=ACCT.weeks[w]; if(!V){acctLoadWeek(w);return plain}
-  const list=(V[p*9+slot]||[]).slice().sort((a,b)=>a.p.localeCompare(b.p,undefined,{sensitivity:"base"}));
-  const can=acctCanRate(ents);
+  if(!ACCT.songs){acctLoadWeek();return plain}
+  const card=(SB.weeks[w]||[]).find(c=>c[0]===p&&c[1]===slot); if(!card||!card[3])return plain;
+  const list=songVotes(p,card[3]), can=acctCanRate(ents);
   if(!list.length&&!can)return plain;
   const avg=list.length?Math.round(list.reduce((a,v)=>a+v.r,0)/list.length*10)/10:null;
   const mine=can?list.find(v=>v.p===ACCT.claim.player):null;
-  const card=(SB.weeks[w]||[]).find(c=>c[0]===p&&c[1]===slot), others=card?hostRatingsOf(p,card[3]).filter(x=>x.w!==w):[];
+  const others=hostRatingsOf(p,card[3]).filter(x=>x.w!==w);
   const tipTxt=`Initial host rating: ${diff!=null?diff:"none"}`+(others.length?`\nOther weeks' initial host ratings:\n`+others.map(x=>`• Week ${x.w} · ${TIER_LABEL[x.t]||x.t}: ${x.d!=null?x.d:"–"}`).join("\n")+"\n":"")+(list.length?`\nPlayers' average: ${avg} from ${list.length} rating${list.length===1?"":"s"}\n`+list.map(v=>`• ${v.p}: ${v.r}`).join("\n"):"\nNo player ratings yet")+(can?(mine?`\n\nYour rating: ${mine.r} · click to change`:"\n\nClick to give your rating"):"");
   const label=list.length?avg.toFixed(1):diff!=null?diff:"–";
   if(!can)return `<span class="diff${list.length?" upd":""}" data-tip="${esc(tipTxt)}">${label}</span>`;
-  // the badge itself is the rating dropdown: an invisible select laid over it, so clicking the number opens the list
-  const opts=[];for(let r=1;r<=10;r+=.5)opts.push(`<option value="${r}"${mine&&mine.r===r?" selected":""}>${r}</option>`);
-  return `<span class="diff canrate${list.length?" upd":""}${mine?" mine":""}" data-tip="${esc(tipTxt)}">${label}<select data-rate="${w}|${p}|${slot}" aria-label="Your difficulty rating for this song"><option value=""${mine?"":" selected"}>${mine?"Remove my rating":"Your rating…"}</option>${opts.join("")}</select></span>`;
+  return `<span class="diff canrate${list.length?" upd":""}${mine?" mine":""}" data-tip="${esc(tipTxt)}">${label}${rateSelect(p,card[3],mine)}</span>`;
 }
 // the rating picker on a card, opened by clicking its difficulty badge
-function acctCard(w,p,slot,ents,live){
-  return ""; // (the rating dropdown now lives inside the difficulty badge)
-  if(!acctOn()||ACCT.openKey!==`${w}|${p}|${slot}`||!acctCanRate(ents))return "";
-  const list=(ACCT.weeks[w]||{})[p*9+slot]||[], me=ACCT.claim.player, mine=list.find(v=>v.p===me), opts=[];
-  for(let r=1;r<=10;r+=.5)opts.push(`<option value="${r}"${mine&&mine.r===r?" selected":""}>${r}</option>`);
-  return `<div class="prate">Your rating <select data-rate="${w}|${p}|${slot}" aria-label="Your difficulty rating for this song"><option value="">${mine?"Remove":"–"}</option>${opts.join("")}</select>${mine?'<span class="ok">✓ saved</span>':""}</div>`;
-}
-// all ratings are loaded at once (it's a small table) and sorted into ACCT.weeks[week][path*9+slot]
-async function acctLoadWeek(w){
+function acctCard(){return ""} // (the rating dropdown lives inside the rating badge)
+// all ratings are loaded at once (it's a small table) and grouped by path + song: ACCT.songs["path|song"] = [{p,r}].
+// Each rating is saved with its song (older ones without it take the song of the card they were given on),
+// so it follows the song wherever and whenever it's used. A player's newest rating counts.
+function songAt(w,p,slot){const c=(SB.weeks[w]||[]).find(c=>c[0]===p&&c[1]===slot); if(c)return c[3];
+  const o=SONGS_OLD.find(o=>o[0]===w&&o[1]===p&&TIER_ORDER.indexOf(o[2])===slot); return o?o[4]:null}
+async function acctLoadWeek(){
   if(ACCT.loading.all||!ACCT.sb)return; ACCT.loading.all=true;
   const {data,error}=await ACCT.sb.from("votes").select("player,week,path,slot,rating,song,updated_at");
   ACCT.loading.all=false; if(error)return;
-  // ratings follow the song: each rating is saved with its song, and shows on whichever card of that week and path
-  // has that song now (so a host moving a song to another level keeps its ratings); if the song is gone, it's hidden.
-  // A player's newest rating wins if they have more than one for the same card.
-  const best={};
+  const best={}, mine={}, me=ACCT.claim&&ACCT.claim.player;
   (data||[]).forEach(v=>{
-    const cards=SB.weeks[v.week]||[]; let slot=v.slot;
-    if(v.song){const n=acctSongKey(v.song), here=cards.find(c=>c[0]===v.path&&c[1]===v.slot&&acctSongKey(c[3])===n), moved=cards.find(c=>c[0]===v.path&&acctSongKey(c[3])===n);
-      const c=here||moved; if(!c)return; slot=c[1]}
-    const k=v.path*9+slot, id=v.week+"|"+k+"|"+v.player;
-    if(!best[id]||String(v.updated_at)>String(best[id].t))best[id]={w:v.week,k,p:v.player,r:+v.rating,t:v.updated_at};
+    const song=v.song||songAt(v.week,v.path,v.slot); if(!song)return;
+    const k=v.path+"|"+acctSongKey(song), id=k+"|"+v.player;
+    if(v.player===me)(mine[k]=mine[k]||[]).push({week:v.week,path:v.path,slot:v.slot});
+    if(!best[id]||String(v.updated_at)>String(best[id].t))best[id]={k,p:v.player,r:+v.rating,t:v.updated_at};
   });
-  const W={}; Object.keys(SB.weeks).forEach(x=>W[x]={});
-  Object.values(best).forEach(x=>{const V=W[x.w]=W[x.w]||{};(V[x.k]=V[x.k]||[]).push({p:x.p,r:x.r})});
-  ACCT.weeks=W; sbRender(); if(typeof renderSongs==="function"&&!$("view-songs").hidden)renderSongs();
+  const S={}; Object.values(best).forEach(x=>(S[x.k]=S[x.k]||[]).push({p:x.p,r:x.r}));
+  ACCT.songs=S; ACCT.mine=mine; sbRender(); if(typeof renderSongs==="function"&&!$("view-songs").hidden)renderSongs();
 }
-// a song's rating boxes on the Songs page, one per path in the path's colour: the players' average over all that path's
-// challenges of the song (★), or the host ratings' average. Hover lists each challenge; clicking opens the path's
-// latest challenge on the Scoreboard, where players can rate it.
+// a song's rating boxes on the Songs page, one per path in the path's colour: the players' average for the song on
+// that path (★), or the host ratings' average. Hover lists every week it was used; logged-in players click to rate.
 function songRateBox(cards){
-  if(acctOn()&&!Object.keys(ACCT.weeks).length)acctLoadWeek();
+  if(acctOn()&&!ACCT.songs)acctLoadWeek();
   const avg=a=>(Math.round(a.reduce((x,y)=>x+y,0)/a.length*10)/10).toFixed(1);
+  const can=acctOn()&&acctCanRate();
   return [0,1,2].map(p=>{
-    const pc=cards.filter(c=>c.p===p); if(!pc.length)return "";
-    const rc=pc.filter(c=>c.slot!=null).sort((a,b)=>b.w-a.w);
+    const pc=cards.filter(c=>c.p===p).sort((a,b)=>b.w-a.w); if(!pc.length)return "";
     const hostR=pc.map(c=>c.diff).filter(d=>d!=null&&d>0);
-    const lines=[], all=[];
-    pc.slice().sort((a,b)=>b.w-a.w).forEach(c=>{const l=c.slot!=null&&acctOn()&&ACCT.weeks[c.w]?(ACCT.weeks[c.w][c.p*9+c.slot]||[]):[];
-      l.forEach(v=>all.push(v.r));
-      lines.push(`Week ${c.w} · ${TIER_LABEL[c.card]||""}: initial host rating ${c.diff!=null?c.diff:"–"}`+(l.length?` · players ${avg(l.map(v=>v.r))} (${l.map(v=>`${v.p} ${v.r}`).join(", ")})`:""))});
-    if(!all.length&&!hostR.length)return "";
-    const val=all.length?avg(all):avg(hostR), last=rc[0];
-    const tipTxt=`${PATHS[p]} — `+(all.length?`players' average ${val} from ${all.length} rating${all.length===1?"":"s"}`:`host rating${hostR.length>1?"s average":""} ${val}`)+(lines.length?"\n\n"+lines.slice(0,12).join("\n")+(lines.length>12?`\n… and ${lines.length-12} more`:""):"")+(last&&acctOn()?"\n\nClick to open its latest challenge on the Scoreboard and rate it":"");
-    return `<span class="srate${all.length?" upd":""}" style="--pc:${PATH_C[p]}"${last?` data-sbw="${last.w}" data-sbp="${p}"`:""} data-tip="${esc(tipTxt)}">${val}</span>`;
+    const list=acctOn()?songVotes(p,pc[0].song):[], all=list.map(v=>v.r);
+    if(!all.length&&!hostR.length&&!can)return "";
+    const mine=can?list.find(v=>v.p===ACCT.claim.player):null;
+    const val=all.length?avg(all):hostR.length?avg(hostR):"–";
+    const lines=pc.map(c=>`• Week ${c.w} · ${TIER_LABEL[c.card]||""}: ${c.diff!=null?c.diff:"–"}`);
+    const tipTxt=`${PATHS[p]}\n`+(hostR.length?`Initial host rating${pc.length>1?"s":""}:\n`+lines.slice(0,12).join("\n")+(lines.length>12?`\n… and ${lines.length-12} more`:""):"No host rating")
+      +(all.length?`\n\nPlayers' average: ${avg(all)} from ${all.length} rating${all.length===1?"":"s"}\n`+list.map(v=>`• ${v.p}: ${v.r}`).join("\n"):"\n\nNo player ratings yet")
+      +(can?(mine?`\n\nYour rating: ${mine.r} · click to change`:"\n\nClick to give your rating"):"");
+    return `<span class="srate${all.length?" upd":""}${can?" canrate":""}${mine?" mine":""}" style="--pc:${PATH_C[p]}" data-tip="${esc(tipTxt)}">${val}${can?rateSelect(p,pc[0].song,mine):""}</span>`;
   }).join("");
 }
 document.addEventListener("change",async e=>{
   const s=e.target.closest("select[data-rate]"); if(!s||!ACCT.claim)return;
-  const [w,p,slot]=s.dataset.rate.split("|").map(Number), player=ACCT.claim.player;
-  const r=s.value?+s.value:null, card=(SB.weeks[w]||[]).find(c=>c[0]===p&&c[1]===slot), song=card?card[3]:null;
-  // clear this player's older ratings of the same song on this path (left at another slot after a song moved)
-  if(song)await ACCT.sb.from("votes").delete().match({player,week:w,path:p,song}).neq("slot",slot);
-  const q=r==null?ACCT.sb.from("votes").delete().match({player,week:w,path:p,slot})
-                 :ACCT.sb.from("votes").upsert({player,week:w,path:p,slot,song,rating:r,user_id:ACCT.user.id,updated_at:new Date().toISOString()});
+  const p=+s.dataset.rate, song=s.dataset.song, player=ACCT.claim.player, k=p+"|"+acctSongKey(song);
+  const r=s.value?+s.value:null;
+  // the song's latest challenge on this path holds the rating (Scoreboard weeks first, then the older weeks)
+  let at=null;
+  Object.entries(SB.weeks).forEach(([w,ch])=>ch.forEach(c=>{if(c[0]===p&&c[3]&&acctSongKey(c[3])===acctSongKey(song)&&(!at||+w>at.week))at={week:+w,slot:c[1],song:c[3]}}));
+  if(!at)SONGS_OLD.forEach(o=>{if(o[1]===p&&o[4]&&acctSongKey(o[4])===acctSongKey(song)&&(!at||o[0]>at.week))at={week:o[0],slot:Math.max(0,TIER_ORDER.indexOf(o[2])),song:o[4]}});
+  if(!at)return;
+  // one rating per song per path: clear this player's other ratings of the song on this path first
+  for(const x of (ACCT.mine[k]||[]))if(!(x.week===at.week&&x.slot===at.slot)){
+    const {error}=await ACCT.sb.from("votes").delete().match({player,week:x.week,path:p,slot:x.slot}); if(error){alert("Couldn't save your rating: "+error.message);return}}
+  const q=r==null?ACCT.sb.from("votes").delete().match({player,week:at.week,path:p,slot:at.slot})
+                 :ACCT.sb.from("votes").upsert({player,week:at.week,path:p,slot:at.slot,song:at.song,rating:r,user_id:ACCT.user.id,updated_at:new Date().toISOString()});
   const {error}=await q; if(error){alert("Couldn't save your rating: "+error.message);return}
-  delete ACCT.weeks[w]; acctLoadWeek(w);
+  ACCT.songs=null; acctLoadWeek();
 });
 // your profile in the account dialog: the real player, win and host lookup cards, moved into the dialog while it's open
 // (so everything in them still works), and put back when it closes
@@ -2954,7 +2961,7 @@ async function acctRefresh(){
   const {data:cl}=await ACCT.sb.from("claims").select("user_id,player,status,created_at"); ACCT.claims=cl||[];
   ACCT.claim=ACCT.user?ACCT.claims.find(c=>c.user_id===ACCT.user.id)||null:null;
   ACCT.admin=false; if(ACCT.user){const {data:ad}=await ACCT.sb.from("admins").select("user_id").eq("user_id",ACCT.user.id); ACCT.admin=!!(ad&&ad.length)}
-  acctBtn(); if($("acct").open)acctDraw(); ACCT.weeks={}; sbRender();
+  acctBtn(); if($("acct").open)acctDraw(); ACCT.songs=null; sbRender();
 }
 function acctDraw(msg,err){
   acctUnmount();
