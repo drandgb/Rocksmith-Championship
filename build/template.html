@@ -333,6 +333,10 @@ a.dl svg,.offpill svg{width:11px;height:11px}
 .card .prate b{color:var(--fg);font:700 .9rem var(--f-mono)}
 .card .prate select{background:var(--panel2);color:var(--fg);border:1px solid color-mix(in srgb,var(--tc) 55%,var(--line));border-radius:5px;padding:2px 6px;font:700 .8rem var(--f-mono);cursor:pointer}
 .card .prate .ok{color:#7dffb0}
+.card .diff.upd{border-color:color-mix(in srgb,var(--tc) 70%,var(--line));color:var(--tc);cursor:help}
+.card .diff.upd::after{content:"★";font-size:.6em;margin-left:2px;vertical-align:2px}
+.card .diff.canrate{cursor:pointer;box-shadow:0 0 0 1px color-mix(in srgb,var(--tc) 40%,transparent)}
+.card .diff.canrate:hover{background:color-mix(in srgb,var(--tc) 20%,var(--panel2))}
 .dl.offpill{color:#c3cbd9;border-color:rgba(154,166,187,.55);background:rgba(154,166,187,.12);cursor:help}
 .songlist .dl,.bandtbl .dl{--tc:var(--accent);margin-left:6px;vertical-align:1px;padding:2px 7px}
 /* Ignition pill pinned to the top right of the row, beside the title, without widening the count column */
@@ -2150,7 +2154,7 @@ function sbRender(){
       const up=!raw.includes("*")&&lvLetter&&RU_KEY.has(`${sbWeek}|${base}|${p}|${lvLetter}`)?`<span class="rkup" data-tip="First week in ${TIER_NAME[lvLetter]} ${PATHS[p]} after ranking up">RANKED UP</span>`:"";
       return `<tr class="${me}${e[4]<0?" down":""}"><td>${rk}</td><td class="n"><span data-player="${esc(base)}">${esc(base)}</span>${marks}${up}${SB.aka&&SB.aka[e[0]]?`<span class="aka">as ${esc(SB.aka[e[0]])}</span>`:""}</td><td>${pct}</td><td>${fmtNum(e[2])}</td><td>${fmtNum(e[3])}</td></tr>`;
     }).join("");
-    return `<article class="card" style="--tc:${tc}"><div class="ch"><div class="lv"><span>${esc(lvl)}</span><div class="lvr">${(()=>{const id=SB.links&&SB.links[sbWeek]&&SB.links[sbWeek][p*9+slot];return songPill(song,id)})()}${diff!=null?`<span class="diff" title="Difficulty rating">${diff}</span>`:""}</div></div><div class="song">${songHtml}</div>${extra?`<div class="note">${esc(extra)}</div>`:""}${cont?`<div class="note">⏳ Continues next week · the winner is decided in its final week</div>`:""}${acctCard(sbWeek,p,slot,ents,sbLive)}</div>${ents.length?`<table><thead><tr><th>#</th><th>Player</th><th>%</th><th>Streak</th><th>Score</th></tr></thead><tbody>${rows}</tbody></table>`:`<div class="empty">No entries yet</div>`}</article>`;
+    return `<article class="card" style="--tc:${tc}"><div class="ch"><div class="lv"><span>${esc(lvl)}</span><div class="lvr">${(()=>{const id=SB.links&&SB.links[sbWeek]&&SB.links[sbWeek][p*9+slot];return songPill(song,id)})()}${rateBadge(sbWeek,p,slot,diff,ents)}</div></div><div class="song">${songHtml}</div>${extra?`<div class="note">${esc(extra)}</div>`:""}${cont?`<div class="note">⏳ Continues next week · the winner is decided in its final week</div>`:""}${acctCard(sbWeek,p,slot,ents,sbLive)}</div>${ents.length?`<table><thead><tr><th>#</th><th>Player</th><th>%</th><th>Streak</th><th>Score</th></tr></thead><tbody>${rows}</tbody></table>`:`<div class="empty">No entries yet</div>`}</article>`;
   }).join("")||(sbLv[sbPath]?`<div class="empty">No ${LV_NAME[sbLv[sbPath]]} ${PATHS[sbPath]} challenge this week</div>`:"");
   try{localStorage.setItem("rsc-sb",JSON.stringify({w:sbWeek,p:sbPath}))}catch(e){}
 }
@@ -2164,6 +2168,7 @@ $("sbseg").addEventListener("click",e=>{const b=e.target.closest("button[data-pa
   tip.hidden=true;sbRender();$("sbseg").querySelector(`[data-path="${i}"]`).focus()});
 $("sbfind").addEventListener("change",e=>{sbFind=e.target.value.trim();sbRender()});
 // clicking a highlighted player's row anywhere that isn't a link (like their name) clears the highlight
+$("sbcards").addEventListener("click",e=>{const ro=e.target.closest("[data-rateopen]"); if(ro){const k=ro.dataset.rateopen; ACCT.openKey=ACCT.openKey===k?null:k; tip.hidden=true; sbRender(); return}});
 $("sbcards").addEventListener("click",e=>{const tr=e.target.closest("tr.me"); if(!tr||e.target.closest("[data-player],a,.golink,[data-goband]"))return;
   sbFind=""; tip.hidden=true; sbRender()});
 $("view-scores").addEventListener("click",e=>{
@@ -2823,19 +2828,28 @@ if(curView()==="thisweek")renderThisWeek();
 var SUPA_URL="https://yeyzdxjqwdkswulrnver.supabase.co", SUPA_KEY="sb_publishable_pxGhrlKyONzLc1fomC2vsw_EoNlhCeG";
 var ACCT={on:false,sb:null,user:null,claim:null,admin:false,claims:[],weeks:{},loading:{}};
 function acctPlayerOf(e){return SB.names[e[0]].replace(/[*~]+$/,"")}
-// the rating box on a Scoreboard card: a picker for your own rating while the week runs, the players' average once it's over
+function acctOn(){return typeof ACCT!=="undefined"&&!!ACCT&&ACCT.on}
+// can the logged-in player rate this card? (approved, and they posted a score on it)
+function acctCanRate(ents){const me=ACCT.claim&&ACCT.claim.status==="approved"?ACCT.claim.player:null; return !!me&&ents.some(e=>acctPlayerOf(e)===me)}
+// the difficulty badge: the host's rating, or the average of the players' ratings once any are in.
+// Hover shows the host's initial rating and every player's rating; players who played it click it to rate.
+function rateBadge(w,p,slot,diff,ents){
+  const plain=diff!=null?`<span class="diff" title="Difficulty rating">${diff}</span>`:"";
+  if(!acctOn())return plain;
+  const V=ACCT.weeks[w]; if(!V){acctLoadWeek(w);return plain}
+  const list=(V[p*9+slot]||[]).slice().sort((a,b)=>a.p.localeCompare(b.p,undefined,{sensitivity:"base"}));
+  const can=acctCanRate(ents);
+  if(!list.length&&!can)return plain;
+  const avg=list.length?Math.round(list.reduce((a,v)=>a+v.r,0)/list.length*10)/10:null;
+  const tipTxt=`Initial rating: ${diff!=null?diff:"none"}`+(list.length?`\nPlayers' average: ${avg} from ${list.length} rating${list.length===1?"":"s"}\n`+list.map(v=>`• ${v.p}: ${v.r}`).join("\n"):"\nNo player ratings yet")+(can?"\n\nClick to give your rating":"");
+  return `<span class="diff${list.length?" upd":""}${can?" canrate":""}"${can?` data-rateopen="${w}|${p}|${slot}"`:""} data-tip="${esc(tipTxt)}">${list.length?avg.toFixed(1):diff!=null?diff:"–"}</span>`;
+}
+// the rating picker on a card, opened by clicking its difficulty badge
 function acctCard(w,p,slot,ents,live){
-  if(typeof ACCT==="undefined"||!ACCT||!ACCT.on)return "";
-  const V=ACCT.weeks[w]; if(!V){acctLoadWeek(w);return ""}
-  const k=p*9+slot, list=V[k]||[];
-  if(!live){if(!list.length)return "";
-    const avg=list.reduce((a,v)=>a+v.r,0)/list.length;
-    return `<div class="prate" data-tip="Average of the difficulty ratings given by players who played it">Players' rating <b>${(Math.round(avg*10)/10).toFixed(1)}</b> · ${list.length} vote${list.length===1?"":"s"}</div>`}
-  const me=ACCT.claim&&ACCT.claim.status==="approved"?ACCT.claim.player:null;
-  if(!me||!ents.some(e=>acctPlayerOf(e)===me))return "";
-  const mine=list.find(v=>v.p===me), opts=[];
+  if(!acctOn()||ACCT.openKey!==`${w}|${p}|${slot}`||!acctCanRate(ents))return "";
+  const list=(ACCT.weeks[w]||{})[p*9+slot]||[], me=ACCT.claim.player, mine=list.find(v=>v.p===me), opts=[];
   for(let r=1;r<=10;r+=.5)opts.push(`<option value="${r}"${mine&&mine.r===r?" selected":""}>${r}</option>`);
-  return `<div class="prate">Your rating <select data-rate="${w}|${p}|${slot}" aria-label="Your difficulty rating for this song"><option value="">–</option>${opts.join("")}</select>${mine?'<span class="ok">✓ saved</span>':'<span>players\' average shows when the week ends</span>'}</div>`;
+  return `<div class="prate">Your rating <select data-rate="${w}|${p}|${slot}" aria-label="Your difficulty rating for this song"><option value="">${mine?"Remove":"–"}</option>${opts.join("")}</select>${mine?'<span class="ok">✓ saved</span>':""}</div>`;
 }
 async function acctLoadWeek(w){
   if(ACCT.loading[w]||!ACCT.sb)return; ACCT.loading[w]=true;
@@ -2882,7 +2896,7 @@ function acctDraw(msg,err){
     const names=PLAYERS.map(p=>p[0]).filter(n=>!taken.has(n)).sort((a,c)=>a.localeCompare(c,undefined,{sensitivity:"base"}));
     h+=`<p>Which player are you? Pick your name to claim your profile. An admin checks each claim before you can rate songs.</p><select id="acctname"><option value="">Choose your player name…</option>${names.map(n=>`<option>${esc(n)}</option>`).join("")}</select><div class="row"><button type="button" class="btn" data-acct="claim">Claim this profile</button></div>`}
   else if(ACCT.claim.status==="pending")h+=`<p>You've claimed <b>${esc(ACCT.claim.player)}</b>. It's waiting for an admin to approve it.</p><div class="row"><button type="button" class="btn ghost" data-acct="unclaim">Withdraw claim</button></div>`;
-  else h+=`<p>You're <b>${esc(ACCT.claim.player)}</b>. On the Scoreboard, this week's challenges you've played have a rating picker; the players' average shows once the week is over.</p>${acctProfile(ACCT.claim.player)}`;
+  else h+=`<p>You're <b>${esc(ACCT.claim.player)}</b>. On the Scoreboard, click the difficulty number on any challenge you've played to give your own rating.</p>${acctProfile(ACCT.claim.player)}`;
   h+=`<div class="row"><button type="button" class="btn ghost" data-acct="logout">Log out</button></div>`;
   if(ACCT.admin){const pend=ACCT.claims.filter(c=>c.status==="pending"), appr=ACCT.claims.filter(c=>c.status==="approved").sort((a,c)=>a.player.localeCompare(c.player));
     h+=`<div class="adm"><h3>Admin · claims</h3><p>${pend.length?"Waiting for approval:":"No claims waiting."}</p><ul>${pend.map(c=>`<li><span>${esc(c.player)} <small>${new Date(c.created_at).toLocaleDateString()}</small></span><span><button type="button" class="btn" data-acct="approve" data-uid="${c.user_id}">Approve</button> <button type="button" class="btn ghost" data-acct="reject" data-uid="${c.user_id}">Reject</button></span></li>`).join("")}</ul>${appr.length?`<p>Approved (${appr.length}):</p><ul>${appr.map(c=>`<li><span>${esc(c.player)}</span><button type="button" class="btn ghost" data-acct="reject" data-uid="${c.user_id}">Remove</button></li>`).join("")}</ul>`:""}</div>`}
