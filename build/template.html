@@ -132,7 +132,7 @@ button.pill.hostbtn:hover,.pill.hostbtn:hover{background:color-mix(in srgb,var(-
 .controls input:focus-visible,.controls select:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
 .log{max-height:440px;overflow:auto;border-top:1px solid var(--line);margin-top:12px}
 .log table{width:100%;border-collapse:collapse;font-size:.86rem}
-.log th{position:sticky;top:0;background:var(--panel);text-align:left;font-weight:500;color:var(--muted);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;padding:8px 8px 8px 0;border-bottom:1px solid var(--line)}
+.log th{position:sticky;top:0;z-index:2;background:var(--panel);text-align:left;font-weight:500;color:var(--muted);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;padding:8px 8px 8px 0;border-bottom:1px solid var(--line)}
 .log td{padding:6px 8px 6px 0;border-bottom:1px solid color-mix(in srgb,var(--line) 55%,transparent);vertical-align:top}
 .log td.w{font-family:var(--f-mono);color:var(--muted);white-space:nowrap}
 .log td.d{white-space:nowrap;font-variant-numeric:tabular-nums}
@@ -1407,7 +1407,7 @@ function renderLog(){
   }).reverse();
   $("logcount").textContent=`${rows.length} week${rows.length===1?"":"s"}`;
   $("logbody").innerHTML=rows.map(([w,i])=>{
-    const host=w[2]===LOST?'<span class="dimtxt">No record</span>':w[2]?`<span class="hostcell" data-name="${esc(w[2])}"><span class="sw" style="background:${hc(w[2])}"></span>${esc(w[2])}</span>`:(i>=curIdx?'<span class="pill open">OPEN</span>':'<span class="dimtxt">—</span>');
+    const host=w[2]===LOST?'<span class="dimtxt">No record</span>':w[2]?`<span class="hostcell" data-name="${esc(w[2])}"><span class="sw" style="background:${hc(w[2])}"></span>${esc(w[2])}</span>`:(i>=curIdx?hostSlot(w,i-curIdx):'<span class="dimtxt">—</span>');
     return `<tr class="${i===curIdx?"cur":""}" id="wk-${w[0]}"><td class="w"${SB.weeks[w[0]]?` data-sbw="${w[0]}" title="Open Week ${w[0]} on the Scoreboard"`:""}>${w[0]}</td><td class="d">${fmt(w[1])}</td><td>${host}</td><td>${w[3]?w[3].split(/,\s*/).map(h=>`<span class="holf${holF===h?" sel":""}" data-hol="${esc(h)}" title="Show only weeks with ${esc(h)}">${esc(h)}</span>`).join(", "):""}</td></tr>`;
   }).join("") || `<tr><td colspan="4" class="dimtxt" style="padding:16px 0">No weeks match. Clear the search or pick another year.</td></tr>`;
 }
@@ -2546,8 +2546,8 @@ $("hcard").addEventListener("click",e=>{
   sbWeek=w; showView("scores"); sbRender(); scrollTo({top:0});
 });
 // hover text on Coming up and the status strip (HOST NEEDED, SIGNED UP, sign-up buttons)
-["upcoming","now"].forEach(id=>$(id).addEventListener("mousemove",e=>{const p=e.target.closest("[data-tip]");if(!p){tip.hidden=true;return}tip.textContent=p.dataset.tip;tip.hidden=false;placeTip(e.clientX,e.clientY)}));
-["upcoming","now"].forEach(id=>$(id).addEventListener("mouseleave",()=>{tip.hidden=true}));
+["upcoming","now","logbody"].forEach(id=>$(id).addEventListener("mousemove",e=>{const p=e.target.closest("[data-tip]");if(!p){tip.hidden=true;return}tip.textContent=p.dataset.tip;tip.hidden=false;placeTip(e.clientX,e.clientY)}));
+["upcoming","now","logbody"].forEach(id=>$(id).addEventListener("mouseleave",()=>{tip.hidden=true}));
 $("hcard").addEventListener("mousemove",e=>{const p=e.target.closest("[data-tip]");if(!p){tip.hidden=true;return}tip.textContent=p.dataset.tip;tip.hidden=false;placeTip(e.clientX,e.clientY)});
 $("hcard").addEventListener("mouseleave",()=>tip.hidden=true);
 window.__hostReady=true;
@@ -3021,7 +3021,7 @@ function hostVerified(){if(!acctOn()||!ACCT.claim||ACCT.claim.status!=="approved
 function hostOpenWeeks(){const out=[];for(let i=0;i<=hostAhead();i++){const w=weekAt(curIdx+i);if(!w[2])out.push([w,i])}return out}
 async function hostLoad(){if(!ACCT.sb)return;
   const {data,error}=await ACCT.sb.from("host_signups").select("week,player,user_id,created_at").gte("week",WEEKS[curIdx][0]);
-  hostReady=true; if(error){renderHostWarn();return} ACCT.hostSign={}; (data||[]).forEach(r=>ACCT.hostSign[r.week]=r); renderUpcoming(); renderNow(); renderHostWarn(); if(hName&&hosts[hName])showHost(hName);
+  hostReady=true; if(error){renderHostWarn();return} ACCT.hostSign={}; (data||[]).forEach(r=>ACCT.hostSign[r.week]=r); renderUpcoming(); renderNow(); renderHostWarn(); renderLog(); if(hName&&hosts[hName])showHost(hName);
 }
 // admin sign-up list: hosts by latest week hosted (most recently active first), then other players A–Z
 function hostOptions(){
