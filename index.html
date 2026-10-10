@@ -1239,7 +1239,7 @@ footer{color:var(--dim);font-size:.78rem}
   <footer>Data: Rodman’s Rocksmith 2014 Championship Google Sheets (older attendance also from the Championship Metrics workbook). Player stats run through week 675; scoreboards cover weeks 440–676. Weeks 1–16 have no recorded host in the source.
   <span class="updated disclaimer">Unofficial fan project. Not affiliated with Ubisoft or Rocksmith.</span>
   <span class="updated" id="sheetedit-row" hidden>Sheet last edited: <span id="sheetedit" data-iso="2026-10-09T18:08:57.146Z"></span></span>
-  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-10T11:23:35+00:00">October 10, 2026</span></span>
+  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-10T12:36:56+00:00">October 10, 2026</span></span>
   </footer>
 </div>
 <dialog id="acct" class="acctdlg" aria-label="Your profile"><div id="acctbody"></div><button type="button" class="clear acctclose" id="acctclose">Close</button></dialog>
@@ -1691,6 +1691,10 @@ function medalsFor(p,bitsOv){
     const miss=first+k;
     if(k>=1&&b0+k<bits.length) gems.unshift(`<span class="medal-m wm kintsugi" style="--ec:#f5c84a;cursor:pointer" data-hl="${weekRange(first+k-1,k)}" data-tip="Kintsugi gem · played every week for ${k} week${k===1?"":"s"} after joining, until first missing Week ${miss} (collected Week ${miss})">${kintsugiSvg()}<b>${k}</b></span>`);}
   // Completionist: scored on every challenge of a finished week (leads the class gems row)
+  // played guitar (Lead or Rhythm) and played bass: end of the attendance row
+  {const iw=instrumentWeeks(n,SB_W.filter(w=>w!==cur[0]));
+   [["g","Played guitar","#ffb347","a score on Lead or Rhythm",iw.g],["b","Played bass","#3fa0ff","a score on Bass",iw.b]].forEach(([k,lab,col,what,ws])=>{if(!ws.length)return;
+     gems.push(`<span class="medal-m wm" style="--ec:${col};cursor:pointer" data-all="${ws.join(",")}" data-hl="${ws.join(",")}" data-tip="${lab} · weeks with at least ${what}, any level · ${ws.length} week${ws.length===1?"":"s"} (scoreboards since Week ${SB_W[0]}) · click to highlight">${clefSvg(k)}<b>${ws.length}</b></span>`)});}
   let cRow="";
   {const cw=completionistWeeks(n,SB_W.filter(w=>w!==cur[0]));
    if(cw.length)cRow=(`<span class="medal-m wm" style="--ec:#f5c84a;cursor:pointer" data-all="${cw.join(",")}" data-hl="${cw.join(",")}" data-tip="Completionist · posted a score on every challenge of the week, every song on every path (a multi-week God challenge already played earlier in its run counts) · ${cw.length} week${cw.length===1?"":"s"} · click to highlight">${completionistSvg()}<b>${cw.length}</b></span>`);}
@@ -2049,6 +2053,20 @@ function completionistWeeks(name,done){
       const k=acctSongKey(c[3]); // earlier weeks of the same God run
       for(let pw=w-1;;pw--){const pc=(SB.weeks[pw]||[]).find(x=>x[0]===c[0]&&isGod(x[2])&&acctSongKey(x[3])===k); if(!pc)return false; if(mine(pc))return true}});
   }).sort((a,b)=>a-b);
+}
+// Played guitar / played bass: finished weeks with at least one Lead or Rhythm score / at least one Bass score
+function instrumentWeeks(name,done){
+  const key=name.toLowerCase(), g=[], b=[];
+  done.forEach(w=>{let hg=false,hb=false;(SB.weeks[w]||[]).forEach(c=>{if(!c[6].some(e=>SB.names[e[0]].replace(/[*~]+$/,"").toLowerCase()===key))return; if(c[0]===2)hb=true; else hg=true});
+    if(hg)g.push(w); if(hb)b.push(w)});
+  return {g,b};
+}
+function clefSvg(kind){
+  const id="clf"+kind+(cgN++), c=kind==="g"?["#ffb347","#45d17a"]:["#7cc4ff","#2f7fef"];
+  const fig=kind==="g"
+    ?`<path d="M15.4 25.2c-1.9.4-3.6-.6-3.6-2.1 0-1.1.9-1.9 1.9-1.9 1 0 1.7.7 1.7 1.6M15.6 23.6V5.6c0-2.3 2.9-2.7 2.9-.2 0 3.2-7.4 6.3-7.4 11.2 0 3 2.4 5 5.2 5 2.5 0 4.3-1.8 4.3-4 0-2.1-1.7-3.6-3.8-3.6-2 0-3.5 1.4-3.5 3.1" fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>`
+    :`<path d="M9.3 12.2c0-2.8 2.4-4.8 5.3-4.8 3.6 0 5.9 2.6 5.9 6.1 0 5.1-4.7 8.6-10.6 10.3" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"/><circle cx="10.9" cy="12.6" r="2" fill="#fff"/><circle cx="23.3" cy="11.2" r="1.25" fill="#fff"/><circle cx="23.3" cy="16" r="1.25" fill="#fff"/>`;
+  return `<svg viewBox="0 0 30 30" aria-hidden="true"><defs><linearGradient id="${id}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${c[0]}"/><stop offset="1" stop-color="${c[1]}"/></linearGradient></defs><circle cx="15" cy="15" r="13" fill="url(#${id})"/><circle cx="15" cy="15" r="11" fill="none" stroke="rgba(255,255,255,.45)" stroke-width="1"/><path d="M6.5 9.5a10 10 0 0 1 6-4.6" stroke="rgba(255,255,255,.6)" stroke-width="1.4" fill="none" stroke-linecap="round"/>${fig}</svg>`;
 }
 function completionistSvg(){return `<svg viewBox="0 0 30 30" aria-hidden="true"><circle cx="15" cy="15" r="13" fill="#1d2433"/><path d="M15 2.6a12.4 12.4 0 0 1 10.74 6.2" stroke="#ff9a2e" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M26.74 12.6a12.4 12.4 0 0 1-5.37 13.1" stroke="#45d17a" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M17.6 27.2a12.4 12.4 0 0 1-12.3-6" stroke="#3fa0ff" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M3.9 16.9a12.4 12.4 0 0 1 7.6-13.8" stroke="#f5c84a" stroke-width="3" fill="none" stroke-linecap="round"/><circle cx="15" cy="15" r="8.4" fill="#f5c84a"/><circle cx="15" cy="15" r="8.4" fill="none" stroke="rgba(255,255,255,.6)" stroke-width="1"/><path d="M10.8 15.3l3 3 5.6-6.4" stroke="#10131a" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`}
 // 100% scores by the class of the challenge (its level on the scoreboard card)
