@@ -1169,7 +1169,7 @@ footer{color:var(--dim);font-size:.78rem}
   <footer>Data: Rodman’s Rocksmith 2014 Championship Google Sheets (older attendance also from the Championship Metrics workbook). Player stats run through week 675; scoreboards cover weeks 440–676. Weeks 1–16 have no recorded host in the source.
   <span class="updated disclaimer">Unofficial fan project. Not affiliated with Ubisoft or Rocksmith.</span>
   <span class="updated" id="sheetedit-row" hidden>Sheet last edited: <span id="sheetedit" data-iso="2026-10-09T18:08:57.146Z"></span></span>
-  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-10T01:53:04+00:00">October 9, 2026</span></span>
+  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-10T01:55:06+00:00">October 9, 2026</span></span>
   </footer>
 </div>
 <dialog id="acct" class="acctdlg" aria-label="Your account"><div id="acctbody"></div><button type="button" class="clear acctclose" id="acctclose">Close</button></dialog>
@@ -3005,7 +3005,12 @@ async function hostLoad(){if(!ACCT.sb)return;
   const {data,error}=await ACCT.sb.from("host_signups").select("week,player,user_id,created_at").gte("week",WEEKS[curIdx][0]);
   if(error)return; ACCT.hostSign={}; (data||[]).forEach(r=>ACCT.hostSign[r.week]=r); renderUpcoming(); renderNow(); renderHostWarn(); if(hName&&hosts[hName])showHost(hName);
 }
-function hostNames(){const m=new Map();[...PLAYERS.map(p=>p[0]),...Object.keys(hosts)].forEach(n=>m.set(n.toLowerCase(),n));return [...m.values()].sort((a,b)=>a.localeCompare(b,undefined,{sensitivity:"base"}))}
+// admin sign-up list: hosts by latest week hosted (most recently active first), then other players A–Z
+function hostOptions(){
+  const hs=hostList.slice().sort((a,b)=>b.last-a.last||b.n-a.n), seen=new Set(hs.map(h=>h.name.toLowerCase()));
+  const rest=PLAYERS.map(p=>p[0]).filter(n=>!seen.has(n.toLowerCase())).sort((a,b)=>a.localeCompare(b,undefined,{sensitivity:"base"}));
+  return `<optgroup label="Hosts · most recently active first">${hs.map(h=>`<option value="${esc(h.name)}">${esc(h.name)} · last hosted wk ${h.last}</option>`).join("")}</optgroup><optgroup label="Other players">${rest.map(n=>`<option value="${esc(n)}">${esc(n)}</option>`).join("")}</optgroup>`;
+}
 // what shows for a week the sheet has no host for: a sign-up, a sign-up button, or "HOST NEEDED"
 function hostSlot(w,i,label){
   label=label||"HOST NEEDED";
@@ -3013,7 +3018,7 @@ function hostSlot(w,i,label){
   if(s){const mine=ACCT.claim&&ACCT.claim.status==="approved"&&s.player===ACCT.claim.player;
     return `<span class="who" data-name="${esc(s.player)}">${esc(s.player)}</span> <span class="pill signed" data-tip="${esc(s.player)} signed up to host this week. It's added to the schedule once the admin puts it in the sheet.">SIGNED UP</span>${mine||ACCT.admin?` <button type="button" class="hostx" data-hostdrop="${w[0]}" title="${mine?"Withdraw your sign-up":"Remove this sign-up"}">✕</button>`:""}`}
   if(!on||i>hostAhead())return `<span class="pill open">${label}</span>`;
-  if(ACCT.admin)return `<span class="pill open hostbtn" data-tip="Sign someone up to host Week ${w[0]}">${label} · SIGN UP<select data-hostpick="${w[0]}" aria-label="Sign someone up to host Week ${w[0]}"><option value="">Sign up a host…</option>${ACCT.claim&&ACCT.claim.status==="approved"?`<option>${esc(ACCT.claim.player)}</option>`:""}${hostNames().map(n=>`<option>${esc(n)}</option>`).join("")}</select></span>`;
+  if(ACCT.admin)return `<span class="pill open hostbtn" data-tip="Sign someone up to host Week ${w[0]}">${label} · SIGN UP<select data-hostpick="${w[0]}" aria-label="Sign someone up to host Week ${w[0]}"><option value="">Sign up a host…</option>${hostOptions()}</select></span>`;
   if(hostVerified())return `<button type="button" class="pill open hostbtn" data-hostsign="${w[0]}" data-tip="Sign up to host Week ${w[0]}">${label} · SIGN UP</button>`;
   return `<span class="pill open">${label}</span>`;
 }
