@@ -1253,7 +1253,7 @@ footer{color:var(--dim);font-size:.78rem}
   </div>
 
   <section class="panel">
-    <div class="panel-head"><h2>Bands by difficulty</h2><span class="sub">Click a band to look it up · most featured bands at each level · level set by the difficulty rating: under 4 Beginner, 4–5.5 Intermediate, 6–7.5 Advanced, 8–9.5 Masterclass, 10 God tier</span></div>
+    <div class="panel-head"><h2>Bands by difficulty</h2><span class="sub">Click a band to look it up · most featured bands at each level · each song counted once per path, at the level of its current average rating (host and player ratings): under 4 Beginner, 4–5.9 Intermediate, 6–7.9 Advanced, 8–9.9 Masterclass, 10 God tier</span></div>
     <div class="tiers5" id="tiers5"></div>
   </section>
 
@@ -2514,9 +2514,10 @@ const IG_LATEST=(()=>{const m={}, norm=s=>String(s).toLowerCase().replace(/\s+/g
   return s=>m[norm(s)]})();
 const splitSong=t=>{const i=t.indexOf(" - ");return i>0?[t.slice(0,i).trim(),t.slice(i+3).trim()]:["Unknown",t.trim()]};
 let sHost=null; // Songs: only the weeks this host hosted (their song picks)
+let bandTierAvg=false; // band lookup level filter by the songs' average rating (opened from Bands by difficulty)
 let sPath=-1, songCards=[], bandName=null, bandTier=null, bandPathF=null, bandSong=null, lvlPlayed=null, lvlReplay=null;
 // one level filter for the whole Songs page: Most played, Most replayed and Band lookup always share it
-function setSongLv(t){lvlPlayed=lvlReplay=bandTier=t||null}
+function setSongLv(t){lvlPlayed=lvlReplay=bandTier=t||null; bandTierAvg=false}
 function songLvToggle(t){setSongLv(t&&lvlPlayed!==t?t:null); renderSongs(); if(typeof updateBubble==="function")updateBubble()}
 function renderSongs(){
   TIER_LABEL.G=sPath<0?"God tier":["God of Guitar","God of Rhythm","God of Bass"][sPath];
@@ -2544,6 +2545,10 @@ function renderSongs(){
    cards.forEach(c=>{c.cont=c.card==="G"&&g.has(c.p+"|"+acctSongKey(c.song)+"|"+(c.w+1))});}
   const scored=cards.filter(c=>c.n!=null);
   songCards=cards;
+  // each card's arrangement played, and the level its song's current average rating on that arrangement puts it at
+  {const memo={}; cards.forEach(c=>{c.code=c.slot!=null?arrP(c.w,c.p,c.slot):"LRB"[c.p]; const k=c.code+"|"+acctSongKey(c.song);
+    if(!(k in memo)){const R=songRating(c.code,c.song); memo[k]=R.avg!=null?tierByRating(c.card,+R.avg):null}
+    c.ta=memo[k]||c.t});}
   const by=(key)=>{const m={};cards.forEach(c=>{const k=key(c);(m[k]=m[k]||[]).push(c)});return m};
   const bands=by(c=>c.artist), songs=by(c=>c.song);
   const entries=scored.reduce((a,c)=>a+c.n,0);
@@ -2556,9 +2561,12 @@ function renderSongs(){
   $("b-featured").innerHTML=barRows(featured,(n,i)=>STR[i%6],"",false);
   const played=Object.entries(bands).map(([a,v])=>[a,v.reduce((s,c)=>s+(c.n||0),0)]).filter(x=>x[1]>0).sort((a,b)=>b[1]-a[1]).slice(0,20);
   $("b-playedbands").innerHTML=barRows(played,(n,i)=>STR[(i+2)%6],"",false);
-  $("tiers5").innerHTML=TIER_ORDER.map(t=>{const sub=cards.filter(c=>c.t===t); const m={}; sub.forEach(c=>m[c.artist]=(m[c.artist]||0)+1);
+  // Bands by difficulty: each song is placed once per arrangement (Lead, Rhythm, Bass, or a bonus/alternate one), by its
+  // current average rating (host initial ratings and player ratings, as in its rating box); unrated songs keep their level
+  {const seen=new Set(); cards.forEach(c=>{const k=c.code+"|"+acctSongKey(c.song); if(seen.has(k))return; seen.add(k); c.first=true});}
+  $("tiers5").innerHTML=TIER_ORDER.map(t=>{const sub=cards.filter(c=>c.first&&c.ta===t); const m={}; sub.forEach(c=>m[c.artist]=(m[c.artist]||0)+1);
     const top=Object.entries(m).sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0])).slice(0,8);
-    return `<div class="tcol" style="--tc:${TIER_COL[t]}"><h3>${TIER_LABEL[t]}<small>${sub.length} challenges</small></h3><ol>${top.map(([a,k])=>`<li data-band="${esc(a)}" data-ltier="${t}" title="Show ${esc(a)}'s ${TIER_LABEL[t]} songs"><span>${esc(a)}</span><span>${k}</span></li>`).join("")||`<li><span class="sub">None</span></li>`}</ol></div>`}).join("");
+    return `<div class="tcol" style="--tc:${TIER_COL[t]}"><h3>${TIER_LABEL[t]}<small>${sub.length} song${sub.length===1?"":"s"}</small></h3><ol>${top.map(([a,k])=>`<li data-band="${esc(a)}" data-ltier="${t}" title="Show ${esc(a)}'s ${TIER_LABEL[t]} songs"><span>${esc(a)}</span><span>${k}</span></li>`).join("")||`<li><span class="sub">None</span></li>`}</ol></div>`}).join("");
   // with one host's picks there are too few challenges per band for a minimum, so any rated band counts
   const MINC=sHost?1:5;
   document.querySelectorAll(".minc").forEach(el=>el.textContent=sHost?"any number of challenges":"min 5 challenges");
@@ -2599,7 +2607,7 @@ function showBand(name){
   const scores=list.reduce((a,c)=>a+(c.n||0),0);
   if(bandPathF!=null&&!list.some(c=>c.p===bandPathF))bandPathF=null;
   if(bandSong&&!list.some(c=>c.title.toLowerCase()===bandSong.toLowerCase()))bandSong=null;
-  const shown=list.filter(c=>(!bandTier||c.t===bandTier)&&(bandPathF==null||c.p===bandPathF)&&(!bandSong||c.title.toLowerCase()===bandSong.toLowerCase()));
+  const shown=list.filter(c=>(!bandTier||(bandTierAvg?c.ta:c.t)===bandTier)&&(bandPathF==null||c.p===bandPathF)&&(!bandSong||c.title.toLowerCase()===bandSong.toLowerCase()));
   const bySong={}; shown.forEach(c=>(bySong[c.title]=bySong[c.title]||[]).push(c));
   const lastW=v=>Math.max(...v.map(c=>c.w));
   const songsArr=Object.entries(bySong).sort((a,b)=>lastW(b[1])-lastW(a[1])||a[0].localeCompare(b[0]));
@@ -2635,7 +2643,7 @@ function showBand(name){
 $("bq").addEventListener("change",e=>showBand(e.target.value.trim()));
 $("bcard").addEventListener("click",e=>{const bs=e.target.closest("[data-bsong]");if(bs){e.stopPropagation();bandSong=null;showBand(bandName);return}const bp=e.target.closest("[data-bpath]");if(bp){e.stopPropagation();const p=bp.dataset.bpath===""?null:+bp.dataset.bpath;bandPathF=(p!=null&&bandPathF!==p)?p:null;if(bp.dataset.bpath===""&&sPath>=0){sPath=-1;renderSongs()}else showBand(bandName);return}const b=e.target.closest("[data-btier]");if(!b)return;e.stopPropagation();songLvToggle(b.dataset.btier||null)});
 $("bq").addEventListener("keydown",e=>{if(e.key==="Enter")showBand(e.target.value.trim())});
-$("view-songs").addEventListener("click",e=>{const el=e.target.closest("[data-band],[data-player]");if(!el)return;showBand(el.dataset.band||el.dataset.player);if(el.dataset.song){bandSong=el.dataset.song;bandPathF=null;showBand(bandName)}if(el.dataset.ltier){bandPathF=null;setSongLv(el.dataset.ltier);renderSongs();showBand(bandName)}$("bcard").closest("section").scrollIntoView({behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth",block:"start"})});
+$("view-songs").addEventListener("click",e=>{const el=e.target.closest("[data-band],[data-player]");if(!el)return;showBand(el.dataset.band||el.dataset.player);if(el.dataset.song){bandSong=el.dataset.song;bandPathF=null;showBand(bandName)}if(el.dataset.ltier){bandPathF=null;setSongLv(el.dataset.ltier);bandTierAvg=true;renderSongs();showBand(bandName)}$("bcard").closest("section").scrollIntoView({behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth",block:"start"})});
 $("spath").addEventListener("click",e=>{const b=e.target.closest("button[data-sp]");if(b){sPath=+b.dataset.sp;renderSongs()}});
 try{const r=localStorage.getItem("rsc-spath");if(r!==null&&["0","1","2"].includes(r))sPath=+r}catch(e){}
 renderSongs();
@@ -3247,10 +3255,14 @@ function acctOn(){return typeof ACCT!=="undefined"&&!!ACCT&&ACCT.on}
 function acctCanRate(ents){return !!(ACCT.claim&&ACCT.claim.status==="approved")}
 // the difficulty badge: the host's rating, or the average of the players' ratings once any are in.
 // every week a song was used on a path, newest first, with the host's initial rating that week
+// every challenge's host rating, indexed once by arrangement + song (the scoreboards don't change while the page is open)
+var HR_INDEX=null; // (var: renderSongs can run before this line on first load)
+function hrIndex(){if(HR_INDEX)return HR_INDEX; const I={}, add=(k,x)=>(I[k]=I[k]||[]).push(x);
+  Object.entries(SB.weeks).forEach(([w,ch])=>ch.forEach(c=>{if(c[3])add(arrP(w,c[0],c[1])+"|"+acctSongKey(c[3]),{w:+w,t:tierOf(c[2]),d:c[4],cp:c[0]})}));
+  SONGS_OLD.forEach(([w,pp,tt,b,s,d])=>{if(s)add("LRB"[pp]+"|"+acctSongKey(s),{w,t:tt,d})});
+  return HR_INDEX=I}
 function hostRatingsOf(p,song){
-  const k=acctSongKey(song), out=[];
-  Object.entries(SB.weeks).forEach(([w,ch])=>ch.forEach(c=>{if(c[3]&&arrP(w,c[0],c[1])===p&&acctSongKey(c[3])===k)out.push({w:+w,t:tierOf(c[2]),d:c[4],cp:c[0]})}));
-  SONGS_OLD.forEach(([w,pp,tt,b,s,d])=>{if("LRB"[pp]===p&&s&&acctSongKey(s)===k)out.push({w,t:tt,d})});
+  const out=(hrIndex()[p+"|"+acctSongKey(song)]||[]).slice();
   // a multi-week God run counts once, with the initial rating of its most recent week
   const god=new Set(out.filter(x=>x.t==="G").map(x=>x.w));
   return out.filter(x=>!(x.t==="G"&&god.has(x.w+1))).sort((a,b)=>b.w-a.w);
