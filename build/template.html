@@ -633,19 +633,20 @@ footer .updated{display:block;margin-top:4px}
 .twstats .pill.hol{cursor:default}
 .twl{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
 /* gold God winners on This Week: a celestial glow (a slowly turning aurora rim, a soft halo and a few twinkling stars) */
-.twl li.celestial{position:relative;isolation:isolate;border-color:transparent;background:
+.celestial{position:relative;isolation:isolate;border-color:transparent;background:
   radial-gradient(1.5px 1.5px at 12% 22%,#fff 50%,transparent 51%),radial-gradient(1px 1px at 78% 18%,#fff 50%,transparent 51%),
   radial-gradient(1.2px 1.2px at 92% 70%,#fff 50%,transparent 51%),radial-gradient(1px 1px at 40% 85%,#fff 50%,transparent 51%),
   radial-gradient(120% 140% at 50% 0%,color-mix(in srgb,#7fe9ff 26%,transparent),transparent 70%),radial-gradient(90% 120% at 100% 100%,color-mix(in srgb,#b48cff 20%,transparent),transparent 70%),var(--panel2) padding-box;
   box-shadow:0 0 16px color-mix(in srgb,#7fe9ff 60%,transparent),0 0 36px color-mix(in srgb,#b48cff 42%,transparent),0 0 64px color-mix(in srgb,#ffd86b 22%,transparent);
   animation:celTwinkle 4s ease-in-out infinite}
-.twl li.celestial::before{content:"";position:absolute;inset:-2px;border-radius:inherit;padding:2px;z-index:-1;pointer-events:none;
+.celestial::before{content:"";position:absolute;inset:-2px;border-radius:inherit;padding:2px;z-index:-1;pointer-events:none;
   background:conic-gradient(from var(--cang,0deg),#7fe9ff,#b48cff,#ffd86b,#fff6d5,#7fe9ff);
   -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;animation:celSpin 6s linear infinite}
+.haulbox.celestial{padding:10px 12px;border-radius:8px;border:1px solid transparent;margin-top:4px}
 @property --cang{syntax:"<angle>";inherits:false;initial-value:0deg}
 @keyframes celSpin{to{--cang:360deg}}
 @keyframes celTwinkle{50%{box-shadow:0 0 22px color-mix(in srgb,#7fe9ff 75%,transparent),0 0 48px color-mix(in srgb,#b48cff 55%,transparent),0 0 84px color-mix(in srgb,#ffd86b 32%,transparent)}}
-@media (prefers-reduced-motion:reduce){.twl li.celestial,.twl li.celestial::before{animation:none}}
+@media (prefers-reduced-motion:reduce){.celestial,.celestial::before{animation:none}}
 .twl.cols{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,330px),1fr))}
 .twl li{display:flex;align-items:center;gap:6px 10px;flex-wrap:wrap;padding:8px 10px;background:var(--panel2);border:1px solid var(--line);border-radius:8px;min-width:0}
 .twl li.empty{background:none;border:0;padding:6px 0}
@@ -3405,7 +3406,8 @@ function acctThisWeek(n){
     rk.push(`<li style="--pc:${PATH_C[pi]}"><span class="apath">${esc(pp.path)}</span><span class="lvchip" style="--tc:${TIER_C[LT]||"var(--fg)"}">${esc(l.level)}</span><span class="arank${r==="1"?" p1":r==="2"?" p2":r==="3"?" p3":""}">#${esc(r)}<small> of ${l.rows.filter(x=>x[3]!=="Out").length}</small></span><span class="apts">${esc(pts)} pts</span><span class="chg ${cc}">${esc(ch)}</span></li>`)}))});
   // last week's haul: the medals collected in the last finished week, as on that week's This Week page
   const lw=DATA_WEEK, haul=lw>=TW_MIN?twMedals(n,lw,false):[];
-  return `<div class="acctsec"><h3>Last week's haul <small>Week ${lw}</small></h3>${haul.length?`<div class="medals haul">${haul.join("")}</div><p class="dim" style="margin-top:6px">${twPl(medalTotal(haul),"new medal")}</p>`:`<p class="dim">No new medals last week.</p>`}</div>
+  return `<div class="acctsec"><h3>Last week's haul <small>Week ${lw}</small></h3>${haul.length?(()=>{const g=haul.some(h=>/diamond d0/.test(h)), inner=`<div class="medals haul">${haul.join("")}</div><p class="dim" style="margin-top:6px">${twPl(medalTotal(haul),"new medal")}</p>`;
+      return g?`<div class="haulbox celestial" data-tip="Gold God winner last week">${inner}</div>`:inner})():`<p class="dim">No new medals last week.</p>`}</div>
     <div class="acctsec"><h3>This week's scoreboard <small>Week ${w}</small></h3>${sb.length?`<ul class="alist">${sb.join("")}</ul>`:`<p class="dim">No scoreboard for this week yet.</p>`}</div>
     <div class="acctsec acctriv"><h3>This week's rivals</h3>${riv||`<p class="dim">No rivals this week yet.</p>`}</div>
     <div class="acctsec"><h3>Rodman's Rankings ${RK.weeks?`<small>Weeks ${esc(RK.weeks)}</small>`:""}</h3>${rk.length?`<ul class="alist">${rk.join("")}</ul>`:`<p class="dim">Not ranked right now.</p>`}<div class="row"><button type="button" class="btn ghost" data-goview="rankings">Open Rodman's Rankings ›</button></div></div>`;
