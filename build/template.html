@@ -646,11 +646,13 @@ footer .updated{display:block;margin-top:4px}
 .celestial .celc svg{width:100%;height:100%;display:block}
 .celestial .celc.c-tl{top:-7px;left:-7px}.celestial .celc.c-tr{top:-7px;right:-7px;transform:scaleX(-1)}
 .celestial .celc.c-bl{bottom:-7px;left:-7px;transform:scaleY(-1)}.celestial .celc.c-br{bottom:-7px;right:-7px;transform:scale(-1,-1)}
-.celestial .celgems{position:absolute;inset:-1px;pointer-events:none;z-index:1}
+/* the gem layer is clipped (overflow hidden), so the moving tracks never stick out past the box: an overhang that
+   changes as they move made phones keep re-zooming the page */
+.celestial .celgems{position:absolute;inset:-6px;pointer-events:none;z-index:1;overflow:hidden;border-radius:12px}
 /* each gem rides a track the length of its edge and only moves with transform/opacity (cheap for the browser) */
 .celtrack{position:absolute;pointer-events:none;will-change:transform;animation:var(--dur) linear var(--dl) infinite}
-.celtrack.gt,.celtrack.gb{left:0;width:100%;height:0;animation-name:celTrackH}.celtrack.gt{top:0}.celtrack.gb{bottom:0}
-.celtrack.gl,.celtrack.gr{top:0;height:100%;width:0;animation-name:celTrackV}.celtrack.gl{left:0}.celtrack.gr{right:0}
+.celtrack.gt,.celtrack.gb{left:6px;width:calc(100% - 12px);height:0;animation-name:celTrackH}.celtrack.gt{top:5px}.celtrack.gb{bottom:5px}
+.celtrack.gl,.celtrack.gr{top:6px;height:calc(100% - 12px);width:0;animation-name:celTrackV}.celtrack.gl{left:5px}.celtrack.gr{right:5px}
 .celgem{position:absolute;left:0;top:0;width:var(--sz);height:var(--sz);margin:calc(var(--sz)/-2) 0 0 calc(var(--sz)/-2);border-radius:1px;opacity:0;
   background:radial-gradient(circle at 35% 35%,#fff 0 30%,#bff4ff 45%,#8fd8ff 70%,#b48cff);will-change:transform,opacity;animation:celGemFade var(--dur) ease-in-out var(--dl) infinite}
 @keyframes celTrackH{from{transform:translateX(var(--s))}to{transform:translateX(var(--e))}}
