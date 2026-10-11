@@ -40,7 +40,7 @@ jobs:
 
       - name: Probe newest week header cells (temporary)
         run: |
-          cd build/work && python3 - <<'PY' 2>&1 | tee -a ../../build.log
+          cd build/work && python3 - <<'PY' 2>&1 | tee ../data/cache/probe.txt
           import openpyxl, re
           wb = openpyxl.load_workbook("board.xlsx", data_only=True)
           for t in ("Week677", "Week676"):
