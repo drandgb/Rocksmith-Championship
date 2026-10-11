@@ -1,0 +1,441 @@
+== Week677
+B1 'Note: for the unlikely event that CF is being shut-down without warning at any point everyone who wants to be informed how the Championship is continued drop an email (include Nickname) to rodman.at.the.championship@gmail.com !!!!!!' | NOTE:  | link: mailto:rodman.at.the.championship@gmail.com
+B2 'Week 677' | NOTE:  | link: 
+D2 'Master mode is red, not red berry' | NOTE:  | link: 
+O2 datetime.datetime(2026, 10, 10, 10, 20, 31, 825000) | NOTE:  | link: 
+B4 'Name - Player in own class     Name* - Player in lower class        Name* - Player in higher class        Name* - Player in 2 or more classes higher        Name~ - FreeBird\nName - No class for player in the path       Name - New Player / Invalid entry (check spelling, case sensitive)         NN% - 100% score or "Master Mode"      Name; Name; Name - Default font (not formatted)' | NOTE:  | link: 
+B5 '~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ Lead Arrangments ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~' | NOTE:  | link: 
+AU5 '~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ Rhythm Arrangements ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~' | NOTE:  | link: 
+CN5 '~ ~ ~ ~ ~ ~ ~ ~ Bass Arrangements ~ ~ ~ ~ ~ ~ ~ ~ ~' | NOTE:  | link: 
+A6 'Song>' | NOTE:  | link: 
+B6 'Winterspring - Revive Me' | NOTE:  | link: https://ignition4.customsforge.com/cdlc/96400
+G6 'n/a' | NOTE:  | link: 
+L6 'Static-X - Jic Boi' | NOTE:  | link: https://ignition4.customsforge.com/cdlc/83495
+Q6 'n/a' | NOTE:  | link: 
+V6 'Mammoth WVH - Mammoth' | NOTE:  | link: https://ignition4.customsforge.com/cdlc/74684
+AA6 'n/a' | NOTE:  | link: 
+AF6 'Rabea Massaad - Dont Get Me Wong (feat. Peter Honore)' | NOTE:  | link: https://ignition4.customsforge.com/cdlc/74664
+AK6 'n/a' | NOTE:  | link: 
+AP6 'n/a' | NOTE:  | link: 
+AU6 'Winterspring - Revive Me' | NOTE:  | link: https://ignition4.customsforge.com/cdlc/96400
+AZ6 'n/a' | NOTE:  | link: 
+BE6 'Static-X - Jic Boi' | NOTE:  | link: https://ignition4.customsforge.com/cdlc/83495
+BJ6 'n/a' | NOTE:  | link: 
+BO6 'Mammoth WVH - Mammoth' | NOTE:  | link: https://ignition4.customsforge.com/cdlc/74684
+BT6 'n/a' | NOTE:  | link: 
+BY6 'Rabea Massaad - Dont Get Me Wong (feat. Peter Honore)' | NOTE:  | link: https://ignition4.customsforge.com/cdlc/74664
+CD6 'n/a' | NOTE:  | link: 
+CI6 'n/a' | NOTE:  | link: 
+CN6 'Winterspring - Revive Me' | NOTE:  | link: https://ignition4.customsforge.com/cdlc/96400
+CS6 'n/a' | NOTE:  | link: 
+CX6 'Mammoth WVH - Mammoth' | NOTE:  | link: https://ignition4.customsforge.com/cdlc/74684
+DC6 'n/a' | NOTE:  | link: 
+DH6 'BADBADNOTGOOD & Ghostface Killah - Ray Gun (feat. MF DOOM)' | NOTE:  | link: https://ignition4.customsforge.com/cdlc/86262
+DM6 'n/a' | NOTE:  | link: 
+DR6 'Telula - No Rush' | NOTE:  | link: https://ignition4.customsforge.com/cdlc/83050
+DW6 'n/a' | NOTE:  | link: 
+EB6 'n/a' | NOTE:  | link: 
+A7 'Level>' | NOTE:  | link: 
+B7 'Beginner' | NOTE:  | link: 
+C7 'R' | NOTE:  | link: 
+E7 4.0 | NOTE:  | link: 
+G7 'Beginner Bonus' | NOTE:  | link: 
+H7 'L' | NOTE:  | link: 
+L7 'Intermediate' | NOTE:  | link: 
+M7 'L' | NOTE:  | link: 
+O7 4.5 | NOTE:  | link: 
+Q7 'Intermediate Bonus' | NOTE:  | link: 
+R7 'L' | NOTE:  | link: 
+V7 'Advanced' | NOTE:  | link: 
+W7 'L' | NOTE:  | link: 
+Y7 6.5 | NOTE:  | link: 
+AA7 'Advanced Bonus' | NOTE:  | link: 
+AB7 'L' | NOTE:  | link: 
+AF7 'Masterclass' | NOTE:  | link: 
+AG7 'L' | NOTE:  | link: 
+AI7 8.0 | NOTE:  | link: 
+AK7 'Masterclass Bonus' | NOTE:  | link: 
+AL7 'L' | NOTE:  | link: 
+AP7 'God of Guitar' | NOTE:  | link: 
+AQ7 'L' | NOTE:  | link: 
+AU7 'Beginner' | NOTE:  | link: 
+AV7 'L' | NOTE:  | link: 
+AX7 2.5 | NOTE:  | link: 
+AZ7 'Beginner Bonus' | NOTE:  | link: 
+BA7 'R' | NOTE:  | link: 
+BE7 'Intermediate' | NOTE:  | link: 
+BF7 'R' | NOTE:  | link: 
+BH7 4.5 | NOTE:  | link: 
+BJ7 'Intermediate Bonus' | NOTE:  | link: 
+BK7 'R' | NOTE:  | link: 
+BO7 'Advanced' | NOTE:  | link: 
+BP7 'R' | NOTE:  | link: 
+BR7 6.0 | NOTE:  | link: 
+BT7 'Advanced Bonus' | NOTE:  | link: 
+BU7 'R' | NOTE:  | link: 
+BY7 'Masterclass' | NOTE:  | link: 
+BZ7 'R' | NOTE:  | link: 
+CB7 9.0 | NOTE:  | link: 
+CD7 'Masterclass Bonus' | NOTE:  | link: 
+CE7 'R' | NOTE:  | link: 
+CI7 'God of Rhythm' | NOTE:  | link: 
+CJ7 'R' | NOTE:  | link: 
+CN7 'Beginner' | NOTE:  | link: 
+CO7 'B' | NOTE:  | link: 
+CQ7 2.0 | NOTE:  | link: 
+CS7 'Beginner Bonus' | NOTE:  | link: 
+CT7 'B' | NOTE:  | link: 
+CX7 'Intermediate' | NOTE:  | link: 
+CY7 'B' | NOTE:  | link: 
+DA7 4.0 | NOTE:  | link: 
+DC7 'Intermediate Bonus' | NOTE:  | link: 
+DD7 'B' | NOTE:  | link: 
+DH7 'Advanced' | NOTE:  | link: 
+DI7 'B' | NOTE:  | link: 
+DK7 5.5 | NOTE:  | link: 
+DM7 'Advanced Bonus' | NOTE:  | link: 
+DN7 'B' | NOTE:  | link: 
+DR7 'Masterclass' | NOTE:  | link: 
+DS7 'B' | NOTE:  | link: 
+DU7 8.5 | NOTE:  | link: 
+DW7 'Masterclass Bonus' | NOTE:  | link: 
+DX7 'B' | NOTE:  | link: 
+EB7 'God of Bass' | NOTE:  | link: 
+EC7 'B' | NOTE:  | link: 
+A8 'Rank' | NOTE:  | link: 
+B8 'Name' | NOTE:  | link: 
+C8 '%' | NOTE:  | link: 
+D8 'Streak' | NOTE:  | link: 
+E8 'Score' | NOTE:  | link: 
+G8 'Name' | NOTE:  | link: 
+H8 '%' | NOTE:  | link: 
+I8 'Streak' | NOTE:  | link: 
+J8 'Score' | NOTE:  | link: 
+L8 'Name' | NOTE:  | link: 
+M8 '%' | NOTE:  | link: 
+N8 'Streak' | NOTE:  | link: 
+O8 'Score' | NOTE:  | link: 
+Q8 'Name' | NOTE:  | link: 
+R8 '%' | NOTE:  | link: 
+S8 'Streak' | NOTE:  | link: 
+T8 'Score' | NOTE:  | link: 
+V8 'Name' | NOTE:  | link: 
+W8 '%' | NOTE:  | link: 
+X8 'Streak' | NOTE:  | link: 
+Y8 'Score' | NOTE:  | link: 
+AA8 'Name' | NOTE:  | link: 
+AB8 '%' | NOTE:  | link: 
+AC8 'Streak' | NOTE:  | link: 
+AD8 'Score' | NOTE:  | link: 
+AF8 'Name' | NOTE:  | link: 
+AG8 '%' | NOTE:  | link: 
+AH8 'Streak' | NOTE:  | link: 
+AI8 'Score' | NOTE:  | link: 
+AK8 'Name' | NOTE:  | link: 
+AL8 '%' | NOTE:  | link: 
+AM8 'Streak' | NOTE:  | link: 
+AN8 'Score' | NOTE:  | link: 
+AP8 'Name' | NOTE:  | link: 
+AQ8 '%' | NOTE:  | link: 
+AR8 'Streak' | NOTE:  | link: 
+AS8 'Score' | NOTE:  | link: 
+AU8 'Name' | NOTE:  | link: 
+AV8 '%' | NOTE:  | link: 
+AW8 'Streak' | NOTE:  | link: 
+AX8 'Score' | NOTE:  | link: 
+AZ8 'Name' | NOTE:  | link: 
+BA8 '%' | NOTE:  | link: 
+BB8 'Streak' | NOTE:  | link: 
+BC8 'Score' | NOTE:  | link: 
+BE8 'Name' | NOTE:  | link: 
+BF8 '%' | NOTE:  | link: 
+BG8 'Streak' | NOTE:  | link: 
+BH8 'Score' | NOTE:  | link: 
+BJ8 'Name' | NOTE:  | link: 
+BK8 '%' | NOTE:  | link: 
+BL8 'Streak' | NOTE:  | link: 
+BM8 'Score' | NOTE:  | link: 
+BO8 'Name' | NOTE:  | link: 
+BP8 '%' | NOTE:  | link: 
+BQ8 'Streak' | NOTE:  | link: 
+BR8 'Score' | NOTE:  | link: 
+BT8 'Name' | NOTE:  | link: 
+BU8 '%' | NOTE:  | link: 
+BV8 'Streak' | NOTE:  | link: 
+BW8 'Score' | NOTE:  | link: 
+BY8 'Name' | NOTE:  | link: 
+BZ8 '%' | NOTE:  | link: 
+CA8 'Streak' | NOTE:  | link: 
+CB8 'Score' | NOTE:  | link: 
+CD8 'Name' | NOTE:  | link: 
+CE8 '%' | NOTE:  | link: 
+CF8 'Streak' | NOTE:  | link: 
+CG8 'Score' | NOTE:  | link: 
+CI8 'Name' | NOTE:  | link: 
+CJ8 '%' | NOTE:  | link: 
+CK8 'Streak' | NOTE:  | link: 
+CL8 'Score' | NOTE:  | link: 
+CN8 'Name' | NOTE:  | link: 
+CO8 '%' | NOTE:  | link: 
+CP8 'Streak' | NOTE:  | link: 
+CQ8 'Score' | NOTE:  | link: 
+CS8 'Name' | NOTE:  | link: 
+CT8 '%' | NOTE:  | link: 
+CU8 'Streak' | NOTE:  | link: 
+CV8 'Score' | NOTE:  | link: 
+CX8 'Name' | NOTE:  | link: 
+CY8 '%' | NOTE:  | link: 
+CZ8 'Streak' | NOTE:  | link: 
+DA8 'Score' | NOTE:  | link: 
+DC8 'Name' | NOTE:  | link: 
+DD8 '%' | NOTE:  | link: 
+DE8 'Streak' | NOTE:  | link: 
+DF8 'Score' | NOTE:  | link: 
+DH8 'Name' | NOTE:  | link: 
+DI8 '%' | NOTE:  | link: 
+DJ8 'Streak' | NOTE:  | link: 
+DK8 'Score' | NOTE:  | link: 
+DM8 'Name' | NOTE:  | link: 
+DN8 '%' | NOTE:  | link: 
+DO8 'Streak' | NOTE:  | link: 
+DP8 'Score' | NOTE:  | link: 
+DR8 'Name' | NOTE:  | link: 
+DS8 '%' | NOTE:  | link: 
+DT8 'Streak' | NOTE:  | link: 
+DU8 'Score' | NOTE:  | link: 
+DW8 'Name' | NOTE:  | link: 
+DX8 '%' | NOTE:  | link: 
+DY8 'Streak' | NOTE:  | link: 
+DZ8 'Score' | NOTE:  | link: 
+EB8 'Name' | NOTE:  | link: 
+EC8 '%' | NOTE:  | link: 
+ED8 'Streak' | NOTE:  | link: 
+EE8 'Score' | NOTE:  | link: 
+== Week676
+B1 'Note: for the unlikely event that CF is being shut-down without warning at any point everyone who wants to be informed how the Championship is continued drop an email (include Nickname) to rodman.at.the.championship@gmail.com !!!!!!' | NOTE:  | link: mailto:rodman.at.the.championship@gmail.com
+B2 'Week 676' | NOTE:  | link: 
+D2 'Master mode is red, not red berry' | NOTE:  | link: 
+O2 datetime.datetime(2026, 10, 4, 12, 34, 26, 519000) | NOTE:  | link: 
+B4 'Name - Player in own class     Name* - Player in lower class        Name* - Player in higher class        Name* - Player in 2 or more classes higher        Name~ - FreeBird\nName - No class for player in the path       Name - New Player / Invalid entry (check spelling, case sensitive)         NN% - 100% score or "Master Mode"      Name; Name; Name - Default font (not formatted)' | NOTE:  | link: 
+B5 '~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ Lead Arrangments ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~' | NOTE:  | link: 
+AU5 '~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ Rhythm Arrangements ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~' | NOTE:  | link: 
+CN5 '~ ~ ~ ~ ~ ~ ~ ~ Bass Arrangements ~ ~ ~ ~ ~ ~ ~ ~ ~' | NOTE:  | link: 
+A6 'Song>' | NOTE:  | link: 
+B6 'Alice Cooper - I Like Girls' | NOTE:  | link: https://ignition4.customsforge.com/cdlc/95714
+G6 'Rammstein - Wollt ihr das Bett in Flammen sehen?' | NOTE:  | link: https://ignition4.customsforge.com/cdlc/95202
+L6 'Beartooth - In Between' | NOTE:  | link: https://ignition4.customsforge.com/cdlc/86683
+Q6 'Porcupine Tree - Blackest Eyes' | NOTE:  | link: https://ignition4.customsforge.com/cdlc/89103
+V6 'Of Mice & Men - Obsolete' | NOTE:  | link: https://ignition4.customsforge.com/cdlc/96847
+AA6 'n/a' | NOTE:  | link: 
+AF6 'Megadeth - Burn!' | NOTE:  | link: https://ignition4.customsforge.com/cdlc/58075
+AK6 'Protest The Hero - Tapestry' | NOTE:  | link: https://ignition4.customsforge.com/cdlc/91366
+AP6 'The Black Dahlia Murder - Nocturnal (Full Album)' | NOTE:  | link: https://ignition4.customsforge.com/cdlc/90863
+AU6 'Alice Cooper - I Like Girls' | NOTE:  | link: https://ignition4.customsforge.com/cdlc/95714
+AZ6 'Rammstein - Wollt ihr das Bett in Flammen sehen?' | NOTE:  | link: https://ignition4.customsforge.com/cdlc/95202
+BE6 'Beartooth - In Between' | NOTE:  | link: https://ignition4.customsforge.com/cdlc/86683
+BJ6 'Megadeth - Burn!' | NOTE:  | link: https://ignition4.customsforge.com/cdlc/58075
+BO6 'Of Mice & Men - Obsolete' | NOTE:  | link: https://ignition4.customsforge.com/cdlc/96847
+BT6 'n/a' | NOTE:  | link: 
+BY6 'Protest The Hero - Tapestry' | NOTE:  | link: https://ignition4.customsforge.com/cdlc/91366
+CD6 'n/a' | NOTE:  | link: 
+CI6 'The Black Dahlia Murder - Nocturnal (Full Album)' | NOTE:  | link: https://ignition4.customsforge.com/cdlc/90863
+CN6 'Alice Cooper - I Like Girls' | NOTE:  | link: https://ignition4.customsforge.com/cdlc/95714
+CS6 'Beartooth - In Between' | NOTE:  | link: https://ignition4.customsforge.com/cdlc/86683
+CX6 'Megadeth - Burn!' | NOTE:  | link: https://ignition4.customsforge.com/cdlc/58075
+DC6 'Rammstein - Wollt ihr das Bett in Flammen sehen?' | NOTE:  | link: https://ignition4.customsforge.com/cdlc/95202
+DH6 '"Weird Al" Yankovic - Another Tattoo' | NOTE:  | link: https://ignition4.customsforge.com/cdlc/70178
+DM6 'Porcupine Tree - Blackest Eyes' | NOTE:  | link: https://ignition4.customsforge.com/cdlc/89103
+DR6 'Protest The Hero - Tapestry' | NOTE:  | link: https://ignition4.customsforge.com/cdlc/91366
+DW6 'Riverside - The Same River' | NOTE:  | link: https://ignition4.customsforge.com/cdlc/99641
+EB6 'The Black Dahlia Murder - Nocturnal (Full Album)' | NOTE:  | link: https://ignition4.customsforge.com/cdlc/90863
+A7 'Level>' | NOTE:  | link: 
+B7 'Beginner' | NOTE:  | link: 
+C7 'L' | NOTE:  | link: 
+E7 3.0 | NOTE:  | link: 
+G7 'Beginner Bonus' | NOTE:  | link: 
+H7 'L' | NOTE:  | link: 
+J7 4.0 | NOTE:  | link: 
+L7 'Intermediate' | NOTE:  | link: 
+M7 'L' | NOTE:  | link: 
+O7 4.5 | NOTE:  | link: 
+Q7 'Intermediate Bonus' | NOTE:  | link: 
+R7 'L' | NOTE:  | link: 
+T7 4.0 | NOTE:  | link: 
+V7 'Advanced' | NOTE:  | link: 
+W7 'L' | NOTE:  | link: 
+Y7 6.0 | NOTE:  | link: 
+AA7 'Advanced Bonus' | NOTE:  | link: 
+AB7 'L' | NOTE:  | link: 
+AF7 'Masterclass' | NOTE:  | link: 
+AG7 'L' | NOTE:  | link: 
+AI7 8.0 | NOTE:  | link: 
+AK7 'Masterclass Bonus' | NOTE:  | link: 
+AL7 'L' | NOTE:  | link: 
+AN7 9.5 | NOTE:  | link: 
+AP7 'God of Guitar' | NOTE:  | link: 
+AQ7 'L' | NOTE:  | link: 
+AR7 'Week 4/4' | NOTE:  | link: 
+AS7 10.0 | NOTE:  | link: 
+AU7 'Beginner' | NOTE:  | link: 
+AV7 'R' | NOTE:  | link: 
+AX7 3.0 | NOTE:  | link: 
+AZ7 'Beginner Bonus' | NOTE:  | link: 
+BA7 'R' | NOTE:  | link: 
+BC7 3.5 | NOTE:  | link: 
+BE7 'Intermediate' | NOTE:  | link: 
+BF7 'R' | NOTE:  | link: 
+BH7 4.5 | NOTE:  | link: 
+BJ7 'Intermediate Bonus' | NOTE:  | link: 
+BK7 'R' | NOTE:  | link: 
+BM7 4.0 | NOTE:  | link: 
+BO7 'Advanced' | NOTE:  | link: 
+BP7 'R' | NOTE:  | link: 
+BR7 6.0 | NOTE:  | link: 
+BT7 'Advanced Bonus' | NOTE:  | link: 
+BU7 'R' | NOTE:  | link: 
+BY7 'Masterclass' | NOTE:  | link: 
+BZ7 'R' | NOTE:  | link: 
+CB7 8.5 | NOTE:  | link: 
+CD7 'Masterclass Bonus' | NOTE:  | link: 
+CE7 'R' | NOTE:  | link: 
+CI7 'God of Rhythm' | NOTE:  | link: 
+CJ7 'R' | NOTE:  | link: 
+CK7 'Week 4/4' | NOTE:  | link: 
+CL7 9.0 | NOTE:  | link: 
+CN7 'Beginner' | NOTE:  | link: 
+CO7 'B' | NOTE:  | link: 
+CQ7 3.0 | NOTE:  | link: 
+CS7 'Beginner Bonus' | NOTE:  | link: 
+CT7 'B' | NOTE:  | link: 
+CV7 4.0 | NOTE:  | link: 
+CX7 'Intermediate' | NOTE:  | link: 
+CY7 'B' | NOTE:  | link: 
+DA7 4.5 | NOTE:  | link: 
+DC7 'Intermediate Bonus' | NOTE:  | link: 
+DD7 'B' | NOTE:  | link: 
+DF7 4.5 | NOTE:  | link: 
+DH7 'Advanced' | NOTE:  | link: 
+DI7 'B' | NOTE:  | link: 
+DK7 6.0 | NOTE:  | link: 
+DM7 'Advanced Bonus' | NOTE:  | link: 
+DN7 'B' | NOTE:  | link: 
+DP7 5.0 | NOTE:  | link: 
+DR7 'Masterclass' | NOTE:  | link: 
+DS7 'B' | NOTE:  | link: 
+DU7 8.5 | NOTE:  | link: 
+DW7 'Masterclass Bonus' | NOTE:  | link: 
+DX7 'B' | NOTE:  | link: 
+DZ7 7.5 | NOTE:  | link: 
+EB7 'God of Bass' | NOTE:  | link: 
+EC7 'B' | NOTE:  | link: 
+ED7 'Week 4/4' | NOTE:  | link: 
+EE7 8.0 | NOTE:  | link: 
+A8 'Rank' | NOTE:  | link: 
+B8 'Name' | NOTE:  | link: 
+C8 '%' | NOTE:  | link: 
+D8 'Streak' | NOTE:  | link: 
+E8 'Score' | NOTE:  | link: 
+G8 'Name' | NOTE:  | link: 
+H8 '%' | NOTE:  | link: 
+I8 'Streak' | NOTE:  | link: 
+J8 'Score' | NOTE:  | link: 
+L8 'Name' | NOTE:  | link: 
+M8 '%' | NOTE:  | link: 
+N8 'Streak' | NOTE:  | link: 
+O8 'Score' | NOTE:  | link: 
+Q8 'Name' | NOTE:  | link: 
+R8 '%' | NOTE:  | link: 
+S8 'Streak' | NOTE:  | link: 
+T8 'Score' | NOTE:  | link: 
+V8 'Name' | NOTE:  | link: 
+W8 '%' | NOTE:  | link: 
+X8 'Streak' | NOTE:  | link: 
+Y8 'Score' | NOTE:  | link: 
+AA8 'Name' | NOTE:  | link: 
+AB8 '%' | NOTE:  | link: 
+AC8 'Streak' | NOTE:  | link: 
+AD8 'Score' | NOTE:  | link: 
+AF8 'Name' | NOTE:  | link: 
+AG8 '%' | NOTE:  | link: 
+AH8 'Streak' | NOTE:  | link: 
+AI8 'Score' | NOTE:  | link: 
+AK8 'Name' | NOTE:  | link: 
+AL8 '%' | NOTE:  | link: 
+AM8 'Streak' | NOTE:  | link: 
+AN8 'Score' | NOTE:  | link: 
+AP8 'Name' | NOTE:  | link: 
+AQ8 '%' | NOTE:  | link: 
+AR8 'Streak' | NOTE:  | link: 
+AS8 'Score' | NOTE:  | link: 
+AU8 'Name' | NOTE:  | link: 
+AV8 '%' | NOTE:  | link: 
+AW8 'Streak' | NOTE:  | link: 
+AX8 'Score' | NOTE:  | link: 
+AZ8 'Name' | NOTE:  | link: 
+BA8 '%' | NOTE:  | link: 
+BB8 'Streak' | NOTE:  | link: 
+BC8 'Score' | NOTE:  | link: 
+BE8 'Name' | NOTE:  | link: 
+BF8 '%' | NOTE:  | link: 
+BG8 'Streak' | NOTE:  | link: 
+BH8 'Score' | NOTE:  | link: 
+BJ8 'Name' | NOTE:  | link: 
+BK8 '%' | NOTE:  | link: 
+BL8 'Streak' | NOTE:  | link: 
+BM8 'Score' | NOTE:  | link: 
+BO8 'Name' | NOTE:  | link: 
+BP8 '%' | NOTE:  | link: 
+BQ8 'Streak' | NOTE:  | link: 
+BR8 'Score' | NOTE:  | link: 
+BT8 'Name' | NOTE:  | link: 
+BU8 '%' | NOTE:  | link: 
+BV8 'Streak' | NOTE:  | link: 
+BW8 'Score' | NOTE:  | link: 
+BY8 'Name' | NOTE:  | link: 
+BZ8 '%' | NOTE:  | link: 
+CA8 'Streak' | NOTE:  | link: 
+CB8 'Score' | NOTE:  | link: 
+CD8 'Name' | NOTE:  | link: 
+CE8 '%' | NOTE:  | link: 
+CF8 'Streak' | NOTE:  | link: 
+CG8 'Score' | NOTE:  | link: 
+CI8 'Name' | NOTE:  | link: 
+CJ8 '%' | NOTE:  | link: 
+CK8 'Streak' | NOTE:  | link: 
+CL8 'Score' | NOTE:  | link: 
+CN8 'Name' | NOTE:  | link: 
+CO8 '%' | NOTE:  | link: 
+CP8 'Streak' | NOTE:  | link: 
+CQ8 'Score' | NOTE:  | link: 
+CS8 'Name' | NOTE:  | link: 
+CT8 '%' | NOTE:  | link: 
+CU8 'Streak' | NOTE:  | link: 
+CV8 'Score' | NOTE:  | link: 
+CX8 'Name' | NOTE:  | link: 
+CY8 '%' | NOTE:  | link: 
+CZ8 'Streak' | NOTE:  | link: 
+DA8 'Score' | NOTE:  | link: 
+DC8 'Name' | NOTE:  | link: 
+DD8 '%' | NOTE:  | link: 
+DE8 'Streak' | NOTE:  | link: 
+DF8 'Score' | NOTE:  | link: 
+DH8 'Name' | NOTE:  | link: 
+DI8 '%' | NOTE:  | link: 
+DJ8 'Streak' | NOTE:  | link: 
+DK8 'Score' | NOTE:  | link: 
+DM8 'Name' | NOTE:  | link: 
+DN8 '%' | NOTE:  | link: 
+DO8 'Streak' | NOTE:  | link: 
+DP8 'Score' | NOTE:  | link: 
+DR8 'Name' | NOTE:  | link: 
+DS8 '%' | NOTE:  | link: 
+DT8 'Streak' | NOTE:  | link: 
+DU8 'Score' | NOTE:  | link: 
+DW8 'Name' | NOTE:  | link: 
+DX8 '%' | NOTE:  | link: 
+DY8 'Streak' | NOTE:  | link: 
+DZ8 'Score' | NOTE:  | link: 
+EB8 'Name' | NOTE:  | link: 
+EC8 '%' | NOTE:  | link: 
+ED8 'Streak' | NOTE:  | link: 
+EE8 'Score' | NOTE:  | link: 
