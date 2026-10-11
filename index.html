@@ -1295,7 +1295,7 @@ footer{color:var(--dim);font-size:.78rem}
   <footer>Data: Rodman’s Rocksmith 2014 Championship Google Sheets (older attendance also from the Championship Metrics workbook). Player stats run through week 676; scoreboards cover weeks 440–677. Weeks 1–16 have no recorded host in the source.
   <span class="updated disclaimer">Unofficial fan project. Not affiliated with Ubisoft or Rocksmith.</span>
   <span class="updated" id="sheetedit-row" hidden>Sheet last edited: <span id="sheetedit" data-iso="2026-10-11T12:13:47.226Z"></span></span>
-  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-11T12:15:27+00:00">October 11, 2026</span></span>
+  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-11T12:21:45+00:00">October 11, 2026</span></span>
   </footer>
 </div>
 <dialog id="acct" class="acctdlg" aria-label="Your profile"><div id="acctbody"></div><button type="button" class="clear acctclose" id="acctclose">Close</button></dialog>
@@ -2416,7 +2416,12 @@ function sbRender(){
     return `<button type="button" class="tier" data-path="${i}" aria-pressed="${on}" style="--pc:${PATH_C[i]};--tc:${t?(TIER_C[t]||"var(--s-red)"):"var(--fg)"}" title="${on?`${k}: showing ${t?LV_NAME[t]:"all levels"} · click for ${nx?LV_NAME[nx]:"all levels"}`:`Show ${k}`}"><small>${k}</small><b>${t||"All"}</b><i>${t?LV_NAME[t]:"all levels"}</i></button>`}).join("");
   const all=ch.flatMap(c=>c[6]), players=new Set(all.map(e=>SB.names[e[0]].replace(/[*~]+$/,"")));
   const pathEnts=ch.filter(c=>c[0]===sbPath).flatMap(c=>c[6]);
-  $("sbstats").innerHTML=`<span><b>${players.size}</b> players this week</span><span><b>${all.length}</b> entries in all paths</span><span><b>${pathEnts.length}</b> ${["lead","rhythm","bass"][sbPath]} entries</span>`;
+  // players this week = posted a score this week (as on the Players page chart); competing = everyone on the board,
+  // which also counts God challenge scores carried over from earlier weeks of the run
+  const posted=new Set(twEntries(sbWeek).map(x=>x.n)), carried=players.size-posted.size;
+  const compTip=`Everyone on this week's scoreboard, including ${carried} player${carried===1?"":"s"} whose only entries are God challenge scores posted in an earlier week of the run (a God challenge runs for several weeks and keeps its scores)`;
+  const postTip=`Players who posted a score this week. This is the number on the Players page chart; God challenge scores carried over from earlier weeks of the run don't count`;
+  $("sbstats").innerHTML=(carried>0?`<span data-tip="${esc(compTip)}"><b>${players.size}</b> players competing</span><span data-tip="${esc(postTip)}"><b>${posted.size}</b> players this week</span>`:`<span><b>${players.size}</b> players this week</span>`)+`<span><b>${all.length}</b> entries in all paths</span><span><b>${pathEnts.length}</b> ${["lead","rhythm","bass"][sbPath]} entries</span>`;
   const cards=ch.filter(c=>c[0]===sbPath&&(!sbLv[sbPath]||cardLv(c[2])===sbLv[sbPath]));
   const findLc=sbFind.toLowerCase();
   // "Highlight a player" only suggests players on the cards being shown (this week, path and level)
