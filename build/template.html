@@ -3300,11 +3300,11 @@ function rateBadge(w,p,slot,diff,ents){
   const list=songVotes(rp,card[3]), can=acctCanRate(ents);
   const R=songRating(rp,card[3]);
   if(!R.n&&!can)return plain;
-  const mine=can?list.find(v=>v.p===ACCT.claim.player):null;
-  const tipTxt=sw+R.tip+(can?(mine?`\n\nYour rating: ${mine.r} · click to change`:"\n\nClick to give your rating"):"");
+  const mine=can?list.find(v=>v.p===ACCT.claim.player):null, hostMine=can&&!mine?myHostRating(R):null;
+  const tipTxt=sw+R.tip+(can?(mine?`\n\nYour rating: ${mine.r} · click to change`:hostMine?hostTip(hostMine):"\n\nClick to give your rating"):"");
   const label=R.avg||(diff!=null?diff:"–");
   if(!can)return `<span class="diff${list.length?" upd":""}" data-tip="${esc(tipTxt)}">${label}</span>`;
-  return `<span class="diff canrate${list.length?" upd":""}${mine?" mine":""}" data-tip="${esc(tipTxt)}">${label}${rateSelect(rp,card[3],mine)}</span>`;
+  return `<span class="diff canrate${list.length?" upd":""}${mine||hostMine?" mine":""}" data-tip="${esc(tipTxt)}">${label}${rateSelect(rp,card[3],mine)}</span>`;
 }
 // the rating picker on a card, opened by clicking its difficulty badge
 function acctCard(){return ""} // (the rating dropdown lives inside the rating badge)
@@ -3340,9 +3340,9 @@ function songRateBox(cards){
     const pc=cards.filter(c=>codeOf(c)===p).sort((a,b)=>b.w-a.w); if(!pc.length)return "";
     const R=songRating(p,pc[0].song);
     if(!R.n&&!can)return "";
-    const mine=can?R.players.find(v=>v.p===ACCT.claim.player):null;
-    const tipTxt=`${arrName(p)}\n`+R.tip+(can?(mine?`\n\nYour rating: ${mine.r} · click to change`:"\n\nClick to give your rating"):"");
-    return `<span class="srate${R.players.length?" upd":""}${can?" canrate":""}${mine?" mine":""}${p.length>1?" xarr":""}" style="--pc:${arrC(p)}" data-tip="${esc(tipTxt)}">${p.length>1?`<i>${p}</i>`:""}${R.avg||"–"}${can?rateSelect(p,pc[0].song,mine):""}</span>`;
+    const mine=can?R.players.find(v=>v.p===ACCT.claim.player):null, hostMine=can&&!mine?myHostRating(R):null;
+    const tipTxt=`${arrName(p)}\n`+R.tip+(can?(mine?`\n\nYour rating: ${mine.r} · click to change`:hostMine?hostTip(hostMine):"\n\nClick to give your rating"):"");
+    return `<span class="srate${R.players.length?" upd":""}${can?" canrate":""}${mine||hostMine?" mine":""}${p.length>1?" xarr":""}" style="--pc:${arrC(p)}" data-tip="${esc(tipTxt)}">${p.length>1?`<i>${p}</i>`:""}${R.avg||"–"}${can?rateSelect(p,pc[0].song,mine):""}</span>`;
   }).join("").replace(/^(.+)$/s,'<span class="srates">$1</span>');
 }
 document.addEventListener("change",async e=>{
@@ -3456,11 +3456,15 @@ function animalTag(a){if(!a)return "";const base=a.replace(/ \d+$/,"");return `<
 function animalNote(){return ACCT.animal?`<p class="animalnote">Your verification animal is ${animalTag(ACCT.animal)}. Keep it to yourself: if an admin needs to check that this account (or a host sign-up) is really yours, they'll ask you for it.</p>`:""}
 // Your account: this week's scoreboard places, rivals and Rodman's Rankings positions for the player
 // one challenge's rating box (players' average for the song on that path, else the host rating); click to rate
+// the logged-in player's own initial rating as host of a week that used this song (counts like a rating they gave)
+function myHostRating(R){if(!ACCT.claim||ACCT.claim.status!=="approved")return null; const me=ACCT.claim.player.toLowerCase();
+  return R.hosts.find(x=>x.h&&x.h.toLowerCase()===me)||null}
+const hostTip=h=>`\n\nYour host rating: ${h.d} (Week ${h.w}) · click to give a player rating`;
 function cardRateBox(p,song,diff){
   if(acctOn()&&!ACCT.songs)acctLoadWeek();
-  const R=songRating(p,song), can=acctCanRate(), mine=can?R.players.find(v=>v.p===ACCT.claim.player):null;
-  const tipTxt=R.tip+(can?(mine?`\n\nYour rating: ${mine.r} · click to change`:"\n\nClick to give your rating"):"");
-  return `<span class="srate${R.players.length?" upd":""}${can?" canrate":""}${mine?" mine":""}" style="--pc:${arrC(p)}" data-tip="${esc(tipTxt)}">${R.avg||(diff!=null?diff:"–")}${can?rateSelect(p,song,mine):""}</span>`;
+  const R=songRating(p,song), can=acctCanRate(), mine=can?R.players.find(v=>v.p===ACCT.claim.player):null, hostMine=can&&!mine?myHostRating(R):null;
+  const tipTxt=R.tip+(can?(mine?`\n\nYour rating: ${mine.r} · click to change`:hostMine?hostTip(hostMine):"\n\nClick to give your rating"):"");
+  return `<span class="srate${R.players.length?" upd":""}${can?" canrate":""}${mine||hostMine?" mine":""}" style="--pc:${arrC(p)}" data-tip="${esc(tipTxt)}">${R.avg||(diff!=null?diff:"–")}${can?rateSelect(p,song,mine):""}</span>`;
 }
 // the log of ratings admins gave or changed on behalf of players (newest first)
 async function ratingLogLoad(){if(!ACCT.sb||!ACCT.admin)return;
