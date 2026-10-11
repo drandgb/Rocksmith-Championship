@@ -1920,6 +1920,7 @@ function showView(v){
   tip.hidden=true;
   $("pfilter").hidden=v==="scores"||v==="songs"||v==="thisweek"||v==="rankings";
   if(v==="thisweek"&&window.__twReady)renderThisWeek();
+  if(v==="songs"&&window.__songsStale){window.__songsStale=false; renderSongs()} // player ratings arrived while another page was open
   if(v==="hosting"){renderUpcoming(); if(!logScrolled)requestAnimationFrame(scrollLogToCurrent)}
 }
 document.querySelector(".tabs").addEventListener("click",e=>{const b=e.target.closest("button[data-view]");if(b)showView(b.dataset.view)});
@@ -3328,7 +3329,7 @@ async function acctLoadWeek(){
   const S={}; Object.values(best).forEach(x=>(S[x.k]=S[x.k]||[]).push({p:x.p,r:x.r,u:x.u}));
   ACCT.songs=S; ACCT.mine=mine; ACCT.rows=rows; sbRender();
   if($("acct").open&&ACCT.tab==="admin")admRateRedraw();
-  {const tw=document.getElementById("acct-tw"); if(tw&&$("acct").open&&ACCT.claim)tw.innerHTML=acctThisWeek(ACCT.claim.player);} if(typeof renderSongs==="function"&&!$("view-songs").hidden)renderSongs();
+  {const tw=document.getElementById("acct-tw"); if(tw&&$("acct").open&&ACCT.claim)tw.innerHTML=acctThisWeek(ACCT.claim.player);} if(typeof renderSongs==="function"){if(!$("view-songs").hidden)renderSongs(); else window.__songsStale=true}
 }
 // a song's rating boxes on the Songs page, one per path in the path's colour: the players' average for the song on
 // that path (★), or the host ratings' average. Hover lists every week it was used; logged-in players click to rate.
@@ -3550,6 +3551,7 @@ async function acctRefresh(){
   if(ACCT.user){const {data:an}=await ACCT.sb.from("player_animals").select("user_id,animal"); (an||[]).forEach(r=>{ACCT.animals[r.user_id]=r.animal; if(r.user_id===ACCT.user.id)ACCT.animal=r.animal})}
   ACCT.ratingLog=undefined; if(ACCT.admin)await ratingLogLoad();
   await hostLoad(); ACCT.ready=true; acctBtn(); if($("acct").open)acctDraw(); ACCT.songs=null; sbRender();
+  acctLoadWeek(); // everyone's ratings are public: load them for logged-out visitors too
 }
 function acctDraw(msg,err){
   acctUnmount();
