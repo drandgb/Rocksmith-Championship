@@ -373,6 +373,7 @@ a.dl svg,.offpill svg{width:11px;height:11px}
 .acctclose{margin-top:12px}
 .acctdlg{width:min(980px,calc(100vw - 24px))}
 .acctdlg .acctsec{margin-top:16px;border-top:1px solid var(--line);padding-top:12px}
+.sbtw{margin-top:8px;padding:2px 12px;font-size:.78rem;width:auto}
 .acctdlg .adm.acctsec{border-top:0;margin-top:0;padding-top:2px}
 .acctdlg .adm.acctsec+.adm.acctsec{margin-top:16px} /* the same gap between every Admin section */
 .acctdlg .adm.acctsec>:last-child{margin-bottom:0}
@@ -1280,7 +1281,7 @@ footer{color:var(--dim);font-size:.78rem}
     <section class="panel sbhead">
       <div class="sbnav">
         <button type="button" class="navbtn" id="sbprev" aria-label="Previous week">‹</button>
-        <div class="sbtitle"><select id="sbweek" aria-label="Week"></select><div class="sub" id="sbmeta"></div></div>
+        <div class="sbtitle"><select id="sbweek" aria-label="Week"></select><div class="sub" id="sbmeta"></div><button type="button" class="clear sbtw" id="sbtw" hidden>Open This Week ›</button></div>
         <button type="button" class="navbtn" id="sbnext" aria-label="Next week">›</button>
       </div>
       <div class="sbtools">
@@ -1297,7 +1298,7 @@ footer{color:var(--dim);font-size:.78rem}
   <footer>Data: Rodman’s Rocksmith 2014 Championship Google Sheets (older attendance also from the Championship Metrics workbook). Player stats run through week 676; scoreboards cover weeks 440–677. Weeks 1–16 have no recorded host in the source.
   <span class="updated disclaimer">Unofficial fan project. Not affiliated with Ubisoft or Rocksmith.</span>
   <span class="updated" id="sheetedit-row" hidden>Sheet last edited: <span id="sheetedit" data-iso="2026-10-11T12:13:47.226Z"></span></span>
-  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-11T12:46:18+00:00">October 11, 2026</span></span>
+  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-11T12:49:30+00:00">October 11, 2026</span></span>
   </footer>
 </div>
 <dialog id="acct" class="acctdlg" aria-label="Your profile"><div id="acctbody"></div><button type="button" class="clear acctclose" id="acctclose">Close</button></dialog>
@@ -2410,7 +2411,9 @@ function sbRender(){
   $("sbweek").value=sbWeek;
   $("sbprev").disabled=sbWeek===SB_WEEKS[SB_WEEKS.length-1];
   $("sbnext").disabled=sbWeek===SB_WEEKS[0];
-  $("sblatest").hidden=sbWeek===SB_HOME; $("sblatest").textContent=`Back to this week (${SB_HOME}) ›`;
+  $("sblatest").hidden=sbWeek===SB_HOME;
+  {const twMax=Math.max(DATA_WEEK,cur[0]), twNext=SB.weeks[twMax+1]&&SB.weeks[twMax+1].length?twMax+1:null; // (TW_MIN/TW_MAX aren't defined yet on first render)
+   const ok=(sbWeek>=3&&sbWeek<=twMax)||sbWeek===twNext; $("sbtw").hidden=!ok; $("sbtw").title=`Open week ${sbWeek} on the This Week page`; $("sbtw").textContent=`Week ${sbWeek} on This Week ›`} $("sblatest").textContent=`Back to this week (${SB_HOME}) ›`;
   const sbLive=sbWeek>DATA_WEEK&&sbWeek===cur[0];
   const sbNext=sbWeek>cur[0];
   $("sbmeta").innerHTML=(sbNext?'<span class="pill nextwk" style="width:auto" data-tip="Next week: scores can be posted already. It becomes the current week, and this week&#39;s winners are decided, at 9 pm CET (Central European time) on its start Saturday">UPCOMING</span> ':sbLive?'<span class="pill new" style="width:auto">IN PROGRESS</span> ':'<span class="pill done" style="width:auto">CONCLUDED</span> ')+(wk?`${fmt(wk[1])}${wk[2]&&wk[2]!==LOST?` · hosted by <b>${esc(wk[2])}</b>`:""}`:"");
@@ -2853,6 +2856,8 @@ document.addEventListener("click",e=>{
 },true);
 
 $("sblatest").addEventListener("click",()=>{sbWeek=SB_HOME;sbRender()});
+// open the week being browsed on the This Week page
+$("sbtw").addEventListener("click",()=>{twWeek=sbWeek; showView("thisweek"); renderThisWeek(); scrollTo({top:0})});
 
 // ---------- scoreboard song and band names open Band lookup on the Songs tab ----------
 $("view-scores").addEventListener("click",e=>{
