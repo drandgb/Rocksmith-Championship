@@ -1263,7 +1263,7 @@ footer{color:var(--dim);font-size:.78rem}
   <footer>Data: Rodman’s Rocksmith 2014 Championship Google Sheets (older attendance also from the Championship Metrics workbook). Player stats run through week 676; scoreboards cover weeks 440–677. Weeks 1–16 have no recorded host in the source.
   <span class="updated disclaimer">Unofficial fan project. Not affiliated with Ubisoft or Rocksmith.</span>
   <span class="updated" id="sheetedit-row" hidden>Sheet last edited: <span id="sheetedit" data-iso="2026-10-10T22:44:06.318Z"></span></span>
-  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-11T04:24:26+00:00">October 11, 2026</span></span>
+  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-11T04:27:22+00:00">October 11, 2026</span></span>
   </footer>
 </div>
 <dialog id="acct" class="acctdlg" aria-label="Your profile"><div id="acctbody"></div><button type="button" class="clear acctclose" id="acctclose">Close</button></dialog>
@@ -2918,7 +2918,12 @@ function twMedals(n,w,live){
   const thisWeekOnly=m=>{const tp=m.dataset.tip||""; if(/collected Week \d+\)/.test(tp))return;
     const k=(m.dataset.all||m.dataset.hl||"").split(",").filter(x=>x===String(w)).length||1, b=m.querySelector("b");
     const tot=b?b.textContent:""; if(b)b.textContent="+"+k; m.dataset.k=k;
-    m.dataset.tip=tp.replace(/ · (\d+) times? · click to highlight$/,"").replace(/ · click to highlight$/,"")+` · +${k} this week${tot?` (${tot} all time)`:""}`};
+    // drop the career count from the text ("· 3 times" or "on a God challenge 3 times"): the all-time total is added at the end
+    let t=tp.replace(/ · click to highlight$/,"").replace(/ (?:· )?\d+ times?$/,"");
+    // rivalry wins: who they beat that week, on which path, and the challenge score
+    if(/^Rivalry win/.test(t)){const me=twCanon(n), beat=[0,1,2].map(pi=>{const r=rivalsOfWeek(w,pi)[me]; return r&&r.w>r.l?`${r.them} on ${PATHS[pi]} (${r.w}–${r.l})`:""}).filter(Boolean);
+      if(beat.length)t=`Rivalry win · beat ${beat.join(", ")} · their closest rival of the week (same rank, ranked challenges)`}
+    m.dataset.tip=t+` · +${k} this week${tot?` (${tot} all time)`:""}`};
   const grab=(html,kind)=>{box.innerHTML=html; box.querySelectorAll(".medal-m").forEach(m=>{if(isNew(m)){thisWeekOnly(m);m.removeAttribute("data-hl");m.style.cursor="";m.dataset.mk=kind;m.dataset.mn=n;out.push(m.outerHTML)}})};
   let p=byName[n];
   if(live){ // provisional: this week's attendance added to the player's history
