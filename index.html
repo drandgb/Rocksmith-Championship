@@ -1282,7 +1282,7 @@ footer{color:var(--dim);font-size:.78rem}
   <footer>Data: Rodman’s Rocksmith 2014 Championship Google Sheets (older attendance also from the Championship Metrics workbook). Player stats run through week 676; scoreboards cover weeks 440–677. Weeks 1–16 have no recorded host in the source.
   <span class="updated disclaimer">Unofficial fan project. Not affiliated with Ubisoft or Rocksmith.</span>
   <span class="updated" id="sheetedit-row" hidden>Sheet last edited: <span id="sheetedit" data-iso="2026-10-10T22:44:06.318Z"></span></span>
-  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-11T04:39:31+00:00">October 11, 2026</span></span>
+  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-11T04:40:51+00:00">October 11, 2026</span></span>
   </footer>
 </div>
 <dialog id="acct" class="acctdlg" aria-label="Your profile"><div id="acctbody"></div><button type="button" class="clear acctclose" id="acctclose">Close</button></dialog>
@@ -2078,6 +2078,8 @@ const CEL_SPRIG=(()=>{let s="";
       [-38,38].forEach(off=>{const a=dir+off, ox=x+Math.cos(a*Math.PI/180)*2.3*sz, oy=y+Math.sin(a*Math.PI/180)*2.3*sz;
         s+=`<ellipse cx="${ox.toFixed(2)}" cy="${oy.toFixed(2)}" rx="${(2.7*sz).toFixed(2)}" ry="${(1.15*sz).toFixed(2)}" transform="rotate(${a.toFixed(1)} ${ox.toFixed(2)} ${oy.toFixed(2)})" fill="url(#celg)" stroke="#9a6b18" stroke-width=".3"/>`})}});
   return `<svg viewBox="0 0 30 30" aria-hidden="true"><defs><linearGradient id="celg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff2b0"/><stop offset=".5" stop-color="#f5c84a"/><stop offset="1" stop-color="#b8862a"/></linearGradient></defs>${s}<circle cx="4" cy="4" r="1.9" fill="#f5c84a" stroke="#9a6b18" stroke-width=".35"/><circle cx="3.4" cy="3.4" r=".6" fill="#fff6d5"/></svg>`})();
+// New medals order: gold God winners first, then silver and bronze God diamond winners, then everyone else
+function godRank(m){const h=m.join(""); return /diamond d0/.test(h)?0:/diamond d[12]/.test(h)?1:2}
 function celCorners(){return ["tl","tr","bl","br"].map(c=>`<span class="celc ${c}">${CEL_SPRIG}</span>`).join("")}
 function diamondSvg(i){const tint=["#bff6ff","#e6ecf5","#ffd2b0"][i], deep=["#4fd6ff","#9aa6bb","#d8925a"][i];
   return `<svg class="laurel" viewBox="-7 -5 44 41" aria-hidden="true">${LAUREL}<defs><linearGradient id="dg${i}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff"/><stop offset=".35" stop-color="${tint}"/><stop offset=".7" stop-color="${deep}"/><stop offset="1" stop-color="#c77dff"/></linearGradient></defs><polygon points="8,4 22,4 29,12 15,28 1,12" fill="url(#dg${i})"/><polygon points="8,4 22,4 18.5,12 11.5,12" fill="rgba(255,255,255,.65)"/><polygon points="1,12 11.5,12 15,28" fill="rgba(255,255,255,.18)"/><polygon points="29,12 18.5,12 15,28" fill="rgba(60,0,120,.22)"/><polygon points="11.5,12 18.5,12 15,28" fill="rgba(255,255,255,.35)"/><polygon points="8,4 1,12 11.5,12" fill="rgba(255,255,255,.4)"/><polygon points="22,4 29,12 18.5,12" fill="rgba(80,40,160,.18)"/><polygon points="8,4 22,4 29,12 15,28 1,12" fill="none" stroke="rgba(255,255,255,.8)" stroke-width=".7"/>${(()=>{const m=POD_COL[i]; // a tiny version of the gold, silver or bronze medal, centered on the diamond
@@ -3045,7 +3047,7 @@ function renderThisWeek(){
   const cand=new Set(names); if(!live){ann.forEach(a=>cand.add(a.n));
     // God challenge winners decided this week who didn't post a score this week (they posted earlier in the run)
     (SB.weeks[w]||[]).forEach(c=>c[6].forEach(e=>{const n=SB.names[e[0]].replace(/[*~]+$/,""); const real=PLAYERS.find(p=>p[0].toLowerCase()===n.toLowerCase()); if(real)cand.add(real[0])}))} if(W&&W[2]&&hosts[W[2]])cand.add(W[2]);
-  const med=[...cand].map(n=>({n,m:twMedals(n,w,live&&set.has(n))})).filter(x=>x.m.length).sort((a,b)=>medalTotal(b.m)-medalTotal(a.m)||a.n.localeCompare(b.n));
+  const med=[...cand].map(n=>({n,m:twMedals(n,w,live&&set.has(n))})).filter(x=>x.m.length).sort((a,b)=>godRank(a.m)-godRank(b.m)||medalTotal(b.m)-medalTotal(a.m)||a.n.localeCompare(b.n));
   // rival pairs for each path (mutual pairs shown once)
   const pairsFor=pi=>{const riv=SB.weeks[w]?rivalsOfWeek(w,pi):{}, pairs=[], done=new Set();
     const lvl=r=>"BIAM".indexOf(tierOf(r.best.c[2])||"M"); // Beginner first, then Intermediate, Advanced, Masterclass
