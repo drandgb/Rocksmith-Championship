@@ -374,6 +374,8 @@ a.dl svg,.offpill svg{width:11px;height:11px}
 .acctdlg{width:min(980px,calc(100vw - 24px))}
 .acctdlg .acctsec{margin-top:16px;border-top:1px solid var(--line);padding-top:12px}
 .acctdlg .adm.acctsec{border-top:0;margin-top:0;padding-top:2px}
+.acctdlg .adm.acctsec+.adm.acctsec{margin-top:16px} /* the same gap between every Admin section */
+.acctdlg .adm.acctsec>:last-child{margin-bottom:0}
 .acctdlg .acctsec>h3 small{font:400 .72rem var(--f-body);letter-spacing:0;text-transform:none;color:var(--muted);margin-left:8px}
 .acctdlg .dim{color:var(--muted);font-size:.85rem}
 .alist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
@@ -1295,7 +1297,7 @@ footer{color:var(--dim);font-size:.78rem}
   <footer>Data: Rodman’s Rocksmith 2014 Championship Google Sheets (older attendance also from the Championship Metrics workbook). Player stats run through week 676; scoreboards cover weeks 440–677. Weeks 1–16 have no recorded host in the source.
   <span class="updated disclaimer">Unofficial fan project. Not affiliated with Ubisoft or Rocksmith.</span>
   <span class="updated" id="sheetedit-row" hidden>Sheet last edited: <span id="sheetedit" data-iso="2026-10-11T12:13:47.226Z"></span></span>
-  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-11T12:35:37+00:00">October 11, 2026</span></span>
+  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-11T12:38:00+00:00">October 11, 2026</span></span>
   </footer>
 </div>
 <dialog id="acct" class="acctdlg" aria-label="Your profile"><div id="acctbody"></div><button type="button" class="clear acctclose" id="acctclose">Close</button></dialog>
