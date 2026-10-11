@@ -1295,7 +1295,7 @@ footer{color:var(--dim);font-size:.78rem}
   <footer>Data: Rodman’s Rocksmith 2014 Championship Google Sheets (older attendance also from the Championship Metrics workbook). Player stats run through week 676; scoreboards cover weeks 440–677. Weeks 1–16 have no recorded host in the source.
   <span class="updated disclaimer">Unofficial fan project. Not affiliated with Ubisoft or Rocksmith.</span>
   <span class="updated" id="sheetedit-row" hidden>Sheet last edited: <span id="sheetedit" data-iso="2026-10-11T12:13:47.226Z"></span></span>
-  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-11T12:21:45+00:00">October 11, 2026</span></span>
+  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-11T12:31:05+00:00">October 11, 2026</span></span>
   </footer>
 </div>
 <dialog id="acct" class="acctdlg" aria-label="Your profile"><div id="acctbody"></div><button type="button" class="clear acctclose" id="acctclose">Close</button></dialog>
@@ -2208,10 +2208,10 @@ function winMedals(per,done,bestN,streak,total,trip,ties,pod,rivw){
   const xr=[]; // close wins and rivalry wins share their own row
   if(ties&&ties.length)xr.push(`<span class="medal-m wm" style="--ec:#ff7eb6;cursor:pointer" data-all="${ties.join(",")}" data-hl="${[...new Set(ties)].sort((a,b)=>a-b).join(",")}" data-tip="Close win medal · won on the tiebreak with the same % as the runner-up · ${ties.length} time${ties.length===1?"":"s"} · click to highlight">${tieSvg("#ff7eb6")}<b>${ties.length}</b></span>`);
   if(rivw&&rivw.length)xr.push(`<span class="medal-m wm" style="--ec:#ff6b6b;cursor:pointer" data-all="${rivw.join(",")}" data-hl="${[...new Set(rivw)].sort((a,b)=>a-b).join(",")}" data-tip="Rivalry win · beat their closest rival of the week (same rank, ranked challenges) · ${rivw.length} time${rivw.length===1?"":"s"} · click to highlight">${swordsSvg("#ff6b6b")}<b>${rivw.length}</b></span>`);
-  // God diamonds get their own row first, then the triple crown leading the gold, silver and bronze medals
+  // God diamonds get their own row first, then the gold, silver and bronze medals
   if(P.god.length)rows.push(P.god);
-  if(P.reg.length||tc.length)rows.push([...tc,...P.reg]);
-  if(xr.length)rows.push(xr);
+  if(P.reg.length)rows.push(P.reg);
+  if(tc.length||xr.length)rows.push([...tc,...xr]); // triple crown leads the row with close wins and rivalry wins
   // best-week trophies: one per number of wins in a week; the count is how many weeks had exactly that many wins
   if(bestN>0){const r=[];for(let k=1;k<=bestN;k++){const ws=asc.filter(w=>per[w][1]===k); if(!ws.length)continue;
     r.push(`<span class="medal-m wm tro" style="--ec:#f5c84a;cursor:pointer" data-hl="${ws.join(",")}" data-tip="${k}-win week trophy · won ${k} challenge${k===1?"":"s"} in a single week · ${ws.length} time${ws.length===1?"":"s"} · click to highlight">${trophiesSvg("#f5c84a",k)}<b>${ws.length}</b></span>`)}
