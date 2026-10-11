@@ -2997,6 +2997,13 @@ const twPl=(k,w)=>`${k} ${w}${k===1?"":"s"}`;
 const medalTotal=arr=>arr.reduce((s,h)=>{const m=/data-k="(\d+)"/.exec(h);return s+(m?+m[1]:1)},0);
 // medals collected in week w, grouped: [{kind:"player"|"win"|"host", html}]
 const twMedalCache={};
+// where a player finished on each challenge of week w (top 3 among eligible entries; God challenges only in the
+// final week of their run): [{c: card, place: 0-2, god, tie: won on the tiebreak with the same % as the runner-up}]
+function twFinishes(n,w){const k=String(n).toLowerCase(), out=[];
+  (SB.weeks[w]||[]).forEach(c=>{if(c[7])return; const el=c[6].filter(x=>x[4]>=0);
+    el.slice(0,3).forEach((e,i)=>{if(SB.names[e[0]].replace(/[*~]+$/,"").toLowerCase()!==k)return;
+      out.push({c,place:i,god:/^god|tribute/i.test(c[2]),tie:i===0&&el.length>1&&Math.round((el[0][1]-el[1][1])*100)===0})})});
+  return out}
 function twMedals(n,w,live){
   const k=n+"|"+w; if(twMedalCache[k])return twMedalCache[k];
   const box=document.createElement("div"), out=[];
@@ -3012,6 +3019,15 @@ function twMedals(n,w,live){
     // rivalry wins: who they beat that week, on which path, and the challenge score
     if(/^Rivalry win/.test(t)){const me=twCanon(n), beat=[0,1,2].map(pi=>{const r=rivalsOfWeek(w,pi)[me]; return r&&r.w>r.l?`${r.them} on ${PATHS[pi]} (${r.w}–${r.l})`:""}).filter(Boolean);
       if(beat.length)t=`Rivalry win · beat ${beat.join(", ")} · their closest rival of the week (same rank, ranked challenges)`}
+    // which songs the medal came from this week
+    const fin=twFinishes(n,w), lvOf=c=>{const L=cardLv(c[2]); return L&&L!=="G"?TIER_NAME[L]:c[2]};
+    const list=xs=>xs.map(x=>`${x.c[3]} (${x.god?x.c[2]:`${PATHS[x.c[0]]}, ${lvOf(x.c)}`})`).join("; ");
+    let from=[], pm=/^(Gold|Silver|Bronze) (God diamond|medal)/.exec(t);
+    if(pm){const i=POD_NAME.indexOf(pm[1]), god=pm[2]==="God diamond", pp=m.dataset.path!=null?+m.dataset.path:-1;
+      from=fin.filter(x=>x.place===i&&x.god===god&&(pp<0||x.c[0]===pp))}
+    else if(/^Close win/.test(t))from=fin.filter(x=>x.place===0&&x.tie);
+    else if(/-win week trophy/.test(t))from=fin.filter(x=>x.place===0);
+    if(from.length)t+=` · ${from.length===1?"from":"from:"} ${list(from)}`;
     m.dataset.tip=t+` · +${k} this week${tot?` (${tot} all time)`:""}`};
   const grab=(html,kind)=>{box.innerHTML=html; box.querySelectorAll(".medal-m").forEach(m=>{if(isNew(m)){thisWeekOnly(m);m.removeAttribute("data-hl");m.style.cursor="";m.dataset.mk=kind;m.dataset.mn=n;out.push(m.outerHTML)}})};
   let p=byName[n];
