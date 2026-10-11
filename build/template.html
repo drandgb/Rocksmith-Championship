@@ -2910,6 +2910,9 @@ const twRivLv=["","",""]; // rivals level filter per path ("" = all)
 const twBits={}; PLAYERS.forEach(p=>twBits[p[0]]=presOf(p));
 const twLiveSet=TW_LIVE?new Set(twEntries(TW_LIVE).map(x=>x.n)):new Set();
 // did name play week w?
+// is the player on week w's scoreboard at all? (a multi-week God challenge keeps scores posted in earlier weeks of
+// the run, so its winner can be decided in a week they didn't post in)
+const twOnBoard=(n,w)=>{const k=String(n).toLowerCase(); return (SB.weeks[w]||[]).some(c=>c[6].some(e=>SB.names[e[0]].replace(/[*~]+$/,"").toLowerCase()===k))};
 const twPlayed=(n,w)=>{if(w===TW_LIVE)return twLiveSet.has(n); const b=twBits[n]; return !!b&&b[w-PRES_START]==="1"};
 const twLastBefore=(n,w)=>{const b=twBits[n]; if(!b)return null; for(let i=Math.min(w-1,DATA_WEEK)-PRES_START;i>=0;i--)if(b[i]==="1")return i+PRES_START; return null};
 const twStreakTo=(n,w)=>{let k=0; while(w>=PRES_START&&twPlayed(n,w)){k++;w--} return k};
@@ -2947,7 +2950,7 @@ function twMedals(n,w,live){
     grab(medalsFor([n,first,w,played,played/(w-first+1),twStreakTo(n,w),best,"",p?p[8]:""],p?bits:"0".repeat(w-PRES_START)+"1"),"player");
   } else {
     if(p&&p[2]>=w)grab(medalsFor(p),"player");
-    if(twPlayed(n,w)&&/Win medals/.test(allMedalsHtml(n))){box.innerHTML=allMedalsHtml(n); const ms=[...box.children]; let sec=""; const win=[]; ms.forEach(el=>{if(el.classList.contains("ms"))sec=el.textContent;else if(/Win/.test(sec))win.push(el.outerHTML)}); grab(win.join(""),"win")}
+    if((twPlayed(n,w)||twOnBoard(n,w))&&/Win medals/.test(allMedalsHtml(n))){box.innerHTML=allMedalsHtml(n); const ms=[...box.children]; let sec=""; const win=[]; ms.forEach(el=>{if(el.classList.contains("ms"))sec=el.textContent;else if(/Win/.test(sec))win.push(el.outerHTML)}); grab(win.join(""),"win")}
   }
   if(hosts[n])grab(hostMedals(n),"host");
   return twMedalCache[k]=out;
@@ -3024,7 +3027,9 @@ function renderThisWeek(){
   if(live) dng=PLAYERS.map(p=>p[0]).filter(n=>!set.has(n)).map(n=>({n,k:twStreakTo(n,w-1)})).filter(x=>x.k>0).sort((a,b)=>b.k-a.k||a.n.localeCompare(b.n));
   else dng=PLAYERS.map(p=>p[0]).filter(n=>!set.has(n)&&twPlayed(n,w-1)).map(n=>({n,k:twStreakTo(n,w-1)})).filter(x=>x.k>=2).sort((a,b)=>b.k-a.k||a.n.localeCompare(b.n));
   // new medals
-  const cand=new Set(names); if(!live){ann.forEach(a=>cand.add(a.n))} if(W&&W[2]&&hosts[W[2]])cand.add(W[2]);
+  const cand=new Set(names); if(!live){ann.forEach(a=>cand.add(a.n));
+    // God challenge winners decided this week who didn't post a score this week (they posted earlier in the run)
+    (SB.weeks[w]||[]).forEach(c=>c[6].forEach(e=>{const n=SB.names[e[0]].replace(/[*~]+$/,""); const real=PLAYERS.find(p=>p[0].toLowerCase()===n.toLowerCase()); if(real)cand.add(real[0])}))} if(W&&W[2]&&hosts[W[2]])cand.add(W[2]);
   const med=[...cand].map(n=>({n,m:twMedals(n,w,live&&set.has(n))})).filter(x=>x.m.length).sort((a,b)=>medalTotal(b.m)-medalTotal(a.m)||a.n.localeCompare(b.n));
   // rival pairs for each path (mutual pairs shown once)
   const pairsFor=pi=>{const riv=SB.weeks[w]?rivalsOfWeek(w,pi):{}, pairs=[], done=new Set();
