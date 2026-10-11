@@ -632,6 +632,20 @@ footer .updated{display:block;margin-top:4px}
 .twstats b{color:var(--fg);font-family:var(--f-display);font-size:1.1rem}
 .twstats .pill.hol{cursor:default}
 .twl{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+/* gold God winners on This Week: a celestial glow (a slowly turning aurora rim, a soft halo and a few twinkling stars) */
+.twl li.celestial{position:relative;isolation:isolate;border-color:transparent;background:
+  radial-gradient(1.5px 1.5px at 12% 22%,#fff 50%,transparent 51%),radial-gradient(1px 1px at 78% 18%,#fff 50%,transparent 51%),
+  radial-gradient(1.2px 1.2px at 92% 70%,#fff 50%,transparent 51%),radial-gradient(1px 1px at 40% 85%,#fff 50%,transparent 51%),
+  radial-gradient(120% 140% at 50% 0%,color-mix(in srgb,#7fe9ff 26%,transparent),transparent 70%),radial-gradient(90% 120% at 100% 100%,color-mix(in srgb,#b48cff 20%,transparent),transparent 70%),var(--panel2) padding-box;
+  box-shadow:0 0 16px color-mix(in srgb,#7fe9ff 60%,transparent),0 0 36px color-mix(in srgb,#b48cff 42%,transparent),0 0 64px color-mix(in srgb,#ffd86b 22%,transparent);
+  animation:celTwinkle 4s ease-in-out infinite}
+.twl li.celestial::before{content:"";position:absolute;inset:-2px;border-radius:inherit;padding:2px;z-index:-1;pointer-events:none;
+  background:conic-gradient(from var(--cang,0deg),#7fe9ff,#b48cff,#ffd86b,#fff6d5,#7fe9ff);
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;animation:celSpin 6s linear infinite}
+@property --cang{syntax:"<angle>";inherits:false;initial-value:0deg}
+@keyframes celSpin{to{--cang:360deg}}
+@keyframes celTwinkle{50%{box-shadow:0 0 22px color-mix(in srgb,#7fe9ff 75%,transparent),0 0 48px color-mix(in srgb,#b48cff 55%,transparent),0 0 84px color-mix(in srgb,#ffd86b 32%,transparent)}}
+@media (prefers-reduced-motion:reduce){.twl li.celestial,.twl li.celestial::before{animation:none}}
 .twl.cols{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,330px),1fr))}
 .twl li{display:flex;align-items:center;gap:6px 10px;flex-wrap:wrap;padding:8px 10px;background:var(--panel2);border:1px solid var(--line);border-radius:8px;min-width:0}
 .twl li.empty{background:none;border:0;padding:6px 0}
@@ -1263,7 +1277,7 @@ footer{color:var(--dim);font-size:.78rem}
   <footer>Data: Rodman’s Rocksmith 2014 Championship Google Sheets (older attendance also from the Championship Metrics workbook). Player stats run through week 676; scoreboards cover weeks 440–677. Weeks 1–16 have no recorded host in the source.
   <span class="updated disclaimer">Unofficial fan project. Not affiliated with Ubisoft or Rocksmith.</span>
   <span class="updated" id="sheetedit-row" hidden>Sheet last edited: <span id="sheetedit" data-iso="2026-10-10T22:44:06.318Z"></span></span>
-  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-11T04:27:22+00:00">October 11, 2026</span></span>
+  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-11T04:29:13+00:00">October 11, 2026</span></span>
   </footer>
 </div>
 <dialog id="acct" class="acctdlg" aria-label="Your profile"><div id="acctbody"></div><button type="button" class="clear acctclose" id="acctclose">Close</button></dialog>
@@ -3042,7 +3056,7 @@ function renderThisWeek(){
   $("tw-dng-sub").textContent=live?`Active streaks with no score yet this week${left>0?` · ${twPl(left,"day")} left`:""}`:`Played week ${w-1} but not week ${w} (2+ week streaks)`;
   $("tw-dng").innerHTML=dng.length?dng.map(x=>`<li>${twName(x.n)}<span class="rt ${x.k>=52?"crit":x.k>=10?"hot":""}">🔥 ${x.k}<small>week${x.k===1?"":"s"}</small></span></li>`).join(""):twEmpty(live?"Every active streak is safe this week. 🎉":"No streaks ended this week.");
   $("tw-med-sub").textContent=live?"Collected this week · player medals are provisional, win medals are added when the week ends":"Collected this week · click a medal to see what it is for";
-  $("tw-med").innerHTML=med.length?med.map(x=>`<li>${twName(x.n)}<span class="dt">${twPl(medalTotal(x.m),"new medal")}</span><div class="medals">${x.m.join("")}</div></li>`).join(""):twEmpty("No new medals this week.");
+  $("tw-med").innerHTML=med.length?med.map(x=>{const g=x.m.some(h=>/diamond d0/.test(h)); return `<li${g?` class="celestial" data-tip="Gold God winner this week"`:""}>${twName(x.n)}<span class="dt">${twPl(medalTotal(x.m),"new medal")}</span><div class="medals">${x.m.join("")}</div></li>`}).join(""):twEmpty("No new medals this week.");
   const lit=(id,on)=>$(id).closest("section").classList.toggle("lit",!!on);
   lit("tw-med",med.length); lit("tw-back",back.length);
   {const s=$("tw-dng").closest("section"); s.classList.toggle("amber",live); s.classList.toggle("gloom",!live&&dng.length>0)} lit("tw-new",fresh.length); lit("tw-ann",ann.length); lit("tw-riv",SB.weeks[w]&&[0,1,2].some(pi=>Object.keys(rivalsOfWeek(w,pi)).length));
