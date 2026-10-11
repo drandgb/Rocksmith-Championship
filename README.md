@@ -169,7 +169,7 @@ To build by hand: `./build/build.sh` (downloads the sheet) or `./build/build.sh 
 - Data comes from the Rocksmith 2014 Championship scoreboards, player list and song lists maintained by the challenge hosts on CustomsForge.
 - Thanks to every host and player who has kept the challenge running week after week since 2013. 🤘
 
-*Unofficial fan project. Not affiliated with Ubisoft or Rocksmith.*
+*Unofficial fan project. Not affiliated with CustomsForge, Ubisoft or Rocksmith.*
 
 ## Player accounts and song ratings (optional)
 
