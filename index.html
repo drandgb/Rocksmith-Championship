@@ -638,25 +638,25 @@ footer .updated{display:block;margin-top:4px}
   radial-gradient(1.2px 1.2px at 92% 70%,#fff 50%,transparent 51%),radial-gradient(1px 1px at 40% 85%,#fff 50%,transparent 51%),
   radial-gradient(120% 140% at 50% 0%,color-mix(in srgb,#7fe9ff 26%,transparent),transparent 70%),radial-gradient(90% 120% at 100% 100%,color-mix(in srgb,#b48cff 20%,transparent),transparent 70%),var(--panel2) padding-box;
   box-shadow:0 0 16px color-mix(in srgb,#7fe9ff 60%,transparent),0 0 36px color-mix(in srgb,#b48cff 42%,transparent),0 0 64px color-mix(in srgb,#ffd86b 22%,transparent);
-  animation:celTwinkle 4s ease-in-out infinite}
+}
 .celestial::before{content:"";position:absolute;inset:-2px;border-radius:inherit;padding:2px;z-index:-1;pointer-events:none;
   background:conic-gradient(from var(--cang,0deg),#7fe9ff,#b48cff,#ffd86b,#fff6d5,#7fe9ff);
-  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;animation:celSpin 6s linear infinite}
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;animation:celSpin 9s linear infinite}
 .celestial .celc{position:absolute;width:30px;height:30px;pointer-events:none;z-index:2;filter:drop-shadow(0 0 3px rgba(255,216,107,.55))}
 .celestial .celc svg{width:100%;height:100%;display:block}
 .celestial .celc.c-tl{top:-7px;left:-7px}.celestial .celc.c-tr{top:-7px;right:-7px;transform:scaleX(-1)}
 .celestial .celc.c-bl{bottom:-7px;left:-7px;transform:scaleY(-1)}.celestial .celc.c-br{bottom:-7px;right:-7px;transform:scale(-1,-1)}
 .celestial .celgems{position:absolute;inset:-1px;pointer-events:none;z-index:1}
-.celgem{position:absolute;width:var(--sz);height:var(--sz);opacity:0;border-radius:1px;
-  background:linear-gradient(135deg,#fff 0%,#dffbff 35%,#7fe9ff 60%,#b48cff 100%);
-  box-shadow:0 0 4px #fff,0 0 9px color-mix(in srgb,#7fe9ff 80%,transparent);animation:var(--dur) ease-in-out var(--dl) infinite}
-.celgem.gt{top:calc(var(--sz)/-2);animation-name:celGemH}.celgem.gb{bottom:calc(var(--sz)/-2);animation-name:celGemH}
-.celgem.gl{left:calc(var(--sz)/-2);animation-name:celGemV}.celgem.gr{right:calc(var(--sz)/-2);animation-name:celGemV}
-@keyframes celGemH{0%{left:var(--s);opacity:0;transform:rotate(45deg) scale(.2)}18%{opacity:1;transform:rotate(45deg) scale(1)}
-  62%{opacity:.95;transform:rotate(45deg) scale(.9)}100%{left:var(--e);opacity:0;transform:rotate(45deg) scale(.2)}}
-@keyframes celGemV{0%{top:var(--s);opacity:0;transform:rotate(45deg) scale(.2)}18%{opacity:1;transform:rotate(45deg) scale(1)}
-  62%{opacity:.95;transform:rotate(45deg) scale(.9)}100%{top:var(--e);opacity:0;transform:rotate(45deg) scale(.2)}}
-@media (prefers-reduced-motion:reduce){.celgem{animation:none;opacity:.8;left:var(--s)}.celgem.gl,.celgem.gr{left:auto;top:var(--s)}.celgem.gl{left:calc(var(--sz)/-2)}}
+/* each gem rides a track the length of its edge and only moves with transform/opacity (cheap for the browser) */
+.celtrack{position:absolute;pointer-events:none;will-change:transform;animation:var(--dur) linear var(--dl) infinite}
+.celtrack.gt,.celtrack.gb{left:0;width:100%;height:0;animation-name:celTrackH}.celtrack.gt{top:0}.celtrack.gb{bottom:0}
+.celtrack.gl,.celtrack.gr{top:0;height:100%;width:0;animation-name:celTrackV}.celtrack.gl{left:0}.celtrack.gr{right:0}
+.celgem{position:absolute;left:0;top:0;width:var(--sz);height:var(--sz);margin:calc(var(--sz)/-2) 0 0 calc(var(--sz)/-2);border-radius:1px;opacity:0;
+  background:radial-gradient(circle at 35% 35%,#fff 0 30%,#bff4ff 45%,#8fd8ff 70%,#b48cff);will-change:transform,opacity;animation:celGemFade var(--dur) ease-in-out var(--dl) infinite}
+@keyframes celTrackH{from{transform:translateX(var(--s))}to{transform:translateX(var(--e))}}
+@keyframes celTrackV{from{transform:translateY(var(--s))}to{transform:translateY(var(--e))}}
+@keyframes celGemFade{0%{opacity:0;transform:rotate(45deg) scale(.2)}20%{opacity:1;transform:rotate(45deg) scale(1)}65%{opacity:.9;transform:rotate(45deg) scale(.85)}100%{opacity:0;transform:rotate(45deg) scale(.2)}}
+@media (prefers-reduced-motion:reduce){.celtrack,.celgem{animation:none}.celgem{opacity:.7;transform:rotate(45deg)}.celtrack.gt,.celtrack.gb{transform:translateX(var(--s))}.celtrack.gl,.celtrack.gr{transform:translateY(var(--s))}}
 .haulbox.celestial{padding:10px 12px;border-radius:8px;border:1px solid transparent;margin-top:4px}
 @property --cang{syntax:"<angle>";inherits:false;initial-value:0deg}
 @keyframes celSpin{to{--cang:360deg}}
@@ -1293,7 +1293,7 @@ footer{color:var(--dim);font-size:.78rem}
   <footer>Data: Rodman’s Rocksmith 2014 Championship Google Sheets (older attendance also from the Championship Metrics workbook). Player stats run through week 676; scoreboards cover weeks 440–677. Weeks 1–16 have no recorded host in the source.
   <span class="updated disclaimer">Unofficial fan project. Not affiliated with Ubisoft or Rocksmith.</span>
   <span class="updated" id="sheetedit-row" hidden>Sheet last edited: <span id="sheetedit" data-iso="2026-10-10T22:44:06.318Z"></span></span>
-  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-11T04:51:54+00:00">October 11, 2026</span></span>
+  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-11T04:57:51+00:00">October 11, 2026</span></span>
   </footer>
 </div>
 <dialog id="acct" class="acctdlg" aria-label="Your profile"><div id="acctbody"></div><button type="button" class="clear acctclose" id="acctclose">Close</button></dialog>
@@ -2071,10 +2071,19 @@ function podiumCounts(name,done,path=-1){
   return out;
 }
 const POD_COL=["#f5c84a","#c9d0dc","#d8925a"], POD_NAME=["Gold","Silver","Bronze"], POD_PLACE=["1st","2nd","3rd"];
+// a small cut gem for a path, set into a medal like a jewel: Lead a topaz (orange), Rhythm an emerald (green),
+// Bass a sapphire (blue). r = its radius; drawn as an octagonal brilliant with a table, facets and a glint.
+const GEM_PAL=[["#ffe0b0","#ff9a2e","#b8560a"],["#c8ffd9","#2fcf6e","#0d7a3a"],["#cfe0ff","#3f7bff","#173f9e"]];
+function pathGem(cx,cy,r,p){const [lt,md,dk]=GEM_PAL[p], o=[], t=[];
+  for(let k=0;k<8;k++){const a=(k*45+22.5)*Math.PI/180; o.push([cx+r*Math.cos(a),cy+r*Math.sin(a)]); t.push([cx+r*.52*Math.cos(a),cy+r*.52*Math.sin(a)])}
+  const P=a=>a.map(q=>q[0].toFixed(2)+","+q[1].toFixed(2)).join(" ");
+  let f=""; for(let k=0;k<8;k++){const k2=(k+1)%8, sh=[.28,.12,0,.1,.3,.42,.5,.4][k];
+    f+=`<polygon points="${P([o[k],o[k2],t[k2],t[k]])}" fill="${k<3?lt:dk}" fill-opacity="${sh}"/>`}
+  return `<g><polygon points="${P(o)}" fill="${md}" stroke="${dk}" stroke-width="${(r*.14).toFixed(2)}" stroke-linejoin="round"/>${f}<polygon points="${P(t)}" fill="${md}"/><polygon points="${P(t)}" fill="${lt}" fill-opacity=".35"/><path d="M${(cx-r*.38).toFixed(2)} ${(cy-r*.12).toFixed(2)}l${(r*.22).toFixed(2)} ${(-r*.26).toFixed(2)}" stroke="#fff" stroke-width="${(r*.16).toFixed(2)}" stroke-linecap="round" opacity=".85"/><circle cx="${(cx+r*.3).toFixed(2)}" cy="${(cy+r*.3).toFixed(2)}" r="${(r*.09).toFixed(2)}" fill="#fff" opacity=".6"/></g>`}
 // a gold/silver/bronze medal; with a path (0 Lead, 1 Rhythm, 2 Bass) the ribbon takes the path's colour and the
 // path's letter is stamped into the medal
 function podSvg(col,p){const rib=p==null?`fill="#4f7dff"`:`style="fill:${PATH_C[p]}"`;
-  const letter=p==null?"":`<text x="12.6" y="21.6" text-anchor="middle" font-family="system-ui,sans-serif" font-weight="900" font-size="9.5" fill="rgba(255,255,255,.55)" transform="translate(.5 .6)">${"LRB"[p]}</text><text x="12.6" y="21.6" text-anchor="middle" font-family="system-ui,sans-serif" font-weight="900" font-size="9.5" fill="rgba(0,0,0,.55)">${"LRB"[p]}</text>`;
+  const letter=p==null?"":`<circle cx="14" cy="19" r="5.2" fill="rgba(0,0,0,.28)"/><circle cx="14" cy="19" r="4.9" fill="none" stroke="rgba(255,255,255,.45)" stroke-width=".5"/>${pathGem(14,19,4.4,p)}`;
   return `<svg viewBox="0 0 28 30" aria-hidden="true"><path d="M8 0h5l2 8-4 2zM20 0h-5l-2 8 4 2z" ${rib}/><path d="M8 0h5l2 8-4 2z" fill="rgba(0,0,0,.18)"/><circle cx="14" cy="19" r="10" fill="${col}"/><circle cx="14" cy="19" r="7.4" fill="none" stroke="rgba(0,0,0,.22)" stroke-width="1.2"/><path d="M10 14a7 7 0 0 1 6-2" stroke="rgba(255,255,255,.6)" stroke-width="1.6" fill="none" stroke-linecap="round"/>${letter}</svg>`}
 // a Roman laurel wreath (two leafy branches meeting under the gem, open at the top) in gold, silver or bronze
 const LAUREL_PAL=[["#fff2b0","#f5c84a","#b8862a","#9a6b18","#e0a83a"],["#ffffff","#d3d9e3","#8a94a4","#5f6878","#b9c1cd"],["#ffd9b8","#d8925a","#9a5a2c","#6e3f1c","#c27a44"]];
@@ -2105,15 +2114,15 @@ function celCorners(){
   const sp=["c-tl","c-tr","c-bl","c-br"].map(c=>`<span class="celc ${c}">${CEL_SPRIG}</span>`).join("");
   const rnd=(a,b)=>a+Math.random()*(b-a), gems=[];
   // edge, how many, and travel direction along it (clockwise: top →, right ↓, bottom ←, left ↑)
-  [["t",7,1],["r",2,1],["b",7,-1],["l",2,-1]].forEach(([e,n,dir])=>{for(let i=0;i<n;i++){
+  [["t",3,1],["r",1,1],["b",3,-1],["l",1,-1]].forEach(([e,n,dir])=>{for(let i=0;i<n;i++){
     const a=rnd(9,60), len=rnd(18,34), s0=dir>0?a:Math.min(91,a+len), s1=dir>0?Math.min(91,a+len):a, dur=rnd(2.6,4.2);
     // waves: each edge's gems start in staggered groups, so they come and go in pulses rather than all at once
     const delay=-(((i%3)*dur/3)+rnd(0,.5)).toFixed(2);
-    gems.push(`<i class="celgem g${e}" style="--s:${s0.toFixed(1)}%;--e:${s1.toFixed(1)}%;--dur:${dur.toFixed(2)}s;--dl:${delay}s;--sz:${rnd(4,6.5).toFixed(1)}px"></i>`)}});
+    gems.push(`<i class="celtrack g${e}" style="--s:${s0.toFixed(1)}%;--e:${s1.toFixed(1)}%;--dur:${dur.toFixed(2)}s;--dl:${delay}s;--sz:${rnd(4,6).toFixed(1)}px"><i class="celgem"></i></i>`)}});
   return sp+`<span class="celgems" aria-hidden="true">${gems.join("")}</span>`;
 }
 function diamondSvg(i,p){const tint=["#bff6ff","#e6ecf5","#ffd2b0"][i], deep=["#4fd6ff","#9aa6bb","#d8925a"][i];
-  return `<svg class="laurel" viewBox="-7 -5 44 41" aria-hidden="true">${laurelOf(i)}<defs><linearGradient id="dg${i}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff"/><stop offset=".35" stop-color="${tint}"/><stop offset=".7" stop-color="${deep}"/><stop offset="1" stop-color="#c77dff"/></linearGradient></defs><polygon points="8,4 22,4 29,12 15,28 1,12" fill="url(#dg${i})"/><polygon points="8,4 22,4 18.5,12 11.5,12" fill="rgba(255,255,255,.65)"/><polygon points="1,12 11.5,12 15,28" fill="rgba(255,255,255,.18)"/><polygon points="29,12 18.5,12 15,28" fill="rgba(60,0,120,.22)"/><polygon points="11.5,12 18.5,12 15,28" fill="rgba(255,255,255,.35)"/><polygon points="8,4 1,12 11.5,12" fill="rgba(255,255,255,.4)"/><polygon points="22,4 29,12 18.5,12" fill="rgba(80,40,160,.18)"/><polygon points="8,4 22,4 29,12 15,28 1,12" fill="none" stroke="rgba(255,255,255,.8)" stroke-width=".7"/>${p!=null?`<g transform="translate(15 12.6)"><circle r="5.4" style="fill:${PATH_C[p]}" stroke="rgba(255,255,255,.85)" stroke-width=".8"/><circle r="5.4" fill="url(#dsh)" /><text y="2.75" text-anchor="middle" font-family="system-ui,sans-serif" font-weight="900" font-size="7.6" fill="#fff" stroke="rgba(0,0,0,.35)" stroke-width=".35" paint-order="stroke">${"LRB"[p]}</text></g><defs><radialGradient id="dsh" cx=".35" cy=".3" r=".8"><stop offset="0" stop-color="rgba(255,255,255,.45)"/><stop offset=".6" stop-color="rgba(255,255,255,0)"/></radialGradient></defs>`:(()=>{const m=POD_COL[i]; // a tiny version of the gold, silver or bronze medal, centered on the diamond
+  return `<svg class="laurel" viewBox="-7 -5 44 41" aria-hidden="true">${laurelOf(i)}<defs><linearGradient id="dg${i}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff"/><stop offset=".35" stop-color="${tint}"/><stop offset=".7" stop-color="${deep}"/><stop offset="1" stop-color="#c77dff"/></linearGradient></defs><polygon points="8,4 22,4 29,12 15,28 1,12" fill="url(#dg${i})"/><polygon points="8,4 22,4 18.5,12 11.5,12" fill="rgba(255,255,255,.65)"/><polygon points="1,12 11.5,12 15,28" fill="rgba(255,255,255,.18)"/><polygon points="29,12 18.5,12 15,28" fill="rgba(60,0,120,.22)"/><polygon points="11.5,12 18.5,12 15,28" fill="rgba(255,255,255,.35)"/><polygon points="8,4 1,12 11.5,12" fill="rgba(255,255,255,.4)"/><polygon points="22,4 29,12 18.5,12" fill="rgba(80,40,160,.18)"/><polygon points="8,4 22,4 29,12 15,28 1,12" fill="none" stroke="rgba(255,255,255,.8)" stroke-width=".7"/>${p!=null?`<circle cx="15" cy="12.6" r="5.6" fill="rgba(255,255,255,.55)"/>${pathGem(15,12.6,4.8,p)}`:(()=>{const m=POD_COL[i]; // a tiny version of the gold, silver or bronze medal, centered on the diamond
   return `<g transform="translate(15 12.6) scale(.56) translate(-14 -19)"><circle cx="14" cy="19" r="10" fill="${m}" stroke="rgba(0,0,0,.25)" stroke-width=".8"/><circle cx="14" cy="19" r="7.4" fill="none" stroke="rgba(0,0,0,.22)" stroke-width="1.2"/><path d="M10 14a7 7 0 0 1 6-2" stroke="rgba(255,255,255,.6)" stroke-width="1.6" fill="none" stroke-linecap="round"/></g>`})()}<path class="spk" d="M24 1.5l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8z" fill="#fff"/><path class="spk s2" d="M4.5 18l.6 1.4 1.4.6-1.4.6-.6 1.4-.6-1.4-1.4-.6 1.4-.6z" fill="#fff"/></svg>`}
 function podiumMedals(pod){
   const rows=[], reg=[], god=[];
