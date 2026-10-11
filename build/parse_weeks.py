@@ -36,10 +36,11 @@ for wk in sorted(todo):
     for b in range(27):
         c = 2 + 5 * b
         song, lvl, diff, extra = val(6, c), val(7, c), val(7, c + 3), val(7, c + 2)
-        # the small letter after the level (L/R/B) is the song arrangement to play; it is normally the path's own,
-        # but some weeks swap it (e.g. a song whose Lead challenge is played on its Rhythm arrangement)
-        al = str(val(7, c + 1) or "").strip().upper()
-        if al in ("L", "R", "B") and al != "LRB"[b // 9]: sw[str(b)] = al
+        # the code after the level is the song arrangement to play: L/R/B (normally the path's own, but some weeks swap
+        # it, e.g. a Lead challenge played on the Rhythm arrangement), BL/BR/BB (a bonus arrangement inside the song)
+        # or AL/AR/AB (an alternate arrangement)
+        al = re.sub(r"[^A-Z]", "", str(val(7, c + 1) or "").upper())
+        if al in ("L", "R", "B", "BL", "BR", "BB", "AL", "AR", "AB") and al != "LRB"[b // 9]: sw[str(b)] = al
         ents, fl = [], []
         for r in range(9, len(grid) + 1):
             n = val(r, c)

@@ -334,7 +334,7 @@ button.clear:hover{border-color:var(--accent)}
 .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr));gap:14px}
 .card{background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:hidden;display:flex;flex-direction:column;min-width:0}
 .card .ch{padding:12px 14px 10px;border-top:3px solid var(--tc);background:linear-gradient(180deg,color-mix(in srgb,var(--tc) 12%,transparent),transparent)}
-.card .lv{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.card .lv{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
 .card .lv span{font:700 .78rem var(--f-display);letter-spacing:.1em;text-transform:uppercase;color:var(--tc)}
 .card .diff{font:700 .8rem var(--f-mono);padding:2px 7px;border-radius:5px;background:var(--panel2);border:1px solid var(--line);color:var(--fg)}
 .card .song{margin-top:6px;font-size:.92rem;line-height:1.3;overflow-wrap:anywhere}
@@ -344,7 +344,7 @@ button.clear:hover{border-color:var(--accent)}
 .card .note.arrnote{color:var(--fg)}
 .card .lv span.arrtag{color:var(--ac);font:800 .62rem var(--f-display);letter-spacing:.06em}
 .arrtag{display:inline-flex;align-items:center;font-size:.62rem;font-weight:800;letter-spacing:.04em;text-transform:uppercase;padding:2px 7px;border-radius:999px;border:1.5px solid var(--ac,var(--s-red));color:var(--ac,var(--s-red));white-space:nowrap;cursor:help;flex:none}
-.card .lvr{display:flex;align-items:center;gap:6px}
+.card .lvr{display:flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:flex-end;margin-left:auto}
 /* download pill: the song's Ignition4 page, taken from the song title's link on the scoreboard sheet */
 a.dl,.offpill{display:inline-flex;align-items:center;gap:4px;font:700 .66rem var(--f-display);letter-spacing:.06em;text-transform:uppercase;text-decoration:none;color:var(--tc);padding:3px 8px;border-radius:999px;border:1px solid color-mix(in srgb,var(--tc) 55%,transparent);background:color-mix(in srgb,var(--tc) 12%,transparent);white-space:nowrap}
 a.dl:hover{background:color-mix(in srgb,var(--tc) 24%,transparent)}
@@ -436,6 +436,7 @@ a.dl svg,.offpill svg{width:11px;height:11px}
 .card .diff.upd{border-color:color-mix(in srgb,var(--tc) 70%,var(--line));color:var(--tc);cursor:help}
 .srate{display:inline-flex;align-items:center;font:700 .76rem var(--f-mono);padding:1px 7px;border-radius:5px;background:color-mix(in srgb,var(--pc) 14%,transparent);border:1px solid color-mix(in srgb,var(--pc) 55%,transparent);color:var(--pc);cursor:help;vertical-align:1px;margin-left:6px}
 .srate+.srate{margin-left:4px}
+.srate.xarr i{font-style:normal;font-size:.62rem;opacity:.8;margin-right:4px}
 .srate.canrate{cursor:pointer;position:relative}
 .srate.canrate:hover{background:color-mix(in srgb,var(--pc) 34%,transparent)}
 .srate.canrate select{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;font-size:16px;-webkit-appearance:none;appearance:none}
@@ -2402,11 +2403,17 @@ function isOfficial(sg){const S=isOfficial.set||(isOfficial.set=new Set(__OFFICI
 function offPill(){return `<span class="dl offpill" data-tip="Official Rocksmith song · not available on Ignition" title="Official Rocksmith song · not available on Ignition"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M6 1l1.5 3.1 3.4.5-2.5 2.4.6 3.4L6 8.8 3 10.4l.6-3.4L1.1 4.6l3.4-.5z" fill="currentColor"/></svg>Official</span>`}
 // song pill: Official if it's an official song, otherwise the Ignition link when there is one
 // a challenge whose song arrangement isn't its path's own (the sheet's L/R/B letter after the level), e.g. a Lead challenge played on the Rhythm arrangement
-function arrOf(w,p,slot){const a=SB.arr&&SB.arr[w]&&SB.arr[w][p*9+slot]; return a?{L:"Lead",R:"Rhythm",B:"Bass"}[a]:null}
-// the path whose arrangement is actually played on a challenge (its own path unless the sheet swaps it).
-// Ratings follow this, so a Lead challenge played on the Rhythm arrangement is rated as the song's Rhythm.
-function arrP(w,p,slot){const a=SB.arr&&SB.arr[w]&&SB.arr[w][p*9+slot]; return a?"LRB".indexOf(a):p}
-function arrTag(w,p,slot){const a=arrOf(w,p,slot); return a?`<span class="arrtag" style="--ac:${PATH_C[PATHS.indexOf(a)]}" data-tip="This ${PATHS[p]} challenge is played on the song's ${a} arrangement, not its ${PATHS[p]} one">Play ${a}</span>`:""}
+// The arrangement actually played on a challenge, as a code: L, R, B (the path's own), BL/BR/BB (a bonus arrangement
+// inside the song) or AL/AR/AB (an alternate arrangement). The sheet shows it next to the level; it's normally the path's own.
+// Ratings follow the arrangement played, so a Lead challenge played on the Rhythm arrangement is rated as the song's Rhythm,
+// and a bonus or alternate arrangement has a rating of its own.
+const ARR_CODES=["L","R","B","BL","BR","BB","AL","AR","AB"];
+function arrP(w,p,slot){const a=SB.arr&&SB.arr[w]&&SB.arr[w][p*9+slot]; return a||"LRB"[p]}
+function arrName(code){return (code.length>1?(code[0]==="B"?"Bonus ":"Alternate "):"")+PATHS["LRB".indexOf(code.slice(-1))]}
+function arrC(code){return PATH_C["LRB".indexOf(code.slice(-1))]}
+function arrOf(w,p,slot){const a=SB.arr&&SB.arr[w]&&SB.arr[w][p*9+slot]; return a?arrName(a):null}
+function arrTag(w,p,slot){const a=SB.arr&&SB.arr[w]&&SB.arr[w][p*9+slot]; if(!a)return ""; const n=arrName(a);
+  return `<span class="arrtag" style="--ac:${arrC(a)}" data-tip="This ${PATHS[p]} challenge is played on the song's ${n} arrangement${a.length>1?` (a ${a[0]==="B"?"bonus":"alternate"} arrangement inside the song)`:""}, not its ${PATHS[p]} one">Play ${n}</span>`}
 function songPill(sg,id){return isOfficial(sg)?offPill():id?igPill(id):""}
 // Ignition pill: the song's Ignition4 (CustomsForge) page, from the song title's link on the scoreboard sheet
 function igPill(id){return `<a class="dl" href="https://ignition4.customsforge.com/cdlc/${id}" target="_blank" rel="noopener" title="Download, comment on or like this song on Ignition4 (CustomsForge)"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M6 1v7M3 5.5 6 8.5l3-3M2 11h8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 2.5h8a1 1 0 0 1 1 1v4.5a1 1 0 0 1-1 1H6l-2.6 2v-2H2a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1z" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M6 10.6 1.9 6.6A2.4 2.4 0 0 1 6 3.2a2.4 2.4 0 0 1 4.1 3.4z" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg>Ignition</a>`}
@@ -3116,7 +3123,7 @@ function acctCanRate(ents){return !!(ACCT.claim&&ACCT.claim.status==="approved")
 function hostRatingsOf(p,song){
   const k=acctSongKey(song), out=[];
   Object.entries(SB.weeks).forEach(([w,ch])=>ch.forEach(c=>{if(c[3]&&arrP(w,c[0],c[1])===p&&acctSongKey(c[3])===k)out.push({w:+w,t:tierOf(c[2]),d:c[4],cp:c[0]})}));
-  SONGS_OLD.forEach(([w,pp,tt,b,s,d])=>{if(pp===p&&s&&acctSongKey(s)===k)out.push({w,t:tt,d})});
+  SONGS_OLD.forEach(([w,pp,tt,b,s,d])=>{if("LRB"[pp]===p&&s&&acctSongKey(s)===k)out.push({w,t:tt,d})});
   // a multi-week God run counts once, with the initial rating of its most recent week
   const god=new Set(out.filter(x=>x.t==="G").map(x=>x.w));
   return out.filter(x=>!(x.t==="G"&&god.has(x.w+1))).sort((a,b)=>b.w-a.w);
@@ -3131,7 +3138,7 @@ function songRating(p,song){
     if(seen.has(key))return; seen.add(key); hosts.push({w:x.w,t:x.t,d:x.d,cp:x.cp,h:h&&h!==LOST?h:null,replaced:!!h&&pl.has(h.toLowerCase())})});
   const pool=players.map(v=>v.r).concat(hosts.filter(x=>!x.replaced).map(x=>x.d));
   const avg=pool.length?(Math.round(pool.reduce((a,b)=>a+b,0)/pool.length*10)/10).toFixed(1):null;
-  const tip=(hosts.length?`Initial host rating${hosts.length>1?"s":""}:\n`+hosts.slice(0,12).map(x=>`• Week ${x.w} · ${TIER_LABEL[x.t]||x.t||""}${x.cp!=null&&x.cp!==p?` (${PATHS[x.cp]} challenge)`:""}${x.h?` · ${x.h}`:""}: ${x.d}${x.replaced?" (replaced by their player rating)":""}`).join("\n")+(hosts.length>12?`\n… and ${hosts.length-12} more`:""):"No host rating")
+  const tip=(hosts.length?`Initial host rating${hosts.length>1?"s":""}:\n`+hosts.slice(0,12).map(x=>`• Week ${x.w} · ${TIER_LABEL[x.t]||x.t||""}${x.cp!=null&&"LRB"[x.cp]!==p?` (${PATHS[x.cp]} challenge)`:""}${x.h?` · ${x.h}`:""}: ${x.d}${x.replaced?" (replaced by their player rating)":""}`).join("\n")+(hosts.length>12?`\n… and ${hosts.length-12} more`:""):"No host rating")
     +(players.length?`\n\nPlayers' ratings:\n`+players.map(v=>`• ${v.p}: ${v.r}`).join("\n"):"\n\nNo player ratings yet")
     +(avg?`\n\nAverage: ${avg} from ${pool.length} rating${pool.length===1?"":"s"}`:"");
   return {avg,players,hosts,n:pool.length,tip};
@@ -3140,7 +3147,7 @@ function songRating(p,song){
 // A player has one rating per song per path; it's stored against the song's latest challenge on that path.
 function rateSelect(p,song,mine){
   const opts=[];for(let r=1;r<=10;r+=.5)opts.push(`<option value="${r}"${mine&&mine.r===r?" selected":""}>${r}</option>`);
-  return `<select data-rate="${p}" data-song="${esc(song)}" aria-label="Your difficulty rating for this song on ${PATHS[p]}"><option value=""${mine?"":" selected"}>${mine?"Remove my rating":"Your rating…"}</option>${opts.join("")}</select>`;
+  return `<select data-rate="${p}" data-song="${esc(song)}" aria-label="Your difficulty rating for this song's ${arrName(p)} arrangement"><option value=""${mine?"":" selected"}>${mine?"Remove my rating":"Your rating…"}</option>${opts.join("")}</select>`;
 }
 function songVotes(p,song){return ((ACCT.songs||{})[p+"|"+acctSongKey(song)]||[]).slice().sort((a,b)=>a.p.localeCompare(b.p,undefined,{sensitivity:"base"}))}
 // Scoreboard badge: hover shows the host's initial ratings and every player's rating of the song on this path;
@@ -3150,7 +3157,7 @@ function rateBadge(w,p,slot,diff,ents){
   if(!acctOn())return plain;
   if(!ACCT.songs){acctLoadWeek();return plain}
   const card=(SB.weeks[w]||[]).find(c=>c[0]===p&&c[1]===slot); if(!card||!card[3])return plain;
-  const rp=arrP(w,p,slot), sw=rp!==p?`Rating for the song's ${PATHS[rp]} arrangement (played on this ${PATHS[p]} challenge)\n\n`:"";
+  const rp=arrP(w,p,slot), sw=rp!=="LRB"[p]?`Rating for the song's ${arrName(rp)} arrangement (played on this ${PATHS[p]} challenge)\n\n`:"";
   const list=songVotes(rp,card[3]), can=acctCanRate(ents);
   const R=songRating(rp,card[3]);
   if(!R.n&&!can)return plain;
@@ -3189,29 +3196,30 @@ async function acctLoadWeek(){
 function songRateBox(cards){
   if(acctOn()&&!ACCT.songs)acctLoadWeek();
   const can=acctOn()&&acctCanRate();
-  return [0,1,2].map(p=>{
-    const pc=cards.filter(c=>(c.slot!=null?arrP(c.w,c.p,c.slot):c.p)===p).sort((a,b)=>b.w-a.w); if(!pc.length)return "";
+  const codeOf=c=>c.slot!=null?arrP(c.w,c.p,c.slot):"LRB"[c.p];
+  return ARR_CODES.map(p=>{
+    const pc=cards.filter(c=>codeOf(c)===p).sort((a,b)=>b.w-a.w); if(!pc.length)return "";
     const R=songRating(p,pc[0].song);
     if(!R.n&&!can)return "";
     const mine=can?R.players.find(v=>v.p===ACCT.claim.player):null;
-    const tipTxt=`${PATHS[p]}\n`+R.tip+(can?(mine?`\n\nYour rating: ${mine.r} · click to change`:"\n\nClick to give your rating"):"");
-    return `<span class="srate${R.players.length?" upd":""}${can?" canrate":""}${mine?" mine":""}" style="--pc:${PATH_C[p]}" data-tip="${esc(tipTxt)}">${R.avg||"–"}${can?rateSelect(p,pc[0].song,mine):""}</span>`;
+    const tipTxt=`${arrName(p)}\n`+R.tip+(can?(mine?`\n\nYour rating: ${mine.r} · click to change`:"\n\nClick to give your rating"):"");
+    return `<span class="srate${R.players.length?" upd":""}${can?" canrate":""}${mine?" mine":""}${p.length>1?" xarr":""}" style="--pc:${arrC(p)}" data-tip="${esc(tipTxt)}">${p.length>1?`<i>${p}</i>`:""}${R.avg||"–"}${can?rateSelect(p,pc[0].song,mine):""}</span>`;
   }).join("").replace(/^(.+)$/s,'<span class="srates">$1</span>');
 }
 document.addEventListener("change",async e=>{
   const s=e.target.closest("select[data-rate]"); if(!s)return;
   // data-as: an admin rating on behalf of another player (only offered in the Admin tab)
   const as=s.dataset.as&&ACCT.admin&&s.closest(".adm")?s.dataset.as:null; if(!as&&!ACCT.claim)return;
-  const p=+s.dataset.rate, song=s.dataset.song, player=as||ACCT.claim.player, k=p+"|"+acctSongKey(song);
+  const p=s.dataset.rate, song=s.dataset.song, player=as||ACCT.claim.player, k=p+"|"+acctSongKey(song);
   const r=s.value?+s.value:null;
   // an admin changing a rating the player gave themselves has to confirm it first
   const prevAs=as?songVotes(p,song).find(v=>v.p===as):null;
   if(as){const cur=prevAs, own=ACCT.claims.find(c=>c.player===as&&c.status==="approved");
-    if(cur&&own&&cur.u===own.user_id&&!confirm(`${as} rated ${song} (${PATHS[p]}) ${cur.r} themselves. Are you sure you want to ${r==null?"remove their rating":`replace it with ${r}`}?`)){s.value=String(cur.r);return}}
+    if(cur&&own&&cur.u===own.user_id&&!confirm(`${as} rated ${song} (${arrName(p)}) ${cur.r} themselves. Are you sure you want to ${r==null?"remove their rating":`replace it with ${r}`}?`)){s.value=String(cur.r);return}}
   // the song's latest challenge on this path holds the rating (Scoreboard weeks first, then the older weeks)
   let at=null;
   Object.entries(SB.weeks).forEach(([w,ch])=>ch.forEach(c=>{if(c[3]&&arrP(w,c[0],c[1])===p&&acctSongKey(c[3])===acctSongKey(song)&&(!at||+w>at.week))at={week:+w,path:c[0],slot:c[1],song:c[3]}}));
-  if(!at)SONGS_OLD.forEach(o=>{if(o[1]===p&&o[4]&&acctSongKey(o[4])===acctSongKey(song)&&(!at||o[0]>at.week))at={week:o[0],path:o[1],slot:Math.max(0,TIER_ORDER.indexOf(o[2])),song:o[4]}});
+  if(!at)SONGS_OLD.forEach(o=>{if("LRB"[o[1]]===p&&o[4]&&acctSongKey(o[4])===acctSongKey(song)&&(!at||o[0]>at.week))at={week:o[0],path:o[1],slot:Math.max(0,TIER_ORDER.indexOf(o[2])),song:o[4]}});
   if(!at)return;
   // one rating per song per path: clear this player's other ratings of the song on this path first
   for(const x of ((ACCT.rows||{})[k+"|"+player]||[]))if(!(x.week===at.week&&x.path===at.path&&x.slot===at.slot)){
@@ -3220,7 +3228,7 @@ document.addEventListener("change",async e=>{
                  :ACCT.sb.from("votes").upsert({player,week:at.week,path:at.path,slot:at.slot,song:at.song,rating:r,user_id:ACCT.user.id,updated_at:new Date().toISOString()});
   const {error}=await q; if(error){alert("Couldn't save your rating: "+error.message);return}
   // admin changes on behalf of a player go in the ratings log (Admin tab)
-  if(as){await ACCT.sb.from("rating_log").insert({admin_player:ACCT.claim?ACCT.claim.player:null,player,path:p,song:at.song,old_rating:prevAs?prevAs.r:null,new_rating:r}); await ratingLogLoad()}
+  if(as){await ACCT.sb.from("rating_log").insert({admin_player:ACCT.claim?ACCT.claim.player:null,player,path:at.path,song:at.song,old_rating:prevAs?prevAs.r:null,new_rating:r}); await ratingLogLoad()}
   ACCT.songs=null; acctLoadWeek();
 });
 // your profile in the account dialog: the real player, win and host lookup cards, moved into the dialog while it's open
@@ -3311,7 +3319,7 @@ function cardRateBox(p,song,diff){
   if(acctOn()&&!ACCT.songs)acctLoadWeek();
   const R=songRating(p,song), can=acctCanRate(), mine=can?R.players.find(v=>v.p===ACCT.claim.player):null;
   const tipTxt=R.tip+(can?(mine?`\n\nYour rating: ${mine.r} · click to change`:"\n\nClick to give your rating"):"");
-  return `<span class="srate${R.players.length?" upd":""}${can?" canrate":""}${mine?" mine":""}" style="--pc:${PATH_C[p]}" data-tip="${esc(tipTxt)}">${R.avg||(diff!=null?diff:"–")}${can?rateSelect(p,song,mine):""}</span>`;
+  return `<span class="srate${R.players.length?" upd":""}${can?" canrate":""}${mine?" mine":""}" style="--pc:${arrC(p)}" data-tip="${esc(tipTxt)}">${R.avg||(diff!=null?diff:"–")}${can?rateSelect(p,song,mine):""}</span>`;
 }
 // the log of ratings admins gave or changed on behalf of players (newest first)
 async function ratingLogLoad(){if(!ACCT.sb||!ACCT.admin)return;
