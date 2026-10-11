@@ -1762,7 +1762,7 @@ function medalsFor(p,bitsOv){
   // one medal per class, in that class's gem colour (God stays red)
   const mastBy=masteryByClass(n,SB_W.filter(w=>w<cur[0]));
   const mRow=MAST_CLASSES.map(([k,label,col,glow])=>{const ws=mastBy[k]; if(!ws.length)return "";
-    return `<span class="medal-m wm" style="--ec:${glow};cursor:pointer" data-all="${ws.join(",")}" data-hl="${[...new Set(ws)].join(",")}" data-tip="${label} 100% mastery · scored 100% on a ${label} challenge, whatever the place · ${ws.length} time${ws.length===1?"":"s"} · click to highlight">${masterySvg(col,k==="B"?"#fff":null)}<b>${ws.length}</b></span>`}).join("");
+    return `<span class="medal-m wm" style="--ec:${glow};cursor:pointer" data-all="${ws.join(",")}" data-hl="${[...new Set(ws)].join(",")}" data-tip="${label} 100% mastery · scored 100% on ${/^[AEIOU]/.test(label)?"an":"a"} ${label} challenge, whatever the place · ${ws.length} time${ws.length===1?"":"s"} · click to highlight">${masterySvg(col,k==="B"?"#fff":null)}<b>${ws.length}</b></span>`}).join("");
   const cls=iRow+cRow+mRow+(cgRow||""); // Completionist, then 100% mastery, then the Beginner to Masterclass gems
   return (top.length?`<div class="medals">${top.join("")}</div>`:"")+(gems.length?`<div class="medals">${gems.join("")}</div>`:"")+(cls?`<div class="medals">${cls}</div>`:"")+(embers.length?`<div class="medals">${embers.join("")}</div>`:"")+(flames.length?`<div class="medals">${flames.join("")}</div>`:"");
 }
@@ -3027,6 +3027,9 @@ function twMedals(n,w,live){
       from=fin.filter(x=>x.place===i&&x.god===god&&(pp<0||x.c[0]===pp))}
     else if(/^Close win/.test(t))from=fin.filter(x=>x.place===0&&x.tie);
     else if(/-win week trophy/.test(t))from=fin.filter(x=>x.place===0);
+    else{const mm=/^(.+) 100% mastery/.exec(t), mc=mm&&MAST_CLASSES.find(x=>x[1]===mm[1]);
+      if(mc){const key=String(n).toLowerCase(); (SB.weeks[w]||[]).forEach(c=>{if(c[7]||masteryClassOf(c[2])!==mc[0])return;
+        if(c[6].some(e=>e[1]!=null&&e[1]>=100&&SB.names[e[0]].replace(/[*~]+$/,"").toLowerCase()===key))from.push({c,god:mc[0]==="G"})})}}
     if(from.length)t+=` · ${from.length===1?"from":"from:"} ${list(from)}`;
     m.dataset.tip=t+` · +${k} this week${tot?` (${tot} all time)`:""}`};
   const grab=(html,kind)=>{box.innerHTML=html; box.querySelectorAll(".medal-m").forEach(m=>{if(isNew(m)){thisWeekOnly(m);m.removeAttribute("data-hl");m.style.cursor="";m.dataset.mk=kind;m.dataset.mn=n;out.push(m.outerHTML)}})};
