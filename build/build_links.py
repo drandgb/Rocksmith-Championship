@@ -29,5 +29,8 @@ for name, rid in re.findall(r'<sheet [^>]*?name="Week(\d+)"[^>]*?r:id="(rId\d+)"
 
 out = links
 sb = json.load(open("scores.json")); sb["links"] = out
+# arrangement swaps found by parse_weeks.py: {week: {path*9+slot: "L"/"R"/"B"}} where the song arrangement differs from the path
+import os
+sb["arr"] = json.load(open("arr.json")) if os.path.exists("arr.json") else {}
 json.dump(sb, open("scores.json", "w"), separators=(",", ":"))
 print(f"download links: {sum(len(v) for v in out.values())} across {len(out)} weeks")
