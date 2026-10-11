@@ -642,6 +642,10 @@ footer .updated{display:block;margin-top:4px}
 .celestial::before{content:"";position:absolute;inset:-2px;border-radius:inherit;padding:2px;z-index:-1;pointer-events:none;
   background:conic-gradient(from var(--cang,0deg),#7fe9ff,#b48cff,#ffd86b,#fff6d5,#7fe9ff);
   -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;animation:celSpin 6s linear infinite}
+.celestial .celc{position:absolute;width:30px;height:30px;pointer-events:none;z-index:2;filter:drop-shadow(0 0 3px rgba(255,216,107,.55))}
+.celestial .celc svg{width:100%;height:100%;display:block}
+.celestial .celc.tl{top:-7px;left:-7px}.celestial .celc.tr{top:-7px;right:-7px;transform:scaleX(-1)}
+.celestial .celc.bl{bottom:-7px;left:-7px;transform:scaleY(-1)}.celestial .celc.br{bottom:-7px;right:-7px;transform:scale(-1,-1)}
 .haulbox.celestial{padding:10px 12px;border-radius:8px;border:1px solid transparent;margin-top:4px}
 @property --cang{syntax:"<angle>";inherits:false;initial-value:0deg}
 @keyframes celSpin{to{--cang:360deg}}
@@ -2065,6 +2069,16 @@ const LAUREL=(()=>{const r=17.2, cx=15, cy=15.5; let s="";
       [-34,34].forEach((off,j)=>{const a=tang+off, ox=x+Math.cos(a*Math.PI/180)*2.2*sz, oy=y+Math.sin(a*Math.PI/180)*2.2*sz;
         s+=`<ellipse cx="${ox.toFixed(2)}" cy="${oy.toFixed(2)}" rx="${(2.6*sz).toFixed(2)}" ry="${(1.15*sz).toFixed(2)}" transform="rotate(${a.toFixed(1)} ${ox.toFixed(2)} ${oy.toFixed(2)})" fill="url(#laurelg)" stroke="#9a6b18" stroke-width=".3"/>`})}});
   return `<defs><linearGradient id="laurelg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff2b0"/><stop offset=".5" stop-color="#f5c84a"/><stop offset="1" stop-color="#b8862a"/></linearGradient></defs>${s}<path d="M12.6 33.4l2.4 1.3 2.4-1.3-1 2.6h-2.8z" fill="#e0a83a" stroke="#9a6b18" stroke-width=".3"/><circle cx="15" cy="33.2" r="1.3" fill="#f5c84a" stroke="#9a6b18" stroke-width=".3"/>`})();
+// a little golden laurel sprig for the corners of a gold God winner's box: two leafy branches running out along the
+// edges from the corner, with a berry where they meet (drawn for the top-left corner; the others are mirrored)
+const CEL_SPRIG=(()=>{let s="";
+  [[0,1],[1,0]].forEach(([dx,dy])=>{
+    s+=`<path d="M4 4Q${4+dx*12+dy*1.5} ${4+dy*12+dx*1.5} ${4+dx*24} ${4+dy*24}" fill="none" stroke="#b8862a" stroke-width=".9" stroke-linecap="round"/>`;
+    for(let k=0;k<4;k++){const t=4.5+k*5.2, x=4+dx*t+dy*.6, y=4+dy*t+dx*.6, sz=1-k*.16, dir=Math.atan2(dy,dx)*180/Math.PI;
+      [-38,38].forEach(off=>{const a=dir+off, ox=x+Math.cos(a*Math.PI/180)*2.3*sz, oy=y+Math.sin(a*Math.PI/180)*2.3*sz;
+        s+=`<ellipse cx="${ox.toFixed(2)}" cy="${oy.toFixed(2)}" rx="${(2.7*sz).toFixed(2)}" ry="${(1.15*sz).toFixed(2)}" transform="rotate(${a.toFixed(1)} ${ox.toFixed(2)} ${oy.toFixed(2)})" fill="url(#celg)" stroke="#9a6b18" stroke-width=".3"/>`})}});
+  return `<svg viewBox="0 0 30 30" aria-hidden="true"><defs><linearGradient id="celg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff2b0"/><stop offset=".5" stop-color="#f5c84a"/><stop offset="1" stop-color="#b8862a"/></linearGradient></defs>${s}<circle cx="4" cy="4" r="1.9" fill="#f5c84a" stroke="#9a6b18" stroke-width=".35"/><circle cx="3.4" cy="3.4" r=".6" fill="#fff6d5"/></svg>`})();
+function celCorners(){return ["tl","tr","bl","br"].map(c=>`<span class="celc ${c}">${CEL_SPRIG}</span>`).join("")}
 function diamondSvg(i){const tint=["#bff6ff","#e6ecf5","#ffd2b0"][i], deep=["#4fd6ff","#9aa6bb","#d8925a"][i];
   return `<svg class="laurel" viewBox="-7 -5 44 41" aria-hidden="true">${LAUREL}<defs><linearGradient id="dg${i}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff"/><stop offset=".35" stop-color="${tint}"/><stop offset=".7" stop-color="${deep}"/><stop offset="1" stop-color="#c77dff"/></linearGradient></defs><polygon points="8,4 22,4 29,12 15,28 1,12" fill="url(#dg${i})"/><polygon points="8,4 22,4 18.5,12 11.5,12" fill="rgba(255,255,255,.65)"/><polygon points="1,12 11.5,12 15,28" fill="rgba(255,255,255,.18)"/><polygon points="29,12 18.5,12 15,28" fill="rgba(60,0,120,.22)"/><polygon points="11.5,12 18.5,12 15,28" fill="rgba(255,255,255,.35)"/><polygon points="8,4 1,12 11.5,12" fill="rgba(255,255,255,.4)"/><polygon points="22,4 29,12 18.5,12" fill="rgba(80,40,160,.18)"/><polygon points="8,4 22,4 29,12 15,28 1,12" fill="none" stroke="rgba(255,255,255,.8)" stroke-width=".7"/>${(()=>{const m=POD_COL[i]; // a tiny version of the gold, silver or bronze medal, centered on the diamond
   return `<g transform="translate(15 12.6) scale(.56) translate(-14 -19)"><circle cx="14" cy="19" r="10" fill="${m}" stroke="rgba(0,0,0,.25)" stroke-width=".8"/><circle cx="14" cy="19" r="7.4" fill="none" stroke="rgba(0,0,0,.22)" stroke-width="1.2"/><path d="M10 14a7 7 0 0 1 6-2" stroke="rgba(255,255,255,.6)" stroke-width="1.6" fill="none" stroke-linecap="round"/></g>`})()}<path class="spk" d="M24 1.5l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8z" fill="#fff"/><path class="spk s2" d="M4.5 18l.6 1.4 1.4.6-1.4.6-.6 1.4-.6-1.4-1.4-.6 1.4-.6z" fill="#fff"/></svg>`}
@@ -3062,7 +3076,7 @@ function renderThisWeek(){
   $("tw-dng-sub").textContent=live?`Active streaks with no score yet this week${left>0?` · ${twPl(left,"day")} left`:""}`:`Played week ${w-1} but not week ${w} (2+ week streaks)`;
   $("tw-dng").innerHTML=dng.length?dng.map(x=>`<li>${twName(x.n)}<span class="rt ${x.k>=52?"crit":x.k>=10?"hot":""}">🔥 ${x.k}<small>week${x.k===1?"":"s"}</small></span></li>`).join(""):twEmpty(live?"Every active streak is safe this week. 🎉":"No streaks ended this week.");
   $("tw-med-sub").textContent=live?"Collected this week · player medals are provisional, win medals are added when the week ends":"Collected this week · click a medal to see what it is for";
-  $("tw-med").innerHTML=med.length?med.map(x=>{const g=x.m.some(h=>/diamond d0/.test(h)); return `<li${g?` class="celestial" data-tip="Gold God winner this week"`:""}>${twName(x.n)}<span class="dt">${twPl(medalTotal(x.m),"new medal")}</span><div class="medals">${x.m.join("")}</div></li>`}).join(""):twEmpty("No new medals this week.");
+  $("tw-med").innerHTML=med.length?med.map(x=>{const g=x.m.some(h=>/diamond d0/.test(h)); return `<li${g?` class="celestial" data-tip="Gold God winner this week"`:""}>${g?celCorners():""}${twName(x.n)}<span class="dt">${twPl(medalTotal(x.m),"new medal")}</span><div class="medals">${x.m.join("")}</div></li>`}).join(""):twEmpty("No new medals this week.");
   const lit=(id,on)=>$(id).closest("section").classList.toggle("lit",!!on);
   lit("tw-med",med.length); lit("tw-back",back.length);
   {const s=$("tw-dng").closest("section"); s.classList.toggle("amber",live); s.classList.toggle("gloom",!live&&dng.length>0)} lit("tw-new",fresh.length); lit("tw-ann",ann.length); lit("tw-riv",SB.weeks[w]&&[0,1,2].some(pi=>Object.keys(rivalsOfWeek(w,pi)).length));
@@ -3407,7 +3421,7 @@ function acctThisWeek(n){
   // last week's haul: the medals collected in the last finished week, as on that week's This Week page
   const lw=DATA_WEEK, haul=lw>=TW_MIN?twMedals(n,lw,false):[];
   return `<div class="acctsec"><h3>Last week's haul <small>Week ${lw}</small></h3>${haul.length?(()=>{const g=haul.some(h=>/diamond d0/.test(h)), inner=`<div class="medals haul">${haul.join("")}</div><p class="dim" style="margin-top:6px">${twPl(medalTotal(haul),"new medal")}</p>`;
-      return g?`<div class="haulbox celestial" data-tip="Gold God winner last week">${inner}</div>`:inner})():`<p class="dim">No new medals last week.</p>`}</div>
+      return g?`<div class="haulbox celestial" data-tip="Gold God winner last week">${celCorners()}${inner}</div>`:inner})():`<p class="dim">No new medals last week.</p>`}</div>
     <div class="acctsec"><h3>This week's scoreboard <small>Week ${w}</small></h3>${sb.length?`<ul class="alist">${sb.join("")}</ul>`:`<p class="dim">No scoreboard for this week yet.</p>`}</div>
     <div class="acctsec acctriv"><h3>This week's rivals</h3>${riv||`<p class="dim">No rivals this week yet.</p>`}</div>
     <div class="acctsec"><h3>Rodman's Rankings ${RK.weeks?`<small>Weeks ${esc(RK.weeks)}</small>`:""}</h3>${rk.length?`<ul class="alist">${rk.join("")}</ul>`:`<p class="dim">Not ranked right now.</p>`}<div class="row"><button type="button" class="btn ghost" data-goview="rankings">Open Rodman's Rankings ›</button></div></div>`;
