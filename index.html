@@ -1261,7 +1261,7 @@ footer{color:var(--dim);font-size:.78rem}
   <footer>Data: Rodman’s Rocksmith 2014 Championship Google Sheets (older attendance also from the Championship Metrics workbook). Player stats run through week 676; scoreboards cover weeks 440–677. Weeks 1–16 have no recorded host in the source.
   <span class="updated disclaimer">Unofficial fan project. Not affiliated with Ubisoft or Rocksmith.</span>
   <span class="updated" id="sheetedit-row" hidden>Sheet last edited: <span id="sheetedit" data-iso="2026-10-10T22:44:06.318Z"></span></span>
-  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-11T03:55:43+00:00">October 10, 2026</span></span>
+  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-11T04:13:51+00:00">October 11, 2026</span></span>
   </footer>
 </div>
 <dialog id="acct" class="acctdlg" aria-label="Your profile"><div id="acctbody"></div><button type="button" class="clear acctclose" id="acctclose">Close</button></dialog>
@@ -2402,6 +2402,9 @@ function offPill(){return `<span class="dl offpill" data-tip="Official Rocksmith
 // song pill: Official if it's an official song, otherwise the Ignition link when there is one
 // a challenge whose song arrangement isn't its path's own (the sheet's L/R/B letter after the level), e.g. a Lead challenge played on the Rhythm arrangement
 function arrOf(w,p,slot){const a=SB.arr&&SB.arr[w]&&SB.arr[w][p*9+slot]; return a?{L:"Lead",R:"Rhythm",B:"Bass"}[a]:null}
+// the path whose arrangement is actually played on a challenge (its own path unless the sheet swaps it).
+// Ratings follow this, so a Lead challenge played on the Rhythm arrangement is rated as the song's Rhythm.
+function arrP(w,p,slot){const a=SB.arr&&SB.arr[w]&&SB.arr[w][p*9+slot]; return a?"LRB".indexOf(a):p}
 function arrTag(w,p,slot){const a=arrOf(w,p,slot); return a?`<span class="arrtag" data-tip="This ${PATHS[p]} challenge is played on the song's ${a} arrangement, not its ${PATHS[p]} one">Play ${a}</span>`:""}
 function songPill(sg,id){return isOfficial(sg)?offPill():id?igPill(id):""}
 // Ignition pill: the song's Ignition4 (CustomsForge) page, from the song title's link on the scoreboard sheet
@@ -3111,7 +3114,7 @@ function acctCanRate(ents){return !!(ACCT.claim&&ACCT.claim.status==="approved")
 // every week a song was used on a path, newest first, with the host's initial rating that week
 function hostRatingsOf(p,song){
   const k=acctSongKey(song), out=[];
-  Object.entries(SB.weeks).forEach(([w,ch])=>ch.forEach(c=>{if(c[0]===p&&c[3]&&acctSongKey(c[3])===k)out.push({w:+w,t:tierOf(c[2]),d:c[4]})}));
+  Object.entries(SB.weeks).forEach(([w,ch])=>ch.forEach(c=>{if(c[3]&&arrP(w,c[0],c[1])===p&&acctSongKey(c[3])===k)out.push({w:+w,t:tierOf(c[2]),d:c[4],cp:c[0]})}));
   SONGS_OLD.forEach(([w,pp,tt,b,s,d])=>{if(pp===p&&s&&acctSongKey(s)===k)out.push({w,t:tt,d})});
   // a multi-week God run counts once, with the initial rating of its most recent week
   const god=new Set(out.filter(x=>x.t==="G").map(x=>x.w));
@@ -3124,10 +3127,10 @@ function songRating(p,song){
   const players=acctOn()&&ACCT.songs?songVotes(p,song):[], pl=new Set(players.map(v=>v.p.toLowerCase()));
   const seen=new Set(), hosts=[];
   hostRatingsOf(p,song).forEach(x=>{if(x.d==null||!(x.d>0))return; const h=(WEEKS[x.w-1]||[])[2]; const key=h&&h!==LOST?h.toLowerCase():"w"+x.w;
-    if(seen.has(key))return; seen.add(key); hosts.push({w:x.w,t:x.t,d:x.d,h:h&&h!==LOST?h:null,replaced:!!h&&pl.has(h.toLowerCase())})});
+    if(seen.has(key))return; seen.add(key); hosts.push({w:x.w,t:x.t,d:x.d,cp:x.cp,h:h&&h!==LOST?h:null,replaced:!!h&&pl.has(h.toLowerCase())})});
   const pool=players.map(v=>v.r).concat(hosts.filter(x=>!x.replaced).map(x=>x.d));
   const avg=pool.length?(Math.round(pool.reduce((a,b)=>a+b,0)/pool.length*10)/10).toFixed(1):null;
-  const tip=(hosts.length?`Initial host rating${hosts.length>1?"s":""}:\n`+hosts.slice(0,12).map(x=>`• Week ${x.w} · ${TIER_LABEL[x.t]||x.t||""}${x.h?` · ${x.h}`:""}: ${x.d}${x.replaced?" (replaced by their player rating)":""}`).join("\n")+(hosts.length>12?`\n… and ${hosts.length-12} more`:""):"No host rating")
+  const tip=(hosts.length?`Initial host rating${hosts.length>1?"s":""}:\n`+hosts.slice(0,12).map(x=>`• Week ${x.w} · ${TIER_LABEL[x.t]||x.t||""}${x.cp!=null&&x.cp!==p?` (${PATHS[x.cp]} challenge)`:""}${x.h?` · ${x.h}`:""}: ${x.d}${x.replaced?" (replaced by their player rating)":""}`).join("\n")+(hosts.length>12?`\n… and ${hosts.length-12} more`:""):"No host rating")
     +(players.length?`\n\nPlayers' ratings:\n`+players.map(v=>`• ${v.p}: ${v.r}`).join("\n"):"\n\nNo player ratings yet")
     +(avg?`\n\nAverage: ${avg} from ${pool.length} rating${pool.length===1?"":"s"}`:"");
   return {avg,players,hosts,n:pool.length,tip};
@@ -3146,14 +3149,15 @@ function rateBadge(w,p,slot,diff,ents){
   if(!acctOn())return plain;
   if(!ACCT.songs){acctLoadWeek();return plain}
   const card=(SB.weeks[w]||[]).find(c=>c[0]===p&&c[1]===slot); if(!card||!card[3])return plain;
-  const list=songVotes(p,card[3]), can=acctCanRate(ents);
-  const R=songRating(p,card[3]);
+  const rp=arrP(w,p,slot), sw=rp!==p?`Rating for the song's ${PATHS[rp]} arrangement (played on this ${PATHS[p]} challenge)\n\n`:"";
+  const list=songVotes(rp,card[3]), can=acctCanRate(ents);
+  const R=songRating(rp,card[3]);
   if(!R.n&&!can)return plain;
   const mine=can?list.find(v=>v.p===ACCT.claim.player):null;
-  const tipTxt=R.tip+(can?(mine?`\n\nYour rating: ${mine.r} · click to change`:"\n\nClick to give your rating"):"");
+  const tipTxt=sw+R.tip+(can?(mine?`\n\nYour rating: ${mine.r} · click to change`:"\n\nClick to give your rating"):"");
   const label=R.avg||(diff!=null?diff:"–");
   if(!can)return `<span class="diff${list.length?" upd":""}" data-tip="${esc(tipTxt)}">${label}</span>`;
-  return `<span class="diff canrate${list.length?" upd":""}${mine?" mine":""}" data-tip="${esc(tipTxt)}">${label}${rateSelect(p,card[3],mine)}</span>`;
+  return `<span class="diff canrate${list.length?" upd":""}${mine?" mine":""}" data-tip="${esc(tipTxt)}">${label}${rateSelect(rp,card[3],mine)}</span>`;
 }
 // the rating picker on a card, opened by clicking its difficulty badge
 function acctCard(){return ""} // (the rating dropdown lives inside the rating badge)
@@ -3169,7 +3173,7 @@ async function acctLoadWeek(){
   const best={}, mine={}, rows={}, me=ACCT.claim&&ACCT.claim.player;
   (data||[]).forEach(v=>{
     const song=v.song||songAt(v.week,v.path,v.slot); if(!song)return;
-    const k=v.path+"|"+acctSongKey(song), id=k+"|"+v.player;
+    const k=arrP(v.week,v.path,v.slot)+"|"+acctSongKey(song), id=k+"|"+v.player;
     (rows[k+"|"+v.player]=rows[k+"|"+v.player]||[]).push({week:v.week,path:v.path,slot:v.slot});
     if(v.player===me)(mine[k]=mine[k]||[]).push({week:v.week,path:v.path,slot:v.slot});
     if(!best[id]||String(v.updated_at)>String(best[id].t))best[id]={k,p:v.player,r:+v.rating,t:v.updated_at,u:v.user_id};
@@ -3185,7 +3189,7 @@ function songRateBox(cards){
   if(acctOn()&&!ACCT.songs)acctLoadWeek();
   const can=acctOn()&&acctCanRate();
   return [0,1,2].map(p=>{
-    const pc=cards.filter(c=>c.p===p).sort((a,b)=>b.w-a.w); if(!pc.length)return "";
+    const pc=cards.filter(c=>(c.slot!=null?arrP(c.w,c.p,c.slot):c.p)===p).sort((a,b)=>b.w-a.w); if(!pc.length)return "";
     const R=songRating(p,pc[0].song);
     if(!R.n&&!can)return "";
     const mine=can?R.players.find(v=>v.p===ACCT.claim.player):null;
@@ -3205,14 +3209,14 @@ document.addEventListener("change",async e=>{
     if(cur&&own&&cur.u===own.user_id&&!confirm(`${as} rated ${song} (${PATHS[p]}) ${cur.r} themselves. Are you sure you want to ${r==null?"remove their rating":`replace it with ${r}`}?`)){s.value=String(cur.r);return}}
   // the song's latest challenge on this path holds the rating (Scoreboard weeks first, then the older weeks)
   let at=null;
-  Object.entries(SB.weeks).forEach(([w,ch])=>ch.forEach(c=>{if(c[0]===p&&c[3]&&acctSongKey(c[3])===acctSongKey(song)&&(!at||+w>at.week))at={week:+w,slot:c[1],song:c[3]}}));
-  if(!at)SONGS_OLD.forEach(o=>{if(o[1]===p&&o[4]&&acctSongKey(o[4])===acctSongKey(song)&&(!at||o[0]>at.week))at={week:o[0],slot:Math.max(0,TIER_ORDER.indexOf(o[2])),song:o[4]}});
+  Object.entries(SB.weeks).forEach(([w,ch])=>ch.forEach(c=>{if(c[3]&&arrP(w,c[0],c[1])===p&&acctSongKey(c[3])===acctSongKey(song)&&(!at||+w>at.week))at={week:+w,path:c[0],slot:c[1],song:c[3]}}));
+  if(!at)SONGS_OLD.forEach(o=>{if(o[1]===p&&o[4]&&acctSongKey(o[4])===acctSongKey(song)&&(!at||o[0]>at.week))at={week:o[0],path:o[1],slot:Math.max(0,TIER_ORDER.indexOf(o[2])),song:o[4]}});
   if(!at)return;
   // one rating per song per path: clear this player's other ratings of the song on this path first
-  for(const x of ((ACCT.rows||{})[k+"|"+player]||[]))if(!(x.week===at.week&&x.slot===at.slot)){
-    const {error}=await ACCT.sb.from("votes").delete().match({player,week:x.week,path:p,slot:x.slot}); if(error){alert("Couldn't save your rating: "+error.message);return}}
-  const q=r==null?ACCT.sb.from("votes").delete().match({player,week:at.week,path:p,slot:at.slot})
-                 :ACCT.sb.from("votes").upsert({player,week:at.week,path:p,slot:at.slot,song:at.song,rating:r,user_id:ACCT.user.id,updated_at:new Date().toISOString()});
+  for(const x of ((ACCT.rows||{})[k+"|"+player]||[]))if(!(x.week===at.week&&x.path===at.path&&x.slot===at.slot)){
+    const {error}=await ACCT.sb.from("votes").delete().match({player,week:x.week,path:x.path,slot:x.slot}); if(error){alert("Couldn't save your rating: "+error.message);return}}
+  const q=r==null?ACCT.sb.from("votes").delete().match({player,week:at.week,path:at.path,slot:at.slot})
+                 :ACCT.sb.from("votes").upsert({player,week:at.week,path:at.path,slot:at.slot,song:at.song,rating:r,user_id:ACCT.user.id,updated_at:new Date().toISOString()});
   const {error}=await q; if(error){alert("Couldn't save your rating: "+error.message);return}
   // admin changes on behalf of a player go in the ratings log (Admin tab)
   if(as){await ACCT.sb.from("rating_log").insert({admin_player:ACCT.claim?ACCT.claim.player:null,player,path:p,song:at.song,old_rating:prevAs?prevAs.r:null,new_rating:r}); await ratingLogLoad()}
@@ -3330,10 +3334,10 @@ function adminRateSection(){
   let rows="";
   if(pl){const cards=(SB.weeks[wk]||[]).filter(c=>c[3]&&!/^n\/a$/i.test(c[3])).sort((a,b)=>a[0]-b[0]||a[1]-b[1]);
     const key=pl.toLowerCase();
-    rows=cards.map(c=>{const L=cardLv(c[2]), cur=songVotes(c[0],c[3]).find(v=>v.p===pl);
+    rows=cards.map(c=>{const L=cardLv(c[2]), rp=arrP(wk,c[0],c[1]), cur=songVotes(rp,c[3]).find(v=>v.p===pl);
       const ent=c[6].find(e=>SB.names[e[0]].replace(/[*~]+$/,"").toLowerCase()===key);
       const opts=[];for(let r=1;r<=10;r+=.5)opts.push(`<option value="${r}"${cur&&cur.r===r?" selected":""}>${r}</option>`);
-      return `<li class="${ent?"aplayed":""}" style="--pc:${PATH_C[c[0]]}"${ent?` data-tip="${esc(pl)} posted a score on this one"`:""}><span class="apath">${PATHS[c[0]]}</span><span class="lvchip" style="--tc:${L==="G"?"var(--s-red)":TIER_C[L]||"var(--muted)"}">${L==="G"?esc(c[2]):TIER_NAME[L]||esc(c[2])}</span><span class="asong">${esc(c[3])}</span>${ent?`<span class="playedtag">PLAYED${ent[1]!=null?` · ${ent[1]}%`:""}</span>`:""}<span class="dim">host ${c[4]!=null?c[4]:"–"}</span><select class="admrate" data-rate="${c[0]}" data-song="${esc(c[3])}" data-as="${esc(pl)}" aria-label="${esc(pl)}'s rating"><option value=""${cur?"":" selected"}>${cur?"Remove rating":"No rating"}</option>${opts.join("")}</select></li>`}).join("")}
+      return `<li class="${ent?"aplayed":""}" style="--pc:${PATH_C[c[0]]}"${ent?` data-tip="${esc(pl)} posted a score on this one"`:""}><span class="apath">${PATHS[c[0]]}</span><span class="lvchip" style="--tc:${L==="G"?"var(--s-red)":TIER_C[L]||"var(--muted)"}">${L==="G"?esc(c[2]):TIER_NAME[L]||esc(c[2])}</span><span class="asong">${esc(c[3])}</span>${arrTag(wk,c[0],c[1])}${ent?`<span class="playedtag">PLAYED${ent[1]!=null?` · ${ent[1]}%`:""}</span>`:""}<span class="dim">host ${c[4]!=null?c[4]:"–"}</span><select class="admrate" data-rate="${rp}" data-song="${esc(c[3])}" data-as="${esc(pl)}" aria-label="${esc(pl)}'s rating"><option value=""${cur?"":" selected"}>${cur?"Remove rating":"No rating"}</option>${opts.join("")}</select></li>`}).join("")}
   return `<div class="adm acctsec" id="admrate"><h3>Ratings for a player</h3><p class="dim">Give or change a player's ratings for them. They count exactly like the player's own (one per song per path).</p>
     <div class="row admrow"><select data-admrate="p" aria-label="Player"><option value="">Choose a player…</option>${groups.map(([w,ns])=>`<optgroup label="Last played Week ${w}">${ns.map(n=>`<option${n===pl?" selected":""}>${esc(n)}</option>`).join("")}</optgroup>`).join("")}</select>
     <select data-admrate="w" aria-label="Week">${weeks.map(w=>`<option value="${w}"${w===wk?" selected":""}>Week ${w}</option>`).join("")}</select></div>
@@ -3354,7 +3358,7 @@ function acctThisWeek(n){
     const L=cardLv(c[2]), id=SB.links&&SB.links[w]&&SB.links[w][c[0]*9+c[1]];
     const pl=me&&me.place&&me.place<=3?["🥇","🥈","🥉"][me.place-1]:"";
     const ranked=L&&L!=="G"&&L===rankOf(c[0]);
-    sb.push(`<li class="${me?"":"unpl"}${ranked?" myrank":""}" style="--pc:${PATH_C[c[0]]};--rc:${TIER_C[L]||"var(--fg)"}"${ranked?` data-tip="Your ranked challenge: you're ${TIER_NAME[L]} on ${PATHS[c[0]]}, so this one counts for Rodman's Rankings"`:""}><span class="ar1"><span class="apath">${PATHS[c[0]]}</span>${ranked?`<span class="rankedtag">RANKED</span>`:""}${L?`<span class="lvchip" style="--tc:${L==="G"?"var(--s-red)":TIER_C[L]}">${L==="G"?esc(c[2]):TIER_NAME[L]}</span>`:`<span class="lvchip">${esc(c[2])}</span>`}</span><span class="asong" data-sbw="${w}" data-sbp="${c[0]}"${me?` data-sbn="${esc(n)}"`:""} title="Open this challenge on the Scoreboard">${esc(c[3])}</span><span class="ar3">${arrTag(w,c[0],c[1])}${cardRateBox(c[0],c[3],c[4])}${songPill(c[3],id)}${me?`<span class="aplace">${pl}#${me.i+1}<small> of ${c[6].length}</small></span><span class="apct">${me.e[1]!=null?me.e[1]+"%":"–"}</span>`:`<span class="aplace"><small>Not played yet<i class="npsep"> · </i><span class="npn">${c[6].length} played</span></small></span>`}</span></li>`)});
+    sb.push(`<li class="${me?"":"unpl"}${ranked?" myrank":""}" style="--pc:${PATH_C[c[0]]};--rc:${TIER_C[L]||"var(--fg)"}"${ranked?` data-tip="Your ranked challenge: you're ${TIER_NAME[L]} on ${PATHS[c[0]]}, so this one counts for Rodman's Rankings"`:""}><span class="ar1"><span class="apath">${PATHS[c[0]]}</span>${ranked?`<span class="rankedtag">RANKED</span>`:""}${L?`<span class="lvchip" style="--tc:${L==="G"?"var(--s-red)":TIER_C[L]}">${L==="G"?esc(c[2]):TIER_NAME[L]}</span>`:`<span class="lvchip">${esc(c[2])}</span>`}</span><span class="asong" data-sbw="${w}" data-sbp="${c[0]}"${me?` data-sbn="${esc(n)}"`:""} title="Open this challenge on the Scoreboard">${esc(c[3])}</span><span class="ar3">${arrTag(w,c[0],c[1])}${cardRateBox(arrP(w,c[0],c[1]),c[3],c[4])}${songPill(c[3],id)}${me?`<span class="aplace">${pl}#${me.i+1}<small> of ${c[6].length}</small></span><span class="apct">${me.e[1]!=null?me.e[1]+"%":"–"}</span>`:`<span class="aplace"><small>Not played yet<i class="npsep"> · </i><span class="npn">${c[6].length} played</span></small></span>`}</span></li>`)});
   // rivals: the This Week page's rival boxes that include them (all levels), copied over
   let riv="";
   if(cards.length){const saveW=twWeek, saveLv=twRivLv.slice(); twWeek=w; twRivLv.fill(""); renderThisWeek();
