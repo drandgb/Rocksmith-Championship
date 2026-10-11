@@ -2061,17 +2061,25 @@ function tieSvg(col){return `<svg viewBox="0 0 28 30" aria-hidden="true"><circle
 // podium medals: how often a player finished 1st, 2nd or 3rd among eligible players on a challenge (completed weeks,
 // God challenges only in their final week). God challenges are counted separately and get diamonds.
 function podiumCounts(name,done,path=-1){
-  const out={reg:[[],[],[]],god:[[],[],[]]};
+  // reg/god[place] = weeks; regP/godP[place][path] = the same weeks split by the path (Lead, Rhythm, Bass) they were won on
+  const out={reg:[[],[],[]],god:[[],[],[]],regP:[[[],[],[]],[[],[],[]],[[],[],[]]],godP:[[[],[],[]],[[],[],[]],[[],[],[]]]};
   done.forEach(w=>(SB.weeks[w]||[]).forEach(card=>{
     if(path>=0&&card[0]!==path)return; if(card[7])return;
     const el=card[6].filter(x=>x[4]>=0).slice(0,3);
-    el.forEach((e,i)=>{if(SB.names[e[0]].replace(/[*~]+$/,"")===name)out[/^god|tribute/i.test(card[2])?"god":"reg"][i].push(w)});
+    el.forEach((e,i)=>{if(SB.names[e[0]].replace(/[*~]+$/,"")===name){const g=/^god|tribute/i.test(card[2]); out[g?"god":"reg"][i].push(w); out[g?"godP":"regP"][i][card[0]].push(w)}});
   }));
   return out;
 }
 const POD_COL=["#f5c84a","#c9d0dc","#d8925a"], POD_NAME=["Gold","Silver","Bronze"], POD_PLACE=["1st","2nd","3rd"];
-function podSvg(col){return `<svg viewBox="0 0 28 30" aria-hidden="true"><path d="M8 0h5l2 8-4 2zM20 0h-5l-2 8 4 2z" fill="#4f7dff"/><circle cx="14" cy="19" r="10" fill="${col}"/><circle cx="14" cy="19" r="7.4" fill="none" stroke="rgba(0,0,0,.22)" stroke-width="1.2"/><path d="M10 14a7 7 0 0 1 6-2" stroke="rgba(255,255,255,.6)" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg>`}
-// a golden Roman laurel wreath (two leafy branches meeting under the gem, open at the top)
+// a gold/silver/bronze medal; with a path (0 Lead, 1 Rhythm, 2 Bass) the ribbon takes the path's colour and the
+// path's letter is stamped into the medal
+function podSvg(col,p){const rib=p==null?`fill="#4f7dff"`:`style="fill:${PATH_C[p]}"`;
+  const letter=p==null?"":`<text x="12.6" y="21.6" text-anchor="middle" font-family="system-ui,sans-serif" font-weight="900" font-size="9.5" fill="rgba(255,255,255,.55)" transform="translate(.5 .6)">${"LRB"[p]}</text><text x="12.6" y="21.6" text-anchor="middle" font-family="system-ui,sans-serif" font-weight="900" font-size="9.5" fill="rgba(0,0,0,.55)">${"LRB"[p]}</text>`;
+  return `<svg viewBox="0 0 28 30" aria-hidden="true"><path d="M8 0h5l2 8-4 2zM20 0h-5l-2 8 4 2z" ${rib}/><path d="M8 0h5l2 8-4 2z" fill="rgba(0,0,0,.18)"/><circle cx="14" cy="19" r="10" fill="${col}"/><circle cx="14" cy="19" r="7.4" fill="none" stroke="rgba(0,0,0,.22)" stroke-width="1.2"/><path d="M10 14a7 7 0 0 1 6-2" stroke="rgba(255,255,255,.6)" stroke-width="1.6" fill="none" stroke-linecap="round"/>${letter}</svg>`}
+// a Roman laurel wreath (two leafy branches meeting under the gem, open at the top) in gold, silver or bronze
+const LAUREL_PAL=[["#fff2b0","#f5c84a","#b8862a","#9a6b18","#e0a83a"],["#ffffff","#d3d9e3","#8a94a4","#5f6878","#b9c1cd"],["#ffd9b8","#d8925a","#9a5a2c","#6e3f1c","#c27a44"]];
+function laurelOf(i){const [a,b,c,ln,bow]=LAUREL_PAL[i]; return LAUREL.replace(/laurelg/g,"laurelg"+i).replace('stop-color="#fff2b0"','stop-color="'+a+'"').replace('stop-color="#f5c84a"','stop-color="'+b+'"').replace('stop-color="#b8862a"','stop-color="'+c+'"')
+  .replace(/stroke="#b8862a"/g,`stroke="${c}"`).replace(/stroke="#9a6b18"/g,`stroke="${ln}"`).replace('fill="#e0a83a"',`fill="${bow}"`).replace('fill="#f5c84a" stroke','fill="'+b+'" stroke')}
 const LAUREL=(()=>{const r=17.2, cx=15, cy=15.5; let s="";
   [-1,1].forEach(side=>{
     s+=`<path d="M${cx} ${cy+r+.8}A${r} ${r} 0 0 ${side>0?0:1} ${(cx+side*r*Math.sin(2.55)).toFixed(2)} ${(cy+r*Math.cos(2.55)).toFixed(2)}" fill="none" stroke="#b8862a" stroke-width=".9"/>`;
@@ -2104,11 +2112,17 @@ function celCorners(){
     gems.push(`<i class="celgem g${e}" style="--s:${s0.toFixed(1)}%;--e:${s1.toFixed(1)}%;--dur:${dur.toFixed(2)}s;--dl:${delay}s;--sz:${rnd(4,6.5).toFixed(1)}px"></i>`)}});
   return sp+`<span class="celgems" aria-hidden="true">${gems.join("")}</span>`;
 }
-function diamondSvg(i){const tint=["#bff6ff","#e6ecf5","#ffd2b0"][i], deep=["#4fd6ff","#9aa6bb","#d8925a"][i];
-  return `<svg class="laurel" viewBox="-7 -5 44 41" aria-hidden="true">${LAUREL}<defs><linearGradient id="dg${i}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff"/><stop offset=".35" stop-color="${tint}"/><stop offset=".7" stop-color="${deep}"/><stop offset="1" stop-color="#c77dff"/></linearGradient></defs><polygon points="8,4 22,4 29,12 15,28 1,12" fill="url(#dg${i})"/><polygon points="8,4 22,4 18.5,12 11.5,12" fill="rgba(255,255,255,.65)"/><polygon points="1,12 11.5,12 15,28" fill="rgba(255,255,255,.18)"/><polygon points="29,12 18.5,12 15,28" fill="rgba(60,0,120,.22)"/><polygon points="11.5,12 18.5,12 15,28" fill="rgba(255,255,255,.35)"/><polygon points="8,4 1,12 11.5,12" fill="rgba(255,255,255,.4)"/><polygon points="22,4 29,12 18.5,12" fill="rgba(80,40,160,.18)"/><polygon points="8,4 22,4 29,12 15,28 1,12" fill="none" stroke="rgba(255,255,255,.8)" stroke-width=".7"/>${(()=>{const m=POD_COL[i]; // a tiny version of the gold, silver or bronze medal, centered on the diamond
+function diamondSvg(i,p){const tint=["#bff6ff","#e6ecf5","#ffd2b0"][i], deep=["#4fd6ff","#9aa6bb","#d8925a"][i];
+  return `<svg class="laurel" viewBox="-7 -5 44 41" aria-hidden="true">${laurelOf(i)}<defs><linearGradient id="dg${i}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff"/><stop offset=".35" stop-color="${tint}"/><stop offset=".7" stop-color="${deep}"/><stop offset="1" stop-color="#c77dff"/></linearGradient></defs><polygon points="8,4 22,4 29,12 15,28 1,12" fill="url(#dg${i})"/><polygon points="8,4 22,4 18.5,12 11.5,12" fill="rgba(255,255,255,.65)"/><polygon points="1,12 11.5,12 15,28" fill="rgba(255,255,255,.18)"/><polygon points="29,12 18.5,12 15,28" fill="rgba(60,0,120,.22)"/><polygon points="11.5,12 18.5,12 15,28" fill="rgba(255,255,255,.35)"/><polygon points="8,4 1,12 11.5,12" fill="rgba(255,255,255,.4)"/><polygon points="22,4 29,12 18.5,12" fill="rgba(80,40,160,.18)"/><polygon points="8,4 22,4 29,12 15,28 1,12" fill="none" stroke="rgba(255,255,255,.8)" stroke-width=".7"/>${p!=null?`<g transform="translate(15 12.6)"><circle r="5.4" style="fill:${PATH_C[p]}" stroke="rgba(255,255,255,.85)" stroke-width=".8"/><circle r="5.4" fill="url(#dsh)" /><text y="2.75" text-anchor="middle" font-family="system-ui,sans-serif" font-weight="900" font-size="7.6" fill="#fff" stroke="rgba(0,0,0,.35)" stroke-width=".35" paint-order="stroke">${"LRB"[p]}</text></g><defs><radialGradient id="dsh" cx=".35" cy=".3" r=".8"><stop offset="0" stop-color="rgba(255,255,255,.45)"/><stop offset=".6" stop-color="rgba(255,255,255,0)"/></radialGradient></defs>`:(()=>{const m=POD_COL[i]; // a tiny version of the gold, silver or bronze medal, centered on the diamond
   return `<g transform="translate(15 12.6) scale(.56) translate(-14 -19)"><circle cx="14" cy="19" r="10" fill="${m}" stroke="rgba(0,0,0,.25)" stroke-width=".8"/><circle cx="14" cy="19" r="7.4" fill="none" stroke="rgba(0,0,0,.22)" stroke-width="1.2"/><path d="M10 14a7 7 0 0 1 6-2" stroke="rgba(255,255,255,.6)" stroke-width="1.6" fill="none" stroke-linecap="round"/></g>`})()}<path class="spk" d="M24 1.5l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8z" fill="#fff"/><path class="spk s2" d="M4.5 18l.6 1.4 1.4.6-1.4.6-.6 1.4-.6-1.4-1.4-.6 1.4-.6z" fill="#fff"/></svg>`}
 function podiumMedals(pod){
   const rows=[], reg=[], god=[];
+  // one medal per place per path (Lead, Rhythm, Bass): gold L R B, then silver, then bronze
+  if(pod.regP){
+    pod.regP.forEach((pp,i)=>pp.forEach((ws,p)=>{if(ws.length)reg.push(`<span class="medal-m wm pod" data-path="${p}" style="--ec:${POD_COL[i]};cursor:pointer" data-all="${ws.join(",")}" data-hl="${[...new Set(ws)].join(",")}" data-tip="${POD_NAME[i]} medal · ${PATHS[p]} · finished ${POD_PLACE[i]} on a ${PATHS[p]} challenge ${ws.length} time${ws.length===1?"":"s"} · click to highlight">${podSvg(POD_COL[i],p)}<b>${ws.length}</b></span>`)}));
+    pod.godP.forEach((pp,i)=>pp.forEach((ws,p)=>{if(ws.length)god.push(`<span class="medal-m wm diamond d${i}" data-path="${p}" style="--ec:${["#7fe9ff","#e6ecf5","#ffb27a"][i]};cursor:pointer" data-all="${ws.join(",")}" data-hl="${[...new Set(ws)].join(",")}" data-tip="${POD_NAME[i]} God diamond · ${PATHS[p]} · finished ${POD_PLACE[i]} on a ${["God of Guitar","God of Rhythm","God of Bass"][p]} challenge ${ws.length} time${ws.length===1?"":"s"} · click to highlight">${diamondSvg(i,p)}<b>${ws.length}</b></span>`)}));
+    return {reg,god};
+  }
   pod.reg.forEach((ws,i)=>{if(ws.length)reg.push(`<span class="medal-m wm pod" style="--ec:${POD_COL[i]};cursor:pointer" data-all="${ws.join(",")}" data-hl="${[...new Set(ws)].join(",")}" data-tip="${POD_NAME[i]} medal · finished ${POD_PLACE[i]} on a challenge ${ws.length} time${ws.length===1?"":"s"} · click to highlight">${podSvg(POD_COL[i])}<b>${ws.length}</b></span>`)});
   pod.god.forEach((ws,i)=>{if(ws.length)god.push(`<span class="medal-m wm diamond d${i}" style="--ec:${["#7fe9ff","#e6ecf5","#ffb27a"][i]};cursor:pointer" data-all="${ws.join(",")}" data-hl="${[...new Set(ws)].join(",")}" data-tip="${POD_NAME[i]} God diamond · finished ${POD_PLACE[i]} on a God challenge ${ws.length} time${ws.length===1?"":"s"} · click to highlight">${diamondSvg(i)}<b>${ws.length}</b></span>`)});
   return {reg,god};
