@@ -536,8 +536,7 @@ a.dl svg,.offpill svg{width:11px;height:11px}
 .plchip>span:not(.medal-m){overflow-wrap:anywhere}
 .plchip b{font-family:var(--f-mono);font-weight:600;color:var(--fg);white-space:nowrap}
 .plchip small{color:var(--muted);font-size:.7rem}
-/* in Your profile the medal-leader chips get their own section above Player profile, so hide the copy inside the card */
-#acct-p .plead{display:none}
+/* the medal-leader chips only show in Your profile, in their own section above Player profile */
 .holf{cursor:pointer}
 .holf:hover{color:var(--accent);border-color:var(--accent)}
 .holf.sel{color:var(--accent);font-weight:600}
@@ -1368,7 +1367,7 @@ footer{color:var(--dim);font-size:.78rem}
   <footer>Data: Rodman’s Rocksmith 2014 Championship Google Sheets (older attendance also from the Championship Metrics workbook). Player stats run through week 676; scoreboards cover weeks 440–677. Weeks 1–16 have no recorded host in the source.
   <span class="updated disclaimer">Unofficial fan project. Not affiliated with CustomsForge, Ubisoft or Rocksmith.</span>
   <span class="updated" id="sheetedit-row" hidden>Sheet last edited: <span id="sheetedit" data-iso="2026-10-11T16:00:03.893Z"></span></span>
-  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-12T16:18:39+00:00">October 12, 2026</span></span>
+  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-12T16:21:42+00:00">October 12, 2026</span></span>
   </footer>
 </div>
 <dialog id="acct" class="acctdlg" aria-label="Your profile"><div id="acctbody"></div><button type="button" class="clear acctclose" id="acctclose">Close</button></dialog>
@@ -1905,7 +1904,6 @@ function showPlayer(name){
         <div${D.latest?` data-hl="${D.latest}" data-tip="Click to highlight Week ${D.latest}"`:""}><small>Latest week</small><b>${D.latest??"–"}</b>${dlw?`<span class="sub"> · ${fmt(dlw[1])}</span>`:""}</div>
         ${PB.sc||PB.st?pbBox("Highest score",PB.sc,"Highest score on a challenge")+pbBox("Highest note streak",PB.st,"Longest note streak on a challenge"):""}
       </div>
-      <div class="plead" data-n="${esc(n)}">${plLeads(n)}</div>
       ${WR.wins[n]||hosts[n]?`<div class="golinks">${WR.wins[n]?`<button type="button" class="clear" data-wprofile="${esc(n)}">Open win profile ›</button>`:""}${hosts[n]?`<button type="button" class="clear" data-gohost="${esc(n)}">Open host profile ›</button>`:""}</div>`:""}
     </div>
     <div style="min-width:0">
