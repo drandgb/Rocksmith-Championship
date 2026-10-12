@@ -1311,7 +1311,7 @@ footer{color:var(--dim);font-size:.78rem}
   <footer>Data: Rodman’s Rocksmith 2014 Championship Google Sheets (older attendance also from the Championship Metrics workbook). Player stats run through week 676; scoreboards cover weeks 440–677. Weeks 1–16 have no recorded host in the source.
   <span class="updated disclaimer">Unofficial fan project. Not affiliated with CustomsForge, Ubisoft or Rocksmith.</span>
   <span class="updated" id="sheetedit-row" hidden>Sheet last edited: <span id="sheetedit" data-iso="2026-10-11T16:00:03.893Z"></span></span>
-  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-12T13:12:07+00:00">October 12, 2026</span></span>
+  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-12T13:14:04+00:00">October 12, 2026</span></span>
   </footer>
 </div>
 <dialog id="acct" class="acctdlg" aria-label="Your profile"><div id="acctbody"></div><button type="button" class="clear acctclose" id="acctclose">Close</button></dialog>
@@ -1770,11 +1770,13 @@ function medalsFor(p,bitsOv){
    [["g","Played guitar","#ffb347","a score on Lead or Rhythm",iw.g],["b","Played bass","#3fa0ff","a score on Bass",iw.b]].forEach(([k,lab,col,what,ws])=>{if(!ws.length)return;
      iRow+=(`<span class="medal-m wm" style="--ec:${col};cursor:pointer" data-all="${ws.join(",")}" data-hl="${ws.join(",")}" data-tip="${lab} · weeks with at least ${what}, any level · ${ws.length} week${ws.length===1?"":"s"} (scoreboards since Week ${SB_W[0]}) · click to highlight">${clefSvg(k)}<b>${ws.length}</b></span>`)});}
   let cRow="";
-  {const cw=completionistWeeks(n,SB_W.filter(w=>w<cur[0]));
+  // provisional medals (this week's, before it ends: bitsOv is passed) also count the week in progress
+  const doneM=SB_W.filter(w=>bitsOv?w<=cur[0]:w<cur[0]);
+  {const cw=completionistWeeks(n,doneM);
    if(cw.length)cRow=(`<span class="medal-m wm" style="--ec:#f5c84a;cursor:pointer" data-all="${cw.join(",")}" data-hl="${cw.join(",")}" data-tip="Completionist · posted a score on every challenge of the week, every song on every path (a multi-week God challenge already played earlier in its run counts) · ${cw.length} week${cw.length===1?"":"s"} · click to highlight">${completionistSvg()}<b>${cw.length}</b></span>`);}
   // 100% mastery: every 100% score on a finished week's challenge, whatever the place or class
   // one medal per class, in that class's gem colour (God stays red)
-  const mastBy=masteryByClass(n,SB_W.filter(w=>w<cur[0]));
+  const mastBy=masteryByClass(n,doneM);
   const mRow=MAST_CLASSES.map(([k,label,col,glow])=>{const ws=mastBy[k]; if(!ws.length)return "";
     return `<span class="medal-m wm" style="--ec:${glow};cursor:pointer" data-all="${ws.join(",")}" data-hl="${[...new Set(ws)].join(",")}" data-tip="${label} 100% mastery · scored 100% on ${/^[AEIOU]/.test(label)?"an":"a"} ${label} challenge, whatever the place · ${ws.length} time${ws.length===1?"":"s"} · click to highlight">${masterySvg(col,k==="B"?"#fff":null)}<b>${ws.length}</b></span>`}).join("");
   const cls=iRow+cRow+mRow+(cgRow||""); // Completionist, then 100% mastery, then the Beginner to Masterclass gems
