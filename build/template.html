@@ -373,8 +373,12 @@ a.dl svg,.offpill svg{width:11px;height:11px}
 .acctclose{margin-top:12px}
 .acctdlg{width:min(980px,calc(100vw - 24px))}
 .acctdlg .acctsec{margin-top:16px;border-top:1px solid var(--line);padding-top:12px}
-.mlgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,230px),1fr));gap:10px}
-.mlcard{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px 12px;min-width:0;cursor:help}
+.mlgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,210px),1fr));gap:8px;align-items:start}
+.mlcard>.medal-m.tro{width:52px!important;height:30px;align-items:center;margin:0!important} /* the row of trophies, scaled down to fit */
+.mlcard>.medal-m.tro svg{width:52px!important;height:auto}
+.mlcard{display:flex;align-items:center;gap:12px;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:8px 12px;min-width:0;cursor:help}
+.mlcard>.medal-m{flex:none}
+.mlcard ol{flex:1;min-width:0}
 .mlhead{display:flex;align-items:center;gap:10px;margin-bottom:6px;min-height:34px}
 .mlhead b{font-size:.84rem;line-height:1.25}
 .mlhead .medal-m{flex:none;cursor:help}
@@ -3014,7 +3018,8 @@ function mlRender(kind){const acc=ML[kind].acc, link=kind==="win"?"data-gowin":k
     // first place on the card (everyone tied for it); second and third in the hover text
     const first=out.filter(r=>r.place===1), rest=out.filter(r=>r.place>1);
     const tipT=k.label+(what?" · "+what:"")+(rest.length?"\n\n"+rest.map(r=>`${r.place}. ${r.n} · ${r.v}${k.unit}`).join("\n"):"");
-    return `<div class="mlcard" data-tip="${esc(tipT)}"><div class="mlhead">${ic.outerHTML}<b>${esc(k.label)}</b></div><ol>${first.map(r=>`<li><span class="mlp p1">1</span><span class="nm" ${link}="${esc(r.n)}">${esc(r.n)}</span><span class="mlv">${r.v}${k.unit}</span></li>`).join("")}</ol></div>`});
+    // just the medal and its leader(s); the medal's name and the runners-up are in the hover text
+    return `<div class="mlcard" data-tip="${esc(tipT)}">${ic.outerHTML}<ol>${first.map(r=>`<li><span class="nm" ${link}="${esc(r.n)}">${esc(r.n)}</span><span class="mlv">${r.v}${k.unit}</span></li>`).join("")}</ol></div>`});
   $("ml-"+kind+"-g").innerHTML=cards.join("")||`<p class="dimtxt">No medals yet.</p>`}
 function mlEnsure(kind){if(ML[kind])return; ML[kind]={acc:{}};
   const names=kind==="host"?Object.keys(hosts).filter(h=>h&&h!==LOST):kind==="win"?Object.keys(WR.wins):PLAYERS.map(p=>p[0]);
