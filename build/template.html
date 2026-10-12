@@ -663,6 +663,7 @@ footer .updated{display:block;margin-top:4px}
 .twstats .pill.hol{cursor:default}
 .twl{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
 /* the week's host on This Week New medals: a striped amber ribbon trim with a HOST tab */
+.twl .lostgem{margin-left:auto;display:inline-flex}.twl .lostgem svg{width:24px;height:24px;filter:grayscale(.6) drop-shadow(0 0 3px rgba(159,184,176,.6))}
 .twl li.hostbox{position:relative;border:2px solid transparent;background:linear-gradient(var(--panel2),var(--panel2)) padding-box,repeating-linear-gradient(135deg,#ffb347 0 5px,#ffe0a3 5px 8px,#e07a1f 8px 13px) border-box;box-shadow:0 0 0 1px rgba(255,179,71,.25),0 0 14px rgba(255,159,67,.28)}
 .twl li.hostbox .hosttag{position:absolute;top:-9px;right:14px;z-index:3;font:800 .58rem/1 var(--f-display);letter-spacing:.14em;padding:3px 9px;border-radius:999px;background:linear-gradient(180deg,#ffd27a,#ff9f43);color:#2a1604;box-shadow:0 1px 4px rgba(0,0,0,.4)}
 .twl li.hostbox.celestial{background:radial-gradient(120% 140% at 50% 0%,color-mix(in srgb,#7fe9ff 26%,transparent),transparent 70%),var(--panel2) padding-box}
@@ -1202,6 +1203,10 @@ footer{color:var(--dim);font-size:.78rem}
     <section class="panel glowrim starry" style="--rc:#c9b8ff">
       <div class="panel-head"><h2>🎂 Anniversaries</h2><span class="sub" id="tw-ann-sub"></span></div>
       <ul class="twl" id="tw-ann"></ul>
+    </section>
+    <section class="panel glowrim lostperf" style="--rc:#9fb8b0" id="tw-lostsec" hidden>
+      <div class="panel-head"><h2>💔 Perfect streak lost</h2><span class="sub">Missed their first week since joining</span></div>
+      <ul class="twl" id="tw-lost"></ul>
     </section>
     </div>
     <section class="panel amber">
@@ -1803,7 +1808,9 @@ function medalsFor(p,bitsOv){
   // player went without missing, from joining until their first missed week
   else {const b0=first-PRES_START; let k=0; while(b0+k<bits.length&&bits[b0+k]==="1")k++;
     const miss=first+k;
-    if(k>=1&&b0+k<bits.length) gems.unshift(`<span class="medal-m wm kintsugi" style="--ec:#f5c84a;cursor:pointer" data-hl="${weekRange(first+k-1,k)}" data-tip="Kintsugi gem · played every week for ${k} week${k===1?"":"s"} after joining, until first missing Week ${miss} (collected Week ${miss})">${kintsugiSvg()}<b>${k}</b></span>`);}
+    // it's mended (collected) the week they come back after that first gap
+    let j=b0+k; while(j<bits.length&&bits[j]!=="1")j++; const back=j<bits.length?PRES_START+j:null;
+    if(k>=1&&b0+k<bits.length&&back) gems.unshift(`<span class="medal-m wm kintsugi" style="--ec:#f5c84a;cursor:pointer" data-hl="${weekRange(first+k-1,k)}" data-tip="Kintsugi gem · played every week for ${k} week${k===1?"":"s"} after joining, until first missing Week ${miss}, and mended on coming back in Week ${back} (collected Week ${back})">${kintsugiSvg()}<b>${k}</b></span>`);}
   // Completionist: scored on every challenge of a finished week (leads the class gems row)
   // played guitar (Lead or Rhythm) and played bass: they lead the completionist / mastery / class gems row
   let iRow="";
@@ -3350,6 +3357,12 @@ function renderThisWeek(){
   $("tw-ann").innerHTML=ann.length?ann.map(a=>`<li>${twName(a.n)}<span class="dt">joined ${twWk(a.first)} · ${fmt(a.fd)}${set.has(a.n)?` <span class="ok" data-tip="Played this week" style="cursor:help">✓ playing</span>`:""}</span><span class="rt">🎂 ${a.yrs}<small>year${a.yrs===1?"":"s"}</small></span></li>`).join(""):twEmpty("No anniversaries this week.");
   $("tw-dng-h").textContent=live?"⏳ Streaks at stake":"💔 Streaks that ended";
   $("tw-dng-sub").textContent=live?`Active streaks with no score yet this week${left>0?` · ${twPl(left,"day")} left`:""}`:`Played week ${w-1} but not week ${w} (2+ week streaks)`;
+  // perfect streak lost: players who had played every week since joining and missed their first week this week
+  {const lost=[]; if(!live&&w<=DATA_WEEK)PLAYERS.forEach(p=>{const bits=twBits[p[0]]||"", b0=p[1]-PRES_START; if(b0<0)return; let k=0; while(b0+k<bits.length&&bits[b0+k]==="1")k++;
+      if(k>=2&&p[1]+k===w&&b0+k<bits.length)lost.push({n:p[0],k,first:p[1]})});
+    lost.sort((a,b)=>b.k-a.k||a.n.localeCompare(b.n));
+    $("tw-lostsec").hidden=!lost.length;
+    $("tw-lost").innerHTML=lost.map(x=>`<li>${twName(x.n)}<span class="dt" data-tip="Played every week from joining in Week ${x.first} until missing Week ${w}. Their Perfect gem becomes a Kintsugi gem when they come back.">perfect for ${x.k} week${x.k===1?"":"s"}<small> · since Week ${x.first}</small></span><span class="lostgem">${kintsugiSvg()}</span></li>`).join("")}
   $("tw-dng").innerHTML=dng.length?dng.map(x=>`<li>${twName(x.n)}<span class="rt ${x.k>=52?"crit":x.k>=10?"hot":""}">🔥 ${x.k}<small>week${x.k===1?"":"s"}</small></span></li>`).join(""):twEmpty(live?"Every active streak is safe this week. 🎉":"No streaks ended this week.");
   $("tw-med-sub").textContent=live?"Collected this week · player medals are provisional, win medals are added when the week ends":"Collected this week · click a medal to see what it is for";
   $("tw-med").innerHTML=med.length?med.map(x=>{const g=x.m.some(h=>/diamond d0/.test(h)), hb=x.n===wHost;
