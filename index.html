@@ -1311,7 +1311,7 @@ footer{color:var(--dim);font-size:.78rem}
   <footer>Data: Rodman’s Rocksmith 2014 Championship Google Sheets (older attendance also from the Championship Metrics workbook). Player stats run through week 676; scoreboards cover weeks 440–677. Weeks 1–16 have no recorded host in the source.
   <span class="updated disclaimer">Unofficial fan project. Not affiliated with CustomsForge, Ubisoft or Rocksmith.</span>
   <span class="updated" id="sheetedit-row" hidden>Sheet last edited: <span id="sheetedit" data-iso="2026-10-11T16:00:03.893Z"></span></span>
-  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-12T12:45:23+00:00">October 12, 2026</span></span>
+  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-12T12:51:00+00:00">October 12, 2026</span></span>
   </footer>
 </div>
 <dialog id="acct" class="acctdlg" aria-label="Your profile"><div id="acctbody"></div><button type="button" class="clear acctclose" id="acctclose">Close</button></dialog>
@@ -2100,7 +2100,7 @@ function uncrownedWins(name,done,path=-1,pos=0){const out=[], k=String(name).toL
   done.forEach(w=>{if(w>DATA_WEEK)return; (SB.weeks[w]||[]).forEach(c=>{if(c[7]||(path>=0&&c[0]!==path))return;
     const e=c[6].filter(x=>x[4]>=0)[pos]; if(e&&(e[4]===1||e[4]===2)&&SB.names[e[0]].replace(/[*~]+$/,"").toLowerCase()===k)out.push(w)})});
   return out}
-const UNC_NAME=["Uncrowned","Uncrowned silver","Uncrowned bronze"], UNC_COL=["#7b5cd6","#8e98aa","#b0703f"], UNC_GLOW=["#9b7bff","#c9d0dc","#d8925a"];
+const UNC_NAME=["Uncrowned","Uncrowned silver","Uncrowned bronze"], UNC_COL=["#c99a1e","#8e98aa","#b0703f"], UNC_GLOW=["#f5c84a","#c9d0dc","#d8925a"];
 function uncrownSvg(col){return `<svg viewBox="0 0 28 30" aria-hidden="true"><circle cx="14" cy="15" r="12" fill="${col}"/><path d="M6 11a9 9 0 0 1 5-5.5" stroke="rgba(255,255,255,.5)" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M7.5 19.5l-1.2-8 4.3 3.4L14 8.6l3.4 6.3 4.3-3.4-1.2 8z" fill="none" stroke="#f5f0ff" stroke-width="1.5" stroke-linejoin="round" stroke-dasharray="2.2 1.6"/><path d="M8.2 22.4h11.6" stroke="#f5f0ff" stroke-width="1.6" stroke-linecap="round"/><path d="M18.5 4.5l1.6 3.2" stroke="#f5f0ff" stroke-width="1.2" stroke-linecap="round" opacity=".8"/><circle cx="14" cy="8.2" r="1" fill="#f5f0ff"/></svg>`}
 const POD_COL=["#f5c84a","#c9d0dc","#d8925a"], POD_NAME=["Gold","Silver","Bronze"], POD_PLACE=["1st","2nd","3rd"];
 // a small cut gem for a path, set into a medal like a jewel: Lead a topaz (orange), Rhythm an emerald (green),
