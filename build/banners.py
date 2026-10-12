@@ -2,7 +2,7 @@
 #   python3 build/banners.py [index.html] [cards dir]
 # Reads the approved claims from the site's database (the same public read the site itself does), then screenshots
 # each player's banner from the built page in headless Chrome (bannerHtml() in the page, opened with ?banner=) into
-# cards/<slug>.png and cards/<slug>-c.png.
+# cards/<slug>.png (700x150).
 #   - every banner is redrawn when a new week's results arrive (or when BANNER_VERSION changes)
 #   - otherwise only newly approved players get one, so this is cheap to run every few minutes
 #   - banners of players who are no longer approved are deleted
@@ -51,12 +51,12 @@ want = {slug(n): n for n in players}
 # remove banners of players who are no longer approved
 removed = 0
 for f in os.listdir(out):
-    m = re.fullmatch(r"(.+?)(-c)?\.png", f)
+    m = re.fullmatch(r"(.+)\.png", f)
     if m and m.group(1) not in want:
         os.remove(os.path.join(out, f)); removed += 1
 
 todo = [(s, n) for s, n in want.items()
-        if redraw_all or not (os.path.exists(os.path.join(out, s + ".png")) and os.path.exists(os.path.join(out, s + "-c.png")))]
+        if redraw_all or not os.path.exists(os.path.join(out, s + ".png"))]
 if not todo:
     print(f"banners: {len(want)} up to date" + (f", removed {removed}" if removed else ""))
     if removed: json.dump({**stamp, "players": sorted(want)}, open(stamp_path, "w"))
@@ -76,14 +76,13 @@ with sync_playwright() as pw:
     pg.evaluate("document.fonts.ready")
     pg.wait_for_timeout(500)
     for s, n in todo:
-        for compact in (False, True):
-            dest = os.path.join(out, s + ("-c" if compact else "") + ".png")
-            ok = pg.evaluate("([n,c])=>{const d=document.getElementById('bnshot'); d.innerHTML=bannerHtml(n,c); return !!d.firstElementChild}", [n, compact])
-            if not ok:
-                print(f"banners: {n} isn't in the player list"); continue
-            pg.evaluate("document.fonts.ready")
-            pg.locator("#bnshot > div").screenshot(path=dest, omit_background=True)
-            made += 1
+        dest = os.path.join(out, s + ".png")
+        ok = pg.evaluate("n=>{const d=document.getElementById('bnshot'); d.innerHTML=bannerHtml(n); return !!d.firstElementChild}", n)
+        if not ok:
+            print(f"banners: {n} isn't in the player list"); continue
+        pg.evaluate("document.fonts.ready")
+        pg.locator("#bnshot > div").screenshot(path=dest, omit_background=True)
+        made += 1
     br.close()
 
 json.dump({"week": week, "v": BANNER_VERSION, "players": sorted(want)}, open(stamp_path, "w"))

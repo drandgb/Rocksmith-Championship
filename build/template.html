@@ -49,6 +49,10 @@ button.forum{background:none;cursor:pointer;font:inherit;font-size:.85rem}
 .refresh.spin{opacity:.6;pointer-events:none}
 .forum{white-space:nowrap;color:var(--accent);text-decoration:none;font-size:.85rem;border:1px solid var(--line);padding:6px 10px;border-radius:6px}
 .forum:hover,.forum:focus-visible{border-color:var(--accent);outline:none}
+/* Play here: glows through the six stripe colours */
+.forum.playhere{animation:phglow 9s linear infinite}
+@keyframes phglow{0.0%{border-color:#e5484d;box-shadow:0 0 12px 2px #e5484dcc,inset 0 0 8px #e5484d55}16.7%{border-color:#f5c84a;box-shadow:0 0 12px 2px #f5c84acc,inset 0 0 8px #f5c84a55}33.3%{border-color:#3f8cff;box-shadow:0 0 12px 2px #3f8cffcc,inset 0 0 8px #3f8cff55}50.0%{border-color:#ff9a2e;box-shadow:0 0 12px 2px #ff9a2ecc,inset 0 0 8px #ff9a2e55}66.7%{border-color:#3fcf7a;box-shadow:0 0 12px 2px #3fcf7acc,inset 0 0 8px #3fcf7a55}83.3%{border-color:#a46bff;box-shadow:0 0 12px 2px #a46bffcc,inset 0 0 8px #a46bff55}100%{border-color:#e5484d;box-shadow:0 0 12px 2px #e5484dcc,inset 0 0 8px #e5484d55}}
+@media (prefers-reduced-motion:reduce){.forum.playhere{animation:none;border-color:#f5c84a;box-shadow:0 0 8px #f5c84a88}}
 
 /* now strip */
 .now{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:10px;overflow:hidden}
@@ -1018,7 +1022,7 @@ footer{color:var(--dim);font-size:.78rem}
 /* forum signature banners (Forum banner tab; build/banners.py screenshots them with ?banner=NAME into cards/) */
 .bn{position:relative;width:700px;height:150px;box-sizing:border-box;overflow:hidden;border-radius:12px;font-family:var(--f-body);color:#e9edf5;text-align:left;
   background:radial-gradient(120% 140% at 0% 0%,#26304a 0%,#161b27 45%,#0d0f14 100%);border:1px solid #2a3142;padding:13px 16px 0;display:flex;flex-direction:column;gap:12px}
-.bn .bn-stripe,.bc .bn-stripe{position:absolute;left:16px;right:16px;bottom:8px;height:4px;display:flex;gap:4px}.bn .bn-stripe i,.bc .bn-stripe i{flex:1;border-radius:3px}
+.bn .bn-stripe{position:absolute;left:16px;right:16px;bottom:8px;height:4px;display:flex;gap:4px}.bn .bn-stripe i{flex:1;border-radius:3px}
 .bn .bn-top{display:flex;gap:14px;align-items:stretch;height:54px}
 .bn .bn-who{width:170px;flex:none;display:flex;flex-direction:column;justify-content:space-between}
 .bn .bn-nm{font:800 22px/1.05 var(--f-display);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#e9edf5}
@@ -1034,16 +1038,9 @@ footer{color:var(--dim);font-size:.78rem}
 .bn .bn-meds .medal-m{zoom:.95;flex:none;position:relative;margin-right:4px;cursor:default}
 .bn .bn-meds.tight{gap:3px;padding-left:4px}.bn .bn-meds.tight .medal-m{zoom:.8;margin-right:3px}
 .bn .bn-first{position:absolute;left:-8px;top:-6px;z-index:2;font:800 10px/14px var(--f-display);padding:0 3px;border-radius:6px;background:linear-gradient(180deg,#ffe28a,#f5c84a);color:#2a1a02}
-.bc{position:relative;width:468px;height:60px;box-sizing:border-box;overflow:hidden;border-radius:9px;display:flex;align-items:center;gap:12px;padding:0 12px 4px;color:#e9edf5;font-family:var(--f-body);text-align:left;background:radial-gradient(120% 160% at 0% 0%,#26304a 0%,#161b27 50%,#0d0f14 100%);border:1px solid #2a3142}
-.bc .bn-ico{width:26px;height:26px;border-radius:6px;flex:none}
-.bc .bn-nm{font:800 17px/1 var(--f-display);max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#e9edf5}
-.bc .bn-g{display:flex;gap:4px}.bc .bn-g b{font:800 13px/1 var(--f-display);border:1px solid #2a3142;border-radius:5px;padding:4px 6px;background:#151922}
-.bc .bn-s{display:flex;gap:12px;margin-left:auto}.bc .bn-s div{text-align:right}.bc .bn-s small{display:block;font:700 7.5px/1 var(--f-display);letter-spacing:.12em;color:#8b93a7}.bc .bn-s b{font:800 15px/1.2 var(--f-display);color:#e9edf5}
-.bc .bn-stripe{left:12px;right:12px;bottom:4px;height:3px;gap:3px}
 .bnprev{overflow:hidden;margin:8px 0}
 .bnprev>div{transform-origin:0 0}
 .bncode{width:100%;box-sizing:border-box;font:500 .76rem var(--f-mono);background:var(--panel2);color:var(--fg);border:1px solid var(--line);border-radius:6px;padding:8px;resize:vertical;height:5.6em}
-.bnpick{display:flex;gap:18px;margin:6px 0;flex-wrap:wrap}.bnpick label{display:inline-flex;gap:6px;align-items:center;font-size:.86rem;cursor:pointer;white-space:nowrap}.acctdlg .bnpick input{width:auto;margin:0}
 .bnstat{font-size:.84rem}.bnstat.ok{color:var(--s-green)}.bnstat.wait{color:var(--s-yellow)}
 </style>
 
@@ -1056,7 +1053,7 @@ footer{color:var(--dim);font-size:.78rem}
     </div>
     <nav class="links">
       <button type="button" class="forum acctbtn" id="acctbtn" hidden>👤 Log in</button>
-      <a class="forum" href="https://customsforge.com/forum/38-rocksmith-championship/" target="_blank" rel="noopener" title="Opens the Rocksmith 2014 Championship forum on CustomsForge, where the weekly challenges are posted and scores are submitted">Play here ↗</a>
+      <a class="forum playhere" href="https://customsforge.com/forum/38-rocksmith-championship/" target="_blank" rel="noopener" title="Opens the Rocksmith 2014 Championship forum on CustomsForge, where the weekly challenges are posted and scores are submitted">Play here ↗</a>
       <a class="forum" href="https://docs.google.com/spreadsheets/d/1WN-m8wF0lVkQ4cLWHBa009SkqDoPk0xN-C4-llcrXXs/edit?gid=871655614#gid=871655614" target="_blank" rel="noopener">Scoreboard sheet ↗</a>
       <a class="forum" href="https://script.google.com/macros/s/AKfycbwy6vF3XYDZ_s1WeqiHTgBcVgbF8cr2AUQjKH3aRSZYuh32Erc-IstP5Gos-1i_evkm/exec" target="_blank" rel="noopener">Request a song ↗</a>
       <button type="button" class="forum refresh" id="refreshbtn" title="Load the newest version of the site, skipping the browser's saved copy">↻ Refresh</button>
@@ -3833,17 +3830,15 @@ async function acctRefresh(){
 }
 
 // ---------- forum signature banners ----------
-// Approved players get a banner image at cards/<slug>.png (full, 700x150) and cards/<slug>-c.png (compact, 468x60).
-// build/banners.py makes them with headless Chrome from this page (?banner=NAME[&c=1]): weekly when a new week's results
+// Approved players get a 700x150 banner image at cards/<slug>.png.
+// build/banners.py makes them with headless Chrome from this page (?banner=): weekly when a new week's results
 // arrive, and within minutes of a claim being approved. The Forum banner tab shows the same banner drawn live.
 var BN_SITE="https://drandgb.github.io/Rocksmith-Championship/";
 function bnSlug(n){return String(n).toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"")||"player"}
 const BN_STRIPE=`<div class="bn-stripe">${["#e5484d","#f5c84a","#3f8cff","#ff9a2e","#3fcf7a","#a46bff"].map(c=>`<i style="background:${c}"></i>`).join("")}</div>`;
-function bannerHtml(n,compact){
+function bannerHtml(n){
   const p=byName[n]; if(!p)return ""; const T=String(p[8]||"").split(""), v=wv(n,-1)||[0,0,0];
   const tier=t=>t&&t!=="?"?t:"–", tc=t=>TIER_C[t]||"#8b93a7";
-  if(compact)return `<div class="bc"><img class="bn-ico" src="favicon.png" alt=""><div class="bn-nm">${esc(n)}</div><div class="bn-g">${[0,1,2].map(i=>`<b style="color:${tc(T[i])}">${tier(T[i])}</b>`).join("")}</div>
-    <div class="bn-s"><div><small>WEEKS</small><b>${p[3]}</b></div><div><small>STREAK</small><b>${p[5]}</b></div><div><small>WINS</small><b>${v[1]}</b></div></div>${BN_STRIPE}</div>`;
   // best Rodman's Rankings place on each path
   const key=n.toLowerCase(), rk={};
   ((typeof RK!=="undefined"&&RK.paths)||[]).forEach(pp=>pp.levels.forEach(l=>l.rows.forEach(([r,nm])=>{if(String(nm).toLowerCase()===key){const k=+r,pk=String(pp.path); if(k&&(!rk[pk]||k<rk[pk].r))rk[pk]={r:k,lv:l.level}}})));
@@ -3859,27 +3854,25 @@ function bannerHtml(n,compact){
     <div class="bn-stats">${st("Weeks",p[3])}${st("Wins",v[1])}${["Lead","Rhythm","Bass"].map(pn=>{const r=rk[pn]; return st(`${pn==="Rhythm"?"Rhy":pn} rank`,r?`#${r.r}<i>${esc(r.lv.slice(0,3))}</i>`:"–")}).join("")}</div></div>
     <div class="bn-meds${meds.length>13?" tight":""}">${meds.join("")}</div>${BN_STRIPE}</div>`;
 }
-function bnCode(n,compact){return `[url=${BN_SITE}][img]${BN_SITE}cards/${bnSlug(n)}${compact?"-c":""}.png[/img][/url]`}
+function bnCode(n){return `[url=${BN_SITE}][img]${BN_SITE}cards/${bnSlug(n)}.png[/img][/url]`}
 function bnTab(n){
-  const c=!!ACCT.bnCompact;
   return `<div class="acctsec" style="border-top:0;margin-top:0;padding-top:2px"><h3>Your forum banner</h3>
     <p>Put this banner in your CustomsForge forum signature. It updates by itself every week with your latest stats, so you only set it up once. Clicking it opens this website.</p>
-    <div class="bnpick"><label><input type="radio" name="bnsize" value="0"${c?"":" checked"}> Full (700×150)</label><label><input type="radio" name="bnsize" value="1"${c?" checked":""}> Compact (468×60)</label></div>
-    <div class="bnprev" id="bnprev"><div>${bannerHtml(n,c)}</div></div>
+    <div class="bnprev" id="bnprev"><div>${bannerHtml(n)}</div></div>
     <p class="bnstat" id="bnstat">Checking your banner image…</p>
     <h3 style="margin-top:14px">Signature code</h3>
-    <textarea class="bncode" id="bncode" readonly>${esc(bnCode(n,c))}</textarea>
+    <textarea class="bncode" id="bncode" readonly>${esc(bnCode(n))}</textarea>
     <div class="row"><button type="button" class="btn" data-bncopy="bncode">Copy code</button><button type="button" class="btn ghost" data-bncopy="img">Copy image link</button></div>
     <p class="dim">On the forum, open your account settings, then Signature, and paste the code. If the editor shows the code as plain text instead of the picture, use its image button to insert the image link, then select the image and add the link ${esc(BN_SITE)} to it.</p></div>`;
 }
 function bnMount(n){
   const pv=$("bnprev"); if(!pv)return; const inner=pv.firstElementChild;
-  const fit=()=>{const w=pv.clientWidth, bw=ACCT.bnCompact?468:700, h=ACCT.bnCompact?60:150, z=Math.min(1,w/bw); inner.style.transform=`scale(${z})`; pv.style.height=Math.ceil(h*z)+"px"};
+  const fit=()=>{const w=pv.clientWidth, z=Math.min(1,w/700); inner.style.transform=`scale(${z})`; pv.style.height=Math.ceil(150*z)+"px"};
   fit(); requestAnimationFrame(fit);
   const st=$("bnstat"), img=new Image();
   img.onload=()=>{if(st){st.className="bnstat ok";st.textContent="✓ Your banner image is live and ready to use."}};
   img.onerror=()=>{if(st){st.className="bnstat wait";st.textContent="Your banner image is being made. It's usually ready within 10 to 20 minutes of your claim being approved. You can paste the code now; the picture appears as soon as it's ready."}};
-  img.src=`cards/${bnSlug(n)}${ACCT.bnCompact?"-c":""}.png?t=${Date.now()}`;
+  img.src=`cards/${bnSlug(n)}.png?t=${Date.now()}`;
 }
 function acctDraw(msg,err){
   acctUnmount();
@@ -3913,10 +3906,9 @@ function acctDraw(msg,err){
   if(ACCT.tab==="me"&&ACCT.claim&&ACCT.claim.status==="approved")acctMount(ACCT.claim.player);
   if(ACCT.tab==="banner")bnMount(ACCT.claim.player);
 }
-$("acctbody").addEventListener("change",e=>{if(e.target.name==="bnsize"){ACCT.bnCompact=e.target.value==="1"; acctDraw()}});
 $("acctbody").addEventListener("click",async e=>{
   const tb=e.target.closest("[data-accttab]"); if(tb){ACCT.tab=tb.dataset.accttab; acctDraw(); return}
-  const cp=e.target.closest("[data-bncopy]"); if(cp&&ACCT.claim){const n=ACCT.claim.player, t=cp.dataset.bncopy==="img"?`${BN_SITE}cards/${bnSlug(n)}${ACCT.bnCompact?"-c":""}.png`:bnCode(n,!!ACCT.bnCompact);
+  const cp=e.target.closest("[data-bncopy]"); if(cp&&ACCT.claim){const n=ACCT.claim.player, t=cp.dataset.bncopy==="img"?`${BN_SITE}cards/${bnSlug(n)}.png`:bnCode(n);
     const done=()=>{const o=cp.textContent; cp.textContent="Copied ✓"; setTimeout(()=>{cp.textContent=o},1500)};
     if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t).then(done,()=>{const ta=$("bncode"); if(ta){ta.value=t;ta.select()}});
     else{const ta=$("bncode"); if(ta){ta.value=t;ta.select();try{document.execCommand("copy");done()}catch(_){}}} return}
@@ -3963,8 +3955,8 @@ if(SUPA_URL&&SUPA_KEY&&/(^|\.)github\.io$|^localhost$|^127\.0\.0\.1$/.test(locat
   document.head.appendChild(s);
 }
 
-// ?banner=NAME[&c=1]: just that player's banner at the top left (build/banners.py screenshots it)
+// ?banner=NAME: just that player's banner at the top left (build/banners.py screenshots it)
 {const q=new URLSearchParams(location.search), bn=q.get("banner"); if(bn!=null){
   const st=document.createElement("style"); st.textContent="html,body{background:transparent!important;margin:0!important;overflow:hidden!important}body>*:not(#bnshot){display:none!important}#bnshot{position:fixed;left:0;top:0;z-index:2147483647}";
-  document.head.appendChild(st); const d=document.createElement("div"); d.id="bnshot"; d.innerHTML=bannerHtml(bn,q.get("c")==="1")||"<p style='color:red'>no such player</p>"; document.body.appendChild(d)}}
+  document.head.appendChild(st); const d=document.createElement("div"); d.id="bnshot"; d.innerHTML=bannerHtml(bn)||"<p style='color:red'>no such player</p>"; document.body.appendChild(d)}}
 </script>
