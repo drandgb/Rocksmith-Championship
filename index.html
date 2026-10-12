@@ -1311,7 +1311,7 @@ footer{color:var(--dim);font-size:.78rem}
   <footer>Data: Rodman’s Rocksmith 2014 Championship Google Sheets (older attendance also from the Championship Metrics workbook). Player stats run through week 676; scoreboards cover weeks 440–677. Weeks 1–16 have no recorded host in the source.
   <span class="updated disclaimer">Unofficial fan project. Not affiliated with CustomsForge, Ubisoft or Rocksmith.</span>
   <span class="updated" id="sheetedit-row" hidden>Sheet last edited: <span id="sheetedit" data-iso="2026-10-11T16:00:03.893Z"></span></span>
-  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-12T13:26:13+00:00">October 12, 2026</span></span>
+  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-12T13:52:26+00:00">October 12, 2026</span></span>
   </footer>
 </div>
 <dialog id="acct" class="acctdlg" aria-label="Your profile"><div id="acctbody"></div><button type="button" class="clear acctclose" id="acctclose">Close</button></dialog>
@@ -3188,7 +3188,8 @@ function renderThisWeek(){
   const cand=new Set(names); if(!live){ann.forEach(a=>cand.add(a.n));
     // God challenge winners decided this week who didn't post a score this week (they posted earlier in the run)
     (SB.weeks[w]||[]).forEach(c=>c[6].forEach(e=>{const n=SB.names[e[0]].replace(/[*~]+$/,""); const real=PLAYERS.find(p=>p[0].toLowerCase()===n.toLowerCase()); if(real)cand.add(real[0])}))} if(W&&W[2]&&hosts[W[2]])cand.add(W[2]);
-  const med=[...cand].map(n=>({n,m:twMedals(n,w,live&&set.has(n))})).filter(x=>x.m.length).sort((a,b)=>godRank(a.m)-godRank(b.m)||podNew(b.m,0)-podNew(a.m,0)||podNew(b.m,1)-podNew(a.m,1)||podNew(b.m,2)-podNew(a.m,2)||medalTotal(b.m)-medalTotal(a.m)||a.n.localeCompare(b.n));
+  const wHost=W&&W[2]&&W[2]!==LOST?W[2]:null; // the week's host comes first
+  const med=[...cand].map(n=>({n,m:twMedals(n,w,live&&set.has(n))})).filter(x=>x.m.length).sort((a,b)=>(b.n===wHost)-(a.n===wHost)||godRank(a.m)-godRank(b.m)||podNew(b.m,0)-podNew(a.m,0)||podNew(b.m,1)-podNew(a.m,1)||podNew(b.m,2)-podNew(a.m,2)||medalTotal(b.m)-medalTotal(a.m)||a.n.localeCompare(b.n));
   // rival pairs for each path (mutual pairs shown once)
   const pairsFor=pi=>{const riv=SB.weeks[w]?rivalsOfWeek(w,pi):{}, pairs=[], done=new Set();
     const lvl=r=>"BIAM".indexOf(tierOf(r.best.c[2])||"M"); // Beginner first, then Intermediate, Advanced, Masterclass
