@@ -1080,7 +1080,7 @@ footer{color:var(--dim);font-size:.78rem}
 
 
   <section class="panel" id="ml-host">
-    <div class="panel-head"><h2>🏅 Host medal leaders</h2><span class="sub">The top three hosts for each kind of host medal · click a name to look them up</span></div>
+    <div class="panel-head"><h2>🏅 Host medal leaders</h2><span class="sub">Who leads each kind of host medal · hover for second and third · click a name to look them up</span></div>
     <div class="mlgrid" id="ml-host-g"><p class="dimtxt">Counting medals…</p></div>
   </section>
 
@@ -1149,7 +1149,7 @@ footer{color:var(--dim);font-size:.78rem}
   </section>
 
   <section class="panel" id="ml-player">
-    <div class="panel-head"><h2>🏅 Player medal leaders</h2><span class="sub">The top three players for each kind of player medal · click a name to look them up</span></div>
+    <div class="panel-head"><h2>🏅 Player medal leaders</h2><span class="sub">Who leads each kind of player medal · hover for second and third · click a name to look them up</span></div>
     <div class="mlgrid" id="ml-player-g"><p class="dimtxt">Counting medals…</p></div>
   </section>
 
@@ -1259,7 +1259,7 @@ footer{color:var(--dim);font-size:.78rem}
     </section>
 
   <section class="panel" id="ml-win">
-    <div class="panel-head"><h2>🏅 Win medal leaders</h2><span class="sub">The top three players for each kind of win medal · click a name to look them up</span></div>
+    <div class="panel-head"><h2>🏅 Win medal leaders</h2><span class="sub">Who leads each kind of win medal · hover for second and third · click a name to look them up</span></div>
     <div class="mlgrid" id="ml-win-g"><p class="dimtxt">Counting medals…</p></div>
   </section>
 
@@ -2453,6 +2453,7 @@ function setActiveOnly(v){
   activeOnly=v; try{localStorage.setItem("rsc-activeonly2",v?"1":"0")}catch(e){}
   document.querySelectorAll("#pfilter button").forEach(b=>b.setAttribute("aria-pressed",(b.dataset.af==="1")===activeOnly));
   computeRecords(); renderRecords(); renderWinners(); renderHostPodium(); renderLB(); renderUpcoming();
+  ["win","player","host"].forEach(k=>{if(typeof ML!=="undefined"&&ML[k]&&ML[k].done)mlRender(k)});
 }
 $("pfilter").addEventListener("click",e=>{const b=e.target.closest("button[data-af]");if(b)setActiveOnly(b.dataset.af==="1")});
 document.querySelectorAll("#pfilter button").forEach(b=>b.setAttribute("aria-pressed",(b.dataset.af==="1")===activeOnly));
@@ -3002,19 +3003,25 @@ function mlRender(kind){const acc=ML[kind].acc, link=kind==="win"?"data-gowin":k
     "Most weeks hosted","Longest hosting streak"];
   const ordOf=k=>{const [base,path]=k.label.split(" · "); const i=ORDER.indexOf(base); return (i<0?999:i)*4+(path?PATHS.indexOf(path)+1:0)};
   const cards=Object.values(acc).filter(k=>k.rows.length).sort((a,b)=>ordOf(a)-ordOf(b)||a.pos-b.pos).map(k=>{
-    const rows=k.rows.slice().sort((a,b)=>b.v-a.v||a.n.localeCompare(b.n,undefined,{sensitivity:"base"}));
+    // the page's Everyone / Active filter applies here too
+    const act=n=>!activeOnly||(kind==="host"?(()=>{const h=hostList.find(x=>x.name===n); return !!h&&hostActive(h)})():isActivePlayer(n));
+    const rows=k.rows.filter(r=>act(r.n)).sort((a,b)=>b.v-a.v||a.n.localeCompare(b.n,undefined,{sensitivity:"base"}));
+    if(!rows.length)return "";
     // places 1-3 with ties sharing a place (a tie at third can add a fourth or fifth name)
     const out=[]; let place=0,last=null; for(let i=0;i<rows.length;i++){if(rows[i].v!==last){place=i+1;last=rows[i].v} if(place>3||out.length>=5)break; out.push({...rows[i],place})}
     const ic=rows[0].icon.cloneNode(true); ic.querySelector("b")&&ic.querySelector("b").remove(); ic.removeAttribute("data-hl"); ic.removeAttribute("data-all"); ic.removeAttribute("data-tip"); ic.style.cursor="";
     const what=(rows[0].icon.dataset.tip||"").split(" · ").slice(1).filter(x=>!/click to highlight|\d+ (times?|weeks?)\b|collected Week/.test(x)).join(" · ");
-    return `<div class="mlcard" data-tip="${esc(k.label+(what?" · "+what:""))}"><div class="mlhead">${ic.outerHTML}<b>${esc(k.label)}</b></div><ol>${out.map(r=>`<li><span class="mlp p${r.place}">${r.place}</span><span class="nm" ${link}="${esc(r.n)}">${esc(r.n)}</span><span class="mlv">${r.v}${k.unit}</span></li>`).join("")}</ol></div>`});
+    // first place on the card (everyone tied for it); second and third in the hover text
+    const first=out.filter(r=>r.place===1), rest=out.filter(r=>r.place>1);
+    const tipT=k.label+(what?" · "+what:"")+(rest.length?"\n\n"+rest.map(r=>`${r.place}. ${r.n} · ${r.v}${k.unit}`).join("\n"):"");
+    return `<div class="mlcard" data-tip="${esc(tipT)}"><div class="mlhead">${ic.outerHTML}<b>${esc(k.label)}</b></div><ol>${first.map(r=>`<li><span class="mlp p1">1</span><span class="nm" ${link}="${esc(r.n)}">${esc(r.n)}</span><span class="mlv">${r.v}${k.unit}</span></li>`).join("")}</ol></div>`});
   $("ml-"+kind+"-g").innerHTML=cards.join("")||`<p class="dimtxt">No medals yet.</p>`}
 function mlEnsure(kind){if(ML[kind])return; ML[kind]={acc:{}};
   const names=kind==="host"?Object.keys(hosts).filter(h=>h&&h!==LOST):kind==="win"?Object.keys(WR.wins):PLAYERS.map(p=>p[0]);
   const src=n=>{if(kind==="host")return hostMedals(n); if(kind==="player")return byName[n]?medalsFor(byName[n])||"":"";
     const h=allMedalsHtml(n), i=h.indexOf('<div class="ms">Win medals</div>'); if(i<0)return ""; const j=h.indexOf('<div class="ms">',i+10); return h.slice(i,j<0?undefined:j)};
   let i=0; const step=()=>{const end=Math.min(names.length,i+25); for(;i<end;i++){try{mlParse(src(names[i]),names[i],ML[kind].acc)}catch(e){}}
-    if(i<names.length)setTimeout(step,0); else mlRender(kind)};
+    if(i<names.length)setTimeout(step,0); else {ML[kind].done=true; mlRender(kind)}};
   step()}
 // ---------- links between Player, Winner and Host lookup ----------
 document.addEventListener("click",e=>{
