@@ -373,6 +373,16 @@ a.dl svg,.offpill svg{width:11px;height:11px}
 .acctclose{margin-top:12px}
 .acctdlg{width:min(980px,calc(100vw - 24px))}
 .acctdlg .acctsec{margin-top:16px;border-top:1px solid var(--line);padding-top:12px}
+.twwin{margin-top:14px;border-top:1px solid var(--line);padding-top:12px}
+.twwin .wtitle{margin:0 0 8px;font-size:.95rem}
+.twwin .wcols{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:4px 24px}
+.twwin h4{margin:6px 0 4px;color:var(--pc);font-size:.95rem}
+.twwin ul{list-style:none;margin:0;padding:0}
+.twwin li{padding:2px 0;font-size:.88rem}
+.twwin li::before{content:"- ";color:var(--muted)}
+.twwin .wat,.twwin .nm{color:#5b9cff}
+.twwin .wpct{color:var(--muted)}
+.twwin .wlost{color:var(--muted);letter-spacing:.02em}
 .sbtw{margin-top:8px;padding:2px 12px;font-size:.78rem;width:auto}
 .acctdlg .adm.acctsec{border-top:0;margin-top:0;padding-top:2px}
 .acctdlg .adm.acctsec+.adm.acctsec{margin-top:16px} /* the same gap between every Admin section */
@@ -1130,6 +1140,7 @@ footer{color:var(--dim);font-size:.78rem}
       <button type="button" class="clear sblatest" id="twnow" hidden></button>
     </div>
     <div class="twstats" id="tw-stats"></div>
+    <div class="twwin" id="tw-winpost" hidden></div>
   </section>
   <section class="panel twpreview" id="twpreview" hidden></section>
   <section class="panel glowrim" style="--rc:#f5c84a">
@@ -1298,7 +1309,7 @@ footer{color:var(--dim);font-size:.78rem}
   <footer>Data: Rodman’s Rocksmith 2014 Championship Google Sheets (older attendance also from the Championship Metrics workbook). Player stats run through week 676; scoreboards cover weeks 440–677. Weeks 1–16 have no recorded host in the source.
   <span class="updated disclaimer">Unofficial fan project. Not affiliated with CustomsForge, Ubisoft or Rocksmith.</span>
   <span class="updated" id="sheetedit-row" hidden>Sheet last edited: <span id="sheetedit" data-iso="2026-10-11T16:00:03.893Z"></span></span>
-  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-12T09:06:37+00:00">October 12, 2026</span></span>
+  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-12T12:14:11+00:00">October 12, 2026</span></span>
   </footer>
 </div>
 <dialog id="acct" class="acctdlg" aria-label="Your profile"><div id="acctbody"></div><button type="button" class="clear acctclose" id="acctclose">Close</button></dialog>
@@ -3010,6 +3021,17 @@ const twPlayed=(n,w)=>{if(w===TW_LIVE)return twLiveSet.has(n); const b=twBits[n]
 const twLastBefore=(n,w)=>{const b=twBits[n]; if(!b)return null; for(let i=Math.min(w-1,DATA_WEEK)-PRES_START;i>=0;i--)if(b[i]==="1")return i+PRES_START; return null};
 const twStreakTo=(n,w)=>{let k=0; while(w>=PRES_START&&twPlayed(n,w)){k++;w--} return k};
 const twNames=w=>w===TW_LIVE?[...twLiveSet]:PLAYERS.filter(p=>twBits[p[0]][w-PRES_START]==="1").map(p=>p[0]);
+// a finished week's winners, laid out like the forum post: each path, then each challenge in sheet order with its
+// winner and their % (the best entry that counts for the win, so players playing down are skipped), or LOST TROPHY
+function twWinnersPost(w){const ch=(SB.weeks[w]||[]).filter(c=>c[3]&&!/^n\/a$/i.test(c[3])); if(!ch.length)return "";
+  const pct=x=>x==null?"":` <span class="wpct">(${+(+x).toFixed(2)})</span>`;
+  const cols=[0,1,2].map(p=>{const cs=ch.filter(c=>c[0]===p).sort((a,b)=>a[1]-b[1]); if(!cs.length)return "";
+    return `<div class="wpath" style="--pc:${PATH_C[p]}"><h4>${PATHS[p]}:</h4><ul>${cs.map(c=>{const lv=esc(c[2]||"");
+      if(c[7])return `<li><span class="wlv">${lv}:</span> <span class="wlost">continues next week${c[5]?` (${esc(c[5])})`:""}</span></li>`;
+      const e=c[6].find(x=>x[4]>=0); if(!e)return `<li><span class="wlv">${lv}:</span> <span class="wlost">LOST TROPHY</span></li>`;
+      const n=SB.names[e[0]].replace(/[*~]+$/,""), real=(PLAYERS.find(q=>q[0].toLowerCase()===n.toLowerCase())||[n])[0];
+      return `<li><span class="wlv">${lv}:</span> <span class="wat">@</span>${twName(real)}${pct(e[1])}</li>`}).join("")}</ul></div>`}).join("");
+  return `<h3 class="wtitle">🏆 Week ${w} winners</h3><div class="wcols">${cols}</div>`}
 const twName=n=>`<span class="nm" data-name="${esc(n)}"${byName[n]?` data-goplayer="${esc(n)}"`:""}>${esc(n)}</span>`;
 const twWk=w=>SB.weeks[w]?`<span class="wkl" data-sbw="${w}" title="Open week ${w} on the Scoreboard">Week ${w}</span>`:`Week ${w}`;
 const twEmpty=t=>`<li class="empty">${t}</li>`;
@@ -3101,6 +3123,7 @@ function renderNextPreview(){
   const ents=ch.flatMap(c=>c[6]), players=new Set(ents.map(e=>SB.names[e[0]].replace(/[*~]+$/,"")));
   $("twprev").disabled=false; $("twnext").disabled=true; $("twnext").classList.remove("glow");
   $("twnow").hidden=false; $("twnow").textContent=`Back to this week (${TW_MAX}) ›`;
+  $("tw-winpost").hidden=true;
   $("twsb").hidden=false; $("twsb").dataset.sbw=nw; $("twsb").title=`Open week ${nw} on the Scoreboard`;
   $("tw-title").innerHTML=`<span class="golink" data-sbw="${nw}" title="Open this week on the Scoreboard">Week ${nw}</span> <span class="pill nextwk" style="width:auto">UPCOMING</span>`;
   $("tw-meta").innerHTML=W?`Starts ${fmt(W[1])} at 9 pm CET${host?` · hosted by <span class="nm" data-name="${esc(host)}" data-gohost="${esc(host)}" style="cursor:pointer;font-weight:700;color:var(--fg)">${esc(host)}</span>${W[2]?"":" (signed up)"}`:` · <span data-tip="No host for Week ${nw} in the schedule sheet yet, and nobody has signed up on the site">host needed</span>`}`:"";
@@ -3158,6 +3181,7 @@ function renderThisWeek(){
   // header stats
   const hol=W&&W[3]?W[3].split(/,\s*/).map(h=>`<span class="pill hol">${holEmoji(h)}${esc(h)}</span>`).join(""):"";
   $("tw-stats").innerHTML=`<span><b>${names.length}</b> player${names.length===1?"":"s"}${live?" so far":""}</span>${ents.length?`<span><b>${ents.length}</b> entries</span>`:""}<span><b>${back.length}</b> back</span><span><b>${fresh.length}</b> new</span>${hol}`;
+  {const wp=$("tw-winpost"), html=!live&&w<=DATA_WEEK?twWinnersPost(w):""; wp.hidden=!html; wp.innerHTML=html;}
   // lists
   $("tw-back-sub").textContent=`Played week ${w} after missing week ${w-1}`;
   $("tw-back").innerHTML=back.length?back.map(x=>`<li>${twName(x.n)}<span class="dt">last played ${twWk(x.prev)}</span><span class="rt">${x.gap>=52?`${(x.gap/52).toFixed(1).replace(/\.0$/,"")} yr`:twPl(x.gap,"wk")}<small>away</small></span></li>`).join(""):twEmpty(live?"Nobody back from a break yet.":"Nobody came back from a break this week.");
