@@ -1050,7 +1050,8 @@ footer{color:var(--dim);font-size:.78rem}
 .bn .bn-first{position:absolute;left:-8px;top:-6px;z-index:2;font:800 10px/14px var(--f-display);padding:0 3px;border-radius:6px;background:linear-gradient(180deg,#ffe28a,#f5c84a);color:#2a1a02}
 .bnprev{overflow:hidden;margin:8px 0}
 .bnprev>div{transform-origin:0 0}
-.bncode{width:100%;box-sizing:border-box;font:500 .76rem var(--f-mono);background:var(--panel2);color:var(--fg);border:1px solid var(--line);border-radius:6px;padding:8px;resize:vertical;height:5.6em}
+.bnsteps{margin:6px 0 0;padding-left:1.3em;font-size:.88rem;line-height:1.45}.bnsteps li{margin:0 0 12px}
+.bnurl{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:6px}.bnurl code{font:500 .74rem var(--f-mono);background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:6px 8px;word-break:break-all;flex:1 1 220px;min-width:0}
 .bnstat{font-size:.84rem}.bnstat.ok{color:var(--s-green)}.bnstat.wait{color:var(--s-yellow)}
 </style>
 
@@ -3870,16 +3871,19 @@ function bannerHtml(n){
     <div class="bn-stats">${st("Weeks",p[3])}${st("Wins",v[1])}${["Lead","Rhythm","Bass"].map(pn=>{const r=rk[pn]; return st(`${pn==="Rhythm"?"Rhy":pn} rank`,r?`#${r.r}<i>${esc(r.lv.slice(0,3))}</i>`:"–")}).join("")}</div></div>
     <div class="bn-meds${meds.length>13?" tight":""}">${meds.join("")}</div>${BN_STRIPE}</div>`;
 }
-function bnCode(n){return `[url=${BN_SITE}][img]${BN_SITE}cards/${bnSlug(n)}.png[/img][/url]`}
 function bnTab(n){
   return `<div class="acctsec" style="border-top:0;margin-top:0;padding-top:2px"><h3>Your forum banner</h3>
     <p>Put this banner in your CustomsForge forum signature. It updates by itself every week with your latest stats, so you only set it up once. Clicking it opens this website.</p>
     <div class="bnprev" id="bnprev"><div>${bannerHtml(n)}</div></div>
     <p class="bnstat" id="bnstat">Checking your banner image…</p>
-    <h3 style="margin-top:14px">Signature code</h3>
-    <textarea class="bncode" id="bncode" readonly>${esc(bnCode(n))}</textarea>
-    <div class="row"><button type="button" class="btn" data-bncopy="bncode">Copy code</button><button type="button" class="btn ghost" data-bncopy="img">Copy image link</button></div>
-    <p class="dim">On the forum, open your account settings, then Signature, and paste the code. If the editor shows the code as plain text instead of the picture, use its image button to insert the image link, then select the image and add the link ${esc(BN_SITE)} to it.</p></div>`;
+    <h3 style="margin-top:14px">Add it to your signature</h3>
+    <ol class="bnsteps">
+      <li><b>Copy the image link</b> and, in your forum signature editor, use the image button to insert an image from a link. Paste the link there.
+        <div class="bnurl"><code>${esc(BN_SITE)}cards/${bnSlug(n)}.png</code><button type="button" class="btn" data-bncopy="img">Copy image link</button></div></li>
+      <li><b>Copy the site link</b>, then click the banner in the editor to select it, use the link button and paste it, so clicking your banner opens this website.
+        <div class="bnurl"><code>${esc(BN_SITE)}</code><button type="button" class="btn" data-bncopy="site">Copy site link</button></div></li>
+      <li>Save your signature. You only do this once: the picture behind the link is updated every week.</li>
+    </ol></div>`;
 }
 function bnMount(n){
   const pv=$("bnprev"); if(!pv)return; const inner=pv.firstElementChild;
@@ -3887,7 +3891,7 @@ function bnMount(n){
   fit(); requestAnimationFrame(fit);
   const st=$("bnstat"), img=new Image();
   img.onload=()=>{if(st){st.className="bnstat ok";st.textContent="✓ Your banner image is live and ready to use."}};
-  img.onerror=()=>{if(st){st.className="bnstat wait";st.textContent="Your banner image is being made. It's usually ready within 10 to 20 minutes of your claim being approved. You can paste the code now; the picture appears as soon as it's ready."}};
+  img.onerror=()=>{if(st){st.className="bnstat wait";st.textContent="Your banner image is being made. It's usually ready within 10 to 20 minutes of your claim being approved. You can add the link now; the picture appears as soon as it's ready."}};
   img.src=`cards/${bnSlug(n)}.png?t=${Date.now()}`;
 }
 function acctDraw(msg,err){
@@ -3924,10 +3928,10 @@ function acctDraw(msg,err){
 }
 $("acctbody").addEventListener("click",async e=>{
   const tb=e.target.closest("[data-accttab]"); if(tb){ACCT.tab=tb.dataset.accttab; acctDraw(); return}
-  const cp=e.target.closest("[data-bncopy]"); if(cp&&ACCT.claim){const n=ACCT.claim.player, t=cp.dataset.bncopy==="img"?`${BN_SITE}cards/${bnSlug(n)}.png`:bnCode(n);
+  const cp=e.target.closest("[data-bncopy]"); if(cp&&ACCT.claim){const n=ACCT.claim.player, t=cp.dataset.bncopy==="img"?`${BN_SITE}cards/${bnSlug(n)}.png`:BN_SITE;
     const done=()=>{const o=cp.textContent; cp.textContent="Copied ✓"; setTimeout(()=>{cp.textContent=o},1500)};
-    if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t).then(done,()=>{const ta=$("bncode"); if(ta){ta.value=t;ta.select()}});
-    else{const ta=$("bncode"); if(ta){ta.value=t;ta.select();try{document.execCommand("copy");done()}catch(_){}}} return}
+    const old=()=>{const ta=document.createElement("textarea"); ta.value=t; ta.style.cssText="position:fixed;opacity:0"; cp.after(ta); ta.select(); try{document.execCommand("copy");done()}catch(_){} ta.remove()};
+    if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t).then(done,old); else old(); return}
   const b=e.target.closest("[data-acct]"); if(!b)return; const a=b.dataset.acct, sb=ACCT.sb; b.disabled=true;
   try{
     if(a==="send"){const em=$("acctemail").value.trim(); if(!/^\S+@\S+\.\S+$/.test(em)){acctDraw("","Please type a valid email.");return}
