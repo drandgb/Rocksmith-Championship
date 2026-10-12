@@ -1311,7 +1311,7 @@ footer{color:var(--dim);font-size:.78rem}
   <footer>Data: Rodman’s Rocksmith 2014 Championship Google Sheets (older attendance also from the Championship Metrics workbook). Player stats run through week 676; scoreboards cover weeks 440–677. Weeks 1–16 have no recorded host in the source.
   <span class="updated disclaimer">Unofficial fan project. Not affiliated with CustomsForge, Ubisoft or Rocksmith.</span>
   <span class="updated" id="sheetedit-row" hidden>Sheet last edited: <span id="sheetedit" data-iso="2026-10-11T16:00:03.893Z"></span></span>
-  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-12T12:51:00+00:00">October 12, 2026</span></span>
+  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-12T13:12:07+00:00">October 12, 2026</span></span>
   </footer>
 </div>
 <dialog id="acct" class="acctdlg" aria-label="Your profile"><div id="acctbody"></div><button type="button" class="clear acctclose" id="acctclose">Close</button></dialog>
@@ -3201,7 +3201,14 @@ function renderThisWeek(){
     const f=twRivLv[pi]; return f?pairs.filter(r=>(tierOf(r.best.c[2])||"M")===f):pairs};
   // header stats
   const hol=W&&W[3]?W[3].split(/,\s*/).map(h=>`<span class="pill hol">${holEmoji(h)}${esc(h)}</span>`).join(""):"";
-  $("tw-stats").innerHTML=`<span><b>${names.length}</b> player${names.length===1?"":"s"}${live?" so far":""}</span>${ents.length?`<span><b>${ents.length}</b> entries</span>`:""}<span><b>${back.length}</b> back</span><span><b>${fresh.length}</b> new</span>${hol}`;
+  // hover lists: the players, how many entries each posted, who came back (and after how long) and who's new
+  const abc=xs=>xs.slice().sort((a,b)=>a.localeCompare(b,undefined,{sensitivity:"base"}));
+  const perP={}; ents.forEach(x=>perP[x.n]=(perP[x.n]||0)+1);
+  const tipP=names.length?`Players${live?" so far":""}:\n`+abc(names).join(", "):"";
+  const tipE=ents.length?`Entries per player:\n`+Object.entries(perP).sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0],undefined,{sensitivity:"base"})).map(([n,k])=>`${n} (${k})`).join(", "):"";
+  const tipB=back.length?`Back from a break:\n`+back.map(b=>`${b.n} (last played Week ${b.prev})`).join(", "):"Nobody back from a break";
+  const tipN=fresh.length?`New this week:\n`+abc(fresh).join(", "):"No new players";
+  $("tw-stats").innerHTML=`<span data-tip="${esc(tipP)}"><b>${names.length}</b> player${names.length===1?"":"s"}${live?" so far":""}</span>${ents.length?`<span data-tip="${esc(tipE)}"><b>${ents.length}</b> entries</span>`:""}<span data-tip="${esc(tipB)}"><b>${back.length}</b> back</span><span data-tip="${esc(tipN)}"><b>${fresh.length}</b> new</span>${hol}`;
   {const html=!live&&w<=DATA_WEEK?twWinnersPost(w):""; $("tw-winsec").hidden=!html; $("tw-winpost").innerHTML=html;}
   // lists
   $("tw-back-sub").textContent=`Played week ${w} after missing week ${w-1}`;
