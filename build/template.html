@@ -436,6 +436,16 @@ a.dl svg,.offpill svg{width:11px;height:11px}
 .acctdlg .btn.danger{background:var(--s-red);color:#fff}
 .acctdlg .rmtg{display:flex;gap:12px;flex-wrap:wrap;font-size:.8rem;color:var(--muted)}.acctdlg .rmtg label{display:inline-flex;gap:5px;align-items:center;cursor:pointer}.acctdlg .rmtg input{width:auto;margin:0}
 .acctdlg .hosttop{border-top:0;margin-top:0;padding-top:2px}.acctdlg .hosttop+.adm.acctsec{margin-top:16px;border-top:1px solid var(--line);padding-top:12px}
+.acctdlg .rurow{border:1px solid var(--line);border-left:3px solid var(--pc);border-radius:8px;padding:10px 12px;margin-top:8px;background:var(--panel2)}
+.acctdlg .ruhd{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.acctdlg .rupath{font:800 .72rem var(--f-display);letter-spacing:.08em;color:var(--pc);text-transform:uppercase;width:62px}
+.acctdlg .rucls{font:700 .74rem var(--f-display);padding:2px 7px;border-radius:5px;background:color-mix(in srgb,var(--c1) 22%,transparent);color:var(--c1)}
+.acctdlg .ruarr{color:var(--muted);font-size:.8rem}
+.acctdlg .ruvd{margin-left:auto;font:800 .72rem var(--f-display);letter-spacing:.08em;text-transform:uppercase;padding:3px 9px;border-radius:999px;border:1.5px solid var(--vc);color:var(--vc)}
+.acctdlg .ruwhy{margin:8px 0 0;padding:0;list-style:none;font-size:.84rem;line-height:1.5}.acctdlg .ruwhy li{display:flex;gap:7px}.acctdlg .ruwhy li b{flex:none;width:14px;text-align:center}
+.acctdlg .rutip{margin-top:6px;font-size:.8rem;color:var(--muted)}
+.acctdlg .rustat{font-size:.82rem}.acctdlg .rubar{display:inline-block;width:110px;height:6px;border-radius:3px;background:var(--line);vertical-align:middle;margin:0 6px;overflow:hidden}.acctdlg .rubar i{display:block;height:100%;background:var(--vc)}
+.acctdlg .runote{font-size:.74rem;color:var(--muted);margin:8px 0 0}
 .acctdlg .ratelog{list-style:none;margin:0;padding:0;max-height:320px;overflow:auto}
 .acctdlg .ratelog li{display:block;padding:6px 0;border-bottom:1px solid var(--line);font-size:.84rem}
 .acctdlg .ratelog small{color:var(--muted)}
@@ -3858,6 +3868,51 @@ function acctThisWeek(n){
     <div class="acctsec acctriv"><h3>This week's rivals</h3>${riv||`<p class="dim">No rivals this week yet.</p>`}</div>
     <div class="acctsec"><h3>Rodman's Rankings ${RK.weeks?`<small>Weeks ${esc(RK.weeks)}</small>`:""}</h3>${rk.length?`<ul class="alist">${rk.join("")}</ul>`:`<p class="dim">Not ranked right now.</p>`}<div class="row"><button type="button" class="btn ghost" data-goview="rankings">Open Rodman's Rankings ›</button></div></div>`;
 }
+// ---------- rank-up readiness (private: only in the player's own profile) ----------
+// From the scoreboards since week 440: a player is "Ready" for the next class on a path when, in the last 12 weeks, they
+// played up to that class at least twice and beat at least 30% of its regulars on average. The track record compares
+// every past rank-up with 12 weeks behind it: did the player hold their own over their first 12 weeks in the new class
+// (no move back down, kept playing at least half as often, not in the bottom quarter of the new class)?
+var RU_CACHE=null;
+function ruData(){
+  if(RU_CACHE)return RU_CACHE;
+  const canon=i=>SB.names[i].replace(/[*~]+$/,"").toLowerCase();
+  const lvOf=s=>{const m=/^(beg|int|adv|master)/i.exec(s||""); return m?{beg:0,int:1,adv:2,master:3}[m[1].toLowerCase()]:null};
+  const rec={}, weeks=Object.keys(SB.weeks).map(Number).filter(w=>w<=DATA_WEEK).sort((a,b)=>a-b);
+  weeks.forEach(w=>SB.weeks[w].forEach(c=>{
+    const lv=lvOf(c[2]); if(lv==null)return; const es=c[6];
+    const own=[]; es.forEach((e,i)=>{if(e[4]===0)own.push(i)});
+    let el=0; const pl={}; es.forEach((e,i)=>{if(e[4]===0||e[4]===9)pl[i]=el++});
+    es.forEach((e,i)=>{const others=own.filter(j=>j!==i).length, k=canon(e[0])+"|"+c[0];
+      ((rec[k]=rec[k]||{})[w]=rec[k][w]||[]).push({lv,f:e[4],beat:others?own.filter(j=>j>i).length/others:null,pl:pl[i]})});
+  }));
+  const feats=(n,p,w,tgt,a,b)=>{const r=rec[n+"|"+p]||{}, ws=weeks.filter(x=>x>=w+a&&x<=w+b), es=ws.flatMap(x=>r[x]||[]);
+    const own=es.filter(e=>e.f===0), up=es.filter(e=>(e.f===1||e.f===2)&&e.lv===tgt), ub=up.map(e=>e.beat).filter(x=>x!=null), ob=own.map(e=>e.beat).filter(x=>x!=null);
+    return {weeks:ws.filter(x=>r[x]).length, own:own.length, wins:own.filter(e=>e.pl===0).length, nup:up.length,
+      upbeat:ub.length?ub.reduce((s,x)=>s+x,0)/ub.length:null, good:ub.filter(x=>x>=.3).length, ownbeat:ob.length?ob.reduce((s,x)=>s+x,0)/ob.length:null}};
+  const O="BIAM", ready=f=>f.nup>=2&&(f.upbeat||0)>=.3, T={ready:[0,0],notyet:[0,0]}, all=WR.ups.map(u=>[u[0].toLowerCase(),u[1],O.indexOf(u[2]),O.indexOf(u[3]),u[4]]);
+  all.filter(u=>u[3]>u[2]&&u[4]+11<=DATA_WEEK).forEach(([n,p,a,b,w])=>{
+    const pre=feats(n,p,w,b,-12,-1), post=feats(n,p,w,b,0,11);
+    const held=!all.some(d=>d[0]===n&&d[1]===p&&d[3]<d[2]&&d[4]>w&&d[4]<=w+26)&&!(pre.weeks>0&&post.weeks<.5*pre.weeks)&&!(post.ownbeat!=null&&post.ownbeat<.25);
+    const t=T[ready(pre)?"ready":"notyet"]; t[1]++; if(held)t[0]++});
+  return RU_CACHE={feats,ready,T,total:T.ready[1]+T.notyet[1]};
+}
+function rankupSection(n){
+  const p=byName[n]; if(!p||typeof WR==="undefined"||!WR.ups)return "";
+  const T=String(p[8]||"").split(""), O="BIAM", D=ruData(), key=n.toLowerCase();
+  const rows=[0,1,2].map(i=>{const c=T[i], ci=O.indexOf(c); if(ci<0||ci>=3)return "";
+    const nx=O[ci+1], f=D.feats(key,i,DATA_WEEK,ci+1,-11,0), ok=D.ready(f), pc=Math.round((f.upbeat||0)*100);
+    const up=f.nup?`Played up to ${TIER_NAME[nx]} ${f.nup} time${f.nup===1?"":"s"}, beating ${pc}% of its regulars on average${f.good&&!ok?` (30% or more ${f.good===1?"once":f.good===2?"twice":f.good+" times"})`:""}`:`Didn't play up to ${TIER_NAME[nx]}`;
+    const mk=ok?`<b style="color:var(--s-green)">✓</b>`:f.nup&&pc>=15?`<b style="color:var(--s-yellow)">~</b>`:`<b style="color:var(--s-red)">✗</b>`;
+    const tip=ok?"":f.nup>=2&&pc>=15?"Close: a few more strong tries playing up would get you to Ready.":`To reach Ready: beat at least 30% of the ${TIER_NAME[nx]} regulars when you play up, over 2 or more tries.`;
+    return `<div class="rurow" style="--pc:${PATH_C[i]}"><div class="ruhd"><span class="rupath">${PATHS[i]}</span><span class="rucls" style="--c1:${TIER_C[c]}">${TIER_NAME[c]}</span><span class="ruarr">→</span><span class="rucls" style="--c1:${TIER_C[nx]}">${TIER_NAME[nx]}</span><span class="ruvd" style="--vc:${ok?"var(--s-green)":"var(--s-yellow)"}">${ok?"Ready":"Not yet"}</span></div>
+      <ul class="ruwhy"><li>${mk}${up}</li><li><b style="color:var(--muted)">·</b>${f.wins} win${f.wins===1?"":"s"} in ${f.own} ${TIER_NAME[c]} challenge${f.own===1?"":"s"}</li></ul>${tip?`<div class="rutip">${tip}</div>`:""}</div>`}).join("");
+  if(!rows)return "";
+  const bar=(lab,col,t)=>`<div class="ruhd" style="gap:14px"><span class="ruvd" style="--vc:${col};margin:0">${lab}</span><span class="rustat">held their own after ranking up<span class="rubar" style="--vc:${col}"><i style="width:${t[1]?Math.round(100*t[0]/t[1]):0}%"></i></span><b>${t[0]} of ${t[1]}</b></span></div>`;
+  return `<div class="acctsec rusec"><h3>Rank-up readiness</h3><p class="dim">Only you can see this. If you're offered a rank-up, here's what your last 12 weeks say, based on how the ${D.total} rank-ups since week 440 turned out.</p>${rows}
+    <div class="rurow" style="--pc:var(--muted)">${bar("Ready","var(--s-green)",D.T.ready)}<div style="height:6px"></div>${bar("Not yet","var(--s-yellow)",D.T.notyet)}
+    <p class="runote">Ready means you played up to the next class at least twice in the last 12 weeks and beat at least 30% of its regulars on average. Held their own means they didn't move back down, kept playing that path at least half as often, and weren't in the bottom quarter of the new class over their first 12 weeks.</p></div></div>`;
+}
 function acctProfile(n){
   // the #1 medal-leader chips get their own section, just above Player profile (hidden inside the card here)
   const leads=plLeads(n);
@@ -3969,7 +4024,7 @@ function acctDraw(msg,err){
     const names=PLAYERS.map(p=>p[0]).filter(n=>!taken.has(n)).sort((a,c)=>a.localeCompare(c,undefined,{sensitivity:"base"}));
     h+=`<p>Which player are you? Pick your name to claim your profile. An admin checks each claim before you can rate songs: after you claim, an admin will message you to confirm it's really you.</p><select id="acctname"><option value="">Choose your player name…</option>${names.map(n=>`<option>${esc(n)}</option>`).join("")}</select><div class="row"><button type="button" class="btn" data-acct="claim">Claim this profile</button></div>`}
   else if(ACCT.claim.status==="pending")h+=`<p>You've claimed <b>${esc(ACCT.claim.player)}</b>. It's waiting for approval: an admin will message you to confirm it's really you, then approve it. Your verification animal is under Manage account.</p><div class="row"><button type="button" class="btn ghost" data-acct="unclaim">Withdraw claim</button></div>`;
-  else h+=`<p>Hi <b>${esc(ACCT.claim.player)}</b>! This is your personal stats page. You can submit your own ratings for any song by clicking its rating number.</p><div id="acct-tw">${acctThisWeek(ACCT.claim.player)}</div>${acctProfile(ACCT.claim.player)}`;
+  else h+=`<p>Hi <b>${esc(ACCT.claim.player)}</b>! This is your personal stats page. You can submit your own ratings for any song by clicking its rating number.</p><div id="acct-tw">${acctThisWeek(ACCT.claim.player)}</div>${rankupSection(ACCT.claim.player)}${acctProfile(ACCT.claim.player)}`;
   if(ACCT.admin&&ACCT.tab==="admin"){const pend=ACCT.claims.filter(c=>c.status==="pending"), appr=ACCT.claims.filter(c=>c.status==="approved").sort((a,c)=>a.player.localeCompare(c.player));
     h+=`${removePanel()}<div class="adm acctsec"><h3>Claims</h3><p>${pend.length?"Waiting for approval:":"No claims waiting."}</p><ul>${pend.map(c=>`<li><span>${esc(c.player)} ${animalTag(ACCT.animals[c.user_id])} <small>${new Date(c.created_at).toLocaleDateString()}</small></span><span><button type="button" class="btn" data-acct="approve" data-uid="${c.user_id}">Approve</button> <button type="button" class="btn ghost" data-acct="reject" data-uid="${c.user_id}">Reject</button></span></li>`).join("")}</ul>${appr.length?`<p>Approved (${appr.length}):</p><ul>${appr.map(c=>`<li><span>${esc(c.player)} ${animalTag(ACCT.animals[c.user_id])}</span><button type="button" class="btn ghost" data-acct="removeask" data-player="${esc(c.player)}">Remove</button></li>`).join("")}</ul>`:""}</div>${removedSection()}${claimLogSection()}${hostSection(true)}`}
   // redrawing keeps the popup where it was scrolled to (e.g. after changing a rating in the Admin tab)
