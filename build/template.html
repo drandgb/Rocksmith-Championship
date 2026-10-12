@@ -2168,7 +2168,7 @@ function podSvg(col,p){const rib=p==null?`fill="#4f7dff"`:`style="fill:${PATH_C[
   const letter=""; // the ribbon colour alone tells the path apart
   return `<svg viewBox="0 0 28 30" aria-hidden="true"><path d="M8 0h5l2 8-4 2zM20 0h-5l-2 8 4 2z" ${rib}/><path d="M8 0h5l2 8-4 2z" fill="rgba(0,0,0,.18)"/><circle cx="14" cy="19" r="10" fill="${col}"/><circle cx="14" cy="19" r="7.4" fill="none" stroke="rgba(0,0,0,.22)" stroke-width="1.2"/><path d="M10 14a7 7 0 0 1 6-2" stroke="rgba(255,255,255,.6)" stroke-width="1.6" fill="none" stroke-linecap="round"/>${letter}</svg>`}
 // a Roman laurel wreath (two leafy branches meeting under the gem, open at the top) in gold, silver or bronze
-const LAUREL_PAL=[["#fff2b0","#f5c84a","#b8862a","#9a6b18","#e0a83a"],["#ffffff","#d3d9e3","#8a94a4","#5f6878","#b9c1cd"],["#ffd9b8","#d8925a","#9a5a2c","#6e3f1c","#c27a44"]];
+const LAUREL_PAL=[["#fff2b0","#f5c84a","#b8862a","#9a6b18","#e0a83a"],["#ffffff","#d3d9e3","#8a94a4","#5f6878","#b9c1cd"],["#d99a6c","#a35f2c","#6b3814","#45230d","#8a4e22"]] // bronze darker, so it doesn't read as gold;
 function laurelOf(i){const [a,b,c,ln,bow]=LAUREL_PAL[i]; return LAUREL.replace(/laurelg/g,"laurelg"+i).replace('stop-color="#fff2b0"','stop-color="'+a+'"').replace('stop-color="#f5c84a"','stop-color="'+b+'"').replace('stop-color="#b8862a"','stop-color="'+c+'"')
   .replace(/stroke="#b8862a"/g,`stroke="${c}"`).replace(/stroke="#9a6b18"/g,`stroke="${ln}"`).replace('fill="#e0a83a"',`fill="${bow}"`).replace('fill="#f5c84a" stroke','fill="'+b+'" stroke')}
 const LAUREL=(()=>{const r=17.2, cx=15, cy=15.5; let s="";
