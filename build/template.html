@@ -3234,7 +3234,7 @@ function renderThisWeek(){
   $("tw-med-sub").textContent=live?"Collected this week · player medals are provisional, win medals are added when the week ends":"Collected this week · click a medal to see what it is for";
   $("tw-med").innerHTML=med.length?med.map(x=>{const g=x.m.some(h=>/diamond d0/.test(h)), hb=x.n===wHost;
     const cls=[g?"celestial":"",hb?"hostbox":""].filter(Boolean).join(" "), tipL=[hb?`Host of Week ${w}`:"",g?"Gold God winner this week":""].filter(Boolean).join(" · ");
-    return `<li${cls?` class="${cls}" data-tip="${tipL}"`:""}>${g?celCorners():""}${hb?`<span class="hosttag">HOST</span>`:""}${twName(x.n)}<span class="dt">${twPl(medalTotal(x.m),"new medal")}</span><div class="medals">${x.m.join("")}</div></li>`}).join(""):twEmpty("No new medals this week.");
+    return `<li${cls?` class="${cls}" data-tip="${tipL}"`:""}>${g?celCorners():""}${hb?`<span class="hosttag">YOUR HOST</span>`:""}${twName(x.n)}<span class="dt">${twPl(medalTotal(x.m),"new medal")}</span><div class="medals">${x.m.join("")}</div></li>`}).join(""):twEmpty("No new medals this week.");
   const lit=(id,on)=>$(id).closest("section").classList.toggle("lit",!!on);
   lit("tw-med",med.length); lit("tw-back",back.length);
   {const s=$("tw-dng").closest("section"); s.classList.toggle("amber",live); s.classList.toggle("gloom",!live&&dng.length>0)} lit("tw-new",fresh.length); lit("tw-ann",ann.length); lit("tw-riv",SB.weeks[w]&&[0,1,2].some(pi=>Object.keys(rivalsOfWeek(w,pi)).length));
