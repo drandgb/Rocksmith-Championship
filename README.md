@@ -1,4 +1,3 @@
-[README.md](https://github.com/user-attachments/files/33099096/README.md)
 # 🎸 Rocksmith 2014 Championship Stats
 
 A stats companion for the **Rocksmith 2014 Championship**, the weekly CDLC challenge run on the [CustomsForge](https://customsforge.com/forum/38-rocksmith-championship/) forums. It covers winners, players, hosts, songs and the full scoreboard history, with medals for all of them, in one page.
@@ -6,11 +5,11 @@ A stats companion for the **Rocksmith 2014 Championship**, the weekly CDLC chall
 **Live site:** https://drandgb.github.io/Rocksmith-Championship/
 
 Quick links in the page header:
-- [Championship forum](https://customsforge.com/forum/38-rocksmith-championship/)
+- [Play here](https://customsforge.com/forum/38-rocksmith-championship/) (the championship forum)
 - [Scoreboard sheet](https://docs.google.com/spreadsheets/d/1WN-m8wF0lVkQ4cLWHBa009SkqDoPk0xN-C4-llcrXXs/edit?gid=871655614#gid=871655614)
 - [Request a song](https://script.google.com/macros/s/AKfycbwy6vF3XYDZ_s1WeqiHTgBcVgbF8cr2AUQjKH3aRSZYuh32Erc-IstP5Gos-1i_evkm/exec)
 
-The whole app is one self-contained `index.html`. It has no build step, no server and no dependencies apart from Google Fonts.
+The whole app is one self-contained `index.html`, with no server. It loads Google Fonts, plus the Supabase login library from jsdelivr for player accounts.
 
 ---
 
@@ -118,12 +117,13 @@ Class history is read from the font colors and sizes in the original Google Shee
 
 The site rebuilds itself from the **[scoreboard sheet](https://docs.google.com/spreadsheets/d/1WN-m8wF0lVkQ4cLWHBa009SkqDoPk0xN-C4-llcrXXs/edit)**:
 
-Two GitHub Actions do this. Each one downloads the sheet, rebuilds `index.html` and commits only if the data changed; GitHub Pages republishes a minute or two later.
+Two GitHub Actions do this (a third one keeps the forum banners up to date). Each of the two downloads the sheet, rebuilds `index.html` and commits only if the data changed; GitHub Pages republishes a minute or two later.
 
 | Action | When | What it re-reads |
 |---|---|---|
 | **Quick update (current week)** ([`quick-update.yml`](.github/workflows/quick-update.yml)) | Every hour | The 2 newest week tabs, plus `Schedule` and `PlayersList`. Older weeks come from the saved results in `build/data/cache/`. |
 | **Full rescan (whole sheet)** ([`full-rescan.yml`](.github/workflows/full-rescan.yml)) | Sundays | Every week tab, so corrections to older weeks show up. |
+| **Forum banners for new players** ([`banners.yml`](.github/workflows/banners.yml)) | Every 10 minutes | Nothing from the sheet: makes a forum banner for anyone whose profile claim was just approved. Commits nothing when nobody is new. |
 
 The page's *Last updated* time is the last time either Action checked the sheet (read from GitHub when the page loads), shown in the viewer's own time zone.
 
@@ -166,10 +166,9 @@ To build by hand: `./build/build.sh` (downloads the sheet) or `./build/build.sh 
 
 ## Credits
 
-- Data comes from the Rocksmith 2014 Championship scoreboards, player list and song lists maintained by the challenge hosts on CustomsForge.
+- Data comes from the Rocksmith 2014 Championship Google Sheets (scoreboards, player list and schedule), maintained by the challenge hosts.
 - Thanks to every host and player who has kept the challenge running week after week since 2013. 🤘
 
-*Unofficial fan project. Not affiliated with CustomsForge, Ubisoft or Rocksmith.*
 
 ## Player accounts and song ratings (optional)
 
@@ -177,9 +176,19 @@ Players can log in with an emailed link (no password) and claim their player pro
 
 1. Create a free project at supabase.com.
 2. In **Authentication → URL Configuration**, set the Site URL (and a Redirect URL) to `https://drandgb.github.io/Rocksmith-Championship/`.
-3. In **Authentication → Emails → SMTP settings**, connect an email sender (a dedicated Gmail with an app password works: `smtp.gmail.com`, port 587).
-4. In **SQL Editor**, run `build/supabase/schema.sql`.
+3. In **Authentication → Emails → SMTP settings**, connect an email sender for the login emails.
+4. In **SQL Editor**, run `build/supabase/schema.sql`, then `admin_ratings.sql`, `rating_log.sql` and `claim_log.sql` from the same folder (admin ratings on a player's behalf, the Ratings log and the Claims log).
 5. Put the project URL and the anon/publishable key into `SUPA_URL` and `SUPA_KEY` in `build/template.html` (both are public by design; never use the service_role key).
 6. Log in on the site once, then run the two lines at the bottom of `schema.sql` with your email to make yourself an admin. Admins approve or remove profile claims from the 👤 account dialog.
 
-Rules (enforced by the database): one account per player name, one name per account, claims start pending until an admin approves them, and only an approved player can vote, once per challenge (voting again replaces the vote).
+Rules (enforced by the database): one account per player name, one name per account, claims start pending until an admin approves them, and only an approved player can rate, once per song per path (rating again replaces it). Admins can also rate for a player who sent their ratings another way; those show in the Admin tab's Ratings log. Every claim an admin approves, rejects or removes is listed in the Claims log.
+
+### Forum banners
+
+Every approved player gets a forum signature banner (700×150): their name and classes, weeks played, wins, their best Rodman's Rankings place on each path and their gold medals (gold God diamonds, gold medals, close wins, rivalry wins and Uncrowned), with a "1st" badge on any they lead. The **Forum banner** tab in the 👤 dialog shows it, with the image link and site link to paste into the forum signature.
+
+`build/banners.py` draws them with headless Chrome into `cards/<name>.png`. Every banner is redrawn when a new week's results arrive (as part of the quick update); newly approved players get theirs within about 10 minutes (the banner Action above), and banners of players who are no longer approved are deleted.
+
+---
+
+*Unofficial fan project. Not affiliated with CustomsForge, Ubisoft or Rocksmith.*
