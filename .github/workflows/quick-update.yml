@@ -28,8 +28,8 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Install openpyxl
-        run: pip install openpyxl==3.1.5
+      - name: Install openpyxl and playwright
+        run: pip install openpyxl==3.1.5 playwright==1.56.0
 
       - name: Download the sheet and build index.html
         env:
@@ -38,18 +38,21 @@ jobs:
           export BUILD_DATE=$(TZ=America/New_York date +%F)
           MODE=quick ./build/build.sh 2>&1 | tee build.log
 
+      - name: Forum banners (all of them when a new week arrives, otherwise only newly approved players)
+        run: python3 build/banners.py index.html cards 2>&1 | tee -a build.log || echo "Banners skipped."
+
       - name: Commit if anything changed
         id: commit
         run: |
           # ignore the "Last updated" line (kept on its own line in the template) so the site only changes when the data or page does
-          if git diff --quiet -I 'Last updated:' -- index.html && [ -z "$(git status --porcelain -- build/data/cache)" ]; then
+          if git diff --quiet -I 'Last updated:' -- index.html && [ -z "$(git status --porcelain -- build/data/cache cards)" ]; then
             git checkout -- index.html
             echo "No data changes."
             echo "changed=false" >> "$GITHUB_OUTPUT"
           else
             git config user.name  "github-actions[bot]"
             git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
-            git add index.html build/data/cache
+            git add index.html build/data/cache cards
             git commit -m "Quick update from the scoreboard sheet (week $(cat build/work/data_week.txt))"
             git pull --rebase -X theirs origin main
             git push

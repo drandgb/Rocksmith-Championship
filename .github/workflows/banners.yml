@@ -1,0 +1,52 @@
+name: Forum banners for new players
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"   # every 10 minutes: makes a banner for anyone whose profile claim was just approved (quick, and commits nothing when nobody is new)
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+
+concurrency:
+  group: update-site   # never at the same time as the site updates
+  cancel-in-progress: false
+
+jobs:
+  banners:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+
+      - name: Install playwright
+        run: pip install playwright==1.56.0
+
+      - name: Make banners for newly approved players
+        run: python3 build/banners.py index.html cards
+
+      - name: Commit if anything changed
+        id: commit
+        run: |
+          if [ -z "$(git status --porcelain -- cards)" ]; then
+            echo "No new banners."
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            git config user.name  "github-actions[bot]"
+            git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
+            git add cards
+            git commit -m "Forum banners for newly approved players"
+            git pull --rebase -X theirs origin main
+            git push
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Ask GitHub Pages to republish
+        if: steps.commit.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh api -X POST "repos/${{ github.repository }}/pages/builds" || echo "Pages will pick up the commit on its own."
