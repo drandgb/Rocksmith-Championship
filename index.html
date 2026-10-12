@@ -663,7 +663,9 @@ footer .updated{display:block;margin-top:4px}
 .twstats .pill.hol{cursor:default}
 .twl{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
 /* the week's host on This Week New medals: a striped amber ribbon trim with a HOST tab */
-.twl .lostgem{margin-left:auto;display:inline-flex}.twl .lostgem svg{width:24px;height:24px;filter:grayscale(.6) drop-shadow(0 0 3px rgba(159,184,176,.6))}
+/* Streaks that ended: a player who lost their perfect streak from joining gets a cracked, cool-grey rim and a crumbled gem */
+.twl li.lostperf{border:1.5px dashed #9fb8b0;background:linear-gradient(135deg,color-mix(in srgb,#9fb8b0 12%,var(--panel2)),var(--panel2) 60%);box-shadow:inset 0 0 0 1px rgba(255,255,255,.04),0 0 10px rgba(159,184,176,.18)}
+.twl .crumbled{display:inline-flex;width:24px;height:24px;flex:none}.twl .crumbled svg{width:24px;height:24px;filter:drop-shadow(0 1px 2px rgba(0,0,0,.5))}
 .twl li.hostbox{position:relative;border:2px solid transparent;background:linear-gradient(var(--panel2),var(--panel2)) padding-box,repeating-linear-gradient(135deg,#ffb347 0 5px,#ffe0a3 5px 8px,#e07a1f 8px 13px) border-box;box-shadow:0 0 0 1px rgba(255,179,71,.25),0 0 14px rgba(255,159,67,.28)}
 .twl li.hostbox .hosttag{position:absolute;top:-9px;right:14px;z-index:3;font:800 .58rem/1 var(--f-display);letter-spacing:.14em;padding:3px 9px;border-radius:999px;background:linear-gradient(180deg,#ffd27a,#ff9f43);color:#2a1604;box-shadow:0 1px 4px rgba(0,0,0,.4)}
 .twl li.hostbox.celestial{background:radial-gradient(120% 140% at 50% 0%,color-mix(in srgb,#7fe9ff 26%,transparent),transparent 70%),var(--panel2) padding-box}
@@ -1204,10 +1206,6 @@ footer{color:var(--dim);font-size:.78rem}
       <div class="panel-head"><h2>🎂 Anniversaries</h2><span class="sub" id="tw-ann-sub"></span></div>
       <ul class="twl" id="tw-ann"></ul>
     </section>
-    <section class="panel glowrim lostperf" style="--rc:#9fb8b0" id="tw-lostsec" hidden>
-      <div class="panel-head"><h2>💔 Perfect streak lost</h2><span class="sub">Missed their first week since joining</span></div>
-      <ul class="twl" id="tw-lost"></ul>
-    </section>
     </div>
     <section class="panel amber">
       <div class="panel-head"><h2 id="tw-dng-h">⏳ Streaks at stake</h2><span class="sub" id="tw-dng-sub"></span></div>
@@ -1357,7 +1355,7 @@ footer{color:var(--dim);font-size:.78rem}
   <footer>Data: Rodman’s Rocksmith 2014 Championship Google Sheets (older attendance also from the Championship Metrics workbook). Player stats run through week 676; scoreboards cover weeks 440–677. Weeks 1–16 have no recorded host in the source.
   <span class="updated disclaimer">Unofficial fan project. Not affiliated with CustomsForge, Ubisoft or Rocksmith.</span>
   <span class="updated" id="sheetedit-row" hidden>Sheet last edited: <span id="sheetedit" data-iso="2026-10-11T16:00:03.893Z"></span></span>
-  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-12T15:26:24+00:00">October 12, 2026</span></span>
+  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-12T15:33:22+00:00">October 12, 2026</span></span>
   </footer>
 </div>
 <dialog id="acct" class="acctdlg" aria-label="Your profile"><div id="acctbody"></div><button type="button" class="clear acctclose" id="acctclose">Close</button></dialog>
@@ -1767,6 +1765,12 @@ function classGem(p){
 }
 // the perfect gem, broken and mended with gold (kintsugi): a celadon stone with glowing gold seams
 let kgN=0;
+// the Perfect gem, crumbled: its facets split apart into shards, faded, with a few chips falling off
+function crumbledGemSvg(){const sh=[ // [points, fill, dx, dy, rotate]
+  ["7,4 14,4 12.5,11 1.5,11","#cfe6ee",-1.6,-1.2,-12],["16,3.2 22.5,3.2 29,10.5 18,10.5","#b9a8d8",1.8,-1.6,10],
+  ["1,12.3 10.5,12.3 13.3,25","#8fb3c4",-2.2,1.4,-16],["12,12 18,12 15,23","#e8f4f8",0,2.6,6],["19.5,12.6 28.6,12.6 16.8,26.8","#7d6f9e",2.4,1.8,18]];
+  return `<span class="crumbled" aria-hidden="true"><svg viewBox="-3 -3 36 36">${sh.map(([pt,f,dx,dy,r])=>{const c=pt.split(" ").map(q=>q.split(",").map(Number)), cx=c.reduce((a,q)=>a+q[0],0)/c.length, cy=c.reduce((a,q)=>a+q[1],0)/c.length;
+    return `<polygon points="${pt}" fill="${f}" fill-opacity=".85" stroke="rgba(0,0,0,.5)" stroke-width=".6" transform="translate(${dx} ${dy}) rotate(${r} ${cx.toFixed(1)} ${cy.toFixed(1)})"/>`}).join("")}<path d="M4 31l1.6-.9.7 1.4zM24 31.6l1.8-.5-.2 1.5zM14.5 32.2l1.1-1 .9 1.1zM9 29.5l.9-.5.4.8z" fill="#9fb8b0"/></svg></span>`}
 function kintsugiSvg(){const g="kg"+(kgN++);return `<svg viewBox="0 0 30 30" aria-hidden="true"><defs><linearGradient id="${g}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#e6efe9"/><stop offset=".55" stop-color="#9fb8b0"/><stop offset="1" stop-color="#5e7a76"/></linearGradient><linearGradient id="${g}o" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff2b0"/><stop offset=".5" stop-color="#f5c84a"/><stop offset="1" stop-color="#c8902a"/></linearGradient></defs>`
   +`<polygon points="8,3 22,3 29,11 15,28 1,11" fill="url(#${g})"/><polygon points="8,3 22,3 19,11 11,11" fill="rgba(255,255,255,.45)"/><polygon points="1,11 11,11 15,28" fill="rgba(0,0,0,.1)"/><polygon points="29,11 19,11 15,28" fill="rgba(0,0,0,.2)"/>`
   +`<path d="M12 3.2l1.6 4.2-2.4 3.4 2.2 4.4-1.2 4.6 2.6 8M13.6 7.4l4.6 1.8 3.4-1.4M11.2 10.8l-6.4 1.2M13.4 15.2l5.8 1.2 4-3.6M12.2 19.8l-3.6-2.4" fill="none" stroke="url(#${g}o)" stroke-width="1.15" stroke-linecap="round" stroke-linejoin="round"/>`
@@ -3357,13 +3361,11 @@ function renderThisWeek(){
   $("tw-ann").innerHTML=ann.length?ann.map(a=>`<li>${twName(a.n)}<span class="dt">joined ${twWk(a.first)} · ${fmt(a.fd)}${set.has(a.n)?` <span class="ok" data-tip="Played this week" style="cursor:help">✓ playing</span>`:""}</span><span class="rt">🎂 ${a.yrs}<small>year${a.yrs===1?"":"s"}</small></span></li>`).join(""):twEmpty("No anniversaries this week.");
   $("tw-dng-h").textContent=live?"⏳ Streaks at stake":"💔 Streaks that ended";
   $("tw-dng-sub").textContent=live?`Active streaks with no score yet this week${left>0?` · ${twPl(left,"day")} left`:""}`:`Played week ${w-1} but not week ${w} (2+ week streaks)`;
-  // perfect streak lost: players who had played every week since joining and missed their first week this week
-  {const lost=[]; if(!live&&w<=DATA_WEEK)PLAYERS.forEach(p=>{const bits=twBits[p[0]]||"", b0=p[1]-PRES_START; if(b0<0)return; let k=0; while(b0+k<bits.length&&bits[b0+k]==="1")k++;
-      if(k>=2&&p[1]+k===w&&b0+k<bits.length)lost.push({n:p[0],k,first:p[1]})});
-    lost.sort((a,b)=>b.k-a.k||a.n.localeCompare(b.n));
-    $("tw-lostsec").hidden=!lost.length;
-    $("tw-lost").innerHTML=lost.map(x=>`<li>${twName(x.n)}<span class="dt" data-tip="Played every week from joining in Week ${x.first} until missing Week ${w}. Their Perfect gem becomes a Kintsugi gem when they come back.">perfect for ${x.k} week${x.k===1?"":"s"}<small> · since Week ${x.first}</small></span><span class="lostgem">${kintsugiSvg()}</span></li>`).join("")}
-  $("tw-dng").innerHTML=dng.length?dng.map(x=>`<li>${twName(x.n)}<span class="rt ${x.k>=52?"crit":x.k>=10?"hot":""}">🔥 ${x.k}<small>week${x.k===1?"":"s"}</small></span></li>`).join(""):twEmpty(live?"Every active streak is safe this week. 🎉":"No streaks ended this week.");
+  // perfect streak lost: players who had played every week since joining and missed their first week this week.
+  // They're in "Streaks that ended" with a different rim and a crumbled Perfect gem
+  const lostP={}; if(!live&&w<=DATA_WEEK)PLAYERS.forEach(p=>{const bits=twBits[p[0]]||"", b0=p[1]-PRES_START; if(b0<0)return; let k=0; while(b0+k<bits.length&&bits[b0+k]==="1")k++;
+    if(k>=1&&p[1]+k===w&&b0+k<bits.length)lostP[p[0]]={k,first:p[1]}});
+  $("tw-dng").innerHTML=dng.length?dng.map(x=>{const lp=lostP[x.n]; return `<li${lp?` class="lostperf" data-tip="Perfect streak lost: played every week from joining in Week ${lp.first} until missing Week ${w}. The Perfect gem becomes a Kintsugi gem when they come back."`:""}>${twName(x.n)}${lp?crumbledGemSvg():""}<span class="rt ${x.k>=52?"crit":x.k>=10?"hot":""}">🔥 ${x.k}<small>week${x.k===1?"":"s"}</small></span></li>`}).join(""):twEmpty(live?"Every active streak is safe this week. 🎉":"No streaks ended this week.");
   $("tw-med-sub").textContent=live?"Collected this week · player medals are provisional, win medals are added when the week ends":"Collected this week · click a medal to see what it is for";
   $("tw-med").innerHTML=med.length?med.map(x=>{const g=x.m.some(h=>/diamond d0/.test(h)), hb=x.n===wHost;
     const cls=[g?"celestial":"",hb?"hostbox":""].filter(Boolean).join(" "), tipL=[hb?`Host of Week ${w}`:"",g?"Gold God winner this week":""].filter(Boolean).join(" · ");
