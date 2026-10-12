@@ -1320,7 +1320,7 @@ footer{color:var(--dim);font-size:.78rem}
   <footer>Data: Rodman’s Rocksmith 2014 Championship Google Sheets (older attendance also from the Championship Metrics workbook). Player stats run through week 676; scoreboards cover weeks 440–677. Weeks 1–16 have no recorded host in the source.
   <span class="updated disclaimer">Unofficial fan project. Not affiliated with CustomsForge, Ubisoft or Rocksmith.</span>
   <span class="updated" id="sheetedit-row" hidden>Sheet last edited: <span id="sheetedit" data-iso="2026-10-11T16:00:03.893Z"></span></span>
-  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-12T14:14:43+00:00">October 12, 2026</span></span>
+  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-12T14:21:15+00:00">October 12, 2026</span></span>
   </footer>
 </div>
 <dialog id="acct" class="acctdlg" aria-label="Your profile"><div id="acctbody"></div><button type="button" class="clear acctclose" id="acctclose">Close</button></dialog>
@@ -2469,7 +2469,18 @@ function sbRender(){
   const posted=new Set(twEntries(sbWeek).map(x=>x.n)), carried=players.size-posted.size;
   const compTip=`Everyone on this week's scoreboard, including ${carried} player${carried===1?"":"s"} whose only entries are God challenge scores posted in an earlier week of the run (a God challenge runs for several weeks and keeps its scores)`;
   const postTip=`Players who posted a score this week. This is the number on the Players page chart; God challenge scores carried over from earlier weeks of the run don't count`;
-  $("sbstats").innerHTML=(carried>0?`<span data-tip="${esc(compTip)}"><b>${players.size}</b> players competing</span><span data-tip="${esc(postTip)}"><b>${posted.size}</b> players this week</span>`:`<span><b>${players.size}</b> players this week</span>`)+`<span><b>${all.length}</b> entries in all paths</span><span><b>${pathEnts.length}</b> ${["lead","rhythm","bass"][sbPath]} entries</span>`;
+  // hover lists, like on This Week: the players, and entries per player for all paths / this path
+  const abc=xs=>[...xs].sort((a,b)=>a.localeCompare(b,undefined,{sensitivity:"base"}));
+  const nm=e=>SB.names[e[0]].replace(/[*~]+$/,"");
+  const perList=es=>{const m={}; es.forEach(e=>{const n=nm(e); m[n]=(m[n]||0)+1}); return Object.entries(m).sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0],undefined,{sensitivity:"base"})).map(([n,k])=>`${n} (${k})`).join(", ")};
+  const carriedOnly=abc([...players].filter(n=>!posted.has(twCanon(n))&&!posted.has(n)));
+  const pathName=["Lead","Rhythm","Bass"][sbPath];
+  const compTipL=compTip+`\n\nPlayers:\n${abc(players).join(", ")}${carriedOnly.length?`\n\nOnly carried-over God scores:\n${carriedOnly.join(", ")}`:""}`;
+  const postTipL=postTip+`\n\nPlayers:\n${abc(posted).join(", ")}`;
+  const plainTip=players.size?`Players:\n${abc(players).join(", ")}`:"";
+  const allTip=all.length?`Entries per player, all paths:\n${perList(all)}`:"";
+  const pathTip=pathEnts.length?`${pathName} entries per player:\n${perList(pathEnts)}`:"";
+  $("sbstats").innerHTML=(carried>0?`<span data-tip="${esc(compTipL)}"><b>${players.size}</b> players competing</span><span data-tip="${esc(postTipL)}"><b>${posted.size}</b> players this week</span>`:`<span data-tip="${esc(plainTip)}"><b>${players.size}</b> players this week</span>`)+`<span data-tip="${esc(allTip)}"><b>${all.length}</b> entries in all paths</span><span data-tip="${esc(pathTip)}"><b>${pathEnts.length}</b> ${["lead","rhythm","bass"][sbPath]} entries</span>`;
   const cards=ch.filter(c=>c[0]===sbPath&&(!sbLv[sbPath]||cardLv(c[2])===sbLv[sbPath]));
   const findLc=sbFind.toLowerCase();
   // "Highlight a player" only suggests players on the cards being shown (this week, path and level)
