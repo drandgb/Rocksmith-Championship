@@ -1141,7 +1141,7 @@ footer{color:var(--dim);font-size:.78rem}
   </section>
   <section class="panel twpreview" id="twpreview" hidden></section>
   <section class="panel glowrim" style="--rc:#f5c84a" id="tw-winsec" hidden>
-    <div class="panel-head"><h2>🏆 Week winners</h2><span class="sub" id="tw-win-sub"></span></div>
+    <div class="panel-head"><h2>🏆 Week winners</h2></div>
     <div class="twwin" id="tw-winpost"></div>
   </section>
   <section class="panel glowrim" style="--rc:#f5c84a">
@@ -3196,7 +3196,7 @@ function renderThisWeek(){
   // header stats
   const hol=W&&W[3]?W[3].split(/,\s*/).map(h=>`<span class="pill hol">${holEmoji(h)}${esc(h)}</span>`).join(""):"";
   $("tw-stats").innerHTML=`<span><b>${names.length}</b> player${names.length===1?"":"s"}${live?" so far":""}</span>${ents.length?`<span><b>${ents.length}</b> entries</span>`:""}<span><b>${back.length}</b> back</span><span><b>${fresh.length}</b> new</span>${hol}`;
-  {const html=!live&&w<=DATA_WEEK?twWinnersPost(w):""; $("tw-winsec").hidden=!html; $("tw-winpost").innerHTML=html; $("tw-win-sub").textContent=`Week ${w} · from the scoreboard sheet`;}
+  {const html=!live&&w<=DATA_WEEK?twWinnersPost(w):""; $("tw-winsec").hidden=!html; $("tw-winpost").innerHTML=html;}
   // lists
   $("tw-back-sub").textContent=`Played week ${w} after missing week ${w-1}`;
   $("tw-back").innerHTML=back.length?back.map(x=>`<li>${twName(x.n)}<span class="dt">last played ${twWk(x.prev)}</span><span class="rt">${x.gap>=52?`${(x.gap/52).toFixed(1).replace(/\.0$/,"")} yr`:twPl(x.gap,"wk")}<small>away</small></span></li>`).join(""):twEmpty(live?"Nobody back from a break yet.":"Nobody came back from a break this week.");
