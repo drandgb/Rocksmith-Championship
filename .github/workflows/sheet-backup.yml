@@ -1,0 +1,49 @@
+name: Scoreboard sheet backup
+
+on:
+  schedule:
+    - cron: "17 8 * * 0"     # Sundays 08:17 UTC, after the week closes (Saturday 9 pm CET) and after the full rescan
+  workflow_dispatch:
+
+permissions:
+  contents: write            # for the yearly copy (a release)
+
+jobs:
+  backup:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Download the whole sheet
+        id: dl
+        env:
+          SHEET_ID: 1WN-m8wF0lVkQ4cLWHBa009SkqDoPk0xN-C4-llcrXXs
+        run: |
+          f="scoreboard-sheet-$(date -u +%F).xlsx"
+          curl -sSfL --retry 3 -o "$f" "https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=xlsx"
+          # make sure it's a real spreadsheet (an xlsx is a zip file), not an error page
+          unzip -tq "$f" >/dev/null
+          echo "Backed up $(du -h "$f" | cut -f1)"
+          echo "file=$f" >> "$GITHUB_OUTPUT"
+
+      # weekly copy: kept for 90 days (GitHub's longest), so there are always about the last 13 weeks
+      - name: Keep this week's copy
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ steps.dl.outputs.file }}
+          path: ${{ steps.dl.outputs.file }}
+          retention-days: 90
+          compression-level: 0
+
+      # yearly copy: the first backup of each year is also saved as a release, which never expires
+      - name: Keep the first copy of the year
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          y=$(date -u +%Y)
+          if gh release view "sheet-backup-$y" --repo "$REPO" >/dev/null 2>&1; then
+            echo "This year's copy is already saved."
+          else
+            gh release create "sheet-backup-$y" "${{ steps.dl.outputs.file }}" --repo "$REPO" --target main --latest=false \
+              --title "Scoreboard sheet backup $y" \
+              --notes "A full copy of the championship scoreboard sheet, saved automatically from the first weekly backup of $y."
+          fi

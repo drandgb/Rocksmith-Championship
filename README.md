@@ -117,12 +117,13 @@ Class history is read from the font colors and sizes in the original Google Shee
 
 The site rebuilds itself from the **[scoreboard sheet](https://docs.google.com/spreadsheets/d/1WN-m8wF0lVkQ4cLWHBa009SkqDoPk0xN-C4-llcrXXs/edit)**:
 
-Two GitHub Actions do this (a third one keeps the forum banners up to date). Each of the two downloads the sheet, rebuilds `index.html` and commits only if the data changed; GitHub Pages republishes a minute or two later.
+Two GitHub Actions do this (two more keep the forum banners up to date and back up the sheet). Each of the two downloads the sheet, rebuilds `index.html` and commits only if the data changed; GitHub Pages republishes a minute or two later.
 
 | Action | When | What it re-reads |
 |---|---|---|
 | **Quick update (current week)** ([`quick-update.yml`](.github/workflows/quick-update.yml)) | Every hour | The 2 newest week tabs, plus `Schedule` and `PlayersList`. Older weeks come from the saved results in `build/data/cache/`. |
 | **Full rescan (whole sheet)** ([`full-rescan.yml`](.github/workflows/full-rescan.yml)) | Sundays | Every week tab, so corrections to older weeks show up. |
+| **Scoreboard sheet backup** ([`sheet-backup.yml`](.github/workflows/sheet-backup.yml)) | Sundays | The whole sheet, saved as a file. Each weekly copy is kept for 90 days (about the last 13 weeks) under that run on the Actions tab; the first copy of each year is also kept for good under *Releases*. |
 | **Forum banners for new players** ([`banners.yml`](.github/workflows/banners.yml)) | Every 10 minutes | Nothing from the sheet: makes a forum banner for anyone whose profile claim was just approved. Commits nothing when nobody is new. |
 
 The page's *Last updated* time is the last time either Action checked the sheet (read from GitHub when the page loads), shown in the viewer's own time zone.
