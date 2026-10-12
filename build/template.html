@@ -1035,16 +1035,16 @@ footer{color:var(--dim);font-size:.78rem}
 .bn .bn-stripe{position:absolute;left:16px;right:16px;bottom:6px;height:2px;display:flex;gap:4px}.bn .bn-stripe i{flex:1;border-radius:3px}
 .bn .bn-top{display:flex;gap:14px;align-items:stretch;height:54px}
 .bn .bn-who{width:170px;flex:none;display:flex;flex-direction:column;justify-content:space-between}
-.bn .bn-nm{font:800 22px/1.05 var(--f-display);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#e9edf5}
-.bn .bn-tags{display:flex;gap:6px;align-items:center}
-.bn .bn-tg{font:700 9px/1 var(--f-display);letter-spacing:.06em;color:#8b93a7;border:1px solid #2a3142;background:#151922;border-radius:6px;padding:3px 6px}
-.bn .bn-tg b{font:800 14px/1 var(--f-display);margin-left:2px}
+.bn .bn-nm{font:800 22px/24px var(--f-display);height:24px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#e9edf5}
+.bn .bn-tags{display:flex;gap:6px;align-items:stretch}
+.bn .bn-tg{flex:1;display:flex;align-items:baseline;justify-content:center;gap:4px;font:700 10.5px/1 var(--f-display);letter-spacing:.06em;color:#8b93a7;border:1px solid #2a3142;background:#151922;border-radius:6px;padding:4px 0}
+.bn .bn-tg b{font:800 17px/1 var(--f-display)}
 .bn .bn-stats{flex:1;display:grid;grid-template-columns:repeat(5,1fr);gap:5px}
-.bn .bn-st{background:rgba(255,255,255,.035);border:1px solid #2a3142;border-radius:8px;padding:6px 8px;min-width:0}
-.bn .bn-st small{display:block;font:700 8px/1 var(--f-display);letter-spacing:.08em;white-space:nowrap;color:#8b93a7;text-transform:uppercase}
-.bn .bn-st b{display:block;font:800 18px/1.1 var(--f-display);margin-top:4px;white-space:nowrap;color:#e9edf5}
-.bn .bn-st b i{font:600 9.5px var(--f-body);color:#8b93a7;font-style:normal;margin-left:2px}
-.bn .bn-meds{display:flex;align-items:center;gap:22px;flex:1;min-height:0;padding:4px 0 0 8px}
+.bn .bn-st{background:rgba(255,255,255,.035);border:1px solid #2a3142;border-radius:8px;padding:5px 9px;min-width:0;display:flex;flex-direction:column;justify-content:center}
+.bn .bn-st small{display:block;font:700 10.5px/1 var(--f-display);letter-spacing:.06em;white-space:nowrap;color:#8b93a7;text-transform:uppercase}
+.bn .bn-st b{display:block;font:800 26px/1 var(--f-display);margin-top:5px;white-space:nowrap;color:#e9edf5}
+.bn .bn-st b i{font:600 12px var(--f-body);color:#8b93a7;font-style:normal;margin-left:2px}
+.bn .bn-meds{display:flex;align-items:center;gap:27px;flex:1;min-height:0;padding:0 0 4px 3px}
 .bn .bn-meds .medal-m{zoom:1.4;flex:none;position:relative;margin-right:4px;cursor:default}
 .bn .bn-first{position:absolute;left:-8px;top:-6px;z-index:2;font:800 10px/14px var(--f-display);padding:0 3px;border-radius:6px;background:linear-gradient(180deg,#ffe28a,#f5c84a);color:#2a1a02}
 .bnprev{overflow:hidden;margin:8px 0}
@@ -3880,12 +3880,14 @@ function bannerHtml(n){
     ["data-tip","data-hl","data-all","data-path"].forEach(a=>m.removeAttribute(a)); m.style.cursor="";
     if(L)m.insertAdjacentHTML("beforeend",'<span class="bn-first">1st</span>'); return m.outerHTML});
   // one medal size for everyone, set so a player with every type (3 gold God diamonds, 3 gold medals, close win, rivalry
-  // win, Uncrowned) fills the row exactly: 3 x 44px + 6 x 32px at 1.4x plus 8 gaps of 22px = 630px. Left-aligned.
+  // win, Uncrowned) fills the row exactly: 3 x 44px + 6 x 32px at 1.4x plus 8 gaps of 27px, ending in line with the stat boxes. Left-aligned.
   const st=(l,b)=>`<div class="bn-st"><small>${l}</small><b>${b}</b></div>`;
   return `<div class="bn"><div class="bn-top"><div class="bn-who"><div class="bn-nm">${esc(n)}</div><div class="bn-tags">${["L","R","B"].map((l,i)=>`<span class="bn-tg">${l}<b style="color:${tc(T[i])}">${tier(T[i])}</b></span>`).join("")}</div></div>
     <div class="bn-stats">${st("Weeks",p[3])}${st("Wins",v[1])}${["Lead","Rhythm","Bass"].map(pn=>{const r=rk[pn]; return st(`${pn==="Rhythm"?"Rhy":pn} rank`,r?`#${r.r}<i>${esc(r.lv.slice(0,3))}</i>`:"–")}).join("")}</div></div>
     <div class="bn-meds">${meds.join("")}</div>${BN_STRIPE}</div>`;
 }
+// long names: shrink the name until it fits its column (down to 12px) instead of cutting it off
+function bnFit(root){(root||document).querySelectorAll(".bn .bn-nm").forEach(el=>{let f=22; el.style.fontSize=""; while(el.scrollWidth>el.clientWidth&&f>12){f-=.5; el.style.fontSize=f+"px"}})}
 function bnTab(n){
   return `<div class="acctsec" style="border-top:0;margin-top:0;padding-top:2px"><h3>Your forum banner</h3>
     <p>Put this banner in your CustomsForge forum signature. It updates by itself every week with your latest stats, so you only set it up once. Clicking it opens this website.</p>
@@ -3903,6 +3905,7 @@ function bnTab(n){
 }
 function bnMount(n){
   const pv=$("bnprev"); if(!pv)return; const inner=pv.firstElementChild;
+  bnFit(pv);
   const fit=()=>{const w=pv.clientWidth, z=Math.min(1,w/700); inner.style.transform=`scale(${z})`; pv.style.height=Math.ceil(150*z)+"px"};
   fit(); requestAnimationFrame(fit);
   const st=$("bnstat"), img=new Image();
@@ -3994,5 +3997,5 @@ if(SUPA_URL&&SUPA_KEY&&/(^|\.)github\.io$|^localhost$|^127\.0\.0\.1$/.test(locat
 // ?banner=NAME: just that player's banner at the top left (build/banners.py screenshots it)
 {const q=new URLSearchParams(location.search), bn=q.get("banner"); if(bn!=null){
   const st=document.createElement("style"); st.textContent="html,body{background:transparent!important;margin:0!important;overflow:hidden!important}body>*:not(#bnshot){display:none!important}#bnshot{position:fixed;left:0;top:0;z-index:2147483647}";
-  document.head.appendChild(st); const d=document.createElement("div"); d.id="bnshot"; d.innerHTML=bannerHtml(bn)||"<p style='color:red'>no such player</p>"; document.body.appendChild(d)}}
+  document.head.appendChild(st); const d=document.createElement("div"); d.id="bnshot"; d.innerHTML=bannerHtml(bn)||"<p style='color:red'>no such player</p>"; document.body.appendChild(d); bnFit(d)}}
 </script>

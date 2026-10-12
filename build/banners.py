@@ -9,7 +9,7 @@
 # If the claims can't be read, nothing is changed.
 import json, os, re, shutil, sys, urllib.request
 
-BANNER_VERSION = 3  # bump to redraw every banner after a design change
+BANNER_VERSION = 4  # bump to redraw every banner after a design change
 
 root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 page = os.path.abspath(sys.argv[1] if len(sys.argv) > 1 else os.path.join(root, "index.html"))
@@ -77,10 +77,10 @@ with sync_playwright() as pw:
     pg.wait_for_timeout(500)
     for s, n in todo:
         dest = os.path.join(out, s + ".png")
-        ok = pg.evaluate("n=>{const d=document.getElementById('bnshot'); d.innerHTML=bannerHtml(n); return !!d.firstElementChild}", n)
+        ok = pg.evaluate("n=>{const d=document.getElementById('bnshot'); d.innerHTML=bannerHtml(n); bnFit(d); return !!d.firstElementChild}", n)
         if not ok:
             print(f"banners: {n} isn't in the player list"); continue
-        pg.evaluate("document.fonts.ready")
+        pg.evaluate("document.fonts.load('800 22px Oxanium').catch(()=>0).then(()=>document.fonts.ready).then(()=>bnFit(document.getElementById('bnshot')))")
         pg.locator("#bnshot > div").screenshot(path=dest, omit_background=True)
         made += 1
     br.close()
