@@ -932,6 +932,7 @@ footer .updated{display:block;margin-top:4px}
 /* new-medal lists (This Week, Last week's haul) mix every kind of medal in one row: drop the per-kind margins (meant
    for the grouped lookup rows) and use one even gap, wide enough for each medal's count badge */
 .twl .medals,.medals.haul{gap:8px 14px}
+.mlbadges .medal-m b.mlb{background:linear-gradient(180deg,#ffe28a,#f5c84a);color:#2a1a02;min-width:20px}
 .twl .medals .medal-m,.medals.haul .medal-m{margin:0}
 @keyframes sparkle{0%,60%,100%{opacity:0;transform:scale(.3) rotate(0)}75%{opacity:1;transform:scale(1.2) rotate(45deg)}}
 @keyframes dglow{0%,100%{filter:drop-shadow(0 0 3px var(--ec)) drop-shadow(0 0 8px var(--ec)) drop-shadow(0 0 14px rgba(199,125,255,.45))}50%{filter:drop-shadow(0 0 5px #fff) drop-shadow(0 0 12px var(--ec)) drop-shadow(0 0 22px rgba(199,125,255,.75))}}
@@ -1355,7 +1356,7 @@ footer{color:var(--dim);font-size:.78rem}
   <footer>Data: Rodman’s Rocksmith 2014 Championship Google Sheets (older attendance also from the Championship Metrics workbook). Player stats run through week 676; scoreboards cover weeks 440–677. Weeks 1–16 have no recorded host in the source.
   <span class="updated disclaimer">Unofficial fan project. Not affiliated with CustomsForge, Ubisoft or Rocksmith.</span>
   <span class="updated" id="sheetedit-row" hidden>Sheet last edited: <span id="sheetedit" data-iso="2026-10-11T16:00:03.893Z"></span></span>
-  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-12T15:33:22+00:00">October 12, 2026</span></span>
+  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-12T16:12:17+00:00">October 12, 2026</span></span>
   </footer>
 </div>
 <dialog id="acct" class="acctdlg" aria-label="Your profile"><div id="acctbody"></div><button type="button" class="clear acctclose" id="acctclose">Close</button></dialog>
@@ -3729,8 +3730,21 @@ function acctThisWeek(n){
     <div class="acctsec acctriv"><h3>This week's rivals</h3>${riv||`<p class="dim">No rivals this week yet.</p>`}</div>
     <div class="acctsec"><h3>Rodman's Rankings ${RK.weeks?`<small>Weeks ${esc(RK.weeks)}</small>`:""}</h3>${rk.length?`<ul class="alist">${rk.join("")}</ul>`:`<p class="dim">Not ranked right now.</p>`}<div class="row"><button type="button" class="btn ghost" data-goview="rankings">Open Rodman's Rankings ›</button></div></div>`;
 }
+// the medals this player leads (first place, all players, all time) on the Winners, Players and Hosts medal leaders
+function mlLeadsOf(n){const out=[], key=n.toLowerCase();
+  ["win","player","host"].forEach(kind=>{
+    const list=ML[kind]&&ML[kind].done?Object.values(ML[kind].acc).map(k=>{const rows=k.rows.slice().sort((a,b)=>b.v-a.v); return {label:k.label,unit:k.unit,icon:typeof k.icon==="string"?k.icon:(rows[0].icon?rows[0].icon.outerHTML:""),rows:rows.map(r=>[r.n,r.v])}})
+      :ML_PRE&&ML_PRE[kind]?ML_PRE[kind]:[];
+    list.forEach(k=>{if(!k.rows.length)return; const top=k.rows[0][1], me=k.rows.find(r=>r[0].toLowerCase()===key&&r[1]===top); if(!me)return;
+      const tied=k.rows.filter(r=>r[1]===top).length;
+      const d=document.createElement("div"); d.innerHTML=k.icon; const ic=d.firstElementChild; if(!ic)return;
+      ic.querySelector("b")&&ic.querySelector("b").remove(); ic.removeAttribute("data-hl"); ic.removeAttribute("data-all"); ic.style.cursor="";
+      ic.dataset.tip=`Medal leader · ${k.label} · ${top}${k.unit}${tied>1?` (tied with ${tied-1} other${tied>2?"s":""})`:""}`;
+      ic.insertAdjacentHTML("beforeend",`<b class="mlb">1st</b>`); out.push(ic.outerHTML)})});
+  return out}
 function acctProfile(n){
-  return `<div class="acctsec"><h3>Player profile</h3><div id="acct-p"></div></div>${WR.wins[n]?`<div class="acctsec"><h3>Win profile</h3><div id="acct-w"></div></div>`:""}${hosts[n]?`<div class="acctsec"><h3>Host profile</h3><div id="acct-h"></div></div>`:""}`;
+  const leads=mlLeadsOf(n);
+  return `${leads.length?`<div class="acctsec"><h3>Medal leader badges <small>${leads.length}</small></h3><div class="medals haul mlbadges">${leads.join("")}</div><p class="dim" style="margin-top:6px">Medals you lead across the Winners, Players and Hosts pages</p></div>`:""}<div class="acctsec"><h3>Player profile</h3><div id="acct-p"></div></div>${WR.wins[n]?`<div class="acctsec"><h3>Win profile</h3><div id="acct-w"></div></div>`:""}${hosts[n]?`<div class="acctsec"><h3>Host profile</h3><div id="acct-h"></div></div>`:""}`;
 }
 // header button and dialog
 function acctBtn(){const b=$("acctbtn"); b.hidden=!ACCT.on; b.textContent=ACCT.claim&&ACCT.claim.status==="approved"?"👤 "+ACCT.claim.player:ACCT.user?"👤 Profile":"👤 Log in";
