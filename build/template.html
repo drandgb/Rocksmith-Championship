@@ -380,6 +380,7 @@ a.dl svg,.offpill svg{width:11px;height:11px}
 .twwin li::before{content:"- ";color:var(--muted)}
 .twwin .wat,.twwin .nm{color:#5b9cff}
 .twwin .wpct{color:var(--muted)}
+.twwin .wlvt{cursor:help;text-decoration:underline dotted color-mix(in srgb,var(--fg) 35%,transparent);text-underline-offset:3px}
 .twwin .wlost{color:var(--muted);letter-spacing:.02em}
 .sbtw{margin-top:8px;padding:2px 12px;font-size:.78rem;width:auto}
 .acctdlg .adm.acctsec{border-top:0;margin-top:0;padding-top:2px}
@@ -3050,7 +3051,10 @@ const twNames=w=>w===TW_LIVE?[...twLiveSet]:PLAYERS.filter(p=>twBits[p[0]][w-PRE
 function twWinnersPost(w){const ch=(SB.weeks[w]||[]).filter(c=>c[3]&&!/^n\/a$/i.test(c[3])); if(!ch.length)return "";
   const pct=x=>x==null?"":` <span class="wpct">(${+(+x).toFixed(2)})</span>`;
   const cols=[0,1,2].map(p=>{const cs=ch.filter(c=>c[0]===p).sort((a,b)=>a[1]-b[1]); if(!cs.length)return "";
-    return `<div class="wpath" style="--pc:${PATH_C[p]}"><h4>${PATHS[p]}:</h4><ul>${cs.map(c=>{const lv=esc(c[2]||"");
+    return `<div class="wpath" style="--pc:${PATH_C[p]}"><h4>${PATHS[p]}:</h4><ul>${cs.map(c=>{
+      // the level label shows the challenge's song on hover (or tap)
+      const sw=arrOf(w,c[0],c[1]), songTip=`${c[3]}${sw?`\nPlayed on the song's ${sw} arrangement`:""}\nInitial host rating: ${c[4]!=null?c[4]:"–"} · ${c[6].length} entr${c[6].length===1?"y":"ies"}`;
+      const lv=`<span class="wlvt" data-tip="${esc(songTip)}">${esc(c[2]||"")}</span>`;
       if(c[7])return `<li><span class="wlv">${lv}:</span> <span class="wlost">continues next week${c[5]?` (${esc(c[5])})`:""}</span></li>`;
       const e=c[6].find(x=>canWin(x)); if(!e)return `<li><span class="wlv">${lv}:</span> <span class="wlost">LOST TROPHY</span></li>`;
       const n=SB.names[e[0]].replace(/[*~]+$/,""), real=(PLAYERS.find(q=>q[0].toLowerCase()===n.toLowerCase())||[n])[0];
