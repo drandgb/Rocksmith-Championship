@@ -644,6 +644,10 @@ footer .updated{display:block;margin-top:4px}
 .twstats b{color:var(--fg);font-family:var(--f-display);font-size:1.1rem}
 .twstats .pill.hol{cursor:default}
 .twl{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+/* the week's host on This Week New medals: a striped amber ribbon trim with a HOST tab */
+.twl li.hostbox{position:relative;border:2px solid transparent;background:linear-gradient(var(--panel2),var(--panel2)) padding-box,repeating-linear-gradient(135deg,#ffb347 0 5px,#ffe0a3 5px 8px,#e07a1f 8px 13px) border-box;box-shadow:0 0 0 1px rgba(255,179,71,.25),0 0 14px rgba(255,159,67,.28)}
+.twl li.hostbox .hosttag{position:absolute;top:-9px;right:14px;z-index:3;font:800 .58rem/1 var(--f-display);letter-spacing:.14em;padding:3px 9px;border-radius:999px;background:linear-gradient(180deg,#ffd27a,#ff9f43);color:#2a1604;box-shadow:0 1px 4px rgba(0,0,0,.4)}
+.twl li.hostbox.celestial{background:radial-gradient(120% 140% at 50% 0%,color-mix(in srgb,#7fe9ff 26%,transparent),transparent 70%),var(--panel2) padding-box}
 /* gold God winners on This Week: a celestial glow (a slowly turning aurora rim, a soft halo and a few twinkling stars) */
 .celestial{position:relative;isolation:isolate;border-color:transparent;background:
   radial-gradient(1.5px 1.5px at 12% 22%,#fff 50%,transparent 51%),radial-gradient(1px 1px at 78% 18%,#fff 50%,transparent 51%),
@@ -1311,7 +1315,7 @@ footer{color:var(--dim);font-size:.78rem}
   <footer>Data: Rodman’s Rocksmith 2014 Championship Google Sheets (older attendance also from the Championship Metrics workbook). Player stats run through week 676; scoreboards cover weeks 440–677. Weeks 1–16 have no recorded host in the source.
   <span class="updated disclaimer">Unofficial fan project. Not affiliated with CustomsForge, Ubisoft or Rocksmith.</span>
   <span class="updated" id="sheetedit-row" hidden>Sheet last edited: <span id="sheetedit" data-iso="2026-10-11T16:00:03.893Z"></span></span>
-  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-12T13:52:26+00:00">October 12, 2026</span></span>
+  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-12T14:03:02+00:00">October 12, 2026</span></span>
   </footer>
 </div>
 <dialog id="acct" class="acctdlg" aria-label="Your profile"><div id="acctbody"></div><button type="button" class="clear acctclose" id="acctclose">Close</button></dialog>
@@ -3228,7 +3232,9 @@ function renderThisWeek(){
   $("tw-dng-sub").textContent=live?`Active streaks with no score yet this week${left>0?` · ${twPl(left,"day")} left`:""}`:`Played week ${w-1} but not week ${w} (2+ week streaks)`;
   $("tw-dng").innerHTML=dng.length?dng.map(x=>`<li>${twName(x.n)}<span class="rt ${x.k>=52?"crit":x.k>=10?"hot":""}">🔥 ${x.k}<small>week${x.k===1?"":"s"}</small></span></li>`).join(""):twEmpty(live?"Every active streak is safe this week. 🎉":"No streaks ended this week.");
   $("tw-med-sub").textContent=live?"Collected this week · player medals are provisional, win medals are added when the week ends":"Collected this week · click a medal to see what it is for";
-  $("tw-med").innerHTML=med.length?med.map(x=>{const g=x.m.some(h=>/diamond d0/.test(h)); return `<li${g?` class="celestial" data-tip="Gold God winner this week"`:""}>${g?celCorners():""}${twName(x.n)}<span class="dt">${twPl(medalTotal(x.m),"new medal")}</span><div class="medals">${x.m.join("")}</div></li>`}).join(""):twEmpty("No new medals this week.");
+  $("tw-med").innerHTML=med.length?med.map(x=>{const g=x.m.some(h=>/diamond d0/.test(h)), hb=x.n===wHost;
+    const cls=[g?"celestial":"",hb?"hostbox":""].filter(Boolean).join(" "), tipL=[hb?`Host of Week ${w}`:"",g?"Gold God winner this week":""].filter(Boolean).join(" · ");
+    return `<li${cls?` class="${cls}" data-tip="${tipL}"`:""}>${g?celCorners():""}${hb?`<span class="hosttag">HOST</span>`:""}${twName(x.n)}<span class="dt">${twPl(medalTotal(x.m),"new medal")}</span><div class="medals">${x.m.join("")}</div></li>`}).join(""):twEmpty("No new medals this week.");
   const lit=(id,on)=>$(id).closest("section").classList.toggle("lit",!!on);
   lit("tw-med",med.length); lit("tw-back",back.length);
   {const s=$("tw-dng").closest("section"); s.classList.toggle("amber",live); s.classList.toggle("gloom",!live&&dng.length>0)} lit("tw-new",fresh.length); lit("tw-ann",ann.length); lit("tw-riv",SB.weeks[w]&&[0,1,2].some(pi=>Object.keys(rivalsOfWeek(w,pi)).length));
