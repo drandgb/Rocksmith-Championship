@@ -525,6 +525,19 @@ a.dl svg,.offpill svg{width:11px;height:11px}
 .golink{cursor:pointer}
 .golink:hover{color:var(--accent)}
 .golinks{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.plead:empty{display:none}
+.plead{margin-top:14px}
+.plh{font:700 .78rem var(--f-display);letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin-bottom:6px}
+.plh small{font:400 .75rem var(--f-body);letter-spacing:0;text-transform:none;color:var(--muted);margin-left:4px}
+.plchips{display:flex;flex-wrap:wrap;gap:6px}
+.plchip{display:inline-flex;align-items:center;gap:7px;background:var(--panel2);border:1px solid color-mix(in srgb,var(--accent) 35%,var(--line));border-radius:999px;padding:3px 10px 3px 5px;font-size:.8rem;cursor:help;min-width:0}
+.plchip>.medal-m{flex:none;margin:0!important;transform:scale(.8)}
+.plchip>.medal-m.tro{width:40px!important}.plchip>.medal-m.tro svg{width:40px!important;height:auto}
+.plchip>span:not(.medal-m){overflow-wrap:anywhere}
+.plchip b{font-family:var(--f-mono);font-weight:600;color:var(--fg);white-space:nowrap}
+.plchip small{color:var(--muted);font-size:.7rem}
+/* in Your profile the medal-leader chips get their own section above Player profile, so hide the copy inside the card */
+#acct-p .plead{display:none}
 .holf{cursor:pointer}
 .holf:hover{color:var(--accent);border-color:var(--accent)}
 .holf.sel{color:var(--accent);font-weight:600}
@@ -932,7 +945,6 @@ footer .updated{display:block;margin-top:4px}
 /* new-medal lists (This Week, Last week's haul) mix every kind of medal in one row: drop the per-kind margins (meant
    for the grouped lookup rows) and use one even gap, wide enough for each medal's count badge */
 .twl .medals,.medals.haul{gap:8px 14px}
-.mlbadges .medal-m b.mlb{background:linear-gradient(180deg,#ffe28a,#f5c84a);color:#2a1a02;min-width:20px}
 .twl .medals .medal-m,.medals.haul .medal-m{margin:0}
 @keyframes sparkle{0%,60%,100%{opacity:0;transform:scale(.3) rotate(0)}75%{opacity:1;transform:scale(1.2) rotate(45deg)}}
 @keyframes dglow{0%,100%{filter:drop-shadow(0 0 3px var(--ec)) drop-shadow(0 0 8px var(--ec)) drop-shadow(0 0 14px rgba(199,125,255,.45))}50%{filter:drop-shadow(0 0 5px #fff) drop-shadow(0 0 12px var(--ec)) drop-shadow(0 0 22px rgba(199,125,255,.75))}}
@@ -1893,6 +1905,7 @@ function showPlayer(name){
         <div${D.latest?` data-hl="${D.latest}" data-tip="Click to highlight Week ${D.latest}"`:""}><small>Latest week</small><b>${D.latest??"–"}</b>${dlw?`<span class="sub"> · ${fmt(dlw[1])}</span>`:""}</div>
         ${PB.sc||PB.st?pbBox("Highest score",PB.sc,"Highest score on a challenge")+pbBox("Highest note streak",PB.st,"Longest note streak on a challenge"):""}
       </div>
+      <div class="plead" data-n="${esc(n)}">${plLeads(n)}</div>
       ${WR.wins[n]||hosts[n]?`<div class="golinks">${WR.wins[n]?`<button type="button" class="clear" data-wprofile="${esc(n)}">Open win profile ›</button>`:""}${hosts[n]?`<button type="button" class="clear" data-gohost="${esc(n)}">Open host profile ›</button>`:""}</div>`:""}
     </div>
     <div style="min-width:0">
@@ -2995,6 +3008,7 @@ const ML={};
 // medal leaders worked out when the site was built (see build.sh), so visitors don't have to count; null on a copy
 // built without it, and then the page counts them itself
 var ML_PRE=__MLPRE__;
+var ML_PRECOMPUTING=/[?&]mlpre\b/.test(location.search); // the build's own count (see ml_pre.py): nothing else may start one
 // real values behind the tiered medals (the medals themselves stop at fixed steps)
 function mlHostStats(n){const ws=[]; WEEKS.forEach(([w,d,h],i)=>{if(i<=curIdx&&h===n)ws.push(w)}); let run=0,best=0,prev=null; ws.forEach(w=>{run=prev===w-1?run+1:1;prev=w;if(run>best)best=run}); return {tot:ws.length,best}}
 function mlParse(html,person,acc){const d=document.createElement("div"); d.innerHTML=html;
@@ -3015,13 +3029,22 @@ function mlParse(html,person,acc){const d=document.createElement("div"); d.inner
     const k=acc[key]||(acc[key]={label,unit,pos:idx,rows:[]}); k.pos=Math.min(k.pos,idx);
     // keep each person's best; the icon is their highest medal of this kind (later in their list = higher tier)
     const prev=k.rows.find(r=>r.n===person); if(prev){if(val>=prev.v){prev.v=Math.max(prev.v,val); prev.icon=m}} else k.rows.push({n:person,v:val,icon:m})})}
+// plain descriptions for the medals whose own hover text is all about one player's numbers
+const ML_DESC={"Kintsugi gem":"played every week from joining until the first missed week, then mended with gold on coming back · ranked by how many weeks that first unbroken run lasted",
+  "Perfect gem":"played every week since joining, never missing one · ranked by weeks so far",
+  playstreak:"most weeks played in a row",years:"time since first joining the championship",
+  winstreak:"most weeks in a row winning at least one challenge",bestweek:"the most challenges won in a single week · the number is the wins in that best week, not how many times",
+  hosted:"total weeks hosted",hoststreak:"most weeks hosted in a row"};
+// medals counted from the scoreboards, which only go back to Week 440: say so wherever they show
+const mlSbNote=()=>`Counted from scoreboards since Week ${SB_W[0]} (earlier weeks have no scoreboard on the site)`;
+const mlFromSb=(kind,key)=>kind==="win"||/^(Played guitar|Played bass|Completionist)$|100% mastery/.test(key);
 function mlRender(kind){const acc=ML[kind].acc, link=kind==="win"?"data-gowin":kind==="host"?"data-gohost":"data-goplayer";
   // fixed order, like the medal rows: God diamonds, gold/silver/bronze (Lead, Rhythm, Bass), then the rest
   const ORDER=["Gold God diamond","Silver God diamond","Bronze God diamond","Gold medal","Silver medal","Bronze medal","Triple crown","Close win medal","Rivalry win","Uncrowned","Uncrowned silver","Uncrowned bronze","Most wins in one week","Longest win streak",
     "Years in the championship","Longest play streak","Perfect gem","Kintsugi gem","Played guitar","Played bass","Completionist","Beginner 100% mastery","Intermediate 100% mastery","Advanced 100% mastery","Masterclass 100% mastery","God 100% mastery","God tier 100% mastery",
     "Most weeks hosted","Longest hosting streak"];
   const ordOf=k=>{const [base,path]=k.label.split(" · "); const i=ORDER.indexOf(base); return (i<0?999:i)*4+(path?PATHS.indexOf(path)+1:0)};
-  const cards=Object.values(acc).filter(k=>k.rows.length).sort((a,b)=>ordOf(a)-ordOf(b)||a.pos-b.pos).map(k=>{
+  const cards=Object.entries(acc).filter(([,k])=>k.rows.length).sort(([,a],[,b])=>ordOf(a)-ordOf(b)||a.pos-b.pos).map(([key,k])=>{
     // the page's Everyone / Active filter applies here too
     const act=n=>!activeOnly||(kind==="host"?(()=>{const h=hostList.find(x=>x.name===n); return !!h&&hostActive(h)})():isActivePlayer(n));
     const rows=k.rows.filter(r=>act(r.n)).sort((a,b)=>b.v-a.v||a.n.localeCompare(b.n,undefined,{sensitivity:"base"}));
@@ -3032,13 +3055,34 @@ function mlRender(kind){const acc=ML[kind].acc, link=kind==="win"?"data-gowin":k
     const holder=document.createElement("div"); holder.innerHTML=typeof top.icon==="string"?top.icon:top.icon.outerHTML; const ic=holder.firstElementChild;
     const fullTip=ic.dataset.tip||k.tip||"";
     ic.querySelector("b")&&ic.querySelector("b").remove(); ic.removeAttribute("data-hl"); ic.removeAttribute("data-all"); ic.removeAttribute("data-tip"); ic.style.cursor="";
+    if(key==="bestweek"){const sv=ic.querySelector("svg"); if(sv)sv.outerHTML=trophiesSvg("#f5c84a",rows[0].v)}
     const what=(fullTip).split(" · ").slice(1).filter(x=>!PATHS.includes(x)&&!/click to highlight|\d+ (times?|weeks?)\b|collected Week/.test(x)).join(" · "); // (the path is already in the label)
     // first place on the card (everyone tied for it); second and third in the hover text
     const first=out.filter(r=>r.place===1), rest=out.filter(r=>r.place>1);
-    const tipT=k.label+(what?" · "+what:"")+(rest.length?"\n\n"+rest.map(r=>`${r.place}. ${r.n} · ${r.v}${k.unit}`).join("\n"):"");
+    const desc=ML_DESC[key]||ML_DESC[k.label]||what;
+    const tipT=k.label+(desc?" · "+desc:"")+(mlFromSb(kind,key)?"\n"+mlSbNote():"")+(rest.length?"\n\n"+rest.map(r=>`${r.place}. ${r.n} · ${r.v}${k.unit}`).join("\n"):"");
     // just the medal and its leader(s); the medal's name and the runners-up are in the hover text
     return `<div class="mlcard" data-tip="${esc(tipT)}">${ic.outerHTML}<ol>${first.map(r=>`<li><span class="nm" ${link}="${esc(r.n)}">${esc(r.n)}</span><span class="mlv">${r.v}${k.unit}</span></li>`).join("")}</ol></div>`});
-  $("ml-"+kind+"-g").innerHTML=cards.join("")||`<p class="dimtxt">No medals yet.</p>`}
+  $("ml-"+kind+"-g").innerHTML=cards.join("")||`<p class="dimtxt">No medals yet.</p>`;
+  document.querySelectorAll(".plead[data-n]").forEach(el=>{el.innerHTML=plLeads(el.dataset.n)}); // profiles waiting on the count
+  const ap=document.getElementById("acct-lead"); if(ap){ap.innerHTML=plLeads(ap.dataset.n); ap.closest(".acctlead").hidden=!ap.innerHTML}}
+// a player's profile: every kind of medal (player, win or host) where nobody has more
+function plLeads(n){try{
+  const out=[];
+  ["player","win","host"].forEach(kind=>{if(!ML_PRECOMPUTING)mlEnsure(kind); const M=ML[kind]; if(!M||!M.done)return;
+    Object.entries(M.acc).forEach(([key,k])=>{if(!k.rows.length)return; const top=Math.max(...k.rows.map(r=>r.v)); if(!(top>0))return;
+      const me=k.rows.find(r=>r.n===n); if(!me||me.v!==top)return;
+      const others=k.rows.filter(r=>r.v===top&&r.n!==n).map(r=>r.n);
+      const src=me.icon||k.icon, h=document.createElement("div"); h.innerHTML=typeof src==="string"?src:src.outerHTML; const ic=h.firstElementChild; if(!ic)return;
+      ic.querySelector("b")&&ic.querySelector("b").remove(); ["data-hl","data-all","data-tip"].forEach(a=>ic.removeAttribute(a)); ic.style.cursor="";
+      if(key==="bestweek"){const sv=ic.querySelector("svg"); if(sv)sv.outerHTML=trophiesSvg("#f5c84a",top)}
+      const desc=ML_DESC[key]||ML_DESC[k.label]||"";
+      const tipT=`Most of anyone · ${k.label} · ${top}${k.unit}${desc?"\n"+desc:""}${others.length?`\nTied with ${others.join(", ")}`:""}${mlFromSb(kind,key)?"\n"+mlSbNote():""}`;
+      out.push({o:["player","win","host"].indexOf(kind)*1000+k.pos,h:`<span class="plchip" data-tip="${esc(tipT)}">${ic.outerHTML}<span>${esc(k.label)}</span><b>${top}${esc(k.unit)}</b>${others.length?`<small>tied</small>`:""}</span>`})})});
+  if(!out.length)return "";
+  out.sort((a,b)=>a.o-b.o);
+  return `<div class="plh">🏅 Medal leader <small>most of anyone, ${out.length} kind${out.length===1?"":"s"}</small></div><div class="plchips">${out.map(x=>x.h).join("")}</div>`;
+}catch(e){return ""}}
 // the medal leaders as plain data: [{key,label,unit,pos,icon,rows:[[name,value],...]}], best first
 function mlExport(kind){return Object.entries(ML[kind].acc).map(([key,k])=>{const rows=k.rows.slice().sort((a,b)=>b.v-a.v||a.n.localeCompare(b.n,undefined,{sensitivity:"base"}));
   return {key,label:k.label,unit:k.unit,pos:k.pos,icon:rows[0].icon.outerHTML,rows:rows.slice(0,30).map(r=>[r.n,r.v])}})}
@@ -3052,7 +3096,7 @@ function mlEnsure(kind,sync){if(ML[kind])return;
   let i=0; const step=()=>{const end=Math.min(names.length,i+25); for(;i<end;i++){try{mlParse(src(names[i]),names[i],ML[kind].acc)}catch(e){}}
     if(i<names.length){if(sync)step(); else setTimeout(step,0)} else {ML[kind].done=true; mlRender(kind)}};
   step()}
-if(/[?&]mlpre\b/.test(location.search)){ML_PRE=null; setTimeout(()=>{const out={}; ["win","player","host"].forEach(k=>{mlEnsure(k,true); out[k]=mlExport(k)});
+if(ML_PRECOMPUTING){ML_PRE=null; setTimeout(()=>{const out={}; ["win","player","host"].forEach(k=>{delete ML[k]; mlEnsure(k,true); out[k]=mlExport(k)});
   const el=document.createElement("script"); el.type="application/json"; el.id="mlpre-out"; el.textContent=JSON.stringify(out).replace(/</g,"\\u003c"); document.body.appendChild(el)},0)}
 // ---------- links between Player, Winner and Host lookup ----------
 document.addEventListener("click",e=>{
@@ -3730,21 +3774,10 @@ function acctThisWeek(n){
     <div class="acctsec acctriv"><h3>This week's rivals</h3>${riv||`<p class="dim">No rivals this week yet.</p>`}</div>
     <div class="acctsec"><h3>Rodman's Rankings ${RK.weeks?`<small>Weeks ${esc(RK.weeks)}</small>`:""}</h3>${rk.length?`<ul class="alist">${rk.join("")}</ul>`:`<p class="dim">Not ranked right now.</p>`}<div class="row"><button type="button" class="btn ghost" data-goview="rankings">Open Rodman's Rankings ›</button></div></div>`;
 }
-// the medals this player leads (first place, all players, all time) on the Winners, Players and Hosts medal leaders
-function mlLeadsOf(n){const out=[], key=n.toLowerCase();
-  ["win","player","host"].forEach(kind=>{
-    const list=ML[kind]&&ML[kind].done?Object.values(ML[kind].acc).map(k=>{const rows=k.rows.slice().sort((a,b)=>b.v-a.v); return {label:k.label,unit:k.unit,icon:typeof k.icon==="string"?k.icon:(rows[0].icon?rows[0].icon.outerHTML:""),rows:rows.map(r=>[r.n,r.v])}})
-      :ML_PRE&&ML_PRE[kind]?ML_PRE[kind]:[];
-    list.forEach(k=>{if(!k.rows.length)return; const top=k.rows[0][1], me=k.rows.find(r=>r[0].toLowerCase()===key&&r[1]===top); if(!me)return;
-      const tied=k.rows.filter(r=>r[1]===top).length;
-      const d=document.createElement("div"); d.innerHTML=k.icon; const ic=d.firstElementChild; if(!ic)return;
-      ic.querySelector("b")&&ic.querySelector("b").remove(); ic.removeAttribute("data-hl"); ic.removeAttribute("data-all"); ic.style.cursor="";
-      ic.dataset.tip=`Medal leader · ${k.label} · ${top}${k.unit}${tied>1?` (tied with ${tied-1} other${tied>2?"s":""})`:""}`;
-      ic.insertAdjacentHTML("beforeend",`<b class="mlb">1st</b>`); out.push(ic.outerHTML)})});
-  return out}
 function acctProfile(n){
-  const leads=mlLeadsOf(n);
-  return `${leads.length?`<div class="acctsec"><h3>Medal leader badges <small>${leads.length}</small></h3><div class="medals haul mlbadges">${leads.join("")}</div><p class="dim" style="margin-top:6px">Medals you lead across the Winners, Players and Hosts pages</p></div>`:""}<div class="acctsec"><h3>Player profile</h3><div id="acct-p"></div></div>${WR.wins[n]?`<div class="acctsec"><h3>Win profile</h3><div id="acct-w"></div></div>`:""}${hosts[n]?`<div class="acctsec"><h3>Host profile</h3><div id="acct-h"></div></div>`:""}`;
+  // the #1 medal-leader chips get their own section, just above Player profile (hidden inside the card here)
+  const leads=plLeads(n);
+  return `<div class="acctsec acctlead"${leads?"":" hidden"}><div id="acct-lead" class="plead" data-n="${esc(n)}">${leads}</div></div><div class="acctsec"><h3>Player profile</h3><div id="acct-p"></div></div>${WR.wins[n]?`<div class="acctsec"><h3>Win profile</h3><div id="acct-w"></div></div>`:""}${hosts[n]?`<div class="acctsec"><h3>Host profile</h3><div id="acct-h"></div></div>`:""}`;
 }
 // header button and dialog
 function acctBtn(){const b=$("acctbtn"); b.hidden=!ACCT.on; b.textContent=ACCT.claim&&ACCT.claim.status==="approved"?"👤 "+ACCT.claim.player:ACCT.user?"👤 Profile":"👤 Log in";
