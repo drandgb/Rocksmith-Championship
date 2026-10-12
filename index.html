@@ -1368,7 +1368,7 @@ footer{color:var(--dim);font-size:.78rem}
   <footer>Data: Rodman’s Rocksmith 2014 Championship Google Sheets (older attendance also from the Championship Metrics workbook). Player stats run through week 676; scoreboards cover weeks 440–677. Weeks 1–16 have no recorded host in the source.
   <span class="updated disclaimer">Unofficial fan project. Not affiliated with CustomsForge, Ubisoft or Rocksmith.</span>
   <span class="updated" id="sheetedit-row" hidden>Sheet last edited: <span id="sheetedit" data-iso="2026-10-11T16:00:03.893Z"></span></span>
-  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-12T16:24:38+00:00">October 12, 2026</span></span>
+  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-12T16:32:22+00:00">October 12, 2026</span></span>
   </footer>
 </div>
 <dialog id="acct" class="acctdlg" aria-label="Your profile"><div id="acctbody"></div><button type="button" class="clear acctclose" id="acctclose">Close</button></dialog>
@@ -3765,7 +3765,8 @@ function acctThisWeek(n){
   // Rodman's Rankings: every path and level they're ranked in
   const rk=[]; (RK.paths||[]).forEach(pp=>{const pi=PATHS.indexOf(pp.path); pp.levels.forEach(l=>l.rows.forEach(([r,nm,pts,ch])=>{if(String(nm).toLowerCase()!==key||ch==="Out")return;
     const LT={Beginner:"B",Intermediate:"I",Advanced:"A",Masterclass:"M"}[l.level], cc=/↑/.test(ch)?"up":/↓/.test(ch)?"down":/new/i.test(ch)?"new":"";
-    rk.push(`<li style="--pc:${PATH_C[pi]}"><span class="apath">${esc(pp.path)}</span><span class="lvchip" style="--tc:${TIER_C[LT]||"var(--fg)"}">${esc(l.level)}</span><span class="arank${r==="1"?" p1":r==="2"?" p2":r==="3"?" p3":""}">#${esc(r)}<small> of ${l.rows.filter(x=>x[3]!=="Out").length}</small></span><span class="apts">${esc(pts)} pts</span><span class="chg ${cc}">${esc(ch)}</span></li>`)}))});
+    const mine=LT&&LT===rankOf(pi); // the level they're ranked in now: outlined like their ranked challenges above
+    rk.push(`<li class="${mine?"myrank":""}" style="--pc:${PATH_C[pi]};--rc:${TIER_C[LT]||"var(--fg)"}"${mine?` data-tip="Your class on ${PATHS[pi]}: ${TIER_NAME[LT]}"`:""}><span class="apath">${esc(pp.path)}</span><span class="lvchip" style="--tc:${TIER_C[LT]||"var(--fg)"}">${esc(l.level)}</span><span class="arank${r==="1"?" p1":r==="2"?" p2":r==="3"?" p3":""}">#${esc(r)}<small> of ${l.rows.filter(x=>x[3]!=="Out").length}</small></span><span class="apts">${esc(pts)} pts</span><span class="chg ${cc}">${esc(ch)}</span></li>`)}))});
   // last week's haul: the medals collected in the last finished week, as on that week's This Week page
   const lw=DATA_WEEK, haul=lw>=TW_MIN?twMedals(n,lw,false):[];
   return `<div class="acctsec"><h3>Last week's haul <small>Week ${lw}</small></h3>${haul.length?(()=>{const g=haul.some(h=>/diamond d0/.test(h)), inner=`<div class="medals haul">${haul.join("")}</div><p class="dim" style="margin-top:6px">${twPl(medalTotal(haul),"new medal")}</p>`;
