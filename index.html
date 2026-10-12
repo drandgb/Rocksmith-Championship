@@ -1045,8 +1045,7 @@ footer{color:var(--dim);font-size:.78rem}
 .bn .bn-st b{display:block;font:800 18px/1.1 var(--f-display);margin-top:4px;white-space:nowrap;color:#e9edf5}
 .bn .bn-st b i{font:600 9.5px var(--f-body);color:#8b93a7;font-style:normal;margin-left:2px}
 .bn .bn-meds{display:flex;align-items:center;gap:6px;height:44px;padding-left:6px}
-.bn .bn-meds .medal-m{zoom:.95;flex:none;position:relative;margin-right:4px;cursor:default}
-.bn .bn-meds.tight{gap:3px;padding-left:4px}.bn .bn-meds.tight .medal-m{zoom:.8;margin-right:3px}
+.bn .bn-meds .medal-m{zoom:var(--bz,.95);flex:none;position:relative;margin-right:4px;cursor:default}
 .bn .bn-first{position:absolute;left:-8px;top:-6px;z-index:2;font:800 10px/14px var(--f-display);padding:0 3px;border-radius:6px;background:linear-gradient(180deg,#ffe28a,#f5c84a);color:#2a1a02}
 .bnprev{overflow:hidden;margin:8px 0}
 .bnprev>div{transform-origin:0 0}
@@ -1410,7 +1409,7 @@ footer{color:var(--dim);font-size:.78rem}
   <footer>Data: Rodman’s Rocksmith 2014 Championship Google Sheets (older attendance also from the Championship Metrics workbook). Player stats run through week 676; scoreboards cover weeks 440–677. Weeks 1–16 have no recorded host in the source.
   <span class="updated disclaimer">Unofficial fan project. Not affiliated with CustomsForge, Ubisoft or Rocksmith.</span>
   <span class="updated" id="sheetedit-row" hidden>Sheet last edited: <span id="sheetedit" data-iso="2026-10-11T16:00:03.893Z"></span></span>
-  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-12T21:32:01+00:00">October 12, 2026</span></span>
+  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-12T21:34:39+00:00">October 12, 2026</span></span>
   </footer>
 </div>
 <dialog id="acct" class="acctdlg" aria-label="Your profile"><div id="acctbody"></div><button type="button" class="clear acctclose" id="acctclose">Close</button></dialog>
@@ -3873,14 +3872,16 @@ function bannerHtml(n){
   // win medals: God diamonds, then gold/silver/bronze; "1st" on the ones this player leads
   const leads=((typeof ML_PRE!=="undefined"&&ML_PRE&&ML_PRE.win)||[]).filter(k=>k.rows.length&&String(k.rows[0][0]).toLowerCase()===key);
   const box=document.createElement("div"); box.innerHTML=allMedalsHtml(n);
-  const meds=[...box.querySelectorAll(".medal-m.diamond:not(.classgem)"),...box.querySelectorAll(".medal-m.pod")].map(m=>{
-    const tip=m.getAttribute("data-tip")||"", L=leads.find(k=>tip.startsWith(k.label));
+  // then close wins, rivalry wins and the Uncrowned medals
+  const extra=[...box.querySelectorAll(".medal-m")].filter(m=>/^(Close win|Rivalry win|Uncrowned)/.test(m.getAttribute("data-tip")||""));
+  const meds=[...box.querySelectorAll(".medal-m.diamond:not(.classgem)"),...box.querySelectorAll(".medal-m.pod"),...extra].map(m=>{
+    const tip=m.getAttribute("data-tip")||"", L=leads.find(k=>tip===k.label||tip.startsWith(k.label+" ·")||tip.startsWith(k.label+" medal"));
     ["data-tip","data-hl","data-all","data-path"].forEach(a=>m.removeAttribute(a)); m.style.cursor="";
     if(L)m.insertAdjacentHTML("beforeend",'<span class="bn-first">1st</span>'); return m.outerHTML});
   const st=(l,b)=>`<div class="bn-st"><small>${l}</small><b>${b}</b></div>`;
   return `<div class="bn"><div class="bn-top"><div class="bn-who"><div class="bn-nm">${esc(n)}</div><div class="bn-tags">${["L","R","B"].map((l,i)=>`<span class="bn-tg">${l}<b style="color:${tc(T[i])}">${tier(T[i])}</b></span>`).join("")}</div></div>
     <div class="bn-stats">${st("Weeks",p[3])}${st("Wins",v[1])}${["Lead","Rhythm","Bass"].map(pn=>{const r=rk[pn]; return st(`${pn==="Rhythm"?"Rhy":pn} rank`,r?`#${r.r}<i>${esc(r.lv.slice(0,3))}</i>`:"–")}).join("")}</div></div>
-    <div class="bn-meds${meds.length>13?" tight":""}">${meds.join("")}</div>${BN_STRIPE}</div>`;
+    <div class="bn-meds" style="--bz:${Math.min(.95,660/(meds.length*50)).toFixed(3)}">${meds.join("")}</div>${BN_STRIPE}</div>`;
 }
 function bnTab(n){
   return `<div class="acctsec" style="border-top:0;margin-top:0;padding-top:2px"><h3>Your forum banner</h3>
