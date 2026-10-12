@@ -41,6 +41,9 @@ header.top{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-end;justify-con
 @media (prefers-reduced-motion:no-preference){.strings i.on{animation:pluck .45s ease-out}}
 @keyframes pluck{0%{transform:scaleY(2.6) translateY(-1px)}25%{transform:scaleY(1.2) translateY(1px)}50%{transform:scaleY(2) translateY(-.5px)}100%{transform:scaleY(1.6)}}
 .links{display:flex;flex-wrap:wrap;gap:8px}
+/* on phones the buttons stretch to fill each row, so the rows come out even */
+@media (max-width:640px){.links{gap:6px}.links>.forum{flex:1 1 auto;text-align:center;justify-content:center;padding:6px 7px}}
+@media (max-width:400px){.links>.forum{font-size:.8rem;padding:6px 5px}}
 button.forum{background:none;cursor:pointer;font:inherit;font-size:.85rem}
 .refresh.spin{opacity:.6;pointer-events:none}
 .forum{white-space:nowrap;color:var(--accent);text-decoration:none;font-size:.85rem;border:1px solid var(--line);padding:6px 10px;border-radius:6px}
@@ -1368,7 +1371,7 @@ footer{color:var(--dim);font-size:.78rem}
   <footer>Data: Rodman’s Rocksmith 2014 Championship Google Sheets (older attendance also from the Championship Metrics workbook). Player stats run through week 676; scoreboards cover weeks 440–677. Weeks 1–16 have no recorded host in the source.
   <span class="updated disclaimer">Unofficial fan project. Not affiliated with CustomsForge, Ubisoft or Rocksmith.</span>
   <span class="updated" id="sheetedit-row" hidden>Sheet last edited: <span id="sheetedit" data-iso="2026-10-11T16:00:03.893Z"></span></span>
-  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-12T16:45:29+00:00">October 12, 2026</span></span>
+  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-12T16:50:42+00:00">October 12, 2026</span></span>
   </footer>
 </div>
 <dialog id="acct" class="acctdlg" aria-label="Your profile"><div id="acctbody"></div><button type="button" class="clear acctclose" id="acctclose">Close</button></dialog>
