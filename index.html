@@ -7,6 +7,16 @@
 <title>Rocksmith Championship Tracker</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oxanium:wght@500;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<script>
+// accounts database (Supabase; both values are public by design). Leave them empty to hide accounts.
+var SUPA_URL="https://yeyzdxjqwdkswulrnver.supabase.co", SUPA_KEY="sb_publishable_pxGhrlKyONzLc1fomC2vsw_EoNlhCeG";
+// host sign-ups made on the site, fetched straight away (and remembered from the last visit) so the
+// "Host still needed" banner on This Week appears with the rest of the page instead of after the login loads
+var HS_PRE=null, HS_EARLY=null;
+try{HS_PRE=JSON.parse(localStorage.getItem("rsc-hostsign")||"null")}catch(e){}
+if(SUPA_URL&&SUPA_KEY&&/(^|\.)github\.io$|^localhost$|^127\.0\.0\.1$/.test(location.hostname))
+  HS_EARLY=fetch(SUPA_URL+"/rest/v1/host_signups?select=week,player&order=week.desc&limit=60",{headers:{apikey:SUPA_KEY,Authorization:"Bearer "+SUPA_KEY}}).then(r=>r.ok?r.json():null).catch(()=>null);
+</script>
 <style>
 /* Layout: a stage-dark console. Status strip, then two-column (upcoming + leaderboard), then a full-width note-highway timeline and a searchable log. Single dark look by choice, like the game's own UI. */
 :root{
@@ -1399,7 +1409,7 @@ footer{color:var(--dim);font-size:.78rem}
   <footer>Data: Rodman’s Rocksmith 2014 Championship Google Sheets (older attendance also from the Championship Metrics workbook). Player stats run through week 676; scoreboards cover weeks 440–677. Weeks 1–16 have no recorded host in the source.
   <span class="updated disclaimer">Unofficial fan project. Not affiliated with CustomsForge, Ubisoft or Rocksmith.</span>
   <span class="updated" id="sheetedit-row" hidden>Sheet last edited: <span id="sheetedit" data-iso="2026-10-11T16:00:03.893Z"></span></span>
-  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-12T21:15:39+00:00">October 12, 2026</span></span>
+  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-12T21:18:56+00:00">October 12, 2026</span></span>
   </footer>
 </div>
 <dialog id="acct" class="acctdlg" aria-label="Your profile"><div id="acctbody"></div><button type="button" class="clear acctclose" id="acctclose">Close</button></dialog>
@@ -3327,7 +3337,9 @@ function twMedals(n,w,live){
 // On the real site sign-ups load a moment after the page: wait for them (up to 6 s) so the banner doesn't flash
 // and then vanish when someone has already signed up.
 const HOST_WAIT=/(^|\.)github\.io$|^localhost$|^127\.0\.0\.1$/.test(location.hostname);
-let hostReady=!HOST_WAIT; if(HOST_WAIT)setTimeout(()=>{if(!hostReady){hostReady=true;renderHostWarn()}},6000);
+let hostReady=!HOST_WAIT||!!HS_PRE; if(HOST_WAIT&&!hostReady)setTimeout(()=>{if(!hostReady){hostReady=true;renderHostWarn()}},6000);
+function hsSave(rows){HS_PRE={}; (rows||[]).forEach(r=>HS_PRE[r.week]=r.player); try{localStorage.setItem("rsc-hostsign",JSON.stringify(HS_PRE))}catch(e){}}
+if(HS_EARLY)HS_EARLY.then(d=>{if(d)hsSave(d); if(d||!hostReady){hostReady=true; renderHostWarn()}});
 // what the banner tells someone who can't sign up yet
 function hostWarnHelp(){
   const on=typeof ACCT!=="undefined"&&ACCT&&acctOn();
@@ -3340,7 +3352,7 @@ function hostWarnHelp(){
 function renderHostWarn(){
   const el=$("twwarn"); if(!el)return; const w=weekAt(curIdx+1);
   if(!hostReady){el.hidden=true;return}
-  const signed=typeof ACCT!=="undefined"&&ACCT&&acctOn()&&ACCT.hostSign[w[0]];
+  const signed=typeof ACCT!=="undefined"&&ACCT&&acctOn()?ACCT.hostSign[w[0]]:HS_PRE&&HS_PRE[w[0]];
   if(w[2]||signed){el.hidden=true;return}
   el.hidden=false;
   const act=hostSlot(w,1,"HOST NEEDED"), can=/data-host(sign|pick)/.test(act);
@@ -3519,7 +3531,7 @@ if(curView()==="thisweek")renderThisWeek();
 
 // ---------- accounts: log in with an emailed link, claim your player profile, rate this week's songs ----------
 // Uses a Supabase project (set SUPA_URL and SUPA_KEY; both are public by design). Leave them empty to hide all of this.
-var SUPA_URL="https://yeyzdxjqwdkswulrnver.supabase.co", SUPA_KEY="sb_publishable_pxGhrlKyONzLc1fomC2vsw_EoNlhCeG";
+// (SUPA_URL and SUPA_KEY are set in the small script at the top of the page)
 var ACCT={on:false,sb:null,user:null,claim:null,admin:false,claims:[],hostSign:{},animal:null,animals:{},songs:null,mine:{},loading:{},tab:"me"};
 function acctSongKey(s){return String(s||"").toLowerCase().replace(/[^a-z0-9]+/g,"")}
 function acctPlayerOf(e){return SB.names[e[0]].replace(/[*~]+$/,"")}
@@ -3662,7 +3674,7 @@ function hostVerified(){if(!acctOn()||!ACCT.claim||ACCT.claim.status!=="approved
 function hostOpenWeeks(){const out=[];for(let i=0;i<=hostAhead();i++){const w=weekAt(curIdx+i);if(!w[2])out.push([w,i])}return out}
 async function hostLoad(){if(!ACCT.sb)return;
   const {data,error}=await ACCT.sb.from("host_signups").select("week,player,user_id,created_at").gte("week",WEEKS[curIdx][0]);
-  hostReady=true; if(error){renderHostWarn();return} ACCT.hostSign={}; (data||[]).forEach(r=>ACCT.hostSign[r.week]=r); renderUpcoming(); renderNow(); renderHostWarn(); renderLog(); renderTL(); if(twWeek===TW_NEXT)renderThisWeek(); if(hName&&hosts[hName])showHost(hName);
+  hostReady=true; if(error){renderHostWarn();return} ACCT.hostSign={}; (data||[]).forEach(r=>ACCT.hostSign[r.week]=r); hsSave(data); renderUpcoming(); renderNow(); renderHostWarn(); renderLog(); renderTL(); if(twWeek===TW_NEXT)renderThisWeek(); if(hName&&hosts[hName])showHost(hName);
 }
 // admin sign-up list: hosts by latest week hosted (most recently active first), then other players A–Z
 // an upcoming week the schedule sheet already names a host for: shown like a sign-up (SIGNED UP, and ✕ for them or an admin)
