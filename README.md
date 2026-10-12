@@ -177,11 +177,11 @@ Players can log in with an emailed link (no password) and claim their player pro
 1. Create a free project at supabase.com.
 2. In **Authentication → URL Configuration**, set the Site URL (and a Redirect URL) to `https://drandgb.github.io/Rocksmith-Championship/`.
 3. In **Authentication → Emails → SMTP settings**, connect an email sender for the login emails.
-4. In **SQL Editor**, run `build/supabase/schema.sql`, then `admin_ratings.sql`, `rating_log.sql` and `claim_log.sql` from the same folder (admin ratings on a player's behalf, the Ratings log and the Claims log).
+4. In **SQL Editor**, run `build/supabase/schema.sql`, then `admin_ratings.sql`, `rating_log.sql`, `claim_log.sql`, `claim_remove.sql` and `host_ratings.sql` from the same folder, in that order (ratings on a player's behalf, the Ratings log, the Claims log, the choices when removing a claim, and letting hosts rate for other players).
 5. Put the project URL and the anon/publishable key into `SUPA_URL` and `SUPA_KEY` in `build/template.html` (both are public by design; never use the service_role key).
 6. Log in on the site once, then run the two lines at the bottom of `schema.sql` with your email to make yourself an admin. Admins approve or remove profile claims from the 👤 account dialog.
 
-Rules (enforced by the database): one account per player name, one name per account, claims start pending until an admin approves them, and only an approved player can rate, once per song per path (rating again replaces it). Admins can also rate for a player who sent their ratings another way; those show in the Admin tab's Ratings log. Every claim an admin approves, rejects or removes is listed in the Claims log.
+Rules (enforced by the database): one account per player name, one name per account, claims start pending until an admin approves them, and only an approved player can rate, once per song per path (rating again replaces it). Anyone who has hosted (and admins) can also rate for a player who sent their ratings another way, from the Host tab, which also lists the open weeks to sign up for and the Ratings log. Every claim an admin approves, rejects or removes is listed in the Claims log. When removing an approved claim, the admin chooses whether the player's forum banner stays, whether their ratings stay shown, and whether a new account claiming the same name gets those ratings.
 
 ### Forum banners
 

@@ -5,7 +5,7 @@
 # cards/<slug>.png (700x150).
 #   - every banner is redrawn when a new week's results arrive (or when BANNER_VERSION changes)
 #   - otherwise only newly approved players get one, so this is cheap to run every few minutes
-#   - banners of players who are no longer approved are deleted
+#   - when a claim is removed, the admin chooses whether the banner stays (and keeps updating) or is deleted
 # If the claims can't be read, nothing is changed.
 import json, os, re, shutil, sys, urllib.request
 
@@ -47,19 +47,33 @@ except Exception:
     stamp = {}
 redraw_all = stamp.get("week") != week or stamp.get("v") != BANNER_VERSION
 want = {slug(n): n for n in players}
+# players whose claim was removed but who keep their banner (an admin's choice when removing the claim)
+try:
+    if os.environ.get("BANNER_TEST_PLAYERS"):
+        keep_rows = []
+    else:
+        req = urllib.request.Request(f"{url}/rest/v1/kept_banners?select=player", headers={"apikey": key, "Authorization": f"Bearer {key}"})
+        keep_rows = json.load(urllib.request.urlopen(req, timeout=30))
+    kept = {slug(r["player"]): r["player"] for r in keep_rows if r.get("player")}
+    can_delete = True
+except Exception:
+    # not set up yet (claim_remove.sql not run): delete nothing, keep every banner that's already there
+    kept = {s: n for s, n in (stamp.get("names") or {}).items() if os.path.exists(os.path.join(out, s + ".png"))}
+    can_delete = False
+names = {**kept, **want}
 
-# remove banners of players who are no longer approved
 removed = 0
-for f in os.listdir(out):
-    m = re.fullmatch(r"(.+)\.png", f)
-    if m and m.group(1) not in want:
-        os.remove(os.path.join(out, f)); removed += 1
+if can_delete:
+    for f in os.listdir(out):
+        m = re.fullmatch(r"(.+)\.png", f)
+        if m and m.group(1) not in names:
+            os.remove(os.path.join(out, f)); removed += 1
 
-todo = [(s, n) for s, n in want.items()
+todo = [(s, n) for s, n in names.items()
         if redraw_all or not os.path.exists(os.path.join(out, s + ".png"))]
 if not todo:
-    print(f"banners: {len(want)} up to date" + (f", removed {removed}" if removed else ""))
-    if removed: json.dump({**stamp, "players": sorted(want)}, open(stamp_path, "w"))
+    print(f"banners: {len(names)} up to date" + (f", removed {removed}" if removed else ""))
+    if stamp.get("names") != names or removed: json.dump({**stamp, "players": sorted(names), "names": names}, open(stamp_path, "w"))
     sys.exit(0)
 
 chrome = os.environ.get("CHROME") or next((shutil.which(c) for c in ("google-chrome", "google-chrome-stable", "chromium", "chromium-browser") if shutil.which(c)), None)
@@ -85,5 +99,5 @@ with sync_playwright() as pw:
         made += 1
     br.close()
 
-json.dump({"week": week, "v": BANNER_VERSION, "players": sorted(want)}, open(stamp_path, "w"))
+json.dump({"week": week, "v": BANNER_VERSION, "players": sorted(names), "names": names}, open(stamp_path, "w"))
 print(f"banners: made {made} images for {len(todo)} players" + (" (new week, redrew all)" if redraw_all else "") + (f", removed {removed}" if removed else ""))

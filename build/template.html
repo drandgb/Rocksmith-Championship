@@ -431,6 +431,11 @@ a.dl svg,.offpill svg{width:11px;height:11px}
 .alist .asong:hover{text-decoration:underline}
 .alist li.unpl{opacity:.5}
 .admrow{display:flex;gap:8px;flex-wrap:wrap}
+.acctdlg .adm.acctsec.rmpanel{border:1px solid var(--s-red);border-radius:10px;padding:12px 14px;margin:0 0 14px;background:color-mix(in srgb,var(--s-red) 7%,transparent)}
+.acctdlg .rmopt{display:flex;gap:8px;align-items:flex-start;margin:8px 0;font-size:.86rem;line-height:1.4;cursor:pointer}.acctdlg .rmopt input{width:auto;margin:3px 0 0;flex:none}
+.acctdlg .btn.danger{background:var(--s-red);color:#fff}
+.acctdlg .rmtg{display:flex;gap:12px;flex-wrap:wrap;font-size:.8rem;color:var(--muted)}.acctdlg .rmtg label{display:inline-flex;gap:5px;align-items:center;cursor:pointer}.acctdlg .rmtg input{width:auto;margin:0}
+.acctdlg .hosttop{border-top:0;margin-top:0;padding-top:2px}.acctdlg .hosttop+.adm.acctsec{margin-top:16px;border-top:1px solid var(--line);padding-top:12px}
 .acctdlg .ratelog{list-style:none;margin:0;padding:0;max-height:320px;overflow:auto}
 .acctdlg .ratelog li{display:block;padding:6px 0;border-bottom:1px solid var(--line);font-size:.84rem}
 .acctdlg .ratelog small{color:var(--muted)}
@@ -3600,10 +3605,11 @@ function songAt(w,p,slot){const c=(SB.weeks[w]||[]).find(c=>c[0]===p&&c[1]===slo
   const o=SONGS_OLD.find(o=>o[0]===w&&o[1]===p&&TIER_ORDER.indexOf(o[2])===slot); return o?o[4]:null}
 async function acctLoadWeek(){
   if(ACCT.loading.all||!ACCT.sb)return; ACCT.loading.all=true;
-  const {data,error}=await ACCT.sb.from("votes").select("player,week,path,slot,rating,song,updated_at,user_id");
+  const {data,error}=await ACCT.sb.from("votes").select("*"); // hidden ratings (removed claims) only reach admins, and never count
   ACCT.loading.all=false; if(error)return;
   const best={}, mine={}, rows={}, me=ACCT.claim&&ACCT.claim.player;
   (data||[]).forEach(v=>{
+    if(v.hidden)return;
     const song=v.song||songAt(v.week,v.path,v.slot); if(!song)return;
     const k=arrP(v.week,v.path,v.slot)+"|"+acctSongKey(song), id=k+"|"+v.player;
     (rows[k+"|"+v.player]=rows[k+"|"+v.player]||[]).push({week:v.week,path:v.path,slot:v.slot});
@@ -3612,7 +3618,7 @@ async function acctLoadWeek(){
   });
   const S={}; Object.values(best).forEach(x=>(S[x.k]=S[x.k]||[]).push({p:x.p,r:x.r,u:x.u}));
   ACCT.songs=S; ACCT.mine=mine; ACCT.rows=rows; sbRender();
-  if($("acct").open&&ACCT.tab==="admin")admRateRedraw();
+  if($("acct").open&&ACCT.tab==="host")admRateRedraw();
   {const tw=document.getElementById("acct-tw"); if(tw&&$("acct").open&&ACCT.claim)tw.innerHTML=acctThisWeek(ACCT.claim.player);} if(typeof renderSongs==="function"){if(!$("view-songs").hidden)renderSongs(); else window.__songsStale=true}
 }
 // a song's rating boxes on the Songs page, one per path in the path's colour: the players' average for the song on
@@ -3632,11 +3638,11 @@ function songRateBox(cards){
 }
 document.addEventListener("change",async e=>{
   const s=e.target.closest("select[data-rate]"); if(!s)return;
-  // data-as: an admin rating on behalf of another player (only offered in the Admin tab)
-  const as=s.dataset.as&&ACCT.admin&&s.closest(".adm")?s.dataset.as:null; if(!as&&!ACCT.claim)return;
+  // data-as: a host or admin rating on behalf of another player (only offered in the Host tab)
+  const as=s.dataset.as&&canRateFor()&&s.closest(".adm")?s.dataset.as:null; if(!as&&!ACCT.claim)return;
   const p=s.dataset.rate, song=s.dataset.song, player=as||ACCT.claim.player, k=p+"|"+acctSongKey(song);
   const r=s.value?+s.value:null;
-  // an admin changing a rating the player gave themselves has to confirm it first
+  // a host or admin changing a rating the player gave themselves has to confirm it first
   const prevAs=as?songVotes(p,song).find(v=>v.p===as):null;
   if(as){const cur=prevAs, own=ACCT.claims.find(c=>c.player===as&&c.status==="approved");
     if(cur&&own&&cur.u===own.user_id&&!confirm(`${as} rated ${song} (${arrName(p)}) ${cur.r} themselves. Are you sure you want to ${r==null?"remove their rating":`replace it with ${r}`}?`)){s.value=String(cur.r);return}}
@@ -3651,7 +3657,7 @@ document.addEventListener("change",async e=>{
   const q=r==null?ACCT.sb.from("votes").delete().match({player,week:at.week,path:at.path,slot:at.slot})
                  :ACCT.sb.from("votes").upsert({player,week:at.week,path:at.path,slot:at.slot,song:at.song,rating:r,user_id:ACCT.user.id,updated_at:new Date().toISOString()});
   const {error}=await q; if(error){alert("Couldn't save your rating: "+error.message);return}
-  // admin changes on behalf of a player go in the ratings log (Admin tab)
+  // changes on behalf of a player go in the ratings log (Host tab)
   if(as){await ACCT.sb.from("rating_log").insert({admin_player:ACCT.claim?ACCT.claim.player:null,player,path:at.path,song:at.song,old_rating:prevAs?prevAs.r:null,new_rating:r}); await ratingLogLoad()}
   ACCT.songs=null; acctLoadWeek();
 });
@@ -3669,6 +3675,7 @@ function acctMount(n){
 // ---------- host sign-ups ----------
 // A verified host (an approved player who has hosted before) can sign up for an open week in the next HOST_AHEAD weeks;
 // admins can sign anyone up. The schedule sheet wins: once it names a host for a week, that's who shows.
+function canRateFor(){return acctOn()&&(ACCT.admin||hostVerified())} // admins and hosts can rate for other players (Host tab)
 function hostVerified(){if(!acctOn()||!ACCT.claim||ACCT.claim.status!=="approved")return false;
   const n=ACCT.claim.player.toLowerCase(); return Object.keys(hosts).some(h=>h.toLowerCase()===n)}
 function hostOpenWeeks(){const out=[];for(let i=0;i<=hostAhead();i++){const w=weekAt(curIdx+i);if(!w[2])out.push([w,i])}return out}
@@ -3733,7 +3740,7 @@ function hostSection(admin){
         const by=ACCT.claims.find(c=>c.user_id===s.user_id);return `<b>${esc(s.player)}</b> ${by&&by.player!==s.player?`<small>signed up by ${esc(by.player)}</small>`:""}`})()}</span><button type="button" class="btn ghost" ${s.sheet?"data-hostsheet":"data-hostdrop"}="${s.week}">Remove</button></li>`}).join("")}</ul>
       <p>Open weeks:</p><ul>${open.map(([w,i])=>`<li><span>Week ${w[0]} · ${fmtShort(w[1])}</span><span>${hostSlot(w,i,null,true)}</span></li>`).join("")||`<li>Every week in the next ${hostAhead()} has a host.</li>`}</ul></div>`}
   if(!hostVerified())return "";
-  return `<div class="acctsec hostsec"><h3>Hosting</h3><p>Open weeks in the next ${hostAhead()}. Sign up to host one; the admin adds it to the schedule.</p><ul>${open.map(([w,i])=>`<li><span>Week ${w[0]} · ${fmtShort(w[1])}</span><span>${hostSlot(w,i)}</span></li>`).join("")||`<li>Every week in the next ${hostAhead()} has a host.</li>`}</ul></div>`;
+  return `<div class="acctsec hostsec"><h3>Hosting</h3><p>Open weeks coming up. Sign up to host one here.</p><ul>${open.map(([w,i])=>`<li><span>Week ${w[0]} · ${fmtShort(w[1])}</span><span>${hostSlot(w,i)}</span></li>`).join("")||`<li>Every week in the next ${hostAhead()} has a host.</li>`}</ul></div>`;
 }
 // verification animals: one per player, seen only by the player and admins (see animals.sql)
 const VERIFY_EMOJI={"Aardvark": "🐜", "Alpaca": "🦙", "Armadillo": "🦔", "Axolotl": "🦎", "Badger": "🦡", "Bat": "🦇", "Bear": "🐻", "Beaver": "🦫", "Bee": "🐝", "Bison": "🦬", "Boar": "🐗", "Butterfly": "🦋", "Camel": "🐫", "Cat": "🐈", "Chameleon": "🦎", "Cheetah": "🐆", "Chicken": "🐔", "Chipmunk": "🐿️", "Cow": "🐄", "Crab": "🦀", "Crocodile": "🐊", "Deer": "🦌", "Dodo": "🦤", "Dog": "🐕", "Dolphin": "🐬", "Donkey": "🫏", "Dove": "🕊️", "Dragon": "🐉", "Duck": "🦆", "Eagle": "🦅", "Elephant": "🐘", "Flamingo": "🦩", "Fox": "🦊", "Frog": "🐸", "Giraffe": "🦒", "Goat": "🐐", "Gorilla": "🦍", "Hamster": "🐹", "Hedgehog": "🦔", "Hippo": "🦛", "Horse": "🐎", "Hummingbird": "🐦", "Jellyfish": "🪼", "Kangaroo": "🦘", "Koala": "🐨", "Ladybug": "🐞", "Leopard": "🐆", "Lion": "🦁", "Lizard": "🦎", "Llama": "🦙", "Lobster": "🦞", "Mammoth": "🦣", "Monkey": "🐒", "Moose": "🫎", "Mouse": "🐁", "Octopus": "🐙", "Orangutan": "🦧", "Otter": "🦦", "Owl": "🦉", "Ox": "🐂", "Panda": "🐼", "Parrot": "🦜", "Peacock": "🦚", "Penguin": "🐧", "Pig": "🐖", "Poodle": "🐩", "Rabbit": "🐇", "Raccoon": "🦝", "Ram": "🐏", "Rhino": "🦏", "Rooster": "🐓", "Scorpion": "🦂", "Seal": "🦭", "Shark": "🦈", "Sheep": "🐑", "Shrimp": "🦐", "Skunk": "🦨", "Sloth": "🦥", "Snail": "🐌", "Snake": "🐍", "Spider": "🕷️", "Squid": "🦑", "Swan": "🦢", "Tiger": "🐅", "Turkey": "🦃", "Turtle": "🐢", "T-Rex": "🦖", "Unicorn": "🦄", "Whale": "🐋", "Wolf": "🐺", "Zebra": "🦓"};
@@ -3752,16 +3759,39 @@ function cardRateBox(p,song,diff){
   return `<span class="srate${R.players.length?" upd":""}${can?" canrate":""}${mine||hostMine?" mine":""}" style="--pc:${arrC(p)}" data-tip="${esc(tipTxt)}">${R.avg||(diff!=null?diff:"–")}${can?rateSelect(p,song,mine):""}</span>`;
 }
 // the log of ratings admins gave or changed on behalf of players (newest first)
-async function ratingLogLoad(){if(!ACCT.sb||!ACCT.admin)return;
+async function ratingLogLoad(){if(!ACCT.sb||!canRateFor())return;
   const {data,error}=await ACCT.sb.from("rating_log").select("at,admin_player,player,path,song,old_rating,new_rating").order("at",{ascending:false}).limit(100);
   ACCT.ratingLog=error?null:(data||[]); const el=$("admratelog"); if(el)el.outerHTML=ratingLogSection()}
 function ratingLogSection(){
   const L=ACCT.ratingLog;
   const rows=(L||[]).map(x=>{const d=new Date(x.at), when=d.toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"})+" "+d.toLocaleTimeString("en-US",{hour:"numeric",minute:"2-digit"});
     const ch=x.old_rating==null?`gave <b>${x.new_rating}</b>`:x.new_rating==null?`removed <b>${x.old_rating}</b>`:`changed <b>${x.old_rating}</b> → <b>${x.new_rating}</b>`;
-    return `<li><span><small>${esc(when)}</small> · <b>${esc(x.admin_player||"an admin")}</b> ${ch} for <b>${esc(x.player)}</b> · ${esc(x.song||"")}${x.path!=null?` (${PATHS[x.path]})`:""}</span></li>`}).join("");
+    return `<li><span><small>${esc(when)}</small> · <b>${esc(x.admin_player||"a host")}</b> ${ch} for <b>${esc(x.player)}</b> · ${esc(x.song||"")}${x.path!=null?` (${PATHS[x.path]})`:""}</span></li>`}).join("");
   return `<div class="adm acctsec" id="admratelog"><h3>Ratings log</h3>${L==null?`<p class="dim">The log isn't set up yet (run rating_log.sql in Supabase).</p>`:rows?`<ul class="ratelog">${rows}</ul>`:`<p class="dim">No ratings given for players yet.</p>`}</div>`;
 }
+// removing an approved claim: choose whether their ratings stay shown, and whether a new account claiming the same
+// name gets them, and whether their forum banner stays (build/supabase/claim_remove.sql).
+function removePanel(){
+  const n=ACCT.removing; if(!n)return "";
+  const cnt=ACCT.removeCount, rt=cnt==null?"their ratings":`their ${cnt} rating${cnt===1?"":"s"}`;
+  return `<div class="adm acctsec rmpanel"><h3>Remove ${esc(n)}'s claim?</h3>
+    <p>${esc(n)} won't be able to rate songs or sign up to host until the name is claimed and approved again.</p>
+    <label class="rmopt"><input type="checkbox" id="rmkeep" checked> <span><b>Keep their forum banner</b> so their signature keeps working (it keeps updating every week). Unticked, the banner image is deleted within about 10 minutes.</span></label>
+    <label class="rmopt"><input type="checkbox" id="rmshow" checked> <span><b>Keep showing ${esc(rt)}</b> on the site. Unticked, they're hidden: saved, but they don't count anywhere.</span></label>
+    <label class="rmopt"><input type="checkbox" id="rmcarry" checked> <span><b>If ${esc(n)} is claimed again</b> (for example from a different email), give that account these ratings. Unticked, the new account starts fresh and these are archived.</span></label>
+    <div class="row"><button type="button" class="btn danger" data-acct="remove" data-player="${esc(n)}">Remove claim</button><button type="button" class="btn ghost" data-acct="removecancel">Cancel</button></div></div>`;
+}
+async function removedLoad(){if(!ACCT.sb||!ACCT.admin)return;
+  const {data,error}=await ACCT.sb.from("removed_claims").select("*").order("removed_at",{ascending:false});
+  ACCT.removed=error?null:(data||[])}
+function removedSection(){
+  const L=ACCT.removed; if(L==null||!L.length)return "";
+  return `<div class="adm acctsec"><h3>Removed claims</h3><p class="dim">Change what happens to their banner and ratings.</p><ul>${L.map(r=>`<li class="rmrow"><span><b>${esc(r.player)}</b> <small>${new Date(r.removed_at).toLocaleDateString()}</small></span>
+    <span class="rmtg"><label><input type="checkbox" data-rmset="keep" data-player="${esc(r.player)}"${r.keep_banner===false?"":" checked"}> banner kept</label><label><input type="checkbox" data-rmset="show" data-player="${esc(r.player)}"${r.hide_ratings?"":" checked"}> ratings shown</label><label><input type="checkbox" data-rmset="carry" data-player="${esc(r.player)}"${r.carry_over?" checked":""}> keep ratings on new claim</label></span></li>`).join("")}</ul></div>`;
+}
+// keep the database's list of host names (who may rate for other players) in step with the schedule; done by admins
+async function hostsSync(){try{const rows=Object.keys(hosts).filter(Boolean).map(player=>({player}));
+  if(rows.length)await ACCT.sb.from("hosts").upsert(rows,{onConflict:"player",ignoreDuplicates:true})}catch(e){}}
 async function claimLogLoad(){if(!ACCT.sb||!ACCT.admin)return;
   const {data,error}=await ACCT.sb.from("claim_log").select("at,admin_player,player,action").order("at",{ascending:false}).limit(100);
   ACCT.claimLog=error?null:(data||[]); const el=$("admclaimlog"); if(el)el.outerHTML=claimLogSection()}
@@ -3787,7 +3817,7 @@ function adminRateSection(){
       const ent=c[6].find(e=>SB.names[e[0]].replace(/[*~]+$/,"").toLowerCase()===key);
       const opts=[];for(let r=1;r<=10;r+=.5)opts.push(`<option value="${r}"${cur&&cur.r===r?" selected":""}>${r}</option>`);
       return `<li class="${ent?"aplayed":""}" style="--pc:${PATH_C[c[0]]}"${ent?` data-tip="${esc(pl)} posted a score on this one"`:""}><span class="apath">${PATHS[c[0]]}</span><span class="lvchip" style="--tc:${L==="G"?"var(--s-red)":TIER_C[L]||"var(--muted)"}">${L==="G"?esc(c[2]):TIER_NAME[L]||esc(c[2])}</span><span class="asong">${esc(c[3])}</span>${arrTag(wk,c[0],c[1])}${ent?`<span class="playedtag">PLAYED${ent[1]!=null?` · ${ent[1]}%`:""}</span>`:""}<span class="dim">host ${c[4]!=null?c[4]:"–"}</span><select class="admrate" data-rate="${rp}" data-song="${esc(c[3])}" data-as="${esc(pl)}" aria-label="${esc(pl)}'s rating"><option value=""${cur?"":" selected"}>${cur?"Remove rating":"No rating"}</option>${opts.join("")}</select></li>`}).join("")}
-  return `<div class="adm acctsec" id="admrate"><h3>Ratings for a player</h3><p class="dim">Give or change a player's ratings for them. They count exactly like the player's own (one per song per path).</p>
+  return `<div class="adm acctsec" id="admrate"><h3>Ratings for a player</h3><p class="dim">Hosts can give or change a player's ratings for them, for example for a player who sent their ratings by message. They count exactly like the player's own (one per song per path), and every change goes in the Ratings log below.</p>
     <div class="row admrow"><select data-admrate="p" aria-label="Player"><option value="">Choose a player…</option>${groups.map(([w,ns])=>`<optgroup label="Last played Week ${w}">${ns.map(n=>`<option${n===pl?" selected":""}>${esc(n)}</option>`).join("")}</optgroup>`).join("")}</select>
     <select data-admrate="w" aria-label="Week">${weeks.map(w=>`<option value="${w}"${w===wk?" selected":""}>Week ${w}</option>`).join("")}</select></div>
     ${pl?(rows?`<ul class="alist">${rows}</ul>`:`<p class="dim">No challenges on the scoreboard for Week ${wk}.</p>`):""}</div>`;
@@ -3850,8 +3880,10 @@ async function acctRefresh(){
   ACCT.admin=false; if(ACCT.user){const {data:ad}=await ACCT.sb.from("admins").select("user_id").eq("user_id",ACCT.user.id); ACCT.admin=!!(ad&&ad.length)}
   ACCT.animal=null; ACCT.animals={};
   if(ACCT.user){const {data:an}=await ACCT.sb.from("player_animals").select("user_id,animal"); (an||[]).forEach(r=>{ACCT.animals[r.user_id]=r.animal; if(r.user_id===ACCT.user.id)ACCT.animal=r.animal})}
-  ACCT.ratingLog=undefined; if(ACCT.admin)await ratingLogLoad();
+  ACCT.ratingLog=undefined; await ratingLogLoad();
+  if(ACCT.admin)hostsSync();
   ACCT.claimLog=undefined; if(ACCT.admin)await claimLogLoad();
+  ACCT.removed=null; if(ACCT.admin)await removedLoad();
   await hostLoad(); ACCT.ready=true; acctBtn(); if($("acct").open)acctDraw(); ACCT.songs=null; sbRender();
   acctLoadWeek(); // everyone's ratings are public: load them for logged-out visitors too
 }
@@ -3921,12 +3953,14 @@ function acctDraw(msg,err){
     <div class="acctsec"><h3>Got a code?</h3><p class="dim">Opened the email on another device? Type the code from the email here to log in on this one. Make sure your email is filled in above first.</p><input id="acctcode" inputmode="numeric" autocomplete="one-time-code" maxlength="10" placeholder="Code from the email"><div class="row"><button type="button" class="btn ghost" data-acct="code">Log in with code</button></div></div>`;return}
   const pendN=ACCT.admin?ACCT.claims.filter(c=>c.status==="pending").length:0;
   if(!ACCT.admin&&ACCT.tab==="admin")ACCT.tab="me";
+  if(ACCT.tab==="host"&&!canRateFor())ACCT.tab="me";
   if(ACCT.tab==="banner"&&!(ACCT.claim&&ACCT.claim.status==="approved"))ACCT.tab="me";
   // tabs: Your profile, Manage account, and (for admins) Admin with a badge for claims waiting
   const tb=(k,label)=>`<button type="button" role="tab" data-accttab="${k}" aria-selected="${ACCT.tab===k}">${label}</button>`;
-  const tabs=`<div class="accttabs" role="tablist">${tb("me","Your profile")}${ACCT.claim&&ACCT.claim.status==="approved"?tb("banner","Forum banner"):""}${tb("manage","Manage account")}${ACCT.admin?tb("admin",`Admin${pendN?`<span class="nbadge" title="${pendN} claim${pendN===1?"":"s"} waiting for approval">${pendN}</span>`:""}`):""}</div>`;
+  const tabs=`<div class="accttabs" role="tablist">${tb("me","Your profile")}${ACCT.claim&&ACCT.claim.status==="approved"?tb("banner","Forum banner"):""}${tb("manage","Manage account")}${canRateFor()?tb("host","Host"):""}${ACCT.admin?tb("admin",`Admin${pendN?`<span class="nbadge" title="${pendN} claim${pendN===1?"":"s"} waiting for approval">${pendN}</span>`:""}`):""}</div>`;
   let h=tabs;
   if(ACCT.tab==="admin"){}
+  else if(ACCT.tab==="host")h+=`${hostSection(false).replace('class="acctsec hostsec"','class="acctsec hostsec hosttop"')}${adminRateSection()}${ratingLogSection()}`;
   else if(ACCT.tab==="banner")h+=bnTab(ACCT.claim.player);
   else if(ACCT.tab==="manage"){
     h+=`<div class="adm acctsec"><h3>Verification animal</h3>${animalNote()||`<p class="dim">You'll get a verification animal once you claim your player profile.</p>`}</div>
@@ -3937,7 +3971,7 @@ function acctDraw(msg,err){
   else if(ACCT.claim.status==="pending")h+=`<p>You've claimed <b>${esc(ACCT.claim.player)}</b>. It's waiting for approval: an admin will message you to confirm it's really you, then approve it. Your verification animal is under Manage account.</p><div class="row"><button type="button" class="btn ghost" data-acct="unclaim">Withdraw claim</button></div>`;
   else h+=`<p>Hi <b>${esc(ACCT.claim.player)}</b>! This is your personal stats page. You can submit your own ratings for any song by clicking its rating number.</p><div id="acct-tw">${acctThisWeek(ACCT.claim.player)}</div>${acctProfile(ACCT.claim.player)}`;
   if(ACCT.admin&&ACCT.tab==="admin"){const pend=ACCT.claims.filter(c=>c.status==="pending"), appr=ACCT.claims.filter(c=>c.status==="approved").sort((a,c)=>a.player.localeCompare(c.player));
-    h+=`<div class="adm acctsec"><h3>Claims</h3><p>${pend.length?"Waiting for approval:":"No claims waiting."}</p><ul>${pend.map(c=>`<li><span>${esc(c.player)} ${animalTag(ACCT.animals[c.user_id])} <small>${new Date(c.created_at).toLocaleDateString()}</small></span><span><button type="button" class="btn" data-acct="approve" data-uid="${c.user_id}">Approve</button> <button type="button" class="btn ghost" data-acct="reject" data-uid="${c.user_id}">Reject</button></span></li>`).join("")}</ul>${appr.length?`<p>Approved (${appr.length}):</p><ul>${appr.map(c=>`<li><span>${esc(c.player)} ${animalTag(ACCT.animals[c.user_id])}</span><button type="button" class="btn ghost" data-acct="reject" data-uid="${c.user_id}">Remove</button></li>`).join("")}</ul>`:""}</div>${claimLogSection()}${hostSection(true)}${adminRateSection()}${ratingLogSection()}`}
+    h+=`${removePanel()}<div class="adm acctsec"><h3>Claims</h3><p>${pend.length?"Waiting for approval:":"No claims waiting."}</p><ul>${pend.map(c=>`<li><span>${esc(c.player)} ${animalTag(ACCT.animals[c.user_id])} <small>${new Date(c.created_at).toLocaleDateString()}</small></span><span><button type="button" class="btn" data-acct="approve" data-uid="${c.user_id}">Approve</button> <button type="button" class="btn ghost" data-acct="reject" data-uid="${c.user_id}">Reject</button></span></li>`).join("")}</ul>${appr.length?`<p>Approved (${appr.length}):</p><ul>${appr.map(c=>`<li><span>${esc(c.player)} ${animalTag(ACCT.animals[c.user_id])}</span><button type="button" class="btn ghost" data-acct="removeask" data-player="${esc(c.player)}">Remove</button></li>`).join("")}</ul>`:""}</div>${removedSection()}${claimLogSection()}${hostSection(true)}`}
   // redrawing keeps the popup where it was scrolled to (e.g. after changing a rating in the Admin tab)
   const dlg=$("acct"), keep=[dlg.scrollTop,b.scrollTop];
   b.innerHTML=h+note;
@@ -3945,6 +3979,10 @@ function acctDraw(msg,err){
   if(ACCT.tab==="me"&&ACCT.claim&&ACCT.claim.status==="approved")acctMount(ACCT.claim.player);
   if(ACCT.tab==="banner")bnMount(ACCT.claim.player);
 }
+$("acctbody").addEventListener("change",async e=>{const t=e.target.closest("[data-rmset]"); if(!t)return;
+  const n=t.dataset.player, row=t.closest("li"), show=row.querySelector('[data-rmset="show"]').checked, carry=row.querySelector('[data-rmset="carry"]').checked, keep=row.querySelector('[data-rmset="keep"]').checked;
+  const {error}=await ACCT.sb.rpc("set_removed_claim",{p_player:n,p_hide:!show,p_carry:carry,p_keep:keep}); if(error){alert("Couldn't save: "+error.message)}
+  await removedLoad(); ACCT.songs=null; acctDraw()});
 $("acctbody").addEventListener("click",async e=>{
   const tb=e.target.closest("[data-accttab]"); if(tb){ACCT.tab=tb.dataset.accttab; acctDraw(); return}
   const cp=e.target.closest("[data-bncopy]"); if(cp&&ACCT.claim){const n=ACCT.claim.player, t=cp.dataset.bncopy==="img"?`${BN_SITE}cards/${bnSlug(n)}.png`:BN_SITE;
@@ -3970,7 +4008,15 @@ $("acctbody").addEventListener("click",async e=>{
       const {error}=await sb.from("claims").insert({user_id:ACCT.user.id,player:n}); if(error){acctDraw("",/duplicate|unique/i.test(error.message)?"Someone already claimed that name. Message the admin if it's yours.":error.message);return}}
     if(a==="unclaim"){const {error}=await sb.from("claims").delete().eq("user_id",ACCT.user.id); if(error){acctDraw("",error.message);return}}
     if(a==="approve"){const {error}=await sb.from("claims").update({status:"approved"}).eq("user_id",b.dataset.uid); if(error){acctDraw("",error.message);return}}
-    if(a==="reject"){if(!confirm("Remove this claim?"))return; const {error}=await sb.from("claims").delete().eq("user_id",b.dataset.uid); if(error){acctDraw("",error.message);return}}
+    if(a==="removeask"){ACCT.removing=b.dataset.player; ACCT.removeCount=null; acctDraw(); $("acctbody").scrollTop=0; $("acct").scrollTop=0;
+      sb.from("votes").select("player",{count:"exact",head:true}).eq("player",ACCT.removing).then(({count})=>{if(ACCT.removing&&count!=null){ACCT.removeCount=count; acctDraw()}}); return}
+    if(a==="removecancel"){ACCT.removing=null; acctDraw(); return}
+    if(a==="remove"){const n=b.dataset.player, show=$("rmshow").checked, carry=$("rmcarry").checked, keep=$("rmkeep").checked;
+      let {error}=await sb.rpc("remove_claim",{p_player:n,p_hide:!show,p_carry:carry,p_keep:keep});
+      // before claim_remove.sql is run: just remove the claim (ratings stay shown and go to whoever claims the name next; banner deleted)
+      if(error&&/function|schema cache/i.test(error.message)){({error}=await sb.from("claims").delete().eq("player",n))}
+      if(error){acctDraw("",error.message);return} ACCT.removing=null}
+    if(a==="reject"){const c=ACCT.claims.find(c=>c.user_id===b.dataset.uid); if(!confirm(`Reject the claim for ${c?c.player:"this player"}?`))return; const {error}=await sb.from("claims").delete().eq("user_id",b.dataset.uid); if(error){acctDraw("",error.message);return}}
     await acctRefresh(); acctDraw();
   }finally{b.disabled=false}
 });
