@@ -94,7 +94,7 @@ for wk in weeks:
     for card in weeks[wk]:
         P,slot,l,song,d,ex,ents=card[:7]; cont=len(card)>7 and card[7]
         L=lvl(l)
-        elig=[e for e in ents if e[4]>=0] if not cont else []   # a God challenge only counts in its final week
+        elig=[e for e in ents if e[4] in (0,9)] if not cont else []   # only players in their own class (or with none yet) can claim a win   # a God challenge only counts in its final week
         for i,e in enumerate(elig):
             b_=N[e[0]].rstrip('*~')
             if w<=DATA_WEEK:   # only completed weeks count toward win totals
