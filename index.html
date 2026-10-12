@@ -1316,7 +1316,7 @@ footer{color:var(--dim);font-size:.78rem}
   <footer>Data: Rodman’s Rocksmith 2014 Championship Google Sheets (older attendance also from the Championship Metrics workbook). Player stats run through week 676; scoreboards cover weeks 440–677. Weeks 1–16 have no recorded host in the source.
   <span class="updated disclaimer">Unofficial fan project. Not affiliated with CustomsForge, Ubisoft or Rocksmith.</span>
   <span class="updated" id="sheetedit-row" hidden>Sheet last edited: <span id="sheetedit" data-iso="2026-10-11T16:00:03.893Z"></span></span>
-  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-12T14:09:16+00:00">October 12, 2026</span></span>
+  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-12T14:11:30+00:00">October 12, 2026</span></span>
   </footer>
 </div>
 <dialog id="acct" class="acctdlg" aria-label="Your profile"><div id="acctbody"></div><button type="button" class="clear acctclose" id="acctclose">Close</button></dialog>
@@ -3053,7 +3053,7 @@ function twWinnersPost(w){const ch=(SB.weeks[w]||[]).filter(c=>c[3]&&!/^n\/a$/i.
   const cols=[0,1,2].map(p=>{const cs=ch.filter(c=>c[0]===p).sort((a,b)=>a[1]-b[1]); if(!cs.length)return "";
     return `<div class="wpath" style="--pc:${PATH_C[p]}"><h4>${PATHS[p]}:</h4><ul>${cs.map(c=>{
       // the level label shows the challenge's song on hover (or tap)
-      const sw=arrOf(w,c[0],c[1]), songTip=`${c[3]}${sw?`\nPlayed on the song's ${sw} arrangement`:""}\nInitial host rating: ${c[4]!=null?c[4]:"–"} · ${c[6].length} entr${c[6].length===1?"y":"ies"}`;
+      const sw=arrOf(w,c[0],c[1]), songTip=`${c[3]}${sw?`\nPlayed on the song's ${sw} arrangement`:""}\n${c[6].length} entr${c[6].length===1?"y":"ies"}`;
       const lv=`<span class="wlvt" data-tip="${esc(songTip)}">${esc(c[2]||"")}</span>`;
       if(c[7])return `<li><span class="wlv">${lv}:</span> <span class="wlost">continues next week${c[5]?` (${esc(c[5])})`:""}</span></li>`;
       const e=c[6].find(x=>canWin(x)); if(!e)return `<li><span class="wlv">${lv}:</span> <span class="wlost">LOST TROPHY</span></li>`;
