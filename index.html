@@ -373,6 +373,19 @@ a.dl svg,.offpill svg{width:11px;height:11px}
 .acctclose{margin-top:12px}
 .acctdlg{width:min(980px,calc(100vw - 24px))}
 .acctdlg .acctsec{margin-top:16px;border-top:1px solid var(--line);padding-top:12px}
+.mlgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,230px),1fr));gap:10px}
+.mlcard{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px 12px;min-width:0;cursor:help}
+.mlhead{display:flex;align-items:center;gap:10px;margin-bottom:6px;min-height:34px}
+.mlhead b{font-size:.84rem;line-height:1.25}
+.mlhead .medal-m{flex:none;cursor:help}
+.mlcard ol{list-style:none;margin:0;padding:0}
+.mlcard li{display:flex;align-items:center;gap:8px;padding:3px 0;font-size:.86rem;border-top:1px solid color-mix(in srgb,var(--line) 60%,transparent)}
+.mlcard li:first-child{border-top:0}
+.mlcard .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer}
+.mlcard .nm:hover{color:var(--accent)}
+.mlp{display:inline-grid;place-items:center;width:18px;height:18px;border-radius:50%;font:800 .66rem var(--f-display);color:#10131a;background:#8a93a5;flex:none}
+.mlp.p1{background:#f5c84a}.mlp.p2{background:#c9d0dc}.mlp.p3{background:#d8925a}
+.mlv{font-family:var(--f-mono);font-size:.8rem;color:var(--muted)}
 .twwin .wcols{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:4px 24px}
 .twwin h4{margin:2px 0 4px;color:var(--pc);font-size:.95rem}
 .twwin ul{list-style:none;margin:0;padding:0}
@@ -1066,6 +1079,11 @@ footer{color:var(--dim);font-size:.78rem}
   </section>
 
 
+  <section class="panel" id="ml-host">
+    <div class="panel-head"><h2>🏅 Host medal leaders</h2><span class="sub">The top three hosts for each kind of host medal · click a name to look them up</span></div>
+    <div class="mlgrid" id="ml-host-g"><p class="dimtxt">Counting medals…</p></div>
+  </section>
+
   <section class="panel profile">
     <div class="panel-head"><h2>Host lookup</h2><span class="sub">Click a host in the leaderboard, or search</span></div>
     <div class="controls"><input id="hq" list="hlist" type="search" placeholder="Type a host name" aria-label="Find a host" autocomplete="off"><datalist id="hlist"></datalist></div>
@@ -1128,6 +1146,11 @@ footer{color:var(--dim);font-size:.78rem}
   <section class="panel">
     <div class="panel-head"><h2 id="new-h">New this year</h2><span class="sub" id="new-sub"></span></div>
     <div class="newlist" id="newlist"></div>
+  </section>
+
+  <section class="panel" id="ml-player">
+    <div class="panel-head"><h2>🏅 Player medal leaders</h2><span class="sub">The top three players for each kind of player medal · click a name to look them up</span></div>
+    <div class="mlgrid" id="ml-player-g"><p class="dimtxt">Counting medals…</p></div>
   </section>
 
   <section class="panel profile">
@@ -1235,6 +1258,11 @@ footer{color:var(--dim);font-size:.78rem}
       <ol class="rulist" id="rulist"></ol>
     </section>
 
+  <section class="panel" id="ml-win">
+    <div class="panel-head"><h2>🏅 Win medal leaders</h2><span class="sub">The top three players for each kind of win medal · click a name to look them up</span></div>
+    <div class="mlgrid" id="ml-win-g"><p class="dimtxt">Counting medals…</p></div>
+  </section>
+
   <section class="panel">
     <div class="panel-head"><h2>Winner lookup</h2><span class="sub">Click any name on this page, or search</span></div>
     <div class="controls"><input id="wq" list="wqlist" type="search" placeholder="Type a player name" aria-label="Find a winner" autocomplete="off"><datalist id="wqlist"></datalist></div>
@@ -1320,7 +1348,7 @@ footer{color:var(--dim);font-size:.78rem}
   <footer>Data: Rodman’s Rocksmith 2014 Championship Google Sheets (older attendance also from the Championship Metrics workbook). Player stats run through week 676; scoreboards cover weeks 440–677. Weeks 1–16 have no recorded host in the source.
   <span class="updated disclaimer">Unofficial fan project. Not affiliated with CustomsForge, Ubisoft or Rocksmith.</span>
   <span class="updated" id="sheetedit-row" hidden>Sheet last edited: <span id="sheetedit" data-iso="2026-10-11T16:00:03.893Z"></span></span>
-  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-12T14:21:15+00:00">October 12, 2026</span></span>
+  <span class="updated">Last updated: <span id="builtat" data-iso="2026-10-12T14:30:00+00:00">October 12, 2026</span></span>
   </footer>
 </div>
 <dialog id="acct" class="acctdlg" aria-label="Your profile"><div id="acctbody"></div><button type="button" class="clear acctclose" id="acctclose">Close</button></dialog>
@@ -1944,6 +1972,7 @@ function showView(v){
   tip.hidden=true;
   $("pfilter").hidden=v==="scores"||v==="songs"||v==="thisweek"||v==="rankings";
   if(v==="thisweek"&&window.__twReady)renderThisWeek();
+  if(v==="winners"||v==="players"||v==="hosting")setTimeout(()=>mlEnsure(v==="winners"?"win":v==="players"?"player":"host"),50);
   if(v==="songs"&&window.__songsStale){window.__songsStale=false; renderSongs()} // player ratings arrived while another page was open
   if(v==="hosting"){renderUpcoming(); if(!logScrolled)requestAnimationFrame(scrollLogToCurrent)}
 }
@@ -2941,6 +2970,52 @@ $("view-scores").addEventListener("click",e=>{
   $("bcard").closest("section").scrollIntoView({block:"start"});
 });
 
+// ---------- medal leaders (Winners, Players and Hosts pages): the top three for each kind of medal ----------
+// Counted medals (gold medals, close wins, 100% mastery…) rank by how many times; tiered ones (streaks, year medals,
+// N-win week trophies, N weeks hosted…) rank by the highest tier reached. Worked out in small steps when the page is
+// first opened, so the site doesn't stall.
+const ML={};
+// real values behind the tiered medals (the medals themselves stop at fixed steps)
+function mlHostStats(n){const ws=[]; WEEKS.forEach(([w,d,h],i)=>{if(i<=curIdx&&h===n)ws.push(w)}); let run=0,best=0,prev=null; ws.forEach(w=>{run=prev===w-1?run+1:1;prev=w;if(run>best)best=run}); return {tot:ws.length,best}}
+function mlParse(html,person,acc){const d=document.createElement("div"); d.innerHTML=html;
+  [...d.querySelectorAll(".medal-m")].forEach((m,idx)=>{const tip=m.dataset.tip||""; const parts=tip.split(" · "), name=parts[0]; if(!name)return;
+    let key,label,val,unit="×";
+    const tm=/^(\d+)-(week|year|win) (.+)$/.exec(name);
+    if(/^\d{4} /.test(name))return; // one medal per calendar year: nothing to rank
+    if(tm){const what=tm[3];
+      if(/play streak medal|^streak medal/.test(what)){key="playstreak";label="Longest play streak";unit=" wk";val=(byName[person]||[])[6]||+tm[1]}
+      else if(what==="medal"&&tm[2]==="year"){key="years";label="Years in the championship";unit=" yr";val=+tm[1]}
+      else if(what==="win streak medal"){key="winstreak";label="Longest win streak";unit=" wk";val=+tm[1]}
+      else if(what==="week trophy"){key="bestweek";label="Most wins in one week";unit=" wins";val=+tm[1]}
+      else if(what==="host medal"){key="hosted";label="Most weeks hosted";unit=" wk";val=mlHostStats(person).tot}
+      else if(what==="hosting streak medal"){key="hoststreak";label="Longest hosting streak";unit=" wk";val=mlHostStats(person).best}
+      else return}
+    else{const c=/(\d+) (times?|weeks?)\b/.exec(parts.slice(1).join(" · ")); if(!c)return; val=+c[1]; unit=/^week/.test(c[2])?" wk":"×";
+      key=name+(PATHS.includes(parts[1])?" · "+parts[1]:""); label=key}
+    const k=acc[key]||(acc[key]={label,unit,pos:idx,rows:[]}); k.pos=Math.min(k.pos,idx);
+    // keep each person's best; the icon is their highest medal of this kind (later in their list = higher tier)
+    const prev=k.rows.find(r=>r.n===person); if(prev){if(val>=prev.v){prev.v=Math.max(prev.v,val); prev.icon=m}} else k.rows.push({n:person,v:val,icon:m})})}
+function mlRender(kind){const acc=ML[kind].acc, link=kind==="win"?"data-gowin":kind==="host"?"data-gohost":"data-goplayer";
+  // fixed order, like the medal rows: God diamonds, gold/silver/bronze (Lead, Rhythm, Bass), then the rest
+  const ORDER=["Gold God diamond","Silver God diamond","Bronze God diamond","Gold medal","Silver medal","Bronze medal","Triple crown","Close win medal","Rivalry win","Uncrowned","Uncrowned silver","Uncrowned bronze","Most wins in one week","Longest win streak",
+    "Years in the championship","Longest play streak","Perfect gem","Kintsugi gem","Played guitar","Played bass","Completionist","Beginner 100% mastery","Intermediate 100% mastery","Advanced 100% mastery","Masterclass 100% mastery","God 100% mastery","God tier 100% mastery",
+    "Most weeks hosted","Longest hosting streak"];
+  const ordOf=k=>{const [base,path]=k.label.split(" · "); const i=ORDER.indexOf(base); return (i<0?999:i)*4+(path?PATHS.indexOf(path)+1:0)};
+  const cards=Object.values(acc).filter(k=>k.rows.length).sort((a,b)=>ordOf(a)-ordOf(b)||a.pos-b.pos).map(k=>{
+    const rows=k.rows.slice().sort((a,b)=>b.v-a.v||a.n.localeCompare(b.n,undefined,{sensitivity:"base"}));
+    // places 1-3 with ties sharing a place (a tie at third can add a fourth or fifth name)
+    const out=[]; let place=0,last=null; for(let i=0;i<rows.length;i++){if(rows[i].v!==last){place=i+1;last=rows[i].v} if(place>3||out.length>=5)break; out.push({...rows[i],place})}
+    const ic=rows[0].icon.cloneNode(true); ic.querySelector("b")&&ic.querySelector("b").remove(); ic.removeAttribute("data-hl"); ic.removeAttribute("data-all"); ic.removeAttribute("data-tip"); ic.style.cursor="";
+    const what=(rows[0].icon.dataset.tip||"").split(" · ").slice(1).filter(x=>!/click to highlight|\d+ (times?|weeks?)\b|collected Week/.test(x)).join(" · ");
+    return `<div class="mlcard" data-tip="${esc(k.label+(what?" · "+what:""))}"><div class="mlhead">${ic.outerHTML}<b>${esc(k.label)}</b></div><ol>${out.map(r=>`<li><span class="mlp p${r.place}">${r.place}</span><span class="nm" ${link}="${esc(r.n)}">${esc(r.n)}</span><span class="mlv">${r.v}${k.unit}</span></li>`).join("")}</ol></div>`});
+  $("ml-"+kind+"-g").innerHTML=cards.join("")||`<p class="dimtxt">No medals yet.</p>`}
+function mlEnsure(kind){if(ML[kind])return; ML[kind]={acc:{}};
+  const names=kind==="host"?Object.keys(hosts).filter(h=>h&&h!==LOST):kind==="win"?Object.keys(WR.wins):PLAYERS.map(p=>p[0]);
+  const src=n=>{if(kind==="host")return hostMedals(n); if(kind==="player")return byName[n]?medalsFor(byName[n])||"":"";
+    const h=allMedalsHtml(n), i=h.indexOf('<div class="ms">Win medals</div>'); if(i<0)return ""; const j=h.indexOf('<div class="ms">',i+10); return h.slice(i,j<0?undefined:j)};
+  let i=0; const step=()=>{const end=Math.min(names.length,i+25); for(;i<end;i++){try{mlParse(src(names[i]),names[i],ML[kind].acc)}catch(e){}}
+    if(i<names.length)setTimeout(step,0); else mlRender(kind)};
+  step()}
 // ---------- links between Player, Winner and Host lookup ----------
 document.addEventListener("click",e=>{
   const b=e.target.closest("[data-goplayer],[data-gowin],[data-gohost]"); if(!b)return;
