@@ -2980,6 +2980,9 @@ $("view-scores").addEventListener("click",e=>{
 // N-win week trophies, N weeks hosted…) rank by the highest tier reached. Worked out in small steps when the page is
 // first opened, so the site doesn't stall.
 const ML={};
+// medal leaders worked out when the site was built (see build.sh), so visitors don't have to count; null on a copy
+// built without it, and then the page counts them itself
+var ML_PRE=__MLPRE__;
 // real values behind the tiered medals (the medals themselves stop at fixed steps)
 function mlHostStats(n){const ws=[]; WEEKS.forEach(([w,d,h],i)=>{if(i<=curIdx&&h===n)ws.push(w)}); let run=0,best=0,prev=null; ws.forEach(w=>{run=prev===w-1?run+1:1;prev=w;if(run>best)best=run}); return {tot:ws.length,best}}
 function mlParse(html,person,acc){const d=document.createElement("div"); d.innerHTML=html;
@@ -3013,21 +3016,32 @@ function mlRender(kind){const acc=ML[kind].acc, link=kind==="win"?"data-gowin":k
     if(!rows.length)return "";
     // places 1-3 with ties sharing a place (a tie at third can add a fourth or fifth name)
     const out=[]; let place=0,last=null; for(let i=0;i<rows.length;i++){if(rows[i].v!==last){place=i+1;last=rows[i].v} if(place>3||out.length>=5)break; out.push({...rows[i],place})}
-    const ic=rows[0].icon.cloneNode(true); ic.querySelector("b")&&ic.querySelector("b").remove(); ic.removeAttribute("data-hl"); ic.removeAttribute("data-all"); ic.removeAttribute("data-tip"); ic.style.cursor="";
-    const what=(rows[0].icon.dataset.tip||"").split(" · ").slice(1).filter(x=>!PATHS.includes(x)&&!/click to highlight|\d+ (times?|weeks?)\b|collected Week/.test(x)).join(" · "); // (the path is already in the label)
+    const top=rows[0].icon?rows[0]:{icon:k.icon}; // precomputed data keeps one icon per medal (its overall leader's)
+    const holder=document.createElement("div"); holder.innerHTML=typeof top.icon==="string"?top.icon:top.icon.outerHTML; const ic=holder.firstElementChild;
+    const fullTip=ic.dataset.tip||k.tip||"";
+    ic.querySelector("b")&&ic.querySelector("b").remove(); ic.removeAttribute("data-hl"); ic.removeAttribute("data-all"); ic.removeAttribute("data-tip"); ic.style.cursor="";
+    const what=(fullTip).split(" · ").slice(1).filter(x=>!PATHS.includes(x)&&!/click to highlight|\d+ (times?|weeks?)\b|collected Week/.test(x)).join(" · "); // (the path is already in the label)
     // first place on the card (everyone tied for it); second and third in the hover text
     const first=out.filter(r=>r.place===1), rest=out.filter(r=>r.place>1);
     const tipT=k.label+(what?" · "+what:"")+(rest.length?"\n\n"+rest.map(r=>`${r.place}. ${r.n} · ${r.v}${k.unit}`).join("\n"):"");
     // just the medal and its leader(s); the medal's name and the runners-up are in the hover text
     return `<div class="mlcard" data-tip="${esc(tipT)}">${ic.outerHTML}<ol>${first.map(r=>`<li><span class="nm" ${link}="${esc(r.n)}">${esc(r.n)}</span><span class="mlv">${r.v}${k.unit}</span></li>`).join("")}</ol></div>`});
   $("ml-"+kind+"-g").innerHTML=cards.join("")||`<p class="dimtxt">No medals yet.</p>`}
-function mlEnsure(kind){if(ML[kind])return; ML[kind]={acc:{}};
+// the medal leaders as plain data: [{key,label,unit,pos,icon,rows:[[name,value],...]}], best first
+function mlExport(kind){return Object.entries(ML[kind].acc).map(([key,k])=>{const rows=k.rows.slice().sort((a,b)=>b.v-a.v||a.n.localeCompare(b.n,undefined,{sensitivity:"base"}));
+  return {key,label:k.label,unit:k.unit,pos:k.pos,icon:rows[0].icon.outerHTML,rows:rows.slice(0,30).map(r=>[r.n,r.v])}})}
+function mlEnsure(kind,sync){if(ML[kind])return;
+  if(ML_PRE&&ML_PRE[kind]){const acc={}; ML_PRE[kind].forEach(x=>acc[x.key]={label:x.label,unit:x.unit,pos:x.pos,icon:x.icon,rows:x.rows.map(([n,v])=>({n,v}))});
+    ML[kind]={acc,done:true}; mlRender(kind); return}
+  ML[kind]={acc:{}};
   const names=kind==="host"?Object.keys(hosts).filter(h=>h&&h!==LOST):kind==="win"?Object.keys(WR.wins):PLAYERS.map(p=>p[0]);
   const src=n=>{if(kind==="host")return hostMedals(n); if(kind==="player")return byName[n]?medalsFor(byName[n])||"":"";
     const h=allMedalsHtml(n), i=h.indexOf('<div class="ms">Win medals</div>'); if(i<0)return ""; const j=h.indexOf('<div class="ms">',i+10); return h.slice(i,j<0?undefined:j)};
   let i=0; const step=()=>{const end=Math.min(names.length,i+25); for(;i<end;i++){try{mlParse(src(names[i]),names[i],ML[kind].acc)}catch(e){}}
-    if(i<names.length)setTimeout(step,0); else {ML[kind].done=true; mlRender(kind)}};
+    if(i<names.length){if(sync)step(); else setTimeout(step,0)} else {ML[kind].done=true; mlRender(kind)}};
   step()}
+if(/[?&]mlpre\b/.test(location.search)){ML_PRE=null; setTimeout(()=>{const out={}; ["win","player","host"].forEach(k=>{mlEnsure(k,true); out[k]=mlExport(k)});
+  const el=document.createElement("script"); el.type="application/json"; el.id="mlpre-out"; el.textContent=JSON.stringify(out).replace(/</g,"\\u003c"); document.body.appendChild(el)},0)}
 // ---------- links between Player, Winner and Host lookup ----------
 document.addEventListener("click",e=>{
   const b=e.target.closest("[data-goplayer],[data-gowin],[data-gohost]"); if(!b)return;

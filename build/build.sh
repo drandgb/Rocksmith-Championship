@@ -27,4 +27,7 @@ python3 build_rankings.py
 # when the sheet was last edited: sent by the sheet's updateWebsite script; kept in the cache between runs
 if [[ "${SHEET_EDITED:-}" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9:.]+Z$ ]]; then printf '"%s"' "$SHEET_EDITED" > cache/sheet_edited.json; fi
 OUT="${OUT:-../../index.html}" python3 render.py
+# medal leaders: count them once in headless Chrome from the page just built, then build the page again with them
+rm -f ml_pre.json
+python3 ml_pre.py "${OUT:-../../index.html}" && if [ -f ml_pre.json ]; then OUT="${OUT:-../../index.html}" python3 render.py; fi
 cp cache/*.json ../data/cache/
