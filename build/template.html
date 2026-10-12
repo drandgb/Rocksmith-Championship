@@ -1062,11 +1062,11 @@ footer{color:var(--dim);font-size:.78rem}
       <div class="strings" aria-hidden="true"><i style="--sc:var(--s-red);background:var(--sc)"></i><i style="--sc:var(--s-yellow);background:var(--sc)"></i><i style="--sc:var(--s-blue);background:var(--sc)"></i><i style="--sc:var(--s-orange);background:var(--sc)"></i><i style="--sc:var(--s-green);background:var(--sc)"></i><i style="--sc:var(--s-purple);background:var(--sc)"></i></div>
     </div>
     <nav class="links">
-      <button type="button" class="forum acctbtn" id="acctbtn" hidden>👤 Log in</button>
+      <button type="button" class="forum acctbtn" id="acctbtn" hidden title="Log in with your email to claim your player profile, see your own stats page, rate songs and sign up to host">👤 Log in</button>
       <a class="forum playhere" href="https://customsforge.com/forum/38-rocksmith-championship/" target="_blank" rel="noopener" title="Opens the Rocksmith 2014 Championship forum on CustomsForge, where the weekly challenges are posted and scores are submitted">Play here ↗</a>
-      <a class="forum" href="https://docs.google.com/spreadsheets/d/1WN-m8wF0lVkQ4cLWHBa009SkqDoPk0xN-C4-llcrXXs/edit?gid=871655614#gid=871655614" target="_blank" rel="noopener">Scoreboard sheet ↗</a>
-      <a class="forum" href="https://script.google.com/macros/s/AKfycbwy6vF3XYDZ_s1WeqiHTgBcVgbF8cr2AUQjKH3aRSZYuh32Erc-IstP5Gos-1i_evkm/exec" target="_blank" rel="noopener">Request a song ↗</a>
-      <button type="button" class="forum refresh" id="refreshbtn" title="Load the newest version of the site, skipping the browser's saved copy">↻ Refresh</button>
+      <a class="forum" href="https://docs.google.com/spreadsheets/d/1WN-m8wF0lVkQ4cLWHBa009SkqDoPk0xN-C4-llcrXXs/edit?gid=871655614#gid=871655614" target="_blank" rel="noopener" title="Opens the championship's scoreboard Google Sheet, where every week's challenges, scores and results are recorded. This site's stats come from it">Scoreboard sheet ↗</a>
+      <a class="forum" href="https://script.google.com/macros/s/AKfycbwy6vF3XYDZ_s1WeqiHTgBcVgbF8cr2AUQjKH3aRSZYuh32Erc-IstP5Gos-1i_evkm/exec" target="_blank" rel="noopener" title="Opens a form to suggest a song you'd like to see as a future championship challenge">Request a song ↗</a>
+      <button type="button" class="forum refresh" id="refreshbtn" title="Reloads the site with the newest scores and results, skipping the copy your browser saved">↻ Refresh</button>
     </nav>
   </header>
 
@@ -3824,7 +3824,11 @@ function acctProfile(n){
   return `<div class="acctsec acctlead"${leads?"":" hidden"}><div id="acct-lead" class="plead" data-n="${esc(n)}">${leads}</div></div><div class="acctsec"><h3>Player profile</h3><div id="acct-p"></div></div>${WR.wins[n]?`<div class="acctsec"><h3>Win profile</h3><div id="acct-w"></div></div>`:""}${hosts[n]?`<div class="acctsec"><h3>Host profile</h3><div id="acct-h"></div></div>`:""}`;
 }
 // header button and dialog
-function acctBtn(){const b=$("acctbtn"); b.hidden=!ACCT.on; b.textContent=ACCT.claim&&ACCT.claim.status==="approved"?"👤 "+ACCT.claim.player:ACCT.user?"👤 Profile":"👤 Log in";
+function acctBtn(){const b=$("acctbtn"); b.hidden=!ACCT.on;
+  b.title=ACCT.claim&&ACCT.claim.status==="approved"?"Opens your profile: your own stats page, last week's medals, your song ratings and your forum signature banner"
+    :ACCT.claim?"Opens your profile. Your player claim is waiting for an admin to approve it"
+    :ACCT.user?"Opens your profile, where you can claim your player name so you can rate songs and sign up to host"
+    :"Log in with your email to claim your player profile, see your own stats page, rate songs and sign up to host"; b.textContent=ACCT.claim&&ACCT.claim.status==="approved"?"👤 "+ACCT.claim.player:ACCT.user?"👤 Profile":"👤 Log in";
   const n=ACCT.admin?ACCT.claims.filter(c=>c.status==="pending").length:0; // admins: how many claims are waiting
   if(n)b.insertAdjacentHTML("beforeend",`<span class="nbadge" title="${n} claim${n===1?"":"s"} waiting for approval">${n}</span>`);
   try{localStorage.setItem("rsc-acctbtn",b.innerHTML)}catch(e){} // shown straight away on the next visit while the login loads
