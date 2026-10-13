@@ -9,7 +9,7 @@ cd "$(dirname "$0")"
 SHEET_ID="${SHEET_ID:-1WN-m8wF0lVkQ4cLWHBa009SkqDoPk0xN-C4-llcrXXs}"
 export MODE="${MODE:-full}"
 rm -rf work && mkdir -p work data/cache
-cp *.py template.html data/*.json work/
+cp *.py *.js template.html data/*.json work/
 cp -r data/cache work/cache
 if [ "${1:-}" != "" ]; then
   cp "$1" work/board.xlsx
@@ -30,4 +30,6 @@ OUT="${OUT:-../../index.html}" python3 render.py
 # medal leaders: count them once in headless Chrome from the page just built, then build the page again with them
 rm -f ml_pre.json
 python3 ml_pre.py "${OUT:-../../index.html}" && if [ -f ml_pre.json ]; then OUT="${OUT:-../../index.html}" python3 render.py; fi
+# scoreboard fix log: what the scoreboard checks found fixed since the previous update (fixlog.js)
+node fixlog.js "${OUT:-../../index.html}" cache || echo "fixlog: skipped"
 cp cache/*.json ../data/cache/

@@ -464,6 +464,9 @@ a.dl svg,.offpill svg{width:11px;height:11px}
 .acctdlg .tylink{color:var(--accent);cursor:pointer;font-weight:600}
 .acctdlg .tytag{font:800 .6rem var(--f-display);letter-spacing:.06em;text-transform:uppercase;background:#f59e0b;color:#1a1204;border-radius:999px;padding:1px 6px;margin-right:6px}
 .acctdlg .ratelog{list-style:none;margin:0;padding:0;max-height:320px;overflow:auto}
+.acctdlg .apprhead{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.acctdlg .btn.small{padding:3px 10px;font-size:.78rem}
+.acctdlg .fixlog .tylink{cursor:pointer}
 .acctdlg .ratelog li{display:block;padding:6px 0;border-bottom:1px solid var(--line);font-size:.84rem}
 .acctdlg .ratelog small{color:var(--muted)}
 .alist li.aplayed{background:color-mix(in srgb,var(--pc) 14%,var(--panel2));box-shadow:inset 0 0 0 1.5px color-mix(in srgb,var(--pc) 70%,transparent)}
@@ -3867,6 +3870,13 @@ function typoSection(){
     ${total?G.map(([k,t,d,f])=>{const L=out[k].slice().sort((a,b)=>(isNew(b)-isNew(a))||b.w-a.w), nn=L.filter(isNew).length; if(!L.length)return "";
       return `<details${nn?" open":""}><summary>${t} <span class="tycount">${L.length}</span>${nn?`<span class="nbadge tybadge">${nn} new</span>`:""}${d?` <small class="dim">${d}</small>`:""}</summary><ul class="tylist">${L.map(x=>row(x,f(x))).join("")}</ul></details>`}).join(""):`<p>No likely typos found.</p>`}</div>`;
 }
+// ---------- Admin: scoreboard fix log (issues from the scoreboard checks that went away, found by each site update) ----------
+var FIXLOG=[]/*FIXLOG*/;
+function fixLogSection(){
+  const kinds={zero:"Score of 0",nopct:"Missing %",dup:"Same player twice",order:"Row out of order",band:"Band name",song:"Song title",player:"Player name"};
+  const rows=FIXLOG.slice().reverse().slice(0,60).map(f=>`<li><small>${new Date(f.d).toLocaleDateString()}</small> · ${kinds[f.k]||f.k} · ${f.w?`<span class="tylink" data-sbw="${f.w}" data-sbp="${f.p}" data-sbn="${esc(f.n||"")}" title="Open on the Scoreboard">Week ${f.w} · ${PATHS[f.p]} ${esc(f.lv)}</span> · `:""}${esc(f.t)}</li>`).join("");
+  return `<div class="adm acctsec fixlog"><h3>Scoreboard fix log</h3><p class="dim">Scoreboard check issues that were fixed in the sheet, newest first. Each site update compares the checks with the previous update.</p>${rows?`<ul class="ratelog">${rows}</ul>`:`<p class="dim">Nothing fixed since the log started.</p>`}</div>`;
+}
 // removing an approved claim: choose whether their ratings stay shown, and whether a new account claiming the same
 // name gets them, and whether their forum banner stays (build/supabase/claim_remove.sql).
 function removePanel(){
@@ -4114,7 +4124,7 @@ function acctDraw(msg,err){
   else if(ACCT.claim.status==="pending")h+=`<p>You've claimed <b>${esc(ACCT.claim.player)}</b>. It's waiting for approval: an admin will message you to confirm it's really you, then approve it. Your verification animal is under Manage account.</p><div class="row"><button type="button" class="btn ghost" data-acct="unclaim">Withdraw claim</button></div>`;
   else h+=`<p>Hi <b>${esc(ACCT.claim.player)}</b>! This is your personal stats page. You can submit your own ratings for any song by clicking its rating number.</p><div id="acct-tw">${acctThisWeek(ACCT.claim.player)}</div>${rankupSection(ACCT.claim.player)}${acctProfile(ACCT.claim.player)}`;
   if(ACCT.admin&&ACCT.tab==="admin"){const pend=ACCT.claims.filter(c=>c.status==="pending"), appr=ACCT.claims.filter(c=>c.status==="approved").sort((a,c)=>a.player.localeCompare(c.player));
-    h+=`${removePanel()}<div class="adm acctsec"><h3>Claims</h3><p>${pend.length?"Waiting for approval:":"No claims waiting."}</p><ul>${pend.map(c=>`<li><span>${esc(c.player)} ${animalTag(ACCT.animals[c.user_id])} <small>${new Date(c.created_at).toLocaleDateString()}</small></span><span><button type="button" class="btn" data-acct="approve" data-uid="${c.user_id}">Approve</button> <button type="button" class="btn ghost" data-acct="reject" data-uid="${c.user_id}">Reject</button></span></li>`).join("")}</ul>${appr.length?`<p>Approved (${appr.length}):</p><ul>${appr.map(c=>`<li><span>${esc(c.player)} ${animalTag(ACCT.animals[c.user_id])}</span><button type="button" class="btn ghost" data-acct="removeask" data-player="${esc(c.player)}">Remove</button></li>`).join("")}</ul>`:""}</div>${typoSection()}${removedSection()}${claimLogSection()}${hostSection(true)}`}
+    h+=`${removePanel()}<div class="adm acctsec"><h3>Claims</h3><p>${pend.length?"Waiting for approval:":"No claims waiting."}</p><ul>${pend.map(c=>`<li><span>${esc(c.player)} ${animalTag(ACCT.animals[c.user_id])} <small>${new Date(c.created_at).toLocaleDateString()}</small></span><span><button type="button" class="btn" data-acct="approve" data-uid="${c.user_id}">Approve</button> <button type="button" class="btn ghost" data-acct="reject" data-uid="${c.user_id}">Reject</button></span></li>`).join("")}</ul>${appr.length?`<p class="apprhead"><span>Approved (${appr.length}):</span><button type="button" class="btn ghost small" data-acct="editclaims">${ACCT.editClaims?"Done":"Edit"}</button></p><ul>${appr.map(c=>`<li><span>${esc(c.player)} ${animalTag(ACCT.animals[c.user_id])}</span>${ACCT.editClaims?`<button type="button" class="btn ghost" data-acct="removeask" data-player="${esc(c.player)}">Remove</button>`:""}</li>`).join("")}</ul>`:""}</div>${claimLogSection()}${removedSection()}${typoSection()}${fixLogSection()}${hostSection(true)}`}
   // redrawing keeps the popup where it was scrolled to (e.g. after changing a rating in the Admin tab)
   const dlg=$("acct"), keep=[dlg.scrollTop,b.scrollTop];
   b.innerHTML=h+note;
@@ -4154,6 +4164,7 @@ $("acctbody").addEventListener("click",async e=>{
     if(a==="removeask"){ACCT.removing=b.dataset.player; ACCT.removeCount=null; acctDraw(); $("acctbody").scrollTop=0; $("acct").scrollTop=0;
       sb.from("votes").select("player",{count:"exact",head:true}).eq("player",ACCT.removing).then(({count})=>{if(ACCT.removing&&count!=null){ACCT.removeCount=count; acctDraw()}}); return}
     if(a==="removecancel"){ACCT.removing=null; acctDraw(); return}
+    if(a==="editclaims"){ACCT.editClaims=!ACCT.editClaims; acctDraw(); return}
     if(a==="remove"){const n=b.dataset.player, show=$("rmshow").checked, carry=$("rmcarry").checked, keep=$("rmkeep").checked;
       let {error}=await sb.rpc("remove_claim",{p_player:n,p_hide:!show,p_carry:carry,p_keep:keep});
       // before claim_remove.sql is run: just remove the claim (ratings stay shown and go to whoever claims the name next; banner deleted)
