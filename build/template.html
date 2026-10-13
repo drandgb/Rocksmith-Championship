@@ -453,6 +453,16 @@ a.dl svg,.offpill svg{width:11px;height:11px}
 .acctdlg .rutip{margin-top:6px;font-size:.8rem;color:var(--muted)}
 .acctdlg .rustat{font-size:.82rem}.acctdlg .rubar{display:inline-block;width:110px;height:6px;border-radius:3px;background:var(--line);vertical-align:middle;margin:0 6px;overflow:hidden}.acctdlg .rubar i{display:block;height:100%;background:var(--vc)}
 .acctdlg .runote{font-size:.74rem;color:var(--muted);margin:8px 0 0}
+.acctdlg .typos details{border:1px solid var(--line);border-radius:8px;margin-top:8px;background:var(--panel2)}
+.acctdlg .typos summary{cursor:pointer;padding:8px 10px;font:700 .82rem var(--f-display);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.acctdlg .typos summary small{font:400 .76rem var(--f-body)}
+.acctdlg .tycount{font:700 .72rem var(--f-mono);color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:1px 7px}
+.nbadge.tybadge{background:#f59e0b;color:#1a1204}
+.acctdlg .typos ul.tylist{list-style:none;margin:0;padding:0 10px 8px;max-height:260px;overflow:auto}
+.acctdlg .typos ul.tylist li{display:block;padding:5px 0;border-top:1px solid var(--line);font-size:.82rem;line-height:1.45}
+.acctdlg .typos li small{color:var(--muted)}
+.acctdlg .tylink{color:var(--accent);cursor:pointer;font-weight:600}
+.acctdlg .tytag{font:800 .6rem var(--f-display);letter-spacing:.06em;text-transform:uppercase;background:#f59e0b;color:#1a1204;border-radius:999px;padding:1px 6px;margin-right:6px}
 .acctdlg .ratelog{list-style:none;margin:0;padding:0;max-height:320px;overflow:auto}
 .acctdlg .ratelog li{display:block;padding:6px 0;border-bottom:1px solid var(--line);font-size:.84rem}
 .acctdlg .ratelog small{color:var(--muted)}
@@ -3804,6 +3814,59 @@ function ratingLogSection(){
     return `<li><span><small>${esc(when)}</small> · <b>${esc(x.admin_player||"a host")}</b> ${ch} for <b>${esc(x.player)}</b> · ${esc(x.song||"")}${x.path!=null?` (${PATHS[x.path]})`:""}</span></li>`}).join("");
   return `<div class="adm acctsec" id="admratelog"><h3>Ratings log</h3>${L==null?`<p class="dim">The log isn't set up yet (run rating_log.sql in Supabase).</p>`:rows?`<ul class="ratelog">${rows}</ul>`:`<p class="dim">No ratings given for players yet.</p>`}</div>`;
 }
+// ---------- Admin: scoreboard checks (likely typos in the scoreboard sheet, every week since 440) ----------
+// Runs in the browser from the scoreboard data the site already has, so it's as fresh as the last site update.
+// The count on the Admin tab only counts issues in the newest scoreboard week.
+var TYPO_CACHE=null;
+// weeks 560-649 used 0 as the usual way to leave a score blank, so 0 scores are only checked from week 650 on
+const ZERO_FROM=650;
+function typoScan(){
+  if(TYPO_CACHE)return TYPO_CACHE;
+  const nm=i=>SB.names[i].replace(/[*~]+$/,""), weeks=Object.keys(SB.weeks).map(Number).sort((a,b)=>a-b), NEW=weeks[weeks.length-1];
+  const out={zero:[],nopct:[],dup:[],order:[],band:[],song:[],player:[]};
+  // a 0 score is probably a typo, unless the player puts 0 on most of their entries (some always do)
+  const sc={}; weeks.forEach(w=>SB.weeks[w].forEach(c=>c[6].forEach(e=>{const n=nm(e[0]).toLowerCase(), x=sc[n]=sc[n]||[0,0]; x[1]++; if(e[3]===0)x[0]++})));
+  const usual=n=>{const x=sc[n.toLowerCase()]; return !(x&&x[0]/x[1]>=.5)};
+  const arts={}, songs={};
+  weeks.forEach(w=>SB.weeks[w].forEach(c=>{
+    const song=String(c[3]||""), at={w,p:c[0],lv:c[2],song};
+    if(/ - /.test(song)){const a=song.split(" - ")[0].trim(), ka=a.toLowerCase().replace(/[^a-z0-9]/g,""), ks=song.toLowerCase().replace(/[^a-z0-9]/g,"");
+      ((arts[ka]=arts[ka]||{})[a]=arts[ka][a]||[]).push(w); ((songs[ks]=songs[ks]||{})[song.trim()]=songs[ks][song.trim()]||[]).push(w)}
+    const seen={}; let prev=null;
+    c[6].forEach(e=>{const n=nm(e[0]), k=n.toLowerCase(), it={...at,n};
+      if(e[3]===0&&w>=ZERO_FROM&&usual(n))out.zero.push(it);
+      if(e[1]==null)out.nopct.push(it);
+      if(seen[k])out.dup.push(it); seen[k]=1;
+      if(e[1]!=null){if(prev!=null&&e[1]>prev+1e-9)out.order.push({...it,note:`${e[1]}% is listed below ${prev}%`}); prev=e[1]}});
+  }));
+  const variants=(map,kind)=>Object.values(map).forEach(v=>{const ks=Object.keys(v); if(ks.length<2)return;
+    const top=ks.slice().sort((a,b)=>v[b].length-v[a].length);
+    out[kind].push({w:Math.max(...ks.flatMap(x=>v[x])),forms:top.map(x=>({t:x,n:v[x].length,last:Math.max(...v[x])}))})});
+  variants(arts,"band"); variants(songs,"song");
+  const pn={}; SB.names.forEach(x=>{const n=x.replace(/[*~]+$/,""); (pn[n.toLowerCase()]=pn[n.toLowerCase()]||new Set()).add(n)});
+  Object.values(pn).forEach(set=>{if(set.size>1){const ws=[]; weeks.forEach(w=>SB.weeks[w].forEach(c=>c[6].forEach(e=>{if(set.has(nm(e[0])))ws.push(w)})));
+    out.player.push({w:Math.max(...ws),forms:[...set].map(t=>({t,n:0,last:0}))})}});
+  const isNew=x=>x.w===NEW||(x.forms&&x.forms.some(f=>f.last===NEW));
+  const nNew=Object.values(out).flat().filter(isNew).length;
+  return TYPO_CACHE={out,NEW,nNew,isNew};
+}
+function typoSection(){
+  const {out,NEW,isNew}=typoScan();
+  const card=x=>`<span class="tylink" data-sbw="${x.w}" data-sbp="${x.p}" data-sbn="${esc(x.n||"")}" title="Open on the Scoreboard">Week ${x.w} · ${PATHS[x.p]} ${esc(x.lv)}</span>`;
+  const row=(x,body)=>`<li class="${isNew(x)?"tynew":""}">${isNew(x)?'<span class="tytag">new</span>':""}${body}</li>`;
+  const forms=x=>x.forms.map(f=>`“${esc(f.t)}”${f.n?` <small>${f.n}×, last Week ${f.last}</small>`:""}`).join(" vs ");
+  const G=[["zero","Score of 0","Since week 650 (before that, 0 was often used for a blank score)",x=>`${card(x)} · <b>${esc(x.n)}</b> · ${esc(x.song)}`],
+    ["nopct","Missing %","An entry with no percentage",x=>`${card(x)} · <b>${esc(x.n)}</b> · ${esc(x.song)}`],
+    ["dup","Same player twice on a card","",x=>`${card(x)} · <b>${esc(x.n)}</b> · ${esc(x.song)}`],
+    ["order","Rows out of order","A higher % listed below a lower one",x=>`${card(x)} · <b>${esc(x.n)}</b> · ${esc(x.note)}`],
+    ["band","Band name capitalisation","The same band written differently",x=>forms(x)],
+    ["song","Song title capitalisation","The same song written differently",x=>forms(x)],
+    ["player","Player name capitalisation","The same player written differently",x=>forms(x)]];
+  const total=G.reduce((s,g)=>s+out[g[0]].length,0);
+  return `<div class="adm acctsec typos"><h3>Scoreboard checks</h3><p class="dim">Likely typos in the scoreboard sheet, every week since 440. Click a week to open it on the Scoreboard; fix it in the sheet and it disappears after the next site update. <b>New</b> marks issues in the newest week (${NEW}).</p>
+    ${total?G.map(([k,t,d,f])=>{const L=out[k].slice().sort((a,b)=>(isNew(b)-isNew(a))||b.w-a.w), nn=L.filter(isNew).length; if(!L.length)return "";
+      return `<details${nn?" open":""}><summary>${t} <span class="tycount">${L.length}</span>${nn?`<span class="nbadge tybadge">${nn} new</span>`:""}${d?` <small class="dim">${d}</small>`:""}</summary><ul class="tylist">${L.map(x=>row(x,f(x))).join("")}</ul></details>`}).join(""):`<p>No likely typos found.</p>`}</div>`;
+}
 // removing an approved claim: choose whether their ratings stay shown, and whether a new account claiming the same
 // name gets them, and whether their forum banner stays (build/supabase/claim_remove.sql).
 function removePanel(){
@@ -4037,7 +4100,7 @@ function acctDraw(msg,err){
   if(ACCT.tab==="banner"&&!(ACCT.claim&&ACCT.claim.status==="approved"))ACCT.tab="me";
   // tabs: Your profile, Manage account, and (for admins) Admin with a badge for claims waiting
   const tb=(k,label)=>`<button type="button" role="tab" data-accttab="${k}" aria-selected="${ACCT.tab===k}">${label}</button>`;
-  const tabs=`<div class="accttabs" role="tablist">${tb("me","Your profile")}${ACCT.claim&&ACCT.claim.status==="approved"?tb("banner","Forum banner"):""}${tb("manage","Manage account")}${canRateFor()?tb("host","Host"):""}${ACCT.admin?tb("admin",`Admin${pendN?`<span class="nbadge" title="${pendN} claim${pendN===1?"":"s"} waiting for approval">${pendN}</span>`:""}`):""}</div>`;
+  const tabs=`<div class="accttabs" role="tablist">${tb("me","Your profile")}${ACCT.claim&&ACCT.claim.status==="approved"?tb("banner","Forum banner"):""}${tb("manage","Manage account")}${canRateFor()?tb("host","Host"):""}${ACCT.admin?tb("admin",`Admin${pendN?`<span class="nbadge" title="${pendN} claim${pendN===1?"":"s"} waiting for approval">${pendN}</span>`:""}${(()=>{const t=typoScan().nNew; return t?`<span class="nbadge tybadge" title="${t} likely typo${t===1?"":"s"} in this week's scoreboard">${t}</span>`:""})()}`):""}</div>`;
   let h=tabs;
   if(ACCT.tab==="admin"){}
   else if(ACCT.tab==="host")h+=`${hostSection(false).replace('class="acctsec hostsec"','class="acctsec hostsec hosttop"')}${adminRateSection()}${ratingLogSection()}`;
@@ -4051,7 +4114,7 @@ function acctDraw(msg,err){
   else if(ACCT.claim.status==="pending")h+=`<p>You've claimed <b>${esc(ACCT.claim.player)}</b>. It's waiting for approval: an admin will message you to confirm it's really you, then approve it. Your verification animal is under Manage account.</p><div class="row"><button type="button" class="btn ghost" data-acct="unclaim">Withdraw claim</button></div>`;
   else h+=`<p>Hi <b>${esc(ACCT.claim.player)}</b>! This is your personal stats page. You can submit your own ratings for any song by clicking its rating number.</p><div id="acct-tw">${acctThisWeek(ACCT.claim.player)}</div>${rankupSection(ACCT.claim.player)}${acctProfile(ACCT.claim.player)}`;
   if(ACCT.admin&&ACCT.tab==="admin"){const pend=ACCT.claims.filter(c=>c.status==="pending"), appr=ACCT.claims.filter(c=>c.status==="approved").sort((a,c)=>a.player.localeCompare(c.player));
-    h+=`${removePanel()}<div class="adm acctsec"><h3>Claims</h3><p>${pend.length?"Waiting for approval:":"No claims waiting."}</p><ul>${pend.map(c=>`<li><span>${esc(c.player)} ${animalTag(ACCT.animals[c.user_id])} <small>${new Date(c.created_at).toLocaleDateString()}</small></span><span><button type="button" class="btn" data-acct="approve" data-uid="${c.user_id}">Approve</button> <button type="button" class="btn ghost" data-acct="reject" data-uid="${c.user_id}">Reject</button></span></li>`).join("")}</ul>${appr.length?`<p>Approved (${appr.length}):</p><ul>${appr.map(c=>`<li><span>${esc(c.player)} ${animalTag(ACCT.animals[c.user_id])}</span><button type="button" class="btn ghost" data-acct="removeask" data-player="${esc(c.player)}">Remove</button></li>`).join("")}</ul>`:""}</div>${removedSection()}${claimLogSection()}${hostSection(true)}`}
+    h+=`${removePanel()}<div class="adm acctsec"><h3>Claims</h3><p>${pend.length?"Waiting for approval:":"No claims waiting."}</p><ul>${pend.map(c=>`<li><span>${esc(c.player)} ${animalTag(ACCT.animals[c.user_id])} <small>${new Date(c.created_at).toLocaleDateString()}</small></span><span><button type="button" class="btn" data-acct="approve" data-uid="${c.user_id}">Approve</button> <button type="button" class="btn ghost" data-acct="reject" data-uid="${c.user_id}">Reject</button></span></li>`).join("")}</ul>${appr.length?`<p>Approved (${appr.length}):</p><ul>${appr.map(c=>`<li><span>${esc(c.player)} ${animalTag(ACCT.animals[c.user_id])}</span><button type="button" class="btn ghost" data-acct="removeask" data-player="${esc(c.player)}">Remove</button></li>`).join("")}</ul>`:""}</div>${typoSection()}${removedSection()}${claimLogSection()}${hostSection(true)}`}
   // redrawing keeps the popup where it was scrolled to (e.g. after changing a rating in the Admin tab)
   const dlg=$("acct"), keep=[dlg.scrollTop,b.scrollTop];
   b.innerHTML=h+note;
