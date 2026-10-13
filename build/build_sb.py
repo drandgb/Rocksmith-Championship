@@ -19,18 +19,18 @@ def ni(n):
 def num(v):
     if v is None: return None
     return int(v) if float(v).is_integer() else round(v,2)
-# SONGFIX: use the corrected spelling from the Songs Played sheet for the same week
+# SONGFIX: fix real misspellings (e.g. "Testamant") using the spelling from the Songs Played sheet for the same week.
+# When the two only differ in capitals, "and"/"&", spacing or a leading "The", the scoreboard sheet's own spelling
+# is kept, so a capitalisation fixed in the sheet shows on the site.
 import difflib
 SP=json.load(open('songsel_byweek.json'))
-def norm(t): return re.sub(r'[^a-z0-9]+',' ',t.lower().replace(' and ',' & ')).strip()
+def norm(t): return re.sub(r'^the ','',re.sub(r'[^a-z0-9]+',' ',t.lower().replace(' and ',' & ')).strip())
 FIXED=collections.Counter()
 def fixsong(wk,song):
     if not song or song=='n/a': return song
     cands=SP.get(str(wk),[]); clean=re.sub(r'\s+',' ',song).strip()
     for c in cands:
-        if norm(c)==norm(clean): 
-            if c!=song: FIXED[(song,c)]+=1
-            return c
+        if norm(c)==norm(clean): return clean
     best=difflib.get_close_matches(norm(clean),[norm(c) for c in cands],1,0.88)
     if best:
         c=[c for c in cands if norm(c)==best[0]][0]; FIXED[(song,c)]+=1; return c
