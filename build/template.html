@@ -223,6 +223,13 @@ button.clear:hover{border-color:var(--accent)}
 .brow.inactive{--c:#4a5163 !important}
 .brow.inactive .val,.brow.inactive .rk{color:var(--dim)}
 .brow.inactive .fill::after{background:#7a8296;box-shadow:none}
+#view-songs .bdiff .brow.notag{grid-template-columns:1.6em minmax(90px,16em) 7.6em minmax(40px,1fr) auto;border-radius:6px;padding:1px 4px 1px 6px;margin-left:-6px;transition:background .15s,box-shadow .15s}
+.bdiff .btag{font:700 .58rem var(--f-display);letter-spacing:.06em;text-transform:uppercase;white-space:nowrap;justify-self:start;padding:2px 6px;border-radius:999px;border:1px solid var(--tc);color:var(--tc);cursor:help}
+.bdiff .btag:empty{border:0;padding:0}
+.bdiff .brow.hostfav{--tc:var(--s-yellow);background:linear-gradient(90deg,color-mix(in srgb,var(--tc) 13%,transparent),transparent 70%);box-shadow:inset 3px 0 var(--tc)}
+.bdiff .brow.crowdfav{--tc:var(--s-purple);background:linear-gradient(90deg,color-mix(in srgb,var(--tc) 13%,transparent),transparent 70%);box-shadow:inset 3px 0 var(--tc)}
+.bdiff .brow.xhl{background:color-mix(in srgb,var(--accent) 16%,transparent);box-shadow:0 0 0 1px var(--accent)}
+@media (max-width:640px){#view-songs .bdiff .brow.notag{grid-template-columns:1.6em minmax(60px,1fr) auto minmax(30px,4em) auto}#view-songs .bdiff .btag:not(:empty){font-size:0;padding:0;width:9px;height:9px;border-radius:50%;background:var(--tc)}}
 .brow.notag{grid-template-columns:1.6em minmax(70px,9em) 1fr auto}
 #b-mostwins .brow{grid-template-columns:1.6em minmax(90px,1.4fr) 6em minmax(50px,1fr) 3.5em}
 #b-wins .brow{grid-template-columns:1.6em minmax(90px,1.4fr) 6em minmax(50px,1fr) 3.8em}
@@ -2686,6 +2693,22 @@ let sPath=-1, songCards=[], bandName=null, bandTier=null, bandPathF=null, bandSo
 // one level filter for the whole Songs page: Most played, Most replayed and Band lookup always share it
 function setSongLv(t){lvlPlayed=lvlReplay=bandTier=t||null; bandTierAvg=false}
 function songLvToggle(t){setSongLv(t&&lvlPlayed!==t?t:null); renderSongs(); if(typeof updateBubble==="function")updateBubble()}
+// Most featured vs Most played bands: bands in only one of the two top 20s get a tag (Host favourite: picked often,
+// played less; Crowd favourite: played a lot for how often it's picked); hovering a band lights it up in the other list
+function bandDiff(){
+  const F=$("b-featured"), P=$("b-playedbands"); if(!F||!P)return;
+  const names=el=>new Set([...el.querySelectorAll(".brow .nm")].map(e=>e.textContent.toLowerCase()));
+  const fs=names(F), ps=names(P);
+  const mark=(el,other,cls,label,tip)=>el.querySelectorAll(".brow").forEach(r=>{const nm=r.querySelector(".nm"); const k=nm.textContent.toLowerCase(); r.dataset.band=k;
+    const only=!other.has(k); r.classList.toggle("uniq",only); r.classList.toggle(cls,only);
+    nm.insertAdjacentHTML("afterend",only?`<span class="btag" data-tip="${tip}">${label}</span>`:`<span class="btag"></span>`)});
+  F.classList.add("bdiff"); P.classList.add("bdiff");
+  mark(F,ps,"hostfav","Host favourite","Featured often, but not in the top 20 most played bands");
+  mark(P,fs,"crowdfav","Crowd favourite","Played a lot, but not in the top 20 most featured bands");
+}
+{const hl=(e,on)=>{const r=e.target.closest(".bdiff .brow"); if(!r)return; const other=r.closest("#b-featured")?$("b-playedbands"):$("b-featured");
+  other.querySelectorAll(".brow").forEach(x=>x.classList.toggle("xhl",on&&x.dataset.band===r.dataset.band)); r.classList.toggle("xhl",on&&!!other.querySelector(`.brow[data-band="${CSS.escape(r.dataset.band)}"]`))};
+ document.addEventListener("mouseover",e=>hl(e,true)); document.addEventListener("mouseout",e=>hl(e,false));}
 function renderSongs(){
   TIER_LABEL.G=sPath<0?"God tier":["God of Guitar","God of Rhythm","God of Bass"][sPath];
   document.querySelectorAll("#spath button").forEach(b=>b.setAttribute("aria-pressed",+b.dataset.sp===sPath));
@@ -2728,6 +2751,7 @@ function renderSongs(){
   $("b-featured").innerHTML=barRows(featured,(n,i)=>STR[i%6],"",false);
   const played=Object.entries(bands).map(([a,v])=>[a,v.reduce((s,c)=>s+(c.n||0),0)]).filter(x=>x[1]>0).sort((a,b)=>b[1]-a[1]).slice(0,20);
   $("b-playedbands").innerHTML=barRows(played,(n,i)=>STR[(i+2)%6],"",false);
+  bandDiff();
   // Bands by difficulty: each song is placed once per arrangement (Lead, Rhythm, Bass, or a bonus/alternate one), by its
   // current average rating (host initial ratings and player ratings, as in its rating box); unrated songs keep their level
   {const seen=new Set(); cards.forEach(c=>{const k=c.code+"|"+acctSongKey(c.song); if(seen.has(k))return; seen.add(k); c.first=true});}
