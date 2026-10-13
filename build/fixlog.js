@@ -18,7 +18,9 @@ const { out } = typoScan();
 const now = {};
 for (const [k, list] of Object.entries(out)) for (const x of list) {
   let key, e;
-  if (x.forms) {
+  if (k === "ssl") {
+    key = [k, x.w, x.sb].join("|"); e = { k, w: x.w, t: `scoreboard “${x.sb}”` + (x.ssl ? ` vs Songs Played “${x.ssl}”` : " (wasn't in Songs Played)") };
+  } else if (x.forms) {
     const t = x.forms.map(f => `“${f.t}”`).join(" vs ");
     key = k + "|" + x.forms.map(f => f.t).sort().join("|"); e = { k, t };
   } else {

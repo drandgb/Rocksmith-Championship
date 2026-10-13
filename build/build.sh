@@ -19,6 +19,7 @@ else
 fi
 cd work
 python3 build_weeks.py
+python3 build_songsel.py
 python3 parse_weeks.py
 python3 build_sb.py
 python3 build_links.py
