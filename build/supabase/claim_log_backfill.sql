@@ -1,6 +1,5 @@
 -- Claims log: add the claims that were approved before the log existed (Admin → Claims log).
--- The approval date of those wasn't recorded, so each is listed on the date the player made the claim, marked
--- "approved before the log started". Safe to run more than once: claims already in the log are skipped.
+-- The approval date of those wasn't recorded, so each is listed as approved on the day the player made the claim. Safe to run more than once: claims already in the log are skipped.
 -- Run this once in Supabase → SQL Editor, after claim_log.sql.
 insert into public.claim_log (at, admin_id, admin_player, player, action)
 select c.created_at, null, null, c.player, 'approved_before_log'
