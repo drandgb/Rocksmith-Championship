@@ -2062,7 +2062,7 @@ function showView(v){
   if(v==="hosting"){renderUpcoming(); if(!logScrolled)requestAnimationFrame(scrollLogToCurrent)}
 }
 document.querySelector(".tabs").addEventListener("click",e=>{const b=e.target.closest("button[data-view]");if(b)showView(b.dataset.view)});
-{const H={"#thisweek":"thisweek","#rankings":"rankings","#hosts":"hosting","#players":"players","#winners":"winners","#scoreboard":"scores","#songs":"songs"};let v=H[location.hash]||null; showView(["thisweek","rankings","hosting","scores","winners","songs","players"].includes(v)?v:"thisweek");}
+{const H={"#thisweek":"thisweek","#rankings":"rankings","#hosts":"hosting","#players":"players","#winners":"winners","#scoreboard":"scores","#songs":"songs"};let v=H[location.hash.split("/")[0]]||null; showView(["thisweek","rankings","hosting","scores","winners","songs","players"].includes(v)?v:"thisweek");}
 const SB=__SCORES__;
 // ---------- win rates & rank-ups (from scoreboards, weeks 440+) ----------
 const WR=__WINS__;
@@ -4093,6 +4093,70 @@ if(SUPA_URL&&SUPA_KEY&&/(^|\.)github\.io$|^localhost$|^127\.0\.0\.1$/.test(locat
   s.onload=()=>{ACCT.sb=window.supabase.createClient(SUPA_URL,SUPA_KEY); ACCT.on=true; acctRefresh();
     ACCT.sb.auth.onAuthStateChange((ev)=>{if(ev==="SIGNED_IN"||ev==="SIGNED_OUT")acctRefresh()})};
   document.head.appendChild(s);
+}
+
+// ---------- browser history: Back and Forward move between tabs, lookups and weeks ----------
+// Each tab switch, lookup, Scoreboard or This Week week, and opening the profile window becomes a step in the browser's
+// history, with the scroll position kept, and the address shows where you are (e.g. #players/Mikson) so it can be shared.
+if(!/[?&](banner|mlpre)\b/.test(location.search)&&history.pushState){
+  const NAV={p:null,w:null,h:null,restoring:false,ready:false,t:null,y:scrollY,pendingBack:false};
+  try{history.scrollRestoration="manual"}catch(e){}
+  const _sp=showPlayer,_sw=showWinner,_sh=showHost,_sb=showBand,_sv=showView,_sr=sbRender,_tw=renderThisWeek;
+  const soon=()=>{if(NAV.restoring||!NAV.ready)return; clearTimeout(NAV.t); NAV.t=setTimeout(commit,0)};
+  showPlayer=function(n){const r=_sp.apply(this,arguments); if(!NAV.restoring)NAV.p=n; soon(); return r};
+  showWinner=function(n){const r=_sw.apply(this,arguments); if(!NAV.restoring)NAV.w=n; soon(); return r};
+  showHost=function(n){const r=_sh.apply(this,arguments); if(!NAV.restoring)NAV.h=n; soon(); return r};
+  showBand=function(){const r=_sb.apply(this,arguments); soon(); return r};
+  showView=function(){const r=_sv.apply(this,arguments); soon(); return r};
+  sbRender=function(){const r=_sr.apply(this,arguments); soon(); return r};
+  renderThisWeek=function(){const r=_tw.apply(this,arguments); soon(); return r};
+  const HASH={thisweek:"thisweek",rankings:"rankings",hosting:"hosts",players:"players",winners:"winners",scores:"scoreboard",songs:"songs"};
+  const state=()=>{const v=curView(), st={v};
+    if(v==="players"&&NAV.p)st.p=NAV.p; if(v==="winners"&&NAV.w)st.w=NAV.w; if(v==="hosting"&&NAV.h)st.h=NAV.h;
+    if(v==="songs"&&bandName)st.b=bandName; if(v==="scores")st.sb=sbWeek; if(v==="thisweek"&&twWeek!==TW_MAX)st.tw=twWeek;
+    st.k=JSON.stringify([st.v,st.p,st.w,st.h,st.b,st.sb,st.tw]); return st};
+  const hashOf=st=>{const sub=st.p||st.w||st.h||st.b||st.sb||st.tw; return "#"+HASH[st.v]+(sub!=null?"/"+encodeURIComponent(sub):"")};
+  // where you were just before a click or change (a click handler may scroll the page straight away)
+  addEventListener("click",()=>{NAV.y=scrollY},true); addEventListener("change",()=>{NAV.y=scrollY},true);
+  let sct=null; addEventListener("scroll",()=>{clearTimeout(sct); sct=setTimeout(()=>{NAV.y=scrollY},150)},{passive:true});
+  function commit(){
+    if(NAV.pendingBack){NAV.t=setTimeout(commit,30);return}
+    const st=state(), old=history.state||{}; if(old.k===st.k&&!old.dlg)return;
+    try{history.replaceState({...old,y:NAV.y},""); history.pushState({...st,y:0},"",hashOf(st))}catch(e){} // some embedded previews don't allow it
+  }
+  function restore(st){
+    NAV.restoring=true;
+    try{
+      if(st.sb!=null&&SB.weeks[st.sb])sbWeek=st.sb;
+      twWeek=st.tw!=null?st.tw:TW_MAX;
+      if(st.p&&st.p!==NAV.p&&byName[st.p]){_sp(st.p);NAV.p=st.p}
+      if(st.w&&st.w!==NAV.w){wPicked=true;_sw(st.w);NAV.w=st.w}
+      if(st.h&&st.h!==NAV.h&&typeof hosts!=="undefined"&&hosts[st.h]){_sh(st.h);NAV.h=st.h}
+      if(st.b&&st.b!==bandName)_sb(st.b);
+      if(curView()!==st.v)_sv(st.v); else if(st.v==="thisweek")_tw();
+      if(st.v==="scores")_sr();
+    }finally{NAV.restoring=false}
+    const y=st.y||0; NAV.y=y; scrollTo(0,y); requestAnimationFrame(()=>scrollTo(0,y)); setTimeout(()=>scrollTo(0,y),80);
+  }
+  addEventListener("popstate",e=>{
+    let st=e.state;
+    if(!st){const m=/^#([a-z]+)(?:\/(.+))?$/.exec(location.hash); st=m?hashState(m):null; if(!st)return; st.y=0; restore(st); history.replaceState({...state(),y:0},""); return}
+    if(NAV.pendingBack){NAV.pendingBack=false; return} // the profile window closed itself: stay where you are
+    if($("acct").open&&!st.dlg){NAV.closing=true; $("acct").close(); NAV.closing=false}
+    if(!st.dlg)restore(st);
+  });
+  // the profile window: Back closes it (handy on phones); closing it any other way takes its step back off
+  $("acctbtn").addEventListener("click",()=>{const old=history.state||{}; if(!old.dlg){history.replaceState({...old,y:scrollY},""); history.pushState({...old,dlg:1},"")}});
+  $("acct").addEventListener("close",()=>{if(!NAV.closing&&history.state&&history.state.dlg){NAV.pendingBack=true; history.back()}});
+  // a shared link to a lookup or week (#players/Mikson, #scoreboard/676, ...)
+  function hashState(m){let sub=null; try{sub=m[2]!=null?decodeURIComponent(m[2]):null}catch(e){}
+    const V={hosts:"hosting",players:"players",winners:"winners",songs:"songs",scoreboard:"scores",thisweek:"thisweek",rankings:"rankings"}[m[1]]; if(!V)return null;
+    const st={v:V}; if(sub!=null){if(V==="players")st.p=sub; else if(V==="winners")st.w=sub; else if(V==="hosting")st.h=sub; else if(V==="songs")st.b=sub;
+      else if(V==="scores"&&SB.weeks[+sub])st.sb=+sub; else if(V==="thisweek"&&+sub>0&&+sub<=TW_MAX)st.tw=+sub}
+    return st}
+  {const m=/^#([a-z]+)\/(.+)$/.exec(location.hash); const st=m&&hashState(m); if(st)restore(st)}
+  try{const st=state(); history.replaceState({...st,y:scrollY},"",location.hash?hashOf(st):location.pathname+location.search)}catch(e){}
+  NAV.ready=true;
 }
 
 // ?banner=NAME: just that player's banner at the top left (build/banners.py screenshots it)
