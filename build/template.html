@@ -3911,7 +3911,7 @@ function claimLogSection(){
   const L=ACCT.claimLog;
   const rows=(L||[]).map(x=>{const d=new Date(x.at), when=d.toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"})+" "+d.toLocaleTimeString("en-US",{hour:"numeric",minute:"2-digit"});
     const what={approved:"approved the claim for",rejected:"rejected the claim for",removed:"removed the approved claim for"}[x.action]||esc(x.action)+" the claim for";
-    if(x.action==="approved_before_log")return `<li><span><small>${esc(d.toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"}))}</small> · An admin approved the claim for <b>${esc(x.player)}</b></span></li>`;
+    if(x.action==="approved_before_log")return `<li><span><small>${esc(d.toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"}))}</small> · <b>${esc(x.player)}</b> claimed their profile, approved the same day</span></li>`;
     return `<li><span><small>${esc(when)}</small> · <b>${esc(x.admin_player||"an admin")}</b> ${what} <b>${esc(x.player)}</b></span></li>`}).join("");
   return `<div class="adm acctsec" id="admclaimlog"><h3>Claims log</h3>${L==null?`<p class="dim">The log isn't set up yet (run claim_log.sql in Supabase).</p>`:rows?`<ul class="ratelog">${rows}</ul>`:`<p class="dim">No claims approved or removed since the log started.</p>`}</div>`;
 }
