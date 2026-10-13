@@ -3335,6 +3335,8 @@ function twMedals(n,w,live){
     if(from.length)t+=` · ${from.length===1?"from":"from:"} ${list(from)}`;
     m.dataset.tip=t+` · +${k} this week${tot?` (${tot} all time)`:""}`};
   const grab=(html,kind)=>{box.innerHTML=html; box.querySelectorAll(".medal-m").forEach(m=>{if(isNew(m)){thisWeekOnly(m);m.removeAttribute("data-hl");m.style.cursor="";m.dataset.mk=kind;m.dataset.mn=n;out.push(m.outerHTML)}})};
+  // host medals come first, before the player and win medals
+  if(hosts[n])grab(hostMedals(n),"host");
   let p=byName[n];
   if(live){ // provisional: this week's attendance added to the player's history
     const pad="0".repeat(Math.max(0,w-1-DATA_WEEK)), bits=(twBits[n]||"")+pad+"1";
@@ -3345,7 +3347,6 @@ function twMedals(n,w,live){
     if(p&&p[2]>=w)grab(medalsFor(p),"player");
     if((twPlayed(n,w)||twOnBoard(n,w))&&/Win medals/.test(allMedalsHtml(n))){box.innerHTML=allMedalsHtml(n); const ms=[...box.children]; let sec=""; const win=[]; ms.forEach(el=>{if(el.classList.contains("ms"))sec=el.textContent;else if(/Win/.test(sec))win.push(el.outerHTML)}); grab(win.join(""),"win")}
   }
-  if(hosts[n])grab(hostMedals(n),"host");
   return twMedalCache[k]=out;
 }
 // red banner on This Week while next week has no host in the sheet and nobody has signed up
