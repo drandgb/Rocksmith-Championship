@@ -3868,7 +3868,7 @@ function typoSection(){
     ["band","Band name capitalisation","The same band written differently",x=>forms(x)],
     ["song","Song title capitalisation","The same song written differently",x=>forms(x)],
     ["player","Player name capitalisation","The same player written differently",x=>forms(x)],
-    ["ssl","Differs from Songs Played",sslNote(),x=>`<span class="tylink" data-sbw="${x.w}" title="Open on the Scoreboard">Week ${x.w}</span> · scoreboard “${esc(x.sb)}” · ${x.ssl?`Songs Played “${esc(x.ssl)}”`:"not in Songs Played for that week"}${x.why==="typo"?' <small class="dim">(different spelling)</small>':""}`]];
+    ["ssl","Differs from Songs Played",sslNote(),x=>`<span class="tylink" data-sbw="${x.w}" title="Open on the Scoreboard">Week ${x.w}</span> · scoreboard “${esc(x.sb)}” · ${x.ssl?`Songs Played “${esc(x.ssl)}”`:"not in Songs Played for that week"}${x.why==="typo"?' <small class="dim">(different spelling)</small>':x.why==="space"?' <small class="dim">(extra spaces or a line break in Songs Played)</small>':""}`]];
   const total=G.reduce((s,g)=>s+out[g[0]].length,0);
   return `<div class="adm acctsec typos"><h3>Scoreboard checks</h3><p class="dim">Likely typos in the scoreboard sheet, every week since 440. Click a week to open it on the Scoreboard; fix it in the sheet and it disappears after the next site update. <b>New</b> marks issues in the newest week (${NEW}).</p>
     ${total?G.map(([k,t,d,f])=>{const L=out[k].slice().sort((a,b)=>(isNew(b)-isNew(a))||b.w-a.w), nn=L.filter(isNew).length; if(!L.length)return "";

@@ -36,7 +36,7 @@ def fixsong(wk,song):
     if any(nb(c)==nb(clean) for c in cands) and not any(norm(c)==norm(clean) for c in cands): return clean
     for c in cands:
         if norm(c)==norm(clean):
-            if c!=clean: SSLDIFF.append({'w':int(wk),'sb':clean,'ssl':c,'why':'case'})
+            if c!=clean: SSLDIFF.append({'w':int(wk),'sb':clean,'ssl':c,'why':'space' if re.sub(r'\s+',' ',c).strip()==clean else 'case'})
             return clean
     best=difflib.get_close_matches(norm(clean),[norm(c) for c in cands],1,0.88)
     if best:
