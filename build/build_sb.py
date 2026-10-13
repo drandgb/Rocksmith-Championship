@@ -1,4 +1,4 @@
-import json,collections,openpyxl,re
+import json,collections,openpyxl,re,os
 ALIAS={'AndreCardoso':'ALSRC','BetterCallJamie':'FlatCap Jay','jasmith85':'FlatCap Jay','aand14':'drand','mattimatti':'mattibassi','Tinman86':'TinMan86'}
 DROP={'#REF!','Player Name'}
 raw=json.load(open('scores_raw.json'))
@@ -26,14 +26,23 @@ import difflib
 SP=json.load(open('songsel_byweek.json'))
 def norm(t): return re.sub(r'^the ','',re.sub(r'[^a-z0-9]+',' ',t.lower().replace(' and ',' & ')).strip())
 FIXED=collections.Counter()
+SSLDIFF=[]   # scoreboard song names that differ from Songs Played (shown in the Admin tab's scoreboard checks)
 def fixsong(wk,song):
     if not song or song=='n/a': return song
     cands=SP.get(str(wk),[]); clean=re.sub(r'\s+',' ',song).strip()
+    if not cands or clean.lower() in ('na','n/a','-'): return clean
+    # a note in brackets after the title (e.g. "(Bass)") is only shown on the scoreboard, so it isn't a difference
+    nb=lambda t: norm(re.sub(r'\s*\([^)]*\)\s*$','',t))
+    if any(nb(c)==nb(clean) for c in cands) and not any(norm(c)==norm(clean) for c in cands): return clean
     for c in cands:
-        if norm(c)==norm(clean): return clean
+        if norm(c)==norm(clean):
+            if c!=clean: SSLDIFF.append({'w':int(wk),'sb':clean,'ssl':c,'why':'case'})
+            return clean
     best=difflib.get_close_matches(norm(clean),[norm(c) for c in cands],1,0.88)
     if best:
-        c=[c for c in cands if norm(c)==best[0]][0]; FIXED[(song,c)]+=1; return c
+        c=[c for c in cands if norm(c)==best[0]][0]; FIXED[(song,c)]+=1
+        SSLDIFF.append({'w':int(wk),'sb':clean,'ssl':c,'why':'typo'}); return c
+    SSLDIFF.append({'w':int(wk),'sb':clean,'ssl':None,'why':'missing'})
     return clean
 weeks={}
 for wk,ch in raw.items():
@@ -77,7 +86,12 @@ for wk,out in weeks.items():
     for c in out:
         if is_god(c[2]) and c[3] and c[3]!='n/a' and gkey(c) in nxt: c.append(1); CONT+=1
 print('God cards that continue into the next week:',CONT)
-json.dump({"names":names,"aka":aka,"weeks":weeks},open('scores.json','w'),separators=(',',':'))
+_seen=set(); _ssl=[]
+for x in SSLDIFF:
+    k=(x['w'],x['sb'])
+    if k not in _seen: _seen.add(k); _ssl.append(x)
+_info=json.load(open('cache/songsel_info.json')) if os.path.exists('cache/songsel_info.json') else {}
+json.dump({"names":names,"aka":aka,"weeks":weeks,"ssl":{"diff":_ssl,**_info}},open('scores.json','w'),separators=(',',':'))
 N=names
 LV='BIAM'
 def lvl(l):

@@ -3826,7 +3826,7 @@ const ZERO_FROM=650;
 function typoScan(){
   if(TYPO_CACHE)return TYPO_CACHE;
   const nm=i=>SB.names[i].replace(/[*~]+$/,""), weeks=Object.keys(SB.weeks).map(Number).sort((a,b)=>a-b), NEW=weeks[weeks.length-1];
-  const out={zero:[],nopct:[],dup:[],order:[],band:[],song:[],player:[]};
+  const out={zero:[],nopct:[],dup:[],order:[],band:[],song:[],player:[],ssl:[]};
   // a 0 score is probably a typo, unless the player puts 0 on most of their entries (some always do)
   const sc={}; weeks.forEach(w=>SB.weeks[w].forEach(c=>c[6].forEach(e=>{const n=nm(e[0]).toLowerCase(), x=sc[n]=sc[n]||[0,0]; x[1]++; if(e[3]===0)x[0]++})));
   const usual=n=>{const x=sc[n.toLowerCase()]; return !(x&&x[0]/x[1]>=.5)};
@@ -3849,10 +3849,13 @@ function typoScan(){
   const pn={}; SB.names.forEach(x=>{const n=x.replace(/[*~]+$/,""); (pn[n.toLowerCase()]=pn[n.toLowerCase()]||new Set()).add(n)});
   Object.values(pn).forEach(set=>{if(set.size>1){const ws=[]; weeks.forEach(w=>SB.weeks[w].forEach(c=>c[6].forEach(e=>{if(set.has(nm(e[0])))ws.push(w)})));
     out.player.push({w:Math.max(...ws),forms:[...set].map(t=>({t,n:0,last:0}))})}});
+  // scoreboard song names that don't match the Songs Played sheet for the same week (found by the site update)
+  ((SB.ssl&&SB.ssl.diff)||[]).forEach(x=>out.ssl.push({w:x.w,sb:x.sb,ssl:x.ssl,why:x.why}));
   const isNew=x=>x.w===NEW||(x.forms&&x.forms.some(f=>f.last===NEW));
   const nNew=Object.values(out).flat().filter(isNew).length;
   return TYPO_CACHE={out,NEW,nNew,isNew};
 }
+function sslNote(){const i=SB.ssl||{}; return `The song names in the scoreboard and the Song Selection List's Songs Played sheet don't match`+(i.live?"":i.from?` (Songs Played as read on ${new Date(i.from).toLocaleDateString()})`:` (Songs Played copy up to week ${i.last||"?"}; the site couldn't read the live sheet)`)}
 function typoSection(){
   const {out,NEW,isNew}=typoScan();
   const card=x=>`<span class="tylink" data-sbw="${x.w}" data-sbp="${x.p}" data-sbn="${esc(x.n||"")}" title="Open on the Scoreboard">Week ${x.w} · ${PATHS[x.p]} ${esc(x.lv)}</span>`;
@@ -3864,7 +3867,8 @@ function typoSection(){
     ["order","Rows out of order","A higher % listed below a lower one",x=>`${card(x)} · <b>${esc(x.n)}</b> · ${esc(x.note)}`],
     ["band","Band name capitalisation","The same band written differently",x=>forms(x)],
     ["song","Song title capitalisation","The same song written differently",x=>forms(x)],
-    ["player","Player name capitalisation","The same player written differently",x=>forms(x)]];
+    ["player","Player name capitalisation","The same player written differently",x=>forms(x)],
+    ["ssl","Differs from Songs Played",sslNote(),x=>`<span class="tylink" data-sbw="${x.w}" title="Open on the Scoreboard">Week ${x.w}</span> · scoreboard “${esc(x.sb)}” · ${x.ssl?`Songs Played “${esc(x.ssl)}”`:"not in Songs Played for that week"}${x.why==="typo"?' <small class="dim">(different spelling)</small>':""}`]];
   const total=G.reduce((s,g)=>s+out[g[0]].length,0);
   return `<div class="adm acctsec typos"><h3>Scoreboard checks</h3><p class="dim">Likely typos in the scoreboard sheet, every week since 440. Click a week to open it on the Scoreboard; fix it in the sheet and it disappears after the next site update. <b>New</b> marks issues in the newest week (${NEW}).</p>
     ${total?G.map(([k,t,d,f])=>{const L=out[k].slice().sort((a,b)=>(isNew(b)-isNew(a))||b.w-a.w), nn=L.filter(isNew).length; if(!L.length)return "";
@@ -3873,8 +3877,8 @@ function typoSection(){
 // ---------- Admin: scoreboard fix log (issues from the scoreboard checks that went away, found by each site update) ----------
 var FIXLOG=[]/*FIXLOG*/;
 function fixLogSection(){
-  const kinds={zero:"Score of 0",nopct:"Missing %",dup:"Same player twice",order:"Row out of order",band:"Band name",song:"Song title",player:"Player name"};
-  const rows=FIXLOG.slice().reverse().slice(0,60).map(f=>`<li><small>${new Date(f.d).toLocaleDateString()}</small> · ${kinds[f.k]||f.k} · ${f.w?`<span class="tylink" data-sbw="${f.w}" data-sbp="${f.p}" data-sbn="${esc(f.n||"")}" title="Open on the Scoreboard">Week ${f.w} · ${PATHS[f.p]} ${esc(f.lv)}</span> · `:""}${esc(f.t)}</li>`).join("");
+  const kinds={zero:"Score of 0",nopct:"Missing %",dup:"Same player twice",order:"Row out of order",band:"Band name",song:"Song title",player:"Player name",ssl:"Differs from Songs Played"};
+  const rows=FIXLOG.slice().reverse().slice(0,60).map(f=>`<li><small>${new Date(f.d).toLocaleDateString()}</small> · ${kinds[f.k]||f.k} · ${f.w?`<span class="tylink" data-sbw="${f.w}"${f.p!=null?` data-sbp="${f.p}" data-sbn="${esc(f.n||"")}"`:""} title="Open on the Scoreboard">Week ${f.w}${f.p!=null?` · ${PATHS[f.p]} ${esc(f.lv)}`:""}</span> · `:""}${esc(f.t)}</li>`).join("");
   return `<div class="adm acctsec fixlog"><h3>Scoreboard fix log</h3><p class="dim">Scoreboard check issues that were fixed in the sheet, newest first. Each site update compares the checks with the previous update.</p>${rows?`<ul class="ratelog">${rows}</ul>`:`<p class="dim">Nothing fixed since the log started.</p>`}</div>`;
 }
 // removing an approved claim: choose whether their ratings stay shown, and whether a new account claiming the same
