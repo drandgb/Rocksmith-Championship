@@ -657,6 +657,8 @@ button.clear.sblatest:hover{background:var(--accent);color:var(--accent-ink)}
 #view-songs .brow.notag{grid-template-columns:1.6em minmax(90px,16em) minmax(40px,1fr) auto}
 #spath button{padding:10px 20px;font-size:.9rem}
 #spath .s-all[aria-pressed="true"]{background:var(--accent)}
+.bpmode button{padding:5px 10px;font-size:.7rem}
+.bpmode button[aria-pressed="true"]{background:var(--accent)}
 .tiers5{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:14px}
 @media (max-width:900px){.tiers5{grid-template-columns:repeat(auto-fit,minmax(180px,1fr))}}
 .tcol{border-top:3px solid var(--tc);background:linear-gradient(180deg,color-mix(in srgb,var(--tc) 10%,transparent),transparent 60%);border-radius:8px;padding:10px 10px 6px;min-width:0}
@@ -1393,7 +1395,7 @@ footer{color:var(--dim);font-size:.78rem}
       <div class="bars" id="b-featured"></div>
     </section>
     <section class="panel">
-      <div class="panel-head"><h2>Most played bands</h2><span class="sub">Top 20 · scores posted on their songs since week 440</span></div>
+      <div class="panel-head"><h2>Most played bands</h2><div class="seg bpmode" role="radiogroup" aria-label="Total or per challenge" id="bpmode"><button type="button" data-bp="0" aria-pressed="true">Total</button><button type="button" data-bp="1" aria-pressed="false">Per challenge</button></div><span class="sub" id="bpsub">Top 20 · scores posted on their songs since week 440</span></div>
       <div class="bars" id="b-playedbands"></div>
     </section>
   </div>
@@ -1703,7 +1705,7 @@ function barRows(list,color,unit="",tags=true){
   return list.map(([n,v],i)=>{
     const x=numOf(v), pct=Math.max(2,x/max*100);
     const c=typeof color==="function"?color(n,i):color;
-    return `<div class="brow${i<3?" top":""}${tags?"":" notag"}${tags&&!isActivePlayer(n)?" inactive":""}" style="--c:${c}"><span class="rk">${i+1}</span><span class="nm" data-player="${esc(n)}" title="${esc(n)}">${esc(n)}</span>${tags?`<span class="act">${actPill(n)}</span>`:""}<span class="track"><span class="fill" style="width:${pct}%;animation-delay:${i*30}ms"></span></span><span class="val">${x}${unit}</span></div>`;
+    return `<div class="brow${i<3?" top":""}${tags?"":" notag"}${tags&&!isActivePlayer(n)?" inactive":""}" style="--c:${c}"><span class="rk">${i+1}</span><span class="nm" data-player="${esc(n)}" title="${esc(n)}">${esc(n)}</span>${tags?`<span class="act">${actPill(n)}</span>`:""}<span class="track"><span class="fill" style="width:${pct}%;animation-delay:${i*30}ms"></span></span><span class="val">${typeof v==="string"&&/^\d+\.\d$/.test(v)?v:x}${unit}</span></div>`;
   }).join("");
 }
 const ACTIVE_PLAYER_WINDOW=52;
@@ -2701,6 +2703,8 @@ const IG_LATEST=(()=>{const m={}, norm=s=>String(s).toLowerCase().replace(/\s+/g
   return s=>m[norm(s)]})();
 const splitSong=t=>{const i=t.indexOf(" - ");return i>0?[t.slice(0,i).trim(),t.slice(i+3).trim()]:["Unknown",t.trim()]};
 let sHost=null; // Songs: only the weeks this host hosted (their song picks)
+let bandAvg=false; // Most played bands: false = total scores, true = average scores per challenge
+document.addEventListener("click",e=>{const b=e.target.closest("#bpmode button"); if(!b)return; bandAvg=b.dataset.bp==="1"; renderSongs()});
 let bandTierAvg=false; // band lookup level filter by the songs' average rating (opened from Bands by difficulty)
 let sPath=-1, songCards=[], bandName=null, bandTier=null, bandPathF=null, bandSong=null, lvlPlayed=null, lvlReplay=null;
 // one level filter for the whole Songs page: Most played, Most replayed and Band lookup always share it
@@ -2762,9 +2766,16 @@ function renderSongs(){
     <div><div class="k">Scores posted</div><div class="v num">${entries.toLocaleString()}</div><div class="n">Since week ${Math.min(...scored.map(c=>c.w))} · ${(entries/scored.length).toFixed(1)} per challenge</div></div>`;
   const featured=Object.entries(bands).map(([a,v])=>[a,v.length]).sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0])).slice(0,20);
   $("b-featured").innerHTML=barRows(featured,(n,i)=>STR[i%6],"",false);
-  const played=Object.entries(bands).map(([a,v])=>[a,v.reduce((s,c)=>s+(c.n||0),0)]).filter(x=>x[1]>0).sort((a,b)=>b[1]-a[1]).slice(0,20);
+  // Most played bands: total scores, or (toggle) the average scores per challenge for bands with at least BP_MIN challenges
+  const BP_MIN=sHost?1:5;
+  const played=bandAvg
+    ? Object.entries(bands).map(([a,v])=>{const sc=v.filter(c=>c.n!=null); return [a,sc.length>=BP_MIN?sc.reduce((s,c)=>s+c.n,0)/sc.length:0]}).filter(x=>x[1]>0).sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0])).slice(0,20).map(([a,x])=>[a,x.toFixed(1)])
+    : Object.entries(bands).map(([a,v])=>[a,v.reduce((s,c)=>s+(c.n||0),0)]).filter(x=>x[1]>0).sort((a,b)=>b[1]-a[1]).slice(0,20);
   $("b-playedbands").innerHTML=barRows(played,(n,i)=>STR[(i+2)%6],"",false);
-  bandDiff();
+  $("bpsub").textContent=bandAvg?`Top 20 · average scores per challenge since week 440 · bands with ${BP_MIN}+ challenge${BP_MIN===1?"":"s"} · overall average ${(entries/scored.length).toFixed(1)}`:"Top 20 · scores posted on their songs since week 440";
+  document.querySelectorAll("#bpmode button").forEach(b=>b.setAttribute("aria-pressed",(+b.dataset.bp===1)===bandAvg));
+  // the Host favourite / Crowd favourite tags compare the two top 20s by totals, so they're left out per challenge
+  if(bandAvg){$("b-featured").classList.remove("bdiff"); $("b-playedbands").classList.remove("bdiff")} else bandDiff();
   // Bands by difficulty: each song is placed once per arrangement (Lead, Rhythm, Bass, or a bonus/alternate one), by its
   // current average rating (host initial ratings and player ratings, as in its rating box); unrated songs keep their level
   {const seen=new Set(); cards.forEach(c=>{const k=c.code+"|"+acctSongKey(c.song); if(seen.has(k))return; seen.add(k); c.first=true});}
