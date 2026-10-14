@@ -3482,7 +3482,12 @@ function renderThisWeek(){
     // God challenge winners decided this week who didn't post a score this week (they posted earlier in the run)
     (SB.weeks[w]||[]).forEach(c=>c[6].forEach(e=>{const n=SB.names[e[0]].replace(/[*~]+$/,""); const real=PLAYERS.find(p=>p[0].toLowerCase()===n.toLowerCase()); if(real)cand.add(real[0])}))} if(W&&W[2]&&hosts[W[2]])cand.add(W[2]);
   const wHost=W&&W[2]&&W[2]!==LOST?W[2]:null; // the week's host comes first
-  const med=[...cand].map(n=>({n,m:twMedals(n,w,live&&set.has(n))})).filter(x=>x.m.length).sort((a,b)=>(b.n===wHost)-(a.n===wHost)||godRank(a.m)-godRank(b.m)||podNew(b.m,0)-podNew(a.m,0)||podNew(b.m,1)-podNew(a.m,1)||podNew(b.m,2)-podNew(a.m,2)||medalTotal(b.m)-medalTotal(a.m)||a.n.localeCompare(b.n));
+  // players with exactly the same kinds of medals sit together: within the same total, the most shared set first
+  // a medal's kind is the start of its hover text ("Played bass", "Gold medal", "Kintsugi gem"...)
+  const medSig=m=>m.map(h=>((/data-tip="([^"]*)"/.exec(h)||[])[1]||"").split(" · ")[0]).sort().join("|");
+  const med0=[...cand].map(n=>({n,m:twMedals(n,w,live&&set.has(n))})).filter(x=>x.m.length);
+  const sigN={}; med0.forEach(x=>{x.sig=medalTotal(x.m)+"#"+medSig(x.m); sigN[x.sig]=(sigN[x.sig]||0)+1});
+  const med=med0.sort((a,b)=>(b.n===wHost)-(a.n===wHost)||godRank(a.m)-godRank(b.m)||podNew(b.m,0)-podNew(a.m,0)||podNew(b.m,1)-podNew(a.m,1)||podNew(b.m,2)-podNew(a.m,2)||medalTotal(b.m)-medalTotal(a.m)||sigN[b.sig]-sigN[a.sig]||a.sig.localeCompare(b.sig)||a.n.localeCompare(b.n,undefined,{sensitivity:"base"}));
   // rival pairs for each path (mutual pairs shown once)
   const pairsFor=pi=>{const riv=SB.weeks[w]?rivalsOfWeek(w,pi):{}, pairs=[], done=new Set();
     const lvl=r=>"BIAM".indexOf(tierOf(r.best.c[2])||"M"); // Beginner first, then Intermediate, Advanced, Masterclass
