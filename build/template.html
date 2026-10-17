@@ -3974,7 +3974,7 @@ function adminsSection(){
   const isAd=new Set(A.map(a=>String(a.player||"").toLowerCase()));
   const cand=ACCT.claims.filter(c=>c.status==="approved"&&!isAd.has(c.player.toLowerCase())).map(c=>c.player).sort((a,b)=>a.localeCompare(b,undefined,{sensitivity:"base"}));
   const dt=t=>t?new Date(t).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"}):"";
-  return `<div class="adm acctsec"><h3>Admins</h3><p class="dim">Admins can approve and remove claims, give ratings for players, sign anyone up to host and see the logs. Any admin can add admins. Only the owner can remove other admins. Changes are listed in the Claims &amp; roles log.</p>
+  return `<div class="adm acctsec"><h3>Admins</h3><p class="dim">Admins can approve and remove claims, give ratings for players, sign anyone up to host and see the logs. Any admin can add admins. Changes are listed in the Claims &amp; roles log.</p>
     <ul>${A.map(a=>`<li><span><b>${esc(a.player||"(no claim)")}</b> <small class="dim">${[a.owner?"owner":"admin",a.is_me?"you":"",a.added_at?`since ${dt(a.added_at)}`:"",a.added_by?`added by ${esc(a.added_by)}`:""].filter(Boolean).join(" · ")}</small></span>${a.owner||!a.player||!(iOwn||a.is_me)?"<span></span>":`<button type="button" class="btn ghost" data-acct="adminrm" data-player="${esc(a.player)}">${a.is_me?"Step down":"Remove"}</button>`}</li>`).join("")}</ul>
     ${cand.length?`<div class="row" style="margin-top:8px"><select id="admadd"><option value="">Choose a player with an approved claim…</option>${cand.map(n=>`<option>${esc(n)}</option>`).join("")}</select><button type="button" class="btn" data-acct="adminadd">Make admin</button></div>`:""}</div>`;
 }
