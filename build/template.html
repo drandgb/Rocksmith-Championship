@@ -3960,6 +3960,7 @@ function claimLogSection(){
   const rows=(L||[]).map(x=>{const d=new Date(x.at), when=d.toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"})+" "+d.toLocaleTimeString("en-US",{hour:"numeric",minute:"2-digit"});
     const what={approved:"approved the claim for",rejected:"rejected the claim for",removed:"removed the approved claim for"}[x.action]||esc(x.action)+" the claim for";
     if(x.action==="approved_before_log")return `<li><span><small>${esc(d.toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"}))}</small> · <b>${esc(x.player)}</b> claimed their profile, approved${x.admin_player?` by <b>${esc(x.admin_player)}</b>`:""} the same day</span></li>`;
+    if(x.action==="unlinked")return `<li><span><small>${esc(when)}</small> · <b>${esc(x.player)}</b> unlinked their email (claim released, ratings and banner kept)</span></li>`;
     if(x.action==="admin_added"||x.action==="admin_removed")return `<li><span><small>${esc(when)}</small> · <b>${esc(x.admin_player||"an admin")}</b> ${x.action==="admin_added"?`made <b>${esc(x.player)}</b> an admin`:x.admin_player===x.player?"stepped down as an admin":`removed <b>${esc(x.player)}</b> as an admin`}</span></li>`;
     return `<li><span><small>${esc(when)}</small> · <b>${esc(x.admin_player||"an admin")}</b> ${what} <b>${esc(x.player)}</b></span></li>`}).join("");
   return `<div class="adm acctsec" id="admclaimlog"><h3>Claims log</h3>${L==null?`<p class="dim">The log isn't set up yet (run claim_log.sql in Supabase).</p>`:rows?`<ul class="ratelog">${rows}</ul>`:`<p class="dim">No claims approved or removed since the log started.</p>`}</div>`;
@@ -4247,7 +4248,8 @@ function acctDraw(msg,err){
     h+=`${ywAlert(n)}<div id="acct-tw">${acctThisWeek(n,"week")}</div>${ywList(n)}`}
   else if(ACCT.tab==="manage"){
     h+=`<div class="adm acctsec"><h3>Verification animal</h3>${animalNote()||`<p class="dim">You'll get a verification animal once you claim your player profile.</p>`}</div>
-      <div class="acctsec"><h3>Log out</h3><p class="dim">Log out of the site on this device.</p><div class="row"><button type="button" class="btn ghost" data-acct="logout">Log out</button></div></div>`}
+      <div class="acctsec"><h3>Log out</h3><p class="dim">Log out of the site on this device.</p><div class="row"><button type="button" class="btn ghost" data-acct="logout">Log out</button></div></div>
+      <div class="acctsec"><h3>Unlink your email</h3><p class="dim">Deletes your login, so your email is no longer on the site.${ACCT.claim&&ACCT.claim.status==="approved"?` Your claim on <b>${esc(ACCT.claim.player)}</b> is released: the ratings you gave stay on the site under your player name, your forum banner keeps working, and if you claim ${esc(ACCT.claim.player)} again later (from any email) your ratings come back to you.`:""}</p><div class="row"><button type="button" class="btn ghost" data-acct="unlink">Unlink my email</button></div></div>`}
   else if(!ACCT.claim){const taken=new Set(ACCT.claims.map(c=>c.player));
     const names=PLAYERS.map(p=>p[0]).filter(n=>!taken.has(n)).sort((a,c)=>a.localeCompare(c,undefined,{sensitivity:"base"}));
     h+=`<p>Which player are you? Pick your name to claim your profile. An admin checks each claim before you can rate songs: after you claim, an admin will message you to confirm it's really you.</p><select id="acctname"><option value="">Choose your player name…</option>${names.map(n=>`<option>${esc(n)}</option>`).join("")}</select><div class="row"><button type="button" class="btn" data-acct="claim">Claim this profile</button></div>`}
@@ -4286,6 +4288,10 @@ $("acctbody").addEventListener("click",async e=>{
       if(error){const r=await sb.auth.verifyOtp({email:em,token:code,type:"signup"}); error=r.error}
       if(error){acctDraw("",/expired|invalid/i.test(error.message)?"That code didn't work. It may have expired: ask for a new email and use the newest code.":error.message);return}
       ACCT.pendingEmail=""; await acctRefresh(); acctDraw(); return}
+    if(a==="unlink"){const n=ACCT.claim&&ACCT.claim.status==="approved"?ACCT.claim.player:null;
+      if(!confirm(`Unlink your email and delete your login?${n?` Your claim on ${n} is released; your ratings and banner stay.`:""} This can't be undone, but you can log in and claim again later.`))return;
+      const {error}=await sb.rpc("delete_my_login"); if(error){alert("Couldn't unlink: "+error.message);return}
+      ACCT.tab="me"; await sb.auth.signOut(); await acctRefresh(); acctDraw("Your email has been unlinked and your login deleted."); return}
     if(a==="logout"){ACCT.tab="me"; await sb.auth.signOut(); await acctRefresh(); acctDraw(); return}
     if(a==="claim"){const n=$("acctname").value; if(!n){acctDraw("","Pick your player name first.");return}
       const {error}=await sb.from("claims").insert({user_id:ACCT.user.id,player:n}); if(error){acctDraw("",/duplicate|unique/i.test(error.message)?"Someone already claimed that name. Message the admin if it's yours.":error.message);return}}
