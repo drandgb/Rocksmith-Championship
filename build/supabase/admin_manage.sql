@@ -1,5 +1,5 @@
--- Admins managed from the site (Admin → Admins), and players deleting their own login (Manage account → Unlink your email): any admin can make a player with an approved claim an admin, or
--- remove an admin, except the owner (drand), who can't be removed. Every change is written to the Claims log.
+-- Admins managed from the site (Admin → Admins), and players deleting their own login (Manage account → Unlink your email): any admin can make a player with an approved claim an admin;
+-- only the owner (drand) can remove other admins (any admin can step down), and the owner can't be removed. Every change is written to the Claims log.
 -- Also marks the older approvals in the Claims log (from claim_log_backfill.sql) as approved by drand, the only
 -- admin back then.
 -- Needs claim_log.sql first. Run this once in Supabase → SQL Editor.
@@ -43,6 +43,9 @@ begin
     insert into claim_log (admin_id, admin_player, player, action) values (auth.uid(), me, p_player, 'admin_added');
   else
     if exists (select 1 from admins where user_id = target and owner) then raise exception 'the owner can''t be removed'; end if;
+    -- only the owner removes other admins; any admin can step down themselves
+    if target <> auth.uid() and not exists (select 1 from admins where user_id = auth.uid() and owner) then
+      raise exception 'only the owner can remove other admins'; end if;
     delete from admins where user_id = target;
     if found then insert into claim_log (admin_id, admin_player, player, action) values (auth.uid(), me, p_player, 'admin_removed'); end if;
   end if;
