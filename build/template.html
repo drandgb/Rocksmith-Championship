@@ -465,6 +465,16 @@ a.dl svg,.offpill svg{width:11px;height:11px}
 .acctdlg .tylink{color:var(--accent);cursor:pointer;font-weight:600}
 .acctdlg .tytag{font:800 .6rem var(--f-display);letter-spacing:.06em;text-transform:uppercase;background:#f59e0b;color:#1a1204;border-radius:999px;padding:1px 6px;margin-right:6px}
 .acctdlg .ratelog{list-style:none;margin:0;padding:0;max-height:320px;overflow:auto}
+.ywalert{border:1px solid color-mix(in srgb,var(--s-red) 55%,transparent);background:color-mix(in srgb,var(--s-red) 9%,transparent);border-radius:10px;padding:10px 12px;margin:12px 0 14px}
+.ywalert h4{margin:0 0 6px;font:800 .78rem var(--f-display);letter-spacing:.08em;text-transform:uppercase;color:var(--s-red)}
+.ywsame summary{cursor:pointer;color:var(--muted);font-size:.84rem;padding:8px 0}
+.ywlink{color:var(--accent);cursor:pointer;text-decoration:underline;text-underline-offset:2px}
+.ywalert ul{margin:0;padding:0}.ywalert li{list-style:none;padding:4px 0;font-size:.86rem}.ywalert .dn{color:var(--s-red);font-weight:800}.ywalert small{color:var(--muted)}
+.ywl{list-style:none;margin:0;padding:0}.ywl li{padding:8px 0;border-bottom:1px solid var(--line)}
+.ywc{display:flex;align-items:baseline;gap:6px;flex-wrap:wrap}.ywc .song{color:var(--muted);font-size:.8rem}
+.yw .pt{display:inline-block;width:6px;height:6px;border-radius:50%;vertical-align:1px}
+.ywn{display:flex;gap:14px;flex-wrap:wrap;margin-top:3px;font-size:.86rem;padding-left:11px}
+.ywn .gain{color:var(--s-green);font-weight:800}.ywn .flat,.ywn .plc{color:var(--muted)}.ywn .plc b{font-weight:800}.yw .pup{color:var(--s-green)}.yw .pdn{color:var(--s-red)}
 .acctdlg .apprhead{display:flex;align-items:center;justify-content:space-between;gap:8px}
 .acctdlg .btn.small{padding:3px 10px;font-size:.78rem}
 .acctdlg .fixlog .tylink{cursor:pointer}
@@ -3975,7 +3985,39 @@ document.addEventListener("change",e=>{const s=e.target.closest("select[data-adm
 // redraw only the ratings section, keeping the popup's scroll position (no jump back to the top)
 function admRateRedraw(){const el=$("admrate"); if(!el){acctDraw();return}
   const dlg=$("acct"), top=dlg.scrollTop; el.outerHTML=adminRateSection(); dlg.scrollTop=top; requestAnimationFrame(()=>{dlg.scrollTop=top})}
-function acctThisWeek(n){
+// ---------- Your week: first score -> best score this week, and who passed you (weeklog.js, built at each update) ----------
+var WEEKLOG={}/*WEEKLOG*/;
+const ywKey=n=>"rsc-passed-seen-"+n.toLowerCase();
+function ywSeen(n){try{return +localStorage.getItem(ywKey(n))||0}catch(e){return 0}}
+// every time this player was passed this week and last week, newest first
+function ywPasses(n){const k=n.toLowerCase(), out=[]; Object.entries(WEEKLOG).forEach(([w,W])=>(W.ev||[]).forEach(e=>{if(e.n.toLowerCase()===k)out.push({...e,w:+w})}));
+  return out.sort((a,b)=>Date.parse(b.t)-Date.parse(a.t))}
+function ywUnseen(n){const s=ywSeen(n); return ywPasses(n).filter(e=>Date.parse(e.t)>s)}
+const ywOrd=i=>i+(["th","st","nd","rd"][(i%100-20)%10]||["th","st","nd","rd"][i%100]||"th");
+function ywAlert(n){
+  if(!ACCT.ywShown)ACCT.ywShown=ywUnseen(n);   // what's new since the last visit, kept while the popup is open
+  const L=ACCT.ywShown; if(!L.length)return "";
+  const day=t=>new Date(t).toLocaleDateString(undefined,{weekday:"short"});
+  const sc=(p,st,tie)=>`${p}%${tie?` (streak ${st})`:""}`;
+  return `<div class="ywalert"><h4>⚠ You've been passed · ${L.length} since your last visit</h4><ul>${L.map(e=>{const tie=e.bp===e.mp;
+    return `<li><span class="dn">${e.fp&&e.tp&&e.tp>e.fp?`#${e.fp} → #${e.tp}`:`${ywOrd(e.from)} → ${ywOrd(e.to)}`}</span> · ${PATHS[e.p]} ${esc(e.lv)} · <b>${esc(e.by)}</b> ${sc(e.bp,e.bs,tie)} passed your ${sc(e.mp,e.ms,tie)} <small>· ${day(e.t)}</small></li>`}).join("")}</ul></div>`;
+}
+function ywList(n){
+  const w=TW_MAX, W=WEEKLOG[w], k=n.toLowerCase(), cards={};
+  (SB.weeks[w]||[]).forEach(c=>cards[c[0]+"|"+c[1]]=c);
+  const rows=W?Object.entries(W.rec).filter(([key])=>key.split("|").slice(2).join("|").toLowerCase()===k).map(([key,[f,b]])=>{const [p,sl]=key.split("|"), c=cards[p+"|"+sl]; return c?{c,p:+p,f,b,d:+(b[0]-f[0]).toFixed(2)}:null}).filter(Boolean):[];
+  if(!rows.length)return `<div class="acctsec yw"><h3>Week ${w} <small>first score → best so far</small></h3><p class="dim">${W?"No scores from you this week yet.":"Your week's scores are recorded from now on: check back after your next score."}</p></div>`;
+  rows.sort((a,b)=>b.d-a.d||a.p-b.p||a.c[1]-b.c[1]);
+  // position on the card (#), as on the Scoreboard
+  const pos=(a,b)=>!a||a===b?`#${b}`:`#${a} → <b class="${b<a?"pup":"pdn"}">#${b}</b>`;
+  const li=r=>`<li><div class="ywc"><span class="pt" style="background:${PATH_C[r.p]}"></span><b>${PATHS[r.p]} ${esc(r.c[2])}</b><span class="song">${esc(r.c[3])}</span></div>
+    <div class="ywn"><span>${r.f[0]}% → <b>${r.b[0]}%</b></span><span class="${r.d>0?"gain":"flat"}">${r.d>0?"▲ +"+r.d.toFixed(2):"no change"}</span><span class="plc">${pos(r.f[4],r.b[4]||r.b[2])}</span></div></li>`;
+  const up=rows.filter(r=>r.d>0), same=rows.filter(r=>r.d<=0), best=up[0];
+  return `<div class="acctsec yw"><h3>Week ${w} <small>first score → best so far</small></h3>${up.length?`<ul class="ywl">${up.map(li).join("")}</ul>`:`<p class="dim">No improvements yet this week.</p>`}
+    ${same.length?`<details class="ywsame"><summary>No change on ${same.length} challenge${same.length===1?"":"s"}</summary><ul class="ywl">${same.map(li).join("")}</ul></details>`:""}
+    ${best?`<p class="dim" style="margin-top:6px">Biggest jump this week: <b>${PATHS[best.p]} ${esc(best.c[2])}</b>, +${best.d.toFixed(2)}${best.b[4]&&best.f[4]&&best.b[4]<best.f[4]?` and up to #${best.b[4]}`:""}.</p>`:""}</div>`;
+}
+function acctThisWeek(n,part){ part=part||ACCT.twPart||"me";
   const w=TW_MAX, key=n.toLowerCase(), cards=SB.weeks[w]||[];
   // scoreboard: every challenge this week, with their place and %; ones they haven't played yet are dimmed
   // their rank on each path (from the player list): challenges at that level are their ranked ones
@@ -3988,7 +4030,7 @@ function acctThisWeek(n){
     sb.push(`<li class="${me?"":"unpl"}${ranked?" myrank":""}" style="--pc:${PATH_C[c[0]]};--rc:${TIER_C[L]||"var(--fg)"}"${ranked?` data-tip="Your ranked challenge: you're ${TIER_NAME[L]} on ${PATHS[c[0]]}, so this one counts for Rodman's Rankings"`:""}><span class="ar1"><span class="apath">${PATHS[c[0]]}</span>${ranked?`<span class="rankedtag">RANKED</span>`:""}${L?`<span class="lvchip" style="--tc:${L==="G"?"var(--s-red)":TIER_C[L]}">${L==="G"?esc(c[2]):TIER_NAME[L]}</span>`:`<span class="lvchip">${esc(c[2])}</span>`}</span><span class="asong" data-sbw="${w}" data-sbp="${c[0]}"${me?` data-sbn="${esc(n)}"`:""} title="Open this challenge on the Scoreboard">${esc(c[3])}</span><span class="ar3">${arrTag(w,c[0],c[1])}${cardRateBox(arrP(w,c[0],c[1]),c[3],c[4])}${songPill(c[3],id)}${me?`<span class="aplace">${pl}#${me.i+1}<small> of ${c[6].length}</small></span><span class="apct">${me.e[1]!=null?me.e[1]+"%":"–"}</span>`:`<span class="aplace"><small>Not played yet<i class="npsep"> · </i><span class="npn">${c[6].length} played</span></small></span>`}</span></li>`)});
   // rivals: the This Week page's rival boxes that include them (all levels), copied over
   let riv="";
-  if(cards.length){const saveW=twWeek, saveLv=twRivLv.slice(); twWeek=w; twRivLv.fill(""); renderThisWeek();
+  if(part==="week"&&cards.length){const saveW=twWeek, saveLv=twRivLv.slice(); twWeek=w; twRivLv.fill(""); renderThisWeek();
     riv=[...document.querySelectorAll("#tw-riv .twpath")].map(pp=>{const lis=[...pp.querySelectorAll("li.riv")].filter(li=>[...li.querySelectorAll("[data-name]")].some(x=>x.dataset.name.toLowerCase()===key));
       if(!lis.length)return ""; const h=pp.querySelector("h3").firstChild.textContent;
       return `<div class="twpath" style="${pp.getAttribute("style")}"><h3>${esc(h)}</h3><ul class="twl">${lis.map(li=>{const c=li.cloneNode(true);c.querySelectorAll(".lvbox").forEach(b=>{const s=document.createElement("span");s.className="lvbox";s.style.cssText=b.style.cssText;s.textContent=b.textContent;b.replaceWith(s)});return c.outerHTML}).join("")}</ul></div>`}).join("");
@@ -4000,10 +4042,11 @@ function acctThisWeek(n){
     rk.push(`<li class="${mine?"myrank":""}" style="--pc:${PATH_C[pi]};--rc:${TIER_C[LT]||"var(--fg)"}"${mine?` data-tip="Your class on ${PATHS[pi]}: ${TIER_NAME[LT]}"`:""}><span class="apath">${esc(pp.path)}</span><span class="lvchip" style="--tc:${TIER_C[LT]||"var(--fg)"}">${esc(l.level)}</span><span class="arank${r==="1"?" p1":r==="2"?" p2":r==="3"?" p3":""}">#${esc(r)}<small> of ${l.rows.filter(x=>x[3]!=="Out").length}</small></span><span class="apts">${esc(pts)} pts</span><span class="chg ${cc}">${esc(ch)}</span></li>`)}))});
   // last week's haul: the medals collected in the last finished week, as on that week's This Week page
   const lw=DATA_WEEK, haul=lw>=TW_MIN?twMedals(n,lw,false):[];
-  return `<div class="acctsec"><h3>Last week's haul <small>Week ${lw}</small></h3>${haul.length?(()=>{const g=haul.some(h=>/diamond d0/.test(h)), inner=`<div class="medals haul">${haul.join("")}</div><p class="dim" style="margin-top:6px">${twPl(medalTotal(haul),"new medal")}</p>`;
-      return g?`<div class="haulbox celestial" data-tip="Gold God winner last week">${celCorners()}${inner}</div>`:inner})():`<p class="dim">No new medals last week.</p>`}</div>
-    <div class="acctsec"><h3>This week's scoreboard <small>Week ${w}</small></h3>${sb.length?`<ul class="alist">${sb.join("")}</ul>`:`<p class="dim">No scoreboard for this week yet.</p>`}</div>
-    <div class="acctsec acctriv"><h3>This week's rivals</h3>${riv||`<p class="dim">No rivals this week yet.</p>`}</div>
+  const HAUL=`<div class="acctsec"><h3>Last week's haul <small>Week ${lw}</small></h3>${haul.length?(()=>{const g=haul.some(h=>/diamond d0/.test(h)), inner=`<div class="medals haul">${haul.join("")}</div><p class="dim" style="margin-top:6px">${twPl(medalTotal(haul),"new medal")}</p>`;
+      return g?`<div class="haulbox celestial" data-tip="Gold God winner last week">${celCorners()}${inner}</div>`:inner})():`<p class="dim">No new medals last week.</p>`}</div>`;
+  if(part==="week")return `    <div class="acctsec"><h3>This week's scoreboard <small>Week ${w}</small></h3>${sb.length?`<ul class="alist">${sb.join("")}</ul>`:`<p class="dim">No scoreboard for this week yet.</p>`}</div>
+    <div class="acctsec acctriv"><h3>This week's rivals</h3>${riv||`<p class="dim">No rivals this week yet.</p>`}</div>`;
+  return HAUL+`
     <div class="acctsec"><h3>Rodman's Rankings ${RK.weeks?`<small>Weeks ${esc(RK.weeks)}</small>`:""}</h3>${rk.length?`<ul class="alist">${rk.join("")}</ul>`:`<p class="dim">Not ranked right now.</p>`}<div class="row"><button type="button" class="btn ghost" data-goview="rankings">Open Rodman's Rankings ›</button></div></div>`;
 }
 // ---------- rank-up readiness (private: only in the player's own profile) ----------
@@ -4064,6 +4107,9 @@ function acctBtn(){const b=$("acctbtn"); b.hidden=!ACCT.on;
     :"Log in with your email to claim your player profile, see your own stats page, rate songs and sign up to host"; b.textContent=ACCT.claim&&ACCT.claim.status==="approved"?"👤 "+ACCT.claim.player:ACCT.user?"👤 Profile":"👤 Log in";
   const n=ACCT.admin?ACCT.claims.filter(c=>c.status==="pending").length:0; // admins: how many claims are waiting
   if(n)b.insertAdjacentHTML("beforeend",`<span class="nbadge" title="${n} claim${n===1?"":"s"} waiting for approval">${n}</span>`);
+  // players: how many times they've been passed on this week's scoreboard since their last visit (Your week tab)
+  const yn=ACCT.claim&&ACCT.claim.status==="approved"?ywUnseen(ACCT.claim.player).length:0;
+  if(yn)b.insertAdjacentHTML("beforeend",`<span class="nbadge" title="Passed ${yn} time${yn===1?"":"s"} on this week's scoreboard since your last visit">${yn}</span>`);
   try{localStorage.setItem("rsc-acctbtn",b.innerHTML)}catch(e){} // shown straight away on the next visit while the login loads
 }
 async function acctRefresh(){
@@ -4163,11 +4209,19 @@ function acctDraw(msg,err){
   if(ACCT.tab==="banner"&&!(ACCT.claim&&ACCT.claim.status==="approved"))ACCT.tab="me";
   // tabs: Your profile, Manage account, and (for admins) Admin with a badge for claims waiting
   const tb=(k,label)=>`<button type="button" role="tab" data-accttab="${k}" aria-selected="${ACCT.tab===k}">${label}</button>`;
-  const tabs=`<div class="accttabs" role="tablist">${tb("me","Your profile")}${ACCT.claim&&ACCT.claim.status==="approved"?tb("banner","Forum banner"):""}${tb("manage","Manage account")}${canRateFor()?tb("host","Host"):""}${ACCT.admin?tb("admin",`Admin${pendN?`<span class="nbadge" title="${pendN} claim${pendN===1?"":"s"} waiting for approval">${pendN}</span>`:""}${(()=>{const t=typoScan().nNew; return t?`<span class="nbadge tybadge" title="${t} likely typo${t===1?"":"s"} in this week's scoreboard">${t}</span>`:""})()}`):""}</div>`;
+  const appr=ACCT.claim&&ACCT.claim.status==="approved";
+  if(ACCT.tab==="week"&&!appr)ACCT.tab="me";
+  // opening Your week marks the passes as seen (the badges clear); the alert keeps showing them until the popup closes
+  if(ACCT.tab==="week"){const n=ACCT.claim.player; if(!ACCT.ywShown)ACCT.ywShown=ywUnseen(n);
+    const last=ywPasses(n)[0]; if(last){try{localStorage.setItem(ywKey(n),String(Date.parse(last.t)))}catch(e){}} setTimeout(acctBtn,0)}
+  const ywN=appr?ywUnseen(ACCT.claim.player).length:0;
+  const tabs=`<div class="accttabs" role="tablist">${tb("me","Your profile")}${appr?tb("week",`Your week${ywN?`<span class="nbadge" title="Passed ${ywN} time${ywN===1?"":"s"} since your last visit">${ywN}</span>`:""}`):""}${ACCT.claim&&ACCT.claim.status==="approved"?tb("banner","Forum banner"):""}${tb("manage","Manage account")}${canRateFor()?tb("host","Host"):""}${ACCT.admin?tb("admin",`Admin${pendN?`<span class="nbadge" title="${pendN} claim${pendN===1?"":"s"} waiting for approval">${pendN}</span>`:""}${(()=>{const t=typoScan().nNew; return t?`<span class="nbadge tybadge" title="${t} likely typo${t===1?"":"s"} in this week's scoreboard">${t}</span>`:""})()}`):""}</div>`;
   let h=tabs;
   if(ACCT.tab==="admin"){}
   else if(ACCT.tab==="host")h+=`${hostSection(false).replace('class="acctsec hostsec"','class="acctsec hostsec hosttop"')}${adminRateSection()}${ratingLogSection()}`;
   else if(ACCT.tab==="banner")h+=bnTab(ACCT.claim.player);
+  else if(ACCT.tab==="week"){const n=ACCT.claim.player; ACCT.twPart="week";
+    h+=`${ywAlert(n)}${ywList(n)}<div id="acct-tw">${acctThisWeek(n,"week")}</div>`}
   else if(ACCT.tab==="manage"){
     h+=`<div class="adm acctsec"><h3>Verification animal</h3>${animalNote()||`<p class="dim">You'll get a verification animal once you claim your player profile.</p>`}</div>
       <div class="acctsec"><h3>Log out</h3><p class="dim">Log out of the site on this device.</p><div class="row"><button type="button" class="btn ghost" data-acct="logout">Log out</button></div></div>`}
@@ -4175,7 +4229,7 @@ function acctDraw(msg,err){
     const names=PLAYERS.map(p=>p[0]).filter(n=>!taken.has(n)).sort((a,c)=>a.localeCompare(c,undefined,{sensitivity:"base"}));
     h+=`<p>Which player are you? Pick your name to claim your profile. An admin checks each claim before you can rate songs: after you claim, an admin will message you to confirm it's really you.</p><select id="acctname"><option value="">Choose your player name…</option>${names.map(n=>`<option>${esc(n)}</option>`).join("")}</select><div class="row"><button type="button" class="btn" data-acct="claim">Claim this profile</button></div>`}
   else if(ACCT.claim.status==="pending")h+=`<p>You've claimed <b>${esc(ACCT.claim.player)}</b>. It's waiting for approval: an admin will message you to confirm it's really you, then approve it. Your verification animal is under Manage account.</p><div class="row"><button type="button" class="btn ghost" data-acct="unclaim">Withdraw claim</button></div>`;
-  else h+=`<p>Hi <b>${esc(ACCT.claim.player)}</b>! This is your personal stats page. You can submit your own ratings for any song by clicking its rating number.</p><div id="acct-tw">${acctThisWeek(ACCT.claim.player)}</div>${rankupSection(ACCT.claim.player)}${acctProfile(ACCT.claim.player)}`;
+  else h+=`<p>Hi <b>${esc(ACCT.claim.player)}</b>! This is your personal stats page. You can submit your own ratings for any song by clicking its rating number anywhere it appears. You can get your forum signature banner from the <span class="ywlink" role="button" tabindex="0" data-accttab="banner">Forum banner</span> tab.</p><div id="acct-tw">${(ACCT.twPart="me",acctThisWeek(ACCT.claim.player,"me"))}</div>${rankupSection(ACCT.claim.player)}${acctProfile(ACCT.claim.player)}`;
   if(ACCT.admin&&ACCT.tab==="admin"){const pend=ACCT.claims.filter(c=>c.status==="pending"), appr=ACCT.claims.filter(c=>c.status==="approved").sort((a,c)=>a.player.localeCompare(c.player));
     h+=`${removePanel()}<div class="adm acctsec"><h3>Claims</h3><p>${pend.length?"Waiting for approval:":"No claims waiting."}</p><ul>${pend.map(c=>`<li><span>${esc(c.player)} ${animalTag(ACCT.animals[c.user_id])} <small>${new Date(c.created_at).toLocaleDateString()}</small></span><span><button type="button" class="btn" data-acct="approve" data-uid="${c.user_id}">Approve</button> <button type="button" class="btn ghost" data-acct="reject" data-uid="${c.user_id}">Reject</button></span></li>`).join("")}</ul>${appr.length?`<p class="apprhead"><span>Approved (${appr.length}):</span><button type="button" class="btn ghost small" data-acct="editclaims">${ACCT.editClaims?"Done":"Edit"}</button></p><ul>${appr.map(c=>`<li><span>${esc(c.player)} ${animalTag(ACCT.animals[c.user_id])}</span>${ACCT.editClaims?`<button type="button" class="btn ghost" data-acct="removeask" data-player="${esc(c.player)}">Remove</button>`:""}</li>`).join("")}</ul>`:""}</div>${claimLogSection()}${removedSection()}${typoSection()}${fixLogSection()}${hostSection(true)}`}
   // redrawing keeps the popup where it was scrolled to (e.g. after changing a rating in the Admin tab)
@@ -4230,7 +4284,7 @@ $("acctbody").addEventListener("click",async e=>{
 $("acctbtn").addEventListener("click",()=>{acctDraw();$("acct").showModal();$("acct").appendChild(tip)});
 $("acctclose").addEventListener("click",()=>$("acct").close());
 // hover text inside the dialog (the tip moves into the dialog while it's open, so it shows above it)
-$("acct").addEventListener("close",()=>{tip.hidden=true;document.body.appendChild(tip);acctUnmount()});
+$("acct").addEventListener("close",()=>{tip.hidden=true;document.body.appendChild(tip);acctUnmount();ACCT.ywShown=null});
 // links inside the moved lookup cards go to other pages: close the dialog so the page shows
 $("acct").addEventListener("click",e=>{const gv=e.target.closest("[data-goview]");if(gv){$("acct").close();showView(gv.dataset.goview);scrollTo({top:0});return}
   if(e.target.closest("#acct-tw")&&e.target.closest("[data-sbw],[data-goplayer]")){$("acct").close();return}
