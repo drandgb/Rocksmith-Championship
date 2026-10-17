@@ -3962,8 +3962,9 @@ function claimLogSection(){
   const L=ACCT.claimLog;
   const rows=(L||[]).map(x=>{const d=new Date(x.at), when=d.toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"})+" "+d.toLocaleTimeString("en-US",{hour:"numeric",minute:"2-digit"});
     const what={approved:"approved the claim for",rejected:"rejected the claim for",removed:"removed the approved claim for"}[x.action]||esc(x.action)+" the claim for";
-    // approvals from before the log started: the day the player claimed, shown at 8:00 AM like the other entries
-    if(x.action==="approved_before_log")return `<li><span><small>${esc(d.toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"}))} 8:00 AM</small> · <b>${esc(x.admin_player||"an admin")}</b> approved the claim for <b>${esc(x.player)}</b></span></li>`;
+    // approvals from before the log started: the day the player claimed, shown at 8:00 AM like the other entries,
+    // approved by drand (the only admin back then)
+    if(x.action==="approved_before_log")return `<li><span><small>${esc(d.toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"}))} 8:00 AM</small> · <b>${esc(x.admin_player||"drand")}</b> approved the claim for <b>${esc(x.player)}</b></span></li>`;
     if(x.action==="unlinked")return `<li><span><small>${esc(when)}</small> · <b>${esc(x.player)}</b> unlinked their email (claim released, ratings and banner kept)</span></li>`;
     if(x.action==="admin_added"||x.action==="admin_removed")return `<li><span><small>${esc(when)}</small> · <b>${esc(x.admin_player||"an admin")}</b> ${x.action==="admin_added"?`made <b>${esc(x.player)}</b> an admin`:x.admin_player===x.player?"stepped down as an admin":`removed <b>${esc(x.player)}</b> as an admin`}</span></li>`;
     return `<li><span><small>${esc(when)}</small> · <b>${esc(x.admin_player||"an admin")}</b> ${what} <b>${esc(x.player)}</b></span></li>`}).join("");
