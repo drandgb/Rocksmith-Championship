@@ -1928,7 +1928,7 @@ function medalsFor(p,bitsOv){
   const cgRow=classGem(p); // Beginner to Masterclass gems get their own row, under the joined and year medals
   // leaf: the week the player joined (a new sprout)
   {const col="#3f9a5c";
-   gems.unshift(`<span class="medal-m wm sword" style="--ec:${col}" data-tip="Joined medal · first joined the championship (collected Week ${first})"><svg viewBox="0 0 28 30" aria-hidden="true"><defs><radialGradient id="lfg" cx=".35" cy=".3" r=".8"><stop offset="0" stop-color="#fff"/><stop offset="1" stop-color="#2f6b44"/></radialGradient><linearGradient id="lfl" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#4fbf6a"/><stop offset="1" stop-color="#b8f07a"/></linearGradient></defs><circle cx="14" cy="15" r="12" fill="${col}"/><circle cx="14" cy="15" r="12" fill="url(#lfg)" opacity=".3"/><path d="M8 22C8 13 13 7.5 21.5 7c.6 8.5-4.8 14.6-13.5 15z" fill="url(#lfl)" stroke="#1a3d22" stroke-width=".8" stroke-opacity=".6"/><path d="M8 22c3-4 6.5-8 11-12.5" stroke="#1f5a30" stroke-width="1.1" fill="none" stroke-linecap="round"/><path d="M12.2 17.2l-.6-3.3M15 14.2l-.3-2.7M14 15.5l2.9.3M11.1 18.5l2.8.4" stroke="#1f5a30" stroke-width=".7" stroke-linecap="round"/><path d="M6 11a9 9 0 0 1 5-5.5" stroke="rgba(255,255,255,.55)" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg><b>${first}</b></span>`);}
+   gems.unshift(uniqIds(`<span class="medal-m wm sword" style="--ec:${col}" data-tip="Joined medal · first joined the championship (collected Week ${first})"><svg viewBox="0 0 28 30" aria-hidden="true"><defs><radialGradient id="lfg" cx=".35" cy=".3" r=".8"><stop offset="0" stop-color="#fff"/><stop offset="1" stop-color="#2f6b44"/></radialGradient><linearGradient id="lfl" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#4fbf6a"/><stop offset="1" stop-color="#b8f07a"/></linearGradient></defs><circle cx="14" cy="15" r="12" fill="${col}"/><circle cx="14" cy="15" r="12" fill="url(#lfg)" opacity=".3"/><path d="M8 22C8 13 13 7.5 21.5 7c.6 8.5-4.8 14.6-13.5 15z" fill="url(#lfl)" stroke="#1a3d22" stroke-width=".8" stroke-opacity=".6"/><path d="M8 22c3-4 6.5-8 11-12.5" stroke="#1f5a30" stroke-width="1.1" fill="none" stroke-linecap="round"/><path d="M12.2 17.2l-.6-3.3M15 14.2l-.3-2.7M14 15.5l2.9.3M11.1 18.5l2.8.4" stroke="#1f5a30" stroke-width=".7" stroke-linecap="round"/><path d="M6 11a9 9 0 0 1 5-5.5" stroke="rgba(255,255,255,.55)" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg><b>${first}</b></span>`,["lfg","lfl"]));}
   const top=[]; // (unused row)
   if(rate>=1) gems.unshift(`<span class="medal-m perfect" data-tip="Perfect gem · played every week since joining the championship · ${played} week${played===1?"":"s"} and counting (collected Week ${first})"><svg viewBox="0 0 30 30" aria-hidden="true"><defs><linearGradient id="pg-${played}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff6c2"/><stop offset=".5" stop-color="#9ff0ff"/><stop offset="1" stop-color="#d8a6ff"/></linearGradient></defs><polygon points="8,3 22,3 29,11 15,28 1,11" fill="url(#pg-${played})"/><polygon points="8,3 22,3 19,11 11,11" fill="rgba(255,255,255,.6)"/><polygon points="1,11 11,11 15,28" fill="rgba(0,0,0,.12)"/><polygon points="29,11 19,11 15,28" fill="rgba(0,0,0,.22)"/><polygon points="8,3 22,3 29,11 15,28 1,11" fill="none" stroke="rgba(0,0,0,.35)" stroke-width=".8"/><path d="M15 6.5l1.5 3 3.3.4-2.4 2.3.6 3.3-3-1.6-3 1.6.6-3.3-2.4-2.3 3.3-.4z" fill="#f5c84a" stroke="rgba(0,0,0,.35)" stroke-width=".5"/></svg><b>${played}</b></span>`);
   // kintsugi gem: once the perfect run is broken, the perfect gem is mended with gold and shows how many weeks the
@@ -2255,7 +2255,7 @@ function tripleWeeks(name,done){
   });
   return {reg};
 }
-function tieSvg(col){return `<svg viewBox="0 0 28 30" aria-hidden="true"><circle cx="14" cy="15" r="12" fill="${col}"/><path d="M14 3a12 12 0 0 1 0 24z" fill="rgba(0,0,0,.18)"/><rect x="8" y="11" width="12" height="2.6" rx="1.3" fill="#1a1406" opacity=".8"/><rect x="8" y="16.4" width="12" height="2.6" rx="1.3" fill="#1a1406" opacity=".8"/><path d="M6 10a9 9 0 0 1 6-5" stroke="rgba(255,255,255,.55)" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg>`}
+function tieSvg(col){return `<svg viewBox="0 0 28 30" aria-hidden="true"><circle cx="14" cy="15" r="12" fill="${col}"/><path d="M14 3a12 12 0 0 1 0 24z" fill="rgba(0,0,0,.18)"/><circle cx="14" cy="15" r="9.4" fill="none" stroke="rgba(0,0,0,.22)" stroke-width="1.2"/><rect x="8" y="11" width="12" height="2.6" rx="1.3" fill="#1a1406" opacity=".8"/><rect x="8" y="16.4" width="12" height="2.6" rx="1.3" fill="#1a1406" opacity=".8"/><path d="M6 10a9 9 0 0 1 6-5" stroke="rgba(255,255,255,.55)" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg>`}
 // podium medals: how often a player finished 1st, 2nd or 3rd among eligible players on a challenge (completed weeks,
 // God challenges only in their final week). God challenges are counted separately and get diamonds.
 function podiumCounts(name,done,path=-1){
@@ -2323,7 +2323,7 @@ function godRank(m){const h=m.join(""); return /diamond d0/.test(h)?0:/diamond d
 // plus small diamonds that pop up along the edges between the sprigs in waves, drift along the trim (round the box,
 // clockwise) and fade out at scattered points, so there's a steady flow of them travelling between the corners
 function celCorners(){
-  const sp=["c-tl","c-tr","c-bl","c-br"].map(c=>`<span class="celc ${c}">${CEL_SPRIG}</span>`).join("");
+  const sp=["c-tl","c-tr","c-bl","c-br"].map(c=>`<span class="celc ${c}">${uniqIds(CEL_SPRIG,["celg"])}</span>`).join("");
   const rnd=(a,b)=>a+Math.random()*(b-a), gems=[];
   // edge, how many, and travel direction along it (clockwise: top →, right ↓, bottom ←, left ↑)
   [["t",3,1],["r",1,1],["b",3,-1],["l",1,-1]].forEach(([e,n,dir])=>{for(let i=0;i<n;i++){
@@ -2334,7 +2334,14 @@ function celCorners(){
   return sp+`<span class="celgems" aria-hidden="true">${gems.join("")}</span>`;
 }
 // the diamond's colour contrasts its wreath: ice blue in gold, amethyst in silver, deep teal in bronze
-function diamondSvg(i,p){const tint=["#bff6ff","#ecd9ff","#3c9483"][i], deep=["#4fd6ff","#9b5cff","#053b35"][i];
+// each copy gets its own gradient ids: a copy inside a hidden part of the page would otherwise lend its gradient
+// to every other copy, and the laurel leaves would vanish there (leaving only the thin stem, like a plain ring)
+var dgN=0;
+// a fresh set of gradient ids for a copied medal (copies made from another medal's HTML)
+function reIds(h){const u=++dgN; return h.replace(/((?:id="|url\(#)(?:laurelg\d|dg\d|celg|lfg|lfl))(?:_\d+)?(?=["\)])/g,"$1_"+u)}
+function uniqIds(h,ids){const u=++dgN; return ids.reduce((t,id)=>t.replace(new RegExp(`(id="|url\\(#)${id}(?=["\\)])`,"g"),`$1${id}_${u}`),h)}
+function diamondSvg(i,p){const u=++dgN; return diamondSvg0(i,p).replace(/laurelg(\d)/g,"laurelg$1_"+u).replace(/(["#(])dg(\d)/g,"$1dg$2_"+u)}
+function diamondSvg0(i,p){const tint=["#bff6ff","#ecd9ff","#3c9483"][i], deep=["#4fd6ff","#9b5cff","#053b35"][i];
   return `<svg class="laurel" viewBox="-7 -5 44 41" aria-hidden="true">${laurelOf(i)}<defs><linearGradient id="dg${i}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${i===2?"#7fbfb1":"#fff"}"/><stop offset=".35" stop-color="${tint}"/><stop offset=".7" stop-color="${deep}"/><stop offset="1" stop-color="#c77dff"/></linearGradient></defs><polygon points="8,4 22,4 29,12 15,28 1,12" fill="url(#dg${i})"/><polygon points="8,4 22,4 18.5,12 11.5,12" fill="rgba(255,255,255,${i===2?".3":".65"})"/><polygon points="1,12 11.5,12 15,28" fill="rgba(255,255,255,.18)"/><polygon points="29,12 18.5,12 15,28" fill="rgba(60,0,120,.22)"/><polygon points="11.5,12 18.5,12 15,28" fill="rgba(255,255,255,.35)"/><polygon points="8,4 1,12 11.5,12" fill="rgba(255,255,255,.4)"/><polygon points="22,4 29,12 18.5,12" fill="rgba(80,40,160,.18)"/><polygon points="8,4 22,4 29,12 15,28 1,12" fill="none" stroke="rgba(255,255,255,.8)" stroke-width=".7"/>${p!=null?`<circle cx="15" cy="12.6" r="5.6" fill="rgba(255,255,255,.55)"/>${pathGem(15,12.6,4.8,p)}`:(()=>{const m=POD_COL[i]; // a tiny version of the gold, silver or bronze medal, centered on the diamond
   return `<g transform="translate(15 12.6) scale(.56) translate(-14 -19)"><circle cx="14" cy="19" r="10" fill="${m}" stroke="rgba(0,0,0,.25)" stroke-width=".8"/><circle cx="14" cy="19" r="7.4" fill="none" stroke="rgba(0,0,0,.22)" stroke-width="1.2"/><path d="M10 14a7 7 0 0 1 6-2" stroke="rgba(255,255,255,.6)" stroke-width="1.6" fill="none" stroke-linecap="round"/></g>`})()}<path class="spk" d="M24 1.5l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8z" fill="#fff"/><path class="spk s2" d="M4.5 18l.6 1.4 1.4.6-1.4.6-.6 1.4-.6-1.4-1.4-.6 1.4-.6z" fill="#fff"/></svg>`}
 function podiumMedals(pod){
@@ -2417,7 +2424,7 @@ function winMedals(per,done,bestN,streak,total,trip,ties,pod,rivw,unc){
   const tc=[];
   if(trip&&trip.reg.length)tc.push(`<span class="medal-m wm" style="--ec:#ffc94f;cursor:pointer" data-hl="${trip.reg.join(",")}" data-tip="Triple crown · won a challenge on Lead, Rhythm and Bass in the same week · ${trip.reg.length} time${trip.reg.length===1?"":"s"} · click to highlight">${crownSvg("#ffc94f")}<b>${trip.reg.length}</b></span>`);
   const xr=[]; // close wins and rivalry wins share their own row
-  if(ties&&ties.length)xr.push(`<span class="medal-m wm" style="--ec:#ff7eb6;cursor:pointer" data-all="${ties.join(",")}" data-hl="${[...new Set(ties)].sort((a,b)=>a-b).join(",")}" data-tip="Close win medal · won on the tiebreak with the same % as the runner-up · ${ties.length} time${ties.length===1?"":"s"} · click to highlight">${tieSvg("#ff7eb6")}<b>${ties.length}</b></span>`);
+  if(ties&&ties.length)xr.push(`<span class="medal-m wm" style="--ec:#f5c84a;cursor:pointer" data-all="${ties.join(",")}" data-hl="${[...new Set(ties)].sort((a,b)=>a-b).join(",")}" data-tip="Close win medal · won on the tiebreak with the same % as the runner-up · ${ties.length} time${ties.length===1?"":"s"} · click to highlight">${tieSvg("#f5c84a")}<b>${ties.length}</b></span>`);
   if(rivw&&rivw.length)xr.push(`<span class="medal-m wm" style="--ec:#ff6b6b;cursor:pointer" data-all="${rivw.join(",")}" data-hl="${[...new Set(rivw)].sort((a,b)=>a-b).join(",")}" data-tip="Rivalry win · beat their closest rival of the week (same rank, ranked challenges) · ${rivw.length} time${rivw.length===1?"":"s"} · click to highlight">${swordsSvg("#ff6b6b")}<b>${rivw.length}</b></span>`);
   // Uncrowned (1st), then silver and bronze: places reached while playing up, which can't be claimed from a lower class
   (unc||[]).forEach((ws,i)=>{if(!ws||!ws.length)return; const what=["had the best score","finished 2nd","finished 3rd"][i];
@@ -3203,7 +3210,7 @@ function mlRender(kind){const acc=ML[kind].acc, link=kind==="win"?"data-gowin":k
     const desc=ML_DESC[key]||ML_DESC[k.label]||what;
     const tipT=k.label+(desc?" · "+desc:"")+(mlFromSb(kind,key)?"\n"+mlSbNote():"")+(rest.length?"\n\n"+rest.map(r=>`${r.place}. ${r.n} · ${r.v}${k.unit}`).join("\n"):"");
     // just the medal and its leader(s); the medal's name and the runners-up are in the hover text
-    return `<div class="mlcard" data-tip="${esc(tipT)}">${ic.outerHTML}<ol>${first.map(r=>`<li><span class="nm" ${link}="${esc(r.n)}">${esc(r.n)}</span><span class="mlv">${r.v}${k.unit}</span></li>`).join("")}</ol></div>`});
+    return `<div class="mlcard" data-tip="${esc(tipT)}">${reIds(ic.outerHTML)}<ol>${first.map(r=>`<li><span class="nm" ${link}="${esc(r.n)}">${esc(r.n)}</span><span class="mlv">${r.v}${k.unit}</span></li>`).join("")}</ol></div>`});
   $("ml-"+kind+"-g").innerHTML=cards.join("")||`<p class="dimtxt">No medals yet.</p>`;
   document.querySelectorAll(".plead[data-n]").forEach(el=>{el.innerHTML=plLeads(el.dataset.n)}); // profiles waiting on the count
   const ap=document.getElementById("acct-lead"); if(ap){ap.innerHTML=plLeads(ap.dataset.n); ap.closest(".acctlead").hidden=!ap.innerHTML}}
@@ -3219,7 +3226,7 @@ function plLeads(n){try{
       if(key==="bestweek"){const sv=ic.querySelector("svg"); if(sv)sv.outerHTML=trophiesSvg("#f5c84a",top)}
       const desc=ML_DESC[key]||ML_DESC[k.label]||"";
       const tipT=`Most of anyone · ${k.label} · ${top}${k.unit}${desc?"\n"+desc:""}${others.length?`\nTied with ${others.join(", ")}`:""}${mlFromSb(kind,key)?"\n"+mlSbNote():""}`;
-      out.push({o:["player","win","host"].indexOf(kind)*1000+k.pos,h:`<span class="plchip" data-tip="${esc(tipT)}">${ic.outerHTML}<span>${esc(k.label)}</span><b>${top}${esc(k.unit)}</b>${others.length?`<small>tied</small>`:""}</span>`})})});
+      out.push({o:["player","win","host"].indexOf(kind)*1000+k.pos,h:`<span class="plchip" data-tip="${esc(tipT)}">${reIds(ic.outerHTML)}<span>${esc(k.label)}</span><b>${top}${esc(k.unit)}</b>${others.length?`<small>tied</small>`:""}</span>`})})});
   if(!out.length)return "";
   out.sort((a,b)=>a.o-b.o);
   return `<div class="plh">🏅 Medal leader <small>most of anyone, ${out.length} kind${out.length===1?"":"s"}</small></div><div class="plchips">${out.map(x=>x.h).join("")}</div>`;
