@@ -468,6 +468,7 @@ a.dl svg,.offpill svg{width:11px;height:11px}
 .ywalert{border:1px solid color-mix(in srgb,var(--s-red) 55%,transparent);background:color-mix(in srgb,var(--s-red) 9%,transparent);border-radius:10px;padding:10px 12px;margin:12px 0 14px}
 .ywalert h4{margin:0 0 6px;font:800 .78rem var(--f-display);letter-spacing:.08em;text-transform:uppercase;color:var(--s-red)}
 .yw .ywp{margin:10px 0 0;font:800 .7rem var(--f-display);letter-spacing:.1em;text-transform:uppercase;color:var(--pc);border-left:3px solid var(--pc);padding-left:6px}
+.ywtop{font:800 .66rem var(--f-display);letter-spacing:.06em;text-transform:uppercase;color:#1a1204;background:linear-gradient(180deg,#ffe28a,#f5c84a);border-radius:999px;padding:2px 8px;align-self:center;cursor:help}
 .ywsame summary{cursor:pointer;color:var(--muted);font-size:.84rem;padding:8px 0}
 .ywlink{color:var(--accent);cursor:pointer;text-decoration:underline;text-underline-offset:2px}
 .ywalert ul{margin:0;padding:0}.ywalert li{list-style:none;padding:4px 0;font-size:.86rem}.ywalert .dn{color:var(--s-red);font-weight:800}.ywalert small{color:var(--muted)}
@@ -4008,16 +4009,20 @@ function ywList(n){
   (SB.weeks[w]||[]).forEach(c=>cards[c[0]+"|"+c[1]]=c);
   const rows=W?Object.entries(W.rec).filter(([key])=>key.split("|").slice(2).join("|").toLowerCase()===k).map(([key,[f,b]])=>{const [p,sl]=key.split("|"), c=cards[p+"|"+sl]; return c?{c,p:+p,f,b,d:+(b[0]-f[0]).toFixed(2)}:null}).filter(Boolean):[];
   if(!rows.length)return `<div class="acctsec yw"><h3>Week ${w} <small>first score → best so far</small></h3><p class="dim">${W?"No scores from you this week yet.":"Your week's scores are recorded from now on: check back after your next score."}</p></div>`;
-  rows.sort((a,b)=>a.p-b.p||a.c[1]-b.c[1]);   // Lead, Rhythm, Bass; Beginner to God within each (the card order)
+  rows.sort((a,b)=>a.p-b.p||a.c[1]-b.c[1]);
+  // most improved: the biggest gain this week among everyone on the same challenge (ties share it)
+  const topGain={}; Object.entries(W.rec).forEach(([key,[f,b]])=>{const card=key.split("|").slice(0,2).join("|"), d=+(b[0]-f[0]).toFixed(2); if(d>(topGain[card]||0))topGain[card]=d});
+  rows.forEach(r=>{r.top=r.d>0&&r.d>=(topGain[r.p+"|"+r.c[1]]||0)});   // Lead, Rhythm, Bass; Beginner to God within each (the card order)
   // position on the card (#), as on the Scoreboard
   const pos=(a,b)=>!a||a===b?`#${b}`:`#${a} → <b class="${b<a?"pup":"pdn"}">#${b}</b>`;
   const li=r=>`<li><div class="ywc"><b>${esc(r.c[2])}</b><span class="song">${esc(r.c[3])}</span></div>
-    <div class="ywn"><span>${r.f[0]}% → <b>${r.b[0]}%</b></span><span class="${r.d>0?"gain":"flat"}">${r.d>0?"▲ +"+r.d.toFixed(2):"no change"}</span><span class="plc">${pos(r.f[4],r.b[4]||r.b[2])}</span></div></li>`;
+    <div class="ywn"><span>${r.f[0]}% → <b>${r.b[0]}%</b></span><span class="${r.d>0?"gain":"flat"}">${r.d>0?"▲ +"+r.d.toFixed(2):"no change"}</span><span class="plc">${pos(r.f[4],r.b[4]||r.b[2])}</span>${r.top?`<span class="ywtop" data-tip="Nobody on this challenge has improved more this week">★ Most improved</span>`:""}</div></li>`;
   const up=rows.filter(r=>r.d>0), same=rows.filter(r=>r.d<=0), best=up.slice().sort((a,b)=>b.d-a.d)[0];
   // grouped by path (Lead, Rhythm, Bass)
   const byPath=L=>[0,1,2].map(pi=>{const g=L.filter(r=>r.p===pi); return g.length?`<h4 class="ywp" style="--pc:${PATH_C[pi]}">${PATHS[pi]}</h4><ul class="ywl">${g.map(li).join("")}</ul>`:""}).join("");
   return `<div class="acctsec yw"><h3>Week ${w} <small>first score → best so far</small></h3>${up.length?byPath(up):`<p class="dim">No improvements yet this week.</p>`}
     ${same.length?`<details class="ywsame"><summary>No change on ${same.length} challenge${same.length===1?"":"s"}</summary>${byPath(same)}</details>`:""}
+    ${(()=>{const t=rows.filter(r=>r.top).length; return t?`<p class="dim" style="margin-top:6px">You're the most improved player on <b>${t}</b> challenge${t===1?"":"s"} this week.</p>`:""})()}
     ${best?`<p class="dim" style="margin-top:6px">Biggest jump this week: <b>${PATHS[best.p]} ${esc(best.c[2])}</b>, +${best.d.toFixed(2)}${best.b[4]&&best.f[4]&&best.b[4]<best.f[4]?` and up to #${best.b[4]}`:""}.</p>`:""}</div>`;
 }
 function acctThisWeek(n,part){ part=part||ACCT.twPart||"me";
