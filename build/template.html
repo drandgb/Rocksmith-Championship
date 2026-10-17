@@ -4084,9 +4084,9 @@ function bannerHtml(n){
   // win medals; "1st" on the ones this player leads
   const leads=((typeof ML_PRE!=="undefined"&&ML_PRE&&ML_PRE.win)||[]).filter(k=>k.rows.length&&String(k.rows[0][0]).toLowerCase()===key);
   const box=document.createElement("div"); box.innerHTML=allMedalsHtml(n);
-  // then close wins, rivalry wins and the Uncrowned medals
-  // gold only: gold God diamonds, gold medals, then close wins, rivalry wins and Uncrowned (1st)
-  const gold=[...box.querySelectorAll(".medal-m")].filter(m=>/^(Gold God diamond|Gold medal|Close win|Rivalry win|Uncrowned ·)/.test(m.getAttribute("data-tip")||""));
+  // order: gold God diamonds, gold medals, Uncrowned (next to the gold medals), then close wins and rivalry wins
+  const ORD=[/^Gold God diamond/,/^Gold medal/,/^Uncrowned ·/,/^Close win/,/^Rivalry win/], ordOf=m=>ORD.findIndex(r=>r.test(m.getAttribute("data-tip")||""));
+  const gold=[...box.querySelectorAll(".medal-m")].map((m,i)=>({m,i,o:ordOf(m)})).filter(x=>x.o>=0).sort((a,b)=>a.o-b.o||a.i-b.i).map(x=>x.m);
   const meds=gold.map(m=>{
     const tip=m.getAttribute("data-tip")||"", L=leads.find(k=>tip===k.label||tip.startsWith(k.label+" ·")||tip.startsWith(k.label+" medal"));
     ["data-tip","data-hl","data-all","data-path"].forEach(a=>m.removeAttribute(a)); m.style.cursor="";
