@@ -1092,6 +1092,9 @@ footer{color:var(--dim);font-size:.78rem}
 .bn .bn-hot svg path{fill:#1a0d02}
 .bn .bn-meds{display:flex;align-items:center;gap:27px;flex:1;min-height:0;padding:0 0 4px 3px}
 .bn .bn-meds .medal-m{zoom:1.4;flex:none;position:relative;margin-right:4px;cursor:default}
+/* God diamonds are wider than the other medals: pull them in by the difference so every medal's centre is evenly spaced */
+.bn .bn-meds .medal-m.diamond{margin-left:-6px;margin-right:-2px}
+.bn .bn-meds:has(> .medal-m.diamond:first-child){padding-left:11px}
 .bn .bn-first{position:absolute;left:-8px;top:-6px;z-index:2;font:800 10px/14px var(--f-display);padding:0 3px;border-radius:6px;background:linear-gradient(180deg,#ffe28a,#f5c84a);color:#2a1a02}
 .bn .bn-first.bn-pl2{background:linear-gradient(180deg,#eef2f8,#b9c2d0);color:#1c2230}
 .bn .bn-first.bn-pl3{background:linear-gradient(180deg,#f0b27a,#c98a4b);color:#2a1606}
