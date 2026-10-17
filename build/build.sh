@@ -33,4 +33,6 @@ rm -f ml_pre.json
 python3 ml_pre.py "${OUT:-../../index.html}" && if [ -f ml_pre.json ]; then OUT="${OUT:-../../index.html}" python3 render.py; fi
 # scoreboard fix log: what the scoreboard checks found fixed since the previous update (fixlog.js)
 node fixlog.js "${OUT:-../../index.html}" cache || echo "fixlog: skipped"
+# Your week: first and best scores this week, and who passed whom (weeklog.js)
+node weeklog.js "${OUT:-../../index.html}" cache || echo "weeklog: skipped"
 cp cache/*.json ../data/cache/
