@@ -488,6 +488,7 @@ a.dl svg,.offpill svg{width:11px;height:11px}
 .alist .playedtag{font:800 .62rem var(--f-mono);letter-spacing:.06em;padding:1px 6px;border-radius:4px;color:#10131a;background:var(--pc)}
 .acctdlg .admrow select{flex:1 1 12em;width:auto;margin:0}
 .acctdlg .alist select.admrate{width:auto;flex:none;margin:0 0 0 auto}
+.alist .admown{margin-left:auto;font-size:.85rem;color:var(--muted);white-space:nowrap}
 .alist select.admrate{margin-left:auto;font-size:.85rem;padding:3px 6px;background:var(--panel);color:var(--fg);border:1px solid var(--line);border-radius:6px}
 /* the scoreboard rows: path · level · song · rating + pill · place · %. On a wide screen they sit on one line;
    on a phone each row is the same three lines: path and level, then the song, then the rating, pill, place and % */
@@ -3758,10 +3759,9 @@ document.addEventListener("change",async e=>{
   const as=s.dataset.as&&canRateFor()&&s.closest(".adm")?s.dataset.as:null; if(!as&&!ACCT.claim)return;
   const p=s.dataset.rate, song=s.dataset.song, player=as||ACCT.claim.player, k=p+"|"+acctSongKey(song);
   const r=s.value?+s.value:null;
-  // a host or admin changing a rating the player gave themselves has to confirm it first
+  // a rating the player gave themselves always wins: hosts and admins can't change it (player_rating_wins.sql enforces it too)
   const prevAs=as?songVotes(p,song).find(v=>v.p===as):null;
-  if(as){const cur=prevAs, own=ACCT.claims.find(c=>c.player===as&&c.status==="approved");
-    if(cur&&own&&cur.u===own.user_id&&!confirm(`${as} rated ${song} (${arrName(p)}) ${cur.r} themselves. Are you sure you want to ${r==null?"remove their rating":`replace it with ${r}`}?`)){s.value=String(cur.r);return}}
+  if(as&&ownRating(as,prevAs)){alert(`${as} rated ${song} (${arrName(p)}) ${prevAs.r} themselves, so only they can change it.`);s.value=String(prevAs.r);return}
   // the song's latest challenge on this path holds the rating (Scoreboard weeks first, then the older weeks)
   let at=null;
   Object.entries(SB.weeks).forEach(([w,ch])=>ch.forEach(c=>{if(c[3]&&arrP(w,c[0],c[1])===p&&acctSongKey(c[3])===acctSongKey(song)&&(!at||+w>at.week))at={week:+w,path:c[0],slot:c[1],song:c[3]}}));
@@ -4002,6 +4002,9 @@ function adminsSection(){
     <ul>${A.map(a=>`<li><span><b>${esc(a.player||"(no claim)")}</b> <small class="dim">${[a.owner?"owner":"admin",a.is_me?"you":"",a.added_at?`since ${dt(a.added_at)}`:"",a.added_by?`added by ${esc(a.added_by)}`:""].filter(Boolean).join(" · ")}</small></span>${a.owner||!a.player||!(iOwn||a.is_me)?"<span></span>":`<button type="button" class="btn ghost" data-acct="adminrm" data-player="${esc(a.player)}">${a.is_me?"Step down":"Remove"}</button>`}</li>`).join("")}</ul>
     ${cand.length?`<div class="row" style="margin-top:8px"><select id="admadd"><option value="">Choose a player with an approved claim…</option>${cand.map(n=>`<option>${esc(n)}</option>`).join("")}</select><button type="button" class="btn" data-acct="adminadd">Make admin</button></div>`:""}</div>`;
 }
+// a rating the player gave themselves (their own login, or a login since deleted): only they can change it
+function ownRating(as,cur){if(!cur)return false; const me=ACCT.claim&&ACCT.claim.player; if(me&&me.toLowerCase()===as.toLowerCase())return false;
+  if(cur.u==null)return true; const own=(ACCT.claims||[]).find(c=>c.player.toLowerCase()===as.toLowerCase()&&c.status==="approved"); return !!(own&&cur.u===own.user_id)}
 // Admin tab: give or change ratings on behalf of a player (e.g. one who sent their ratings by message)
 function adminRateSection(){
   if(acctOn()&&!ACCT.songs)acctLoadWeek();
@@ -4016,8 +4019,8 @@ function adminRateSection(){
     rows=cards.map(c=>{const L=cardLv(c[2]), rp=arrP(wk,c[0],c[1]), cur=songVotes(rp,c[3]).find(v=>v.p===pl);
       const ent=c[6].find(e=>SB.names[e[0]].replace(/[*~]+$/,"").toLowerCase()===key);
       const opts=[];for(let r=1;r<=10;r+=.5)opts.push(`<option value="${r}"${cur&&cur.r===r?" selected":""}>${r}</option>`);
-      return `<li class="${ent?"aplayed":""}" style="--pc:${PATH_C[c[0]]}"${ent?` data-tip="${esc(pl)} posted a score on this one"`:""}><span class="apath">${PATHS[c[0]]}</span><span class="lvchip" style="--tc:${L==="G"?"var(--s-red)":TIER_C[L]||"var(--muted)"}">${L==="G"?esc(c[2]):TIER_NAME[L]||esc(c[2])}</span><span class="asong">${esc(c[3])}</span>${arrTag(wk,c[0],c[1])}${ent?`<span class="playedtag">PLAYED${ent[1]!=null?` · ${ent[1]}%`:""}</span>`:""}<span class="dim">host ${c[4]!=null?c[4]:"–"}</span><select class="admrate" data-rate="${rp}" data-song="${esc(c[3])}" data-as="${esc(pl)}" aria-label="${esc(pl)}'s rating"><option value=""${cur?"":" selected"}>${cur?"Remove rating":"No rating"}</option>${opts.join("")}</select></li>`}).join("")}
-  return `<div class="adm acctsec" id="admrate"><h3>Ratings for a player</h3><p class="dim">Hosts can give or change a player's ratings for them, for example for a player who sent their ratings by message. They count exactly like the player's own (one per song per path), and every change goes in the Ratings log below.</p>
+      return `<li class="${ent?"aplayed":""}" style="--pc:${PATH_C[c[0]]}"${ent?` data-tip="${esc(pl)} posted a score on this one"`:""}><span class="apath">${PATHS[c[0]]}</span><span class="lvchip" style="--tc:${L==="G"?"var(--s-red)":TIER_C[L]||"var(--muted)"}">${L==="G"?esc(c[2]):TIER_NAME[L]||esc(c[2])}</span><span class="asong">${esc(c[3])}</span>${arrTag(wk,c[0],c[1])}${ent?`<span class="playedtag">PLAYED${ent[1]!=null?` · ${ent[1]}%`:""}</span>`:""}<span class="dim">host ${c[4]!=null?c[4]:"–"}</span>${ownRating(pl,cur)?`<span class="admown" data-tip="${esc(pl)} rated this themselves, so only they can change it">their own: <b>${cur.r}</b></span>`:`<select class="admrate" data-rate="${rp}" data-song="${esc(c[3])}" data-as="${esc(pl)}" aria-label="${esc(pl)}'s rating"><option value=""${cur?"":" selected"}>${cur?"Remove rating":"No rating"}</option>${opts.join("")}</select>`}</li>`}).join("")}
+  return `<div class="adm acctsec" id="admrate"><h3>Ratings for a player</h3><p class="dim">Hosts can give or change a player's ratings for them, for example for a player who sent their ratings by message. They count exactly like the player's own (one per song per path), and every change goes in the Ratings log below. A player's own rating always wins: once they rate a song themselves, it can't be changed here.</p>
     <div class="row admrow"><select data-admrate="p" aria-label="Player"><option value="">Choose a player…</option>${groups.map(([w,ns])=>`<optgroup label="Last played Week ${w}">${ns.map(n=>`<option${n===pl?" selected":""}>${esc(n)}</option>`).join("")}</optgroup>`).join("")}</select>
     <select data-admrate="w" aria-label="Week">${weeks.map(w=>`<option value="${w}"${w===wk?" selected":""}>Week ${w}</option>`).join("")}</select></div>
     ${pl?(rows?`<ul class="alist">${rows}</ul>`:`<p class="dim">No challenges on the scoreboard for Week ${wk}.</p>`):""}</div>`;
