@@ -371,6 +371,33 @@ button.clear:hover{border-color:var(--accent)}
 .card .lv span.arrtag{color:var(--ac);font:800 .62rem var(--f-display);letter-spacing:.06em}
 .arrtag{display:inline-flex;align-items:center;font-size:.62rem;font-weight:800;letter-spacing:.04em;text-transform:uppercase;padding:2px 7px;border-radius:999px;border:1.5px solid var(--ac,var(--s-red));color:var(--ac,var(--s-red));white-space:nowrap;cursor:help;flex:none}
 .card .lvr{display:flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:flex-end;margin-left:auto}
+/* This Week: new-week notification and the week's song downloads */
+.nwnote{position:relative;display:flex;gap:16px;align-items:center;border-color:color-mix(in srgb,var(--accent) 70%,transparent);background:linear-gradient(90deg,color-mix(in srgb,var(--accent) 13%,var(--panel)),var(--panel));box-shadow:0 0 14px color-mix(in srgb,var(--accent) 22%,transparent)}
+.nwnote .nwic{font-size:28px;flex:none}
+.nwnote h2{margin:0 0 3px;font:800 .95rem var(--f-display);letter-spacing:.08em;text-transform:uppercase}
+.nwnote .nwbody{flex:1;min-width:0}
+.nwnote .nwmeds{display:flex;flex-wrap:wrap;gap:12px 16px;align-items:center;margin-top:9px}
+.nwnote .nwbtns{display:flex;flex-direction:column;gap:8px;align-items:stretch;flex:none;margin-right:14px}
+.nwnote .nwx{position:absolute;top:6px;right:8px;background:none;border:0;color:var(--muted);font-size:16px;cursor:pointer;padding:2px 4px}
+.nwnote .nwx:hover{color:var(--fg)}
+@media (max-width:640px){.nwnote{flex-wrap:wrap}.nwnote .nwic{display:none}.nwnote .nwbtns{flex:1 1 100%;flex-direction:row;flex-wrap:wrap;margin-right:0}.nwnote .nwbtns button{flex:1 1 auto}.nwnote h2{padding-right:22px}}
+.dlsec .dlhead{cursor:pointer;margin-bottom:0;user-select:none}
+.dlsec .dlhead h2 .dlarw{color:var(--muted);font-size:.8em;margin-left:4px}
+.dlsec ul{list-style:none;margin:10px 0 0;padding:0}
+.dlsec li{display:flex;align-items:center;gap:10px;padding:8px 6px;border-bottom:1px solid var(--line)}
+.dlsec li:last-child{border-bottom:0}
+.dlsec li.mine{background:linear-gradient(90deg,color-mix(in srgb,var(--accent) 9%,transparent),transparent 70%);border-radius:8px}
+.dlsec .dls{flex:1;min-width:0;font-weight:700}
+.dlsec .yours{margin-left:8px;font:800 .6rem var(--f-display);letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+.dlsec .dlbxs{display:flex;gap:6px;flex:none}
+.dlbx{display:inline-flex;align-items:baseline;justify-content:center;gap:4px;width:52px;box-sizing:border-box;font:700 10.5px/1 var(--f-display);letter-spacing:.06em;color:#8b93a7;border:1px solid var(--line);background:color-mix(in srgb,var(--panel) 80%,#000);border-radius:6px;padding:4px 3px;white-space:nowrap}
+.dlbx b{font:800 15px/1 var(--f-display)}.dlbx sup{font-size:9px}
+.dlbx.me{border-color:var(--mc);background:color-mix(in srgb,var(--mc) 16%,var(--panel));box-shadow:0 0 8px color-mix(in srgb,var(--mc) 45%,transparent);color:var(--fg)}
+.dlsec{--tc:var(--accent)}
+.dlsec .dlpill{flex:none;width:118px;display:flex;justify-content:flex-end}
+.dlsec a.dl{position:relative}
+.dlsec a.dl.got::before{content:"✓";position:absolute;top:-6px;right:-6px;width:13px;height:13px;border-radius:50%;background:var(--s-green);color:#10131a;font:900 9px/13px sans-serif;text-align:center}
+@media (max-width:640px){.dlsec li{flex-wrap:wrap}.dlsec .dls{flex-basis:100%}.dlsec .dlpill{width:auto;margin-left:auto}}
 /* download pill: the song's Ignition4 page, taken from the song title's link on the scoreboard sheet */
 a.dl,.offpill{display:inline-flex;align-items:center;gap:4px;font:700 .66rem var(--f-display);letter-spacing:.06em;text-transform:uppercase;text-decoration:none;color:var(--tc);padding:3px 8px;border-radius:999px;border:1px solid color-mix(in srgb,var(--tc) 55%,transparent);background:color-mix(in srgb,var(--tc) 12%,transparent);white-space:nowrap}
 a.dl:hover{background:color-mix(in srgb,var(--tc) 24%,transparent)}
@@ -1289,6 +1316,7 @@ footer{color:var(--dim);font-size:.78rem}
 
   <div class="view" id="view-thisweek" role="tabpanel" aria-labelledby="tab-thisweek" hidden>
   <div class="twwarn" id="twwarn" role="alert" hidden></div>
+  <section class="panel nwnote" id="twnote" hidden></section>
   <section class="panel twhead">
     <div class="twnav">
       <button type="button" class="twarrow" id="twprev" aria-label="Previous week">‹</button>
@@ -1299,6 +1327,7 @@ footer{color:var(--dim);font-size:.78rem}
     </div>
     <div class="twstats" id="tw-stats"></div>
   </section>
+  <section class="panel dlsec" id="twdl" hidden></section>
   <section class="panel twpreview" id="twpreview" hidden></section>
   <section class="panel glowrim" style="--rc:#f5c84a" id="tw-winsec" hidden>
     <div class="panel-head"><h2>🏆 Week winners</h2></div>
@@ -3498,7 +3527,61 @@ function renderNextPreview(){
     <p class="sub" style="margin:0 0 12px">Week ${nw} becomes the current week, and Week ${TW_MAX}'s winners are decided, at 9 pm CET (Central European time) on ${W?fmt(W[1]):"its start Saturday"}. Scores posted before then already count for Week ${nw}.</p><div class="twnpcols">${cols}</div>`;
   return true;
 }
+// ---------- This Week: the new-week notification and the week's song downloads ----------
+// Notification: shown on This Week in the first 3 days of a new week (once the new week's sheet is on the site), until
+// closed. A logged-in player also sees the medals they collected last week (hover for what each is for).
+// Downloads: each song of the newest week once, with the challenges that use it as L / R / B class boxes (a dash
+// where the song isn't used on that path), and its Ignition pill. A ✓ marks songs this device has opened (by their
+// Ignition link, so a song that comes back later counts as opened). A logged-in player's own classes are highlighted,
+// and their songs come first. The section can be collapsed; that's remembered until the next week's songs arrive.
+const NW_SEEN="rsc-newweek-seen", DL_OPEN="rsc-dl-opened", DL_FOLD="rsc-dl-fold";
+function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
+function lsSet(k,v){try{if(v==null)localStorage.removeItem(k);else localStorage.setItem(k,v)}catch(e){}}
+function dlOpened(){try{return JSON.parse(lsGet(DL_OPEN)||"{}")||{}}catch(e){return {}}}
+function myPlayer(){return typeof ACCT!=="undefined"&&ACCT&&ACCT.claim&&ACCT.claim.status==="approved"?ACCT.claim.player:null}
+function myTiers(){const n=myPlayer(), p=n&&byName[n]; return p?String(p[8]||"").split(""):null}
+function renderNewWeekNote(){
+  const el=$("twnote"); if(!el)return; const w=TW_MAX, W=WEEKS[w-1];
+  const days=W?(Date.now()-new Date(W[1]+"T00:00:00").getTime())/864e5:99;
+  if(!TW_LIVE||twWeek!==w||!SB.weeks[w]||days>3||lsGet(NW_SEEN)===String(w)){el.hidden=true;return}
+  const n=myPlayer(); let meds=[]; try{if(n)meds=twMedals(n,w-1,false)}catch(e){meds=[]}
+  const songs=new Set((SB.weeks[w]||[]).filter(c=>c[3]&&!/^n\/a$/i.test(c[3])).map(c=>c[3].toLowerCase())).size;
+  el.innerHTML=`<button type="button" class="nwx" data-nw="x" aria-label="Close" title="Close">✕</button><div class="nwic">🎸</div><div class="nwbody"><h2>Week ${w-1} is final · Week ${w} is on</h2>
+    <div class="sub">${n&&meds.length?`Your medals from Week ${w-1} (hover one to see what it's for). `:`Week ${w-1}'s winners are in. `}The new songs are out: ${songs} to download.</div>
+    ${n&&meds.length?`<div class="nwmeds">${meds.join("")}</div>`:""}</div>
+    <div class="nwbtns"><button type="button" class="clear" data-nw="dl" style="background:var(--accent);color:#1a1004;font-weight:800">Download Week ${w} songs ↓</button>${n?`<button type="button" class="clear" data-nw="me">Go to my profile ›</button>`:""}</div>`;
+  el.hidden=false;
+}
+function renderDownloads(){
+  const el=$("twdl"); if(!el)return; const w=TW_MAX;
+  const cards=twWeek===w?(SB.weeks[w]||[]).filter(c=>c[3]&&!/^n\/a$/i.test(c[3])):[];
+  if(!cards.length){el.hidden=true;return}
+  const T=myTiers(), mine=c=>!!T&&cardLv(c[2])===T[c[0]], op=dlOpened(), L=(SB.links&&SB.links[w])||{};
+  const m=new Map(); cards.forEach(c=>{const k=c[3].toLowerCase().replace(/\s+/g," ").trim(); if(!m.has(k))m.set(k,{song:c[3],id:null,ch:[]}); const s=m.get(k); s.ch.push(c); if(!s.id&&L[c[0]*9+c[1]])s.id=L[c[0]*9+c[1]]});
+  const list=[...m.values()].map(s=>({...s,my:s.ch.some(mine),o:Math.min(...s.ch.map(c=>c[0]*9+c[1]))})).sort((a,b)=>(b.my-a.my)||a.o-b.o);
+  const box=(p,cs)=>{if(!cs.length)return `<span class="dlbx">${"LRB"[p]}<b style="color:#8b93a7">–</b></span>`;
+    const me=cs.find(mine), col=c=>{const lv=cardLv(c[2]); return lv==="G"?"var(--s-red)":TIER_C[lv]||"var(--muted)"};
+    const tip=cs.map(c=>`${PATHS[p]} ${c[2]}`).join(", ");
+    return `<span class="dlbx${me?" me":""}"${me?` style="--mc:${col(me)}"`:""} data-tip="${esc(tip)}${me?" · your class":""}">${"LRB"[p]}<b>${cs.map(c=>`<span style="color:${col(c)}">${cardLv(c[2])||"?"}${/bonus/i.test(c[2])?"<sup>+</sup>":""}</span>`).join("·")}</b></span>`};
+  const nOpen=list.filter(s=>s.id&&op[s.id]).length, fold=lsGet(DL_FOLD)===String(w);
+  el.innerHTML=`<div class="panel-head dlhead" data-dl="fold" title="${fold?"Show":"Hide"} the download list"><h2>⬇ Download Week ${w}'s songs<span class="dlarw">${fold?"▸":"▾"}</span></h2>
+    <span class="sub">${list.length} song${list.length===1?"":"s"} for ${cards.length} challenge${cards.length===1?"":"s"} · ${nOpen} of ${list.length} opened${T&&!fold?" · your classes are highlighted":""}</span></div>
+    ${fold?"":`<ul>${list.map(s=>{const pill=songPill(s.song,s.id).replace('class="dl"',`class="dl${s.id&&op[s.id]?" got":""}" data-dlid="${s.id||""}"`);
+      return `<li class="${s.my?"mine":""}"><span class="dls">${esc(s.song)}${s.my?`<span class="yours">yours</span>`:""}</span><span class="dlbxs">${[0,1,2].map(p=>box(p,s.ch.filter(c=>c[0]===p))).join("")}</span><span class="dlpill">${pill}</span></li>`}).join("")}</ul>`}`;
+  el.hidden=false;
+}
+document.addEventListener("click",e=>{
+  const nw=e.target.closest("[data-nw]");
+  if(nw){const a=nw.dataset.nw;
+    if(a==="x"){lsSet(NW_SEEN,String(TW_MAX)); renderNewWeekNote(); return}
+    if(a==="dl"){lsSet(DL_FOLD,null); renderDownloads(); const d=$("twdl"); if(d&&!d.hidden)d.scrollIntoView({behavior:"smooth",block:"start"}); return}
+    if(a==="me"){const b=$("acctbtn"); if(b)b.click(); return}}
+  if(e.target.closest("#twdl [data-dl=fold]")){lsSet(DL_FOLD,lsGet(DL_FOLD)===String(TW_MAX)?null:String(TW_MAX)); renderDownloads(); return}
+  const a=e.target.closest("#twdl a.dl[data-dlid]");
+  if(a&&a.dataset.dlid){const op=dlOpened(); op[a.dataset.dlid]=1; lsSet(DL_OPEN,JSON.stringify(op)); setTimeout(renderDownloads,0)}
+});
 function renderThisWeek(){
+  setTimeout(()=>{renderNewWeekNote();renderDownloads()},0);
   renderHostWarn(); if(renderNextPreview())return;
   const w=twWeek, W=WEEKS[w-1], live=w===TW_LIVE, names=twNames(w), set=new Set(names);
   $("twprev").disabled=w<=TW_MIN; $("twnext").disabled=w>=TW_MAX&&!TW_NEXT;
@@ -4169,6 +4252,7 @@ function acctBtn(){const b=$("acctbtn"); b.hidden=!ACCT.on;
   const yn=ACCT.claim&&ACCT.claim.status==="approved"?ywUnseen(ACCT.claim.player).length:0;
   if(yn)b.insertAdjacentHTML("beforeend",`<span class="nbadge" title="Passed ${yn} time${yn===1?"":"s"} on this week's scoreboard since your last visit">${yn}</span>`);
   try{localStorage.setItem("rsc-acctbtn",b.innerHTML)}catch(e){} // shown straight away on the next visit while the login loads
+  if(typeof renderDownloads==="function"){try{renderNewWeekNote();renderDownloads()}catch(e){}}
 }
 async function acctRefresh(){
   const {data:{session}}=await ACCT.sb.auth.getSession(); ACCT.user=session?session.user:null;
