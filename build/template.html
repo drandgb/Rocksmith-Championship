@@ -1481,6 +1481,9 @@ footer{color:var(--dim);font-size:.78rem}
 <div class="tip" id="tip" hidden></div>
 
 <script>
+// original host ratings that have since been changed in the sheet ("week|path|slot": rating; hostorig.js). The host's
+// original rating keeps counting as their own rating for the song until they rate it themselves.
+var HOSTORIG={}/*HOSTORIG*/;
 const WEEKS = __WEEKS__; // [week, isoDate, host, holidays]
 const PLAYERS = __PLAYERS__; // [name, firstWeek, latestWeek, played, playRate, activeStreak, longestStreak, presenceHex (from week 2), tiers L/R/B]
 const PARTS = __PARTS__; // players per week, starting week 2
@@ -3235,6 +3238,14 @@ function mlEnsure(kind,sync){if(ML[kind])return;
   step()}
 if(ML_PRECOMPUTING){ML_PRE=null; setTimeout(()=>{const out={}; ["win","player","host"].forEach(k=>{delete ML[k]; mlEnsure(k,true); out[k]=mlExport(k)});
   const el=document.createElement("script"); el.type="application/json"; el.id="mlpre-out"; el.textContent=JSON.stringify(out).replace(/</g,"\\u003c"); document.body.appendChild(el)},0)}
+// ---------- the website's rating for each recent challenge, worked out by the build (ratings_pre.py, ?rateout) ----------
+if(/[?&]rateout\b/.test(location.search))setTimeout(async()=>{
+  const data=window.__VOTES||[]; ACCT.on=true; ACCT.sb={from:()=>({select:async()=>({data,error:null})})};
+  ACCT.songs=null; await acctLoadWeek(); for(let i=0;i<200&&!ACCT.songs;i++)await new Promise(r=>setTimeout(r,50));   // (another caller may have started the load)
+  const ws=Object.keys(SB.weeks).map(Number).sort((a,b)=>b-a).slice(0,12), out={made:new Date().toISOString(),weeks:{}};
+  ws.forEach(w=>{const o=out.weeks[w]={}; (SB.weeks[w]||[]).forEach(c=>{if(!c[3]||/^n\/a$/i.test(c[3]))return;
+    const R=songRating(arrP(w,c[0],c[1]),c[3]); o[c[0]+"|"+c[1]]=[R.avg==null?null:+R.avg,R.players.length,c[3],c[4]]})});
+  const el=document.createElement("script"); el.type="application/json"; el.id="rateout"; el.textContent=JSON.stringify(out).replace(/</g,"\\u003c"); document.body.appendChild(el)},0);
 // ---------- links between Player, Winner and Host lookup ----------
 document.addEventListener("click",e=>{
   const b=e.target.closest("[data-goplayer],[data-gowin],[data-gohost]"); if(!b)return;
@@ -3645,7 +3656,7 @@ function acctCanRate(ents){return !!(ACCT.claim&&ACCT.claim.status==="approved")
 // every challenge's host rating, indexed once by arrangement + song (the scoreboards don't change while the page is open)
 var HR_INDEX=null; // (var: renderSongs can run before this line on first load)
 function hrIndex(){if(HR_INDEX)return HR_INDEX; const I={}, add=(k,x)=>(I[k]=I[k]||[]).push(x);
-  Object.entries(SB.weeks).forEach(([w,ch])=>ch.forEach(c=>{if(c[3])add(arrP(w,c[0],c[1])+"|"+acctSongKey(c[3]),{w:+w,t:tierOf(c[2]),d:c[4],cp:c[0]})}));
+  Object.entries(SB.weeks).forEach(([w,ch])=>ch.forEach(c=>{if(c[3])add(arrP(w,c[0],c[1])+"|"+acctSongKey(c[3]),{w:+w,t:tierOf(c[2]),d:(w+"|"+c[0]+"|"+c[1]) in HOSTORIG?HOSTORIG[w+"|"+c[0]+"|"+c[1]]:c[4],cp:c[0]})}));
   SONGS_OLD.forEach(([w,pp,tt,b,s,d])=>{if(s)add("LRB"[pp]+"|"+acctSongKey(s),{w,t:tt,d})});
   return HR_INDEX=I}
 function hostRatingsOf(p,song){
@@ -3664,8 +3675,13 @@ function songRating(p,song){
     if(seen.has(key))return; seen.add(key); hosts.push({w:x.w,t:x.t,d:x.d,cp:x.cp,h:h&&h!==LOST?h:null,replaced:!!h&&pl.has(h.toLowerCase())})});
   const pool=players.map(v=>v.r).concat(hosts.filter(x=>!x.replaced).map(x=>x.d));
   const avg=pool.length?(Math.round(pool.reduce((a,b)=>a+b,0)/pool.length*10)/10).toFixed(1):null;
-  const tip=(hosts.length?`Initial host rating${hosts.length>1?"s":""}:\n`+hosts.slice(0,12).map(x=>`• Week ${x.w} · ${TIER_LABEL[x.t]||x.t||""}${x.cp!=null&&"LRB"[x.cp]!==p?` (${PATHS[x.cp]} challenge)`:""}${x.h?` · ${x.h}`:""}: ${x.d}${x.replaced?" (replaced by their player rating)":""}`).join("\n")+(hosts.length>12?`\n… and ${hosts.length-12} more`:""):"No host rating")
-    +(players.length?`\n\nPlayers' ratings:\n`+players.map(v=>`• ${v.p}: ${v.r}`).join("\n"):"\n\nNo player ratings yet")
+  // a host's initial rating counts as their own rating for the song (listed with the players' ratings) until they rate it
+  // themselves; weeks without a host keep their initial rating on its own
+  const lv=x=>`${TIER_LABEL[x.t]||x.t||""}${x.cp!=null&&"LRB"[x.cp]!==p?`, ${PATHS[x.cp]} challenge`:""}`;
+  const named=hosts.filter(x=>x.h&&!x.replaced), anon=hosts.filter(x=>!x.h);
+  const list=players.map(v=>`• ${v.p}: ${v.r}`).concat(named.map(x=>`• ${x.h}: ${x.d} (host rating, Week ${x.w} · ${lv(x)})`));
+  const tip=(list.length?`Ratings:\n`+list.slice(0,24).join("\n")+(list.length>24?`\n… and ${list.length-24} more`:""):"No ratings yet")
+    +(anon.length?`\n\nInitial rating${anon.length>1?"s":""} (no host that week):\n`+anon.slice(0,8).map(x=>`• Week ${x.w} · ${lv(x)}: ${x.d}`).join("\n"):"")
     +(avg?`\n\nAverage: ${avg} from ${pool.length} rating${pool.length===1?"":"s"}`:"");
   return {avg,players,hosts,n:pool.length,tip};
 }
