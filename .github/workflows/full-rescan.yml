@@ -42,14 +42,14 @@ jobs:
         id: commit
         run: |
           # ignore the "Last updated" line (kept on its own line in the template) so the site only changes when the data or page does
-          if git diff --quiet -I 'Last updated:' -- index.html && [ -z "$(git status --porcelain -- build/data/cache ratings.json)" ]; then
+          if git diff --quiet -I 'Last updated:' -- index.html && [ -z "$(git status --porcelain -- build/data/cache ratings.json weekposts.json)" ]; then
             git checkout -- index.html
             echo "No data changes."
             echo "changed=false" >> "$GITHUB_OUTPUT"
           else
             git config user.name  "github-actions[bot]"
             git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
-            git add index.html build/data/cache; [ -f ratings.json ] && git add ratings.json || true
+            git add index.html build/data/cache; [ -f ratings.json ] && git add ratings.json || true; [ -f weekposts.json ] && git add weekposts.json || true
             git commit -m "Full rescan of the scoreboard sheet (week $(cat build/work/data_week.txt))"
             git pull --rebase -X theirs origin main
             git push
