@@ -477,6 +477,7 @@ a.dl svg,.offpill svg{width:11px;height:11px}
 .yw .pt{display:inline-block;width:6px;height:6px;border-radius:50%;vertical-align:1px}
 .ywn{display:flex;gap:14px;flex-wrap:wrap;margin-top:3px;font-size:.86rem}
 .ywn .gain{color:var(--s-green);font-weight:800}.ywn .flat,.ywn .plc{color:var(--muted)}.ywn .plc b{font-weight:800}.yw .pup{color:var(--s-green)}.yw .pdn{color:var(--s-red)}
+.acctdlg .hhol{display:inline-flex;flex-wrap:wrap;gap:4px;margin-left:8px;vertical-align:1px}.acctdlg .hhol .pill.hol{font-size:.72rem;padding:1px 7px}
 .acctdlg .claimtip{font-size:.84rem;border-left:3px solid var(--accent);background:color-mix(in srgb,var(--accent) 8%,transparent);padding:6px 10px;border-radius:0 6px 6px 0;margin:6px 0 10px}
 .acctdlg .apprhead{display:flex;align-items:center;justify-content:space-between;gap:8px}
 .acctdlg .btn.small{padding:3px 10px;font-size:.78rem}
@@ -3824,6 +3825,8 @@ document.addEventListener("click",e=>{
 },true);
 document.addEventListener("change",e=>{const s=e.target.closest("select[data-hostpick]"); if(!s||!s.value)return; const v=s.value; s.value=""; hostAct(+s.dataset.hostpick,v)});
 // the Hosting section in Your account, and Host sign-ups in Admin
+// a week's holidays as small tags (same as on This Week and the week log)
+const hostHol=w=>w&&w[3]?`<span class="hhol">${w[3].split(/,\s*/).map(h=>`<span class="pill hol">${holEmoji(h)}${esc(h)}</span>`).join("")}</span>`:"";
 function hostSection(admin){
   const open=hostOpenWeeks();
   if(admin){
@@ -3834,9 +3837,9 @@ function hostSection(admin){
     return `<div class="adm acctsec hostsec"><h3>Host sign-ups</h3><p>${all.length?"Upcoming hosts. Add site sign-ups to the schedule sheet; weeks marked “in the schedule sheet” are already there.":"No sign-ups yet."}</p><ul>${all.map(s=>{const w=weekAt(curIdx+(s.week-WEEKS[curIdx][0]));return `<li><span>Week ${s.week} · ${fmtShort(w[1])} · ${(()=>{ // once the week is in the schedule sheet, the sheet's host shows with "in the schedule sheet" (it replaces "signed up by")
         const inSheet=s.sheet||(w[2]&&w[2]!==LOST); if(inSheet)return `<b>${esc(w[2]||s.player)}</b> <small>in the schedule sheet</small>`;
         const by=ACCT.claims.find(c=>c.user_id===s.user_id);return `<b>${esc(s.player)}</b> ${by&&by.player!==s.player?`<small>signed up by ${esc(by.player)}</small>`:""}`})()}</span><button type="button" class="btn ghost" ${s.sheet?"data-hostsheet":"data-hostdrop"}="${s.week}">Remove</button></li>`}).join("")}</ul>
-      <p>Open weeks:</p><ul>${open.map(([w,i])=>`<li><span>Week ${w[0]} · ${fmtShort(w[1])}</span><span>${hostSlot(w,i,null,true)}</span></li>`).join("")||`<li>Every week in the next ${hostAhead()} has a host.</li>`}</ul></div>`}
+      <p>Open weeks:</p><ul>${open.map(([w,i])=>`<li><span>Week ${w[0]} · ${fmtShort(w[1])}${hostHol(w)}</span><span>${hostSlot(w,i,null,true)}</span></li>`).join("")||`<li>Every week in the next ${hostAhead()} has a host.</li>`}</ul></div>`}
   if(!hostVerified())return "";
-  return `<div class="acctsec hostsec"><h3>Hosting</h3><p>Open weeks coming up. Sign up to host one here.</p><ul>${open.map(([w,i])=>`<li><span>Week ${w[0]} · ${fmtShort(w[1])}</span><span>${hostSlot(w,i)}</span></li>`).join("")||`<li>Every week in the next ${hostAhead()} has a host.</li>`}</ul></div>`;
+  return `<div class="acctsec hostsec"><h3>Hosting</h3><p>Open weeks coming up. Sign up to host one here.</p><ul>${open.map(([w,i])=>`<li><span>Week ${w[0]} · ${fmtShort(w[1])}${hostHol(w)}</span><span>${hostSlot(w,i)}</span></li>`).join("")||`<li>Every week in the next ${hostAhead()} has a host.</li>`}</ul></div>`;
 }
 // verification animals: one per player, seen only by the player and admins (see animals.sql)
 const VERIFY_EMOJI={"Aardvark": "🐜", "Alpaca": "🦙", "Armadillo": "🦔", "Axolotl": "🦎", "Badger": "🦡", "Bat": "🦇", "Bear": "🐻", "Beaver": "🦫", "Bee": "🐝", "Bison": "🦬", "Boar": "🐗", "Butterfly": "🦋", "Camel": "🐫", "Cat": "🐈", "Chameleon": "🦎", "Cheetah": "🐆", "Chicken": "🐔", "Chipmunk": "🐿️", "Cow": "🐄", "Crab": "🦀", "Crocodile": "🐊", "Deer": "🦌", "Dodo": "🦤", "Dog": "🐕", "Dolphin": "🐬", "Donkey": "🫏", "Dove": "🕊️", "Dragon": "🐉", "Duck": "🦆", "Eagle": "🦅", "Elephant": "🐘", "Flamingo": "🦩", "Fox": "🦊", "Frog": "🐸", "Giraffe": "🦒", "Goat": "🐐", "Gorilla": "🦍", "Hamster": "🐹", "Hedgehog": "🦔", "Hippo": "🦛", "Horse": "🐎", "Hummingbird": "🐦", "Jellyfish": "🪼", "Kangaroo": "🦘", "Koala": "🐨", "Ladybug": "🐞", "Leopard": "🐆", "Lion": "🦁", "Lizard": "🦎", "Llama": "🦙", "Lobster": "🦞", "Mammoth": "🦣", "Monkey": "🐒", "Moose": "🫎", "Mouse": "🐁", "Octopus": "🐙", "Orangutan": "🦧", "Otter": "🦦", "Owl": "🦉", "Ox": "🐂", "Panda": "🐼", "Parrot": "🦜", "Peacock": "🦚", "Penguin": "🐧", "Pig": "🐖", "Poodle": "🐩", "Rabbit": "🐇", "Raccoon": "🦝", "Ram": "🐏", "Rhino": "🦏", "Rooster": "🐓", "Scorpion": "🦂", "Seal": "🦭", "Shark": "🦈", "Sheep": "🐑", "Shrimp": "🦐", "Skunk": "🦨", "Sloth": "🦥", "Snail": "🐌", "Snake": "🐍", "Spider": "🕷️", "Squid": "🦑", "Swan": "🦢", "Tiger": "🐅", "Turkey": "🦃", "Turtle": "🐢", "T-Rex": "🦖", "Unicorn": "🦄", "Whale": "🐋", "Wolf": "🐺", "Zebra": "🦓"};
@@ -3959,7 +3962,8 @@ function claimLogSection(){
   const L=ACCT.claimLog;
   const rows=(L||[]).map(x=>{const d=new Date(x.at), when=d.toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"})+" "+d.toLocaleTimeString("en-US",{hour:"numeric",minute:"2-digit"});
     const what={approved:"approved the claim for",rejected:"rejected the claim for",removed:"removed the approved claim for"}[x.action]||esc(x.action)+" the claim for";
-    if(x.action==="approved_before_log")return `<li><span><small>${esc(d.toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"}))}</small> · <b>${esc(x.player)}</b> claimed their profile, approved${x.admin_player?` by <b>${esc(x.admin_player)}</b>`:""} the same day</span></li>`;
+    // approvals from before the log started: the day the player claimed, shown at 8:00 AM like the other entries
+    if(x.action==="approved_before_log")return `<li><span><small>${esc(d.toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"}))} 8:00 AM</small> · <b>${esc(x.admin_player||"an admin")}</b> approved the claim for <b>${esc(x.player)}</b></span></li>`;
     if(x.action==="unlinked")return `<li><span><small>${esc(when)}</small> · <b>${esc(x.player)}</b> unlinked their email (claim released, ratings and banner kept)</span></li>`;
     if(x.action==="admin_added"||x.action==="admin_removed")return `<li><span><small>${esc(when)}</small> · <b>${esc(x.admin_player||"an admin")}</b> ${x.action==="admin_added"?`made <b>${esc(x.player)}</b> an admin`:x.admin_player===x.player?"stepped down as an admin":`removed <b>${esc(x.player)}</b> as an admin`}</span></li>`;
     return `<li><span><small>${esc(when)}</small> · <b>${esc(x.admin_player||"an admin")}</b> ${what} <b>${esc(x.player)}</b></span></li>`}).join("");
