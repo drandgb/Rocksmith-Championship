@@ -1090,9 +1090,6 @@ footer{color:var(--dim);font-size:.78rem}
 .bn .bn-hot{position:absolute;top:-7px;right:-5px;display:inline-flex;align-items:center;gap:2px;padding:2px 7px 2px 5px;border-radius:999px;font:800 13px/1 var(--f-display);color:#1a0d02;background:linear-gradient(180deg,#ffc24a,#ff7a1a);box-shadow:0 0 8px rgba(255,120,30,.55);border:1px solid #ffd27a}
 .bn .bn-hot svg{width:10px;height:13px}
 .bn .bn-hot svg path{fill:#1a0d02}
-.bn .bn-hot.bn-play{background:linear-gradient(180deg,#7ee0ff,#2f9df0);border-color:#a8ecff;box-shadow:0 0 8px rgba(60,170,255,.5);color:#04172a}
-.bn .bn-hot.bn-play svg{width:9px;height:11px}
-.bn .bn-hot.bn-play svg path{fill:#04172a}
 .bn .bn-meds{display:flex;align-items:center;gap:27px;flex:1;min-height:0;padding:0 0 4px 3px}
 .bn .bn-meds .medal-m{zoom:1.4;flex:none;position:relative;margin-right:4px;cursor:default}
 .bn .bn-first{position:absolute;left:-8px;top:-6px;z-index:2;font:800 10px/14px var(--f-display);padding:0 3px;border-radius:6px;background:linear-gradient(180deg,#ffe28a,#f5c84a);color:#2a1a02}
@@ -4095,9 +4092,10 @@ function bannerHtml(n){
   const key=n.toLowerCase(), rk={};
   ((typeof RK!=="undefined"&&RK.paths)||[]).forEach(pp=>pp.levels.forEach(l=>l.rows.forEach(([r,nm])=>{if(String(nm).toLowerCase()===key){const k=+r,pk=String(pp.path); if(k&&(!rk[pk]||k<rk[pk].r))rk[pk]={r:k,lv:l.level}}})));
   // win medals; "1st" on the ones this player leads
-  // the player's place (1st, 2nd or 3rd; ties share a place) on each win medal kind
-  const places=((typeof ML_PRE!=="undefined"&&ML_PRE&&ML_PRE.win)||[]).map(k=>{const me=k.rows.find(r=>String(r[0]).toLowerCase()===key); if(!me)return null;
-    const pl=1+k.rows.filter(r=>r[1]>me[1]).length; return pl<=3?{label:k.label,pl}:null}).filter(Boolean);
+  // the player's place among active players (1st, 2nd or 3rd; ties share a place) on each win medal kind;
+  // players who aren't active get no place tags
+  const places=!isActivePlayer(n)?[]:((typeof ML_PRE!=="undefined"&&ML_PRE&&ML_PRE.win)||[]).map(k=>{const act=k.rows.filter(r=>isActivePlayer(r[0])), me=act.find(r=>String(r[0]).toLowerCase()===key); if(!me)return null;
+    const pl=1+act.filter(r=>r[1]>me[1]).length; return pl<=3?{label:k.label,pl}:null}).filter(Boolean);
   const box=document.createElement("div"); box.innerHTML=allMedalsHtml(n);
   // order: gold God diamonds, gold medals, Uncrowned (next to the gold medals), then close wins and rivalry wins
   const ORD=[/^Gold God diamond/,/^Gold medal/,/^Uncrowned ·/,/^Close win/,/^Rivalry win/], ordOf=m=>ORD.findIndex(r=>r.test(m.getAttribute("data-tip")||""));
@@ -4112,13 +4110,10 @@ function bannerHtml(n){
   // win streak: won at least one challenge in each of the last 2+ completed weeks (as in Hot streaks)
   const hot=Object.entries(hotStreaks(-1)).find(([k])=>k.toLowerCase()===key), hk=hot?hot[1]:0;
   const flame=`<svg viewBox="0 0 16 20" aria-hidden="true"><path d="M8 1c1 3.5 5.5 5.6 5.5 10.5A5.5 5.5 0 0 1 2.5 11.5C2.5 8.6 4.3 7 5.2 5.4c.5 1.6 1.2 2.4 2.1 2.8C7.7 6 7.3 3.4 8 1z" fill="url(#bnfl)"/><defs><linearGradient id="bnfl" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#ff5a1f"/><stop offset=".6" stop-color="#ff9f1c"/><stop offset="1" stop-color="#ffe066"/></linearGradient></defs></svg>`;
-  // play streak: weeks in a row with at least one score, still going
-  const pk=+p[5]||0, play=`<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 2.5v11l10-5.5z"/></svg>`;
-  const weeksB=p[3]+(pk>=2?`<span class="bn-hot bn-play" title="Played ${pk} weeks in a row">${play}${pk}</span>`:"");
   const winsB=v[1]+(hk>=2?`<span class="bn-hot" title="Won a challenge in each of the last ${hk} weeks">${flame}${hk}</span>`:"");  // a badge on the box's corner
   // best rank highlight: #1 gold, #2 silver, #3 bronze
   return `<div class="bn"><div class="bn-top"><div class="bn-who"><div class="bn-nm">${esc(n)}</div><div class="bn-tags">${["L","R","B"].map((l,i)=>`<span class="bn-tg">${l}<b style="color:${tc(T[i])}">${tier(T[i])}</b></span>`).join("")}</div></div>
-    <div class="bn-stats">${st("Weeks",weeksB)}${st("Wins",winsB,hk>=2?"bn-hotbox":"")}${["Lead","Rhythm","Bass"].map(pn=>{const r=rk[pn]; return st(`${pn==="Rhythm"?"Rhy":pn} rank`,r?`#${r.r}<i>${esc(r.lv.slice(0,3))}</i>`:"–",r&&r.r<=3?"bn-r"+r.r:"")}).join("")}</div></div>
+    <div class="bn-stats">${st("Weeks",p[3])}${st("Wins",winsB,hk>=2?"bn-hotbox":"")}${["Lead","Rhythm","Bass"].map(pn=>{const r=rk[pn]; return st(`${pn==="Rhythm"?"Rhy":pn} rank`,r?`#${r.r}<i>${esc(r.lv.slice(0,3))}</i>`:"–",r&&r.r<=3?"bn-r"+r.r:"")}).join("")}</div></div>
     <div class="bn-meds">${meds.join("")}</div>${BN_STRIPE}</div>`;
 }
 // long names: shrink the name until it fits its column (down to 12px) instead of cutting it off
