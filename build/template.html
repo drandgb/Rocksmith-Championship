@@ -4229,7 +4229,7 @@ function acctDraw(msg,err){
   else if(ACCT.tab==="host")h+=`${hostSection(false).replace('class="acctsec hostsec"','class="acctsec hostsec hosttop"')}${adminRateSection()}${ratingLogSection()}`;
   else if(ACCT.tab==="banner")h+=bnTab(ACCT.claim.player);
   else if(ACCT.tab==="week"){const n=ACCT.claim.player; ACCT.twPart="week";
-    h+=`${ywAlert(n)}${ywList(n)}<div id="acct-tw">${acctThisWeek(n,"week")}</div>`}
+    h+=`${ywAlert(n)}<div id="acct-tw">${acctThisWeek(n,"week")}</div>${ywList(n)}`}
   else if(ACCT.tab==="manage"){
     h+=`<div class="adm acctsec"><h3>Verification animal</h3>${animalNote()||`<p class="dim">You'll get a verification animal once you claim your player profile.</p>`}</div>
       <div class="acctsec"><h3>Log out</h3><p class="dim">Log out of the site on this device.</p><div class="row"><button type="button" class="btn ghost" data-acct="logout">Log out</button></div></div>`}
