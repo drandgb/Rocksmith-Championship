@@ -3680,7 +3680,10 @@ function songRating(p,song){
   const lv=x=>`${TIER_LABEL[x.t]||x.t||""}${x.cp!=null&&"LRB"[x.cp]!==p?`, ${PATHS[x.cp]} challenge`:""}`;
   const named=hosts.filter(x=>x.h&&!x.replaced), anon=hosts.filter(x=>!x.h);
   const list=players.map(v=>`• ${v.p}: ${v.r}`).concat(named.map(x=>`• ${x.h}: ${x.d} (host rating, Week ${x.w} · ${lv(x)})`));
-  const tip=(list.length?`Ratings:\n`+list.slice(0,24).join("\n")+(list.length>24?`\n… and ${list.length-24} more`:""):"No ratings yet")
+  // the rating on the scoreboard sheet now (its most recent week), which drandTools can set to the website's rating
+  const lastW=hosts.length?Math.max(...hosts.map(x=>x.w)):null, lastC=lastW!=null?(SB.weeks[lastW]||[]).find(c=>c[3]&&arrP(lastW,c[0],c[1])===p&&acctSongKey(c[3])===acctSongKey(song)):null;
+  const sheetNow=lastC&&typeof lastC[4]==="number"?`Scoreboard rating: ${lastC[4]} (Week ${lastW})\n\n`:"";
+  const tip=sheetNow+(list.length?`Ratings:\n`+list.slice(0,24).join("\n")+(list.length>24?`\n… and ${list.length-24} more`:""):"No ratings yet")
     +(anon.length?`\n\nInitial rating${anon.length>1?"s":""} (no host that week):\n`+anon.slice(0,8).map(x=>`• Week ${x.w} · ${lv(x)}: ${x.d}`).join("\n"):"")
     +(avg?`\n\nAverage: ${avg} from ${pool.length} rating${pool.length===1?"":"s"}`:"");
   return {avg,players,hosts,n:pool.length,tip};
