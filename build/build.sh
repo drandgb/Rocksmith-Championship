@@ -35,4 +35,8 @@ python3 ml_pre.py "${OUT:-../../index.html}" && if [ -f ml_pre.json ]; then OUT=
 node fixlog.js "${OUT:-../../index.html}" cache || echo "fixlog: skipped"
 # Your week: first and best scores this week, and who passed whom (weeklog.js)
 node weeklog.js "${OUT:-../../index.html}" cache || echo "weeklog: skipped"
+# original host ratings: frozen the first time each challenge is seen (hostorig.js)
+node hostorig.js "${OUT:-../../index.html}" cache || echo "hostorig: skipped"
+# the website's rating for each recent challenge, for drandTools (ratings_pre.py writes ratings.json next to the page)
+python3 ratings_pre.py "${OUT:-../../index.html}" || echo "ratings: skipped"
 cp cache/*.json ../data/cache/
