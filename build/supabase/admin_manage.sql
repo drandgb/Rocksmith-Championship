@@ -1,4 +1,4 @@
--- Admins managed from the site (Admin → Admins): any admin can make a player with an approved claim an admin, or
+-- Admins managed from the site (Admin → Admins), and players deleting their own login (Manage account → Unlink your email): any admin can make a player with an approved claim an admin, or
 -- remove an admin, except the owner (drand), who can't be removed. Every change is written to the Claims log.
 -- Also marks the older approvals in the Claims log (from claim_log_backfill.sql) as approved by drand, the only
 -- admin back then.
@@ -51,3 +51,34 @@ grant execute on function public.set_admin(text, boolean) to authenticated;
 
 -- older approvals: approved by drand, the only admin before the log started
 update public.claim_log set admin_player = 'drand' where action = 'approved_before_log' and admin_player is null;
+
+-- ---------- Unlink email (Manage account → Unlink your email) ----------
+-- A player can delete their own login. Their claim is released (the name can be claimed again), their ratings stay
+-- shown under their player name and carry over to a new claim of the same name, and their forum banner keeps working.
+-- The ratings and host sign-ups they made are kept when the login is deleted (instead of being deleted with it).
+alter table public.votes alter column user_id drop not null;
+alter table public.votes drop constraint if exists votes_user_id_fkey;
+alter table public.votes add constraint votes_user_id_fkey foreign key (user_id) references auth.users on delete set null;
+alter table public.votes_archive alter column user_id drop not null;
+alter table public.host_signups alter column user_id drop not null;
+alter table public.host_signups drop constraint if exists host_signups_user_id_fkey;
+alter table public.host_signups add constraint host_signups_user_id_fkey foreign key (user_id) references auth.users on delete set null;
+
+create or replace function public.delete_my_login()
+returns void
+language plpgsql security definer set search_path = public, auth as $$
+declare me text; st text;
+begin
+  if auth.uid() is null then raise exception 'not logged in'; end if;
+  if exists (select 1 from public.admins where user_id = auth.uid() and owner) then raise exception 'the owner''s login can''t be deleted'; end if;
+  select player, status into me, st from public.claims where user_id = auth.uid();
+  if me is not null and st = 'approved' then
+    -- like an admin removing the claim with: ratings shown, handed to a new claim of the name, banner kept
+    insert into public.removed_claims (player, hide_ratings, carry_over, keep_banner, admin_id)
+      values (me, false, true, true, null)
+      on conflict (player) do update set hide_ratings = false, carry_over = true, keep_banner = true, removed_at = now(), admin_id = null;
+    insert into public.claim_log (admin_id, admin_player, player, action) values (null, me, me, 'unlinked');
+  end if;
+  delete from auth.users where id = auth.uid();   -- also removes their claim, admin row and verification animal
+end $$;
+grant execute on function public.delete_my_login() to authenticated;
