@@ -39,4 +39,6 @@ node weeklog.js "${OUT:-../../index.html}" cache || echo "weeklog: skipped"
 node hostorig.js "${OUT:-../../index.html}" cache || echo "hostorig: skipped"
 # the website's rating for each recent challenge, for drandTools (ratings_pre.py writes ratings.json next to the page)
 python3 ratings_pre.py "${OUT:-../../index.html}" || echo "ratings: skipped"
+# each week's forum post from the NewWeekPost sheet, for drandTools (weekposts.py writes weekposts.json next to the page)
+python3 weekposts.py "${OUT:-../../index.html}" || echo "weekposts: skipped"
 cp cache/*.json ../data/cache/
