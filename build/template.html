@@ -3958,9 +3958,22 @@ function claimLogSection(){
   const L=ACCT.claimLog;
   const rows=(L||[]).map(x=>{const d=new Date(x.at), when=d.toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"})+" "+d.toLocaleTimeString("en-US",{hour:"numeric",minute:"2-digit"});
     const what={approved:"approved the claim for",rejected:"rejected the claim for",removed:"removed the approved claim for"}[x.action]||esc(x.action)+" the claim for";
-    if(x.action==="approved_before_log")return `<li><span><small>${esc(d.toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"}))}</small> · <b>${esc(x.player)}</b> claimed their profile, approved the same day</span></li>`;
+    if(x.action==="approved_before_log")return `<li><span><small>${esc(d.toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"}))}</small> · <b>${esc(x.player)}</b> claimed their profile, approved${x.admin_player?` by <b>${esc(x.admin_player)}</b>`:""} the same day</span></li>`;
+    if(x.action==="admin_added"||x.action==="admin_removed")return `<li><span><small>${esc(when)}</small> · <b>${esc(x.admin_player||"an admin")}</b> ${x.action==="admin_added"?`made <b>${esc(x.player)}</b> an admin`:x.admin_player===x.player?"stepped down as an admin":`removed <b>${esc(x.player)}</b> as an admin`}</span></li>`;
     return `<li><span><small>${esc(when)}</small> · <b>${esc(x.admin_player||"an admin")}</b> ${what} <b>${esc(x.player)}</b></span></li>`}).join("");
   return `<div class="adm acctsec" id="admclaimlog"><h3>Claims log</h3>${L==null?`<p class="dim">The log isn't set up yet (run claim_log.sql in Supabase).</p>`:rows?`<ul class="ratelog">${rows}</ul>`:`<p class="dim">No claims approved or removed since the log started.</p>`}</div>`;
+}
+// ---------- Admin: the admins (admin_manage.sql). Any admin can add or remove admins, except the owner ----------
+async function adminsLoad(){if(!ACCT.sb||!ACCT.admin)return; const {data,error}=await ACCT.sb.rpc("list_admins"); ACCT.admins=error?null:(data||[])}
+function adminsSection(){
+  const A=ACCT.admins;
+  if(A==null)return `<div class="adm acctsec"><h3>Admins</h3><p class="dim">Adding and removing admins here isn't set up yet (run admin_manage.sql in Supabase).</p></div>`;
+  const isAd=new Set(A.map(a=>String(a.player||"").toLowerCase()));
+  const cand=ACCT.claims.filter(c=>c.status==="approved"&&!isAd.has(c.player.toLowerCase())).map(c=>c.player).sort((a,b)=>a.localeCompare(b,undefined,{sensitivity:"base"}));
+  const dt=t=>t?new Date(t).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"}):"";
+  return `<div class="adm acctsec"><h3>Admins</h3><p class="dim">Admins can approve and remove claims, give ratings for players, sign anyone up to host and see the logs. Any admin can add or remove admins, except the owner. Changes are listed in the Claims log.</p>
+    <ul>${A.map(a=>`<li><span><b>${esc(a.player||"(no claim)")}</b> <small class="dim">${[a.owner?"owner":"admin",a.is_me?"you":"",a.added_at?`since ${dt(a.added_at)}`:"",a.added_by?`added by ${esc(a.added_by)}`:""].filter(Boolean).join(" · ")}</small></span>${a.owner||!a.player?"<span></span>":`<button type="button" class="btn ghost" data-acct="adminrm" data-player="${esc(a.player)}">${a.is_me?"Step down":"Remove"}</button>`}</li>`).join("")}</ul>
+    ${cand.length?`<div class="row" style="margin-top:8px"><select id="admadd"><option value="">Choose a player with an approved claim…</option>${cand.map(n=>`<option>${esc(n)}</option>`).join("")}</select><button type="button" class="btn" data-acct="adminadd">Make admin</button></div>`:""}</div>`;
 }
 // Admin tab: give or change ratings on behalf of a player (e.g. one who sent their ratings by message)
 function adminRateSection(){
@@ -4130,6 +4143,7 @@ async function acctRefresh(){
   ACCT.ratingLog=undefined; await ratingLogLoad();
   if(ACCT.admin)hostsSync();
   ACCT.claimLog=undefined; if(ACCT.admin)await claimLogLoad();
+  ACCT.admins=undefined; if(ACCT.admin)await adminsLoad();
   ACCT.removed=null; if(ACCT.admin)await removedLoad();
   await hostLoad(); ACCT.ready=true; acctBtn(); if($("acct").open)acctDraw(); ACCT.songs=null; sbRender();
   acctLoadWeek(); // everyone's ratings are public: load them for logged-out visitors too
@@ -4239,7 +4253,7 @@ function acctDraw(msg,err){
   else if(ACCT.claim.status==="pending")h+=`<p>You've claimed <b>${esc(ACCT.claim.player)}</b>. It's waiting for approval: an admin will message you to confirm it's really you, then approve it. Your verification animal is under Manage account.</p><div class="row"><button type="button" class="btn ghost" data-acct="unclaim">Withdraw claim</button></div>`;
   else h+=`<p>Hi <b>${esc(ACCT.claim.player)}</b>! This is your personal stats page. You can submit your own ratings for any song by clicking its rating number anywhere it appears. You can get your forum signature banner from the <span class="ywlink" role="button" tabindex="0" data-accttab="banner">Forum banner</span> tab.</p><div id="acct-tw">${(ACCT.twPart="me",acctThisWeek(ACCT.claim.player,"me"))}</div>${rankupSection(ACCT.claim.player)}${acctProfile(ACCT.claim.player)}`;
   if(ACCT.admin&&ACCT.tab==="admin"){const pend=ACCT.claims.filter(c=>c.status==="pending"), appr=ACCT.claims.filter(c=>c.status==="approved").sort((a,c)=>a.player.localeCompare(c.player));
-    h+=`${removePanel()}<div class="adm acctsec"><h3>Claims</h3><p>${pend.length?"Waiting for approval:":"No claims waiting."}</p><ul>${pend.map(c=>`<li><span>${esc(c.player)} ${animalTag(ACCT.animals[c.user_id])} <small>${new Date(c.created_at).toLocaleDateString()}</small></span><span><button type="button" class="btn" data-acct="approve" data-uid="${c.user_id}">Approve</button> <button type="button" class="btn ghost" data-acct="reject" data-uid="${c.user_id}">Reject</button></span></li>`).join("")}</ul>${appr.length?`<p class="apprhead"><span>Approved (${appr.length}):</span><button type="button" class="btn ghost small" data-acct="editclaims">${ACCT.editClaims?"Done":"Edit"}</button></p><ul>${appr.map(c=>`<li><span>${esc(c.player)} ${animalTag(ACCT.animals[c.user_id])}</span>${ACCT.editClaims?`<button type="button" class="btn ghost" data-acct="removeask" data-player="${esc(c.player)}">Remove</button>`:""}</li>`).join("")}</ul>`:""}</div>${claimLogSection()}${removedSection()}${typoSection()}${fixLogSection()}${hostSection(true)}`}
+    h+=`${removePanel()}<div class="adm acctsec"><h3>Claims</h3><p>${pend.length?"Waiting for approval:":"No claims waiting."}</p><ul>${pend.map(c=>`<li><span>${esc(c.player)} ${animalTag(ACCT.animals[c.user_id])} <small>${new Date(c.created_at).toLocaleDateString()}</small></span><span><button type="button" class="btn" data-acct="approve" data-uid="${c.user_id}">Approve</button> <button type="button" class="btn ghost" data-acct="reject" data-uid="${c.user_id}">Reject</button></span></li>`).join("")}</ul>${appr.length?`<p class="apprhead"><span>Approved (${appr.length}):</span><button type="button" class="btn ghost small" data-acct="editclaims">${ACCT.editClaims?"Done":"Edit"}</button></p><ul>${appr.map(c=>`<li><span>${esc(c.player)} ${animalTag(ACCT.animals[c.user_id])}</span>${ACCT.editClaims?`<button type="button" class="btn ghost" data-acct="removeask" data-player="${esc(c.player)}">Remove</button>`:""}</li>`).join("")}</ul>`:""}</div>${claimLogSection()}${removedSection()}${adminsSection()}${typoSection()}${fixLogSection()}${hostSection(true)}`}
   // redrawing keeps the popup where it was scrolled to (e.g. after changing a rating in the Admin tab)
   const dlg=$("acct"), keep=[dlg.scrollTop,b.scrollTop];
   b.innerHTML=h+note;
@@ -4276,6 +4290,14 @@ $("acctbody").addEventListener("click",async e=>{
       const {error}=await sb.from("claims").insert({user_id:ACCT.user.id,player:n}); if(error){acctDraw("",/duplicate|unique/i.test(error.message)?"Someone already claimed that name. Message the admin if it's yours.":error.message);return}}
     if(a==="unclaim"){const {error}=await sb.from("claims").delete().eq("user_id",ACCT.user.id); if(error){acctDraw("",error.message);return}}
     if(a==="approve"){const {error}=await sb.from("claims").update({status:"approved"}).eq("user_id",b.dataset.uid); if(error){acctDraw("",error.message);return}}
+    if(a==="adminadd"){const n=$("admadd").value; if(!n){alert("Choose a player first.");return}
+      if(!confirm(`Make ${n} an admin? They'll be able to approve and remove claims, give ratings for players, sign anyone up to host, see the logs and add or remove other admins.`))return;
+      const {error}=await sb.rpc("set_admin",{p_player:n,p_on:true}); if(error){alert("Couldn't make them an admin: "+error.message);return}
+      await adminsLoad(); await claimLogLoad(); acctDraw(); return}
+    if(a==="adminrm"){const n=b.dataset.player, me=ACCT.claim&&ACCT.claim.player===n;
+      if(!confirm(me?"Step down as an admin? You'll lose the Admin tab, and another admin would have to add you back.":`Remove ${n} as an admin?`))return;
+      const {error}=await sb.rpc("set_admin",{p_player:n,p_on:false}); if(error){alert("Couldn't remove: "+error.message);return}
+      if(me){await acctRefresh();return} await adminsLoad(); await claimLogLoad(); acctDraw(); return}
     if(a==="removeask"){ACCT.removing=b.dataset.player; ACCT.removeCount=null; acctDraw(); $("acctbody").scrollTop=0; $("acct").scrollTop=0;
       sb.from("votes").select("player",{count:"exact",head:true}).eq("player",ACCT.removing).then(({count})=>{if(ACCT.removing&&count!=null){ACCT.removeCount=count; acctDraw()}}); return}
     if(a==="removecancel"){ACCT.removing=null; acctDraw(); return}
