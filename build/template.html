@@ -1372,7 +1372,7 @@ footer{color:var(--dim);font-size:.78rem}
 
   <div class="view" id="view-rankings" role="tabpanel" aria-labelledby="tab-rankings" hidden>
   <section class="panel rkhead">
-    <div class="panel-head"><h2 class="rkinfo" data-tip="How Rodman’s Rankings work&#10;&#10;Each path (Lead, Rhythm, Bass) and level (Beginner to Masterclass) has its own leaderboard covering the last 10 weeks.&#10;&#10;Points: on each challenge the top 4 earn 10, 5, 3 and 1 points, added up over the 10 weeks. Players with the same points share a rank.&#10;&#10;Who counts: only the main challenges (bonus and God challenges don’t count). Places go to players in that class or playing one class up, using the class they were in that week, so after a rank-up their points start counting in the new class. Players playing down, two or more classes up, or marked on the sheet as a new player or with no class on that path are skipped, and the next player takes the place.&#10;&#10;Arrows show how many places a player moved since last week; New means they just entered the list, and Out means they have no points left in the last 10 weeks.&#10;&#10;Rodman’s official table is kept in the scoreboard sheet. Tap the weeks pill for the latest 10 weeks, worked out by the site with the same rules. Players’ profiles and forum banners use whichever is more recent.">Rodman’s Rankings <span class="infoi" aria-hidden="true">ⓘ</span></h2><span class="sub" id="rk-sub"></span></div>
+    <div class="panel-head"><h2 class="rkinfo" data-tip="How Rodman’s Rankings work&#10;&#10;Each path (Lead, Rhythm, Bass) and level (Beginner to Masterclass) has its own leaderboard covering the last 10 weeks.&#10;&#10;Points: on each challenge the top 4 earn 10, 5, 3 and 1 points, added up over the 10 weeks. Players with the same points share a rank.&#10;&#10;Who counts: only the main challenges (bonus and God challenges don’t count). Places go to players in that class or playing one class up, using the class they were in that week, so after a rank-up their points start counting in the new class. Players playing down, two or more classes up, or marked on the sheet as a new player or with no class on that path are skipped, and the next player takes the place.&#10;&#10;Arrows show how many places a player’s own rank moved since last week; New means they just entered the list, and Out means they have no points left in the last 10 weeks. With ties, one player can move without another moving the other way: if two players shared 1st last week and one pulls ahead, that one stays 1st (no change) and the other drops to 2nd (↓1).&#10;&#10;Rodman’s official table is kept in the scoreboard sheet. Tap the weeks pill for the latest 10 weeks, worked out by the site with the same rules. Players’ profiles and forum banners use whichever is more recent.">Rodman’s Rankings <span class="infoi" aria-hidden="true">ⓘ</span></h2><span class="sub" id="rk-sub"></span></div>
     <div class="twstats" id="rk-stats"></div>
   </section>
   <div class="wpathbar"><div class="tiers rktiers" id="rkpath" aria-label="Level shown for each path"></div><button type="button" class="clear" id="rkall" hidden>Show all levels</button></div>
@@ -3740,8 +3740,12 @@ function rkLiveData(){
   const last=TW_LIVE?TW_LIVE-1:DATA_WEEK, now=rkCompute(last), prev=rkCompute(last-1), LV={B:"Beginner",I:"Intermediate",A:"Advanced",M:"Masterclass"};
   const ranked=o=>{const r=Object.entries(o||{}).sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0],undefined,{sensitivity:"base"})); let k=0; return r.map(([n,p],i)=>{if(i===0||p<r[i-1][1])k=i+1; return [k,n,p]})};
   const paths=["Lead","Rhythm","Bass"].map((path,pi)=>({path,levels:Object.keys(LV).map(lv=>{
-    const pr={}; ranked(prev[pi+"|"+lv]).forEach(([k,n])=>pr[n]=k);
-    return {level:LV[lv],rows:ranked(now[pi+"|"+lv]).map(([k,n,p])=>{const was=pr[n]; return [String(k),n,String(p),was==null?"new":was>k?"↑"+(was-k):was<k?"↓"+(k-was):"-"]})}})}));
+    const ord=i=>i+(["th","st","nd","rd"][(i%100-20)%10]||["th","st","nd","rd"][i%100]||"th");
+    const P=ranked(prev[pi+"|"+lv]), N=ranked(now[pi+"|"+lv]), pr={}, pc={}, nc={}; P.forEach(([k,n])=>{pr[n]=k; pc[k]=(pc[k]||0)+1}); N.forEach(([k])=>nc[k]=(nc[k]||0)+1);
+    const at=(k,c)=>`${c[k]>1?"shared ":""}${ord(k)}`;
+    return {level:LV[lv],rows:N.map(([k,n,p])=>{const was=pr[n], ch=was==null?"new":was>k?"↑"+(was-k):was<k?"↓"+(k-was):"-";
+      const tip=was==null?"New in the latest rankings this week":`${was>k?`Up ${was-k}`:was<k?`Down ${k-was}`:"No change"} · ${at(was,pc)===at(k,nc)?`${at(k,nc)} last week and now`:`${at(was,pc)} last week, ${at(k,nc)} now`}`;
+      return [String(k),n,String(p),ch,tip]})}})}));
   const cnt=pi=>paths[pi].levels.reduce((a,l)=>a+l.rows.length,0);
   return rkLiveData.d={weeks:`${last-9}-${last}`,updated:"",listed:[String(cnt(0)+cnt(1)+cnt(2)),String(cnt(0)),String(cnt(1)),String(cnt(2))],paths};
 }
@@ -3765,10 +3769,10 @@ function renderRankings(){
   $("rk-body").innerHTML=(RK.paths||[]).map(p=>{const pi=PATHS.indexOf(p.path), sel=rkLv[pi]||"", lv=p.levels.filter(l=>!sel||LT[l.level]===sel);
     return `<section class="panel rkpath${sel?"":" full"}" style="--pc:${PATH_C[pi]}"><div class="panel-head"><h2>${esc(p.path)}</h2><span class="sub">${lv.reduce((a,l)=>a+l.rows.filter(r=>r[3]!=="Out").length,0)} ranked</span></div><div class="rklevels">${lv.map(l=>{
       const tc=TIER_C[LT[l.level]]||"var(--fg)";
-      return `<div class="rklv" style="--tc:${tc}"><h3>${esc(l.level)}<small>${l.rows.filter(r=>r[3]!=="Out").length} players</small></h3>${l.rows.length?`<ol>${l.rows.map(([rk,n,pts,ch])=>{
+      return `<div class="rklv" style="--tc:${tc}"><h3>${esc(l.level)}<small>${l.rows.filter(r=>r[3]!=="Out").length} players</small></h3>${l.rows.length?`<ol>${l.rows.map(([rk,n,pts,ch,tip5])=>{
         const out=ch==="Out", cls=out?"out":rk==="1"?"p1":rk==="2"?"p2":rk==="3"?"p3":"";
         const cc=/↑/.test(ch)?"up":/↓/.test(ch)?"down":/new/i.test(ch)?"new":"";
-        const tipc=/↑/.test(ch)?`Up ${ch.replace(/\D/g,"")} since last week`:/↓/.test(ch)?`Down ${ch.replace(/\D/g,"")} since last week`:/new/i.test(ch)?"New in the rankings this week":out?"Dropped out of the last 10 weeks":"No change";
+        const tipc=tip5?tip5:/↑/.test(ch)?`Up ${ch.replace(/\D/g,"")} since last week`:/↓/.test(ch)?`Down ${ch.replace(/\D/g,"")} since last week`:/new/i.test(ch)?"New in the rankings this week":out?"Dropped out of the last 10 weeks":"No change";
         return `<li class="${cls}"><span class="rr">${esc(rk)}</span><span class="nm" data-name="${esc(n)}"${byName[n]?` data-goplayer="${esc(n)}"`:""}>${esc(n)}</span><span class="pts">${esc(pts)}</span><span class="chg ${cc}" data-tip="${tipc}">${esc(ch)}</span></li>`}).join("")}</ol>`:`<div class="empty">Nobody ranked</div>`}</div>`}).join("")}</div></section>`}).join("")||`<div class="empty">The rankings tab wasn't found in the sheet.</div>`;
 }
 $("rkpath").addEventListener("click",e=>{const b=e.target.closest("button[data-rk]");if(!b)return;const i=+b.dataset.rk;rkLv[i]=RK_CYC[(RK_CYC.indexOf(rkLv[i])+1)%RK_CYC.length];tip.hidden=true;renderRankings();$("rkpath").querySelector(`[data-rk="${i}"]`).focus()});
