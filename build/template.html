@@ -3479,7 +3479,7 @@ function twMedals(n,w,live){
       if(beat.length)t=`Rivalry win · beat ${beat.join(", ")} · their closest rival of the week (same rank, ranked challenges)`}
     // which songs the medal came from this week
     const fin=twFinishes(n,w), lvOf=c=>{const L=cardLv(c[2]); return L&&L!=="G"?TIER_NAME[L]:c[2]};
-    const list=xs=>xs.map(x=>`${x.c[3]} (${x.god?x.c[2]:`${PATHS[x.c[0]]}, ${lvOf(x.c)}`})`).join("; ");
+    const list=xs=>xs.map(x=>`• ${x.c[3]} (${x.god?x.c[2]:`${PATHS[x.c[0]]}, ${lvOf(x.c)}`})`).join("\n");
     let from=[], pm=/^(Gold|Silver|Bronze) (God diamond|medal)/.exec(t);
     if(pm){const i=POD_NAME.indexOf(pm[1]), god=pm[2]==="God diamond", pp=m.dataset.path!=null?+m.dataset.path:-1;
       from=fin.filter(x=>x.place===i&&x.god===god&&(pp<0||x.c[0]===pp))}
@@ -3491,8 +3491,7 @@ function twMedals(n,w,live){
     else{const mm=/^Perfect God medal/.test(t)?[0,"God"]:/^(.+) perfectionist/.exec(t), mc=mm&&MAST_CLASSES.find(x=>x[1]===mm[1]);
       if(mc){const key=String(n).toLowerCase(); (SB.weeks[w]||[]).forEach(c=>{if(c[7]||masteryClassOf(c[2])!==mc[0])return;
         if(c[6].some(e=>e[1]!=null&&e[1]>=100&&SB.names[e[0]].replace(/[*~]+$/,"").toLowerCase()===key))from.push({c,god:mc[0]==="G"})})}}
-    if(from.length)t+=` · ${from.length===1?"from":"from:"} ${list(from)}`;
-    m.dataset.tip=t+` · +${k} this week${tot?` (${tot} all time)`:""}`};
+    m.dataset.tip=t+` · +${k} this week${tot?` (${tot} all time)`:""}`+(from.length?`\nFrom:\n${list(from)}`:"")};
   const grab=(html,kind)=>{box.innerHTML=html; box.querySelectorAll(".medal-m").forEach(m=>{if(isNew(m)){thisWeekOnly(m);m.removeAttribute("data-hl");m.style.cursor="";m.dataset.mk=kind;m.dataset.mn=n;out.push(m.outerHTML)}})};
   // host medals come first, before the player and win medals
   if(hosts[n])grab(hostMedals(n),"host");
