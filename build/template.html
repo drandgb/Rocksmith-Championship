@@ -1993,8 +1993,9 @@ function medalsFor(p,bitsOv){
   const mastBy=masteryByClass(n,doneM);
   const mRow=MAST_CLASSES.map(([k,label,col,glow])=>{const ws=mastBy[k]; if(!ws.length)return "";
     return `<span class="medal-m wm" style="--ec:${glow};cursor:pointer" data-all="${ws.join(",")}" data-hl="${[...new Set(ws)].join(",")}" data-tip="${k==="G"?"Perfect God medal":label+" perfectionist"} · scored 100% on ${/^[AEIOU]/.test(label)?"an":"a"} ${label} challenge, whatever the place · ${ws.length} time${ws.length===1?"":"s"} · click to highlight">${masterySvg(col,k==="B"?"#fff":null)}<b>${ws.length}</b></span>`}).join("");
-  const cls=iRow+cRow+mRow+(cgRow||""); // Completionist, then the perfectionist medals (100% scores), then the Beginner to Masterclass gems
-  return (top.length?`<div class="medals">${top.join("")}</div>`:"")+(gems.length?`<div class="medals">${gems.join("")}</div>`:"")+(cls?`<div class="medals">${cls}</div>`:"")+(embers.length?`<div class="medals">${embers.join("")}</div>`:"")+(flames.length?`<div class="medals">${flames.join("")}</div>`:"");
+  const cls=iRow+cRow; // played guitar / bass and the completionist medals
+  const gemRow=(cgRow||"")+mRow; // their own row below: the class gems, then the perfectionist medals (100% scores)
+  return (top.length?`<div class="medals">${top.join("")}</div>`:"")+(gems.length?`<div class="medals">${gems.join("")}</div>`:"")+(cls?`<div class="medals">${cls}</div>`:"")+(gemRow?`<div class="medals">${gemRow}</div>`:"")+(embers.length?`<div class="medals">${embers.join("")}</div>`:"")+(flames.length?`<div class="medals">${flames.join("")}</div>`:"");
 }
 let pYear=null;
 function showPlayer(name){
@@ -3581,7 +3582,7 @@ function renderDownloads(){
   if(!cards.length){el.hidden=true;return}
   const T=myTiers(), mine=c=>!!T&&cardLv(c[2])===T[c[0]], op=dlOpened(), L=(SB.links&&SB.links[w])||{};
   const m=new Map(); cards.forEach(c=>{const k=c[3].toLowerCase().replace(/\s+/g," ").trim(); if(!m.has(k))m.set(k,{song:c[3],id:null,ch:[]}); const s=m.get(k); s.ch.push(c); if(!s.id&&L[c[0]*9+c[1]])s.id=L[c[0]*9+c[1]]});
-  const list=[...m.values()].map(s=>({...s,my:s.ch.some(mine),o:Math.min(...s.ch.map(c=>c[0]*9+c[1]))})).sort((a,b)=>(b.my-a.my)||a.o-b.o);
+  const list=[...m.values()].map(s=>({...s,my:s.ch.some(mine),o:Math.min(...s.ch.map(c=>c[1]*3+c[0]))})).sort((a,b)=>(b.my-a.my)||a.o-b.o);
   const box=(p,cs)=>{if(!cs.length)return `<span class="dlbx">${"LRB"[p]}<b style="color:#8b93a7">–</b></span>`;
     const me=cs.find(mine), col=c=>{const lv=cardLv(c[2]); return lv==="G"?"var(--s-red)":TIER_C[lv]||"var(--muted)"};
     const tip=cs.map(c=>`${PATHS[p]} ${c[2]}`).join(", ");
@@ -4246,7 +4247,7 @@ function acctThisWeek(n,part){ part=part||ACCT.twPart||"me";
   if(part==="week")return `    <div class="acctsec"><h3>This week's scoreboard <small>Week ${w}</small></h3>${sb.length?`<ul class="alist">${sb.join("")}</ul>`:`<p class="dim">No scoreboard for this week yet.</p>`}</div>
     <div class="acctsec acctriv"><h3>This week's rivals</h3>${riv||`<p class="dim">No rivals this week yet.</p>`}</div>`;
   return HAUL+`
-    <div class="acctsec"><h3>${RKc===RK_SHEET?"Rodman's Rankings":"Rankings"} ${RKc.weeks?`<small>Weeks ${esc(RKc.weeks)}${RKc===RK_SHEET?"":" · worked out by the site"}</small>`:""}</h3>${rk.length?`<ul class="alist">${rk.join("")}</ul>`:`<p class="dim">Not ranked right now.</p>`}<div class="row"><button type="button" class="btn ghost" data-goview="rankings">Open Rodman's Rankings ›</button></div></div>`;
+    <div class="acctsec"><h3>${RKc===RK_SHEET?"Rodman's Rankings":"Rankings"} ${RKc.weeks?`<small>Weeks ${esc(RKc.weeks)}</small>`:""}</h3>${RKc===RK_SHEET?"":`<p class="dim" style="margin:-4px 0 8px">Worked out by the site from the latest 10 weeks · may differ from Rodman's official rankings (Weeks ${esc(RK_SHEET.weeks)})</p>`}${rk.length?`<ul class="alist">${rk.join("")}</ul>`:`<p class="dim">Not ranked right now.</p>`}<div class="row"><button type="button" class="btn ghost" data-goview="rankings">Open Rodman's Rankings ›</button></div></div>`;
 }
 // ---------- rank-up readiness (private: only in the player's own profile) ----------
 // From the scoreboards since week 440: a player is "Ready" for the next class on a path when, in the last 12 weeks, they
