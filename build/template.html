@@ -936,7 +936,11 @@ footer .updated{display:block;margin-top:4px}
 .rkweeks b{font:900 1.15rem var(--f-display);letter-spacing:.04em;background:linear-gradient(180deg,#fff 20%,#ff8a9e 70%,#e31837);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 4px rgba(227,24,55,.6))}
 .rkweeks i{font-style:normal;color:#ff8a9e;font-weight:800}
 .rkupd{font-size:.72rem;color:var(--muted);letter-spacing:.02em}
-@media (max-width:640px){.rkhead #rk-sub{align-items:flex-start}}
+@media (max-width:640px){.rkhead #rk-sub{align-items:center;flex-basis:100%;text-align:center}}
+.rkweeks{cursor:pointer;user-select:none}.rkweeks:hover{box-shadow:0 0 14px rgba(227,24,55,.7),inset 0 0 8px rgba(255,255,255,.12)}
+.rkweeks em{font:800 .6rem var(--f-display);font-style:normal;letter-spacing:.12em;text-transform:uppercase;color:#1a0d10;background:#ffb3c0;border-radius:999px;padding:2px 7px;align-self:center}
+.rkweeks.live{border-color:rgba(69,209,122,.7);background:linear-gradient(180deg,rgba(47,180,100,.25),rgba(8,20,12,.6));box-shadow:0 0 10px rgba(69,209,122,.45),inset 0 0 8px rgba(255,255,255,.08)}
+.rkweeks.live small,.rkweeks.live i{color:#a8f0c4}.rkweeks.live b{background:linear-gradient(180deg,#fff 20%,#8ff0b4 70%,#2fb464);-webkit-background-clip:text;background-clip:text;filter:drop-shadow(0 0 4px rgba(47,180,100,.6))}.rkweeks.live em{background:#8ff0b4}
 .rkinfo .infoi{font-size:.8em;color:var(--muted);vertical-align:1px}
 .rkbody{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px}
 .rkbody>.rkpath.full,.rkbody>.empty{grid-column:1/-1}
@@ -3719,14 +3723,35 @@ $("view-thisweek").addEventListener("click",e=>{
   else tip.hidden=true;
 });
 // ---------- Rodman's Rankings (from the "Rodman's Rankings" tab of the scoreboard sheet) ----------
-const RK=__RANKINGS__;
+const RK=__RANKINGS__, RK_SHEET=RK;
+// Latest 10 weeks: the same leaderboards worked out by the site from the scoreboards, for when Rodman's tab hasn't been
+// updated yet. Rules (they reproduce Rodman's tab): the last 10 finished weeks, main challenges only (no bonus or God
+// challenges); on each challenge the top 4 among players in that class or playing up (players playing down don't count)
+// get 10, 5, 3, 1 points; players with the same points share a rank; arrows compare with the 10 weeks before.
+let rkLive=false;
+function rkCompute(last){
+  const PTS=[10,5,3,1], LV={B:"Beginner",I:"Intermediate",A:"Advanced",M:"Masterclass"}, tot={};
+  for(let w=last-9;w<=last;w++)(SB.weeks[w]||[]).forEach(c=>{const lv=cardLv(c[2]); if(!LV[lv]||/bonus/i.test(c[2])||c[7])return;
+    c[6].filter(e=>e[4]>=0&&e[4]<9).slice(0,4).forEach((e,i)=>{const n=SB.names[e[0]].replace(/[*~]+$/,""), k=c[0]+"|"+lv; (tot[k]=tot[k]||{})[n]=(tot[k][n]||0)+PTS[i]})});
+  return tot}
+function rkLiveData(){
+  if(rkLiveData.d)return rkLiveData.d;
+  const last=TW_LIVE?TW_LIVE-1:DATA_WEEK, now=rkCompute(last), prev=rkCompute(last-1), LV={B:"Beginner",I:"Intermediate",A:"Advanced",M:"Masterclass"};
+  const ranked=o=>{const r=Object.entries(o||{}).sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0],undefined,{sensitivity:"base"})); let k=0; return r.map(([n,p],i)=>{if(i===0||p<r[i-1][1])k=i+1; return [k,n,p]})};
+  const paths=["Lead","Rhythm","Bass"].map((path,pi)=>({path,levels:Object.keys(LV).map(lv=>{
+    const pr={}; ranked(prev[pi+"|"+lv]).forEach(([k,n])=>pr[n]=k);
+    return {level:LV[lv],rows:ranked(now[pi+"|"+lv]).map(([k,n,p])=>{const was=pr[n]; return [String(k),n,String(p),was==null?"new":was>k?"↑"+(was-k):was<k?"↓"+(k-was):"-"]})}})}));
+  const cnt=pi=>paths[pi].levels.reduce((a,l)=>a+l.rows.length,0);
+  return rkLiveData.d={weeks:`${last-9}-${last}`,updated:"",listed:[String(cnt(0)+cnt(1)+cnt(2)),String(cnt(0)),String(cnt(1)),String(cnt(2))],paths};
+}
 const RK_CYC=["","B","I","A","M"]; let rkLv=["","",""]; // level shown per path (Lead, Rhythm, Bass); "" = all
 function renderRankings(){
+  const RK=rkLive?rkLiveData():RK_SHEET;
   $("rkpath").innerHTML=["Lead","Rhythm","Bass"].map((k,i)=>{const t=rkLv[i], nx=RK_CYC[(RK_CYC.indexOf(t)+1)%RK_CYC.length];
     return `<button type="button" class="tier" data-rk="${i}" style="--pc:${PATH_C[i]};--tc:${t?TIER_C[t]:"var(--fg)"}" title="${k}: showing ${t?TIER_NAME[t]:"all levels"} · click for ${nx?TIER_NAME[nx]:"all levels"}"><small>${k}</small><b>${t||"All"}</b><i>${t?TIER_NAME[t]:"all levels"}</i></button>`}).join("");
   $("rkall").hidden=!rkLv.some(Boolean);
   {const m=String(RK.weeks||"").match(/(\d+)\D+(\d+)/);
-   $("rk-sub").innerHTML=RK.weeks?`<span class="rkweeks" data-tip="The rankings cover these 10 weeks"><small>Weeks</small><b>${m?m[1]:esc(RK.weeks)}</b>${m?`<i>–</i><b>${m[2]}</b>`:""}</span>${RK.updated?`<span class="rkupd">updated ${esc(RK.updated)}</span>`:""}`:"Not available";}
+   $("rk-sub").innerHTML=RK.weeks?`<span class="rkweeks${rkLive?" live":""}" role="button" tabindex="0" data-tip="${rkLive?`Latest 10 finished weeks, worked out by the site from the scoreboards with Rodman's rules (main challenges only; the top 4 among players in that class or playing up get 10, 5, 3, 1 points). Rodman's own rankings may differ slightly. Click for Rodman's rankings (Weeks ${esc(RK_SHEET.weeks)})`:`Rodman's rankings for these 10 weeks, from his tab in the scoreboard sheet. Click for the latest 10 finished weeks, worked out by the site`}"><small>Weeks</small><b>${m?m[1]:esc(RK.weeks)}</b>${m?`<i>–</i><b>${m[2]}</b>`:""}<em>${rkLive?"Latest":"Rodman's"}</em></span><span class="rkupd">${rkLive?"worked out by the site · tap for Rodman's":RK.updated?`updated ${esc(RK.updated)} · tap for the latest weeks`:"tap for the latest weeks"}</span>`:"Not available";}
   const L=RK.listed||[];
   // the sheet's "listed" total counts ranking places (a player ranked on two paths counts twice), so also show unique players
   const uniq=new Set((RK.paths||[]).flatMap(p=>p.levels.flatMap(l=>l.rows.filter(r=>r[3]!=="Out").map(r=>r[1])))).size;
@@ -3743,6 +3768,8 @@ function renderRankings(){
 }
 $("rkpath").addEventListener("click",e=>{const b=e.target.closest("button[data-rk]");if(!b)return;const i=+b.dataset.rk;rkLv[i]=RK_CYC[(RK_CYC.indexOf(rkLv[i])+1)%RK_CYC.length];tip.hidden=true;renderRankings();$("rkpath").querySelector(`[data-rk="${i}"]`).focus()});
 $("rkall").addEventListener("click",()=>{rkLv=["","",""];renderRankings()});
+$("rk-sub").addEventListener("click",e=>{if(!e.target.closest(".rkweeks"))return; rkLive=!rkLive; tip.hidden=true; renderRankings()});
+$("rk-sub").addEventListener("keydown",e=>{if((e.key==="Enter"||e.key===" ")&&e.target.closest(".rkweeks")){e.preventDefault(); rkLive=!rkLive; renderRankings(); const b=$("rk-sub").querySelector(".rkweeks"); if(b)b.focus()}});
 $("view-rankings").addEventListener("mousemove",e=>{const p=e.target.closest("[data-tip]");if(!p){tip.hidden=true;return}tip.textContent=p.dataset.tip;tip.hidden=false;placeTip(e.clientX,e.clientY)});
 $("view-rankings").addEventListener("mouseleave",()=>tip.hidden=true);
 renderRankings();
