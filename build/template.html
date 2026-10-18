@@ -3220,12 +3220,18 @@ function mlParse(html,person,acc){const d=document.createElement("div"); d.inner
       key=name+(PATHS.includes(parts[1])?" · "+parts[1]:""); label=key}
     const k=acc[key]||(acc[key]={label,unit,pos:idx,rows:[]}); k.pos=Math.min(k.pos,idx);
     // keep each person's best; the icon is their highest medal of this kind (later in their list = higher tier)
-    const prev=k.rows.find(r=>r.n===person); if(prev){if(val>=prev.v){prev.v=Math.max(prev.v,val); prev.icon=m}} else k.rows.push({n:person,v:val,icon:m})})}
+    // Most wins in one week: ties on the wins are broken by how many weeks they did it (t)
+    let t=0; if(key==="bestweek"){const c=/(\d+) times?\b/.exec(tip); t=c?+c[1]:1}
+    const prev=k.rows.find(r=>r.n===person); if(prev){if(val>=prev.v){prev.t=val>prev.v?t:Math.max(prev.t||0,t); prev.v=val; prev.icon=m}} else k.rows.push({n:person,v:val,t,icon:m})})}
+// medal leaders order: the value, then the tiebreak (Most wins in one week: how many weeks), then the name
+const mlCmp=(a,b)=>b.v-a.v||(b.t||0)-(a.t||0)||a.n.localeCompare(b.n,undefined,{sensitivity:"base"});
+const mlSame=(a,b)=>a.v===b.v&&(a.t||0)===(b.t||0);
+const mlVal=(r,k)=>`${r.v}${k.unit}${r.t>1?` ×${r.t}`:""}`;
 // plain descriptions for the medals whose own hover text is all about one player's numbers
 const ML_DESC={"Kintsugi gem":"played every week from joining until the first missed week, then mended with gold on coming back · ranked by how many weeks that first unbroken run lasted",
   "Perfect gem":"played every week since joining, never missing one · ranked by weeks so far",
   playstreak:"most weeks played in a row",years:"time since first joining the championship",
-  winstreak:"most weeks in a row winning at least one challenge",bestweek:"the most challenges won in a single week · the number is the wins in that best week, not how many times",
+  winstreak:"most weeks in a row winning at least one challenge",bestweek:"the most challenges won in a single week · ×N is how many weeks they did it, which breaks ties",
   hosted:"total weeks hosted",hoststreak:"most weeks hosted in a row"};
 // medals counted from the scoreboards, which only go back to Week 440: say so wherever they show
 const mlSbNote=()=>`Counted from scoreboards since Week ${SB_W[0]} (earlier weeks have no scoreboard on the site)`;
@@ -3239,10 +3245,10 @@ function mlRender(kind){const acc=ML[kind].acc, link=kind==="win"?"data-gowin":k
   const cards=Object.entries(acc).filter(([,k])=>k.rows.length).sort(([,a],[,b])=>ordOf(a)-ordOf(b)||a.pos-b.pos).map(([key,k])=>{
     // the page's Everyone / Active filter applies here too
     const act=n=>!activeOnly||(kind==="host"?(()=>{const h=hostList.find(x=>x.name===n); return !!h&&hostActive(h)})():isActivePlayer(n));
-    const rows=k.rows.filter(r=>act(r.n)).sort((a,b)=>b.v-a.v||a.n.localeCompare(b.n,undefined,{sensitivity:"base"}));
+    const rows=k.rows.filter(r=>act(r.n)).sort(mlCmp);
     if(!rows.length)return "";
     // places 1-3 with ties sharing a place (a tie at third can add a fourth or fifth name)
-    const out=[]; let place=0,last=null; for(let i=0;i<rows.length;i++){if(rows[i].v!==last){place=i+1;last=rows[i].v} if(place>3||out.length>=5)break; out.push({...rows[i],place})}
+    const out=[]; let place=0,last=null; for(let i=0;i<rows.length;i++){if(!last||!mlSame(rows[i],last)){place=i+1;last=rows[i]} if(place>3||out.length>=5)break; out.push({...rows[i],place})}
     const top=rows[0].icon?rows[0]:{icon:k.icon}; // precomputed data keeps one icon per medal (its overall leader's)
     const holder=document.createElement("div"); holder.innerHTML=typeof top.icon==="string"?top.icon:top.icon.outerHTML; const ic=holder.firstElementChild;
     const fullTip=ic.dataset.tip||k.tip||"";
@@ -3252,9 +3258,9 @@ function mlRender(kind){const acc=ML[kind].acc, link=kind==="win"?"data-gowin":k
     // first place on the card (everyone tied for it); second and third in the hover text
     const first=out.filter(r=>r.place===1), rest=out.filter(r=>r.place>1);
     const desc=ML_DESC[key]||ML_DESC[k.label]||what;
-    const tipT=k.label+(desc?" · "+desc:"")+(mlFromSb(kind,key)?"\n"+mlSbNote():"")+(rest.length?"\n\n"+rest.map(r=>`${r.place}. ${r.n} · ${r.v}${k.unit}`).join("\n"):"");
+    const tipT=k.label+(desc?" · "+desc:"")+(mlFromSb(kind,key)?"\n"+mlSbNote():"")+(rest.length?"\n\n"+rest.map(r=>`${r.place}. ${r.n} · ${mlVal(r,k)}`).join("\n"):"");
     // just the medal and its leader(s); the medal's name and the runners-up are in the hover text
-    return `<div class="mlcard" data-tip="${esc(tipT)}">${reIds(ic.outerHTML)}<ol>${first.map(r=>`<li><span class="nm" ${link}="${esc(r.n)}">${esc(r.n)}</span><span class="mlv">${r.v}${k.unit}</span></li>`).join("")}</ol></div>`});
+    return `<div class="mlcard" data-tip="${esc(tipT)}">${reIds(ic.outerHTML)}<ol>${first.map(r=>`<li><span class="nm" ${link}="${esc(r.n)}">${esc(r.n)}</span><span class="mlv">${mlVal(r,k)}</span></li>`).join("")}</ol></div>`});
   $("ml-"+kind+"-g").innerHTML=cards.join("")||`<p class="dimtxt">No medals yet.</p>`;
   document.querySelectorAll(".plead[data-n]").forEach(el=>{el.innerHTML=plLeads(el.dataset.n)}); // profiles waiting on the count
   const ap=document.getElementById("acct-lead"); if(ap){ap.innerHTML=plLeads(ap.dataset.n); ap.closest(".acctlead").hidden=!ap.innerHTML}}
@@ -3262,24 +3268,24 @@ function mlRender(kind){const acc=ML[kind].acc, link=kind==="win"?"data-gowin":k
 function plLeads(n){try{
   const out=[];
   ["player","win","host"].forEach(kind=>{if(!ML_PRECOMPUTING)mlEnsure(kind); const M=ML[kind]; if(!M||!M.done)return;
-    Object.entries(M.acc).forEach(([key,k])=>{if(!k.rows.length)return; const top=Math.max(...k.rows.map(r=>r.v)); if(!(top>0))return;
-      const me=k.rows.find(r=>r.n===n); if(!me||me.v!==top)return;
-      const others=k.rows.filter(r=>r.v===top&&r.n!==n).map(r=>r.n);
+    Object.entries(M.acc).forEach(([key,k])=>{if(!k.rows.length)return; const best=k.rows.slice().sort(mlCmp)[0], top=best.v; if(!(top>0))return;
+      const me=k.rows.find(r=>r.n===n); if(!me||!mlSame(me,best))return;
+      const others=k.rows.filter(r=>mlSame(r,best)&&r.n!==n).map(r=>r.n);
       const src=me.icon||k.icon, h=document.createElement("div"); h.innerHTML=typeof src==="string"?src:src.outerHTML; const ic=h.firstElementChild; if(!ic)return;
       ic.querySelector("b")&&ic.querySelector("b").remove(); ["data-hl","data-all","data-tip"].forEach(a=>ic.removeAttribute(a)); ic.style.cursor="";
       if(key==="bestweek"){const sv=ic.querySelector("svg"); if(sv)sv.outerHTML=trophiesSvg("#f5c84a",top)}
       const desc=ML_DESC[key]||ML_DESC[k.label]||"";
-      const tipT=`Most of anyone · ${k.label} · ${top}${k.unit}${desc?"\n"+desc:""}${others.length?`\nTied with ${others.join(", ")}`:""}${mlFromSb(kind,key)?"\n"+mlSbNote():""}`;
-      out.push({o:["player","win","host"].indexOf(kind)*1000+k.pos,h:`<span class="plchip" data-tip="${esc(tipT)}">${reIds(ic.outerHTML)}<span>${esc(k.label)}</span><b>${top}${esc(k.unit)}</b>${others.length?`<small>tied</small>`:""}</span>`})})});
+      const tipT=`Most of anyone · ${k.label} · ${mlVal(me,k)}${desc?"\n"+desc:""}${others.length?`\nTied with ${others.join(", ")}`:""}${mlFromSb(kind,key)?"\n"+mlSbNote():""}`;
+      out.push({o:["player","win","host"].indexOf(kind)*1000+k.pos,h:`<span class="plchip" data-tip="${esc(tipT)}">${reIds(ic.outerHTML)}<span>${esc(k.label)}</span><b>${esc(mlVal(me,k))}</b>${others.length?`<small>tied</small>`:""}</span>`})})});
   if(!out.length)return "";
   out.sort((a,b)=>a.o-b.o);
   return `<div class="plh">🏅 Medal leader <small>most of anyone, ${out.length} kind${out.length===1?"":"s"}</small></div><div class="plchips">${out.map(x=>x.h).join("")}</div>`;
 }catch(e){return ""}}
 // the medal leaders as plain data: [{key,label,unit,pos,icon,rows:[[name,value],...]}], best first
-function mlExport(kind){return Object.entries(ML[kind].acc).map(([key,k])=>{const rows=k.rows.slice().sort((a,b)=>b.v-a.v||a.n.localeCompare(b.n,undefined,{sensitivity:"base"}));
-  return {key,label:k.label,unit:k.unit,pos:k.pos,icon:rows[0].icon.outerHTML,rows:rows.slice(0,30).map(r=>[r.n,r.v])}})}
+function mlExport(kind){return Object.entries(ML[kind].acc).map(([key,k])=>{const rows=k.rows.slice().sort(mlCmp);
+  return {key,label:k.label,unit:k.unit,pos:k.pos,icon:rows[0].icon.outerHTML,rows:rows.slice(0,30).map(r=>r.t?[r.n,r.v,r.t]:[r.n,r.v])}})}
 function mlEnsure(kind,sync){if(ML[kind])return;
-  if(ML_PRE&&ML_PRE[kind]){const acc={}; ML_PRE[kind].forEach(x=>acc[x.key]={label:x.label,unit:x.unit,pos:x.pos,icon:x.icon,rows:x.rows.map(([n,v])=>({n,v}))});
+  if(ML_PRE&&ML_PRE[kind]){const acc={}; ML_PRE[kind].forEach(x=>acc[x.key]={label:x.label,unit:x.unit,pos:x.pos,icon:x.icon,rows:x.rows.map(([n,v,t])=>({n,v,t:t||0}))});
     ML[kind]={acc,done:true}; mlRender(kind); return}
   ML[kind]={acc:{}};
   const names=kind==="host"?Object.keys(hosts).filter(h=>h&&h!==LOST):kind==="win"?Object.keys(WR.wins):PLAYERS.map(p=>p[0]);
@@ -4339,7 +4345,7 @@ function bannerHtml(n){
   // the player's place among active players (1st, 2nd or 3rd; ties share a place) on each win medal kind;
   // players who aren't active get no place tags
   const places=!isActivePlayer(n)?[]:((typeof ML_PRE!=="undefined"&&ML_PRE&&ML_PRE.win)||[]).map(k=>{const act=k.rows.filter(r=>isActivePlayer(r[0])), me=act.find(r=>String(r[0]).toLowerCase()===key); if(!me)return null;
-    const pl=1+act.filter(r=>r[1]>me[1]).length; return pl<=3?{label:k.label,pl}:null}).filter(Boolean);
+    const pl=1+act.filter(r=>r[1]>me[1]||(r[1]===me[1]&&(r[2]||0)>(me[2]||0))).length; return pl<=3?{label:k.label,pl}:null}).filter(Boolean);
   const box=document.createElement("div"); box.innerHTML=allMedalsHtml(n);
   // order: gold God diamonds, gold medals, Uncrowned (next to the gold medals), then close wins and rivalry wins
   const ORD=[/^Gold God diamond/,/^Gold medal/,/^Uncrowned ·/,/^Close win/,/^Rivalry win/], ordOf=m=>ORD.findIndex(r=>r.test(m.getAttribute("data-tip")||""));
