@@ -3588,9 +3588,9 @@ function renderDownloads(){
     const me=cs.find(mine), col=c=>{const lv=cardLv(c[2]); return lv==="G"?"var(--s-red)":TIER_C[lv]||"var(--muted)"};
     const tip=cs.map(c=>`${PATHS[p]} ${c[2]}`).join(", ");
     return `<span class="dlbx${me?" me":""}"${me?` style="--mc:${col(me)}"`:""} data-tip="${esc(tip)}${me?" · your class":""}">${"LRB"[p]}<b>${cs.map(c=>`<span style="color:${col(c)}">${cardLv(c[2])||"?"}${/bonus/i.test(c[2])?"<sup>+</sup>":""}</span>`).join("·")}</b></span>`};
-  const nOpen=list.filter(s=>s.id&&op[s.id]).length, fold=lsGet(DL_FOLD)===String(w);
+  const fold=lsGet(DL_FOLD)===String(w);
   el.innerHTML=`<div class="panel-head dlhead" data-dl="fold" title="${fold?"Show":"Hide"} the download list"><h2>⬇ Download Week ${w}'s songs<span class="dlarw">${fold?"▸":"▾"}</span></h2>
-    <span class="sub">${list.length} song${list.length===1?"":"s"} for ${cards.length} challenge${cards.length===1?"":"s"} · ${nOpen} of ${list.length} opened${T&&!fold?" · your classes are highlighted":""}</span></div>
+    <span class="sub">${list.length} song${list.length===1?"":"s"} for ${cards.length} challenge${cards.length===1?"":"s"}${T&&!fold?" · your classes are highlighted":""}</span></div>
     ${fold?"":`<ul>${list.map(s=>{const pill=songPill(s.song,s.id).replace('class="dl"',`class="dl${s.id&&op[s.id]?" got":""}" data-dlid="${s.id||""}"`);
       return `<li class="${s.my?"mine":""}"><span class="dls">${esc(s.song)}${s.my?`<span class="yours">yours</span>`:""}</span><span class="dlbxs">${[0,1,2].map(p=>box(p,s.ch.filter(c=>c[0]===p))).join("")}</span><span class="dlpill">${pill}</span></li>`}).join("")}</ul>`}`;
   el.hidden=false;
