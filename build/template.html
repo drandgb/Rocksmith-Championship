@@ -3726,13 +3726,14 @@ $("view-thisweek").addEventListener("click",e=>{
 const RK=__RANKINGS__, RK_SHEET=RK;
 // Latest 10 weeks: the same leaderboards worked out by the site from the scoreboards, for when Rodman's tab hasn't been
 // updated yet. Rules (they reproduce Rodman's tab): the last 10 finished weeks, main challenges only (no bonus or God
-// challenges); on each challenge the top 4 among players in that class or playing up (players playing down don't count)
+// challenges); on each challenge the top 4 among players in that class or playing one class up (players playing down,
+// two or more classes up, or marked as a new player / no class on the sheet don't count)
 // get 10, 5, 3, 1 points; players with the same points share a rank; arrows compare with the 10 weeks before.
 let rkLive=false;
 function rkCompute(last){
   const PTS=[10,5,3,1], LV={B:"Beginner",I:"Intermediate",A:"Advanced",M:"Masterclass"}, tot={};
   for(let w=last-9;w<=last;w++)(SB.weeks[w]||[]).forEach(c=>{const lv=cardLv(c[2]); if(!LV[lv]||/bonus/i.test(c[2])||c[7])return;
-    c[6].filter(e=>e[4]>=0&&e[4]<9).slice(0,4).forEach((e,i)=>{const n=SB.names[e[0]].replace(/[*~]+$/,""), k=c[0]+"|"+lv; (tot[k]=tot[k]||{})[n]=(tot[k][n]||0)+PTS[i]})});
+    c[6].filter(e=>e[4]===0||e[4]===1).slice(0,4).forEach((e,i)=>{const n=SB.names[e[0]].replace(/[*~]+$/,""), k=c[0]+"|"+lv; (tot[k]=tot[k]||{})[n]=(tot[k][n]||0)+PTS[i]})});
   return tot}
 function rkLiveData(){
   if(rkLiveData.d)return rkLiveData.d;
@@ -3751,7 +3752,7 @@ function renderRankings(){
     return `<button type="button" class="tier" data-rk="${i}" style="--pc:${PATH_C[i]};--tc:${t?TIER_C[t]:"var(--fg)"}" title="${k}: showing ${t?TIER_NAME[t]:"all levels"} · click for ${nx?TIER_NAME[nx]:"all levels"}"><small>${k}</small><b>${t||"All"}</b><i>${t?TIER_NAME[t]:"all levels"}</i></button>`}).join("");
   $("rkall").hidden=!rkLv.some(Boolean);
   {const m=String(RK.weeks||"").match(/(\d+)\D+(\d+)/);
-   $("rk-sub").innerHTML=RK.weeks?`<span class="rkweeks${rkLive?" live":""}" role="button" tabindex="0" data-tip="${rkLive?`Latest 10 finished weeks, worked out by the site from the scoreboards with Rodman's rules (main challenges only; the top 4 among players in that class or playing up get 10, 5, 3, 1 points). Rodman's own rankings may differ slightly. Click for Rodman's rankings (Weeks ${esc(RK_SHEET.weeks)})`:`Rodman's rankings for these 10 weeks, from his tab in the scoreboard sheet. Click for the latest 10 finished weeks, worked out by the site`}"><small>Weeks</small><b>${m?m[1]:esc(RK.weeks)}</b>${m?`<i>–</i><b>${m[2]}</b>`:""}<em>${rkLive?"Latest":"Rodman's"}</em></span><span class="rkupd">${rkLive?"worked out by the site · tap for Rodman's":RK.updated?`updated ${esc(RK.updated)} · tap for the latest weeks`:"tap for the latest weeks"}</span>`:"Not available";}
+   $("rk-sub").innerHTML=RK.weeks?`<span class="rkweeks${rkLive?" live":""}" role="button" tabindex="0" data-tip="${rkLive?`Latest 10 finished weeks, worked out by the site from the scoreboards with Rodman's rules (main challenges only; the top 4 among players in that class or playing one class up get 10, 5, 3, 1 points). Rodman's own rankings may differ slightly. Click for Rodman's rankings (Weeks ${esc(RK_SHEET.weeks)})`:`Rodman's rankings for these 10 weeks, from his tab in the scoreboard sheet. Click for the latest 10 finished weeks, worked out by the site`}"><small>Weeks</small><b>${m?m[1]:esc(RK.weeks)}</b>${m?`<i>–</i><b>${m[2]}</b>`:""}<em>${rkLive?"Latest":"Rodman's"}</em></span><span class="rkupd">${rkLive?"worked out by the site · tap for Rodman's":RK.updated?`updated ${esc(RK.updated)} · tap for the latest weeks`:"tap for the latest weeks"}</span>`:"Not available";}
   const L=RK.listed||[];
   // the sheet's "listed" total counts ranking places (a player ranked on two paths counts twice), so also show unique players
   const uniq=new Set((RK.paths||[]).flatMap(p=>p.levels.flatMap(l=>l.rows.filter(r=>r[3]!=="Out").map(r=>r[1])))).size;
