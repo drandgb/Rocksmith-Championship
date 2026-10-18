@@ -1977,7 +1977,10 @@ function medalsFor(p,bitsOv){
      iRow+=(`<span class="medal-m wm" style="--ec:${col};cursor:pointer" data-all="${ws.join(",")}" data-hl="${ws.join(",")}" data-tip="${lab} · weeks with at least ${what}, any level · ${ws.length} week${ws.length===1?"":"s"} (scoreboards since Week ${SB_W[0]}) · click to highlight">${clefSvg(k)}<b>${ws.length}</b></span>`)});}
   let cRow="";
   {const cw=completionistWeeks(n,doneM);
-   if(cw.length)cRow=(`<span class="medal-m wm" style="--ec:#f5c84a;cursor:pointer" data-all="${cw.join(",")}" data-hl="${cw.join(",")}" data-tip="Completionist · posted a score on every challenge of the week, every song on every path (a multi-week God challenge already played earlier in its run counts) · ${cw.length} week${cw.length===1?"":"s"} · click to highlight">${completionistSvg()}<b>${cw.length}</b></span>`);}
+   if(cw.length)cRow=(`<span class="medal-m wm" style="--ec:#f5c84a;cursor:pointer" data-all="${cw.join(",")}" data-hl="${cw.join(",")}" data-tip="Completionist · posted a score on every challenge of the week, every song on every path (a multi-week God challenge already played earlier in its run counts) · ${cw.length} week${cw.length===1?"":"s"} · click to highlight">${completionistSvg()}<b>${cw.length}</b></span>`);
+   // Lead, Rhythm and Bass completionist: every challenge on that one path (a full Completionist week counts for all three)
+   [0,1,2].forEach(pp=>{const pw=completionistWeeks(n,doneM,pp); if(!pw.length)return; const col=COMP_PATH[pp][1];
+     cRow+=`<span class="medal-m wm" style="--ec:${col};cursor:pointer" data-all="${pw.join(",")}" data-hl="${pw.join(",")}" data-tip="${PATHS[pp]} completionist · posted a score on every ${PATHS[pp]} challenge of the week, every class (a multi-week God challenge already played earlier in its run counts) · ${pw.length} week${pw.length===1?"":"s"} · click to highlight">${completionistSvg(pp)}<b>${pw.length}</b></span>`});}
   // 100% mastery: every 100% score on a finished week's challenge, whatever the place or class
   // one medal per class, in that class's gem colour (God stays red)
   const mastBy=masteryByClass(n,doneM);
@@ -2396,10 +2399,11 @@ function swordsSvg(col){return `<svg viewBox="0 0 28 30" aria-hidden="true"><cir
 // 100% mastery: every time the player scored 100% on a challenge, whatever their place or class (God challenges count once, in their final week)
 // Completionist: weeks where the player posted a score on every challenge (every song and path) of the week.
 // A multi-week God challenge they already played in an earlier week of the run counts; one never attempted doesn't.
-function completionistWeeks(name,done){
+// path (0 Lead, 1 Rhythm, 2 Bass): only that path's challenges count (Lead / Rhythm / Bass completionist)
+function completionistWeeks(name,done,path){
   const key=name.toLowerCase(), mine=c=>c[6].some(e=>SB.names[e[0]].replace(/[*~]+$/,"").toLowerCase()===key);
   const isGod=l=>/god/i.test(String(l||""));
-  return done.filter(w=>{const cards=(SB.weeks[w]||[]).filter(c=>c[3]&&!/^n\/a$/i.test(c[3]));
+  return done.filter(w=>{const cards=(SB.weeks[w]||[]).filter(c=>c[3]&&!/^n\/a$/i.test(c[3])&&(path==null||c[0]===path));
     if(!cards.length||!cards.some(mine))return false;
     return cards.every(c=>{if(mine(c))return true; if(!isGod(c[2]))return false;
       const k=acctSongKey(c[3]); // earlier weeks of the same God run
@@ -2420,7 +2424,11 @@ function clefSvg(kind){
     :`<path d="M9.3 12.2c0-2.8 2.4-4.8 5.3-4.8 3.6 0 5.9 2.6 5.9 6.1 0 5.1-4.7 8.6-10.6 10.3" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"/><circle cx="10.9" cy="12.6" r="2" fill="#fff"/><circle cx="23.3" cy="11.2" r="1.25" fill="#fff"/><circle cx="23.3" cy="16" r="1.25" fill="#fff"/>`;
   return `<svg viewBox="0 0 30 30" aria-hidden="true"><defs><linearGradient id="${id}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${c[0]}"/><stop offset="1" stop-color="${c[1]}"/></linearGradient></defs><circle cx="15" cy="15" r="13" fill="url(#${id})"/><circle cx="15" cy="15" r="11" fill="none" stroke="rgba(255,255,255,.45)" stroke-width="1"/><path d="M6.5 9.5a10 10 0 0 1 6-4.6" stroke="rgba(255,255,255,.6)" stroke-width="1.4" fill="none" stroke-linecap="round"/>${fig}</svg>`;
 }
-function completionistSvg(){return `<svg viewBox="0 0 30 30" aria-hidden="true"><circle cx="15" cy="15" r="13" fill="#1d2433"/><path d="M15.86 2.63A12.4 12.4 0 0 1 26.15 20.44" stroke="#ff9a2e" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M25.28 21.93A12.4 12.4 0 0 1 4.72 21.93" stroke="#45d17a" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M3.85 20.44A12.4 12.4 0 0 1 14.14 2.63" stroke="#3fa0ff" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M15 15Q10.66 13.42 15.00 6.60A8.4 8.4 0 0 1 22.27 19.20Q18.54 12.03 15 15Z" fill="#ff9a2e"/><path d="M15 15Q18.54 12.03 22.27 19.20A8.4 8.4 0 0 1 7.73 19.20Q15.80 19.55 15 15Z" fill="#45d17a"/><path d="M15 15Q15.80 19.55 7.73 19.20A8.4 8.4 0 0 1 15.00 6.60Q10.66 13.42 15 15Z" fill="#3fa0ff"/><circle cx="15" cy="15" r="8.4" fill="none" stroke="rgba(255,255,255,.55)" stroke-width="1"/><path d="M10.8 15.3l3 3 5.6-6.4" stroke="#10131a" stroke-width="4.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M10.8 15.3l3 3 5.6-6.4" stroke="#fff" stroke-width="2.3" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`}
+// the Completionist medal; with a path, all in that path's colour (light, mid and dark shades in the swirl)
+const COMP_PATH=[["#ffcf8a","#ff9a2e","#c86a0e"],["#9ff0bb","#45d17a","#1f9a52"],["#a8d4ff","#3fa0ff","#1f63c9"]];
+function completionistSvg(path){const P=path==null?null:COMP_PATH[path]; let t=`<svg viewBox="0 0 30 30" aria-hidden="true"><circle cx="15" cy="15" r="13" fill="#1d2433"/><path d="M15.86 2.63A12.4 12.4 0 0 1 26.15 20.44" stroke="#ff9a2e" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M25.28 21.93A12.4 12.4 0 0 1 4.72 21.93" stroke="#45d17a" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M3.85 20.44A12.4 12.4 0 0 1 14.14 2.63" stroke="#3fa0ff" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M15 15Q10.66 13.42 15.00 6.60A8.4 8.4 0 0 1 22.27 19.20Q18.54 12.03 15 15Z" fill="#ff9a2e"/><path d="M15 15Q18.54 12.03 22.27 19.20A8.4 8.4 0 0 1 7.73 19.20Q15.80 19.55 15 15Z" fill="#45d17a"/><path d="M15 15Q15.80 19.55 7.73 19.20A8.4 8.4 0 0 1 15.00 6.60Q10.66 13.42 15 15Z" fill="#3fa0ff"/><circle cx="15" cy="15" r="8.4" fill="none" stroke="rgba(255,255,255,.55)" stroke-width="1"/><path d="M10.8 15.3l3 3 5.6-6.4" stroke="#10131a" stroke-width="4.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M10.8 15.3l3 3 5.6-6.4" stroke="#fff" stroke-width="2.3" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+  if(P){t=t.replace(/stroke="#(ff9a2e|45d17a|3fa0ff)" stroke-width="3"/g,`stroke="${P[1]}" stroke-width="3"`); let k=0; t=t.replace(/fill="#(ff9a2e|45d17a|3fa0ff)"/g,()=>`fill="${P[k++]}"`)}
+  return t}
 // 100% scores by the class of the challenge (its level on the scoreboard card)
 const MAST_CLASSES=[["B","Beginner","#e9a91c","#f5c84a"],["I","Intermediate","#22b862","#45d17a"],["A","Advanced","#2f7fef","#3fa0ff"],["M","Masterclass","#8a4cf0","#b277ff"],["G","God","#e8335a","#ff4d6d"]];
 function masteryClassOf(l){l=String(l||"");return /^god/i.test(l)?"G":/master/i.test(l)?"M":/^adv/i.test(l)?"A":/^int/i.test(l)?"I":/begin/i.test(l)?"B":null}
@@ -3214,11 +3222,11 @@ const ML_DESC={"Kintsugi gem":"played every week from joining until the first mi
   hosted:"total weeks hosted",hoststreak:"most weeks hosted in a row"};
 // medals counted from the scoreboards, which only go back to Week 440: say so wherever they show
 const mlSbNote=()=>`Counted from scoreboards since Week ${SB_W[0]} (earlier weeks have no scoreboard on the site)`;
-const mlFromSb=(kind,key)=>kind==="win"||/^(Played guitar|Played bass|Completionist)$|100% mastery/.test(key);
+const mlFromSb=(kind,key)=>kind==="win"||/^(Played guitar|Played bass|Completionist|Lead completionist|Rhythm completionist|Bass completionist)$|100% mastery/.test(key);
 function mlRender(kind){const acc=ML[kind].acc, link=kind==="win"?"data-gowin":kind==="host"?"data-gohost":"data-goplayer";
   // fixed order, like the medal rows: God diamonds, gold/silver/bronze (Lead, Rhythm, Bass), then the rest
   const ORDER=["Gold God diamond","Silver God diamond","Bronze God diamond","Gold medal","Silver medal","Bronze medal","Triple crown","Close win medal","Rivalry win","Uncrowned","Uncrowned silver","Uncrowned bronze","Most wins in one week","Longest win streak",
-    "Years in the championship","Longest play streak","Perfect gem","Kintsugi gem","Played guitar","Played bass","Completionist","Beginner 100% mastery","Intermediate 100% mastery","Advanced 100% mastery","Masterclass 100% mastery","God 100% mastery","God tier 100% mastery",
+    "Years in the championship","Longest play streak","Perfect gem","Kintsugi gem","Played guitar","Played bass","Completionist","Lead completionist","Rhythm completionist","Bass completionist","Beginner 100% mastery","Intermediate 100% mastery","Advanced 100% mastery","Masterclass 100% mastery","God 100% mastery","God tier 100% mastery",
     "Most weeks hosted","Longest hosting streak"];
   const ordOf=k=>{const [base,path]=k.label.split(" · "); const i=ORDER.indexOf(base); return (i<0?999:i)*4+(path?PATHS.indexOf(path)+1:0)};
   const cards=Object.entries(acc).filter(([,k])=>k.rows.length).sort(([,a],[,b])=>ordOf(a)-ordOf(b)||a.pos-b.pos).map(([key,k])=>{
