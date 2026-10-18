@@ -3657,7 +3657,7 @@ function renderThisWeek(){
     if(own.length)return own.sort((a,b)=>"BIAM".indexOf(b)-"BIAM".indexOf(a))[0];
     const p=byName[n]; const t=p&&p[8]?p[8][pi].toUpperCase():"?"; return "BIAM".includes(t)?t:"?"});
   $("tw-new").innerHTML=fresh.length?fresh.map(n=>{const r=startRanks(n); return `<li>${twName(n)}<span class="pill new" style="width:auto">NEW</span><div class="twtiers">${["Lead","Rhythm","Bass"].map((k,i)=>`<div class="tier" style="--tc:${TIER_C[r[i]]||"var(--muted)"}" title="${r[i]==="?"?`No ${k} rank yet`:`Started ${k} as ${TIER_NAME[r[i]]}`}"><small>${k}</small><b>${r[i]==="?"?"–":r[i]}</b></div>`).join("")}</div></li>`}).join(""):twEmpty(live?"No new players yet this week.":"No new players this week.");
-  $("tw-ann-sub").textContent="First played this week in an earlier year (active players)";
+  $("tw-ann-sub").textContent="First played this week in an earlier year and last played within the past year";
   $("tw-ann").innerHTML=ann.length?ann.map(a=>`<li>${twName(a.n)}<span class="dt">joined ${twWk(a.first)} · ${fmt(a.fd)}${set.has(a.n)?` <span class="ok" data-tip="Played this week" style="cursor:help">✓ playing</span>`:""}</span><span class="rt">🎂 ${a.yrs}<small>year${a.yrs===1?"":"s"}</small></span></li>`).join(""):twEmpty("No anniversaries this week.");
   $("tw-dng-h").textContent=live?"⏳ Streaks at stake":"💔 Streaks that ended";
   $("tw-dng-sub").textContent=live?`Active streaks with no score yet this week${left>0?` · ${twPl(left,"day")} left`:""}`:`Played week ${w-1} but not week ${w} (2+ week streaks)`;
