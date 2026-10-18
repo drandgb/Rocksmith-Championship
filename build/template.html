@@ -608,6 +608,9 @@ a.dl svg,.offpill svg{width:11px;height:11px}
 #wpath button{padding:10px 20px;font-size:.9rem}
 #pfilter .s-all[aria-pressed="true"],#pfilter .s-act[aria-pressed="true"]{background:var(--s-green)}
 #pfilter button{padding:6px 12px;font-size:.75rem}
+#annmode button{padding:5px 10px;font-size:.7rem}#annmode .s-act[aria-pressed="true"]{background:var(--s-green)}#annmode .s-all[aria-pressed="true"]{background:var(--accent)}
+#annmode{margin-left:auto;flex:none}
+@media (max-width:400px){#annmode button{padding:4px 7px;font-size:.62rem;letter-spacing:.04em}.panel-head:has(#annmode){column-gap:8px}.panel-head:has(#annmode) h2{font-size:.92rem;letter-spacing:.05em;white-space:nowrap}}
 .tabs{align-items:center;flex-wrap:wrap}
 .actfilter{margin-left:auto;margin-bottom:6px}
 #pfilter .s-all[aria-pressed="true"],#wpath .s-all[aria-pressed="true"],#rufilter .s-all[aria-pressed="true"]{background:var(--accent)}
@@ -1352,7 +1355,7 @@ footer{color:var(--dim);font-size:.78rem}
       <ul class="twl" id="tw-new"></ul>
     </section>
     <section class="panel glowrim starry" style="--rc:#c9b8ff">
-      <div class="panel-head"><h2>🎂 Anniversaries</h2><div class="seg bpmode" role="radiogroup" aria-label="Recent or all players" id="annmode"><button type="button" data-ann="0" aria-pressed="true">Played this year</button><button type="button" data-ann="1" aria-pressed="false">All</button></div><span class="sub" id="tw-ann-sub" style="flex-basis:100%"></span></div>
+      <div class="panel-head"><h2>🎂 Anniversaries</h2><div class="seg annmode" role="radiogroup" aria-label="Everyone or active players only" id="annmode"><button type="button" data-ann="1" class="s-all" aria-pressed="false" title="Everyone who first played this week in an earlier year">All</button><button type="button" data-ann="0" class="s-act" aria-pressed="true" title="Only players who played in the past year">Active</button></div><span class="sub" id="tw-ann-sub" style="flex-basis:100%"></span></div>
       <ul class="twl" id="tw-ann"></ul>
     </section>
     </div>
