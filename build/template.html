@@ -3746,6 +3746,10 @@ function rkLiveData(){
   return rkLiveData.d={weeks:`${last-9}-${last}`,updated:"",listed:[String(cnt(0)+cnt(1)+cnt(2)),String(cnt(0)),String(cnt(1)),String(cnt(2))],paths};
 }
 const RK_CYC=["","B","I","A","M"]; let rkLv=["","",""]; // level shown per path (Lead, Rhythm, Bass); "" = all
+// the rankings used for players' profiles and forum banners: Rodman's when his tab is up to date, otherwise the
+// site's latest 10 weeks (whichever ends at the more recent week; Rodman's wins a tie)
+function rkCurrent(){const end=d=>{const m=String(d&&d.weeks||"").match(/(\d+)\D+(\d+)/); return m?+m[2]:0};
+  try{const L=rkLiveData(); return end(RK_SHEET)>=end(L)?RK_SHEET:L}catch(e){return RK_SHEET}}
 function renderRankings(){
   const RK=rkLive?rkLiveData():RK_SHEET;
   $("rkpath").innerHTML=["Lead","Rhythm","Bass"].map((k,i)=>{const t=rkLv[i], nx=RK_CYC[(RK_CYC.indexOf(t)+1)%RK_CYC.length];
@@ -4221,7 +4225,7 @@ function acctThisWeek(n,part){ part=part||ACCT.twPart||"me";
       return `<div class="twpath" style="${pp.getAttribute("style")}"><h3>${esc(h)}</h3><ul class="twl">${lis.map(li=>{const c=li.cloneNode(true);c.querySelectorAll(".lvbox").forEach(b=>{const s=document.createElement("span");s.className="lvbox";s.style.cssText=b.style.cssText;s.textContent=b.textContent;b.replaceWith(s)});return c.outerHTML}).join("")}</ul></div>`}).join("");
     twWeek=saveW; twRivLv.splice(0,3,...saveLv); renderThisWeek();}
   // Rodman's Rankings: every path and level they're ranked in
-  const rk=[]; (RK.paths||[]).forEach(pp=>{const pi=PATHS.indexOf(pp.path); pp.levels.forEach(l=>l.rows.forEach(([r,nm,pts,ch])=>{if(String(nm).toLowerCase()!==key||ch==="Out")return;
+  const RKc=rkCurrent(), rk=[]; (RKc.paths||[]).forEach(pp=>{const pi=PATHS.indexOf(pp.path); pp.levels.forEach(l=>l.rows.forEach(([r,nm,pts,ch])=>{if(String(nm).toLowerCase()!==key||ch==="Out")return;
     const LT={Beginner:"B",Intermediate:"I",Advanced:"A",Masterclass:"M"}[l.level], cc=/↑/.test(ch)?"up":/↓/.test(ch)?"down":/new/i.test(ch)?"new":"";
     const mine=LT&&LT===rankOf(pi); // the level they're ranked in now: outlined like their ranked challenges above
     rk.push(`<li class="${mine?"myrank":""}" style="--pc:${PATH_C[pi]};--rc:${TIER_C[LT]||"var(--fg)"}"${mine?` data-tip="Your class on ${PATHS[pi]}: ${TIER_NAME[LT]}"`:""}><span class="apath">${esc(pp.path)}</span><span class="lvchip" style="--tc:${TIER_C[LT]||"var(--fg)"}">${esc(l.level)}</span><span class="arank${r==="1"?" p1":r==="2"?" p2":r==="3"?" p3":""}">#${esc(r)}<small> of ${l.rows.filter(x=>x[3]!=="Out").length}</small></span><span class="apts">${esc(pts)} pts</span><span class="chg ${cc}">${esc(ch)}</span></li>`)}))});
@@ -4232,7 +4236,7 @@ function acctThisWeek(n,part){ part=part||ACCT.twPart||"me";
   if(part==="week")return `    <div class="acctsec"><h3>This week's scoreboard <small>Week ${w}</small></h3>${sb.length?`<ul class="alist">${sb.join("")}</ul>`:`<p class="dim">No scoreboard for this week yet.</p>`}</div>
     <div class="acctsec acctriv"><h3>This week's rivals</h3>${riv||`<p class="dim">No rivals this week yet.</p>`}</div>`;
   return HAUL+`
-    <div class="acctsec"><h3>Rodman's Rankings ${RK.weeks?`<small>Weeks ${esc(RK.weeks)}</small>`:""}</h3>${rk.length?`<ul class="alist">${rk.join("")}</ul>`:`<p class="dim">Not ranked right now.</p>`}<div class="row"><button type="button" class="btn ghost" data-goview="rankings">Open Rodman's Rankings ›</button></div></div>`;
+    <div class="acctsec"><h3>${RKc===RK_SHEET?"Rodman's Rankings":"Rankings"} ${RKc.weeks?`<small>Weeks ${esc(RKc.weeks)}${RKc===RK_SHEET?"":" · worked out by the site"}</small>`:""}</h3>${rk.length?`<ul class="alist">${rk.join("")}</ul>`:`<p class="dim">Not ranked right now.</p>`}<div class="row"><button type="button" class="btn ghost" data-goview="rankings">Open Rodman's Rankings ›</button></div></div>`;
 }
 // ---------- rank-up readiness (private: only in the player's own profile) ----------
 // From the scoreboards since week 440: a player is "Ready" for the next class on a path when, in the last 12 weeks, they
@@ -4326,7 +4330,7 @@ function bannerHtml(n){
   const tier=t=>t&&t!=="?"?t:"–", tc=t=>TIER_C[t]||"#8b93a7";
   // best Rodman's Rankings place on each path
   const key=n.toLowerCase(), rk={};
-  ((typeof RK!=="undefined"&&RK.paths)||[]).forEach(pp=>pp.levels.forEach(l=>l.rows.forEach(([r,nm])=>{if(String(nm).toLowerCase()===key){const k=+r,pk=String(pp.path); if(k&&(!rk[pk]||k<rk[pk].r))rk[pk]={r:k,lv:l.level}}})));
+  ((typeof RK_SHEET!=="undefined"&&rkCurrent().paths)||[]).forEach(pp=>pp.levels.forEach(l=>l.rows.forEach(([r,nm])=>{if(String(nm).toLowerCase()===key){const k=+r,pk=String(pp.path); if(k&&(!rk[pk]||k<rk[pk].r))rk[pk]={r:k,lv:l.level}}})));
   // win medals; "1st" on the ones this player leads
   // the player's place among active players (1st, 2nd or 3rd; ties share a place) on each win medal kind;
   // players who aren't active get no place tags
