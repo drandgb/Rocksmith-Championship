@@ -1309,6 +1309,17 @@ footer{color:var(--dim);font-size:.78rem}
     <div class="newlist" id="newlist"></div>
   </section>
 
+  <section class="panel">
+      <div class="panel-head"><h2>Rank changes</h2><span class="sub" id="ru-sub"></span></div>
+      <div class="ruf seg" role="radiogroup" aria-label="Filter rank-ups by path" id="rufilter">
+        <button type="button" data-rp="-1" class="s-all" aria-pressed="true">All</button>
+        <button type="button" data-rp="0" class="s-lead" aria-pressed="false">Lead</button>
+        <button type="button" data-rp="1" class="s-rhy" aria-pressed="false">Rhythm</button>
+        <button type="button" data-rp="2" class="s-bass" aria-pressed="false">Bass</button>
+      </div>
+      <ol class="rulist" id="rulist"></ol>
+    </section>
+
   <section class="panel profile">
     <div class="panel-head"><h2>Player lookup</h2><span class="sub">Click any name on this page, or search</span></div>
     <div class="controls"><input id="pq" list="plist" type="search" placeholder="Type a player name" aria-label="Find a player" autocomplete="off"><datalist id="plist"></datalist></div>
@@ -1410,16 +1421,7 @@ footer{color:var(--dim);font-size:.78rem}
   </div>
 
 
-  <section class="panel">
-      <div class="panel-head"><h2>Rank changes</h2><span class="sub" id="ru-sub"></span></div>
-      <div class="ruf seg" role="radiogroup" aria-label="Filter rank-ups by path" id="rufilter">
-        <button type="button" data-rp="-1" class="s-all" aria-pressed="true">All</button>
-        <button type="button" data-rp="0" class="s-lead" aria-pressed="false">Lead</button>
-        <button type="button" data-rp="1" class="s-rhy" aria-pressed="false">Rhythm</button>
-        <button type="button" data-rp="2" class="s-bass" aria-pressed="false">Bass</button>
-      </div>
-      <ol class="rulist" id="rulist"></ol>
-    </section>
+
 
   <section class="panel">
     <div class="panel-head"><h2>Winner lookup</h2><span class="sub">Click any name on this page, or search</span></div>
@@ -2199,9 +2201,9 @@ function renderWins(){
 let ruPath=-1;
 function renderRankups(){
   document.querySelectorAll("#rufilter button").forEach(b=>b.setAttribute("aria-pressed",+b.dataset.rp===ruPath));
-  const list=WR.ups.filter(u=>(ruPath<0||u[1]===ruPath)&&(!activeOnly||isActivePlayer(u[0]))&&(!wSeason||yearOfWeek(u[4])===wSeason));
+  const list=WR.ups.filter(u=>(ruPath<0||u[1]===ruPath)&&(!activeOnly||isActivePlayer(u[0])));
   const nUp=list.filter(isUp).length, nDown=list.length-nUp;
-  $("ru-sub").textContent=`${nUp} ${ruPath<0?"":PATH_WORD[ruPath]+" "}rank-up${nUp===1?"":"s"}${nDown?` and ${nDown} move${nDown===1?"":"s"} down`:""} ${wSeason?`in ${wSeason}`:"since week 440"} · newest first`;
+  $("ru-sub").textContent=`${nUp} ${ruPath<0?"":PATH_WORD[ruPath]+" "}rank-up${nUp===1?"":"s"}${nDown?` and ${nDown} move${nDown===1?"":"s"} down`:""} since week 440 · newest first`;
   $("rulist").innerHTML=list.map(([n,p,a,b,w])=>{const wk=WEEKS[w-1];return `<li><div class="w"${SB.weeks[w]?` data-sbw="${w}" data-sbp="${p}" data-sbn="${esc(n)}" title="Open Week ${w} on the Scoreboard"`:""}><b>Wk ${w}</b>${wk?fmtShort(wk[1])+", "+wk[1].slice(0,4):""}</div><div class="who"><span data-player="${esc(n)}">${esc(n)}</span><span class="path" style="--pc:${PATH_C[p]}">${PATHS[p]}</span></div><div class="move${LVI.indexOf(b)<LVI.indexOf(a)?" down":""}" title="${TIER_NAME[a]} → ${TIER_NAME[b]}${LVI.indexOf(b)<LVI.indexOf(a)?" (moved down)":""}"><span style="--tc:${TIER_C[a]}">${a}</span><i>${LVI.indexOf(b)<LVI.indexOf(a)?"↘":"↗"}</i><span style="--tc:${TIER_C[b]}">${b}</span></div></li>`}).join("")||`<li class="empty">No rank-ups on this path.</li>`;
 }
 
@@ -2631,14 +2633,13 @@ function renderWinners(){
 {const ys=[...new Set(Object.keys(SB.weeks).map(Number).filter(w=>w<=DATA_WEEK).map(yearOfWeek))].filter(Boolean).sort().reverse();
  $("wseason").innerHTML=`<option value="">All time</option>`+ys.map(y=>`<option value="${y}">${y}</option>`).join("");}
 $("wseason").addEventListener("change",e=>{wSeason=e.target.value||null; wYear=wSeason; renderWinners(); updateBubble()});
-$("wpath").addEventListener("click",e=>{const b=e.target.closest("button[data-rp]");if(b){wPath=+b.dataset.rp;ruPath=wPath;renderWinners()}});
-$("rufilter").addEventListener("click",e=>{const b=e.target.closest("button[data-rp]");if(b){ruPath=+b.dataset.rp;renderRankups()}});
+$("wpath").addEventListener("click",e=>{const b=e.target.closest("button[data-rp]");if(b){wPath=+b.dataset.rp;renderWinners()}});
+$("rufilter").addEventListener("click",e=>{const b=e.target.closest("button[data-rp]");if(b){ruPath=+b.dataset.rp;renderRankups();if(typeof updateBubble==="function")updateBubble()}});
 // rank-up markers on the scoreboard: first week a player appears in their new class
 const LVI="BIAM";
 const isUp=u=>LVI.indexOf(u[3])>LVI.indexOf(u[2]);
 const RU_KEY=new Set(WR.ups.filter(isUp).map(([n,p,a,b,w])=>`${w}|${n}|${p}|${b}`));
 try{const r=localStorage.getItem("rsc-wpath");if(r!==null&&["0","1","2"].includes(r))wPath=+r}catch(e){}
-ruPath=wPath;
 renderWinners();
 function setActiveOnly(v){
   activeOnly=v; try{localStorage.setItem("rsc-activeonly2",v?"1":"0")}catch(e){}
@@ -2961,6 +2962,7 @@ function activeFilters(){
   const v=curView(), f=[];
   if((v==="hosting"||v==="players"||v==="winners")&&activeOnly)f.push(["Active players only",()=>setActiveOnly(false)]);
   if(v==="players"&&pYear)f.push([`Player lookup: ${pYear}`,()=>{pYear=null;showPlayer($("pq").value.trim())}]);
+  if(v==="players"&&ruPath>=0)f.push([`Rank changes: ${PATHS[ruPath]}`,()=>document.querySelector('#rufilter [data-rp="-1"]').click()]);
   if(v==="hosting"&&holF)f.push([`Holiday: ${holF}`,()=>{holF=null;renderLog()}]);
   if(v==="hosting"&&hYear)f.push([`Host lookup: ${hYear}`,()=>{hYear=null;showHost(hName)}]);
   if(v==="hosting"&&selHost)f.push([`Host: ${CATS[selHost]||selHost}`,()=>setHost(selHost)]);
@@ -2968,7 +2970,6 @@ function activeFilters(){
     if(wPath>=0)f.push([`Path: ${PATHS[wPath]}`,()=>document.querySelector('#wpath [data-rp="-1"]').click()]);
     if(wSeason)f.push([`Season: ${wSeason}`,()=>{wSeason=null;wYear=null;renderWinners()}]);
     if(wYear&&wYear!==wSeason)f.push([`Winner lookup: ${wYear}`,()=>{wYear=null;showWinner(wName);markHot()}]);
-    if(ruPath>=0&&ruPath!==wPath)f.push([`Rank changes: ${PATHS[ruPath]}`,()=>document.querySelector('#rufilter [data-rp="-1"]').click()]);
   }
   if(v==="songs"){
     if(sPath>=0)f.push([`Path: ${PATHS[sPath]}`,()=>document.querySelector('#spath [data-sp="-1"]').click()]);
