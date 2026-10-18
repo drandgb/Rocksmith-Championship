@@ -1051,6 +1051,11 @@ footer .updated{display:block;margin-top:4px}
    for the grouped lookup rows) and use one even gap, wide enough for each medal's count badge */
 .twl .medals,.medals.haul{gap:8px 14px}
 .twl .medals .medal-m,.medals.haul .medal-m{margin:0}
+/* medal rows on profiles and lookups: one even gap between every medal (the count badge sticks out 5px on the right,
+   whatever its number of digits), instead of per-kind margins */
+.medals{gap:8px 14px}
+.medals>.medal-m{margin:0}
+.medals>.medal-m.diamond:not(.classgem){margin:0 -2px 0 -4px}
 @keyframes sparkle{0%,60%,100%{opacity:0;transform:scale(.3) rotate(0)}75%{opacity:1;transform:scale(1.2) rotate(45deg)}}
 @keyframes dglow{0%,100%{filter:drop-shadow(0 0 3px var(--ec)) drop-shadow(0 0 8px var(--ec)) drop-shadow(0 0 14px rgba(199,125,255,.45))}50%{filter:drop-shadow(0 0 5px #fff) drop-shadow(0 0 12px var(--ec)) drop-shadow(0 0 22px rgba(199,125,255,.75))}}
 .medal-m.wm svg{width:28px;height:30px;filter:drop-shadow(0 0 3px var(--ec)) drop-shadow(0 0 8px color-mix(in srgb,var(--ec) 55%,transparent))}
