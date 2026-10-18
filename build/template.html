@@ -154,7 +154,7 @@ button.pill.hostbtn:hover,.pill.hostbtn:hover{background:color-mix(in srgb,var(-
 .legend button:hover{color:var(--fg);border-color:var(--line)}
 .legend button.sel{color:var(--fg);border-color:var(--accent);background:color-mix(in srgb,var(--accent) 12%,transparent)}
 .legend.has-sel button:not(.sel){opacity:.55}
-.tip{white-space:pre-line;position:fixed;pointer-events:none;background:var(--panel2);border:1px solid var(--line);padding:6px 9px;border-radius:6px;font-size:.8rem;z-index:10;max-width:300px;max-height:80vh;overflow:hidden}
+.tip{white-space:pre-line;position:fixed;pointer-events:none;background:var(--panel2);border:1px solid var(--line);padding:6px 9px;border-radius:6px;font-size:.8rem;z-index:10;max-width:min(360px,calc(100vw - 24px));max-height:80vh;overflow:hidden}
 
 /* log */
 .controls{display:flex;flex-wrap:wrap;gap:8px}
@@ -1372,7 +1372,7 @@ footer{color:var(--dim);font-size:.78rem}
 
   <div class="view" id="view-rankings" role="tabpanel" aria-labelledby="tab-rankings" hidden>
   <section class="panel rkhead">
-    <div class="panel-head"><h2 class="rkinfo" data-tip="How Rodman’s Rankings work: each path (Lead, Rhythm, Bass) and level (Beginner to Masterclass) has its own leaderboard covering the last 10 weeks. Finishing 1st, 2nd, 3rd or 4th on a challenge at that level earns 10, 5, 3 or 1 points, and a player’s points over those 10 weeks are added up. Players with the same points share a rank. The arrows show how many places a player moved since last week’s rankings; New means they just entered the list, and Out means they no longer have points in the last 10 weeks. Kept by Rodman in the scoreboard sheet.">Rodman’s Rankings <span class="infoi" aria-hidden="true">ⓘ</span></h2><span class="sub" id="rk-sub"></span></div>
+    <div class="panel-head"><h2 class="rkinfo" data-tip="How Rodman’s Rankings work&#10;&#10;Each path (Lead, Rhythm, Bass) and level (Beginner to Masterclass) has its own leaderboard covering the last 10 weeks.&#10;&#10;Points: on each challenge the top 4 earn 10, 5, 3 and 1 points, added up over the 10 weeks. Players with the same points share a rank.&#10;&#10;Who counts: only the main challenges (bonus and God challenges don’t count). Places go to players in that class or playing one class up, using the class they were in that week, so after a rank-up their points start counting in the new class. Players playing down, two or more classes up, or marked on the sheet as a new player or with no class on that path are skipped, and the next player takes the place.&#10;&#10;Arrows show how many places a player moved since last week; New means they just entered the list, and Out means they have no points left in the last 10 weeks.&#10;&#10;Rodman’s official table is kept in the scoreboard sheet. Tap the weeks pill for the latest 10 weeks, worked out by the site with the same rules. Players’ profiles and forum banners use whichever is more recent.">Rodman’s Rankings <span class="infoi" aria-hidden="true">ⓘ</span></h2><span class="sub" id="rk-sub"></span></div>
     <div class="twstats" id="rk-stats"></div>
   </section>
   <div class="wpathbar"><div class="tiers rktiers" id="rkpath" aria-label="Level shown for each path"></div><button type="button" class="clear" id="rkall" hidden>Show all levels</button></div>
