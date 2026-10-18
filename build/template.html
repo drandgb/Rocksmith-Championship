@@ -1981,12 +1981,12 @@ function medalsFor(p,bitsOv){
    // Lead, Rhythm and Bass completionist: every challenge on that one path (a full Completionist week counts for all three)
    [0,1,2].forEach(pp=>{const pw=completionistWeeks(n,doneM,pp); if(!pw.length)return; const col=COMP_PATH[pp][1];
      cRow+=`<span class="medal-m wm" style="--ec:${col};cursor:pointer" data-all="${pw.join(",")}" data-hl="${pw.join(",")}" data-tip="${PATHS[pp]} completionist · posted a score on every ${PATHS[pp]} challenge of the week, every class (a multi-week God challenge already played earlier in its run counts) · ${pw.length} week${pw.length===1?"":"s"} · click to highlight">${completionistSvg(pp)}<b>${pw.length}</b></span>`});}
-  // 100% mastery: every 100% score on a finished week's challenge, whatever the place or class
+  // Perfectionist (100% scores): every 100% score on a finished week's challenge, whatever the place or class
   // one medal per class, in that class's gem colour (God stays red)
   const mastBy=masteryByClass(n,doneM);
   const mRow=MAST_CLASSES.map(([k,label,col,glow])=>{const ws=mastBy[k]; if(!ws.length)return "";
-    return `<span class="medal-m wm" style="--ec:${glow};cursor:pointer" data-all="${ws.join(",")}" data-hl="${[...new Set(ws)].join(",")}" data-tip="${label} 100% mastery · scored 100% on ${/^[AEIOU]/.test(label)?"an":"a"} ${label} challenge, whatever the place · ${ws.length} time${ws.length===1?"":"s"} · click to highlight">${masterySvg(col,k==="B"?"#fff":null)}<b>${ws.length}</b></span>`}).join("");
-  const cls=iRow+cRow+mRow+(cgRow||""); // Completionist, then 100% mastery, then the Beginner to Masterclass gems
+    return `<span class="medal-m wm" style="--ec:${glow};cursor:pointer" data-all="${ws.join(",")}" data-hl="${[...new Set(ws)].join(",")}" data-tip="${label} perfectionist · scored 100% on ${/^[AEIOU]/.test(label)?"an":"a"} ${label} challenge, whatever the place · ${ws.length} time${ws.length===1?"":"s"} · click to highlight">${masterySvg(col,k==="B"?"#fff":null)}<b>${ws.length}</b></span>`}).join("");
+  const cls=iRow+cRow+mRow+(cgRow||""); // Completionist, then the perfectionist medals (100% scores), then the Beginner to Masterclass gems
   return (top.length?`<div class="medals">${top.join("")}</div>`:"")+(gems.length?`<div class="medals">${gems.join("")}</div>`:"")+(cls?`<div class="medals">${cls}</div>`:"")+(embers.length?`<div class="medals">${embers.join("")}</div>`:"")+(flames.length?`<div class="medals">${flames.join("")}</div>`:"");
 }
 let pYear=null;
@@ -2396,7 +2396,7 @@ function rivalryWins(name,done,path=-1){
   return out;
 }
 function swordsSvg(col){return `<svg viewBox="0 0 28 30" aria-hidden="true"><circle cx="14" cy="15" r="12" fill="${col}"/><path d="M6 11a9 9 0 0 1 5-5.5" stroke="rgba(255,255,255,.55)" stroke-width="1.6" fill="none" stroke-linecap="round"/><g stroke="#1a1406" stroke-opacity=".55" stroke-width=".7"><path d="M20.6 6.2h2.6v2.6l-9.6 9.6-2.6-2.6z" fill="#f4f7fb"/><path d="M7.4 6.2H4.8v2.6l9.6 9.6 2.6-2.6z" fill="#e2e8f0"/></g><path d="M9.4 18.4l2.4 2.4M18.6 18.4l-2.4 2.4" stroke="#d9a441" stroke-width="2.2" stroke-linecap="round"/><path d="M10 20.4l-2.8 2.8M18 20.4l2.8 2.8" stroke="#8a5a2b" stroke-width="2.2" stroke-linecap="round"/></svg>`}
-// 100% mastery: every time the player scored 100% on a challenge, whatever their place or class (God challenges count once, in their final week)
+// Perfectionist (100% mastery): every time the player scored 100% on a challenge, whatever their place or class (God challenges count once, in their final week)
 // Completionist: weeks where the player posted a score on every challenge (every song and path) of the week.
 // A multi-week God challenge they already played in an earlier week of the run counts; one never attempted doesn't.
 // path (0 Lead, 1 Rhythm, 2 Bass): only that path's challenges count (Lead / Rhythm / Bass completionist)
@@ -3186,7 +3186,7 @@ $("view-scores").addEventListener("click",e=>{
 });
 
 // ---------- medal leaders (Winners, Players and Hosts pages): the top three for each kind of medal ----------
-// Counted medals (gold medals, close wins, 100% mastery…) rank by how many times; tiered ones (streaks, year medals,
+// Counted medals (gold medals, close wins, perfectionist…) rank by how many times; tiered ones (streaks, year medals,
 // N-win week trophies, N weeks hosted…) rank by the highest tier reached. Worked out in small steps when the page is
 // first opened, so the site doesn't stall.
 const ML={};
@@ -3222,11 +3222,11 @@ const ML_DESC={"Kintsugi gem":"played every week from joining until the first mi
   hosted:"total weeks hosted",hoststreak:"most weeks hosted in a row"};
 // medals counted from the scoreboards, which only go back to Week 440: say so wherever they show
 const mlSbNote=()=>`Counted from scoreboards since Week ${SB_W[0]} (earlier weeks have no scoreboard on the site)`;
-const mlFromSb=(kind,key)=>kind==="win"||/^(Played guitar|Played bass|Completionist|Lead completionist|Rhythm completionist|Bass completionist)$|100% mastery/.test(key);
+const mlFromSb=(kind,key)=>kind==="win"||/^(Played guitar|Played bass|Completionist|Lead completionist|Rhythm completionist|Bass completionist)$| perfectionist$/.test(key);
 function mlRender(kind){const acc=ML[kind].acc, link=kind==="win"?"data-gowin":kind==="host"?"data-gohost":"data-goplayer";
   // fixed order, like the medal rows: God diamonds, gold/silver/bronze (Lead, Rhythm, Bass), then the rest
   const ORDER=["Gold God diamond","Silver God diamond","Bronze God diamond","Gold medal","Silver medal","Bronze medal","Triple crown","Close win medal","Rivalry win","Uncrowned","Uncrowned silver","Uncrowned bronze","Most wins in one week","Longest win streak",
-    "Years in the championship","Longest play streak","Perfect gem","Kintsugi gem","Played guitar","Played bass","Completionist","Lead completionist","Rhythm completionist","Bass completionist","Beginner 100% mastery","Intermediate 100% mastery","Advanced 100% mastery","Masterclass 100% mastery","God 100% mastery","God tier 100% mastery",
+    "Years in the championship","Longest play streak","Perfect gem","Kintsugi gem","Played guitar","Played bass","Completionist","Lead completionist","Rhythm completionist","Bass completionist","Beginner perfectionist","Intermediate perfectionist","Advanced perfectionist","Masterclass perfectionist","God perfectionist","God tier perfectionist",
     "Most weeks hosted","Longest hosting streak"];
   const ordOf=k=>{const [base,path]=k.label.split(" · "); const i=ORDER.indexOf(base); return (i<0?999:i)*4+(path?PATHS.indexOf(path)+1:0)};
   const cards=Object.entries(acc).filter(([,k])=>k.rows.length).sort(([,a],[,b])=>ordOf(a)-ordOf(b)||a.pos-b.pos).map(([key,k])=>{
@@ -3466,7 +3466,7 @@ function twMedals(n,w,live){
     else if(/^Uncrowned/.test(t)){const key=String(n).toLowerCase(), pos=/^Uncrowned silver/.test(t)?1:/^Uncrowned bronze/.test(t)?2:0;
       (SB.weeks[w]||[]).forEach(c=>{if(c[7])return; const e=c[6].filter(x=>x[4]>=0)[pos];
         if(e&&(e[4]===1||e[4]===2)&&SB.names[e[0]].replace(/[*~]+$/,"").toLowerCase()===key)from.push({c,god:/^god|tribute/i.test(c[2])})})}
-    else{const mm=/^(.+) 100% mastery/.exec(t), mc=mm&&MAST_CLASSES.find(x=>x[1]===mm[1]);
+    else{const mm=/^(.+) perfectionist/.exec(t), mc=mm&&MAST_CLASSES.find(x=>x[1]===mm[1]);
       if(mc){const key=String(n).toLowerCase(); (SB.weeks[w]||[]).forEach(c=>{if(c[7]||masteryClassOf(c[2])!==mc[0])return;
         if(c[6].some(e=>e[1]!=null&&e[1]>=100&&SB.names[e[0]].replace(/[*~]+$/,"").toLowerCase()===key))from.push({c,god:mc[0]==="G"})})}}
     if(from.length)t+=` · ${from.length===1?"from":"from:"} ${list(from)}`;
