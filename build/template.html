@@ -3556,13 +3556,11 @@ function renderNextPreview(){
 // Notification: shown on This Week in the first 3 days of a new week (once the new week's sheet is on the site), until
 // closed. A logged-in player also sees the medals they collected last week (hover for what each is for).
 // Downloads: each song of the newest week once, with the challenges that use it as L / R / B class boxes (a dash
-// where the song isn't used on that path), and its Ignition pill. A ✓ marks songs this device has opened (by their
-// Ignition link, so a song that comes back later counts as opened). A logged-in player's own classes are highlighted,
+// where the song isn't used on that path), and its Ignition pill. A logged-in player's own classes are highlighted,
 // and their songs come first. The section can be collapsed; that's remembered until the next week's songs arrive.
-const NW_SEEN="rsc-newweek-seen", DL_OPEN="rsc-dl-opened", DL_FOLD="rsc-dl-fold";
+const NW_SEEN="rsc-newweek-seen", DL_FOLD="rsc-dl-fold";
 function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
 function lsSet(k,v){try{if(v==null)localStorage.removeItem(k);else localStorage.setItem(k,v)}catch(e){}}
-function dlOpened(){try{return JSON.parse(lsGet(DL_OPEN)||"{}")||{}}catch(e){return {}}}
 function myPlayer(){return typeof ACCT!=="undefined"&&ACCT&&ACCT.claim&&ACCT.claim.status==="approved"?ACCT.claim.player:null}
 function myTiers(){const n=myPlayer(), p=n&&byName[n]; return p?String(p[8]||"").split(""):null}
 function renderNewWeekNote(){
@@ -3581,7 +3579,7 @@ function renderDownloads(){
   const el=$("twdl"); if(!el)return; const w=TW_MAX;
   const cards=twWeek===w?(SB.weeks[w]||[]).filter(c=>c[3]&&!/^n\/a$/i.test(c[3])):[];
   if(!cards.length){el.hidden=true;return}
-  const T=myTiers(), mine=c=>!!T&&cardLv(c[2])===T[c[0]], op=dlOpened(), L=(SB.links&&SB.links[w])||{};
+  const T=myTiers(), mine=c=>!!T&&cardLv(c[2])===T[c[0]], L=(SB.links&&SB.links[w])||{};
   const m=new Map(); cards.forEach(c=>{const k=c[3].toLowerCase().replace(/\s+/g," ").trim(); if(!m.has(k))m.set(k,{song:c[3],id:null,ch:[]}); const s=m.get(k); s.ch.push(c); if(!s.id&&L[c[0]*9+c[1]])s.id=L[c[0]*9+c[1]]});
   const list=[...m.values()].map(s=>({...s,my:s.ch.some(mine),o:Math.min(...s.ch.map(c=>c[1]*3+c[0]))})).sort((a,b)=>(b.my-a.my)||a.o-b.o);
   const box=(p,cs)=>{if(!cs.length)return `<span class="dlbx">${"LRB"[p]}<b style="color:#8b93a7">–</b></span>`;
@@ -3591,7 +3589,7 @@ function renderDownloads(){
   const fold=lsGet(DL_FOLD)===String(w);
   el.innerHTML=`<div class="panel-head dlhead" data-dl="fold" title="${fold?"Show":"Hide"} the download list"><h2>⬇ Download Week ${w}'s songs<span class="dlarw">${fold?"▸":"▾"}</span></h2>
     <span class="sub">${list.length} song${list.length===1?"":"s"} for ${cards.length} challenge${cards.length===1?"":"s"}${T&&!fold?" · your classes are highlighted":""}</span></div>
-    ${fold?"":`<ul>${list.map(s=>{const pill=songPill(s.song,s.id).replace('class="dl"',`class="dl${s.id&&op[s.id]?" got":""}" data-dlid="${s.id||""}"`);
+    ${fold?"":`<ul>${list.map(s=>{const pill=songPill(s.song,s.id);
       return `<li class="${s.my?"mine":""}"><span class="dls">${esc(s.song)}${s.my?`<span class="yours">yours</span>`:""}</span><span class="dlbxs">${[0,1,2].map(p=>box(p,s.ch.filter(c=>c[0]===p))).join("")}</span><span class="dlpill">${pill}</span></li>`}).join("")}</ul>`}`;
   el.hidden=false;
 }
@@ -3602,8 +3600,6 @@ document.addEventListener("click",e=>{
     if(a==="dl"){lsSet(DL_FOLD,null); renderDownloads(); const d=$("twdl"); if(d&&!d.hidden)d.scrollIntoView({behavior:"smooth",block:"start"}); return}
     if(a==="me"){const b=$("acctbtn"); if(b)b.click(); return}}
   if(e.target.closest("#twdl [data-dl=fold]")){lsSet(DL_FOLD,lsGet(DL_FOLD)===String(TW_MAX)?null:String(TW_MAX)); renderDownloads(); return}
-  const a=e.target.closest("#twdl a.dl[data-dlid]");
-  if(a&&a.dataset.dlid){const op=dlOpened(); op[a.dataset.dlid]=1; lsSet(DL_OPEN,JSON.stringify(op)); setTimeout(renderDownloads,0)}
 });
 function renderThisWeek(){
   setTimeout(()=>{renderNewWeekNote();renderDownloads()},0);
