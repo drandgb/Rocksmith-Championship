@@ -630,7 +630,6 @@ a.dl svg,.offpill svg{width:11px;height:11px}
 @media (max-width:400px){#annmode button{padding:4px 7px;font-size:.62rem;letter-spacing:.04em}.panel-head:has(#annmode){column-gap:8px}.panel-head:has(#annmode) h2{font-size:.92rem;letter-spacing:.05em;white-space:nowrap}}
 .tabs{align-items:center;flex-wrap:wrap}
 .actfilter{margin-left:auto;margin-bottom:6px}
-.tabs .playhere{margin-left:auto;margin-bottom:6px}.tabs .actfilter:not([hidden])~.playhere{margin-left:8px}
 #pfilter .s-all[aria-pressed="true"],#wpath .s-all[aria-pressed="true"],#rufilter .s-all[aria-pressed="true"]{background:var(--accent)}
 .ruf{margin-bottom:12px}
 .rulist{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr));column-gap:28px}
@@ -1186,9 +1185,10 @@ footer{color:var(--dim);font-size:.78rem}
     </div>
     <nav class="links">
       <button type="button" class="forum acctbtn" id="acctbtn" hidden title="Log in with your email to claim your player profile, see your own stats page, rate songs and sign up to host">👤 Log in</button>
+      <button type="button" class="forum refresh" id="refreshbtn" title="Reloads the site with the newest scores and results, skipping the copy your browser saved">↻ Refresh</button>
       <a class="forum" href="https://docs.google.com/spreadsheets/d/1WN-m8wF0lVkQ4cLWHBa009SkqDoPk0xN-C4-llcrXXs/edit?gid=871655614#gid=871655614" target="_blank" rel="noopener" title="Opens the championship's scoreboard Google Sheet, where every week's challenges, scores and results are recorded. This site's stats come from it">Scoreboard sheet ↗</a>
       <a class="forum" href="https://script.google.com/macros/s/AKfycbwy6vF3XYDZ_s1WeqiHTgBcVgbF8cr2AUQjKH3aRSZYuh32Erc-IstP5Gos-1i_evkm/exec" target="_blank" rel="noopener" title="Opens a form to suggest a song you'd like to see as a future championship challenge">Request a song ↗</a>
-      <button type="button" class="forum refresh" id="refreshbtn" title="Reloads the site with the newest scores and results, skipping the copy your browser saved">↻ Refresh</button>
+      <a class="forum playhere" href="https://customsforge.com/forum/38-rocksmith-championship/" target="_blank" rel="noopener" title="Opens the Rocksmith 2014 Championship forum on CustomsForge, where the weekly challenges are posted and scores are submitted">Play here ↗</a>
     </nav>
   </header>
 
@@ -1204,7 +1204,6 @@ footer{color:var(--dim);font-size:.78rem}
       <button type="button" data-af="0" class="s-all" aria-pressed="false">All</button>
       <button type="button" data-af="1" class="s-act" aria-pressed="true">Active only</button>
     </div>
-    <a class="forum playhere" href="https://customsforge.com/forum/38-rocksmith-championship/" target="_blank" rel="noopener" title="Opens the Rocksmith 2014 Championship forum on CustomsForge, where the weekly challenges are posted and scores are submitted">Play here ↗</a>
   </nav>
 
   <div class="view" id="view-hosting" role="tabpanel" aria-labelledby="tab-hosting" hidden>
