@@ -502,6 +502,17 @@ a.dl svg,.offpill svg{width:11px;height:11px}
 .ywsame summary{cursor:pointer;color:var(--muted);font-size:.84rem;padding:8px 0}
 .ywlink{color:var(--accent);cursor:pointer;text-decoration:underline;text-underline-offset:2px}
 .ywalert ul{margin:0;padding:0}.ywalert li{list-style:none;padding:4px 0;font-size:.86rem}.ywalert .dn{color:var(--s-red);font-weight:800}.ywalert small{color:var(--muted)}
+.pvbar{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:8px 10px 10px;padding:7px 10px;border-radius:8px;background:color-mix(in srgb,var(--tc) 8%,transparent);border:1px dashed color-mix(in srgb,var(--tc) 40%,transparent);font-size:.8rem;color:var(--muted)}
+.pvbar .pvlab{margin-right:2px}.pvbar .pvlab b{color:var(--fg)}
+.pvw{font:inherit;font-weight:700;color:var(--tc);background:none;border:1px solid color-mix(in srgb,var(--tc) 55%,transparent);border-radius:999px;padding:2px 10px;cursor:pointer}
+.pvw i{font-style:normal;font-size:.7em}.pvw.on{background:color-mix(in srgb,var(--tc) 20%,transparent);color:var(--fg)}
+.pvbody{margin:-4px 10px 10px;padding:6px 8px 8px;border:1px solid var(--line);border-radius:8px;background:var(--panel2)}
+.pvhd{font-size:.74rem;color:var(--muted);margin:0 0 4px}
+.pvt{width:100%;border-collapse:collapse;font-size:.82rem}.pvt td{padding:4px 4px;border-top:1px solid var(--line)}.pvt td:first-child{width:24px;color:var(--muted)}.pvt td:last-child{text-align:right;font-family:var(--f-mono);white-space:nowrap}
+.pvt .pvnow{margin-left:6px;font-size:.74rem;color:var(--muted)}.pvt .pvnow .up{color:var(--s-green)}.pvt .pvnow .dn{color:var(--s-red)}
+.pvt tr.mine td,.pvt tr.me td{background:color-mix(in srgb,var(--accent) 16%,transparent);font-weight:700}.pvt tr.down td{opacity:.6}.pvt tr.pvgap td{color:var(--muted);text-align:center;padding:0}
+.pvopen{margin-top:6px;font:inherit;font-size:.8rem;font-weight:700;color:var(--accent);background:none;border:0;padding:2px 0;cursor:pointer}
+.ywpv li{display:grid;grid-template-columns:1fr auto;gap:2px 12px;align-items:center}.ywpv .pvr{white-space:nowrap;text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:2px}.ywpv .pvr .up{color:var(--s-green);font-weight:800}.ywpv .pvr .dn{color:var(--s-red);font-weight:800}.ywpv small{color:var(--muted)}
 .ywl{list-style:none;margin:0;padding:0}.ywl li{padding:8px 0;border-bottom:1px solid var(--line)}
 .ywc{display:flex;align-items:baseline;gap:6px;flex-wrap:wrap}.ywc .song{color:var(--muted);font-size:.8rem}
 .yw .pt{display:inline-block;width:6px;height:6px;border-radius:50%;vertical-align:1px}
@@ -2736,12 +2747,30 @@ function sbRender(){
       const up=!raw.includes("*")&&lvLetter&&RU_KEY.has(`${sbWeek}|${base}|${p}|${lvLetter}`)?`<span class="rkup" data-tip="First week in ${TIER_NAME[lvLetter]} ${PATHS[p]} after ranking up">RANKED UP</span>`:"";
       return `<tr class="${me}${e[4]<0?" down":""}"><td>${rk}</td><td class="n"><span data-player="${esc(base)}">${esc(base)}</span>${marks}${up}${SB.aka&&SB.aka[e[0]]?`<span class="aka">as ${esc(SB.aka[e[0]])}</span>`:""}</td><td>${pct}</td><td>${fmtNum(e[2])}</td><td>${fmtNum(e[3])}</td></tr>`;
     }).join("");
-    return `<article class="card" style="--tc:${tc}"><div class="ch"><div class="lv"><span>${esc(lvl)}</span><div class="lvr">${(()=>{const id=SB.links&&SB.links[sbWeek]&&SB.links[sbWeek][p*9+slot];return arrTag(sbWeek,p,slot)+songPill(song,id)})()}${rateBadge(sbWeek,p,slot,diff,ents)}</div></div><div class="song">${songHtml}</div>${extra?`<div class="note">${esc(extra)}</div>`:""}${cont?`<div class="note">⏳ Continues next week · the winner is decided in its final week</div>`:""}${acctCard(sbWeek,p,slot,ents,sbLive)}</div>${ents.length?`<table><thead><tr><th>#</th><th>Player</th><th>%</th><th>Streak</th><th>Score</th></tr></thead><tbody>${rows}</tbody></table>`:`<div class="empty">No entries yet</div>`}</article>`;
+    return `<article class="card" style="--tc:${tc}"><div class="ch"><div class="lv"><span>${esc(lvl)}</span><div class="lvr">${(()=>{const id=SB.links&&SB.links[sbWeek]&&SB.links[sbWeek][p*9+slot];return arrTag(sbWeek,p,slot)+songPill(song,id)})()}${rateBadge(sbWeek,p,slot,diff,ents)}</div></div><div class="song">${songHtml}</div>${extra?`<div class="note">${esc(extra)}</div>`:""}${cont?`<div class="note">⏳ Continues next week · the winner is decided in its final week</div>`:""}${acctCard(sbWeek,p,slot,ents,sbLive)}</div>${ents.length?`<table><thead><tr><th>#</th><th>Player</th><th>%</th><th>Streak</th><th>Score</th></tr></thead><tbody>${rows}</tbody></table>`:`<div class="empty">No entries yet</div>`}${pvStrip(sbWeek,p,slot,song,ents)}</article>`;
   }).join("")||(sbLv[sbPath]?`<div class="empty">No ${LV_NAME[sbLv[sbPath]]} ${PATHS[sbPath]} challenge this week</div>`:"");
   try{localStorage.setItem("rsc-sb",JSON.stringify({w:sbWeek,p:sbPath}))}catch(e){}
 }
+
+// "Played before" strip under a scoreboard card: one pill per earlier week (newest first); a pill opens that week's results
+function pvStrip(w,p,slot,song,ents){const past=pastPlays(w,p,slot,song); if(!past.length)return "";
+  const id=p+"|"+slot, open=sbPv[id], now={}, xk=x=>x.w+"-"+x.c[0]+"-"+x.c[1], dup=w=>past.filter(y=>y.w===w).length>1; ents.forEach(e=>{const n=pvName(e).toLowerCase(); if(!(n in now))now[n]=e[1]});
+  const me=(myPlayer()||"").toLowerCase(), hl=(sbFind||"").toLowerCase();
+  const pill=x=>{const on=open===xk(x); return `<button type="button" class="pvw${on?" on":""}" data-pv="${id}" data-pvw="${xk(x)}" aria-expanded="${on}" title="${on?"Hide":"Show"} Week ${x.w}'s results">${past.length===1?(on?"Hide":"Show"):`Week ${x.w}${dup(x.w)?` ${esc(x.c[2])}`:""}`} <i>${on?"▾":"▸"}</i></button>`};
+  let body="";
+  const x=past.find(x=>xk(x)===open);
+  if(x){const es=x.c[6], arr=arrOf(x.w,x.c[0],x.c[1]);
+    // the top 5, plus anyone on this week's card, you, and the highlighted player
+    const keep=es.map((e,i)=>({e,i,n:pvName(e)})).filter(r=>r.i<5||r.n.toLowerCase() in now||r.n.toLowerCase()===me||(hl&&r.n.toLowerCase()===hl));
+    let last=-1;
+    body=`<div class="pvbody"><div class="pvhd">Week ${x.w} · ${PATHS[x.c[0]]} ${esc(x.c[2])}${arr?` · ${esc(arr)} arrangement`:""} · ${es.length} player${es.length===1?"":"s"}</div><table class="pvt">${keep.map(r=>{const gap=r.i>last+1?`<tr class="pvgap"><td colspan="3">…</td></tr>`:""; last=r.i;
+      const k=r.n.toLowerCase(), n=now[k], d=n!=null&&r.e[1]!=null?+(n-r.e[1]).toFixed(2):null;
+      const cls=(k===me?" mine":"")+(hl&&k===hl?" me":"");
+      return gap+`<tr class="${cls.trim()}${r.e[4]<0?" down":""}"><td>${r.i+1}</td><td class="n"><span data-player="${esc(r.n)}">${esc(r.n)}</span>${n!=null?`<span class="pvnow">now ${n}%${d?` <b class="${d>0?"up":"dn"}">${d>0?"▲":"▼"}${Math.abs(d)}</b>`:""}</span>`:""}</td><td>${r.e[1]==null?"":r.e[1]+"%"}</td></tr>`}).join("")}${es.length>last+1?`<tr class="pvgap"><td colspan="3">…</td></tr>`:""}</table>
+      <button type="button" class="pvopen" data-pvgo="${x.w}" data-pvpath="${x.c[0]}">Open Week ${x.w} ›</button></div>`}
+  return `<div class="pvbar"><span class="pvlab">↺ Played before${past.length===1?` in <b>Week ${past[0].w}</b>`:""}</span>${past.map(pill).join("")}</div>${body}`}
 $("sbweek").innerHTML=SB_WEEKS.map(w=>`<option value="${w}">Week ${w}</option>`).join("");
-$("sbweek").addEventListener("change",e=>{sbWeek=+e.target.value;sbRender()});
+$("sbweek").addEventListener("change",e=>{sbWeek=+e.target.value;sbPv={};sbRender()});
 $("sbprev").addEventListener("click",()=>{const i=SB_WEEKS.indexOf(sbWeek);if(i<SB_WEEKS.length-1){sbWeek=SB_WEEKS[i+1];sbRender()}});
 $("sbnext").addEventListener("click",()=>{const i=SB_WEEKS.indexOf(sbWeek);if(i>0){sbWeek=SB_WEEKS[i-1];sbRender()}});
 // click a path to show it; click the shown path again to cycle its level: All → B → I → A → M → God → All
@@ -2749,6 +2778,8 @@ $("sbseg").addEventListener("click",e=>{const b=e.target.closest("button[data-pa
   if(i===sbPath)sbLv[i]=SB_CYC[(SB_CYC.indexOf(sbLv[i])+1)%SB_CYC.length]; else sbPath=i;
   tip.hidden=true;sbRender();$("sbseg").querySelector(`[data-path="${i}"]`).focus()});
 $("sbfind").addEventListener("change",e=>{sbFind=e.target.value.trim();sbRender()});
+$("sbcards").addEventListener("click",e=>{const b=e.target.closest("[data-pvw]"); if(b){const id=b.dataset.pv, w=b.dataset.pvw; sbPv[id]=sbPv[id]===w?null:w; tip.hidden=true; sbRender(); return}
+  const g=e.target.closest("[data-pvgo]"); if(g){sbWeek=+g.dataset.pvgo; sbPath=+g.dataset.pvpath; sbLv[sbPath]=""; sbPv={}; sbRender(); $("sbcards").scrollIntoView({block:"start"})}});
 // clicking a highlighted player's row anywhere that isn't a link (like their name) clears the highlight
 $("sbcards").addEventListener("click",e=>{const tr=e.target.closest("tr.me"); if(!tr||e.target.closest("[data-player],a,.golink,[data-goband]"))return;
   sbFind=""; tip.hidden=true; sbRender()});
@@ -2782,6 +2813,13 @@ function offPill(){return `<span class="dl offpill" data-tip="Official Rocksmith
 // Ratings follow the arrangement played, so a Lead challenge played on the Rhythm arrangement is rated as the song's Rhythm,
 // and a bonus or alternate arrangement has a rating of its own.
 const ARR_CODES=["L","R","B","BL","BR","BB","AL","AR","AB"];
+// earlier weeks where this challenge's song was played on the same arrangement (any path); a God run counts once, at its last week
+function pastKey(t){return String(t||"").toLowerCase().replace(/\s+/g," ").trim()}
+function pastPlays(w,p,slot,song){const k=pastKey(song), a=arrP(w,p,slot), out=[]; if(!k||k==="n/a")return out;
+  SB_WEEKS.forEach(pw=>{if(pw>=w)return; (SB.weeks[pw]||[]).forEach(d=>{if(d[7]||!d[6].length||pastKey(d[3])!==k||arrP(pw,d[0],d[1])!==a)return; out.push({w:pw,c:d})})});
+  return out}   // newest first
+function pvName(e){return SB.names[e[0]].replace(/[*~]+$/,"")}
+var sbPv={};   // which "Played before" week is open on each card ("p|slot" -> week); all closed to start
 function arrP(w,p,slot){const a=SB.arr&&SB.arr[w]&&SB.arr[w][p*9+slot]; return a||"LRB"[p]}
 function arrName(code){return (code.length>1?(code[0]==="B"?"Bonus ":"Alternate "):"")+PATHS["LRB".indexOf(code.slice(-1))]}
 function arrC(code){return PATH_C["LRB".indexOf(code.slice(-1))]}
@@ -4225,6 +4263,15 @@ function ywList(n){
     ${(()=>{const t=rows.filter(r=>r.top).length; return t?`<p class="dim" style="margin-top:6px">You're the most improved player on <b>${t}</b> challenge${t===1?"":"s"} this week.</p>`:""})()}
     ${best?`<p class="dim" style="margin-top:6px">Biggest jump this week: <b>${PATHS[best.p]} ${esc(best.c[2])}</b>, +${best.d.toFixed(2)}${best.b[4]&&best.f[4]&&best.b[4]<best.f[4]?` and up to #${best.b[4]}`:""}.</p>`:""}</div>`;
 }
+// Your week: this week's challenges you've played before (same song and arrangement), your last score then vs now
+function ywPast(n){const w=TW_MAX, k=n.toLowerCase(), rows=[];
+  (SB.weeks[w]||[]).slice().sort((a,b)=>a[0]-b[0]||a[1]-b[1]).forEach(c=>{const past=pastPlays(w,c[0],c[1],c[3]);
+    const mine=past.map(x=>{const i=x.c[6].findIndex(e=>pvName(e).toLowerCase()===k); return i<0?null:{w:x.w,lv:x.c[2],pct:x.c[6][i][1],pl:i+1}}).filter(Boolean);
+    if(!mine.length)return; const cur=c[6].find(e=>pvName(e).toLowerCase()===k), now=cur?cur[1]:null, last=mine[0];
+    const best=mine.reduce((a,b)=>(b.pct||0)>(a.pct||0)?b:a), d=now!=null&&last.pct!=null?+(now-last.pct).toFixed(2):null;
+    rows.push(`<li style="--pc:${PATH_C[c[0]]}"><span><span class="pt" style="background:var(--pc)"></span> ${esc(c[3])} <small>${PATHS[c[0]]} ${esc(c[2])}</small><br><small>Week ${last.w}${pastKey(last.lv)!==pastKey(c[2])?` (${esc(last.lv)})`:""}: ${last.pct}% · #${last.pl}${mine.length>1?` · played ${mine.length} times, best ${best.pct}% in Week ${best.w}`:""}</small></span>
+      <span class="pvr"><span>${last.pct}% → ${now!=null?`<b>${now}%</b>`:`<small>not yet</small>`}</span>${now!=null?(d?`<span class="${d>0?"up":"dn"}">${d>0?"▲":"▼"} ${Math.abs(d)}</span>`:`<small>same</small>`):""}</span></li>`)});
+  return rows.length?`<div class="acctsec yw ywpv"><h3>Played before <small>your last score then → this week</small></h3><ul class="ywl">${rows.join("")}</ul></div>`:""}
 function acctThisWeek(n,part){ part=part||ACCT.twPart||"me";
   const w=TW_MAX, key=n.toLowerCase(), cards=SB.weeks[w]||[];
   // scoreboard: every challenge this week, with their place and %; ones they haven't played yet are dimmed
@@ -4431,7 +4478,7 @@ function acctDraw(msg,err){
   else if(ACCT.tab==="host")h+=`${hostSection(false).replace('class="acctsec hostsec"','class="acctsec hostsec hosttop"')}${adminRateSection()}${ratingLogSection()}`;
   else if(ACCT.tab==="banner")h+=bnTab(ACCT.claim.player);
   else if(ACCT.tab==="week"){const n=ACCT.claim.player; ACCT.twPart="week";
-    h+=`${ywAlert(n)}<div id="acct-tw">${acctThisWeek(n,"week")}</div>${ywList(n)}`}
+    h+=`${ywAlert(n)}<div id="acct-tw">${acctThisWeek(n,"week")}</div>${ywList(n)}${ywPast(n)}`}
   else if(ACCT.tab==="manage"){
     h+=`<div class="adm acctsec"><h3>Verification animal</h3>${animalNote()||`<p class="dim">You'll get a verification animal once you claim your player profile.</p>`}</div>
       <div class="acctsec"><h3>Log out</h3><p class="dim">Log out of the site on this device.</p><div class="row"><button type="button" class="btn ghost" data-acct="logout">Log out</button></div></div>
