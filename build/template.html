@@ -4097,7 +4097,7 @@ const ZERO_FROM=650;
 function typoScan(){
   if(TYPO_CACHE)return TYPO_CACHE;
   const nm=i=>SB.names[i].replace(/[*~]+$/,""), weeks=Object.keys(SB.weeks).map(Number).sort((a,b)=>a-b), NEW=weeks[weeks.length-1];
-  const out={zero:[],nopct:[],dup:[],order:[],band:[],song:[],player:[],ssl:[]};
+  const out={zero:[],noscore:[],nopct:[],dup:[],order:[],band:[],song:[],player:[],ssl:[]};
   // a 0 score is probably a typo, unless the player puts 0 on most of their entries (some always do)
   const sc={}; weeks.forEach(w=>SB.weeks[w].forEach(c=>c[6].forEach(e=>{const n=nm(e[0]).toLowerCase(), x=sc[n]=sc[n]||[0,0]; x[1]++; if(e[3]===0)x[0]++})));
   const usual=n=>{const x=sc[n.toLowerCase()]; return !(x&&x[0]/x[1]>=.5)};
@@ -4110,6 +4110,8 @@ function typoScan(){
     c[6].forEach(e=>{const n=nm(e[0]), k=n.toLowerCase(), it={...at,n};
       if(e[3]===0&&w>=ZERO_FROM&&usual(n))out.zero.push(it);
       if(e[1]==null)out.nopct.push(it);
+      // a % with two decimals (like 96.66) comes from the game's results screen, which also shows the score
+      if(e[1]!=null&&/\.\d\d$/.test(String(e[1]))&&(e[3]==null||e[3]===""))out.noscore.push({...it,note:`${e[1]}% · no score`});
       if(seen[k])out.dup.push(it); seen[k]=1;
       if(e[1]!=null){if(prev!=null&&e[1]>prev+1e-9)out.order.push({...it,note:`${e[1]}% is listed below ${prev}%`}); prev=e[1]}});
   }));
@@ -4133,6 +4135,7 @@ function typoSection(){
   const row=(x,body)=>`<li class="${isNew(x)?"tynew":""}">${isNew(x)?'<span class="tytag">new</span>':""}${body}</li>`;
   const forms=x=>x.forms.map(f=>`“${esc(f.t)}”${f.n?` <small>${f.n}×, last Week ${f.last}</small>`:""}`).join(" vs ");
   const G=[["zero","Score of 0","Since week 650 (before that, 0 was often used for a blank score)",x=>`${card(x)} · <b>${esc(x.n)}</b> · ${esc(x.song)}`],
+    ["noscore","Missing score","A % with two decimals (like 96.66%) comes from the results screen, which shows the score too, so it was probably left out",x=>`${card(x)} · <b>${esc(x.n)}</b> · ${esc(x.note)} · ${esc(x.song)}`],
     ["nopct","Missing %","An entry with no percentage",x=>`${card(x)} · <b>${esc(x.n)}</b> · ${esc(x.song)}`],
     ["dup","Same player twice on a card","",x=>`${card(x)} · <b>${esc(x.n)}</b> · ${esc(x.song)}`],
     ["order","Rows out of order","A higher % listed below a lower one",x=>`${card(x)} · <b>${esc(x.n)}</b> · ${esc(x.note)}`],
@@ -4148,7 +4151,7 @@ function typoSection(){
 // ---------- Admin: scoreboard fix log (issues from the scoreboard checks that went away, found by each site update) ----------
 var FIXLOG=[]/*FIXLOG*/;
 function fixLogSection(){
-  const kinds={zero:"Score of 0",nopct:"Missing %",dup:"Same player twice",order:"Row out of order",band:"Band name",song:"Song title",player:"Player name",ssl:"Differs from Songs Played"};
+  const kinds={zero:"Score of 0",noscore:"Missing score",nopct:"Missing %",dup:"Same player twice",order:"Row out of order",band:"Band name",song:"Song title",player:"Player name",ssl:"Differs from Songs Played"};
   const rows=FIXLOG.slice().reverse().slice(0,60).map(f=>`<li><small>${new Date(f.d).toLocaleDateString()}</small> · ${kinds[f.k]||f.k} · ${f.w?`<span class="tylink" data-sbw="${f.w}"${f.p!=null?` data-sbp="${f.p}" data-sbn="${esc(f.n||"")}"`:""} title="Open on the Scoreboard">Week ${f.w}${f.p!=null?` · ${PATHS[f.p]} ${esc(f.lv)}`:""}</span> · `:""}${esc(f.t)}</li>`).join("");
   return `<div class="adm acctsec fixlog"><h3>Scoreboard fix log</h3><p class="dim">Scoreboard check issues that were fixed in the sheet, newest first. Each site update compares the checks with the previous update.</p>${rows?`<ul class="ratelog">${rows}</ul>`:`<p class="dim">Nothing fixed since the log started.</p>`}</div>`;
 }
