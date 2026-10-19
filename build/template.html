@@ -2738,7 +2738,7 @@ function sbRender(){
   // (a plain dropdown so it works on iPhone Safari, which doesn't show datalist suggestions)
   {const names=[...new Set(cards.flatMap(c=>c[6].map(e=>SB.names[e[0]].replace(/[*~]+$/,""))))].sort((a,b)=>a.localeCompare(b,undefined,{sensitivity:"base"}));
    const hit=names.find(n=>n.toLowerCase()===findLc);
-   $("sbfind").innerHTML=`<option value="">${names.length?"Highlight a player":"No players here"}</option>`+(sbFind&&!hit?`<option value="${esc(sbFind)}">${esc(sbFind)} (not on these cards)</option>`:"")+names.map(n=>`<option value="${esc(n)}">${esc(n)}</option>`).join("");
+   $("sbfind").innerHTML=`<option value="">${names.length?"Highlight a player":"No players here"}</option>`+(sbFind&&!hit?`<option value="${esc(sbFind)}">${esc(sbFind)} ${(()=>{const k=sbFind.toLowerCase(); return cards.some(c=>pastPlays(sbWeek,c[0],c[1],c[3]).some(x=>x.c[6].some(e=>pvName(e).toLowerCase()===k)))?"(only in past weeks below)":"(not on these cards)"})()}</option>`:"")+names.map(n=>`<option value="${esc(n)}">${esc(n)}</option>`).join("");
    $("sbfind").value=hit||sbFind;}
   {const me=myPlayer(), b=$("sbme"); b.hidden=!me; if(me){const on=sbFind.toLowerCase()===me.toLowerCase(); b.setAttribute("aria-pressed",on); b.textContent=on?`Highlighting ${me} ✓`:`Highlight ${me}`; b.title=on?"Click to clear the highlight":"Highlight your own scores on every card"}}
   $("sbcards").innerHTML=cards.map(([p,slot,lvl,song,diff,extra,ents,cont])=>{
