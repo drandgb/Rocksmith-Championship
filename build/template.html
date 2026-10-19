@@ -2766,7 +2766,7 @@ function pvStrip(w,p,slot,song,ents){const past=pastPlays(w,p,slot,song); if(!pa
       // the top 5, plus anyone on this week's card, you, and the highlighted player
       const keep=es.map((e,i)=>({e,i,n:pvName(e)})).filter(r=>r.i<5||r.n.toLowerCase() in now||r.n.toLowerCase()===me||(hl&&r.n.toLowerCase()===hl));
       let last=-1;
-      body=`<div class="pvbody"><div class="pvhd">Week ${x.w} · ${PATHS[x.c[0]]} ${esc(x.c[2])}${arr?` · ${esc(arr)} arrangement`:""} · ${es.length} player${es.length===1?"":"s"}</div><table class="pvt">${keep.map(r=>{const gap=r.i>last+1?`<tr class="pvgap"><td colspan="3">…</td></tr>`:""; last=r.i;
+      body=`<div class="pvbody"><div class="pvhd">Week ${x.w} · ${/^god/i.test(x.c[2])?"":PATHS[x.c[0]]+" "}${esc(x.c[2])}${arr?` · ${esc(arr)} arrangement`:""} · ${es.length} player${es.length===1?"":"s"}</div><table class="pvt">${keep.map(r=>{const gap=r.i>last+1?`<tr class="pvgap"><td colspan="3">…</td></tr>`:""; last=r.i;
         const k=r.n.toLowerCase(), n=now[k], d=n!=null&&r.e[1]!=null?+(n-r.e[1]).toFixed(2):null;
         const cls=(k===me?" mine":"")+(hl&&k===hl?" me":"");
         return gap+`<tr class="${cls.trim()}${r.e[4]<0?" down":""}" data-tip="${hl&&k===hl?`Click the row to clear the highlight`:`Click the row to highlight ${esc(r.n)} on every card · click the name to open their profile`}"><td>${r.i+1}</td><td class="n"><span data-player="${esc(r.n)}">${esc(r.n)}</span>${n!=null?`<span class="pvnow">now ${n}%${d?` <b class="${d>0?"up":"dn"}">${d>0?"▲":"▼"}${Math.abs(d)}</b>`:""}</span>`:""}</td><td>${r.e[1]==null?"":r.e[1]+"%"}</td></tr>`}).join("")}${es.length>last+1?`<tr class="pvgap"><td colspan="3">…</td></tr>`:""}</table>
