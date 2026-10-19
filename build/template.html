@@ -512,7 +512,7 @@ a.dl svg,.offpill svg{width:11px;height:11px}
 .pvt .pvnow{margin-left:6px;font-size:.74rem;color:var(--muted)}.pvt .pvnow .up{color:var(--s-green)}.pvt .pvnow .dn{color:var(--s-red)}
 .pvt tr.mine td,.pvt tr.me td{background:color-mix(in srgb,var(--accent) 16%,transparent);font-weight:700}.pvt tr.down td{opacity:.6}.pvt tr.pvgap td{color:var(--muted);text-align:center;padding:0}
 .pvopen{margin-top:6px;font:inherit;font-size:.8rem;font-weight:700;color:var(--accent);background:none;border:0;padding:2px 0;cursor:pointer}
-.pvrk{width:auto;padding:3px 6px;vertical-align:1px}.pvrk b{font-size:13px}.pvwhen{line-height:1.9}
+.pvrk{width:auto;padding:3px 6px;vertical-align:1px;cursor:help}.pvrk b{font-size:13px}.pvwhen{line-height:1.9}
 .ywpv li{display:grid;grid-template-columns:1fr auto;gap:2px 12px;align-items:center}.ywpv .pvr{white-space:nowrap;text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:2px}.ywpv .pvr .up{color:var(--s-green);font-weight:800}.ywpv .pvr .dn{color:var(--s-red);font-weight:800}.ywpv small{color:var(--muted)}
 .ywl{list-style:none;margin:0;padding:0}.ywl li{padding:8px 0;border-bottom:1px solid var(--line)}
 .ywc{display:flex;align-items:baseline;gap:6px;flex-wrap:wrap}.ywc .song{color:var(--muted);font-size:.8rem}
@@ -4278,7 +4278,7 @@ function ywPast(n){const w=TW_MAX, k=n.toLowerCase(), rows=[];
     if(!mine.length)return; const cur=c[6].find(e=>pvName(e).toLowerCase()===k), now=cur?cur[1]:null, last=mine[0];
     const best=mine.reduce((a,b)=>(b.pct||0)>(a.pct||0)?b:a), d=now!=null&&last.pct!=null?+(now-last.pct).toFixed(2):null;
     rows.push(`<li style="--pc:${PATH_C[c[0]]}"><span><span class="pt" style="background:var(--pc)"></span> ${esc(c[3])} <small>${PATHS[c[0]]} ${esc(c[2])}</small><br><small class="pvwhen">Week ${last.w}${pastKey(last.lv)!==pastKey(c[2])?` (${esc(last.lv)})`:""}: ${(()=>{const nowC=String(((byName[n]||[])[8]||[])[last.p]||"").toUpperCase(), changed=last.cl&&nowC&&nowC!==last.cl;
-        return rkBox(last.p,last.cl,`Your ${PATHS[last.p]} class in Week ${last.w}`)+(changed?` → ${rkBox(last.p,nowC,`Your ${PATHS[last.p]} class now`)}`:"")})()} ${last.pct}% · #${last.pl}${mine.length>1?` · played ${mine.length} times, best ${best.pct}% in Week ${best.w}`:""}</small></span>
+        return rkBox(last.p,last.cl,`Your rank at the time: ${TIER_NAME[last.cl]||last.cl} ${PATHS[last.p]} in Week ${last.w}`)+(changed?` → ${rkBox(last.p,nowC,`Your rank now: ${TIER_NAME[nowC]||nowC} ${PATHS[last.p]}`)}`:"")})()} ${last.pct}% · #${last.pl}${mine.length>1?` · played ${mine.length} times, best ${best.pct}% in Week ${best.w}`:""}</small></span>
       <span class="pvr"><span>${last.pct}% → ${now!=null?`<b>${now}%</b>`:`<small>not yet</small>`}</span>${now!=null?(d?`<span class="${d>0?"up":"dn"}">${d>0?"▲":"▼"} ${Math.abs(d)}</span>`:`<small>same</small>`):""}</span></li>`)});
   return rows.length?`<div class="acctsec yw ywpv"><h3>Played before <small>your last score then → this week</small></h3><ul class="ywl">${rows.join("")}</ul></div>`:""}
 function acctThisWeek(n,part){ part=part||ACCT.twPart||"me";
