@@ -379,6 +379,7 @@ button.clear:hover{border-color:var(--accent)}
 .nwnote h2{margin:0 0 3px;font:800 .95rem var(--f-display);letter-spacing:.08em;text-transform:uppercase}
 .nwnote .nwbody{flex:1;min-width:0}
 .nwnote .nwmeds{display:flex;flex-wrap:wrap;gap:12px 16px;align-items:center;margin-top:9px}
+.nwnote .nwmeds>.medal-m{margin:0!important}.nwnote .nwmeds>.medal-m.diamond:not(.classgem){margin:0 -2px 0 -4px!important}
 .nwnote .nwbtns{display:flex;flex-direction:column;gap:8px;align-items:stretch;flex:none;margin-right:14px}
 .nwnote .nwx{position:absolute;top:6px;right:8px;background:none;border:0;color:var(--muted);font-size:16px;cursor:pointer;padding:2px 4px}
 .nwnote .nwx:hover{color:var(--fg)}
@@ -3588,7 +3589,9 @@ function renderDownloads(){
   if(!cards.length){el.hidden=true;return}
   const T=myTiers(), mine=c=>!!T&&cardLv(c[2])===T[c[0]], L=(SB.links&&SB.links[w])||{};
   const m=new Map(); cards.forEach(c=>{const k=c[3].toLowerCase().replace(/\s+/g," ").trim(); if(!m.has(k))m.set(k,{song:c[3],id:null,ch:[]}); const s=m.get(k); s.ch.push(c); if(!s.id&&L[c[0]*9+c[1]])s.id=L[c[0]*9+c[1]]});
-  const list=[...m.values()].map(s=>({...s,my:s.ch.some(mine),o:Math.min(...s.ch.map(c=>c[1]*3+c[0]))})).sort((a,b)=>(b.my-a.my)||a.o-b.o);
+  // order: yours first, then by the song's classes lowest first (B, I, A, M, God), compared one by one, so AA comes before AM
+  const lvI=c=>{const i="BIAMG".indexOf(cardLv(c[2])||"G");return i<0?4:i}, lvCmp=(x,y)=>{for(let i=0;i<Math.min(x.length,y.length);i++)if(x[i]!==y[i])return x[i]-y[i];return x.length-y.length};
+  const list=[...m.values()].map(s=>({...s,my:s.ch.some(mine),lv:s.ch.map(lvI).sort((a,b)=>a-b),o:Math.min(...s.ch.map(c=>c[1]*3+c[0]))})).sort((a,b)=>(b.my-a.my)||lvCmp(a.lv,b.lv)||a.o-b.o);
   const box=(p,cs)=>{if(!cs.length)return `<span class="dlbx">${"LRB"[p]}<b style="color:#8b93a7">–</b></span>`;
     const me=cs.find(mine), col=c=>{const lv=cardLv(c[2]); return lv==="G"?"var(--s-red)":TIER_C[lv]||"var(--muted)"};
     const tip=cs.map(c=>`${PATHS[p]} ${c[2]}`).join(", ");
