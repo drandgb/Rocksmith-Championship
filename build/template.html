@@ -511,7 +511,7 @@ a.dl svg,.offpill svg{width:11px;height:11px}
 .pvhd{font-size:.74rem;color:var(--muted);margin:0 0 4px}
 .pvt{width:100%;border-collapse:collapse;font-size:.82rem}.pvt td{padding:4px 4px;border-top:1px solid var(--line)}.pvt td:first-child{width:24px;color:var(--muted)}.pvt td:last-child{text-align:right;font-family:var(--f-mono);white-space:nowrap}
 .pvt .pvnow{margin-left:6px;font-size:.74rem;color:var(--muted)}.pvt .pvnow .up{color:var(--s-green)}.pvt .pvnow .dn{color:var(--s-red)}
-.pvt tr.mine td,.pvt tr.me td{background:color-mix(in srgb,var(--accent) 16%,transparent);font-weight:700}.pvt tr.down td{opacity:.6}.pvt tr.pvgap td{color:var(--muted);text-align:center;padding:0}
+#sbcards tr:has([data-player]){cursor:pointer}.pvt tr.mine td,.pvt tr.me td{background:color-mix(in srgb,var(--accent) 16%,transparent);font-weight:700}.pvt tr.down td{opacity:.6}.pvt tr.pvgap td{color:var(--muted);text-align:center;padding:0}
 .pvopen{margin-top:6px;font:inherit;font-size:.8rem;font-weight:700;color:var(--accent);background:none;border:0;padding:2px 0;cursor:pointer}
 .pvrk{width:auto;padding:3px 6px;vertical-align:1px;cursor:help}.pvrk b{font-size:13px}.pvwhen{line-height:1.9}
 .ywpv li{display:grid;grid-template-columns:1fr auto;gap:2px 12px;align-items:center}.ywpv .pvr{white-space:nowrap;text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:2px}.ywpv .pvr .up{color:var(--s-green);font-weight:800}.ywpv .pvr .dn{color:var(--s-red);font-weight:800}.ywpv small{color:var(--muted)}
@@ -2783,9 +2783,10 @@ $("sbseg").addEventListener("click",e=>{const b=e.target.closest("button[data-pa
 $("sbfind").addEventListener("change",e=>{sbFind=e.target.value.trim();sbRender()});
 $("sbcards").addEventListener("click",e=>{const b=e.target.closest("[data-pvw]"); if(b){const k=b.dataset.pvw; if(!sbPv)sbPv={}; sbPv[k]=!sbPv[k]; tip.hidden=true; sbRender(); return}
   const g=e.target.closest("[data-pvgo]"); if(g){sbWeek=+g.dataset.pvgo; sbPath=+g.dataset.pvpath; sbLv[sbPath]=""; sbPv={}; sbRender(); $("sbcards").scrollIntoView({block:"start"})}});
-// clicking a highlighted player's row anywhere that isn't a link (like their name) clears the highlight
-$("sbcards").addEventListener("click",e=>{const tr=e.target.closest("tr.me"); if(!tr||e.target.closest("[data-player],a,.golink,[data-goband]"))return;
-  sbFind=""; tip.hidden=true; sbRender()});
+// clicking a row anywhere that isn't a link (like the name, which opens the profile) highlights that player; clicking their row again clears it
+$("sbcards").addEventListener("click",e=>{const tr=e.target.closest("tr"); if(!tr||e.target.closest("[data-player],a,button,.golink,[data-goband]"))return;
+  const n=tr.querySelector("[data-player]"); if(!n)return;   // clicking a row (not the name): highlight that player, or clear it if it's already them
+  sbFind=sbFind.toLowerCase()===n.dataset.player.toLowerCase()?"":n.dataset.player; tip.hidden=true; sbRender()});
 $("view-scores").addEventListener("click",e=>{
   const el=e.target.closest("[data-player]"); if(!el)return;
   const n=el.dataset.player; if(!byName[n])return;
