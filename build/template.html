@@ -1995,8 +1995,8 @@ function medalsFor(p,bitsOv){
      iRow+=(`<span class="medal-m wm" style="--ec:${col};cursor:pointer" data-all="${ws.join(",")}" data-hl="${ws.join(",")}" data-tip="${lab} · weeks with at least ${what}, any level · ${ws.length} week${ws.length===1?"":"s"} (scoreboards since Week ${SB_W[0]}) · click to highlight">${clefSvg(k)}<b>${ws.length}</b></span>`)});}
   let cRow="";
   {const cw=completionistWeeks(n,doneM);
-   if(cw.length)cRow=(`<span class="medal-m wm" style="--ec:#f5c84a;cursor:pointer" data-all="${cw.join(",")}" data-hl="${cw.join(",")}" data-tip="Completionist · posted a score on every challenge of the week, every song on every path (a multi-week God challenge already played earlier in its run counts) · ${cw.length} week${cw.length===1?"":"s"} · click to highlight">${completionistSvg()}<b>${cw.length}</b></span>`);
-   // Lead, Rhythm and Bass completionist: every challenge on that one path (a full Completionist week counts for all three)
+   if(cw.length)cRow=(`<span class="medal-m wm" style="--ec:#f5c84a;cursor:pointer" data-all="${cw.join(",")}" data-hl="${cw.join(",")}" data-tip="Catch ‘em all · posted a score on every challenge of the week, every song on every path (a multi-week God challenge already played earlier in its run counts) · ${cw.length} week${cw.length===1?"":"s"} · click to highlight">${completionistSvg()}<b>${cw.length}</b></span>`);
+   // Lead, Rhythm and Bass completionist: every challenge on that one path (a full Catch ‘em all week counts for all three)
    [0,1,2].forEach(pp=>{const pw=completionistWeeks(n,doneM,pp); if(!pw.length)return; const col=COMP_PATH[pp][1];
      cRow+=`<span class="medal-m wm" style="--ec:${col};cursor:pointer" data-all="${pw.join(",")}" data-hl="${pw.join(",")}" data-tip="${PATHS[pp]} completionist · posted a score on every ${PATHS[pp]} challenge of the week, every class (a multi-week God challenge already played earlier in its run counts) · ${pw.length} week${pw.length===1?"":"s"} · click to highlight">${completionistSvg(pp)}<b>${pw.length}</b></span>`});}
   // Perfectionist (100% scores): every 100% score on a finished week's challenge, whatever the place or class
@@ -3246,11 +3246,11 @@ const ML_DESC={"Kintsugi gem":"played every week from joining until the first mi
   hosted:"total weeks hosted",hoststreak:"most weeks hosted in a row"};
 // medals counted from the scoreboards, which only go back to Week 440: say so wherever they show
 const mlSbNote=()=>`Counted from scoreboards since Week ${SB_W[0]} (earlier weeks have no scoreboard on the site)`;
-const mlFromSb=(kind,key)=>kind==="win"||/^(Played guitar|Played bass|Completionist|Lead completionist|Rhythm completionist|Bass completionist|Perfect God medal)$| perfectionist$/.test(key);
+const mlFromSb=(kind,key)=>kind==="win"||/^(Played guitar|Played bass|Catch ‘em all|Lead completionist|Rhythm completionist|Bass completionist|Perfect God medal)$| perfectionist$/.test(key);
 function mlRender(kind){const acc=ML[kind].acc, link=kind==="win"?"data-gowin":kind==="host"?"data-gohost":"data-goplayer";
   // fixed order, like the medal rows: God diamonds, gold/silver/bronze (Lead, Rhythm, Bass), then the rest
   const ORDER=["Gold God diamond","Silver God diamond","Bronze God diamond","Gold medal","Silver medal","Bronze medal","Triple crown","Close win medal","Rivalry win","Uncrowned","Uncrowned silver","Uncrowned bronze","Most wins in one week","Longest win streak",
-    "Years in the championship","Longest play streak","Perfect gem","Kintsugi gem","Played guitar","Played bass","Completionist","Lead completionist","Rhythm completionist","Bass completionist","Beginner perfectionist","Intermediate perfectionist","Advanced perfectionist","Masterclass perfectionist","Perfect God medal","God tier perfectionist",
+    "Years in the championship","Longest play streak","Perfect gem","Kintsugi gem","Played guitar","Played bass","Catch ‘em all","Lead completionist","Rhythm completionist","Bass completionist","Beginner perfectionist","Intermediate perfectionist","Advanced perfectionist","Masterclass perfectionist","Perfect God medal","God tier perfectionist",
     "Most weeks hosted","Longest hosting streak"];
   const ordOf=k=>{const [base,path]=k.label.split(" · "); const i=ORDER.indexOf(base); return (i<0?999:i)*4+(path?PATHS.indexOf(path)+1:0)};
   const cards=Object.entries(acc).filter(([,k])=>k.rows.length).sort(([,a],[,b])=>ordOf(a)-ordOf(b)||a.pos-b.pos).map(([key,k])=>{
