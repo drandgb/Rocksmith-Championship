@@ -4356,8 +4356,8 @@ function acctThisWeek(n,part){ part=part||ACCT.twPart||"me";
   const lw=DATA_WEEK, haul=lw>=TW_MIN?twMedals(n,lw,false):[];
   const HAUL=`<div class="acctsec"><h3>Last week's haul <small>Week ${lw}</small></h3>${haul.length?(()=>{const g=haul.some(h=>/diamond d0/.test(h)), inner=`<div class="medals haul">${haul.join("")}</div><p class="dim" style="margin-top:6px">${twPl(medalTotal(haul),"new medal")}</p>`;
       return g?`<div class="haulbox celestial" data-tip="Gold God winner last week">${celCorners()}${inner}</div>`:inner})():`<p class="dim">No new medals last week.</p>`}</div>`;
-  if(part==="week")return `    <div class="acctsec"><h3>This week's scoreboard <small>Week ${w}</small></h3>${sb.length?`<ul class="alist">${sb.join("")}</ul>`:`<p class="dim">No scoreboard for this week yet.</p>`}</div>
-    <div class="acctsec acctriv"><h3>This week's rivals</h3>${riv||`<p class="dim">No rivals this week yet.</p>`}</div>`;
+  if(part==="week")return `    <div class="acctsec acctriv"><h3>This week's rivals</h3>${riv||`<p class="dim">No rivals this week yet.</p>`}</div>
+    <div class="acctsec"><h3>This week's scoreboard <small>Week ${w}</small></h3>${sb.length?`<ul class="alist">${sb.join("")}</ul>`:`<p class="dim">No scoreboard for this week yet.</p>`}</div>`;   // the scoreboard comes last in Your week
   return HAUL+`
     <div class="acctsec"><h3>${RKc===RK_SHEET?"Rodman's Rankings":"Rankings"} ${RKc.weeks?`<small>Weeks ${esc(RKc.weeks)}</small>`:""}</h3>${RKc===RK_SHEET?"":`<p class="dim" style="margin:-4px 0 8px">Worked out by the site from the latest 10 weeks · may differ from Rodman's official rankings (Weeks ${esc(RK_SHEET.weeks)})</p>`}${rk.length?`<ul class="alist">${rk.join("")}</ul>`:`<p class="dim">Not ranked right now.</p>`}<div class="row"><button type="button" class="btn ghost" data-goview="rankings">Open Rodman's Rankings ›</button></div></div>`;
 }
@@ -4535,7 +4535,7 @@ function acctDraw(msg,err){
   else if(ACCT.tab==="host")h+=`${hostSection(false).replace('class="acctsec hostsec"','class="acctsec hostsec hosttop"')}${adminRateSection()}${ratingLogSection()}`;
   else if(ACCT.tab==="banner")h+=bnTab(ACCT.claim.player);
   else if(ACCT.tab==="week"){const n=ACCT.claim.player; ACCT.twPart="week";
-    h+=`${ywAlert(n)}${ywPast(n)}<div id="acct-tw">${acctThisWeek(n,"week")}</div>${ywList(n)}`}
+    h+=`${ywAlert(n)}${ywPast(n)}${ywList(n)}<div id="acct-tw">${acctThisWeek(n,"week")}</div>`}
   else if(ACCT.tab==="manage"){
     h+=`<div class="adm acctsec"><h3>Verification animal</h3>${animalNote()||`<p class="dim">You'll get a verification animal once you claim your player profile.</p>`}</div>
       <div class="acctsec"><h3>Log out</h3><p class="dim">Log out of the site on this device.</p><div class="row"><button type="button" class="btn ghost" data-acct="logout">Log out</button></div></div>
