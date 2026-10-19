@@ -2754,7 +2754,7 @@ function sbRender(){
 }
 
 // "Played before" strip under a scoreboard card: one pill per earlier week (newest first); a pill opens that week's results
-function pvStrip(w,p,slot,song,ents){const past=pastPlays(w,p,slot,song); if(!past.length)return "";
+function pvStrip(w,p,slot,song,ents){const past=pastPlays(w,p,slot,song); if(!past.length)return ""; if(!sbPv)sbPv={};  // (the first render runs before sbPv is set)
   const id=p+"|"+slot, now={}, xk=x=>id+"|"+x.w+"-"+x.c[0]+"-"+x.c[1], dup=w=>past.filter(y=>y.w===w).length>1; ents.forEach(e=>{const n=pvName(e).toLowerCase(); if(!(n in now))now[n]=e[1]});
   const me=(myPlayer()||"").toLowerCase(), hl=(sbFind||"").toLowerCase();
   // one box per earlier week (newest first), each opened on its own
@@ -2779,7 +2779,7 @@ $("sbseg").addEventListener("click",e=>{const b=e.target.closest("button[data-pa
   if(i===sbPath)sbLv[i]=SB_CYC[(SB_CYC.indexOf(sbLv[i])+1)%SB_CYC.length]; else sbPath=i;
   tip.hidden=true;sbRender();$("sbseg").querySelector(`[data-path="${i}"]`).focus()});
 $("sbfind").addEventListener("change",e=>{sbFind=e.target.value.trim();sbRender()});
-$("sbcards").addEventListener("click",e=>{const b=e.target.closest("[data-pvw]"); if(b){const k=b.dataset.pvw; sbPv[k]=!sbPv[k]; tip.hidden=true; sbRender(); return}
+$("sbcards").addEventListener("click",e=>{const b=e.target.closest("[data-pvw]"); if(b){const k=b.dataset.pvw; if(!sbPv)sbPv={}; sbPv[k]=!sbPv[k]; tip.hidden=true; sbRender(); return}
   const g=e.target.closest("[data-pvgo]"); if(g){sbWeek=+g.dataset.pvgo; sbPath=+g.dataset.pvpath; sbLv[sbPath]=""; sbPv={}; sbRender(); $("sbcards").scrollIntoView({block:"start"})}});
 // clicking a highlighted player's row anywhere that isn't a link (like their name) clears the highlight
 $("sbcards").addEventListener("click",e=>{const tr=e.target.closest("tr.me"); if(!tr||e.target.closest("[data-player],a,.golink,[data-goband]"))return;
