@@ -507,7 +507,7 @@ a.dl svg,.offpill svg{width:11px;height:11px}
 .ywlink{color:var(--accent);cursor:pointer;text-decoration:underline;text-underline-offset:2px}
 .ywalert ul{margin:0;padding:0}.ywalert li{list-style:none;padding:4px 0;font-size:.86rem}.ywalert .dn{color:var(--s-red);font-weight:800}.ywalert small{color:var(--muted)}
 .pvbar{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:8px 10px 10px;padding:7px 10px;border-radius:8px;background:color-mix(in srgb,var(--tc) 8%,transparent);border:1px dashed color-mix(in srgb,var(--tc) 40%,transparent);font-size:.8rem;color:var(--muted)}
-.pvwrap{margin-top:auto}.pvbar .pvlab{margin-right:auto}.pvbar+.pvbar,.pvbody+.pvbar{margin-top:-4px}.pvbar .pvlab b{color:var(--fg)}
+.pvwrap{margin-top:auto}.pvbar .pvlab{margin-right:auto}a.pvw{text-decoration:none}.pvold .pvsub{display:block;font-size:.72rem;color:var(--muted);margin-top:2px}.pvold .pvlab{flex:1 1 0;min-width:0}.pvbar+.pvbar,.pvbody+.pvbar{margin-top:-4px}.pvbar .pvlab b{color:var(--fg)}
 .pvw{font:inherit;font-weight:700;color:var(--tc);background:none;border:1px solid color-mix(in srgb,var(--tc) 55%,transparent);border-radius:999px;padding:2px 10px;cursor:pointer}
 .pvw i{font-style:normal;font-size:.7em}.pvw.on{background:color-mix(in srgb,var(--tc) 20%,transparent);color:var(--fg)}
 .pvbody{margin:-4px 10px 10px;padding:6px 8px 8px;border:1px solid var(--line);border-radius:8px;background:var(--panel2)}
@@ -1527,7 +1527,7 @@ footer{color:var(--dim);font-size:.78rem}
       </div>
       <div class="sbtools">
         <div class="tiers rktiers sbtiers" id="sbseg" aria-label="Path and level"></div>
-        <button type="button" class="sbme" id="sbme" hidden aria-pressed="false" title="Highlight your own scores on every card">Highlight me</button>
+        <button type="button" class="sbme" id="sbme" hidden aria-pressed="false" title="Highlight your own scores on every card">Highlight</button>
         <select id="sbfind" aria-label="Highlight a player"></select>
       </div>
       <div class="sbstats" id="sbstats"></div>
@@ -2187,6 +2187,7 @@ function showView(v){
 document.querySelector(".tabs").addEventListener("click",e=>{const b=e.target.closest("button[data-view]");if(b)showView(b.dataset.view)});
 {const H={"#thisweek":"thisweek","#rankings":"rankings","#hosts":"hosting","#players":"players","#winners":"winners","#scoreboard":"scores","#songs":"songs"};let v=H[location.hash.split("/")[0]]||null; showView(["thisweek","rankings","hosting","scores","winners","songs","players"].includes(v)?v:"thisweek");}
 const SB=__SCORES__;
+const SONGS_OLD=__SONGS_OLD__; // weeks before the scoreboards: [week, path, tier, bonus, song, difficulty]
 // ---------- win rates & rank-ups (from scoreboards, weeks 440+) ----------
 const WR=__WINS__;
 const TIER_NAME={B:"Beginner",I:"Intermediate",A:"Advanced",M:"Masterclass"};
@@ -2738,7 +2739,7 @@ function sbRender(){
    const hit=names.find(n=>n.toLowerCase()===findLc);
    $("sbfind").innerHTML=`<option value="">${names.length?"Highlight a player":"No players here"}</option>`+(sbFind&&!hit?`<option value="${esc(sbFind)}">${esc(sbFind)} (not on these cards)</option>`:"")+names.map(n=>`<option value="${esc(n)}">${esc(n)}</option>`).join("");
    $("sbfind").value=hit||sbFind;}
-  {const me=myPlayer(), b=$("sbme"); b.hidden=!me; if(me){const on=sbFind.toLowerCase()===me.toLowerCase(); b.setAttribute("aria-pressed",on); b.textContent=on?"Highlighting me ✓":"Highlight me"; b.title=on?"Click to clear the highlight":"Highlight your own scores on every card"}}
+  {const me=myPlayer(), b=$("sbme"); b.hidden=!me; if(me){const on=sbFind.toLowerCase()===me.toLowerCase(); b.setAttribute("aria-pressed",on); b.textContent=on?`Highlighting ${me} ✓`:`Highlight ${me}`; b.title=on?"Click to clear the highlight":"Highlight your own scores on every card"}}
   $("sbcards").innerHTML=cards.map(([p,slot,lvl,song,diff,extra,ents,cont])=>{
     const tc=tierColor(lvl), dash=song.indexOf(" - ");
     const songHtml=song&&song!=="n/a"?(dash>0?`<b class="golink" data-goband="${esc(song.slice(0,dash).trim())}" data-gosong="${esc(song.slice(dash+3).trim())}" title="Show this song in Band lookup">${esc(song.slice(dash+3))}</b><small class="golink" data-goband="${esc(song.slice(0,dash).trim())}" title="Show this band in Band lookup">${esc(song.slice(0,dash))}</small>`:`<b>${esc(song)}</b>`):`<small>No song this week</small>`;
@@ -2761,7 +2762,13 @@ function sbRender(){
 }
 
 // "Played before" strip under a scoreboard card: one pill per earlier week (newest first); a pill opens that week's results
-function pvStrip(w,p,slot,song,ents){const past=pastPlays(w,p,slot,song); if(!past.length)return ""; if(!sbPv)sbPv={};  // (the first render runs before sbPv is set)
+var SHEET_URL="https://docs.google.com/spreadsheets/d/1WN-m8wF0lVkQ4cLWHBa009SkqDoPk0xN-C4-llcrXXs/edit";
+// plays before the site's scoreboards start (Week 440): only the week and class are known (Songs Played)
+function pastOld(w,p,slot,song){const pi=p, k=pastKey(song), out=[];   // same path (the arrangement played back then isn't recorded)
+  if(!k||k==="n/a")return out;
+  SONGS_OLD.filter(o=>o[1]===pi&&o[0]<w&&pastKey(o[4])===k).sort((a,b)=>b[0]-a[0]).forEach(o=>{if(o[2]==="G"&&out.some(x=>x.w===o[0]+1&&x.t==="G"))return; out.push({w:o[0],t:o[2],b:o[3]})});   // a God run counts once
+  return out}
+function pvStrip(w,p,slot,song,ents){const past=pastPlays(w,p,slot,song), old=pastOld(w,p,slot,song); if(!past.length&&!old.length)return ""; if(!sbPv)sbPv={};  // (the first render runs before sbPv is set)
   const id=p+"|"+slot, now={}, xk=x=>id+"|"+x.w+"-"+x.c[0]+"-"+x.c[1], dup=w=>past.filter(y=>y.w===w).length>1; ents.forEach(e=>{const n=pvName(e).toLowerCase(); if(!(n in now))now[n]=e[1]});
   const me=(myPlayer()||"").toLowerCase(), hl=(sbFind||"").toLowerCase();
   // one box per earlier week (newest first), each opened on its own
@@ -2776,7 +2783,10 @@ function pvStrip(w,p,slot,song,ents){const past=pastPlays(w,p,slot,song); if(!pa
         const cls=(k===me?" mine":"")+(hl&&k===hl?" me":"");
         return gap+`<tr class="${cls.trim()}${r.e[4]<0?" down":""}" data-tip="${hl&&k===hl?`Click the row to clear the highlight`:`Click the row to highlight ${esc(r.n)} on every card · click the name to open their profile`}"><td>${r.i+1}</td><td class="n"><span data-player="${esc(r.n)}">${esc(r.n)}</span>${n!=null?`<span class="pvnow">now ${n}%${d?` <b class="${d>0?"up":"dn"}">${d>0?"▲":"▼"}${Math.abs(d)}</b>`:""}</span>`:""}</td><td>${r.e[1]==null?"":r.e[1]+"%"}</td></tr>`}).join("")}${es.length>last+1?`<tr class="pvgap"><td colspan="3">…</td></tr>`:""}</table>
         <button type="button" class="pvopen" data-pvgo="${x.w}" data-pvpath="${x.c[0]}">Open Week ${x.w} ›</button></div>`}
-    return `<div class="pvbar"><span class="pvlab">↺ Played before in <b>Week ${x.w}</b>${dup(x.w)?` <small>(${esc(x.c[2])})</small>`:""}</span><button type="button" class="pvw${on?" on":""}" data-pvw="${xk(x)}" aria-expanded="${on}" title="${on?"Hide":"Show"} Week ${x.w}'s results">${on?"Hide":"Show"} <i>${on?"▾":"▸"}</i></button></div>${body}`}).join("")+"</div>"}
+    return `<div class="pvbar"><span class="pvlab">↺ Played before in <b>Week ${x.w}</b>${dup(x.w)?` <small>(${esc(x.c[2])})</small>`:""}</span><button type="button" class="pvw${on?" on":""}" data-pvw="${xk(x)}" aria-expanded="${on}" title="${on?"Hide":"Show"} Week ${x.w}'s results">${on?"Hide":"Show"} <i>${on?"▾":"▸"}</i></button></div>${body}`}).join("")+(old.length?(()=>{const lab=o=>`${TIER_NAME[o.t]||(o.t==="G"?"God":o.t)}${o.b?" Bonus":""}`, ws=old.map(o=>o.w);
+    const list=ws.length===1?`Week ${ws[0]}`:`Weeks ${ws.slice(0,-1).join(", ")} and ${ws[ws.length-1]}`;
+    const tipT=`Before Week 440 the site has no scores, so open the scoreboard sheet for these: ${old.map(o=>`Week ${o.w} (${lab(o)})`).join(", ")}. The arrangement played back then isn't recorded.`;
+    return `<div class="pvbar pvold" data-tip="${esc(tipT)}"><span class="pvlab">↺ Played before in <b>${list}</b><small class="pvsub">Older than Week 440: scores are in the scoreboard sheet</small></span><a class="pvw" href="${SHEET_URL}" target="_blank" rel="noopener">Sheet ↗</a></div>`})():"")+"</div>"}
 $("sbweek").innerHTML=SB_WEEKS.map(w=>`<option value="${w}">Week ${w}</option>`).join("");
 $("sbweek").addEventListener("change",e=>{sbWeek=+e.target.value;sbPv={};sbRender()});
 $("sbprev").addEventListener("click",()=>{const i=SB_WEEKS.indexOf(sbWeek);if(i<SB_WEEKS.length-1){sbWeek=SB_WEEKS[i+1];sbRender()}});
@@ -2804,7 +2814,6 @@ try{const st=JSON.parse(localStorage.getItem("rsc-sb")||"null");if(st){if(SB.wee
 sbRender();
 
 // ---------- songs ----------
-const SONGS_OLD=__SONGS_OLD__; // weeks before the scoreboards: [week, path, tier, bonus, song, difficulty]
 const TIER_ORDER=["B","I","A","M","G"], TIER_LABEL={B:"Beginner",I:"Intermediate",A:"Advanced",M:"Masterclass",G:"God of…"};
 const TIER_COL={B:"var(--s-yellow)",I:"var(--s-green)",A:"var(--s-blue)",M:"var(--s-purple)",G:"var(--s-red)"};
 const tierOf=l=>/^god/i.test(l)?"G":/master/i.test(l)?"M":/^adv/i.test(l)?"A":/^int/i.test(l)?"I":/begin/i.test(l)?"B":null;
