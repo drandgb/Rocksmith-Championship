@@ -2785,8 +2785,8 @@ function pvStrip(w,p,slot,song,ents){const past=pastPlays(w,p,slot,song), old=pa
         <button type="button" class="pvopen" data-pvgo="${x.w}" data-pvpath="${x.c[0]}">Open Week ${x.w} ›</button></div>`}
     return `<div class="pvbar"><span class="pvlab">↺ Played before in <b>Week ${x.w}</b>${dup(x.w)?` <small>(${esc(x.c[2])})</small>`:""}</span><button type="button" class="pvw${on?" on":""}" data-pvw="${xk(x)}" aria-expanded="${on}" title="${on?"Hide":"Show"} Week ${x.w}'s results">${on?"Hide":"Show"} <i>${on?"▾":"▸"}</i></button></div>${body}`}).join("")+(old.length?(()=>{const lab=o=>`${TIER_NAME[o.t]||(o.t==="G"?"God":o.t)}${o.b?" Bonus":""}`, ws=old.map(o=>o.w);
     const list=ws.length===1?`Week ${ws[0]}`:`Weeks ${ws.slice(0,-1).join(", ")} and ${ws[ws.length-1]}`;
-    const tipT=`Before Week 440 the site has no scores, so open the scoreboard sheet for these: ${old.map(o=>`Week ${o.w} (${lab(o)})`).join(", ")}. The arrangement played back then isn't recorded.`;
-    return `<div class="pvbar pvold" data-tip="${esc(tipT)}"><span class="pvlab">↺ Played before in <b>${list}</b><small class="pvsub">Older than Week 440: scores are in the scoreboard sheet</small></span><a class="pvw" href="${SHEET_URL}" target="_blank" rel="noopener">Sheet ↗</a></div>`})():"")+"</div>"}
+    const tipT=`Older than Week 440: the site has no scores for these, so open the scoreboard sheet to see them · ${old.map(o=>`Week ${o.w} (${lab(o)})`).join(", ")}. The arrangement played back then isn't recorded.`;
+    return `<div class="pvbar pvold" data-tip="${esc(tipT)}"><span class="pvlab">↺ Played before in <b>${list}</b></span><a class="pvw" href="${SHEET_URL}" target="_blank" rel="noopener">Sheet ↗</a></div>`})():"")+"</div>"}
 $("sbweek").innerHTML=SB_WEEKS.map(w=>`<option value="${w}">Week ${w}</option>`).join("");
 $("sbweek").addEventListener("change",e=>{sbWeek=+e.target.value;sbPv={};sbRender()});
 $("sbprev").addEventListener("click",()=>{const i=SB_WEEKS.indexOf(sbWeek);if(i<SB_WEEKS.length-1){sbWeek=SB_WEEKS[i+1];sbRender()}});
