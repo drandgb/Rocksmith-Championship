@@ -2019,6 +2019,8 @@ function medalsFor(p,bitsOv){
    // Lead, Rhythm and Bass completionist: every challenge on that one path (a full Catch ‘em all week counts for all three)
    [0,1,2].forEach(pp=>{const pw=completionistWeeks(n,doneM,pp); if(!pw.length)return; const col=COMP_PATH[pp][1];
      cRow+=`<span class="medal-m wm" style="--ec:${col};cursor:pointer" data-all="${pw.join(",")}" data-hl="${pw.join(",")}" data-tip="${PATHS[pp]} completionist · posted a score on every ${PATHS[pp]} challenge of the week, every class (a multi-week God challenge already played earlier in its run counts) · ${pw.length} week${pw.length===1?"":"s"} · click to highlight">${completionistSvg(pp)}<b>${pw.length}</b></span>`});}
+  {const hw=hbfsWins(n,doneM); if(hw.length){const ws=hw.map(x=>x.w);
+    cRow+=uniqIds(`<span class="medal-m wm" style="--ec:#ffa13a;cursor:pointer" data-all="${ws.join(",")}" data-hl="${[...new Set(ws)].join(",")}" data-tip="Harder, Better, Faster, Stronger · beat your own score from the last time you played the same challenge (a higher %, then a longer note streak, then a higher score) · ${hw.length} time${hw.length===1?"":"s"} · click to highlight">${hbfsSvg()}<b>${hw.length}</b></span>`,["hbfg"])}}
   // Perfectionist (100% scores): every 100% score on a finished week's challenge, whatever the place or class
   // one medal per class, in that class's gem colour (God stays red)
   const mastBy=masteryByClass(n,doneM);
@@ -2466,6 +2468,16 @@ function clefSvg(kind){
 }
 // the Completionist medal; with a path, all in that path's colour (light, mid and dark shades in the swirl)
 const COMP_PATH=[["#ffcf8a","#ff9a2e","#c86a0e"],["#9ff0bb","#45d17a","#1f9a52"],["#a8d4ff","#3fa0ff","#1f63c9"]];
+// Harder, Better, Faster, Stronger: beat your own score from the last time you played the same challenge
+// (same song and arrangement, any earlier week since the scoreboards start): a higher %, or the same % and a longer
+// note streak, or the same % and streak and a higher score. Finished weeks only; a God run counts at its last week.
+function hbfsWins(name,weeks){const k=String(name).toLowerCase(), out=[];
+  const better=(e,o)=>{if(e[1]==null||o[1]==null)return false; if(e[1]!==o[1])return e[1]>o[1];
+    if(e[2]!=null&&o[2]!=null&&e[2]!==o[2])return e[2]>o[2]; return e[3]!=null&&o[3]!=null&&e[3]>o[3]};
+  weeks.forEach(w=>(SB.weeks[w]||[]).forEach(c=>{if(c[7])return; const e=c[6].find(x=>pvName(x).toLowerCase()===k); if(!e)return;
+    for(const x of pastPlays(w,c[0],c[1],c[3])){const o=x.c[6].find(y=>pvName(y).toLowerCase()===k); if(o){if(better(e,o))out.push({w,c,e,ow:x.w,o}); break}}}));
+  return out}
+function hbfsSvg(){return `<svg viewBox="0 0 30 30" aria-hidden="true"><defs><linearGradient id="hbfg" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#ff7a1a"/><stop offset="1" stop-color="#ffd95e"/></linearGradient></defs><circle cx="15" cy="15" r="13" fill="#1d2433" stroke="url(#hbfg)" stroke-width="2"/><path d="M9 20 15 12.5 21 20" fill="none" stroke="#8b93a7" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" opacity=".55"/><path d="M9 15.5 15 8 21 15.5" fill="none" stroke="url(#hbfg)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>`}
 function completionistSvg(path){const P=path==null?null:COMP_PATH[path]; let t=`<svg viewBox="0 0 30 30" aria-hidden="true"><circle cx="15" cy="15" r="13" fill="#1d2433"/><path d="M15.86 2.63A12.4 12.4 0 0 1 26.15 20.44" stroke="#ff9a2e" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M25.28 21.93A12.4 12.4 0 0 1 4.72 21.93" stroke="#45d17a" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M3.85 20.44A12.4 12.4 0 0 1 14.14 2.63" stroke="#3fa0ff" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M15 15Q10.66 13.42 15.00 6.60A8.4 8.4 0 0 1 22.27 19.20Q18.54 12.03 15 15Z" fill="#ff9a2e"/><path d="M15 15Q18.54 12.03 22.27 19.20A8.4 8.4 0 0 1 7.73 19.20Q15.80 19.55 15 15Z" fill="#45d17a"/><path d="M15 15Q15.80 19.55 7.73 19.20A8.4 8.4 0 0 1 15.00 6.60Q10.66 13.42 15 15Z" fill="#3fa0ff"/><circle cx="15" cy="15" r="8.4" fill="none" stroke="rgba(255,255,255,.55)" stroke-width="1"/><path d="M10.8 15.3l3 3 5.6-6.4" stroke="#10131a" stroke-width="4.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M10.8 15.3l3 3 5.6-6.4" stroke="#fff" stroke-width="2.3" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
   if(P){t=t.replace(/stroke="#(ff9a2e|45d17a|3fa0ff)" stroke-width="3"/g,`stroke="${P[1]}" stroke-width="3"`); let k=0; t=t.replace(/fill="#(ff9a2e|45d17a|3fa0ff)"/g,()=>`fill="${P[k++]}"`)}
   return t}
@@ -2837,7 +2849,7 @@ const ARR_CODES=["L","R","B","BL","BR","BB","AL","AR","AB"];
 // earlier weeks where this challenge's song was played on the same arrangement (any path); a God run counts once, at its last week
 function pastKey(t){return String(t||"").toLowerCase().replace(/\s+/g," ").trim()}
 function pastPlays(w,p,slot,song){const k=pastKey(song), a=arrP(w,p,slot), out=[]; if(!k||k==="n/a")return out;
-  SB_WEEKS.forEach(pw=>{if(pw>=w)return; (SB.weeks[pw]||[]).forEach(d=>{if(d[7]||!d[6].length||pastKey(d[3])!==k||arrP(pw,d[0],d[1])!==a)return; out.push({w:pw,c:d})})});
+  (pastPlays.wk=pastPlays.wk||Object.keys(SB.weeks).map(Number).sort((a,b)=>b-a)).forEach(pw=>{if(pw>=w)return; (SB.weeks[pw]||[]).forEach(d=>{if(d[7]||!d[6].length||pastKey(d[3])!==k||arrP(pw,d[0],d[1])!==a)return; out.push({w:pw,c:d})})});
   return out}   // newest first
 function pvName(e){return SB.names[e[0]].replace(/[*~]+$/,"")}
 var sbPv={};   // which "Played before" week is open on each card ("p|slot" -> week); all closed to start
@@ -3298,18 +3310,18 @@ const mlCmp=(a,b)=>b.v-a.v||(b.t||0)-(a.t||0)||a.n.localeCompare(b.n,undefined,{
 const mlSame=(a,b)=>a.v===b.v&&(a.t||0)===(b.t||0);
 const mlVal=(r,k)=>`${r.v}${k.unit}${r.t>1?` ×${r.t}`:""}`;
 // plain descriptions for the medals whose own hover text is all about one player's numbers
-const ML_DESC={"Kintsugi gem":"played every week from joining until the first missed week, then mended with gold on coming back · ranked by how many weeks that first unbroken run lasted",
+const ML_DESC={"Harder, Better, Faster, Stronger":"beat their own score from the last time they played the same challenge (a higher %, then a longer note streak, then a higher score) · ranked by how many times","Kintsugi gem":"played every week from joining until the first missed week, then mended with gold on coming back · ranked by how many weeks that first unbroken run lasted",
   "Perfect gem":"played every week since joining, never missing one · ranked by weeks so far",
   playstreak:"most weeks played in a row",years:"time since first joining the championship",
   winstreak:"most weeks in a row winning at least one challenge",bestweek:"the most challenges won in a single week · ×N is how many weeks they did it, which breaks ties",
   hosted:"total weeks hosted",hoststreak:"most weeks hosted in a row"};
 // medals counted from the scoreboards, which only go back to Week 440: say so wherever they show
 const mlSbNote=()=>`Counted from scoreboards since Week ${SB_W[0]} (earlier weeks have no scoreboard on the site)`;
-const mlFromSb=(kind,key)=>kind==="win"||/^(Played guitar|Played bass|Catch ‘em all|Lead completionist|Rhythm completionist|Bass completionist|Perfect God medal)$| perfectionist$/.test(key);
+const mlFromSb=(kind,key)=>kind==="win"||/^(Played guitar|Played bass|Catch ‘em all|Lead completionist|Rhythm completionist|Bass completionist|Harder, Better, Faster, Stronger|Perfect God medal)$| perfectionist$/.test(key);
 function mlRender(kind){const acc=ML[kind].acc, link=kind==="win"?"data-gowin":kind==="host"?"data-gohost":"data-goplayer";
   // fixed order, like the medal rows: God diamonds, gold/silver/bronze (Lead, Rhythm, Bass), then the rest
   const ORDER=["Gold God diamond","Silver God diamond","Bronze God diamond","Gold medal","Silver medal","Bronze medal","Triple crown","Close win medal","Rivalry win","Uncrowned","Uncrowned silver","Uncrowned bronze","Most wins in one week","Longest win streak",
-    "Years in the championship","Longest play streak","Perfect gem","Kintsugi gem","Played guitar","Played bass","Catch ‘em all","Lead completionist","Rhythm completionist","Bass completionist","Beginner perfectionist","Intermediate perfectionist","Advanced perfectionist","Masterclass perfectionist","Perfect God medal","God tier perfectionist",
+    "Years in the championship","Longest play streak","Perfect gem","Kintsugi gem","Played guitar","Played bass","Catch ‘em all","Lead completionist","Rhythm completionist","Bass completionist","Harder, Better, Faster, Stronger","Beginner perfectionist","Intermediate perfectionist","Advanced perfectionist","Masterclass perfectionist","Perfect God medal","God tier perfectionist",
     "Most weeks hosted","Longest hosting streak"];
   const ordOf=k=>{const [base,path]=k.label.split(" · "); const i=ORDER.indexOf(base); return (i<0?999:i)*4+(path?PATHS.indexOf(path)+1:0)};
   const cards=Object.entries(acc).filter(([,k])=>k.rows.length).sort(([,a],[,b])=>ordOf(a)-ordOf(b)||a.pos-b.pos).map(([key,k])=>{
@@ -3547,6 +3559,7 @@ function twMedals(n,w,live){
     if(pm){const i=POD_NAME.indexOf(pm[1]), god=pm[2]==="God diamond", pp=m.dataset.path!=null?+m.dataset.path:-1;
       from=fin.filter(x=>x.place===i&&x.god===god&&(pp<0||x.c[0]===pp))}
     else if(/^Close win/.test(t))from=fin.filter(x=>x.place===0&&x.tie);
+    else if(/^Harder, Better, Faster, Stronger/.test(t))from=hbfsWins(n,[w]).map(x=>({c:x.c,god:/^god|tribute/i.test(x.c[2])}));
     else if(/-win week trophy/.test(t))from=fin.filter(x=>x.place===0);
     else if(/^Uncrowned/.test(t)){const key=String(n).toLowerCase(), pos=/^Uncrowned silver/.test(t)?1:/^Uncrowned bronze/.test(t)?2:0;
       (SB.weeks[w]||[]).forEach(c=>{if(c[7])return; const e=c[6].filter(x=>x[4]>=0)[pos];
