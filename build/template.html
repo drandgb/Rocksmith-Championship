@@ -2956,7 +2956,8 @@ function eloChart(n,opt){opt=opt||{}; eloBuild(); const k=eloKey(n), w1=ELO_DONE
   const first=Math.min(...all.filter(s=>s.length).map(s=>s[0][0]));
   const w0=Math.min(w1-1,rng==="1y"?Math.max(first,w1-52):rng==="6m"?Math.max(first,w1-26):first);
   const ser=all.map((s,pi)=>{if(hid.includes("LRB"[pi]))return []; const prev=s.filter(e=>e[0]<w0).pop(), pts=s.filter(e=>e[0]>=w0); return prev?[[w0,prev[1],prev[2]],...pts]:pts});
-  const vals=ser.flat().map(e=>e[1]); let lo=Math.min(...vals), hi=Math.max(...vals); lo=Math.floor((lo-20)/100)*100; hi=Math.ceil((hi+20)/100)*100;
+  const pools=[0,1,2].map(pi=>ser[pi].length?eloPool(pi).filter(e=>e[0]>=w0&&e[0]<=w1):[]);
+  const vals=[...ser.flat(),...pools.flat()].map(e=>e[1]); let lo=Math.min(...vals), hi=Math.max(...vals); lo=Math.floor((lo-20)/100)*100; hi=Math.ceil((hi+20)/100)*100;
   const W=660,H=210,L=40,R=12,T=10,B=22, X=w=>L+(w-w0)/(w1-w0||1)*(W-L-R), Y=v=>T+(hi-v)/(hi-lo||1)*(H-T-B);
   let g=""; const step=hi-lo>800?200:100;
   for(let v=lo;v<=hi;v+=step)g+=`<line x1="${L}" x2="${W-R}" y1="${Y(v)}" y2="${Y(v)}" stroke="#232a38"/><text x="${L-6}" y="${Y(v)+4}" text-anchor="end" font-size="10" fill="#8b93a7">${v}</text>`;
@@ -2977,8 +2978,17 @@ function eloChart(n,opt){opt=opt||{}; eloBuild(); const k=eloKey(n), w1=ELO_DONE
   const leg=[0,1,2].filter(pi=>all[pi].length).map(pi=>`<button type="button" class="echp${hid.includes("LRB"[pi])?" off":""}" data-ech-p="${"LRB"[pi]}" style="--pc:${ELO_C[pi]}" title="Show just ${PATHS[pi]}, or add it to the paths shown">${PATHS[pi]}</button>`).join("");
   const rb=[["all","All"],["1y","Last year"],["6m","6 months"]].map(([v,t])=>`<button type="button" class="echr${rng===v?" on":""}" data-ech-r="${v}">${t}</button>`).join("");
   return `<div class="elochart" data-n="${esc(k)}" data-r="${rng}" data-h="${hid}" data-t="${opt.t||""}" data-mode="${mode}" data-w0="${w0}" data-w1="${w1}"><div class="echhead"><h4>Elo over time</h4><span class="echleg">${leg}</span><span class="echrs">${rb}</span><span class="echts">${[["w","Weekly","The real rating after each week"],["t","Trend","The 4-week average: smoother, shows the direction"]].map(([v,t,d])=>`<button type="button" class="echt${mode===v?" on":""}" data-ech-t="${v}" title="${d}">${t}</button>`).join("")}</span></div>
-    <svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" data-ech="1">${g}${tr}${only?"":lines}${rk}<line class="echx" x1="0" x2="0" y1="${T}" y2="${H-B}" stroke="#8b93a7" stroke-width="1" opacity="0"/></svg>
-    <p class="echnote">Shaded bands: rating levels · coloured pill: rank change (hover it for details)${only?" · lines: 4-week average":trend?" · soft band: 4-week trend":""} · hover or tap the chart for a week's ratings</p></div>`}
+    <svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" data-ech="1">${g}${pools.map((s,pi)=>s.length>1?`<polyline fill="none" stroke="${ELO_C[pi]}" stroke-width="1.3" stroke-opacity=".5" stroke-dasharray="3 3" points="${s.map(e=>X(e[0]).toFixed(1)+","+Y(e[1]).toFixed(1)).join(" ")}"/>`:"").join("")}${tr}${only?"":lines}${rk}<line class="echx" x1="0" x2="0" y1="${T}" y2="${H-B}" stroke="#8b93a7" stroke-width="1" opacity="0"/></svg>
+    <p class="echnote">Shaded bands: rating levels · dotted: the typical active player · coloured pill: rank change (hover it for details)${only?" · lines: 4-week average":trend?" · soft band: 4-week trend":""} · hover or tap the chart for a week's ratings</p></div>`}
+// the typical active player on a path: the median rating, every 2 weeks, of players with 20+ games who played that path
+// in the 52 weeks before (dotted reference lines on the Elo chart)
+function eloPool(pi){eloBuild(); const E=ELO[pi]; if(E.pool)return E.pool; const ev={};
+  Object.keys(E.hist).forEach(n=>E.hist[n].forEach(e=>(ev[e[0]]=ev[e[0]]||[]).push([n,e[1],e[2]])));
+  const ws=Object.keys(ev).map(Number).sort((a,b)=>a-b), st={}, out=[]; let i=0;
+  if(ws.length)for(let w=ws[0];w<=ELO_DONE;w++){while(i<ws.length&&ws[i]<=w){ev[ws[i]].forEach(([n,r,g])=>{st[n]=[r,g,ws[i]]}); i++}
+    if((w-ws[0])%2)continue; const v=Object.values(st).filter(x=>x[1]>=ELO_MIN&&w-x[2]<52).map(x=>x[0]).sort((a,b)=>a-b); if(v.length>=5)out.push([w,v[v.length>>1]])}
+  return E.pool=out}
+function eloPoolAt(pi,w){let v=null; for(const e of eloPool(pi)){if(e[0]>w)break; v=e[1]} return v}
 // path pills on the charts: with every path showing, a click shows just that path; clicking others adds them back
 // (all of them showing again once every one is picked); clicking a picked path drops it (back to all if none are left)
 function chartPick(c,key,p,h){const avail=[...c.querySelectorAll(".echleg button")].map(b=>b.dataset[key]).filter(Boolean); let shown=avail.filter(x=>!h.includes(x));
@@ -2995,8 +3005,8 @@ function eloChartTip(e){const sv=e.target.closest(".elochart svg[data-ech]"); if
   const fx=Math.max(0,Math.min(1,(f*W-L)/(W-L-R))), w=Math.round(w0+fx*(w1-w0));
   const rows=[0,1,2].filter(pi=>!c.dataset.h.includes("LRB"[pi])).map(pi=>{const h=ELO[pi].hist[k]; if(!h)return null; const i=h.findIndex(x=>x[0]>w), j=(i<0?h.length:i)-1; if(j<0)return null;
     const cur=h[j], played=cur[0]===w, d=played?Math.round(cur[1]-(j>0?h[j-1][1]:eloStart(pi,k))):0;
-    if(c.dataset.mode==="t"){const v=[0,1,2,3].map(dd=>{const q=h.filter(x=>x[0]<=w-dd).pop(); return q?q[1]:null}).filter(v=>v!=null); return `${PATHS[pi]} ${Math.round(v.reduce((a,b)=>a+b,0)/v.length)} (4-week avg)`}
-    return `${PATHS[pi]} ${Math.round(cur[1])}${played?(d?` ${d>0?"▲":"▼"}${Math.abs(d)}`:" (no change)"):""} · ${eloBand(cur[1])[1]}`}).filter(Boolean);
+    if(c.dataset.mode==="t"){const v=[0,1,2,3].map(dd=>{const q=h.filter(x=>x[0]<=w-dd).pop(); return q?q[1]:null}).filter(v=>v!=null); const tp=eloPoolAt(pi,w); return `${PATHS[pi]} ${Math.round(v.reduce((a,b)=>a+b,0)/v.length)} (4-week avg)${tp!=null?` · typical ${Math.round(tp)}`:""}`}
+    return `${PATHS[pi]} ${Math.round(cur[1])}${played?(d?` ${d>0?"▲":"▼"}${Math.abs(d)}`:" (no change)"):""} · ${eloBand(cur[1])[1]}${eloPoolAt(pi,w)!=null?` · typical ${Math.round(eloPoolAt(pi,w))}`:""}`}).filter(Boolean);
   const ln=sv.querySelector(".echx"), xx=L+fx*(W-L-R); ln.setAttribute("x1",xx); ln.setAttribute("x2",xx); ln.setAttribute("opacity",".5");
   const ups=(WR.ups||[]).filter(u=>Math.abs(u[4]-w)<=1&&String(u[0]).toLowerCase()===k.toLowerCase()&&!c.dataset.h.includes("LRB"[u[1]])).map(u=>`Rank ${LVI.indexOf(u[3])>LVI.indexOf(u[2])?"up":"down"} on ${PATHS[u[1]]} (Week ${u[4]}): ${TIER_NAME[u[2]]||u[2]} → ${TIER_NAME[u[3]]||u[3]}`);
   tip.textContent=`Week ${w}${rows.length?"\n"+rows.join("\n"):""}${ups.length?"\n\n"+ups.join("\n"):""}`; tip.hidden=false; placeTip(e.clientX,e.clientY)}
