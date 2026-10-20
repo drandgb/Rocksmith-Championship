@@ -384,6 +384,7 @@ button.clear:hover{border-color:var(--accent)}
 .nwnote .nwbody{flex:1;min-width:0}
 .nwnote .nwmeds{display:flex;flex-wrap:wrap;gap:12px 16px;align-items:center;margin-top:9px}
 .nwnote .nwmeds>.medal-m{margin:0!important}.nwnote .nwmeds>.medal-m.diamond:not(.classgem){margin:0 -2px 0 -4px!important}
+.nwnote .nwelo{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:10px;font-size:.85rem;color:var(--muted)}.nwelo small.up{color:var(--s-green)}.nwelo small.dn{color:var(--s-red)}
 .nwnote .nwbtns{display:flex;flex-direction:column;gap:8px;align-items:stretch;flex:none;margin-right:14px}
 .nwnote .nwx{position:absolute;top:6px;right:8px;background:none;border:0;color:var(--muted);font-size:16px;cursor:pointer;padding:2px 4px}
 .nwnote .nwx:hover{color:var(--fg)}
@@ -3779,10 +3780,17 @@ function renderNewWeekNote(){
   const songs=new Set((SB.weeks[w]||[]).filter(c=>c[3]&&!/^n\/a$/i.test(c[3])).map(c=>c[3].toLowerCase())).size;
   el.innerHTML=`<button type="button" class="nwx" data-nw="x" aria-label="Close" title="Close">✕</button><div class="nwic">🎸</div><div class="nwbody"><h2>Week ${w-1} is final · Week ${w} is on</h2>
     <div class="sub">${n&&meds.length?`Your medals from Week ${w-1} (hover one to see what it's for). `:`Week ${w-1}'s winners are in. `}The new songs are out: ${songs} to download.</div>
-    ${n&&meds.length?`<div class="nwmeds">${meds.join("")}</div>`:""}</div>
+    ${n&&meds.length?`<div class="nwmeds">${meds.join("")}</div>`:""}${n?(()=>{try{return nwElo(n,w-1)}catch(e){return ""}})():""}</div>
     <div class="nwbtns"><button type="button" class="clear" data-nw="dl" style="background:var(--accent);color:#1a1004;font-weight:800">Download Week ${w} songs ↓</button>${n?`<button type="button" class="clear" data-nw="me">Go to my profile ›</button>`:""}</div>`;
   el.hidden=false;
 }
+// the new-week note: how the player's Elo moved in the week that just finished, on each path they played
+function nwElo(n,w){eloBuild(); const k=eloKey(n);
+  const ps=[0,1,2].map(pi=>{const x=eloAt(pi,k,w); if(!x||x[0]!==w)return ""; const b=eloAt(pi,k,w-1), d=Math.round(x[1]-(b?b[1]:1500));
+    const kp=eloKeep(k), r0=eloRanks(pi,w-1,kp)[k], r1=eloRanks(pi,w,kp)[k];
+    const mv=x[2]<ELO_MIN?` <small>new</small>`:r0&&r1&&r0!==r1?` <small class="${r1<r0?"up":"dn"}">#${r0}→#${r1}</small>`:r1?` <small>#${r1}</small>`:"";
+    return `<span class="pill hol elop${x[2]>=ELO_MIN&&r1&&r1<=3?" elo-t"+r1:""}" style="--pc:${PATH_C[pi]}" data-tip="${PATHS[pi]} Elo after Week ${w}: ${Math.round(x[1])}${d?` (${d>0?"+":""}${d} that week)`:""}">${PATHS[pi]} <b>${Math.round(x[1])}</b>${d?` ${eloD(d)}`:""}${mv}</span>`}).join("");
+  return ps?`<div class="nwelo">Elo <span class="elohelp" data-tip="${esc(ELO_TIP)}">ⓘ</span> ${ps}</div>`:""}
 function renderDownloads(){
   const el=$("twdl"); if(!el)return; const w=TW_MAX;
   const cards=twWeek===w?(SB.weeks[w]||[]).filter(c=>c[3]&&!/^n\/a$/i.test(c[3])):[];
