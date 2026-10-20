@@ -3038,17 +3038,19 @@ function eloProfile(n){eloBuild(); const w=ELO_DONE, k=eloKey(n), kp=eloKeep(k);
   return rows?`<div class="pcwide nwelo pelo"><div class="nwelo-h">Elo after Week ${w} <span class="elohelp" data-tip="${esc(ELO_TIP)}">ⓘ</span> <span class="pelo-sub">▲▼ last 10 weeks</span></div><ul>${rows}</ul></div>`:""}
 // ---------- hardest rating you score 95% on ----------
 // For each week: the second-best song rating a player scored 95% or more on over the last 6 months, on each path
-// (second-best, so one lucky week doesn't count). Straight from the scores, no estimating; it climbs as players start
+// (second-best, so one lucky week doesn't count), from a player's 4th week on that path. Straight from the scores, no estimating; it climbs as players start
 // scoring 95% on harder songs, which is what earns rank-ups. Points start 6 months into the data so the window is full.
 var HR=null;
-const HR_TIP="Your second-best song rating with a 95% or better score in the last 6 months (second-best, so one lucky week doesn't count). It goes up when you start scoring 95% on harder songs.";
+const HR_TIP="Your second-best song rating with a 95% or better score in the last 6 months (second-best, so one lucky week doesn't count). It goes up when you start scoring 95% on harder songs. It shows from your 4th week playing that path.";
 function hrBuild(){if(HR)return HR; const by={}, w1=ELO_DONE; let w0=1e9;
   Object.keys(SB.weeks).map(Number).sort((a,b)=>a-b).forEach(w=>{if(w>w1)return; (SB.weeks[w]||[]).forEach(c=>{const r=+c[4]; if(c[7]||c[4]==null||c[4]===""||isNaN(r))return;
     c[6].forEach(e=>{if(e[1]==null||isNaN(+e[1]))return; const k=pvName(e).toLowerCase()+"|"+c[0]; (by[k]=by[k]||[]).push({w,r,pc:+e[1]}); if(w<w0)w0=w})})});
   HR={by,w0,w1,pool:{},ser:{}}; return HR}
 function hrSeries(n,pi){const H=hrBuild(), key=String(n).toLowerCase()+"|"+pi; if(H.ser[key])return H.ser[key];
   const xs=H.by[key]||[], out=[]; if(xs.length){let a=0,b=0;
-    for(let w=Math.max(xs[0].w,H.w0+25);w<=H.w1;w++){while(b<xs.length&&xs[b].w<=w)b++; while(a<b&&xs[a].w<=w-26)a++;
+    let nw=0, lw=null;   // weeks played on this path so far: a rating shows from the 4th (a new player's first weeks are untested)
+    for(let w=Math.max(xs[0].w,H.w0+25);w<=H.w1;w++){while(b<xs.length&&xs[b].w<=w){if(xs[b].w!==lw){nw++; lw=xs[b].w} b++} while(a<b&&xs[a].w<=w-26)a++;
+      if(nw<4){out.push([w,null]); continue}
       let r1=-1,r2=-1; for(let i=a;i<b;i++)if(xs[i].pc>=95){const r=xs[i].r; if(r>r1){r2=r1;r1=r}else if(r>r2)r2=r} out.push([w,r2>=0?r2:null])}}
   while(out.length&&out[out.length-1][1]==null)out.pop(); while(out.length&&out[0][1]==null)out.shift();
   return H.ser[key]=out}
