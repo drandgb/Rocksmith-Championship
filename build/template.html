@@ -2071,7 +2071,7 @@ function medalsFor(p,bitsOv){
    [0,1,2].forEach(pp=>{const pw=completionistWeeks(n,doneM,pp); if(!pw.length)return; const col=COMP_PATH[pp][1];
      cRow+=`<span class="medal-m wm" style="--ec:${col};cursor:pointer" data-all="${pw.join(",")}" data-hl="${pw.join(",")}" data-tip="${PATHS[pp]} completionist · posted a score on every ${PATHS[pp]} challenge of the week, every class (a multi-week God challenge already played earlier in its run counts) · ${pw.length} week${pw.length===1?"":"s"} · click to highlight">${completionistSvg(pp)}<b>${pw.length}</b></span>`});}
   {const hw=hbfsWins(n,doneM); if(hw.length){const ws=hw.map(x=>x.w);
-    cRow+=uniqIds(`<span class="medal-m wm" style="--ec:#ffa13a;cursor:pointer" data-all="${ws.join(",")}" data-hl="${[...new Set(ws)].join(",")}" data-tip="Harder, Better, Faster, Stronger · beat your own score from the last time you played the same challenge (a higher %, then a longer note streak, then a higher score) · ${hw.length} time${hw.length===1?"":"s"} · click to highlight">${hbfsSvg()}<b>${hw.length}</b></span>`,["hbfg"])}}
+    cRow+=uniqIds(`<span class="medal-m wm" style="--ec:#ffa13a;cursor:pointer" data-all="${ws.join(",")}" data-hl="${[...new Set(ws)].join(",")}" data-tip="Harder, Better, Faster, Stronger · beat your own score from the last time you played the same challenge (a higher %, then a longer note streak, then a higher score) · ${hw.length} time${hw.length===1?"":"s"} · click to highlight${esc("\n\n"+hw.slice().sort((a,b)=>b.w-a.w).slice(0,12).map(hbfsLine).join("\n")+(hw.length>12?`\n… and ${hw.length-12} more`:""))}">${hbfsSvg()}<b>${hw.length}</b></span>`,["hbfg"])}}
   // Perfectionist (100% scores): every 100% score on a finished week's challenge, whatever the place or class
   // one medal per class, in that class's gem colour (God stays red)
   const mastBy=masteryByClass(n,doneM);
@@ -2524,6 +2524,12 @@ const COMP_PATH=[["#ffcf8a","#ff9a2e","#c86a0e"],["#9ff0bb","#45d17a","#1f9a52"]
 // Harder, Better, Faster, Stronger: beat your own score from the last time you played the same challenge
 // (same song and arrangement, any earlier week since the scoreboards start): a higher %, or the same % and a longer
 // note streak, or the same % and streak and a higher score. Finished weeks only; a God run counts at its last week.
+// what got better on a Harder, Better, Faster, Stronger beat: the %, or (same %) the note streak, or (same streak) the score
+function hbfsGain(x){const e=x.e, o=x.o, f=v=>Number(v).toLocaleString("en-US");
+  if(e[1]!==o[1]){const d=Math.round((e[1]-o[1])*100)/100; return `${o[1]}% → ${e[1]}% (+${d}%)`}
+  if(e[2]!=null&&o[2]!=null&&e[2]!==o[2])return `same ${e[1]}%, streak ${f(o[2])} → ${f(e[2])} (+${f(e[2]-o[2])})`;
+  return `same ${e[1]}% and streak, score ${f(o[3])} → ${f(e[3])} (+${f(e[3]-o[3])})`}
+function hbfsLine(x){return `• ${x.c[3]} (${PATHS[x.c[0]]}, ${x.c[2]}) · Week ${x.ow} → ${x.w}: ${hbfsGain(x)}`}   // (no cardLv here: profiles draw before it is defined)
 function hbfsWins(name,weeks){const k=String(name).toLowerCase(), out=[];
   const better=(e,o)=>{if(e[1]==null||o[1]==null)return false; if(e[1]!==o[1])return e[1]>o[1];
     if(e[2]!=null&&o[2]!=null&&e[2]!==o[2])return e[2]>o[2]; return e[3]!=null&&o[3]!=null&&e[3]>o[3]};
@@ -3828,12 +3834,12 @@ function twMedals(n,w,live){
       if(beat.length)t=`Rivalry win · beat ${beat.join(", ")} · their closest rival of the week (same rank, ranked challenges)`}
     // which songs the medal came from this week
     const fin=twFinishes(n,w), lvOf=c=>{const L=cardLv(c[2]); return L&&L!=="G"?TIER_NAME[L]:c[2]};
-    const list=xs=>xs.map(x=>`• ${x.c[3]} (${x.god?x.c[2]:`${PATHS[x.c[0]]}, ${lvOf(x.c)}`})`).join("\n");
+    const list=xs=>xs.map(x=>`• ${x.c[3]} (${x.god?x.c[2]:`${PATHS[x.c[0]]}, ${lvOf(x.c)}`})${x.gain||""}`).join("\n");
     let from=[], pm=/^(Gold|Silver|Bronze) (God diamond|medal)/.exec(t);
     if(pm){const i=POD_NAME.indexOf(pm[1]), god=pm[2]==="God diamond", pp=m.dataset.path!=null?+m.dataset.path:-1;
       from=fin.filter(x=>x.place===i&&x.god===god&&(pp<0||x.c[0]===pp))}
     else if(/^Close win/.test(t))from=fin.filter(x=>x.place===0&&x.tie);
-    else if(/^Harder, Better, Faster, Stronger/.test(t))from=hbfsWins(n,[w]).map(x=>({c:x.c,god:/^god|tribute/i.test(x.c[2])}));
+    else if(/^Harder, Better, Faster, Stronger/.test(t))from=hbfsWins(n,[w]).map(x=>({c:x.c,god:/^god|tribute/i.test(x.c[2]),gain:` · Week ${x.ow}: ${hbfsGain(x)}`}));
     else if(/-win week trophy/.test(t))from=fin.filter(x=>x.place===0);
     else if(/^Uncrowned/.test(t)){const key=String(n).toLowerCase(), pos=/^Uncrowned silver/.test(t)?1:/^Uncrowned bronze/.test(t)?2:0;
       (SB.weeks[w]||[]).forEach(c=>{if(c[7])return; const e=c[6].filter(x=>x[4]>=0)[pos];
