@@ -3828,7 +3828,7 @@ function twMedals(n,w,live){
     const k=(m.dataset.all||m.dataset.hl||"").split(",").filter(x=>x===String(w)).length||1, b=m.querySelector("b");
     const tot=b?b.textContent:""; if(b)b.textContent="+"+k; m.dataset.k=k;
     // drop the career count from the text ("· 3 times" or "on a God challenge 3 times"): the all-time total is added at the end
-    let t=tp.replace(/ · click to highlight$/,"").replace(/ (?:· )?\d+ times?$/,"");
+    let t=tp.split("\n\n")[0].replace(/ · click to highlight$/,"")   /* (the profile's career list after a blank line is dropped too) */.replace(/ (?:· )?\d+ times?$/,"");
     // rivalry wins: who they beat that week, on which path, and the challenge score
     if(/^Rivalry win/.test(t)){const me=twCanon(n), beat=[0,1,2].map(pi=>{const r=rivalsOfWeek(w,pi)[me]; return r&&r.w>r.l?`${r.them} on ${PATHS[pi]} (${r.w}–${r.l})`:""}).filter(Boolean);
       if(beat.length)t=`Rivalry win · beat ${beat.join(", ")} · their closest rival of the week (same rank, ranked challenges)`}
