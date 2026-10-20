@@ -2984,8 +2984,8 @@ function eloProfile(n){eloBuild(); const w=ELO_DONE, k=eloKey(n), kp=eloKeep(k);
 // Each score is compared with what a typical player scores on a song of that rating (per path; the curve is worked out
 // from how the same players score as the rating goes up). A player's level over the last 6 (or 3) months becomes the song
 // rating where they'd be expected to score 90%, so choosing harder songs never counts against anyone.
-var HR=null, HR_TH=90;
-const HR_TIP="The song rating where you'd be expected to score 90%, worked out from your last 6 months of scores. Each score is compared with what a typical player gets on a song of that rating, so playing harder songs never counts against you.";
+var HR=null, HR_TH=90, HR_CAP=1;   // never more than 1 above the hardest song actually played in the window
+const HR_TIP="The song rating where you'd be expected to score 90%, worked out from your last 6 months of scores. Each score is compared with what a typical player gets on a song of that rating, so playing harder songs never counts against you. It never goes more than 1 above the hardest song you played in that time.";
 function hrBuild(){if(HR)return HR; const E=[], w1=ELO_DONE;
   Object.keys(SB.weeks).map(Number).sort((a,b)=>a-b).forEach(w=>{if(w>w1)return; (SB.weeks[w]||[]).forEach(c=>{const r=+c[4]; if(c[7]||c[4]==null||c[4]===""||isNaN(r))return;
     c[6].forEach(e=>{if(e[1]==null||isNaN(+e[1]))return; const n=pvName(e); E.push({k:n.toLowerCase()+"|"+c[0],w,p:c[0],pc:+e[1],b:c[0]+"|"+Math.round(r*2)/2,r})})})});
@@ -3004,15 +3004,16 @@ function hrStar(pi,lv){const c=hrBuild().curve[pi]; if(c(0)+lv<HR_TH)return 0; i
 // one player's weekly series on a path: [week, rating] over a rolling window; null where they have too few scores (a gap)
 function hrSeries(n,pi,win){const H=hrBuild(), key=String(n).toLowerCase()+"|"+pi+"|"+win; if(H.ser[key])return H.ser[key];
   const xs=H.by[String(n).toLowerCase()+"|"+pi]||[], out=[]; if(xs.length){const mn=win<20?4:6; let a=0,b=0,s=0;
-    for(let w=xs[0].w;w<=H.w1;w++){while(b<xs.length&&xs[b].w<=w){s+=xs[b].lv;b++} while(a<b&&xs[a].w<=w-win){s-=xs[a].lv;a++} out.push(b-a>=mn?[w,hrStar(pi,s/(b-a))]:[w,null])}}
+    for(let w=xs[0].w;w<=H.w1;w++){while(b<xs.length&&xs[b].w<=w){s+=xs[b].lv;b++} while(a<b&&xs[a].w<=w-win){s-=xs[a].lv;a++}
+      let mr=0; for(let i=a;i<b;i++)mr=Math.max(mr,xs[i].r); out.push(b-a>=mn?[w,Math.min(hrStar(pi,s/(b-a)),mr+HR_CAP)]:[w,null])}}
   while(out.length&&out[out.length-1][1]==null)out.pop(); while(out.length&&out[0][1]==null)out.shift();
   return H.ser[key]=out}
 // the typical (median) player on a path, every 2 weeks, for the dotted reference lines
 function hrPool(pi,win){const H=hrBuild(), key=pi+"|"+win; if(H.pool[key])return H.pool[key];
   const xs=H.E.filter(x=>x.p===pi), mn=win<20?3:4, out=[], sum={}; let a=0,b=0;
-  for(let w=H.w0+win-1;w<=H.w1;w++){while(b<xs.length&&xs[b].w<=w){const q=sum[xs[b].k]||(sum[xs[b].k]=[0,0]); q[0]+=xs[b].lv; q[1]++; b++}
-    while(a<b&&xs[a].w<=w-win){const q=sum[xs[a].k]; q[0]-=xs[a].lv; q[1]--; a++}
-    if((w-H.w0)%2)continue; const v=Object.values(sum).filter(q=>q[1]>=mn).map(q=>hrStar(pi,q[0]/q[1])).sort((x,y)=>x-y); if(v.length>=5)out.push([w,v[v.length>>1]])}
+  for(let w=H.w0+win-1;w<=H.w1;w++){while(b<xs.length&&xs[b].w<=w){const q=sum[xs[b].k]||(sum[xs[b].k]=[0,0,[]]); q[0]+=xs[b].lv; q[1]++; q[2].push(xs[b].r); b++}
+    while(a<b&&xs[a].w<=w-win){const q=sum[xs[a].k]; q[0]-=xs[a].lv; q[1]--; q[2].shift(); a++}
+    if((w-H.w0)%2)continue; const v=Object.values(sum).filter(q=>q[1]>=mn).map(q=>Math.min(hrStar(pi,q[0]/q[1]),Math.max(...q[2])+HR_CAP)).sort((x,y)=>x-y); if(v.length>=5)out.push([w,v[v.length>>1]])}
   return H.pool[key]=out}
 function hrAt(s,w){let v=null; for(const e of s){if(e[0]>w)break; if(e[1]!=null)v=e[1]} return v}
 // profile rows: the rating now (6-month window), the change over a year and the typical player on that path
@@ -3039,7 +3040,7 @@ function hrChart(n,opt){opt=opt||{}; const H=hrBuild(), w1=H.w1, win=+opt.win||2
   const wb=[["26","6 months","Smoother: each point uses the 6 months of scores before it"],["13","3 months","Quicker to react: each point uses the 3 months of scores before it, so it shows recent form but jumps around more"]].map(([v,t,d])=>`<button type="button" class="echt${String(win)===v?" on":""}" data-hr-w="${v}" title="${d}">${t}</button>`).join("");
   return `<div class="elochart hrchart" data-n="${esc(n)}" data-r="${rng}" data-h="${hid}" data-win="${win}" data-w0="${w0}" data-w1="${w1}"><div class="echhead"><h4>Hardest rating over time</h4><span class="echleg">${leg}</span><span class="echrs">${rb}</span><span class="echts">${wb}</span></div>
     <svg viewBox="0 0 ${W} ${H2}" preserveAspectRatio="none" data-hr="1">${g}${pl}${ln}<line class="echx" x1="0" x2="0" y1="${T}" y2="${H2-B}" stroke="#8b93a7" stroke-width="1" opacity="0"/></svg>
-    <p class="echnote">The song rating where you'd be expected to score 90%, from your last ${win<20?3:6} months of scores · dotted: the typical player on each path · hover or tap the chart for a week</p></div>`}
+    <p class="echnote">The song rating where you'd be expected to score 90%, from your last ${win<20?3:6} months of scores (at most 1 above the hardest song you played then) · dotted: the typical player on each path · hover or tap the chart for a week</p></div>`}
 document.addEventListener("click",e=>{const b=e.target.closest(".hrchart [data-hr-p],.hrchart [data-hr-r],.hrchart [data-hr-w]"); if(!b)return; e.stopPropagation();
   const c=b.closest(".hrchart"); let r=c.dataset.r, h=c.dataset.h, win=c.dataset.win;
   if(b.dataset.hrR)r=b.dataset.hrR; else if(b.dataset.hrW)win=b.dataset.hrW; else {const p=b.dataset.hrP; h=h.includes(p)?h.replace(p,""):h+p; if(h.length>=3)h=""}
