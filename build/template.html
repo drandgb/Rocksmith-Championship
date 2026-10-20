@@ -437,17 +437,17 @@ a.dl svg,.offpill svg{width:11px;height:11px}
 .acctclose{margin-top:12px}
 .acctdlg{width:min(980px,calc(100vw - 24px))}
 .acctdlg .acctsec{margin-top:16px;border-top:1px solid var(--line);padding-top:12px}
-.mlgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,210px),1fr));gap:8px;align-items:start}
+.mlgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,210px),1fr));gap:8px;align-items:stretch}   /* cards in a row share a height */
 .mlcard>.medal-m.tro{width:52px!important;height:30px;align-items:center;margin:0!important} /* the row of trophies, scaled down to fit */
 .mlcard>.medal-m.tro svg{width:52px!important;height:auto}
-.mlcard{display:flex;align-items:center;gap:12px;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:8px 12px;min-width:0;cursor:help}
+.mlcard{display:flex;align-items:flex-start;gap:12px;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:8px 12px;min-width:0;cursor:help}
 .mlcard>.medal-m{flex:none}
 .mlcard ol{flex:1;min-width:0}
 .mlhead{display:flex;align-items:center;gap:10px;margin-bottom:6px;min-height:34px}
 .mlhead b{font-size:.84rem;line-height:1.25}
 .mlhead .medal-m{flex:none;cursor:help}
 .mlcard ol{list-style:none;margin:0;padding:0}
-.mlcard li{display:flex;align-items:center;gap:8px;padding:3px 0;font-size:.86rem;border-top:1px solid color-mix(in srgb,var(--line) 60%,transparent)}
+.mlcard li{display:flex;align-items:center;gap:8px;padding:0;min-height:32px;font-size:.86rem;border-top:1px solid color-mix(in srgb,var(--line) 60%,transparent)}
 .mlcard li:first-child{border-top:0}
 .mlcard .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer}
 .mlcard .nm:hover{color:var(--accent)}
@@ -667,7 +667,7 @@ a.dl svg,.offpill svg{width:11px;height:11px}
 .golink:hover{color:var(--accent)}
 .golinks{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
 .plead:empty{display:none}
-.plead{margin-top:14px}
+.plead{margin-top:14px}.pc>.plead{grid-column:1/-1;margin-top:-4px}   /* profiles: medal leader runs full width under both columns */
 .plh{font:700 .78rem var(--f-display);letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin-bottom:6px}
 .plh small{font:400 .75rem var(--f-body);letter-spacing:0;text-transform:none;color:var(--muted);margin-left:4px}
 .plchips{display:flex;flex-wrap:wrap;gap:6px}
@@ -2119,7 +2119,6 @@ function showPlayer(name){
         <div${D.latest?` data-hl="${D.latest}" data-tip="Click to highlight Week ${D.latest}"`:""}><small>Latest week</small><b>${D.latest??"–"}</b>${dlw?`<span class="sub"> · ${fmt(dlw[1])}</span>`:""}</div>
         ${PB.sc||PB.st?pbBox("Highest score",PB.sc,"Highest score on a challenge")+pbBox("Highest note streak",PB.st,"Longest note streak on a challenge"):""}
       </div>
-      <div class="plead" data-n="${esc(n)}">${plLeads(n)}</div>
       ${WR.wins[n]||hosts[n]?`<div class="golinks">${WR.wins[n]?`<button type="button" class="clear" data-wprofile="${esc(n)}">Open win profile ›</button>`:""}${hosts[n]?`<button type="button" class="clear" data-gohost="${esc(n)}">Open host profile ›</button>`:""}</div>`:""}
     </div>
     <div style="min-width:0">
@@ -2128,6 +2127,7 @@ function showPlayer(name){
       <div class="pres-legend"><span><i class="sw" style="background:var(--s-green)"></i>Played</span><span><i class="sw" style="background:var(--panel2)"></i>Missed</span></div>
       <div class="preshint">Tip: click a year on the left of the grid to filter the stats to that year; click it again to show all years.</div>
     </div>
+    <div class="plead" data-n="${esc(n)}">${plLeads(n)}</div>
       ${(()=>{try{return eloProfile(n)+`<div class="pcwide">${eloChart(n)}</div>`}catch(e){return ""}})()}
       ${(()=>{try{const c=hrChart(n); return c?hrProfile(n)+`<div class="pcwide">${c}</div>`:""}catch(e){return ""}})()}
       ${(()=>{const u=WR.ups.filter(x=>x[0]===n).sort((a,b)=>b[4]-a[4]||b[1]-a[1]);return u.length?`<div class="ups pcwide">Rank changes: ${u.map(([,p,a,b,w])=>`<span class="pill hol rkpath" data-hl="${w}" data-tip="Click to highlight Week ${w}" style="cursor:pointer;--pc:${PATH_C[p]}">${PATHS[p]} ${a}${"BIAM".indexOf(b)<"BIAM".indexOf(a)?"↘":"↗"}${b} · wk ${w}</span>`).join("")}</div>`:""})()}
