@@ -534,8 +534,8 @@ a.dl svg,.offpill svg{width:11px;height:11px}
 .elocol li.elo-t1 .er,.elocol li.elo-t2 .er,.elocol li.elo-t3 .er{display:inline-grid;place-items:center;width:18px;height:18px;border-radius:50%;background:var(--m);color:#1a1205;font:800 .7rem var(--f-display)}
 .elochart{margin:10px 0;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--panel2)}.elochart svg{width:100%;height:auto;display:block;aspect-ratio:660/210;cursor:crosshair;touch-action:pan-y}
 .echhead{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;margin-bottom:6px}.echhead h4{margin:0 auto 0 0;font:800 .78rem var(--f-display);letter-spacing:.1em;text-transform:uppercase}
-.echleg,.echrs{display:flex;gap:4px;flex-wrap:wrap}.echp,.echr{font:inherit;font-size:.74rem;background:none;border:1px solid var(--line);color:var(--muted);border-radius:999px;padding:2px 9px;cursor:pointer}
-.echp{color:var(--pc);border-color:color-mix(in srgb,var(--pc) 55%,transparent)}.echp.off{opacity:.4;text-decoration:line-through}.echr.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink,#1a1004);font-weight:700}
+.echleg,.echrs{display:flex;gap:4px;flex-wrap:wrap}.echp,.echr,.echt{font:inherit;font-size:.74rem;background:none;border:1px solid var(--line);color:var(--muted);border-radius:999px;padding:2px 9px;cursor:pointer}
+.echp{color:var(--pc);border-color:color-mix(in srgb,var(--pc) 55%,transparent)}.echp.off{opacity:.4;text-decoration:line-through}.echts{display:flex;gap:0}.echt{border-radius:0;margin-left:-1px}.echts .echt:first-child{border-radius:999px 0 0 999px;margin-left:0}.echts .echt:last-child{border-radius:0 999px 999px 0}.echt.on{color:var(--fg);border-color:var(--muted);background:color-mix(in srgb,var(--fg) 12%,transparent)}.echr.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink,#1a1004);font-weight:700}
 .echnote{margin:4px 0 0;font-size:.72rem;color:var(--muted)}
 .ywl{list-style:none;margin:0;padding:0}.ywl li{padding:8px 0;border-bottom:1px solid var(--line)}
 .ywc{display:flex;align-items:baseline;gap:6px;flex-wrap:wrap}.ywc .song{color:var(--muted);font-size:.8rem}
@@ -2931,7 +2931,7 @@ function renderTwElo(){const el=$("tw-elo"); if(!el)return; eloBuild(); const w=
 // Elo over time: one line per path (in its colour), from the week they first played it to the latest finished week.
 // Range buttons (all / last year / last 6 months), tap a path in the legend to hide it, hover or tap for the week's numbers.
 const ELO_C=["#ff9a2e","#45d17a","#3fa0ff"];
-function eloChart(n,opt){opt=opt||{}; eloBuild(); const k=eloKey(n), w1=ELO_DONE, rng=opt.r||"all", hid=opt.h||"";
+function eloChart(n,opt){opt=opt||{}; eloBuild(); const k=eloKey(n), w1=ELO_DONE, rng=opt.r||"all", hid=opt.h||"", mode=opt.t||(rng==="6m"?"w":"b"), trend=mode!=="w", only=mode==="t";   // w: weekly line, b: both, t: trend only
   const all=[0,1,2].map(pi=>(ELO[pi].hist[k]||[]).filter(e=>e[0]<=w1)); if(!all.some(s=>s.length))return "";
   const first=Math.min(...all.filter(s=>s.length).map(s=>s[0][0]));
   const w0=Math.min(w1-1,rng==="1y"?Math.max(first,w1-52):rng==="6m"?Math.max(first,w1-26):first);
@@ -2941,24 +2941,29 @@ function eloChart(n,opt){opt=opt||{}; eloBuild(); const k=eloKey(n), w1=ELO_DONE
   let g=""; const step=hi-lo>800?200:100;
   for(let v=lo;v<=hi;v+=step)g+=`<line x1="${L}" x2="${W-R}" y1="${Y(v)}" y2="${Y(v)}" stroke="${v===1500?"#3a4255":"#232a38"}"${v===1500?' stroke-dasharray="4 4"':""}/><text x="${L-6}" y="${Y(v)+4}" text-anchor="end" font-size="10" fill="#8b93a7">${v}</text>`;
   let ly=null; for(let w=w0;w<=w1;w++){const y=yearOfWeek(w); if(y!==ly){if(ly!=null||w===w0)g+=`<line x1="${X(w)}" x2="${X(w)}" y1="${T}" y2="${H-B}" stroke="#1d2330"/><text x="${X(w)+3}" y="${H-6}" font-size="10" fill="#8b93a7">${y}</text>`; ly=y}}
-  (WR.ups||[]).filter(u=>String(u[0]).toLowerCase()===k.toLowerCase()&&u[4]>=w0&&u[4]<=w1&&!hid.includes("LRB"[u[1]])).forEach(u=>{const x=all[u[1]].filter(e=>e[0]<=u[4]).pop(); if(x)g+=`<circle cx="${X(u[4]).toFixed(1)}" cy="${Y(x[1]).toFixed(1)}" r="4" fill="#0d0f14" stroke="${ELO_C[u[1]]}" stroke-width="2"/>`});
+  (WR.ups||[]).filter(u=>String(u[0]).toLowerCase()===k.toLowerCase()&&u[4]>=w0&&u[4]<=w1&&!hid.includes("LRB"[u[1]])).forEach(u=>{const x=all[u[1]].filter(e=>e[0]<=u[4]).pop(); const yv=!x?0:!only?x[1]:(()=>{const v=[0,1,2,3].map(d=>{const q=all[u[1]].filter(e=>e[0]<=u[4]-d).pop(); return q?q[1]:null}).filter(v=>v!=null); return v.reduce((a,b)=>a+b,0)/v.length})(); if(x)g+=`<circle cx="${X(u[4]).toFixed(1)}" cy="${Y(yv).toFixed(1)}" r="4" fill="#0d0f14" stroke="${ELO_C[u[1]]}" stroke-width="2"/>`});
+  // trend: a soft 4-week rolling average (each played week averages the ratings at the end of it and the 3 weeks before)
+  const at=(pi,w)=>{const h=all[pi]; let x=null; for(const e of h){if(e[0]<=w)x=e; else break} return x?x[1]:null};
+  const avg=(pi,w)=>{const v=[0,1,2,3].map(d=>at(pi,w-d)).filter(v=>v!=null); return v.length?v.reduce((a,b)=>a+b,0)/v.length:null};
+  const tr=trend?ser.map((s,pi)=>s.length<2?"":(only?`<polyline fill="none" stroke="${ELO_C[pi]}" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"`:`<polyline fill="none" stroke="${ELO_C[pi]}" stroke-width="5" stroke-opacity=".28" stroke-linejoin="round" stroke-linecap="round"`)+` points="${s.map(e=>X(e[0]).toFixed(1)+","+Y(avg(pi,e[0])).toFixed(1)).join(" ")}"/>`+(only?`<circle cx="${X(s[s.length-1][0]).toFixed(1)}" cy="${Y(avg(pi,s[s.length-1][0])).toFixed(1)}" r="3.5" fill="${ELO_C[pi]}"/>`:"")).join(""):"";
   const lines=ser.map((s,pi)=>s.length?`<polyline fill="none" stroke="${ELO_C[pi]}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" points="${s.map(e=>X(e[0]).toFixed(1)+","+Y(e[1]).toFixed(1)).join(" ")}"/><circle cx="${X(s[s.length-1][0]).toFixed(1)}" cy="${Y(s[s.length-1][1]).toFixed(1)}" r="3.5" fill="${ELO_C[pi]}"/>`:"").join("");
   const leg=[0,1,2].filter(pi=>all[pi].length).map(pi=>`<button type="button" class="echp${hid.includes("LRB"[pi])?" off":""}" data-ech-p="${"LRB"[pi]}" style="--pc:${ELO_C[pi]}" title="Show or hide ${PATHS[pi]}">${PATHS[pi]}</button>`).join("");
   const rb=[["all","All"],["1y","Last year"],["6m","6 months"]].map(([v,t])=>`<button type="button" class="echr${rng===v?" on":""}" data-ech-r="${v}">${t}</button>`).join("");
-  return `<div class="elochart" data-n="${esc(k)}" data-r="${rng}" data-h="${hid}" data-w0="${w0}" data-w1="${w1}"><div class="echhead"><h4>Elo over time</h4><span class="echleg">${leg}</span><span class="echrs">${rb}</span></div>
-    <svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" data-ech="1">${g}${lines}<line class="echx" x1="0" x2="0" y1="${T}" y2="${H-B}" stroke="#8b93a7" stroke-width="1" opacity="0"/></svg>
-    <p class="echnote">Dashed line: 1500, where everyone starts · ○ rank change · hover or tap the chart for a week's ratings</p></div>`}
+  return `<div class="elochart" data-n="${esc(k)}" data-r="${rng}" data-h="${hid}" data-t="${opt.t||""}" data-mode="${mode}" data-w0="${w0}" data-w1="${w1}"><div class="echhead"><h4>Elo over time</h4><span class="echleg">${leg}</span><span class="echrs">${rb}</span><span class="echts">${[["w","Weekly","The real rating after each week"],["b","Both","The weekly line with a soft 4-week trend behind it"],["t","Trend","Only the 4-week average: smoother, shows the direction"]].map(([v,t,d])=>`<button type="button" class="echt${mode===v?" on":""}" data-ech-t="${v}" title="${d}">${t}</button>`).join("")}</span></div>
+    <svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" data-ech="1">${g}${tr}${only?"":lines}<line class="echx" x1="0" x2="0" y1="${T}" y2="${H-B}" stroke="#8b93a7" stroke-width="1" opacity="0"/></svg>
+    <p class="echnote">Dashed line: 1500, where everyone starts · ○ rank change${only?" · lines: 4-week average":trend?" · soft band: 4-week trend":""} · hover or tap the chart for a week's ratings</p></div>`}
 // legend and range buttons redraw the chart in place
-document.addEventListener("click",e=>{const b=e.target.closest(".elochart [data-ech-p],.elochart [data-ech-r]"); if(!b)return; e.stopPropagation();
-  const c=b.closest(".elochart"); let r=c.dataset.r, h=c.dataset.h;
-  if(b.dataset.echR)r=b.dataset.echR; else {const p=b.dataset.echP; h=h.includes(p)?h.replace(p,""):h+p; if(h.length>=3)h=""}
-  c.outerHTML=eloChart(c.dataset.n,{r,h})},true);
+document.addEventListener("click",e=>{const b=e.target.closest(".elochart [data-ech-p],.elochart [data-ech-r],.elochart [data-ech-t]"); if(!b)return; e.stopPropagation();
+  const c=b.closest(".elochart"); let r=c.dataset.r, h=c.dataset.h, t=c.dataset.t;
+  if(b.dataset.echR)r=b.dataset.echR; else if(b.dataset.echT)t=b.dataset.echT; else {const p=b.dataset.echP; h=h.includes(p)?h.replace(p,""):h+p; if(h.length>=3)h=""}
+  c.outerHTML=eloChart(c.dataset.n,{r,h,t})},true);
 // hover (or tap): the week under the pointer and each shown path's rating then
 function eloChartTip(e){const sv=e.target.closest(".elochart svg[data-ech]"); if(!sv)return; const c=sv.closest(".elochart"), rc=sv.getBoundingClientRect();
   const w0=+c.dataset.w0, w1=+c.dataset.w1, k=c.dataset.n, f=(e.clientX-rc.left)/rc.width, x=40+0*0, W=660, L=40, R=12;
   const fx=Math.max(0,Math.min(1,(f*W-L)/(W-L-R))), w=Math.round(w0+fx*(w1-w0));
   const rows=[0,1,2].filter(pi=>!c.dataset.h.includes("LRB"[pi])).map(pi=>{const h=ELO[pi].hist[k]; if(!h)return null; const i=h.findIndex(x=>x[0]>w), j=(i<0?h.length:i)-1; if(j<0)return null;
     const cur=h[j], played=cur[0]===w, d=played?Math.round(cur[1]-(j>0?h[j-1][1]:1500)):0;
+    if(c.dataset.mode==="t"){const v=[0,1,2,3].map(dd=>{const q=h.filter(x=>x[0]<=w-dd).pop(); return q?q[1]:null}).filter(v=>v!=null); return `${PATHS[pi]} ${Math.round(v.reduce((a,b)=>a+b,0)/v.length)} (4-week avg)`}
     return `${PATHS[pi]} ${Math.round(cur[1])}${played?(d?` ${d>0?"▲":"▼"}${Math.abs(d)}`:" (no change)"):""}`}).filter(Boolean);
   const ln=sv.querySelector(".echx"), xx=L+fx*(W-L-R); ln.setAttribute("x1",xx); ln.setAttribute("x2",xx); ln.setAttribute("opacity",".5");
   tip.textContent=`Week ${w}${rows.length?"\n"+rows.join("\n"):""}`; tip.hidden=false; placeTip(e.clientX,e.clientY)}
