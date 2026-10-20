@@ -2751,7 +2751,8 @@ $("view-winners").addEventListener("mousemove",e=>{if(e.target.closest("#wcard")
 $("view-winners").addEventListener("mouseleave",()=>tip.hidden=true);
 
 fillYears(); renderNow(); renderHostPodium(); renderUpcoming(); renderRecords();
-showPlayer(RECORDS["Most weeks played"][0][0]);
+var LOOKUP_DEF={p:RECORDS["Most weeks played"][0][0]};   // the lookups' starting picks (switched to your own once you're logged in)
+showPlayer(LOOKUP_DEF.p);
 try{const s=localStorage.getItem("rsc-host"); if(s&&(hosts[s]||CATS[s])){selHost=s;$("filterbar").hidden=false;$("fhost").textContent=CATS[s]||s}}catch(e){}
 renderLB(); renderTL(); renderLog(); renderUpcoming();
 // ---------- scoreboard ----------
@@ -3466,7 +3467,7 @@ $("hcard").addEventListener("click",e=>{
 $("hcard").addEventListener("mousemove",e=>{const p=e.target.closest("[data-tip]");if(!p){tip.hidden=true;return}tip.textContent=p.dataset.tip;tip.hidden=false;placeTip(e.clientX,e.clientY)});
 $("hcard").addEventListener("mouseleave",()=>tip.hidden=true);
 window.__hostReady=true;
-showHost(selHost&&hosts[selHost]?selHost:(cur[2]&&hosts[cur[2]]?cur[2]:hostList[0].name));
+showHost(selHost&&hosts[selHost]?selHost:(cur[2]&&hosts[cur[2]]?cur[2]:hostList[0].name)); LOOKUP_DEF.h=hName;
 
 // ---------- hover any name, on any tab, to see all their medals: playing, winning and hosting ----------
 const NAME_SEL="[data-player],[data-name],[data-hpick],tr[data-host] .hostcell,#wcard h3,#pcard h3,#hcard h3";
@@ -4686,10 +4687,18 @@ function acctBtn(){const b=$("acctbtn"); b.hidden=!ACCT.on;
   try{localStorage.setItem("rsc-acctbtn",b.innerHTML)}catch(e){} // shown straight away on the next visit while the login loads
   if(typeof renderDownloads==="function"){try{renderNewWeekNote();renderTwPast();renderDownloads()}catch(e){}}
 }
+// logged in with an approved claim: the Player, Win and Host lookups open on your own profile (once per visit, and only
+// where you haven't already picked someone or opened a link to one)
+function lookupsToMe(){try{if(LOOKUP_DEF.me||!ACCT.claim||ACCT.claim.status!=="approved")return; const n=ACCT.claim.player; LOOKUP_DEF.me=true;
+  const go=()=>{if(byName[n]&&$("pq").value.trim()===LOOKUP_DEF.p)showPlayer(n);
+    if(WR.wins[n]&&!wPicked){wPicked=true; showWinner(n); markHot()}
+    if(typeof hosts!=="undefined"&&hosts[n]&&LOOKUP_DEF.h&&hName===LOOKUP_DEF.h)showHost(n)};
+  window.navQuiet?navQuiet(go):go()}catch(e){}}
 async function acctRefresh(){
   const {data:{session}}=await ACCT.sb.auth.getSession(); ACCT.user=session?session.user:null;
   const {data:cl}=await ACCT.sb.from("claims").select("user_id,player,status,created_at"); ACCT.claims=cl||[];
   ACCT.claim=ACCT.user?ACCT.claims.find(c=>c.user_id===ACCT.user.id)||null:null;
+  lookupsToMe();
   ACCT.admin=false; if(ACCT.user){const {data:ad}=await ACCT.sb.from("admins").select("user_id").eq("user_id",ACCT.user.id); ACCT.admin=!!(ad&&ad.length)}
   ACCT.animal=null; ACCT.animals={};
   if(ACCT.user){const {data:an}=await ACCT.sb.from("player_animals").select("user_id,animal"); (an||[]).forEach(r=>{ACCT.animals[r.user_id]=r.animal; if(r.user_id===ACCT.user.id)ACCT.animal=r.animal})}
@@ -4916,6 +4925,10 @@ if(!/[?&](banner|mlpre)\b/.test(location.search)&&history.pushState){
   // where you were just before a click or change (a click handler may scroll the page straight away)
   addEventListener("click",()=>{NAV.y=scrollY},true); addEventListener("change",()=>{NAV.y=scrollY},true);
   let sct=null; addEventListener("scroll",()=>{clearTimeout(sct); sct=setTimeout(()=>{NAV.y=scrollY},150)},{passive:true});
+  // switch lookups without adding a back-button step (used when the lookups move to your own profile after logging in)
+  window.navQuiet=f=>{NAV.restoring=true; try{f()}finally{NAV.restoring=false}
+    NAV.p=$("pq").value.trim()||NAV.p; NAV.w=wName||NAV.w; NAV.h=hName||NAV.h;
+    try{const st=state(); history.replaceState({...(history.state||{}),...st},"",location.hash?hashOf(st):location.pathname+location.search)}catch(e){}};
   function commit(){
     if(NAV.pendingBack){NAV.t=setTimeout(commit,30);return}
     const st=state(), old=history.state||{}; if(old.k===st.k&&!old.dlg)return;
