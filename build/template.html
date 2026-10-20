@@ -2510,7 +2510,7 @@ function completionistSvg(path){const P=path==null?null:COMP_PATH[path]; let t=`
   if(P){t=t.replace(/stroke="#(ff9a2e|45d17a|3fa0ff)" stroke-width="3"/g,`stroke="${P[1]}" stroke-width="3"`); let k=0; t=t.replace(/fill="#(ff9a2e|45d17a|3fa0ff)"/g,()=>`fill="${P[k++]}"`)}
   return t}
 // 100% scores by the class of the challenge (its level on the scoreboard card)
-const MAST_CLASSES=[["B","Beginner","#e9a91c","#f5c84a"],["I","Intermediate","#22b862","#45d17a"],["A","Advanced","#2f7fef","#3fa0ff"],["M","Masterclass","#6c46ee","#9a7dff"],["G","God","#e8335a","#ff4d6d"]];
+const MAST_CLASSES=[["B","Beginner","#e9a91c","#f5c84a"],["I","Intermediate","#22b862","#45d17a"],["A","Advanced","#2f7fef","#3fa0ff"],["M","Masterclass","#8a4cf0","#b277ff"],["G","God","#d4202c","#ff3b3b"]];
 function masteryClassOf(l){l=String(l||"");return /^god/i.test(l)?"G":/master/i.test(l)?"M":/^adv/i.test(l)?"A":/^int/i.test(l)?"I":/begin/i.test(l)?"B":null}
 function masteryByClass(name,done){
   const out={B:[],I:[],A:[],M:[],G:[]};
@@ -2531,7 +2531,7 @@ function masteryWeeks(name,done,path=-1){
 // perfectionist (100%) medal: a glossy coin in the class colour with a white star and a light glint
 var mastN=0;
 function masterySvg(col){const id="mst"+(++mastN); let d=""; for(let i=0;i<10;i++){const a=-Math.PI/2+i*Math.PI/5, r=i%2?3.4:7.6; d+=(i?"L":"M")+(15+r*Math.cos(a)).toFixed(2)+" "+(15.6+r*Math.sin(a)).toFixed(2)}
-  return `<svg viewBox="0 0 30 30" aria-hidden="true"><defs><radialGradient id="${id}" cx=".35" cy=".28" r=".85"><stop offset="0" stop-color="#fff"/><stop offset=".45" stop-color="${col}" stop-opacity=".55"/><stop offset="1" stop-color="${col}"/></radialGradient></defs><circle cx="15" cy="15" r="12.6" fill="url(#${id})"/><circle cx="15" cy="15" r="12.6" fill="none" stroke="#fff" stroke-opacity=".55" stroke-width="1"/><path d="${d}Z" fill="#fff"/><path d="M7.6 10.4a8.6 8.6 0 0 1 5-4.4" stroke="#fff" stroke-opacity=".8" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg>`}
+  return `<svg viewBox="0 0 30 30" aria-hidden="true"><defs><radialGradient id="${id}" cx=".35" cy=".28" r=".85"><stop offset="0" stop-color="${col==="#d4202c"?"#ffd2c8":"#fff"}"/><stop offset=".45" stop-color="${col}" stop-opacity="${col==="#d4202c"?".8":".55"}"/><stop offset="1" stop-color="${col}"/></radialGradient></defs><circle cx="15" cy="15" r="12.6" fill="url(#${id})"/><circle cx="15" cy="15" r="12.6" fill="none" stroke="#fff" stroke-opacity=".55" stroke-width="1"/><path d="${d}Z" fill="#fff"/><path d="M7.6 10.4a8.6 8.6 0 0 1 5-4.4" stroke="#fff" stroke-opacity=".8" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg>`}
 function winMedals(per,done,bestN,streak,total,trip,ties,pod,rivw,unc){
   const rows=[], asc=done.slice().sort((a,b)=>a-b), rec=w=>w?` (collected Week ${w})`:"";
   const mk=(svg,num,tip)=>{const c=(svg.match(/fill="(#[0-9a-fA-F]{6})"/)||[])[1]||"#4fd6ff";return `<span class="medal-m wm" style="--ec:${c}" data-tip="${tip}">${svg}<b>${num}</b></span>`};
