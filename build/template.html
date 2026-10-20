@@ -528,7 +528,7 @@ a.dl svg,.offpill svg{width:11px;height:11px}
 .elocol li.top .nm{font-weight:800}.elocol li.top .ev{color:#ffd95e}.elocol li.inactive{opacity:.6}
 .elocol .ed{text-align:right;font-size:.75rem;font-weight:800;color:var(--muted)}.elocol .up{color:var(--s-green)}.elocol .dn{color:var(--s-red)}
 .elocol small{font-size:.72rem;color:var(--muted)}.elocol small.up{color:var(--s-green)}.elocol small.dn{color:var(--s-red)}.elonew{border:1px solid var(--line);border-radius:999px;padding:0 6px;cursor:help}
-.elohelp{cursor:help;color:var(--muted)}.elop{--pc:var(--accent);white-space:nowrap;border-color:color-mix(in srgb,var(--pc) 60%,transparent)!important;cursor:help}.elop b{color:var(--fg)}.elop small{color:var(--muted)}.elop .up{color:var(--s-green)}.elop .dn{color:var(--s-red)}
+.elohelp{cursor:help;color:var(--muted)}.pill.elop{--pc:var(--accent);white-space:nowrap!important;display:inline-flex;align-items:baseline;gap:3px;border-color:color-mix(in srgb,var(--pc) 60%,transparent)!important;cursor:help}.elop b{color:var(--fg)}.elop small{color:var(--muted)}.elop .up{color:var(--s-green)}.elop .dn{color:var(--s-red)}
 .ywl{list-style:none;margin:0;padding:0}.ywl li{padding:8px 0;border-bottom:1px solid var(--line)}
 .ywc{display:flex;align-items:baseline;gap:6px;flex-wrap:wrap}.ywc .song{color:var(--muted);font-size:.8rem}
 .yw .pt{display:inline-block;width:6px;height:6px;border-radius:50%;vertical-align:1px}
@@ -1174,6 +1174,8 @@ footer{color:var(--dim);font-size:.78rem}
 .bn .bn-st{position:relative}
 .bn .bn-hot{position:absolute;top:-7px;right:-5px;display:inline-flex;align-items:center;gap:2px;padding:2px 7px 2px 5px;border-radius:999px;font:800 13px/1 var(--f-display);color:#1a0d02;background:linear-gradient(180deg,#ffc24a,#ff7a1a);box-shadow:0 0 8px rgba(255,120,30,.55);border:1px solid #ffd27a}
 .bn .bn-hot svg{width:10px;height:13px}
+.bn .bn-elos{margin-left:auto;display:flex;flex-direction:column;gap:3px;align-self:center}
+.bn .bn-elo{font:800 11px/1 var(--f-display);color:#e9edf5;border:1px solid color-mix(in srgb,var(--pc) 55%,transparent);border-radius:999px;padding:2px 7px;white-space:nowrap}.bn .bn-elo i{font-style:normal;color:var(--pc)}.bn .bn-elo small{font:600 11px/1 var(--f-display);color:#8b93a7}
 .bn .bn-hot svg path{fill:#1a0d02}
 .bn .bn-meds{display:flex;align-items:center;gap:27px;flex:1;min-height:0;padding:0 0 4px 3px}
 .bn .bn-meds .medal-m{zoom:1.4;flex:none;position:relative;margin-right:4px;cursor:default}
@@ -4533,7 +4535,8 @@ function bannerHtml(n){
     const pl=1+act.filter(r=>r[1]>me[1]||(r[1]===me[1]&&(r[2]||0)>(me[2]||0))).length; return pl<=3?{label:k.label,pl}:null}).filter(Boolean);
   const box=document.createElement("div"); box.innerHTML=allMedalsHtml(n);
   // order: gold God diamonds, gold medals, Uncrowned (next to the gold medals), then close wins and rivalry wins
-  const ORD=[/^Gold God diamond/,/^Gold medal/,/^Uncrowned ·/,/^Close win/,/^Rivalry win/], ordOf=m=>ORD.findIndex(r=>r.test(m.getAttribute("data-tip")||""));
+  // (rivalry wins are left off the banner to make room for the Elo pills)
+  const ORD=[/^Gold God diamond/,/^Gold medal/,/^Uncrowned ·/,/^Close win/], ordOf=m=>ORD.findIndex(r=>r.test(m.getAttribute("data-tip")||""));
   const gold=[...box.querySelectorAll(".medal-m")].map((m,i)=>({m,i,o:ordOf(m)})).filter(x=>x.o>=0).sort((a,b)=>a.o-b.o||a.i-b.i).map(x=>x.m);
   const meds=gold.map(m=>{
     const tip=m.getAttribute("data-tip")||"", L=places.find(k=>tip===k.label||tip.startsWith(k.label+" ·")||tip.startsWith(k.label+" medal"));
@@ -4549,7 +4552,9 @@ function bannerHtml(n){
   // best rank highlight: #1 gold, #2 silver, #3 bronze
   return `<div class="bn"><div class="bn-top"><div class="bn-who"><div class="bn-nm">${esc(n)}</div><div class="bn-tags">${["L","R","B"].map((l,i)=>`<span class="bn-tg">${l}<b style="color:${tc(T[i])}">${tier(T[i])}</b></span>`).join("")}</div></div>
     <div class="bn-stats">${st("Weeks",p[3])}${st("Wins",winsB,hk>=2?"bn-hotbox":"")}${["Lead","Rhythm","Bass"].map(pn=>{const r=rk[pn]; return st(`${pn==="Rhythm"?"Rhy":pn} rank`,r?`#${r.r}<i>${esc(r.lv.slice(0,3))}</i>`:"–",r&&r.r<=3?"bn-r"+r.r:"")}).join("")}</div></div>
-    <div class="bn-meds">${meds.join("")}</div>${BN_STRIPE}</div>`;
+    <div class="bn-meds">${meds.join("")}${(()=>{try{eloBuild(); const k=eloKey(n), ps=[0,1,2].map(pi=>{const x=eloAt(pi,k,ELO_DONE); if(!x)return "";
+      const rk=x[2]>=ELO_MIN?eloRanks(pi,ELO_DONE)[k]:null; return `<span class="bn-elo" style="--pc:${["#ff9a2e","#45d17a","#3fa0ff"][pi]}"><i>${"LRB"[pi]}</i> ${Math.round(x[1])}<small> ${rk?"#"+rk:"new"}</small></span>`}).join("");
+      return ps?`<div class="bn-elos">${ps}</div>`:""}catch(e){return ""}})()}</div>${BN_STRIPE}</div>`;
 }
 // long names: shrink the name until it fits its column (down to 12px) instead of cutting it off
 function bnFit(root){(root||document).querySelectorAll(".bn .bn-nm").forEach(el=>{let f=22; el.style.fontSize=""; while(el.scrollWidth>el.clientWidth&&f>12){f-=.5; el.style.fontSize=f+"px"}});
