@@ -4558,7 +4558,8 @@ function ywSeen(n){try{return +localStorage.getItem(ywKey(n))||0}catch(e){return
 // every time this player was passed this week and last week, newest first
 function ywPasses(n){const k=n.toLowerCase(), out=[]; Object.entries(WEEKLOG).forEach(([w,W])=>(W.ev||[]).forEach(e=>{if(e.n.toLowerCase()===k)out.push({...e,w:+w})}));
   return out.sort((a,b)=>Date.parse(b.t)-Date.parse(a.t))}
-function ywUnseen(n){const s=ywSeen(n); return ywPasses(n).filter(e=>Date.parse(e.t)>s)}
+// only the current week: once a new week starts, last week's passes drop off on their own (no need to dismiss them)
+function ywUnseen(n){const s=ywSeen(n); return ywPasses(n).filter(e=>e.w===TW_MAX&&Date.parse(e.t)>s)}
 const ywOrd=i=>i+(["th","st","nd","rd"][(i%100-20)%10]||["th","st","nd","rd"][i%100]||"th");
 function ywAlert(n){
   if(!ACCT.ywShown)ACCT.ywShown=ywUnseen(n);   // what's new since the last visit, kept while the popup is open
