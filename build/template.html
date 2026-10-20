@@ -2895,7 +2895,9 @@ function eloAt(pi,n,w){eloBuild(); const h=ELO[pi].hist[n]; if(!h)return null; l
 function eloKey(n){eloBuild(); const k=String(n).toLowerCase(); for(const pi of [0,1,2])for(const m of Object.keys(ELO[pi].hist))if(m.toLowerCase()===k)return m; return n}
 // established ratings (20+ games) at the end of week w, best first
 function eloTable(pi,w,keep){eloBuild(); const out=[]; Object.keys(ELO[pi].hist).forEach(n=>{if(keep&&!keep(n))return; const x=eloAt(pi,n,w); if(x&&x[2]>=ELO_MIN)out.push([n,x[1],x[2]])}); return out.sort((a,b)=>b[1]-a[1])}
-function eloRanks(pi,w){const r={}; eloTable(pi,w).forEach(([n],i)=>r[n]=i+1); return r}
+// ranks among active players (as on the Winners page by default); an inactive player is ranked among everyone
+function eloRanks(pi,w,keep){const r={}; eloTable(pi,w,keep).forEach(([n],i)=>r[n]=i+1); return r}
+const eloKeep=n=>isActivePlayer(n)?isActivePlayer:null;
 const ELO_TIP="Elo ratings, like chess: every time two players post on the same challenge it counts as a game. The higher % wins; the same % goes to the longer note streak, then the higher score; the same on all three is a draw.\n\nEveryone starts at 1500. Beating a higher-rated player earns more than beating a lower-rated one, and each game moves a rating by at most 16 points. One rating per path, from every week since the scoreboards start (Week 440), in order.\n\nA rating is provisional (new) until 20 games; the rankings list players with 20 or more.";
 const eloD=d=>d?`<span class="${d>0?"up":"dn"}">${d>0?"▲":"▼"}${Math.abs(d)}</span>`:"";
 // Winners: top 10 per path (follows All / Active only), with the change over the last 10 weeks
@@ -2908,8 +2910,8 @@ function renderEloBox(){const el=$("elo-box"); if(!el)return; eloBuild(); const 
 function renderTwElo(){const el=$("tw-elo"); if(!el)return; eloBuild(); const w=twWeek, live=w===ELO_LIVE;
   if(!SB.weeks[w]){el.closest("section").hidden=true;return} el.closest("section").hidden=false;
   $("tw-elo-h").textContent=w===TW_MAX?"♟ Elo this week":`♟ Elo in Week ${w}`;
-  $("tw-elo-sub").innerHTML=`How each player's rating moved with ${live?`Week ${w}'s scores so far · provisional until the week ends`:`Week ${w}'s scores`} · rank among players with 20+ games <span class="elohelp" data-tip="${esc(ELO_TIP)}">ⓘ</span>`;
-  el.innerHTML=[0,1,2].map(pi=>{const r0=eloRanks(pi,w-1), r1=eloRanks(pi,w);
+  $("tw-elo-sub").innerHTML=`How each player's rating moved with ${live?`Week ${w}'s scores so far · provisional until the week ends`:`Week ${w}'s scores`} · rank among active players with 20+ games <span class="elohelp" data-tip="${esc(ELO_TIP)}">ⓘ</span>`;
+  el.innerHTML=[0,1,2].map(pi=>{const r0=eloRanks(pi,w-1,isActivePlayer), r1=eloRanks(pi,w,isActivePlayer);
     const rows=Object.keys(ELO[pi].hist).map(n=>{const x=eloAt(pi,n,w); if(!x||x[0]!==w)return null; const b=eloAt(pi,n,w-1); return {n,now:x[1],g:x[2],d:Math.round(x[1]-(b?b[1]:1500))}}).filter(Boolean).sort((a,b)=>b.d-a.d||b.now-a.now);
     if(!rows.length)return "";
     return `<div class="elocol" style="--pc:${PATH_C[pi]}"><h3>${PATHS[pi]}</h3><ol>${rows.map((x,i)=>{const a=r0[x.n], b=r1[x.n];
@@ -2917,8 +2919,8 @@ function renderTwElo(){const el=$("tw-elo"); if(!el)return; eloBuild(); const w=
       return `<li class="${i===0&&x.d>0?"top":""}">${twName(x.n)}${mv}<span class="ed">${x.d?eloD(x.d):"–"}</span><b class="ev">${Math.round(x.now)}</b></li>`}).join("")}</ol></div>`}).join("")||`<p class="dim">No scores yet this week.</p>`}
 // profiles: rating, rank and the change over the last 10 weeks on each path they've played
 function eloProfile(n){eloBuild(); const w=ELO_DONE, k=eloKey(n);
-  const ps=[0,1,2].map(pi=>{const x=eloAt(pi,k,w); if(!x)return ""; const rk=eloRanks(pi,w)[k], o=eloAt(pi,k,w-10), d=o?Math.round(x[1]-o[1]):0;
-    return `<span class="pill hol elop" style="--pc:${PATH_C[pi]}" data-tip="${PATHS[pi]} Elo ${Math.round(x[1])} after Week ${w} · ${x[2]} games${x[2]<ELO_MIN?` (provisional until ${ELO_MIN})`:` · #${rk} of ${eloTable(pi,w).length}`}${d?` · ${d>0?"+":""}${d} over the last 10 weeks`:""}">${PATHS[pi]} <b>${Math.round(x[1])}</b>${x[2]<ELO_MIN?` <small>new</small>`:` <small>#${rk}</small>`}${d?` ${eloD(d)}`:""}</span>`}).join("");
+  const ps=[0,1,2].map(pi=>{const x=eloAt(pi,k,w); if(!x)return ""; const kp=eloKeep(k), rk=eloRanks(pi,w,kp)[k], o=eloAt(pi,k,w-10), d=o?Math.round(x[1]-o[1]):0;
+    return `<span class="pill hol elop" style="--pc:${PATH_C[pi]}" data-tip="${PATHS[pi]} Elo ${Math.round(x[1])} after Week ${w} · ${x[2]} games${x[2]<ELO_MIN?` (provisional until ${ELO_MIN})`:` · #${rk} of ${eloTable(pi,w,kp).length} ${kp?"active players":"players (inactive, so ranked among everyone)"}`}${d?` · ${d>0?"+":""}${d} over the last 10 weeks`:""}">${PATHS[pi]} <b>${Math.round(x[1])}</b>${x[2]<ELO_MIN?` <small>new</small>`:` <small>#${rk}</small>`}${d?` ${eloD(d)}`:""}</span>`}).join("");
   return ps?`<div class="ups pcwide elorow">Elo <span class="elohelp" data-tip="${esc(ELO_TIP)}">ⓘ</span> ${ps}</div>`:""}
 // earlier weeks where this challenge's song was played on the same arrangement (any path); a God run counts once, at its last week
 function pastKey(t){return String(t||"").toLowerCase().replace(/\s+/g," ").trim()}
@@ -4553,7 +4555,7 @@ function bannerHtml(n){
   return `<div class="bn"><div class="bn-top"><div class="bn-who"><div class="bn-nm">${esc(n)}</div><div class="bn-tags">${["L","R","B"].map((l,i)=>`<span class="bn-tg">${l}<b style="color:${tc(T[i])}">${tier(T[i])}</b></span>`).join("")}</div></div>
     <div class="bn-stats">${st("Weeks",p[3])}${st("Wins",winsB,hk>=2?"bn-hotbox":"")}${["Lead","Rhythm","Bass"].map(pn=>{const r=rk[pn]; return st(`${pn==="Rhythm"?"Rhy":pn} rank`,r?`#${r.r}<i>${esc(r.lv.slice(0,3))}</i>`:"–",r&&r.r<=3?"bn-r"+r.r:"")}).join("")}</div></div>
     <div class="bn-meds">${meds.join("")}${(()=>{try{eloBuild(); const k=eloKey(n), ps=[0,1,2].map(pi=>{const x=eloAt(pi,k,ELO_DONE); if(!x)return "";
-      const rk=x[2]>=ELO_MIN?eloRanks(pi,ELO_DONE)[k]:null; return `<span class="bn-elo" style="--pc:${["#ff9a2e","#45d17a","#3fa0ff"][pi]}"><i>${"LRB"[pi]}</i> ${Math.round(x[1])}<small> ${rk?"#"+rk:"new"}</small></span>`}).join("");
+      const rk=x[2]>=ELO_MIN?eloRanks(pi,ELO_DONE,eloKeep(k))[k]:null; return `<span class="bn-elo" style="--pc:${["#ff9a2e","#45d17a","#3fa0ff"][pi]}"><i>${"LRB"[pi]}</i> ${Math.round(x[1])}<small> ${rk?"#"+rk:"new"}</small></span>`}).join("");
       return ps?`<div class="bn-elos">${ps}</div>`:""}catch(e){return ""}})()}</div>${BN_STRIPE}</div>`;
 }
 // long names: shrink the name until it fits its column (down to 12px) instead of cutting it off
