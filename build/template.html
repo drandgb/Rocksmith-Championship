@@ -2985,48 +2985,34 @@ function eloProfile(n){eloBuild(); const w=ELO_DONE, k=eloKey(n), kp=eloKeep(k);
     const r=x[2]<ELO_MIN?`<small data-tip="Provisional: ${x[2]} of ${ELO_MIN} games">new</small>`:rk?`<small data-tip="#${rk} of ${tot} ${kp?"active players":"players (inactive, so ranked among everyone)"} · ${x[2]} games">#${rk}</small>`:"";
     return `<li class="${t.trim()}" style="--pc:${PATH_C[pi]}"><span class="nwp">${PATHS[pi]}</span><b class="nwv">${Math.round(x[1])}</b><span class="nwd" data-tip="Change over the last 10 weeks">${d?eloD(d):"–"}</span><span class="nwr">${r}</span></li>`}).join("");
   return rows?`<div class="pcwide nwelo pelo"><div class="nwelo-h">Elo after Week ${w} <span class="elohelp" data-tip="${esc(ELO_TIP)}">ⓘ</span> <span class="pelo-sub">▲▼ last 10 weeks</span></div><ul>${rows}</ul></div>`:""}
-// ---------- hardest rating you can 90% ----------
-// Each score is compared with what a typical player scores on a song of that rating (per path; the curve is worked out
-// from how the same players score as the rating goes up). A player's level over the last 6 (or 3) months becomes the song
-// rating where they'd be expected to score 90%, so choosing harder songs never counts against anyone.
-var HR=null, HR_TH=90, HR_CAP=1;   // never more than 1 above the hardest song actually played in the window
-const HR_TIP="The song rating where you'd be expected to score 90%, worked out from your last 6 months of scores. Each score is compared with what a typical player gets on a song of that rating, so playing harder songs never counts against you. It never goes more than 1 above the hardest song you played in that time.";
-function hrBuild(){if(HR)return HR; const E=[], w1=ELO_DONE;
+// ---------- hardest rating you score 95% on ----------
+// For each week: the second-best song rating a player scored 95% or more on over the last 6 months, on each path
+// (second-best, so one lucky week doesn't count). Straight from the scores, no estimating; it climbs as players start
+// scoring 95% on harder songs, which is what earns rank-ups. Points start 6 months into the data so the window is full.
+var HR=null;
+const HR_TIP="Your second-best song rating with a 95% or better score in the last 6 months (second-best, so one lucky week doesn't count). It goes up when you start scoring 95% on harder songs.";
+function hrBuild(){if(HR)return HR; const by={}, w1=ELO_DONE; let w0=1e9;
   Object.keys(SB.weeks).map(Number).sort((a,b)=>a-b).forEach(w=>{if(w>w1)return; (SB.weeks[w]||[]).forEach(c=>{const r=+c[4]; if(c[7]||c[4]==null||c[4]===""||isNaN(r))return;
-    c[6].forEach(e=>{if(e[1]==null||isNaN(+e[1]))return; const n=pvName(e); E.push({k:n.toLowerCase()+"|"+c[0],w,p:c[0],pc:+e[1],b:c[0]+"|"+Math.round(r*2)/2,r})})})});
-  const sk={}, f={}, C={}; E.forEach(x=>{sk[x.k]=0; f[x.b]=90; C[x.b]=(C[x.b]||0)+1});
-  const avg=(key,val,o)=>{const a={}; E.forEach(x=>{const k=key(x), q=a[k]||(a[k]=[0,0]); q[0]+=val(x); q[1]++}); for(const k in a)o[k]=a[k][0]/a[k][1]};
-  for(let i=0;i<30;i++){avg(x=>x.k,x=>x.pc-f[x.b],sk); avg(x=>x.b,x=>x.pc-sk[x.k],f)}
-  {const ks=Object.keys(sk), m=ks.reduce((a,k)=>a+sk[k],0)/(ks.length||1); ks.forEach(k=>sk[k]-=m); avg(x=>x.b,x=>x.pc-sk[x.k],f)}
-  const curve=[0,1,2].map(pi=>{const pts=[]; for(let r=2;r<=10;r++){let s=0,n=0; for(const b in f){const q=b.split("|").map(Number); if(q[0]===pi&&Math.round(q[1])===r){s+=f[b]*C[b]; n+=C[b]}} if(n>=30)pts.push([r,s/n])}
-    for(let i=1;i<pts.length;i++)pts[i][1]=Math.min(pts[i][1],pts[i-1][1]-.05);   // harder never scores higher
-    const seg=(a,b,r)=>a[1]+(r-a[0])*(b[1]-a[1])/(b[0]-a[0]);
-    return r=>{if(pts.length<2)return 90; if(r<=pts[0][0])return seg(pts[0],pts[1],r); for(let i=1;i<pts.length;i++)if(r<=pts[i][0])return seg(pts[i-1],pts[i],r); return seg(pts[pts.length-2],pts[pts.length-1],r)}});
-  E.forEach(x=>x.lv=x.pc-curve[x.p](x.r));
-  const by={}; E.forEach(x=>(by[x.k]=by[x.k]||[]).push(x));
-  HR={E,curve,by,w0:E.reduce((m,x)=>Math.min(m,x.w),1e9),w1,pool:{},ser:{}}; return HR}
-function hrStar(pi,lv){const c=hrBuild().curve[pi]; if(c(0)+lv<HR_TH)return 0; if(c(12)+lv>=HR_TH)return 12; let lo=0,hi=12; for(let i=0;i<30;i++){const m=(lo+hi)/2; if(c(m)+lv>=HR_TH)lo=m; else hi=m} return lo}
-// one player's weekly series on a path: [week, rating] over a rolling window; null where they have too few scores (a gap)
-function hrSeries(n,pi,win){const H=hrBuild(), key=String(n).toLowerCase()+"|"+pi+"|"+win; if(H.ser[key])return H.ser[key];
-  const xs=H.by[String(n).toLowerCase()+"|"+pi]||[], out=[]; if(xs.length){const mn=win<20?4:6; let a=0,b=0,s=0;
-    for(let w=xs[0].w;w<=H.w1;w++){while(b<xs.length&&xs[b].w<=w){s+=xs[b].lv;b++} while(a<b&&xs[a].w<=w-win){s-=xs[a].lv;a++}
-      let mr=0; for(let i=a;i<b;i++)mr=Math.max(mr,xs[i].r); out.push(b-a>=mn?[w,Math.min(hrStar(pi,s/(b-a)),mr+HR_CAP)]:[w,null])}}
+    c[6].forEach(e=>{if(e[1]==null||isNaN(+e[1]))return; const k=pvName(e).toLowerCase()+"|"+c[0]; (by[k]=by[k]||[]).push({w,r,pc:+e[1]}); if(w<w0)w0=w})})});
+  HR={by,w0,w1,pool:{},ser:{}}; return HR}
+function hrSeries(n,pi){const H=hrBuild(), key=String(n).toLowerCase()+"|"+pi; if(H.ser[key])return H.ser[key];
+  const xs=H.by[key]||[], out=[]; if(xs.length){let a=0,b=0;
+    for(let w=Math.max(xs[0].w,H.w0+25);w<=H.w1;w++){while(b<xs.length&&xs[b].w<=w)b++; while(a<b&&xs[a].w<=w-26)a++;
+      let r1=-1,r2=-1; for(let i=a;i<b;i++)if(xs[i].pc>=95){const r=xs[i].r; if(r>r1){r2=r1;r1=r}else if(r>r2)r2=r} out.push([w,r2>=0?r2:null])}}
   while(out.length&&out[out.length-1][1]==null)out.pop(); while(out.length&&out[0][1]==null)out.shift();
   return H.ser[key]=out}
 // the typical (median) player on a path, every 2 weeks, for the dotted reference lines
-function hrPool(pi,win){const H=hrBuild(), key=pi+"|"+win; if(H.pool[key])return H.pool[key];
-  const xs=H.E.filter(x=>x.p===pi), mn=win<20?3:4, out=[], sum={}; let a=0,b=0;
-  for(let w=H.w0+win-1;w<=H.w1;w++){while(b<xs.length&&xs[b].w<=w){const q=sum[xs[b].k]||(sum[xs[b].k]=[0,0,[]]); q[0]+=xs[b].lv; q[1]++; q[2].push(xs[b].r); b++}
-    while(a<b&&xs[a].w<=w-win){const q=sum[xs[a].k]; q[0]-=xs[a].lv; q[1]--; q[2].shift(); a++}
-    if((w-H.w0)%2)continue; const v=Object.values(sum).filter(q=>q[1]>=mn).map(q=>Math.min(hrStar(pi,q[0]/q[1]),Math.max(...q[2])+HR_CAP)).sort((x,y)=>x-y); if(v.length>=5)out.push([w,v[v.length>>1]])}
-  return H.pool[key]=out}
+function hrPool(pi){const H=hrBuild(); if(H.pool[pi])return H.pool[pi];
+  const ss=Object.keys(H.by).filter(k=>k.endsWith("|"+pi)).map(k=>{const m={}; hrSeries(k.slice(0,k.lastIndexOf("|")),pi).forEach(e=>{if(e[1]!=null)m[e[0]]=e[1]}); return m}), out=[];
+  for(let w=H.w0+25;w<=H.w1;w+=2){const v=ss.map(m=>m[w]).filter(v=>v!=null).sort((a,b)=>a-b); if(v.length>=5)out.push([w,v[v.length>>1]])}
+  return H.pool[pi]=out}
 function hrAt(s,w){let v=null; for(const e of s){if(e[0]>w)break; if(e[1]!=null)v=e[1]} return v}
 // profile rows: the rating now (6-month window), the change over a year and the typical player on that path
 function hrProfile(n){const H=hrBuild(), w1=H.w1;
   const rows=[0,1,2].map(pi=>{const s=hrSeries(n,pi,26); if(!s.length)return ""; const last=s.filter(e=>e[1]!=null).pop(), now=last[1], old=last[0]>w1-52?hrAt(s,last[0]-52):null, d=old==null?null:now-old, typ=hrAt(hrPool(pi,26),last[0]);
     const dd=d==null?`<small data-tip="Less than a year of scores on this path">new</small>`:Math.abs(d)<.05?"–":`<span class="${d>0?"up":"dn"}">${d>0?"▲":"▼"}${Math.abs(d).toFixed(1)}</span>`;
     return `<li style="--pc:${PATH_C[pi]}"><span class="nwp">${PATHS[pi]}</span><b class="nwv">${now.toFixed(1)}</b><span class="nwd" data-tip="Change over the last year">${dd}</span><span class="nwr"><small data-tip="The typical ${PATHS[pi]} player${last[0]<w1?` in Week ${last[0]}, your last week with enough scores`:""}">${last[0]<w1?`Week ${last[0]} · `:""}typical ${typ!=null?typ.toFixed(1):"–"}</small></span></li>`}).join("");
-  return rows?`<div class="pcwide nwelo pelo hrrows"><div class="nwelo-h">Hardest rating you can 90% <span class="elohelp" data-tip="${esc(HR_TIP)}">ⓘ</span> <span class="pelo-sub">▲▼ last year</span></div><ul>${rows}</ul></div>`:""}
+  return rows?`<div class="pcwide nwelo pelo hrrows"><div class="nwelo-h">Hardest rating you score 95% on <span class="elohelp" data-tip="${esc(HR_TIP)}">ⓘ</span> <span class="pelo-sub">▲▼ last year</span></div><ul>${rows}</ul></div>`:""}
 function hrChart(n,opt){opt=opt||{}; const H=hrBuild(), w1=H.w1, win=+opt.win||26, rng=opt.r||"all", hid=opt.h||"";
   const all=[0,1,2].map(pi=>hrSeries(n,pi,win)); if(!all.some(s=>s.length))return "";
   const first=Math.min(...all.filter(s=>s.length).map(s=>s[0][0])), w0=Math.min(w1-1,rng==="1y"?Math.max(first,w1-52):first);
@@ -3040,11 +3026,16 @@ function hrChart(n,opt){opt=opt||{}; const H=hrBuild(), w1=H.w1, win=+opt.win||2
   const pts=s=>s.map(e=>X(e[0]).toFixed(1)+","+Y(e[1]).toFixed(1)).join(" ");
   const pl=pools.map(([pi,s])=>s.length?`<polyline fill="none" stroke="${ELO_C[pi]}" stroke-width="1.3" stroke-opacity=".45" stroke-dasharray="3 3" points="${pts(s)}"/>`:"").join("");
   const ln=ser.map(([pi,s])=>{const sg=segs(s), l=sg.length?sg[sg.length-1]:null; return sg.map(q=>q.length>1?`<polyline fill="none" stroke="${ELO_C[pi]}" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round" points="${pts(q)}"/>`:`<circle cx="${X(q[0][0]).toFixed(1)}" cy="${Y(q[0][1]).toFixed(1)}" r="2" fill="${ELO_C[pi]}"/>`).join("")+(l?`<circle cx="${X(l[l.length-1][0]).toFixed(1)}" cy="${Y(l[l.length-1][1]).toFixed(1)}" r="3.5" fill="${ELO_C[pi]}"/>`:"")}).join("");
+  // rank changes, as on the Elo chart: a dashed line and a pill at the top (B→I)
+  let rk=""; const rows=[]; (WR.ups||[]).filter(u=>String(u[0]).toLowerCase()===String(n).toLowerCase()&&u[4]>=w0&&u[4]<=w1&&shown.includes(u[1])).sort((a,b)=>a[4]-b[4]||a[1]-b[1]).forEach(u=>{
+    const xx=X(u[4]), c=ELO_C[u[1]], row=rows.findIndex(r=>xx-r>=32), ri=row<0?Math.min(rows.length,2):row; rows[ri]=xx; const py=T+ri*15, v=hrAt(all[u[1]],u[4]);
+    g+=`<line x1="${xx.toFixed(1)}" x2="${xx.toFixed(1)}" y1="${py+13}" y2="${H2-B}" stroke="${c}" stroke-opacity=".55" stroke-dasharray="3 3"/>`;
+    rk+=`<rect x="${(xx-15).toFixed(1)}" y="${py}" width="30" height="13" rx="6.5" fill="${c}"/><text x="${xx.toFixed(1)}" y="${py+9.5}" text-anchor="middle" font-size="9" font-weight="800" fill="#0d0f14">${u[2]}→${u[3]}</text>`+(v!=null?`<circle cx="${xx.toFixed(1)}" cy="${Y(v).toFixed(1)}" r="4" fill="#0d0f14" stroke="${c}" stroke-width="2"/>`:"")});
   const leg=[0,1,2].filter(pi=>all[pi].length).map(pi=>`<button type="button" class="echp${hid.includes("LRB"[pi])?" off":""}" data-hr-p="${"LRB"[pi]}" style="--pc:${ELO_C[pi]}" title="Show or hide ${PATHS[pi]}">${PATHS[pi]}</button>`).join("");
   const rb=[["all","All"],["1y","Last year"]].map(([v,t])=>`<button type="button" class="echr${rng===v?" on":""}" data-hr-r="${v}">${t}</button>`).join("");
   return `<div class="elochart hrchart" data-n="${esc(n)}" data-r="${rng}" data-h="${hid}" data-win="${win}" data-w0="${w0}" data-w1="${w1}"><div class="echhead"><h4>Hardest rating over time</h4><span class="echleg">${leg}</span><span class="echrs">${rb}</span></div>
-    <svg viewBox="0 0 ${W} ${H2}" preserveAspectRatio="none" data-hr="1">${g}${pl}${ln}<line class="echx" x1="0" x2="0" y1="${T}" y2="${H2-B}" stroke="#8b93a7" stroke-width="1" opacity="0"/></svg>
-    <p class="echnote">The song rating where you'd be expected to score 90%, from your last 6 months of scores (at most 1 above the hardest song you played then) · dotted: the typical player on each path · hover or tap the chart for a week</p></div>`}
+    <svg viewBox="0 0 ${W} ${H2}" preserveAspectRatio="none" data-hr="1">${g}${pl}${ln}${rk}<line class="echx" x1="0" x2="0" y1="${T}" y2="${H2-B}" stroke="#8b93a7" stroke-width="1" opacity="0"/></svg>
+    <p class="echnote">Your second-best song rating with a 95%+ score in the last 6 months · coloured pill: rank change · dotted: the typical player on each path · hover or tap the chart for a week</p></div>`}
 document.addEventListener("click",e=>{const b=e.target.closest(".hrchart [data-hr-p],.hrchart [data-hr-r]"); if(!b)return; e.stopPropagation();
   const c=b.closest(".hrchart"); let r=c.dataset.r, h=c.dataset.h, win=c.dataset.win;
   if(b.dataset.hrR)r=b.dataset.hrR; else {const p=b.dataset.hrP; h=h.includes(p)?h.replace(p,""):h+p; if(h.length>=3)h=""}
