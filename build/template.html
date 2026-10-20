@@ -529,6 +529,9 @@ a.dl svg,.offpill svg{width:11px;height:11px}
 .elocol .ed{text-align:right;font-size:.75rem;font-weight:800;color:var(--muted)}.elocol .up{color:var(--s-green)}.elocol .dn{color:var(--s-red)}
 .elocol small{font-size:.72rem;color:var(--muted)}.elocol small.up{color:var(--s-green)}.elocol small.dn{color:var(--s-red)}.elonew{border:1px solid var(--line);border-radius:999px;padding:0 6px;cursor:help}
 .elohelp{cursor:help;color:var(--muted)}.pill.elop{--pc:var(--accent);white-space:nowrap!important;display:inline-flex;align-items:baseline;gap:3px;border-color:color-mix(in srgb,var(--pc) 60%,transparent)!important;cursor:help}.elop b{color:var(--fg)}.elop small{color:var(--muted)}.elop .up{color:var(--s-green)}.elop .dn{color:var(--s-red)}
+.pill.elop.elo-t1,.elocol li.elo-t1 .er{--m:#f5c542}.pill.elop.elo-t2,.elocol li.elo-t2 .er{--m:#c9d0dc}.pill.elop.elo-t3,.elocol li.elo-t3 .er{--m:#d8925a}
+.pill.elop.elo-t1,.pill.elop.elo-t2,.pill.elop.elo-t3{border-color:var(--m)!important;background:color-mix(in srgb,var(--m) 14%,var(--panel2));box-shadow:0 0 8px color-mix(in srgb,var(--m) 40%,transparent)}.pill.elop.elo-t1 small,.pill.elop.elo-t2 small,.pill.elop.elo-t3 small{color:var(--m);font-weight:800}
+.elocol li.elo-t1 .er,.elocol li.elo-t2 .er,.elocol li.elo-t3 .er{display:inline-grid;place-items:center;width:18px;height:18px;border-radius:50%;background:var(--m);color:#1a1205;font:800 .7rem var(--f-display)}
 .ywl{list-style:none;margin:0;padding:0}.ywl li{padding:8px 0;border-bottom:1px solid var(--line)}
 .ywc{display:flex;align-items:baseline;gap:6px;flex-wrap:wrap}.ywc .song{color:var(--muted);font-size:.8rem}
 .yw .pt{display:inline-block;width:6px;height:6px;border-radius:50%;vertical-align:1px}
@@ -1175,7 +1178,7 @@ footer{color:var(--dim);font-size:.78rem}
 .bn .bn-hot{position:absolute;top:-7px;right:-5px;display:inline-flex;align-items:center;gap:2px;padding:2px 7px 2px 5px;border-radius:999px;font:800 13px/1 var(--f-display);color:#1a0d02;background:linear-gradient(180deg,#ffc24a,#ff7a1a);box-shadow:0 0 8px rgba(255,120,30,.55);border:1px solid #ffd27a}
 .bn .bn-hot svg{width:10px;height:13px}
 .bn .bn-elos{margin-left:auto;display:flex;flex-direction:column;gap:3px;align-self:center}
-.bn .bn-elo{font:800 11px/1 var(--f-display);color:#e9edf5;border:1px solid color-mix(in srgb,var(--pc) 55%,transparent);border-radius:999px;padding:2px 7px;white-space:nowrap}.bn .bn-elo i{font-style:normal;color:var(--pc)}.bn .bn-elo small{font:600 11px/1 var(--f-display);color:#8b93a7}
+.bn .bn-elo{font:800 11px/1 var(--f-display);color:#e9edf5;border:1px solid color-mix(in srgb,var(--pc) 55%,transparent);border-radius:999px;padding:2px 7px;white-space:nowrap}.bn .bn-elo i{font-style:normal;color:var(--pc)}.bn .bn-elo.bn-e1{border-color:#f5c542;background:linear-gradient(180deg,rgba(245,197,66,.18),rgba(245,197,66,.05));box-shadow:0 0 8px rgba(245,197,66,.4)}.bn .bn-elo.bn-e1 small{color:#ffd95e}.bn .bn-elo.bn-e2{border-color:#b9c2d0;background:linear-gradient(180deg,rgba(201,208,220,.12),rgba(201,208,220,.03))}.bn .bn-elo.bn-e2 small{color:#e3e8f0}.bn .bn-elo.bn-e3{border-color:#c98a4b;background:linear-gradient(180deg,rgba(205,127,50,.14),rgba(205,127,50,.03))}.bn .bn-elo.bn-e3 small{color:#e0a46a}.bn .bn-elo small{font:600 11px/1 var(--f-display);color:#8b93a7}
 .bn .bn-hot svg path{fill:#1a0d02}
 .bn .bn-meds{display:flex;align-items:center;gap:27px;flex:1;min-height:0;padding:0 0 4px 3px}
 .bn .bn-meds .medal-m{zoom:1.4;flex:none;position:relative;margin-right:4px;cursor:default}
@@ -2905,7 +2908,7 @@ function renderEloBox(){const el=$("elo-box"); if(!el)return; eloBuild(); const 
   $("elo-sub").innerHTML=`Head-to-head on the same challenge, like chess · after Week ${w} · ▲▼ last 10 weeks <span class="elohelp" data-tip="${esc(ELO_TIP)}">ⓘ</span>`;
   el.innerHTML=[0,1,2].map(pi=>{const rows=eloTable(pi,w,n=>!activeOnly||isActivePlayer(n)).slice(0,10);
     return `<div class="elocol" style="--pc:${PATH_C[pi]}"><h3>${PATHS[pi]}</h3><ol>${rows.map(([n,v,g],i)=>{const o=eloAt(pi,n,w-10), d=o?Math.round(v-o[1]):null;
-      return `<li class="${i===0?"top":""}${!isActivePlayer(n)?" inactive":""}"><span class="er">${i+1}</span><span class="nm" data-player="${esc(n)}">${esc(n)}</span><span class="ed">${d==null?"":eloD(d)}</span><b class="ev" data-tip="${g} games">${Math.round(v)}</b></li>`}).join("")||`<li class="dim">No ratings yet</li>`}</ol></div>`}).join("")}
+      return `<li class="${i===0?"top":""}${i<3?" elo-t"+(i+1):""}${!isActivePlayer(n)?" inactive":""}"><span class="er">${i+1}</span><span class="nm" data-player="${esc(n)}">${esc(n)}</span><span class="ed">${d==null?"":eloD(d)}</span><b class="ev" data-tip="${g} games">${Math.round(v)}</b></li>`}).join("")||`<li class="dim">No ratings yet</li>`}</ol></div>`}).join("")}
 // This Week: how ratings moved with the week's scores (provisional while the week runs)
 function renderTwElo(){const el=$("tw-elo"); if(!el)return; eloBuild(); const w=twWeek, live=w===ELO_LIVE;
   if(!SB.weeks[w]){el.closest("section").hidden=true;return} el.closest("section").hidden=false;
@@ -2920,7 +2923,7 @@ function renderTwElo(){const el=$("tw-elo"); if(!el)return; eloBuild(); const w=
 // profiles: rating, rank and the change over the last 10 weeks on each path they've played
 function eloProfile(n){eloBuild(); const w=ELO_DONE, k=eloKey(n);
   const ps=[0,1,2].map(pi=>{const x=eloAt(pi,k,w); if(!x)return ""; const kp=eloKeep(k), rk=eloRanks(pi,w,kp)[k], o=eloAt(pi,k,w-10), d=o?Math.round(x[1]-o[1]):0;
-    return `<span class="pill hol elop" style="--pc:${PATH_C[pi]}" data-tip="${PATHS[pi]} Elo ${Math.round(x[1])} after Week ${w} · ${x[2]} games${x[2]<ELO_MIN?` (provisional until ${ELO_MIN})`:` · #${rk} of ${eloTable(pi,w,kp).length} ${kp?"active players":"players (inactive, so ranked among everyone)"}`}${d?` · ${d>0?"+":""}${d} over the last 10 weeks`:""}">${PATHS[pi]} <b>${Math.round(x[1])}</b>${x[2]<ELO_MIN?` <small>new</small>`:` <small>#${rk}</small>`}${d?` ${eloD(d)}`:""}</span>`}).join("");
+    return `<span class="pill hol elop${x[2]>=ELO_MIN&&rk&&rk<=3?" elo-t"+rk:""}" style="--pc:${PATH_C[pi]}" data-tip="${PATHS[pi]} Elo ${Math.round(x[1])} after Week ${w} · ${x[2]} games${x[2]<ELO_MIN?` (provisional until ${ELO_MIN})`:` · #${rk} of ${eloTable(pi,w,kp).length} ${kp?"active players":"players (inactive, so ranked among everyone)"}`}${d?` · ${d>0?"+":""}${d} over the last 10 weeks`:""}">${PATHS[pi]} <b>${Math.round(x[1])}</b>${x[2]<ELO_MIN?` <small>new</small>`:` <small>#${rk}</small>`}${d?` ${eloD(d)}`:""}</span>`}).join("");
   return ps?`<div class="ups pcwide elorow">Elo <span class="elohelp" data-tip="${esc(ELO_TIP)}">ⓘ</span> ${ps}</div>`:""}
 // earlier weeks where this challenge's song was played on the same arrangement (any path); a God run counts once, at its last week
 function pastKey(t){return String(t||"").toLowerCase().replace(/\s+/g," ").trim()}
@@ -4555,7 +4558,7 @@ function bannerHtml(n){
   return `<div class="bn"><div class="bn-top"><div class="bn-who"><div class="bn-nm">${esc(n)}</div><div class="bn-tags">${["L","R","B"].map((l,i)=>`<span class="bn-tg">${l}<b style="color:${tc(T[i])}">${tier(T[i])}</b></span>`).join("")}</div></div>
     <div class="bn-stats">${st("Weeks",p[3])}${st("Wins",winsB,hk>=2?"bn-hotbox":"")}${["Lead","Rhythm","Bass"].map(pn=>{const r=rk[pn]; return st(`${pn==="Rhythm"?"Rhy":pn} rank`,r?`#${r.r}<i>${esc(r.lv.slice(0,3))}</i>`:"–",r&&r.r<=3?"bn-r"+r.r:"")}).join("")}</div></div>
     <div class="bn-meds">${meds.join("")}${(()=>{try{eloBuild(); const k=eloKey(n), ps=[0,1,2].map(pi=>{const x=eloAt(pi,k,ELO_DONE); if(!x)return "";
-      const rk=x[2]>=ELO_MIN?eloRanks(pi,ELO_DONE,eloKeep(k))[k]:null; return `<span class="bn-elo" style="--pc:${["#ff9a2e","#45d17a","#3fa0ff"][pi]}"><i>${"LRB"[pi]}</i> ${Math.round(x[1])}<small> ${rk?"#"+rk:"new"}</small></span>`}).join("");
+      const rk=x[2]>=ELO_MIN?eloRanks(pi,ELO_DONE,eloKeep(k))[k]:null; return `<span class="bn-elo${rk&&rk<=3?" bn-e"+rk:""}" style="--pc:${["#ff9a2e","#45d17a","#3fa0ff"][pi]}"><i>${"LRB"[pi]}</i> ${Math.round(x[1])}<small> ${rk?"#"+rk:"new"}</small></span>`}).join("");
       return ps?`<div class="bn-elos">${ps}</div>`:""}catch(e){return ""}})()}</div>${BN_STRIPE}</div>`;
 }
 // long names: shrink the name until it fits its column (down to 12px) instead of cutting it off
