@@ -437,7 +437,19 @@ a.dl svg,.offpill svg{width:11px;height:11px}
 .acctclose{margin-top:12px}
 .acctdlg{width:min(980px,calc(100vw - 24px))}
 .acctdlg .acctsec{margin-top:16px;border-top:1px solid var(--line);padding-top:12px}
-.mlgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,210px),1fr));gap:8px;align-items:stretch}   /* cards in a row share a height */
+.mlgrid{display:block}
+/* medal leaders: one tile per medal, all the same shape; contested medals (a shared lead) in their own row below */
+.mlt-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,190px),1fr));gap:10px}
+.mlt{display:flex;flex-direction:column;align-items:center;text-align:center;gap:4px;padding:16px 10px 12px;border:1px solid var(--line);border-radius:14px;background:radial-gradient(120% 80% at 50% 0%,color-mix(in srgb,var(--accent) 9%,transparent),transparent 60%),var(--panel2);min-height:168px;min-width:0;cursor:help}
+.mlt>.medal-m{margin:4px 0 6px!important;transform:scale(1.35);transform-origin:center;flex:none}
+.mlt>.medal-m.tro{width:52px!important;height:30px;transform:scale(1.15)}.mlt>.medal-m.tro svg{width:52px!important;height:auto}
+.mlt-lab{font:800 .66rem var(--f-display);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);min-height:2.4em;display:flex;align-items:center;justify-content:center;margin-top:4px}
+.mlt-who{display:flex;flex-direction:column;align-items:center;max-width:100%}
+.mlt-who .nm{font-weight:700;font-size:.98rem;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer;line-height:1.35}
+.mlt-who .nm:hover{color:var(--accent)}
+.mlt.con .mlt-who .nm{font-size:.9rem}
+.mlt-v{font:800 1.15rem var(--f-display);margin-top:auto;padding-top:4px}.mlt-v small{font:600 .7rem var(--f-body);color:var(--muted);margin-left:2px}
+.mlt-h{margin:16px 0 8px;font:800 .72rem var(--f-display);letter-spacing:.12em;text-transform:uppercase;color:var(--accent)}.mlt-h small{font:400 .75rem var(--f-body);letter-spacing:0;text-transform:none;color:var(--muted);margin-left:6px}
 .mlcard>.medal-m.tro{width:52px!important;height:30px;align-items:center;margin:0!important} /* the row of trophies, scaled down to fit */
 .mlcard>.medal-m.tro svg{width:52px!important;height:auto}
 .mlcard{display:flex;align-items:flex-start;gap:12px;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:8px 12px;min-width:0;cursor:help}
@@ -3578,9 +3590,12 @@ function mlRender(kind){const acc=ML[kind].acc, link=kind==="win"?"data-gowin":k
     const first=out.filter(r=>r.place===1), rest=out.filter(r=>r.place>1);
     const desc=ML_DESC[key]||ML_DESC[k.label]||what;
     const tipT=k.label+(desc?" · "+desc:"")+(mlFromSb(kind,key)?"\n"+mlSbNote():"")+(rest.length?"\n\n"+rest.map(r=>`${r.place}. ${r.n} · ${mlVal(r,k)}`).join("\n"):"");
-    // just the medal and its leader(s); the medal's name and the runners-up are in the hover text
-    return `<div class="mlcard" data-tip="${esc(tipT)}">${reIds(ic.outerHTML)}<ol>${first.map(r=>`<li><span class="nm" ${link}="${esc(r.n)}">${esc(r.n)}</span><span class="mlv">${mlVal(r,k)}</span></li>`).join("")}</ol></div>`});
-  $("ml-"+kind+"-g").innerHTML=cards.join("")||`<p class="dimtxt">No medals yet.</p>`;
+    // a tile: the medal, its name, the leader (or everyone tied for the lead) and the count; runners-up in the hover text
+    const v=String(mlVal(first[0],k)), vm=v.match(/^([\d,.]+)\s*(.*)$/), vh=vm?`${vm[1]}<small>${vm[2]}</small>`:v;
+    return {con:first.length>1, h:`<div class="mlt${first.length>1?" con":""}" data-tip="${esc(tipT)}">${reIds(ic.outerHTML)}<div class="mlt-lab">${esc(k.label)}</div><div class="mlt-who">${first.map(r=>`<span class="nm" ${link}="${esc(r.n)}">${esc(r.n)}</span>`).join("")}</div><div class="mlt-v">${vh}</div></div>`}}).filter(Boolean);
+  // sole leaders first, then the medals where two or more players share the lead
+  const solo=cards.filter(c=>!c.con), con=cards.filter(c=>c.con);
+  $("ml-"+kind+"-g").innerHTML=cards.length?(solo.length?`<div class="mlt-grid">${solo.map(c=>c.h).join("")}</div>`:"")+(con.length?`<div class="mlt-h">Contested <small>tied for the lead</small></div><div class="mlt-grid">${con.map(c=>c.h).join("")}</div>`:""):`<p class="dimtxt">No medals yet.</p>`;
   document.querySelectorAll(".plead[data-n]").forEach(el=>{el.innerHTML=plLeads(el.dataset.n)}); // profiles waiting on the count
   const ap=document.getElementById("acct-lead"); if(ap){ap.innerHTML=plLeads(ap.dataset.n); ap.closest(".acctlead").hidden=!ap.innerHTML}}
 // a player's profile: every kind of medal (player, win or host) where nobody has more
