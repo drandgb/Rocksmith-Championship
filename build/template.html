@@ -2945,8 +2945,12 @@ function eloChart(n,opt){opt=opt||{}; eloBuild(); const k=eloKey(n), w1=ELO_DONE
   const W=660,H=210,L=40,R=12,T=10,B=22, X=w=>L+(w-w0)/(w1-w0||1)*(W-L-R), Y=v=>T+(hi-v)/(hi-lo||1)*(H-T-B);
   let g=""; const step=hi-lo>800?200:100;
   for(let v=lo;v<=hi;v+=step)g+=`<line x1="${L}" x2="${W-R}" y1="${Y(v)}" y2="${Y(v)}" stroke="${v===1500?"#3a4255":"#232a38"}"${v===1500?' stroke-dasharray="4 4"':""}/><text x="${L-6}" y="${Y(v)+4}" text-anchor="end" font-size="10" fill="#8b93a7">${v}</text>`;
-  let ly=null; for(let w=w0;w<=w1;w++){const y=yearOfWeek(w); if(y!==ly){if(ly!=null||w===w0)g+=`<line x1="${X(w)}" x2="${X(w)}" y1="${T}" y2="${H-B}" stroke="#1d2330"/><text x="${X(w)+3}" y="${H-6}" font-size="10" fill="#8b93a7">${y}</text>`; ly=y}}
-  (WR.ups||[]).filter(u=>String(u[0]).toLowerCase()===k.toLowerCase()&&u[4]>=w0&&u[4]<=w1&&!hid.includes("LRB"[u[1]])).forEach(u=>{const x=all[u[1]].filter(e=>e[0]<=u[4]).pop(); const yv=!x?0:!only?x[1]:(()=>{const v=[0,1,2,3].map(d=>{const q=all[u[1]].filter(e=>e[0]<=u[4]-d).pop(); return q?q[1]:null}).filter(v=>v!=null); return v.reduce((a,b)=>a+b,0)/v.length})(); if(x)g+=`<circle cx="${X(u[4]).toFixed(1)}" cy="${Y(yv).toFixed(1)}" r="4" fill="#0d0f14" stroke="${ELO_C[u[1]]}" stroke-width="2"/>`});
+  let ly=null, lx=-99; for(let w=w0;w<=w1;w++){const y=yearOfWeek(w); if(y!==ly){if(w>w0&&X(w)-lx<34)g=g.replace(/<text[^>]*>\d{4}<\/text>$/,""); g+=`<line x1="${X(w)}" x2="${X(w)}" y1="${T}" y2="${H-B}" stroke="#1d2330"/><text x="${X(w)+3}" y="${H-6}" font-size="10" fill="#8b93a7">${y}</text>`; lx=X(w); ly=y}}
+  let rk=""; const rows=[]; (WR.ups||[]).filter(u=>String(u[0]).toLowerCase()===k.toLowerCase()&&u[4]>=w0&&u[4]<=w1&&!hid.includes("LRB"[u[1]])).sort((a,b)=>a[4]-b[4]||a[1]-b[1]).forEach(u=>{const x=all[u[1]].filter(e=>e[0]<=u[4]).pop(); const yv=!x?0:!only?x[1]:(()=>{const v=[0,1,2,3].map(d=>{const q=all[u[1]].filter(e=>e[0]<=u[4]-d).pop(); return q?q[1]:null}).filter(v=>v!=null); return v.reduce((a,b)=>a+b,0)/v.length})(); if(!x)return;
+    // rank change: a dashed line down the chart and a pill at the top (B→I); pills close together drop to a second row
+    const xx=X(u[4]), c=ELO_C[u[1]], row=rows.findIndex(r=>xx-r>=32), ri=row<0?Math.min(rows.length,2):row; rows[ri]=xx; const py=T+ri*15;
+    g+=`<line x1="${xx.toFixed(1)}" x2="${xx.toFixed(1)}" y1="${py+13}" y2="${H-B}" stroke="${c}" stroke-opacity=".55" stroke-dasharray="3 3"/>`;
+    rk+=`<rect x="${(xx-15).toFixed(1)}" y="${py}" width="30" height="13" rx="6.5" fill="${c}"/><text x="${xx.toFixed(1)}" y="${py+9.5}" text-anchor="middle" font-size="9" font-weight="800" fill="#0d0f14">${u[2]}→${u[3]}</text><circle cx="${xx.toFixed(1)}" cy="${Y(yv).toFixed(1)}" r="4" fill="#0d0f14" stroke="${c}" stroke-width="2"/>`});
   // trend: a soft 4-week rolling average (each played week averages the ratings at the end of it and the 3 weeks before)
   const at=(pi,w)=>{const h=all[pi]; let x=null; for(const e of h){if(e[0]<=w)x=e; else break} return x?x[1]:null};
   const avg=(pi,w)=>{const v=[0,1,2,3].map(d=>at(pi,w-d)).filter(v=>v!=null); return v.length?v.reduce((a,b)=>a+b,0)/v.length:null};
@@ -2955,8 +2959,8 @@ function eloChart(n,opt){opt=opt||{}; eloBuild(); const k=eloKey(n), w1=ELO_DONE
   const leg=[0,1,2].filter(pi=>all[pi].length).map(pi=>`<button type="button" class="echp${hid.includes("LRB"[pi])?" off":""}" data-ech-p="${"LRB"[pi]}" style="--pc:${ELO_C[pi]}" title="Show or hide ${PATHS[pi]}">${PATHS[pi]}</button>`).join("");
   const rb=[["all","All"],["1y","Last year"],["6m","6 months"]].map(([v,t])=>`<button type="button" class="echr${rng===v?" on":""}" data-ech-r="${v}">${t}</button>`).join("");
   return `<div class="elochart" data-n="${esc(k)}" data-r="${rng}" data-h="${hid}" data-t="${opt.t||""}" data-mode="${mode}" data-w0="${w0}" data-w1="${w1}"><div class="echhead"><h4>Elo over time</h4><span class="echleg">${leg}</span><span class="echrs">${rb}</span><span class="echts">${[["w","Weekly","The real rating after each week"],["b","Both","The weekly line with a soft 4-week trend behind it"],["t","Trend","Only the 4-week average: smoother, shows the direction"]].map(([v,t,d])=>`<button type="button" class="echt${mode===v?" on":""}" data-ech-t="${v}" title="${d}">${t}</button>`).join("")}</span></div>
-    <svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" data-ech="1">${g}${tr}${only?"":lines}<line class="echx" x1="0" x2="0" y1="${T}" y2="${H-B}" stroke="#8b93a7" stroke-width="1" opacity="0"/></svg>
-    <p class="echnote">Dashed line: 1500, where everyone starts · ○ rank change${only?" · lines: 4-week average":trend?" · soft band: 4-week trend":""} · hover or tap the chart for a week's ratings</p></div>`}
+    <svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" data-ech="1">${g}${tr}${only?"":lines}${rk}<line class="echx" x1="0" x2="0" y1="${T}" y2="${H-B}" stroke="#8b93a7" stroke-width="1" opacity="0"/></svg>
+    <p class="echnote">Dashed line: 1500, where everyone starts · coloured pill: rank change (hover it for details)${only?" · lines: 4-week average":trend?" · soft band: 4-week trend":""} · hover or tap the chart for a week's ratings</p></div>`}
 // legend and range buttons redraw the chart in place
 document.addEventListener("click",e=>{const b=e.target.closest(".elochart [data-ech-p],.elochart [data-ech-r],.elochart [data-ech-t]"); if(!b)return; e.stopPropagation();
   const c=b.closest(".elochart"); let r=c.dataset.r, h=c.dataset.h, t=c.dataset.t;
@@ -2971,7 +2975,8 @@ function eloChartTip(e){const sv=e.target.closest(".elochart svg[data-ech]"); if
     if(c.dataset.mode==="t"){const v=[0,1,2,3].map(dd=>{const q=h.filter(x=>x[0]<=w-dd).pop(); return q?q[1]:null}).filter(v=>v!=null); return `${PATHS[pi]} ${Math.round(v.reduce((a,b)=>a+b,0)/v.length)} (4-week avg)`}
     return `${PATHS[pi]} ${Math.round(cur[1])}${played?(d?` ${d>0?"▲":"▼"}${Math.abs(d)}`:" (no change)"):""}`}).filter(Boolean);
   const ln=sv.querySelector(".echx"), xx=L+fx*(W-L-R); ln.setAttribute("x1",xx); ln.setAttribute("x2",xx); ln.setAttribute("opacity",".5");
-  tip.textContent=`Week ${w}${rows.length?"\n"+rows.join("\n"):""}`; tip.hidden=false; placeTip(e.clientX,e.clientY)}
+  const ups=(WR.ups||[]).filter(u=>Math.abs(u[4]-w)<=1&&String(u[0]).toLowerCase()===k.toLowerCase()&&!c.dataset.h.includes("LRB"[u[1]])).map(u=>`Rank ${LVI.indexOf(u[3])>LVI.indexOf(u[2])?"up":"down"} on ${PATHS[u[1]]} (Week ${u[4]}): ${TIER_NAME[u[2]]||u[2]} → ${TIER_NAME[u[3]]||u[3]}`);
+  tip.textContent=`Week ${w}${rows.length?"\n"+rows.join("\n"):""}${ups.length?"\n\n"+ups.join("\n"):""}`; tip.hidden=false; placeTip(e.clientX,e.clientY)}
 document.addEventListener("mousemove",e=>{if(e.target.closest(".elochart svg[data-ech]"))eloChartTip(e); else document.querySelectorAll(".elochart .echx[opacity='.5']").forEach(l=>l.setAttribute("opacity","0"))});
 document.addEventListener("click",e=>{if(e.target.closest(".elochart svg[data-ech]"))eloChartTip(e)});
 // profiles: rating, rank and the change over the last 10 weeks on each path they've played
