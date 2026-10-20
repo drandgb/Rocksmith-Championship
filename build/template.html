@@ -4953,6 +4953,8 @@ if(!/[?&](banner|mlpre)\b/.test(location.search)&&history.pushState){
     return st}
   {const m=/^#([a-z]+)\/(.+)$/.exec(location.hash); const st=m&&hashState(m); if(st)restore(st)}
   try{const st=state(); history.replaceState({...st,y:scrollY},"",location.hash?hashOf(st):location.pathname+location.search)}catch(e){}
+  // the first profile is drawn before the Elo and hardest-rating code has loaded, so its charts are missing: draw it again now
+  {const n=$("pq").value.trim(); if(n&&byName[n]&&!$("pcard").querySelector(".elochart"))showPlayer(n)}
   NAV.ready=true;
 }
 
