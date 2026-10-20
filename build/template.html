@@ -526,6 +526,8 @@ a.dl svg,.offpill svg{width:11px;height:11px}
 .ywtop{font:800 .66rem var(--f-display);letter-spacing:.06em;text-transform:uppercase;color:#1a1204;background:linear-gradient(180deg,#ffe28a,#f5c84a);border-radius:999px;padding:2px 8px;align-self:center;cursor:help}
 .ywsame summary{cursor:pointer;color:var(--muted);font-size:.84rem;padding:8px 0}
 .ywlink{color:var(--accent);cursor:pointer;text-decoration:underline;text-underline-offset:2px}
+.ywalert .ywgo[data-sbw]{text-decoration:underline dotted;text-underline-offset:3px;font-weight:700}
+#sbcards .card.sbflash{animation:sbflash 1.6s ease-out}@keyframes sbflash{0%,30%{box-shadow:0 0 0 3px var(--accent)}100%{box-shadow:0 0 0 0 transparent}}
 .ywalert ul{margin:0;padding:0}.ywalert li{list-style:none;padding:4px 0;font-size:.86rem}.ywalert .dn{color:var(--s-red);font-weight:800}.ywalert small{color:var(--muted)}
 .pvbar{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:8px 10px 10px;padding:7px 10px;border-radius:8px;background:color-mix(in srgb,var(--tc) 8%,transparent);border:1px dashed color-mix(in srgb,var(--tc) 40%,transparent);font-size:.8rem;color:var(--muted)}
 .pvwrap{margin-top:auto}.pvbar .pvlab{margin-right:auto}a.pvw{text-decoration:none}.pvold .pvsub{display:block;font-size:.72rem;color:var(--muted);margin-top:2px}.pvold .pvlab{flex:1 1 0;min-width:0}.pvbar+.pvbar,.pvbody+.pvbar{margin-top:-4px}.pvbar .pvlab b{color:var(--fg)}
@@ -2825,7 +2827,7 @@ function sbRender(){
       const up=!raw.includes("*")&&lvLetter&&RU_KEY.has(`${sbWeek}|${base}|${p}|${lvLetter}`)?`<span class="rkup" data-tip="First week in ${TIER_NAME[lvLetter]} ${PATHS[p]} after ranking up">RANKED UP</span>`:"";
       return `<tr class="${me}${e[4]<0?" down":""}" data-tip="${me?`Click the row to clear the highlight`:`Click the row to highlight ${esc(base)} on every card · click the name to open their profile`}"><td>${rk}</td><td class="n"><span data-player="${esc(base)}">${esc(base)}</span>${marks}${up}${SB.aka&&SB.aka[e[0]]?`<span class="aka">as ${esc(SB.aka[e[0]])}</span>`:""}</td><td>${pct}</td><td>${fmtNum(e[2])}</td><td>${fmtNum(e[3])}</td></tr>`;
     }).join("");
-    return `<article class="card" style="--tc:${tc}"><div class="ch"><div class="lv"><span>${esc(lvl)}</span><div class="lvr">${(()=>{const id=SB.links&&SB.links[sbWeek]&&SB.links[sbWeek][p*9+slot];return songPill(song,id)})()}${rateBadge(sbWeek,p,slot,diff,ents)}</div></div><div class="song">${songHtml}</div>${(()=>{const t=arrTag(sbWeek,p,slot); return t?`<div class="arrrow">${t}</div>`:""})()}${extra?`<div class="note">${esc(extra)}</div>`:""}${cont?`<div class="note">⏳ Continues next week · the winner is decided in its final week</div>`:""}${acctCard(sbWeek,p,slot,ents,sbLive)}</div>${ents.length?`<table><thead><tr><th>#</th><th>Player</th><th>%</th><th>Streak</th><th>Score</th></tr></thead><tbody>${rows}</tbody></table>`:`<div class="empty">No entries yet</div>`}${pvStrip(sbWeek,p,slot,song,ents)}</article>`;
+    return `<article class="card" data-slot="${slot}" style="--tc:${tc}"><div class="ch"><div class="lv"><span>${esc(lvl)}</span><div class="lvr">${(()=>{const id=SB.links&&SB.links[sbWeek]&&SB.links[sbWeek][p*9+slot];return songPill(song,id)})()}${rateBadge(sbWeek,p,slot,diff,ents)}</div></div><div class="song">${songHtml}</div>${(()=>{const t=arrTag(sbWeek,p,slot); return t?`<div class="arrrow">${t}</div>`:""})()}${extra?`<div class="note">${esc(extra)}</div>`:""}${cont?`<div class="note">⏳ Continues next week · the winner is decided in its final week</div>`:""}${acctCard(sbWeek,p,slot,ents,sbLive)}</div>${ents.length?`<table><thead><tr><th>#</th><th>Player</th><th>%</th><th>Streak</th><th>Score</th></tr></thead><tbody>${rows}</tbody></table>`:`<div class="empty">No entries yet</div>`}${pvStrip(sbWeek,p,slot,song,ents)}</article>`;
   }).join("")||(sbLv[sbPath]?`<div class="empty">No ${LV_NAME[sbLv[sbPath]]} ${PATHS[sbPath]} challenge this week</div>`:"");
   try{localStorage.setItem("rsc-sb",JSON.stringify({w:sbWeek,p:sbPath}))}catch(e){}
 }
@@ -3519,6 +3521,8 @@ document.addEventListener("click",e=>{
   sbWeek=w; if(c.dataset.sbp!=null)sbPath=+c.dataset.sbp;
   if(c.dataset.sbn){sbFind=c.dataset.sbn;$("sbfind").value=sbFind}
   showView("scores"); sbRender(); scrollTo({top:0});
+  // a link to one challenge (e.g. from "You've been passed"): scroll to its card and flash it
+  if(c.dataset.sbs!=null){const card=document.querySelector(`#sbcards .card[data-slot="${c.dataset.sbs}"]`); if(card){card.scrollIntoView({block:"start",behavior:"smooth"}); card.classList.remove("sbflash"); void card.offsetWidth; card.classList.add("sbflash")}}
 },true);
 
 $("sblatest").addEventListener("click",()=>{sbWeek=SB_HOME;sbRender()});
@@ -4555,7 +4559,7 @@ function ywAlert(n){
   const day=t=>new Date(t).toLocaleDateString(undefined,{weekday:"short"});
   const sc=(p,st,tie)=>`${p}%${tie?` (streak ${st})`:""}`;
   return `<div class="ywalert"><h4>⚠ You've been passed · ${L.length} since your last visit</h4><ul>${L.map(e=>{const tie=e.bp===e.mp;
-    return `<li><span class="dn">${e.fp&&e.tp&&e.tp>e.fp?`#${e.fp} → #${e.tp}`:`${ywOrd(e.from)} → ${ywOrd(e.to)}`}</span> · ${PATHS[e.p]} ${esc(e.lv)} · <b>${esc(e.by)}</b> ${sc(e.bp,e.bs,tie)} passed your ${sc(e.mp,e.ms,tie)} <small>· ${day(e.t)}</small></li>`}).join("")}</ul></div>`;
+    return `<li><span class="dn">${e.fp&&e.tp&&e.tp>e.fp?`#${e.fp} → #${e.tp}`:`${ywOrd(e.from)} → ${ywOrd(e.to)}`}</span> · <span class="ywgo"${SB.weeks[e.w]?` data-sbw="${e.w}" data-sbp="${e.p}"${e.s!=null?` data-sbs="${e.s}"`:""} data-sbn="${esc(n)}" title="Open this challenge on the Scoreboard (Week ${e.w})"`:""}>${PATHS[e.p]} ${esc(e.lv)}</span> · <b>${esc(e.by)}</b> ${sc(e.bp,e.bs,tie)} passed your ${sc(e.mp,e.ms,tie)} <small>· ${day(e.t)}</small></li>`}).join("")}</ul></div>`;
 }
 function ywList(n){
   const w=TW_MAX, W=WEEKLOG[w], k=n.toLowerCase(), cards={};
