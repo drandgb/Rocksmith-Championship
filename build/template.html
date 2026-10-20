@@ -3071,14 +3071,11 @@ function hrProfile(n){const H=hrBuild(), w1=H.w1;
 function hrYears(n){const H=hrBuild(), first=[], by=[0,1,2].map(pi=>{const m={}; hrSeries(n,pi).forEach(e=>{if(e[1]==null)return; if(!first[pi])first[pi]=e; m[yearOfWeek(e[0])]=e[1]}); return m});
   const Y=[...new Set(by.flatMap(m=>Object.keys(m)))].sort(); if(!Y.length)return "";
   const nowY=String(yearOfWeek(H.w1)), paths=[0,1,2].filter(pi=>first[pi]);
-  // a "Start" column: the first rating on record, so even the first year shows a change
   const chg=(d,from)=>d==null?`<span class="hry-eq"></span>`:Math.abs(d)<.05?`<span class="hry-eq">±0</span>`:`<span class="${d>0?"up":"dn"}">${d>0?"▲":"▼"}${Math.abs(d).toFixed(1)}</span>`;
-  const start=pi=>{const f=first[pi]; return `<td data-tip="${esc(`${PATHS[pi]} at the start (Week ${f[0]}): ${f[1].toFixed(1)}`)}"><b>${f[1].toFixed(1)}</b><span class="hry-eq">wk ${f[0]}</span></td>`};
   const cell=(pi,y,i)=>{const v=by[pi][y]; if(v==null)return `<td><b class="hry-eq">–</b><span class="hry-eq"></span></td>`;
-    let pv=null, from=null; for(let k=i-1;k>=0;k--)if(by[pi][Y[k]]!=null){pv=by[pi][Y[k]]; from=Y[k]; break} if(pv==null){pv=first[pi][1]; from="the start"}
-    const d=v-pv, tipT=`${PATHS[pi]} ${y===nowY?"now":"at the end of "+y}: ${v.toFixed(1)}`+(Math.abs(d)<.05?` (same as ${from})`:` (${d>0?"up":"down"} ${Math.abs(d).toFixed(1)} from ${from})`);
+    let pv=null, from=null; for(let k=i-1;k>=0;k--)if(by[pi][Y[k]]!=null){pv=by[pi][Y[k]]; from=Y[k]; break} const d=pv==null?null:v-pv, tipT=`${PATHS[pi]} ${y===nowY?"now":"at the end of "+y}: ${v.toFixed(1)}`+(d==null?"":Math.abs(d)<.05?` (same as ${from})`:` (${d>0?"up":"down"} ${Math.abs(d).toFixed(1)} from ${from})`);
     return `<td data-tip="${esc(tipT)}"><b>${v.toFixed(1)}</b>${chg(d)}</td>`};
-  return `<div class="hryears"><div class="nwelo-h">Hardest rating you score 95% on <span class="elohelp" data-tip="${esc(HR_TIP)}">ⓘ</span> <span class="pelo-sub">at each year's end</span></div><div class="hry-scroll"><table><tr><th></th><th>Start</th>${Y.map(y=>`<th>${y}${y===nowY?"<small> so far</small>":""}</th>`).join("")}</tr>${paths.map(pi=>`<tr style="--pc:${PATH_C[pi]}"><td>${PATHS[pi]}</td>${start(pi)}${Y.map((y,i)=>cell(pi,y,i)).join("")}</tr>`).join("")}</table></div></div>`}
+  return `<div class="hryears"><div class="nwelo-h">Hardest rating you score 95% on <span class="elohelp" data-tip="${esc(HR_TIP)}">ⓘ</span> <span class="pelo-sub">at each year's end</span></div><div class="hry-scroll"><table><tr><th></th>${Y.map(y=>`<th>${y}${y===nowY?"<small> so far</small>":""}</th>`).join("")}</tr>${paths.map(pi=>`<tr style="--pc:${PATH_C[pi]}"><td>${PATHS[pi]}</td>${Y.map((y,i)=>cell(pi,y,i)).join("")}</tr>`).join("")}</table></div></div>`}
 function hrChart(n,opt){opt=opt||{}; const H=hrBuild(), w1=H.w1, win=+opt.win||26, rng=opt.r||"all", hid=opt.h||"";
   const all=[0,1,2].map(pi=>hrSeries(n,pi,win)); if(!all.some(s=>s.length))return "";
   const first=Math.min(...all.filter(s=>s.length).map(s=>s[0][0])), w0=Math.min(w1-1,rng==="1y"?Math.max(first,w1-52):first);
