@@ -528,6 +528,7 @@ a.dl svg,.offpill svg{width:11px;height:11px}
 .ywlink{color:var(--accent);cursor:pointer;text-decoration:underline;text-underline-offset:2px}
 .ywalert .ywgo[data-sbw]{text-decoration:underline dotted;text-underline-offset:3px;font-weight:700}
 #sbcards .card.sbflash{animation:sbflash 1.6s ease-out}@keyframes sbflash{0%,30%{box-shadow:0 0 0 3px var(--accent)}100%{box-shadow:0 0 0 0 transparent}}
+.ywalert{position:relative}.ywx{position:absolute;top:6px;right:8px;background:none;border:0;color:var(--muted);font-size:1rem;line-height:1;padding:4px 6px;border-radius:6px;cursor:pointer}.ywx:hover{color:var(--text,#e9edf5);background:color-mix(in srgb,var(--s-red) 18%,transparent)}.ywalert h4{padding-right:26px}
 .ywalert ul{margin:0;padding:0}.ywalert li{list-style:none;padding:4px 0;font-size:.86rem}.ywalert .dn{color:var(--s-red);font-weight:800}.ywalert small{color:var(--muted)}
 .pvbar{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:8px 10px 10px;padding:7px 10px;border-radius:8px;background:color-mix(in srgb,var(--tc) 8%,transparent);border:1px dashed color-mix(in srgb,var(--tc) 40%,transparent);font-size:.8rem;color:var(--muted)}
 .pvwrap{margin-top:auto}.pvbar .pvlab{margin-right:auto}a.pvw{text-decoration:none}.pvold .pvsub{display:block;font-size:.72rem;color:var(--muted);margin-top:2px}.pvold .pvlab{flex:1 1 0;min-width:0}.pvbar+.pvbar,.pvbody+.pvbar{margin-top:-4px}.pvbar .pvlab b{color:var(--fg)}
@@ -4558,7 +4559,7 @@ function ywAlert(n){
   const L=ACCT.ywShown; if(!L.length)return "";
   const day=t=>new Date(t).toLocaleDateString(undefined,{weekday:"short"});
   const sc=(p,st,tie)=>`${p}%${tie?` (streak ${st})`:""}`;
-  return `<div class="ywalert"><h4>⚠ You've been passed · ${L.length} since your last visit</h4><ul>${L.map(e=>{const tie=e.bp===e.mp;
+  return `<div class="ywalert"><button type="button" class="ywx" data-ywdismiss="${esc(n)}" title="Dismiss: mark these as seen" aria-label="Dismiss">✕</button><h4>⚠ You've been passed · ${L.length}</h4><ul>${L.map(e=>{const tie=e.bp===e.mp;
     return `<li><span class="dn">${e.fp&&e.tp&&e.tp>e.fp?`#${e.fp} → #${e.tp}`:`${ywOrd(e.from)} → ${ywOrd(e.to)}`}</span> · <span class="ywgo"${SB.weeks[e.w]?` data-sbw="${e.w}" data-sbp="${e.p}"${e.s!=null?` data-sbs="${e.s}"`:""} data-sbn="${esc(n)}" title="Open this challenge on the Scoreboard (Week ${e.w})"`:""}>${PATHS[e.p]} ${esc(e.lv)}</span> · <b>${esc(e.by)}</b> ${sc(e.bp,e.bs,tie)} passed your ${sc(e.mp,e.ms,tie)} <small>· ${day(e.t)}</small></li>`}).join("")}</ul></div>`;
 }
 function ywList(n){
@@ -4703,7 +4704,7 @@ function acctBtn(){const b=$("acctbtn"); b.hidden=!ACCT.on;
   if(n)b.insertAdjacentHTML("beforeend",`<span class="nbadge" title="${n} claim${n===1?"":"s"} waiting for approval">${n}</span>`);
   // players: how many times they've been passed on this week's scoreboard since their last visit (Your week tab)
   const yn=ACCT.claim&&ACCT.claim.status==="approved"?ywUnseen(ACCT.claim.player).length:0;
-  if(yn)b.insertAdjacentHTML("beforeend",`<span class="nbadge" title="Passed ${yn} time${yn===1?"":"s"} on this week's scoreboard since your last visit">${yn}</span>`);
+  if(yn)b.insertAdjacentHTML("beforeend",`<span class="nbadge" title="Passed ${yn} time${yn===1?"":"s"} on this week's scoreboard · dismiss it in Your week">${yn}</span>`);
   try{localStorage.setItem("rsc-acctbtn",b.innerHTML)}catch(e){} // shown straight away on the next visit while the login loads
   if(typeof renderDownloads==="function"){try{renderNewWeekNote();renderTwPast();renderDownloads()}catch(e){}}
 }
@@ -4818,11 +4819,10 @@ function acctDraw(msg,err){
   const tb=(k,label)=>`<button type="button" role="tab" data-accttab="${k}" aria-selected="${ACCT.tab===k}">${label}</button>`;
   const appr=ACCT.claim&&ACCT.claim.status==="approved";
   if(ACCT.tab==="week"&&!appr)ACCT.tab="me";
-  // opening Your week marks the passes as seen (the badges clear); the alert keeps showing them until the popup closes
-  if(ACCT.tab==="week"){const n=ACCT.claim.player; if(!ACCT.ywShown)ACCT.ywShown=ywUnseen(n);
-    const last=ywPasses(n)[0]; if(last){try{localStorage.setItem(ywKey(n),String(Date.parse(last.t)))}catch(e){}} setTimeout(acctBtn,0)}
+  // the passes stay (alert and badges) until you dismiss the alert with its ✕
+  if(ACCT.tab==="week"){const n=ACCT.claim.player; ACCT.ywShown=ywUnseen(n)}
   const ywN=appr?ywUnseen(ACCT.claim.player).length:0;
-  const tabs=`<div class="accttabs" role="tablist">${tb("me","Your profile")}${appr?tb("week",`Your week${ywN?`<span class="nbadge" title="Passed ${ywN} time${ywN===1?"":"s"} since your last visit">${ywN}</span>`:""}`):""}${ACCT.claim&&ACCT.claim.status==="approved"?tb("banner","Forum banner"):""}${tb("manage","Manage account")}${canRateFor()?tb("host","Host"):""}${ACCT.admin?tb("admin",`Admin${(()=>{const t=typoScan().nNew; return t?`<span class="nbadge tybadge" title="${t} likely typo${t===1?"":"s"} in this week's scoreboard">${t}</span>`:""})()}${pendN?`<span class="nbadge" title="${pendN} claim${pendN===1?"":"s"} waiting for approval">${pendN}</span>`:""}`):""}</div>`;
+  const tabs=`<div class="accttabs" role="tablist">${tb("me","Your profile")}${appr?tb("week",`Your week${ywN?`<span class="nbadge" title="Passed ${ywN} time${ywN===1?"":"s"} · the ✕ on the alert dismisses itt">${ywN}</span>`:""}`):""}${ACCT.claim&&ACCT.claim.status==="approved"?tb("banner","Forum banner"):""}${tb("manage","Manage account")}${canRateFor()?tb("host","Host"):""}${ACCT.admin?tb("admin",`Admin${(()=>{const t=typoScan().nNew; return t?`<span class="nbadge tybadge" title="${t} likely typo${t===1?"":"s"} in this week's scoreboard">${t}</span>`:""})()}${pendN?`<span class="nbadge" title="${pendN} claim${pendN===1?"":"s"} waiting for approval">${pendN}</span>`:""}`):""}</div>`;
   let h=tabs;
   if(ACCT.tab==="admin"){}
   else if(ACCT.tab==="host")h+=`${hostSection(false).replace('class="acctsec hostsec"','class="acctsec hostsec hosttop"')}${adminRateSection()}${ratingLogSection()}`;
@@ -4904,6 +4904,10 @@ $("acctbody").addEventListener("click",async e=>{
 $("acctbtn").addEventListener("click",()=>{acctDraw();$("acct").showModal();$("acct").appendChild(tip)});
 $("acctclose").addEventListener("click",()=>$("acct").close());
 // hover text inside the dialog (the tip moves into the dialog while it's open, so it shows above it)
+// ✕ on "You've been passed": mark everything up to the newest pass as seen, then hide the alert and clear the badges
+document.addEventListener("click",e=>{const b=e.target.closest("[data-ywdismiss]"); if(!b)return; e.stopPropagation(); const n=b.dataset.ywdismiss, last=ywPasses(n)[0];
+  if(last){try{localStorage.setItem(ywKey(n),String(Date.parse(last.t)))}catch(e){}} ACCT.ywShown=[]; const a=b.closest(".ywalert"); if(a)a.remove(); try{acctBtn()}catch(e){}
+  document.querySelectorAll('.accttabs .nbadge[title^="Passed"]').forEach(x=>x.remove())},true);
 $("acct").addEventListener("close",()=>{tip.hidden=true;document.body.appendChild(tip);acctUnmount();ACCT.ywShown=null});
 // links inside the moved lookup cards go to other pages: close the dialog so the page shows
 $("acct").addEventListener("click",e=>{const gv=e.target.closest("[data-goview]");if(gv){$("acct").close();showView(gv.dataset.goview);scrollTo({top:0});return}
