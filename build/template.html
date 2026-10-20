@@ -3083,9 +3083,10 @@ document.addEventListener("mousemove",e=>{if(e.target.closest(".hrchart svg[data
 document.addEventListener("click",e=>{if(e.target.closest(".hrchart svg[data-hr]"))hrChartTip(e)});
 // earlier weeks where this challenge's song was played on the same arrangement (any path); a God run counts once, at its last week
 function pastKey(t){return String(t||"").toLowerCase().replace(/\s+/g," ").trim()}
-function pastPlays(w,p,slot,song){const k=pastKey(song), a=arrP(w,p,slot), out=[]; if(!k||k==="n/a")return out;
-  (pastPlays.wk=pastPlays.wk||Object.keys(SB.weeks).map(Number).sort((a,b)=>b-a)).forEach(pw=>{if(pw>=w)return; (SB.weeks[pw]||[]).forEach(d=>{if(d[7]||!d[6].length||pastKey(d[3])!==k||arrP(pw,d[0],d[1])!==a)return; out.push({w:pw,c:d})})});
-  return out}   // newest first
+function pastPlays(w,p,slot,song){const k=pastKey(song); if(!k||k==="n/a")return [];
+  // one index of every challenge by song + arrangement, built on first use (scanning every week per card was slow on load)
+  if(!pastPlays.ix){const ix={}; Object.keys(SB.weeks).map(Number).sort((a,b)=>b-a).forEach(pw=>(SB.weeks[pw]||[]).forEach(d=>{if(d[7]||!d[6].length)return; const key=pastKey(d[3])+"|"+arrP(pw,d[0],d[1]); (ix[key]=ix[key]||[]).push({w:pw,c:d})})); pastPlays.ix=ix}
+  return (pastPlays.ix[k+"|"+arrP(w,p,slot)]||[]).filter(x=>x.w<w)}   // newest first
 function pvName(e){return SB.names[e[0]].replace(/[*~]+$/,"")}
 var sbPv={};   // which "Played before" week is open on each card ("p|slot" -> week); all closed to start
 function arrP(w,p,slot){const a=SB.arr&&SB.arr[w]&&SB.arr[w][p*9+slot]; return a||"LRB"[p]}
