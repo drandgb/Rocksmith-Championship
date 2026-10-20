@@ -384,7 +384,10 @@ button.clear:hover{border-color:var(--accent)}
 .nwnote .nwbody{flex:1;min-width:0}
 .nwnote .nwmeds{display:flex;flex-wrap:wrap;gap:12px 16px;align-items:center;margin-top:9px}
 .nwnote .nwmeds>.medal-m{margin:0!important}.nwnote .nwmeds>.medal-m.diamond:not(.classgem){margin:0 -2px 0 -4px!important}
-.nwnote .nwelo{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:10px;font-size:.85rem;color:var(--muted)}.nwelo small.up{color:var(--s-green)}.nwelo small.dn{color:var(--s-red)}
+.nwnote .nwelo{margin-top:12px;max-width:420px}.nwelo-h{font:800 .72rem var(--f-display);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+.nwelo ul{list-style:none;margin:0;padding:0}.nwelo li{display:grid;grid-template-columns:70px 52px 52px 1fr;align-items:center;gap:8px;padding:5px 0 5px 9px;border-left:3px solid var(--pc);border-top:1px solid var(--line);font-size:.9rem}.nwelo li:first-child{border-top:0}
+.nwelo .nwp{color:var(--pc);font-weight:700}.nwelo .nwv{font:800 1rem var(--f-display)}.nwelo .nwd{font-size:.8rem;font-weight:800}.nwelo .nwd .up{color:var(--s-green)}.nwelo .nwd .dn{color:var(--s-red)}.nwelo .nwr{text-align:right;padding-right:4px}
+.nwelo small{font-size:.78rem;color:var(--muted)}.nwelo small.up{color:var(--s-green)}.nwelo small.dn{color:var(--s-red)}.nwelo li.elo-t1 .nwv{color:#ffd95e}.nwelo li.elo-t2 .nwv{color:#e3e8f0}.nwelo li.elo-t3 .nwv{color:#e0a46a}
 .nwnote .nwbtns{display:flex;flex-direction:column;gap:8px;align-items:stretch;flex:none;margin-right:14px}
 .nwnote .nwx{position:absolute;top:6px;right:8px;background:none;border:0;color:var(--muted);font-size:16px;cursor:pointer;padding:2px 4px}
 .nwnote .nwx:hover{color:var(--fg)}
@@ -3785,12 +3788,12 @@ function renderNewWeekNote(){
   el.hidden=false;
 }
 // the new-week note: how the player's Elo moved in the week that just finished, on each path they played
-function nwElo(n,w){eloBuild(); const k=eloKey(n);
-  const ps=[0,1,2].map(pi=>{const x=eloAt(pi,k,w); if(!x||x[0]!==w)return ""; const b=eloAt(pi,k,w-1), d=Math.round(x[1]-(b?b[1]:1500));
-    const kp=eloKeep(k), r0=eloRanks(pi,w-1,kp)[k], r1=eloRanks(pi,w,kp)[k];
-    const mv=x[2]<ELO_MIN?` <small>new</small>`:r0&&r1&&r0!==r1?` <small class="${r1<r0?"up":"dn"}">#${r0}→#${r1}</small>`:r1?` <small>#${r1}</small>`:"";
-    return `<span class="pill hol elop${x[2]>=ELO_MIN&&r1&&r1<=3?" elo-t"+r1:""}" style="--pc:${PATH_C[pi]}" data-tip="${PATHS[pi]} Elo after Week ${w}: ${Math.round(x[1])}${d?` (${d>0?"+":""}${d} that week)`:""}">${PATHS[pi]} <b>${Math.round(x[1])}</b>${d?` ${eloD(d)}`:""}${mv}</span>`}).join("");
-  return ps?`<div class="nwelo">Elo <span class="elohelp" data-tip="${esc(ELO_TIP)}">ⓘ</span> ${ps}</div>`:""}
+function nwElo(n,w){eloBuild(); const k=eloKey(n), kp=eloKeep(k);
+  const rows=[0,1,2].map(pi=>{const x=eloAt(pi,k,w); if(!x||x[0]!==w)return ""; const b=eloAt(pi,k,w-1), d=Math.round(x[1]-(b?b[1]:1500));
+    const r0=eloRanks(pi,w-1,kp)[k], r1=eloRanks(pi,w,kp)[k], t=x[2]>=ELO_MIN&&r1&&r1<=3?" elo-t"+r1:"";
+    const mv=x[2]<ELO_MIN?`<small data-tip="Provisional: ${x[2]} of ${ELO_MIN} games">new</small>`:r0&&r1&&r0!==r1?`<small class="${r1<r0?"up":"dn"}">#${r0} → #${r1}</small>`:r1?`<small>#${r1}</small>`:"";
+    return `<li class="${t.trim()}" style="--pc:${PATH_C[pi]}"><span class="nwp">${PATHS[pi]}</span><b class="nwv">${Math.round(x[1])}</b><span class="nwd">${d?eloD(d):"–"}</span><span class="nwr">${mv}</span></li>`}).join("");
+  return rows?`<div class="nwelo"><div class="nwelo-h">Elo after Week ${w} <span class="elohelp" data-tip="${esc(ELO_TIP)}">ⓘ</span></div><ul>${rows}</ul></div>`:""}
 function renderDownloads(){
   const el=$("twdl"); if(!el)return; const w=TW_MAX;
   const cards=twWeek===w?(SB.weeks[w]||[]).filter(c=>c[3]&&!/^n\/a$/i.test(c[3])):[];
