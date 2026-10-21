@@ -2914,7 +2914,7 @@ const ARR_CODES=["L","R","B","BL","BR","BB","AL","AR","AB"];
 // every pair of players on a challenge is a game: the higher % wins, then the longer note streak, then the higher score;
 // equal on all three is a draw. FIDE-style: a new player starts at their class's base (ELO_BASE), a game moves a rating by
 // at most 40 points for the first 30 games, then 20, then 10 from 2400 up (ELO_K). Games between players from different
-// classes (one playing up, or one playing down against that class's regulars) count at half stakes, so trying another class costs less. Below Masterclass, own-class wins can't lift a rating past the next
+// classes (one playing up, or one playing down against that class's regulars) count at quarter stakes, so trying another class costs little. Below Masterclass, own-class wins can't lift a rating past the next
 // class's base (ELO_CAP), so nobody out-rates a higher class just by beating their own; a rank change doesn't move it. Weeks are
 // played in order from the first scoreboard; a multi-week God challenge counts at the end of its run (the week in
 // progress counts provisionally). Ratings with fewer than 20 games are provisional ("new").
@@ -2942,7 +2942,7 @@ function eloBuild(){if(ELO)return ELO; const ws=Object.keys(SB.weeks).map(Number
           if(sa==null&&a.s!=null&&b.s!=null&&a.s!==b.s)sa=a.s>b.s?1:0;
           if(sa==null&&a.c!=null&&b.c!=null&&a.c!==b.c)sa=a.c>b.c?1:0;
           if(sa==null){if(a.p>=100&&b.p>=100)continue; sa=.5}   // a tie at 100% isn't a game: nobody could have done better
-          const half=a.up||b.up||a.dn!==b.dn?.5:1;   // across classes: half stakes
+          const half=a.up||b.up||a.dn!==b.dn?.25:1;   // across classes: quarter stakes
           const ea=1/(1+10**((rb-ra)/400)), ka=ELO_K(ra,g[a.n]||0)*half, kb=ELO_K(rb,g[b.n]||0)*half; let na=ra+ka*(sa-ea), nb=rb-kb*(sa-ea);
           // class ceiling: a gain can't take a player past the next class's base (losses always count)
           const ca=ELO_CAP[a.own], cb=ELO_CAP[b.own]; if(ca&&na>ra&&na>ca)na=Math.max(ra,ca); if(cb&&nb>rb&&nb>cb)nb=Math.max(rb,cb);
@@ -2961,7 +2961,7 @@ function eloTable(pi,w,keep){eloBuild(); const out=[]; Object.keys(ELO[pi].hist)
 // ranks among active players (as on the Winners page by default); an inactive player is ranked among everyone
 function eloRanks(pi,w,keep){const r={}; eloTable(pi,w,keep).forEach(([n],i)=>r[n]=i+1); return r}
 const eloKeep=n=>isActivePlayer(n)?isActivePlayer:null;
-const ELO_TIP="Elo ratings, like chess: every time two players post on the same challenge it counts as a game. The higher % wins; the same % goes to the longer note streak, then the higher score; the same on all three is a draw, except a tie at 100%, which doesn't count (nobody could have done better).\n\nOn a chess-like scale: a new player starts at their class's level (Beginner 800, Intermediate 1300, Advanced 1800, Masterclass 2300). A game moves a rating by at most 40 points for the first 30 games, then 20, then 10 from 2400 up. Beating a higher-rated player earns more than beating a lower-rated one.\n\nGames against players from another class (playing up, or playing down) count at half stakes: you win and lose half as much, so trying another class costs less. Below Masterclass, wins can't lift a rating past the next class's starting level (Beginner 1300, Intermediate 1800, Advanced 2300): to go higher, rank up.\n\nRating levels, as in chess: FIDE Master 2300+, Candidate Master 2200–2300, Expert 2000–2200, Class A 1800–2000, Class B 1600–1800, Class C 1400–1600, Class D 1200–1400, Class E 1000–1200, Novice under 1000.\n\nOne rating per path, from every week since the scoreboards start (Week 440), in order. A rating is provisional (new) until 20 games; the rankings list players with 20 or more.";
+const ELO_TIP="Elo ratings, like chess: every time two players post on the same challenge it counts as a game. The higher % wins; the same % goes to the longer note streak, then the higher score; the same on all three is a draw, except a tie at 100%, which doesn't count (nobody could have done better).\n\nOn a chess-like scale: a new player starts at their class's level (Beginner 800, Intermediate 1300, Advanced 1800, Masterclass 2300). A game moves a rating by at most 40 points for the first 30 games, then 20, then 10 from 2400 up. Beating a higher-rated player earns more than beating a lower-rated one.\n\nGames against players from another class (playing up, or playing down) count at quarter stakes: you win and lose a quarter as much, so trying another class costs little. Below Masterclass, wins can't lift a rating past the next class's starting level (Beginner 1300, Intermediate 1800, Advanced 2300): to go higher, rank up.\n\nRating levels, as in chess: FIDE Master 2300+, Candidate Master 2200–2300, Expert 2000–2200, Class A 1800–2000, Class B 1600–1800, Class C 1400–1600, Class D 1200–1400, Class E 1000–1200, Novice under 1000.\n\nOne rating per path, from every week since the scoreboards start (Week 440), in order. A rating is provisional (new) until 20 games; the rankings list players with 20 or more.";
 const eloD=d=>d?`<span class="${d>0?"up":"dn"}">${d>0?"▲":"▼"}${Math.abs(d)}</span>`:"";
 // Winners: top 10 per path (follows All / Active only), with the change over the last 10 weeks
 function renderEloBox(){const el=$("elo-box"); if(!el)return; eloBuild(); const w=ELO_DONE;
@@ -3048,12 +3048,12 @@ document.addEventListener("click",e=>{if(e.target.closest(".elochart svg[data-ec
 function eloWhy(pi,n,w0,w1){eloBuild(); const L=ELO_LOG&&ELO_LOG[pi][n]; if(!L)return "";
   const f=x=>(x>=0?"+":"−")+Math.abs(x).toFixed(1), res=v=>v===1?"beat":v===0?"lost to":"drew with";
   const out=[], weeks=Object.keys(L).map(Number).filter(w=>w>=w0&&w<=w1).sort((a,b)=>a-b); if(!weeks.length)return "";
-  const head="Each game: points = K × (result − expected). Result: 1 for a win, ½ a draw, 0 a loss. Expected = 1 ÷ (1 + 10^((their rating − yours) ÷ 400)). K = 40 for your first 30 games, then 20 (10 from 2400), halved against a player from another class.";
+  const head="Each game: points = K × (result − expected). Result: 1 for a win, ½ a draw, 0 a loss. Expected = 1 ÷ (1 + 10^((their rating − yours) ÷ 400)). K = 40 for your first 30 games, then 20 (10 from 2400), a quarter of that against a player from another class.";
   if(weeks.length===1){const G=L[weeks[0]], by={};
     G.forEach(x=>{const k=x.lv+" · "+x.song; (by[k]=by[k]||[]).push(x)});
     Object.entries(by).forEach(([k,xs])=>{const t=xs.reduce((a,x)=>a+x.d,0); out.push(`${k}: ${f(t)}`);
       xs.slice().sort((a,b)=>Math.abs(b.d)-Math.abs(a.d)).slice(0,6).forEach(x=>{const e=1/(1+10**((x.ro-x.rm)/400));
-        out.push(`  ${res(x.res)} ${x.op} (${Math.round(x.ro)}): ${Math.round(x.k)} × (${x.res===.5?"½":x.res} − ${e.toFixed(2)}) = ${f(x.d)}${x.half?" · half stakes":""}${x.cap?" · held at the class ceiling":""}`)});
+        out.push(`  ${res(x.res)} ${x.op} (${Math.round(x.ro)}): ${Math.round(x.k)} × (${x.res===.5?"½":x.res} − ${e.toFixed(2)}) = ${f(x.d)}${x.half?" · quarter stakes":""}${x.cap?" · held at the class ceiling":""}`)});
       if(xs.length>6)out.push(`  … and ${xs.length-6} smaller games`)});
     return `Week ${weeks[0]}: ${f(G.reduce((a,x)=>a+x.d,0))} from ${G.length} game${G.length===1?"":"s"}\n\n${out.join("\n")}\n\n${head}`}
   weeks.forEach(w=>{const G=L[w], t=G.reduce((a,x)=>a+x.d,0), wn=G.filter(x=>x.res===1).length, ls=G.filter(x=>x.res===0).length; out.push(`Week ${w}: ${f(t)} (${wn} won, ${ls} lost${G.length-wn-ls?`, ${G.length-wn-ls} drawn`:""})`)});
