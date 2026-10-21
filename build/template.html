@@ -707,6 +707,12 @@ a.dl svg,.offpill svg{width:11px;height:11px}
 .hlbox .hlsel{margin-left:8px}.hlbox pre{white-space:pre-wrap;background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:10px 12px;font:500 .84rem/1.45 var(--f-body);max-height:360px;overflow:auto;margin:8px 0}
 .fwgo{color:var(--fg);font-weight:700;text-decoration:underline dotted;cursor:pointer}
 .fwtry{margin:10px 0 2px;font-size:.86rem}.fwtry b{color:var(--pc)}
+.seashead h2 select{background:none;border:0;color:var(--fg);font:inherit;cursor:pointer;padding:0 2px}.seashead h2 select option{background:var(--panel);font-size:1rem}
+.seasprog{height:6px;border-radius:3px;background:var(--panel2);overflow:hidden;margin:0 0 12px}.seasprog i{display:block;height:100%;background:linear-gradient(90deg,var(--s-orange),var(--s-yellow))}
+.seas .smore{grid-template-columns:22px 1fr!important;font-size:.76rem}
+.seastitles{list-style:none;margin:0;padding:0;position:relative}.seastitles.lpscroll{overflow-y:auto;overscroll-behavior:contain;padding-right:4px}.seastitles li{display:grid;grid-template-columns:40px minmax(120px,auto) 1fr;gap:8px;align-items:center;padding:6px 0;border-top:1px solid var(--line);font-size:.88rem}.seastitles li:first-child{border-top:0}
+.seastitles .er{font:800 .9rem var(--f-display);color:#ffd95e}.seastitles .nm{font-weight:700}.seastitles .stl{display:flex;flex-wrap:wrap;gap:4px}.seastitles .pill{font-size:.72rem;cursor:default}
+@media(max-width:600px){.seastitles li{grid-template-columns:34px 1fr}.seastitles .stl{grid-column:1/-1}}
 .fwjan{border-left:3px solid var(--s-orange);background:var(--panel2);border-radius:6px;padding:7px 10px;font-size:.88rem;margin:6px 0}
 .fwnudge{border-left:3px solid var(--pc);background:var(--panel2);border-radius:6px;padding:7px 10px;margin:12px 0;font-size:.88rem}.fwnudge b{color:var(--pc)}
 .plead{margin-top:14px}.pc>.plead{grid-column:1/-1;margin-top:-4px}   /* profiles: medal leader runs full width under both columns */
@@ -1266,6 +1272,7 @@ footer{color:var(--dim);font-size:.78rem}
     <button type="button" role="tab" id="tab-thisweek" data-view="thisweek" aria-selected="false">This Week</button>
     <button type="button" role="tab" id="tab-scores" data-view="scores" aria-selected="false">Scoreboard</button>
     <button type="button" role="tab" id="tab-rankings" data-view="rankings" aria-selected="false">Rankings</button>
+    <button type="button" role="tab" id="tab-season" data-view="season" aria-selected="false">Season</button>
     <button type="button" role="tab" id="tab-winners" data-view="winners" aria-selected="true">Winners</button>
     <button type="button" role="tab" id="tab-players" data-view="players" aria-selected="false">Players</button>
     <button type="button" role="tab" id="tab-hosting" data-view="hosting" aria-selected="false">Hosts</button>
@@ -1479,6 +1486,18 @@ footer{color:var(--dim);font-size:.78rem}
   </div>
   </div>
 
+  <div class="view" id="view-season" role="tabpanel" aria-labelledby="tab-season" hidden>
+  <section class="panel elosec seas">
+    <div class="panel-head seashead"><h2>🏁 <select id="season-pick" aria-label="Season"></select></h2><span class="sub" id="season-sub"></span></div>
+    <div class="seasbar" id="season-bar"></div>
+    <div class="elogrid" id="season-box"></div>
+  </section>
+  <section class="panel elosec seas">
+    <div class="panel-head"><h2>🏆 Season champions</h2><span class="sub" id="season-tsub"></span></div>
+    <div id="season-titles"></div>
+  </section>
+  </div>
+
   <div class="view" id="view-rankings" role="tabpanel" aria-labelledby="tab-rankings" hidden>
   <section class="panel rkhead">
     <div class="panel-head"><h2 class="rkinfo" data-tip="How Rodman’s Rankings work&#10;&#10;Each path (Lead, Rhythm, Bass) and level (Beginner to Masterclass) has its own leaderboard covering the last 10 weeks.&#10;&#10;Points: on each challenge the top 4 earn 10, 5, 3 and 1 points, added up over the 10 weeks. Players with the same points share a rank.&#10;&#10;Who counts: only the main challenges (bonus and God challenges don’t count). Places go to players in that class or playing one class up, using the class they were in that week, so after a rank-up their points start counting in the new class. Players playing down, two or more classes up, or marked on the sheet as a new player or with no class on that path are skipped, and the next player takes the place.&#10;&#10;Arrows show how many places a player’s own rank moved since last week; New means they just entered the list, and Out means they have no points left in the last 10 weeks. With ties, one player can move without another moving the other way: if two players shared 1st last week and one pulls ahead, that one stays 1st (no change) and the other drops to 2nd (↓1).&#10;&#10;Rodman’s official table is kept in the scoreboard sheet. Tap the weeks pill for the latest 10 weeks, worked out by the site with the same rules. Players’ profiles and forum banners use whichever is more recent.">Rodman’s Rankings <span class="infoi" aria-hidden="true">ⓘ</span></h2><span class="sub" id="rk-sub"></span></div>
@@ -1508,10 +1527,6 @@ footer{color:var(--dim);font-size:.78rem}
   <section class="panel elosec">
     <div class="panel-head"><h2>♟ Elo ratings</h2><span class="sub" id="elo-sub"></span></div>
     <div class="elogrid" id="elo-box"></div>
-  </section>
-  <section class="panel elosec seas">
-    <div class="panel-head"><h2>🏁 Season</h2><span class="sub" id="season-sub"></span></div>
-    <div class="elogrid" id="season-box"></div>
   </section>
 
 
@@ -1655,8 +1670,10 @@ computeRecords();
 const LOST="[LOST DATA]";
 const $=id=>document.getElementById(id);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-const fmt=iso=>new Date(iso+"T12:00:00").toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"});
-const fmtShort=iso=>new Date(iso+"T12:00:00").toLocaleDateString("en-US",{month:"short",day:"numeric"});
+// date labels: one formatter each, and each date worked out once (they're called thousands of times while the page draws)
+const FMT_L=new Intl.DateTimeFormat("en-US",{month:"short",day:"numeric",year:"numeric"}), FMT_S=new Intl.DateTimeFormat("en-US",{month:"short",day:"numeric"}), FMT_C=new Map(), FMT_CS=new Map();
+const fmt=iso=>{let v=FMT_C.get(iso); if(v===undefined){v=FMT_L.format(new Date(iso+"T12:00:00")); FMT_C.set(iso,v)} return v};
+const fmtShort=iso=>{let v=FMT_CS.get(iso); if(v===undefined){v=FMT_S.format(new Date(iso+"T12:00:00")); FMT_CS.set(iso,v)} return v};
 
 // current week = latest week whose start date is today or earlier
 const todayISO=(()=>{const d=new Date();return new Date(d.getTime()-d.getTimezoneOffset()*6e4).toISOString().slice(0,10)})();
@@ -1664,7 +1681,7 @@ const todayISO=(()=>{const d=new Date();return new Date(d.getTime()-d.getTimezon
 // on its start Saturday; until then the previous week is still the current one
 const SB_TAB_MAX=__SBMAX__;
 function nyAt(iso){const [y,m,d]=iso.split("-").map(Number); let t=Date.UTC(y,m-1,d,20); // 9 pm CET (20:00 UTC); 19:00 UTC in summer (CEST)
-  const hr=+new Intl.DateTimeFormat("en-GB",{timeZone:"Europe/Berlin",hour:"numeric",hourCycle:"h23"}).format(new Date(t));
+  const hr=+(nyAt.f=nyAt.f||new Intl.DateTimeFormat("en-GB",{timeZone:"Europe/Berlin",hour:"numeric",hourCycle:"h23"})).format(new Date(t));
   return hr===21?t:t-36e5}
 const WEEK_END_TXT="9 pm CET"; // when a week ends (Central European time)
 let curIdx=0; WEEKS.forEach((w,i)=>{if(w[1]<=todayISO&&(i===0||(w[0]<=SB_TAB_MAX&&Date.now()>=nyAt(w[1]))))curIdx=i});
@@ -2114,8 +2131,8 @@ let pYear=null;
 // ---------- first weeks: a newcomer's progress and next steps (players with 8 or fewer weeks on the scoreboards) ----------
 // newcomers who come back for week 2, play several challenges and try a second path are the ones who stay, so the panel points at those
 const FW_MAX=8, fwPlayed=(n,D)=>Math.max(+((byName[n]||[])[3])||0,D.wk.length);   // weeks played, from the player list (it goes back before the scoreboards)
-function fwData(n){const k=String(n).toLowerCase(), wk=new Set(), pw=[new Set(),new Set(),new Set()], ent=[];
-  Object.keys(SB.weeks).forEach(ws=>{const w=+ws; (SB.weeks[w]||[]).forEach(c=>{if(c[7])return; c[6].forEach(e=>{if(e[1]==null||isNaN(+e[1])||pvName(e).toLowerCase()!==k)return; wk.add(w); pw[c[0]].add(w); ent.push({w,c,pc:+e[1]})})})});
+function fwData(n){const k=String(n).toLowerCase(), wk=new Set(), pw=[new Set(),new Set(),new Set()], ent=sbIx().ent[k]||[];
+  ent.forEach(x=>{wk.add(x.w); pw[x.c[0]].add(x.w)});   // (from the scoreboards only, not the player list)
   return {wk:[...wk].sort((a,b)=>a-b),pw,ent}}
 // a challenge this week on a path they haven't played yet, at their class on that path (Beginner if they have none)
 function fwTry(n,D){const tw=TW_MAX, cards=SB.weeks[tw]||[], tiers=((byName[n]||[])[8]||[]);
@@ -2172,7 +2189,7 @@ function fwNudge(n){const D=fwData(n); if(!D.wk.length||fwPlayed(n,D)>FW_MAX)ret
 var SBIX=null;
 function sbIx(){if(SBIX)return SBIX; const wk={}, ent={}, disp={};
   PLAYERS.forEach(p=>disp[p[0].toLowerCase()]=p[0]);
-  Object.keys(SB.weeks).map(Number).sort((a,b)=>a-b).forEach(w=>(SB.weeks[w]||[]).forEach(c=>{if(c[7])return; c[6].forEach(e=>{if(e[1]==null||isNaN(+e[1]))return; const n=pvName(e), k=n.toLowerCase(); if(!disp[k])disp[k]=n; (wk[k]=wk[k]||new Set()).add(w); (ent[k]=ent[k]||[]).push({w,c,pc:+e[1]})})}));
+  Object.keys(SB.weeks).map(Number).sort((a,b)=>a-b).forEach(w=>(SB.weeks[w]||[]).forEach(c=>{if(c[7])return; c[6].forEach(e=>{if(e[1]==null||isNaN(+e[1]))return; const n=pvName(e), k=n.toLowerCase(); if(!disp[k])disp[k]=n; (wk[k]=wk[k]||new Set()).add(w); (ent[k]=ent[k]||[]).push({w,c,pc:+e[1],e})})}));
   // weeks played: the scoreboards plus the player list (the scoreboards don't cover every week, and the list can lag behind them)
   Object.keys(wk).forEach(k=>{const p=byName[disp[k]]; if(p){const b=presOf(p); for(let i=0;i<b.length;i++)if(b[i]==="1")wk[k].add(i+PRES_START)}});
   PLAYERS.forEach(p=>{const k=p[0].toLowerCase(); if(wk[k])return; const b=presOf(p), st=new Set(); for(let i=0;i<b.length;i++)if(b[i]==="1")st.add(i+PRES_START); if(st.size)wk[k]=st});
@@ -2226,13 +2243,28 @@ function qSeasonTable(pi,id){eloBuild(); const [a,b]=seasonRange(id), end=Math.m
     if(!x1)return; const g=x1[2]-(x0?x0[2]:0); if(g<SEASON_MIN||!x1[3])return; const r1=eloAt(pi,n,end), r0=x0?eloAt(pi,n,a-1):null;
     const d=r1[1]-(r0?r0[1]:eloStart(pi,n)); (out[x1[3]]=out[x1[3]]||[]).push({n,d,g,v:r1[1]})});
   Object.values(out).forEach(v=>v.sort((x,y)=>y.d-x.d)); return out}
-function renderSeason(){const el=$("season-box"); if(!el)return; eloBuild(); const id=seasonOf(ELO_DONE); if(!id){el.closest("section").hidden=true;return}
-  const [a,b]=seasonRange(id), [pa]=seasonRange(id), prevId=seasonOf(pa-1);
-  $("season-sub").innerHTML=`${id} · Weeks ${a}–${b} · the biggest Elo gains in each class this season (${SEASON_MIN}+ games) · a fresh race every 3 months <span class="elohelp" data-tip="${esc("Seasons run Feb–Apr, May–Jul, Aug–Oct and Nov–Jan (a month off the usual business quarters, so a season doesn't end in a quarter-end crunch at work). A player's season gain is their Elo now minus their Elo when the season started (or their starting rating, if they're new). Each class is its own race (a player's class on that path now), so anyone can win their class. The leader when the season ends is that class's season champion.")}">ⓘ</span>`;
-  el.innerHTML=[0,1,2].map(pi=>{const T=qSeasonTable(pi,id), P=prevId?qSeasonTable(pi,prevId):{};
-    const cls=["M","A","I","B"].filter(c=>T[c]&&T[c].length).map(c=>`<h4 style="--tc:${TIER_C[c]}">${TIER_NAME[c]}</h4><ol>${T[c].slice(0,3).map((x,i)=>`<li class="${i===0?"top elo-t1":i===1?"elo-t2":"elo-t3"}"><span class="er">${i+1}</span><span class="nm" data-profile="${esc(x.n)}" style="cursor:pointer">${esc(x.n)}</span><span class="sgain${x.d<0?" neg":""}">${x.d>=0?"+":"−"}${Math.abs(Math.round(x.d))}</span><span class="sg" data-tip="Elo now ${Math.round(x.v)}">${x.g} games</span></li>`).join("")}</ol>`).join("");
-    const champs=["M","A","I","B"].filter(c=>P[c]&&P[c].length).map(c=>`${TIER_NAME[c]} <b>${esc(P[c][0].n)}</b>`).join(" · ");
-    return `<div class="elocol" style="--pc:${PATH_C[pi]}"><h3>${PATHS[pi]}</h3>${cls||`<p class="dim">No one with ${SEASON_MIN}+ games yet this season.</p>`}${champs?`<div class="slast">${prevId} champions: ${champs}</div>`:""}</div>`}).join("")}
+// every season with Elo games, oldest first (the first one may be partial: the scoreboards start in Week 440)
+function seasonList(){eloBuild(); const out=[]; for(let w=ELO[0].ws[0]||1;w<=ELO_DONE;w++){const id=seasonOf(w); if(id&&out[out.length-1]!==id)out.push(id)} return out}
+var SEASON_SEL=null;
+const SEASON_TIP="Seasons run Feb–Apr, May–Jul, Aug–Oct and Nov–Jan (a month off the usual business quarters, so a season doesn't end in a quarter-end crunch at work).\n\nA player's season gain is their Elo at the end of the season (or now) minus their Elo when it started (or their starting rating, if they're new), with "+SEASON_MIN+"+ Elo games that season. Each class is its own race (a player's class on that path), so anyone can win their class, including new players from their first week.\n\nThe leader when the season ends is that class's season champion.";
+function renderSeason(){const el=$("season-box"); if(!el)return; eloBuild(); const L=seasonList(); if(!L.length)return;
+  const cur=seasonOf(ELO_DONE), id=SEASON_SEL&&L.includes(SEASON_SEL)?SEASON_SEL:cur, live=id===cur&&seasonOf(ELO_DONE+1)===cur;
+  const [a,b]=seasonRange(id), done=Math.min(b,ELO_DONE)-a+1, len=b-a+1;
+  $("season-pick").innerHTML=L.slice().reverse().map(x=>`<option${x===id?" selected":""}>${x}</option>`).join("");
+  $("season-sub").innerHTML=`Weeks ${a}–${b} · ${live?`week ${done} of ${len} · ends after Week ${b}${WEEKS[b-1]?" ("+fmt(WEEKS[b-1][1])+")":""}`:"final standings"} · the biggest Elo gains in each class (${SEASON_MIN}+ games) <span class="elohelp" data-tip="${esc(SEASON_TIP)}">ⓘ</span>`;
+  $("season-bar").innerHTML=live?`<div class="seasprog" data-tip="${done} of ${len} weeks played"><i style="width:${Math.round(done/len*100)}%"></i></div>`:"";
+  el.innerHTML=[0,1,2].map(pi=>{const T=qSeasonTable(pi,id);
+    const cls=["M","A","I","B"].filter(c=>T[c]&&T[c].length).map(c=>`<h4 style="--tc:${TIER_C[c]}">${TIER_NAME[c]}</h4><ol>${T[c].slice(0,5).map((x,i)=>`<li class="${i===0?"top elo-t1":i===1?"elo-t2":i===2?"elo-t3":""}"><span class="er">${!live&&i===0?"🏆":i+1}</span><span class="nm" data-profile="${esc(x.n)}" style="cursor:pointer">${esc(x.n)}</span><span class="sgain${x.d<0?" neg":""}">${x.d>=0?"+":"−"}${Math.abs(Math.round(x.d))}</span><span class="sg" data-tip="Elo ${live?"now":"at the end"}: ${Math.round(x.v)}">${x.g} games</span></li>`).join("")}${T[c].length>5?`<li class="dim smore"><span></span><span>… and ${T[c].length-5} more</span></li>`:""}</ol>`).join("");
+    return `<div class="elocol" style="--pc:${PATH_C[pi]}"><h3>${PATHS[pi]}</h3>${cls||`<p class="dim">No one with ${SEASON_MIN}+ games yet.</p>`}</div>`}).join("");
+  // every finished season's champions, counted per player
+  const fin=L.filter(x=>seasonRange(x)[1]<=ELO_DONE), by={};
+  fin.forEach(x=>[0,1,2].forEach(pi=>{const T=qSeasonTable(pi,x); ["M","A","I","B"].forEach(c=>{const w=T[c]&&T[c][0]; if(w)(by[w.n]=by[w.n]||[]).push({s:x,pi,c})})}));
+  const rows=Object.entries(by).sort((a,b)=>b[1].length-a[1].length||a[0].localeCompare(b[0],undefined,{sensitivity:"base"}));
+  $("season-tsub").textContent=`${fin.length} finished season${fin.length===1?"":"s"} · ${rows.length} champions · most class titles first${rows.length>10?" · scroll for more":""}`;
+  $("season-titles").innerHTML=rows.length?`<ol class="seastitles">${rows.map(([n,t],i)=>`<li><span class="er">${t.length}×</span><span class="nm" data-profile="${esc(n)}" style="cursor:pointer">${esc(n)}</span><span class="stl">${t.slice().reverse().map(x=>`<span class="pill hol" style="--pc:${PATH_C[x.pi]}">${x.s} · ${PATHS[x.pi]} ${TIER_NAME[x.c]}</span>`).join("")}</span></li>`).join("")}</ol>`:`<p class="dim">No finished seasons yet.</p>`;
+  {const l=document.querySelector("#season-titles .seastitles"), li=l&&l.children; if(li&&li.length>10){l.style.maxHeight=(li[10].offsetTop-li[0].offsetTop)+"px"; l.classList.add("lpscroll")}}}   // 10 rows, then scroll
+document.addEventListener("change",e=>{if(e.target.id!=="season-pick")return; SEASON_SEL=e.target.value; renderSeason()});
+$("view-season").addEventListener("click",e=>{const pb=e.target.closest("[data-profile]"); if(!pb)return; const n=pb.dataset.profile; if(byName[n]){showView("players");showPlayer(n);$("pcard").closest("section").scrollIntoView({block:"start"})}});
 
 // Host tab: players who stopped in the last year (or 2), with where they were when they left
 function lapsedSection(){const tw=TW_MAX, far=52, I=sbIx(), rows=[];
@@ -2421,16 +2453,17 @@ $("tl").addEventListener("click",e=>{
 });
 
 function showView(v){
-  ["thisweek","rankings","hosting","players","winners","scores","songs"].forEach(k=>{const on=k===v;$("view-"+k).hidden=!on;$("tab-"+k).setAttribute("aria-selected",on)});
+  ["thisweek","rankings","season","hosting","players","winners","scores","songs"].forEach(k=>{const on=k===v;$("view-"+k).hidden=!on;$("tab-"+k).setAttribute("aria-selected",on)});
   tip.hidden=true;
-  $("pfilter").hidden=v==="scores"||v==="songs"||v==="thisweek"||v==="rankings";
+  $("pfilter").hidden=v==="scores"||v==="songs"||v==="thisweek"||v==="rankings"||v==="season";
+  if(v==="season")try{renderSeason()}catch(e){}
   if(v==="thisweek"&&window.__twReady)renderThisWeek();
   if(v==="winners"||v==="players"||v==="hosting")setTimeout(()=>mlEnsure(v==="winners"?"win":v==="players"?"player":"host"),50);
   if(v==="songs"&&window.__songsStale){window.__songsStale=false; renderSongs()} // player ratings arrived while another page was open
   if(v==="hosting"){renderUpcoming(); if(!logScrolled)requestAnimationFrame(scrollLogToCurrent)}
 }
 document.querySelector(".tabs").addEventListener("click",e=>{const b=e.target.closest("button[data-view]");if(b)showView(b.dataset.view)});
-{const H={"#thisweek":"thisweek","#rankings":"rankings","#hosts":"hosting","#players":"players","#winners":"winners","#scoreboard":"scores","#songs":"songs"};let v=H[location.hash.split("/")[0]]||null; showView(["thisweek","rankings","hosting","scores","winners","songs","players"].includes(v)?v:"thisweek");}
+{const H={"#thisweek":"thisweek","#rankings":"rankings","#season":"season","#hosts":"hosting","#players":"players","#winners":"winners","#scoreboard":"scores","#songs":"songs"};let v=H[location.hash.split("/")[0]]||null; showView(["thisweek","rankings","season","hosting","scores","winners","songs","players"].includes(v)?v:"thisweek");}
 const SB=__SCORES__;
 const SONGS_OLD=__SONGS_OLD__; // weeks before the scoreboards: [week, path, tier, bonus, song, difficulty]
 // ---------- win rates & rank-ups (from scoreboards, weeks 440+) ----------
@@ -2722,15 +2755,17 @@ function hbfsWins(name,weeks){const k=String(name).toLowerCase(), out=[];
   const better=(e,o)=>{if(e[1]==null||o[1]==null)return false; if(+e[1]>=100&&+o[1]>=100)return false;   // 100% again is the Still got it medal instead (streak and score can change with a chart update)
     if(e[1]!==o[1])return e[1]>o[1];
     if(e[2]!=null&&o[2]!=null&&e[2]!==o[2])return e[2]>o[2]; return e[3]!=null&&o[3]!=null&&e[3]>o[3]};
-  weeks.forEach(w=>(SB.weeks[w]||[]).forEach(c=>{if(c[7])return; const e=c[6].find(x=>pvName(x).toLowerCase()===k); if(!e)return;
-    for(const x of pastPlays(w,c[0],c[1],c[3])){const o=x.c[6].find(y=>pvName(y).toLowerCase()===k); if(o){if(better(e,o))out.push({w,c,e,ow:x.w,o}); break}}}));
-  return out}
+  const ws=new Set(weeks); return ownPrev(k).filter(x=>ws.has(x.w)&&better(x.e,x.o))}
+// each of a player's scores with their score from the last time they played the same challenge (worked out once per player;
+// Harder, Better, Faster, Stronger and Still got it both pick from it)
+var OWN_PREV;
+function ownPrev(k){OWN_PREV=OWN_PREV||{}; if(OWN_PREV[k])return OWN_PREV[k]; const out=[];
+  (sbIx().ent[k]||[]).forEach(({w,c,e})=>{if(c[7])return; for(const x of pastPlays(w,c[0],c[1],c[3])){const o=x.c[6].find(y=>pvName(y).toLowerCase()===k); if(o){out.push({w,c,e,ow:x.w,o}); break}}});
+  return OWN_PREV[k]=out}
 // Still got it: 100% again on the same challenge you scored 100% on the last time you played it (any earlier week since
 // the scoreboards start), whatever the streak or score, since a chart update can change those. Finished weeks only.
-function sgaWins(name,weeks){const k=String(name).toLowerCase(), out=[];
-  weeks.forEach(w=>(SB.weeks[w]||[]).forEach(c=>{if(c[7])return; const e=c[6].find(x=>pvName(x).toLowerCase()===k); if(!e||e[1]==null||+e[1]<100)return;
-    for(const x of pastPlays(w,c[0],c[1],c[3])){const o=x.c[6].find(y=>pvName(y).toLowerCase()===k); if(o){if(o[1]!=null&&+o[1]>=100)out.push({w,c,e,ow:x.w,o}); break}}}));
-  return out}
+function sgaWins(name,weeks){const k=String(name).toLowerCase(), ws=new Set(weeks);
+  return ownPrev(k).filter(x=>ws.has(x.w)&&x.e[1]!=null&&+x.e[1]>=100&&x.o[1]!=null&&+x.o[1]>=100)}
 function sgaLine(x){return `• ${x.c[3]} (${PATHS[x.c[0]]}, ${x.c[2]}) · 100% in Week ${x.ow} and again in Week ${x.w}`}
 function sgaSvg(){return `<svg viewBox="0 0 30 30" aria-hidden="true"><defs><linearGradient id="sgag" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7fe9ff"/><stop offset="1" stop-color="#b48cff"/></linearGradient></defs><circle cx="15" cy="15" r="13" fill="#1d2433" stroke="url(#sgag)" stroke-width="2"/><path d="M22.6 10.2A9 9 0 0 0 7.6 11.4" fill="none" stroke="url(#sgag)" stroke-width="1.8" stroke-linecap="round"/><path d="M22.9 6.6 22.6 10.2 19.1 9.6" fill="none" stroke="url(#sgag)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><text x="15" y="20.6" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-weight="900" font-size="9" fill="#fff">100</text></svg>`}
 function hbfsSvg(){return `<svg viewBox="0 0 30 30" aria-hidden="true"><defs><linearGradient id="hbfg" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#ff7a1a"/><stop offset="1" stop-color="#ffd95e"/></linearGradient></defs><circle cx="15" cy="15" r="13" fill="#1d2433" stroke="url(#hbfg)" stroke-width="2"/><path d="M9 20 15 12.5 21 20" fill="none" stroke="#8b93a7" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" opacity=".55"/><path d="M9 15.5 15 8 21 15.5" fill="none" stroke="url(#hbfg)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>`}
@@ -2941,7 +2976,7 @@ const LVI="BIAM";
 const isUp=u=>LVI.indexOf(u[3])>LVI.indexOf(u[2]);
 const RU_KEY=new Set(WR.ups.filter(isUp).map(([n,p,a,b,w])=>`${w}|${n}|${p}|${b}`));
 try{const r=localStorage.getItem("rsc-wpath");if(r!==null&&["0","1","2"].includes(r))wPath=+r}catch(e){}
-renderWinners(); setTimeout(()=>{try{renderEloBox()}catch(e){} try{renderSeason()}catch(e){}},0);
+renderWinners(); setTimeout(()=>{try{renderEloBox()}catch(e){}},0);
 function setActiveOnly(v){
   activeOnly=v; try{localStorage.setItem("rsc-activeonly2",v?"1":"0")}catch(e){}
   document.querySelectorAll("#pfilter button").forEach(b=>b.setAttribute("aria-pressed",(b.dataset.af==="1")===activeOnly));
@@ -3371,7 +3406,7 @@ function pastPlays(w,p,slot,song){const k=pastKey(song); if(!k||k==="n/a")return
   // one index of every challenge by song + arrangement, built on first use (scanning every week per card was slow on load)
   if(!pastPlays.ix){const ix={}; Object.keys(SB.weeks).map(Number).sort((a,b)=>b-a).forEach(pw=>(SB.weeks[pw]||[]).forEach(d=>{if(d[7]||!d[6].length)return; const key=pastKey(d[3])+"|"+arrP(pw,d[0],d[1]); (ix[key]=ix[key]||[]).push({w:pw,c:d})})); pastPlays.ix=ix}
   return (pastPlays.ix[k+"|"+arrP(w,p,slot)]||[]).filter(x=>x.w<w)}   // newest first
-function pvName(e){return SB.names[e[0]].replace(/[*~]+$/,"")}
+var PVN=[]; function pvName(e){if(!PVN)PVN=[]; const i=e[0]; let v=PVN[i]; if(v===undefined)v=PVN[i]=SB.names[i].replace(/[*~]+$/,""); return v}
 var sbPv={};   // which "Played before" week is open on each card ("p|slot" -> week); all closed to start
 function arrP(w,p,slot){const a=SB.arr&&SB.arr[w]&&SB.arr[w][p*9+slot]; return a||"LRB"[p]}
 function arrName(code){return (code.length>1?(code[0]==="B"?"Bonus ":"Alternate "):"")+PATHS["LRB".indexOf(code.slice(-1))]}
@@ -3503,7 +3538,7 @@ function renderSongs(){
   if(featured.length)showBand(bandName&&bands[bandName]?bandName:featured[0][0]); else $("bcard").innerHTML=`<div class="empty">No songs on record for ${esc(sHost||"this filter")}.</div>`;
   try{localStorage.setItem("rsc-spath",String(sPath))}catch(e){}
 }
-function showBand(name){
+function showBand(name){songsReady();
   const list=songCards.filter(c=>c.artist.toLowerCase()===String(name).toLowerCase());
   if(!list.length){$("bcard").innerHTML=`<div class="empty">No challenges for “${esc(name)}”${sPath<0?"":" on "+PATHS[sPath]}. Pick a band from the list as you type.</div>`;return}
   if(list[0].artist!==bandName){bandPathF=null;bandSong=null;}
@@ -3551,13 +3586,15 @@ $("bq").addEventListener("keydown",e=>{if(e.key==="Enter")showBand(e.target.valu
 $("view-songs").addEventListener("click",e=>{const el=e.target.closest("[data-band],[data-player]");if(!el)return;showBand(el.dataset.band||el.dataset.player);if(el.dataset.song){bandSong=el.dataset.song;bandPathF=null;showBand(bandName)}if(el.dataset.ltier){bandPathF=null;setSongLv(el.dataset.ltier);bandTierAvg=true;renderSongs();showBand(bandName)}$("bcard").closest("section").scrollIntoView({behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth",block:"start"})});
 $("spath").addEventListener("click",e=>{const b=e.target.closest("button[data-sp]");if(b){sPath=+b.dataset.sp;renderSongs()}});
 try{const r=localStorage.getItem("rsc-spath");if(r!==null&&["0","1","2"].includes(r))sPath=+r}catch(e){}
-renderSongs();
+// the Songs page draws when it's first opened (it's slow and most visits start elsewhere); songsReady() draws it on demand
+function songsReady(){if(window.__songsStale){window.__songsStale=false; renderSongs()}}
+if(!$("view-songs").hidden)renderSongs(); else window.__songsStale=true;
 $("view-songs").addEventListener("mousemove",e=>{const p=e.target.closest("[data-tip]");if(!p){tip.hidden=true;return}tip.textContent=p.dataset.tip;tip.hidden=false;placeTip(e.clientX,e.clientY)});
 $("view-songs").addEventListener("mouseleave",()=>tip.hidden=true);
 
 // ---------- floating bubble showing which filters are on in the current tab ----------
 const fbub=document.createElement("div"); fbub.id="fbub"; fbub.setAttribute("role","status"); fbub.setAttribute("aria-live","polite"); fbub.hidden=true; document.body.appendChild(fbub);
-function curView(){return ["thisweek","rankings","hosting","players","winners","songs","scores"].find(k=>!$("view-"+k).hidden)}
+function curView(){return ["thisweek","rankings","season","hosting","players","winners","songs","scores"].find(k=>!$("view-"+k).hidden)}
 function activeFilters(){
   const v=curView(), f=[];
   if((v==="hosting"||v==="players"||v==="winners")&&activeOnly)f.push(["Active players only",()=>setActiveOnly(false)]);
@@ -3786,7 +3823,7 @@ $("view-scores").addEventListener("click",e=>{
   const g=e.target.closest("[data-goband]"); if(!g)return;
   // names on the scoreboard can differ slightly from the song list ("The Ramones" vs "Ramones"), so match loosely
   const norm=x=>String(x||"").toLowerCase().replace(/^the\s+/,"").replace(/&/g,"and").replace(/[^a-z0-9]/g,"");
-  const find=()=>{const bs=songCards.filter(c=>norm(c.artist)===norm(g.dataset.goband)); if(!bs.length)return null;
+  const find=()=>{songsReady(); const bs=songCards.filter(c=>norm(c.artist)===norm(g.dataset.goband)); if(!bs.length)return null;
     const sg=g.dataset.gosong?bs.find(c=>norm(c.title)===norm(g.dataset.gosong)):null; return {band:bs[0].artist,song:sg?sg.title:null}};
   let m=find(); if(!m&&sPath>=0){sPath=-1;renderSongs();m=find()}
   tip.hidden=true; showView("songs");
@@ -5205,7 +5242,7 @@ if(!/[?&](banner|mlpre)\b/.test(location.search)&&history.pushState){
   showView=function(){const r=_sv.apply(this,arguments); soon(); return r};
   sbRender=function(){const r=_sr.apply(this,arguments); soon(); return r};
   renderThisWeek=function(){const r=_tw.apply(this,arguments); soon(); return r};
-  const HASH={thisweek:"thisweek",rankings:"rankings",hosting:"hosts",players:"players",winners:"winners",scores:"scoreboard",songs:"songs"};
+  const HASH={thisweek:"thisweek",rankings:"rankings",season:"season",hosting:"hosts",players:"players",winners:"winners",scores:"scoreboard",songs:"songs"};
   const state=()=>{const v=curView(), st={v};
     if(v==="players"&&NAV.p)st.p=NAV.p; if(v==="winners"&&NAV.w)st.w=NAV.w; if(v==="hosting"&&NAV.h)st.h=NAV.h;
     if(v==="songs"&&bandName)st.b=bandName; if(v==="scores")st.sb=sbWeek; if(v==="thisweek"&&twWeek!==TW_MAX)st.tw=twWeek;
@@ -5249,7 +5286,7 @@ if(!/[?&](banner|mlpre)\b/.test(location.search)&&history.pushState){
   $("acct").addEventListener("close",()=>{if(!NAV.closing&&history.state&&history.state.dlg){NAV.pendingBack=true; history.back()}});
   // a shared link to a lookup or week (#players/Mikson, #scoreboard/676, ...)
   function hashState(m){let sub=null; try{sub=m[2]!=null?decodeURIComponent(m[2]):null}catch(e){}
-    const V={hosts:"hosting",players:"players",winners:"winners",songs:"songs",scoreboard:"scores",thisweek:"thisweek",rankings:"rankings"}[m[1]]; if(!V)return null;
+    const V={hosts:"hosting",players:"players",winners:"winners",songs:"songs",scoreboard:"scores",thisweek:"thisweek",rankings:"rankings",season:"season"}[m[1]]; if(!V)return null;
     const st={v:V}; if(sub!=null){if(V==="players")st.p=sub; else if(V==="winners")st.w=sub; else if(V==="hosting")st.h=sub; else if(V==="songs")st.b=sub;
       else if(V==="scores"&&SB.weeks[+sub])st.sb=+sub; else if(V==="thisweek"&&+sub>0&&+sub<=TW_MAX)st.tw=+sub}
     return st}
