@@ -47,7 +47,8 @@ header.top{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-end;justify-con
 #sitetitle .balloons{display:inline-flex;align-items:flex-end;gap:0;margin-left:.18em;vertical-align:-.1em;height:1.15em}
 #sitetitle .balloons svg{width:.62em;height:1.35em;margin-left:-.12em;transform-origin:50% 100%;overflow:visible}
 #sitetitle .balloons svg:nth-child(2){height:1.55em;margin-bottom:.06em}
-#sitetitle{position:relative}#sitetitle.deco-fri13{overflow-x:clip}
+#sitetitle{position:relative}
+#sitetitle .goldnum{display:inline-block;margin-left:.28em;font-weight:900;background:linear-gradient(180deg,#fff6c8 0%,#ffd86b 30%,#e9a826 62%,#b9761a 100%);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 8px rgba(255,200,80,.45)) drop-shadow(0 2px 0 rgba(120,70,10,.6))}#sitetitle.deco-fri13{overflow-x:clip}
 #sitetitle .deco{display:inline-block;margin-left:.22em;font-size:.82em;vertical-align:.04em;position:relative}
 #sitetitle .boo{filter:drop-shadow(0 0 6px rgba(220,230,255,.45))}
 #sitetitle .afl{display:inline-block;color:var(--s-yellow);transition:transform .25s}#sitetitle .afl.fix{transform:rotateX(90deg)}
@@ -2401,7 +2402,7 @@ document.addEventListener("click",e=>{const b=e.target.closest("[data-hlcopy]");
   const balloons=t=>`<span class="balloons" title="${esc(t)}">${["--s-red","--s-yellow","--s-blue"].map(v=>balloon(css(v)||"#ef4a55")).join("")}</span>`;
   const D={
     ann:()=>{const yrs=(/(\d+)\s*Year/i.exec(cur[3]||"")||[])[1]; return [T+balloons((cur[3]||"Anniversary").replace(/\bRS ?2014\b/,"Rocksmith 2014").replace(/\bChamp\b/,"Championship")),`Happy ${yrs?yrs+"th ":""}anniversary, Rocksmith Championship!`]},
-    mile:()=>[T+balloons(`Week ${cur[0]} of the championship`),`Week ${cur[0]} of the championship!`],
+    mile:()=>[T+`<span class="goldnum" title="Week ${cur[0]} of the championship!">${cur[0]}</span>`,`Week ${cur[0]} of the championship!`],
     fools:()=>[`Rocksmith Ch<span class="afl">u</span>mpionship`,"April Fools!"],
     fri13:()=>[T+`<span class="deco cat" aria-hidden="true">🐈‍⬛</span>`,"Friday the 13th"],
     newyear:()=>[T+`<span class="deco fw" aria-hidden="true">🎆<i>✦</i><i>✦</i><i>✦</i></span>`,"Happy New Year!"],
