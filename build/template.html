@@ -1297,7 +1297,7 @@ footer{color:var(--dim);font-size:.78rem}
 .bn .bn-st{position:relative}
 .bn .bn-hot{position:absolute;top:-7px;right:-5px;display:inline-flex;align-items:center;gap:2px;padding:2px 7px 2px 5px;border-radius:999px;font:800 13px/1 var(--f-display);color:#1a0d02;background:linear-gradient(180deg,#ffc24a,#ff7a1a);box-shadow:0 0 8px rgba(255,120,30,.55);border:1px solid #ffd27a}
 .bn .bn-hot svg{width:10px;height:13px}
-.bn .bn-elos{margin-left:auto;display:flex;flex-direction:column;gap:3px;align-self:center}
+.bn .bn-elos{margin-left:auto;display:flex;flex-direction:column;gap:3px;align-self:center}.bn .bn-seas{font:900 8px/1 var(--f-display);letter-spacing:.12em;text-transform:uppercase;color:#e9b84a;text-align:center;margin-bottom:1px}
 .bn .bn-elo{font:800 11px/1 var(--f-display);color:#e9edf5;border:1px solid color-mix(in srgb,var(--pc) 55%,transparent);border-radius:999px;padding:2px 7px;white-space:nowrap}.bn .bn-elo i{font-style:normal;color:var(--pc)}.bn .bn-elo.bn-e1{border-color:#f5c542;background:linear-gradient(180deg,rgba(245,197,66,.18),rgba(245,197,66,.05));box-shadow:0 0 8px rgba(245,197,66,.4)}.bn .bn-elo.bn-e1 small{color:#ffd95e}.bn .bn-elo.bn-e2{border-color:#b9c2d0;background:linear-gradient(180deg,rgba(201,208,220,.12),rgba(201,208,220,.03))}.bn .bn-elo.bn-e2 small{color:#e3e8f0}.bn .bn-elo.bn-e3{border-color:#c98a4b;background:linear-gradient(180deg,rgba(205,127,50,.14),rgba(205,127,50,.03))}.bn .bn-elo.bn-e3 small{color:#e0a46a}.bn .bn-elo small{font:600 11px/1 var(--f-display);color:#8b93a7}
 .bn .bn-hot svg path{fill:#1a0d02}
 .bn .bn-meds{display:flex;align-items:center;gap:27px;flex:1;min-height:0;padding:0 0 4px 3px}
@@ -3369,14 +3369,14 @@ function renderEloBox(){const el=$("elo-box"); if(!el)return; eloBuild(); const 
 // This Week: how ratings moved with the week's scores (provisional while the week runs)
 function renderTwElo(){const el=$("tw-elo"); if(!el)return; eloBuild(); const w=twWeek, live=w===ELO_LIVE;
   if(!SB.weeks[w]){el.closest("section").hidden=true;return} el.closest("section").hidden=false;
-  $("tw-elo-h").textContent=w===TW_MAX?"♟ Elo this week":`♟ Elo in Week ${w}`;
-  $("tw-elo-sub").innerHTML=`How each player's rating moved with ${live?`Week ${w}'s scores so far · provisional until the week ends`:`Week ${w}'s scores`} · rank among active players with 20+ games <span class="elohelp" data-tip="${esc(ELO_TIP)}">ⓘ</span>`;
+  $("tw-elo-h").textContent=w===TW_MAX?"♟ Elo gains this week":`♟ Elo gains in Week ${w}`;
+  $("tw-elo-sub").innerHTML=`Who gained rating with ${live?`Week ${w}'s scores so far · provisional until the week ends`:`Week ${w}'s scores`} · rank among active players with 20+ games <span class="elohelp" data-tip="${esc(ELO_TIP)}">ⓘ</span>`;
   el.innerHTML=[0,1,2].map(pi=>{const r0=eloRanks(pi,w-1,isActivePlayer), r1=eloRanks(pi,w,isActivePlayer);
-    const rows=Object.keys(ELO[pi].hist).map(n=>{const x=eloAt(pi,n,w); if(!x||x[0]!==w)return null; const b=eloAt(pi,n,w-1); return {n,now:x[1],g:x[2],d:Math.round(x[1]-(b?b[1]:eloStart(pi,n)))}}).filter(Boolean).sort((a,b)=>b.d-a.d||b.now-a.now);
+    const rows=Object.keys(ELO[pi].hist).map(n=>{const x=eloAt(pi,n,w); if(!x||x[0]!==w)return null; const b=eloAt(pi,n,w-1); return {n,now:x[1],g:x[2],d:Math.round(x[1]-(b?b[1]:eloStart(pi,n)))}}).filter(x=>x&&x.d>0).sort((a,b)=>b.d-a.d||b.now-a.now);   // gains only
     if(!rows.length)return "";
     return `<div class="elocol" style="--pc:${PATH_C[pi]}"><h3>${PATHS[pi]}</h3><ol>${rows.map((x,i)=>{const a=r0[x.n], b=r1[x.n];
-      const mv=x.g<ELO_MIN?`<small class="elonew" data-tip="Provisional: ${x.g} of ${ELO_MIN} games">new</small>`:a&&b&&a!==b?`<small class="${b<a?"up":"dn"}" data-tip="${esc(eloAround(pi,x.n,w,isActivePlayer))}">#${a}→#${b}</small>`:b?`<small data-tip="${esc(eloAround(pi,x.n,w,isActivePlayer))}">#${b}</small>`:"";
-      return `<li class="${i===0&&x.d>0?"top":""}">${twName(x.n)}${mv}<span class="ed" data-tip="${esc(eloWhy(pi,x.n,w,w))}">${x.d?eloD(x.d):"–"}</span><b class="ev" style="color:${eloBand(x.now)[2]}" data-tip="${esc(eloBandTip(x.now))}">${Math.round(x.now)}</b></li>`}).join("")}</ol></div>`}).join("")||`<p class="dim">No scores yet this week.</p>`}
+      const mv=x.g<ELO_MIN?`<small class="elonew" data-tip="Provisional: ${x.g} of ${ELO_MIN} games">new</small>`:a&&b&&b<a?`<small class="up" data-tip="${esc(eloAround(pi,x.n,w,isActivePlayer))}">#${a}→#${b}</small>`:b?`<small data-tip="${esc(eloAround(pi,x.n,w,isActivePlayer))}">#${b}</small>`:"";
+      return `<li class="${i===0&&x.d>0?"top":""}">${twName(x.n)}${mv}<span class="ed" data-tip="${esc(eloWhy(pi,x.n,w,w))}">${x.d?eloD(x.d):"–"}</span><b class="ev" style="color:${eloBand(x.now)[2]}" data-tip="${esc(eloBandTip(x.now))}">${Math.round(x.now)}</b></li>`}).join("")}</ol></div>`}).join("")||`<p class="dim">No Elo gains yet this week.</p>`}
 // Elo over time: one line per path (in its colour), from the week they first played it to the latest finished week.
 // Range buttons (all / last year / last 6 months), tap a path in the legend to hide it, hover or tap for the week's numbers.
 const ELO_C=["#ff9a2e","#45d17a","#3fa0ff"];
@@ -5225,7 +5225,7 @@ function bannerHtml(n){
     const pl=1+act.filter(r=>r[1]>me[1]||(r[1]===me[1]&&(r[2]||0)>(me[2]||0))).length; return pl<=3?{label:k.label,pl}:null}).filter(Boolean);
   const box=document.createElement("div"); box.innerHTML=allMedalsHtml(n);
   // order: gold God diamonds, gold medals, Uncrowned (next to the gold medals), then close wins and rivalry wins
-  // (rivalry wins are left off the banner to make room for the Elo pills)
+  // (rivalry wins are left off the banner to make room for the season pills)
   const ORD=[/^Gold God diamond/,/^Gold medal/,/^Uncrowned ·/,/^Close win/], ordOf=m=>ORD.findIndex(r=>r.test(m.getAttribute("data-tip")||""));
   const gold=[...box.querySelectorAll(".medal-m")].map((m,i)=>({m,i,o:ordOf(m)})).filter(x=>x.o>=0).sort((a,b)=>a.o-b.o||a.i-b.i).map(x=>x.m);
   const meds=gold.map(m=>{
@@ -5242,9 +5242,10 @@ function bannerHtml(n){
   // best rank highlight: #1 gold, #2 silver, #3 bronze
   return `<div class="bn"><div class="bn-top"><div class="bn-who"><div class="bn-nm">${esc(n)}</div><div class="bn-tags">${["L","R","B"].map((l,i)=>`<span class="bn-tg">${l}<b style="color:${tc(T[i])}">${tier(T[i])}</b></span>`).join("")}</div></div>
     <div class="bn-stats">${st("Weeks",p[3])}${st("Wins",winsB,hk>=2?"bn-hotbox":"")}${["Lead","Rhythm","Bass"].map(pn=>{const r=rk[pn]; return st(`${pn==="Rhythm"?"Rhy":pn} rank`,r?`#${r.r}<i>${esc(r.lv.slice(0,3))}</i>`:"–",r&&r.r<=3?"bn-r"+r.r:"")}).join("")}</div></div>
-    <div class="bn-meds">${meds.join("")}${(()=>{try{eloBuild(); const k=eloKey(n), ps=[0,1,2].map(pi=>{const x=eloAt(pi,k,ELO_DONE); if(!x)return "";
-      const rk=x[2]>=ELO_MIN?eloRanks(pi,ELO_DONE,eloKeep(k))[k]:null; return `<span class="bn-elo${rk&&rk<=3?" bn-e"+rk:""}" style="--pc:${["#ff9a2e","#45d17a","#3fa0ff"][pi]}"><i>${"LRB"[pi]}</i> ${Math.round(x[1])}<small> ${rk?"#"+rk:"new"}</small></span>`}).join("");
-      return ps?`<div class="bn-elos">${ps}</div>`:""}catch(e){return ""}})()}</div>${BN_STRIPE}</div>`;
+    <div class="bn-meds">${meds.join("")}${(()=>{try{eloBuild(); const id=seasonOf(ELO_DONE); if(!id)return ""; const ps=[0,1,2].map(pi=>{   // this season's standing on each path (their best class)
+      let best=null; Object.entries(seasonF1(pi,id)).forEach(([c,L])=>{const i=L.findIndex(x=>x.n.toLowerCase()===key); if(i>=0&&(!best||i<best.i))best={i,c,p:L[i].p}}); if(!best)return "";
+      const rk=best.i+1; return `<span class="bn-elo${rk<=3?" bn-e"+rk:""}" style="--pc:${["#ff9a2e","#45d17a","#3fa0ff"][pi]}"><i>${"LRB"[pi]}</i> #${rk}<small> ${best.p} pts</small></span>`}).join("");
+      return ps?`<div class="bn-elos"><span class="bn-seas">Season ${seasonNum(id)}</span>${ps}</div>`:""}catch(e){return ""}})()}</div>${BN_STRIPE}</div>`;
 }
 // long names: shrink the name until it fits its column (down to 12px) instead of cutting it off
 function bnFit(root){(root||document).querySelectorAll(".bn .bn-nm").forEach(el=>{let f=22; el.style.fontSize=""; while(el.scrollWidth>el.clientWidth&&f>12){f-=.5; el.style.fontSize=f+"px"}});
