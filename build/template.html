@@ -3513,7 +3513,7 @@ function hrProfile(n){const H=hrBuild(), w1=H.w1;
 function hrYears(n){const H=hrBuild(), first=[], by=[0,1,2].map(pi=>{const m={}; hrSeries(n,pi).forEach(e=>{if(e[1]==null)return; if(!first[pi])first[pi]=e; m[yearOfWeek(e[0])]=e[1]}); return m});
   const Y=[...new Set(by.flatMap(m=>Object.keys(m)))].sort(); if(!Y.length)return "";
   const nowY=String(yearOfWeek(H.w1)), paths=[0,1,2].filter(pi=>first[pi]);
-  const chg=(d,from)=>d==null?`<span class="hry-eq"></span>`:d<.05?`<span class="hry-eq"></span>`:`<span class="up">▲${d.toFixed(1)}</span>`;   // drops are never shown
+  const chg=(d,from)=>d==null?`<span class="hry-eq"></span>`:Math.abs(d)<.05?`<span class="hry-eq">±0</span>`:d<0?`<span class="hry-eq"></span>`:`<span class="up">▲${d.toFixed(1)}</span>`;   // drops are never shown
   const cell=(pi,y,i)=>{const v=by[pi][y]; if(v==null)return `<td><b class="hry-eq">–</b><span class="hry-eq"></span></td>`;
     let pv=null, from=null; for(let k=i-1;k>=0;k--)if(by[pi][Y[k]]!=null){pv=by[pi][Y[k]]; from=Y[k]; break} const d=pv==null?null:v-pv, tipT=`${PATHS[pi]} ${y===nowY?"now":"at the end of "+y}: ${v.toFixed(1)}`+(d==null?"":Math.abs(d)<.05?` (same as ${from})`:d<0?"":` (up ${d.toFixed(1)} from ${from})`);
     return `<td data-tip="${esc(tipT)}"><b>${v.toFixed(1)}</b>${chg(d)}</td>`};
