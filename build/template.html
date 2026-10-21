@@ -43,9 +43,7 @@ h2{font-size:1.05rem;letter-spacing:.06em;text-transform:uppercase;color:var(--f
 /* header */
 header.top{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-end;justify-content:space-between}
 .brand .eyebrow{font-family:var(--f-mono);font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
-/* title decorations: balloons and a party hat in the championship's anniversary week, a ghost the rest of October */
-#sitetitle .r1{position:relative;display:inline-block}
-#sitetitle.party{margin-top:.22em}#sitetitle .phat{position:absolute;left:.04em;top:-.38em;width:.6em;height:.7em;transform:rotate(-14deg);transform-origin:50% 100%;pointer-events:none}
+/* title decorations: balloons in the championship's anniversary week, a ghost the rest of October */
 #sitetitle .balloons{display:inline-flex;align-items:flex-end;gap:0;margin-left:.18em;vertical-align:-.1em;height:1.15em}
 #sitetitle .balloons svg{width:.62em;height:1.35em;margin-left:-.12em;transform-origin:50% 100%;overflow:visible}
 #sitetitle .balloons svg:nth-child(2){height:1.55em;margin-bottom:.06em}
@@ -2366,13 +2364,12 @@ document.addEventListener("click",e=>{const b=e.target.closest("[data-hlcopy]");
   const SEL=".medals,#perfect,.ring,.elogrid,.panel.hof,.panel.glowrim,.panel.starry,.panel.amber,.panel.gloom,.panel.rkhead";   // (everything that animates)
   const scan=n=>{if(n.nodeType!==1)return; if(n.matches(SEL))add(n); n.querySelectorAll(SEL).forEach(add)};
   scan(document.body); new MutationObserver(ms=>ms.forEach(m=>m.addedNodes.forEach(scan))).observe(document.body,{childList:true,subtree:true})})();
-// ---------- title decorations: the championship's anniversary week gets balloons and a party hat; the rest of October, a ghost ----------
+// ---------- title decorations: the championship's anniversary week gets balloons; the rest of October, a ghost ----------
 (function titleDeco(){const h=$("sitetitle"); if(!h)return; const ann=/Champ.*Anniversary/i.test(cur[3]||""), oct=todayISO.slice(5,7)==="10";
   if(ann){const yrs=(/(\d+)\s*Year/i.exec(cur[3])||[])[1];
     const balloon=c=>`<svg viewBox="0 0 20 44" aria-hidden="true"><path d="M10 26c1 6-3 9 0 17" stroke="#c9ced8" stroke-width=".8" fill="none"/><ellipse cx="10" cy="12" rx="8.4" ry="10.6" fill="${c}"/><path d="M8.6 22.4h2.8l-1.4 2.6z" fill="${c}"/><ellipse cx="7" cy="8" rx="2.2" ry="3.4" fill="#fff" opacity=".35"/></svg>`;
-    const hat=`<svg class="phat" viewBox="0 0 26 30" aria-hidden="true"><path d="M13 3 3 27h20z" fill="#b48cff"/><path d="M8.6 14.5 17.4 14.5M6.2 20.4 19.8 20.4" stroke="#ffd23f" stroke-width="2.4"/><path d="M13 3 9.8 10.6M13 3l3.2 7.6" stroke="#fff" stroke-width=".6" opacity=".35"/><rect x="2" y="25.6" width="22" height="3" rx="1.5" fill="#ff9a2e"/><circle cx="13" cy="3" r="2.6" fill="#ff5a64"/></svg>`;
-    h.innerHTML=`<span class="r1">R${hat}</span>ocksmith Championship<span class="balloons" title="${esc(cur[3])}">${[getComputedStyle(document.documentElement).getPropertyValue("--s-red"),getComputedStyle(document.documentElement).getPropertyValue("--s-yellow"),getComputedStyle(document.documentElement).getPropertyValue("--s-blue")].map(c=>balloon(c.trim()||"#ef4a55")).join("")}</span>`;
-    h.classList.add("party"); h.title=`Happy ${yrs?yrs+"th ":""}anniversary, Rocksmith Championship!`}
+    h.innerHTML=`Rocksmith Championship<span class="balloons" title="${esc(cur[3])}">${[getComputedStyle(document.documentElement).getPropertyValue("--s-red"),getComputedStyle(document.documentElement).getPropertyValue("--s-yellow"),getComputedStyle(document.documentElement).getPropertyValue("--s-blue")].map(c=>balloon(c.trim()||"#ef4a55")).join("")}</span>`;
+    h.title=`Happy ${yrs?yrs+"th ":""}anniversary, Rocksmith Championship!`}
   else if(oct){h.innerHTML=`Rocksmith Championship<span class="boo" aria-hidden="true">👻</span>`; h.title="Happy Halloween!"}})();
 function showPlayer(name){
   const p=byName[name];
