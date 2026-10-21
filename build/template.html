@@ -2244,11 +2244,11 @@ function wbPanel(n){const B=wbInfo(n); if(!B)return ""; const k=eloKey(n);
 
 // Seasons: calendar quarters; the season's biggest Elo gains in each class (10+ games that season)
 const SEASON_MIN=10;
-// seasons are offset a month from the calendar quarters (Feb–Apr, May–Jul, Aug–Oct, Nov–Jan), so they don't end with most workplaces' quarter-end crunch
+// seasons are the calendar quarters, so a season starts in January, when most new players arrive
 var SEAS_OF=[], SEAS_RNG={}, SEAS_TAB={};   // (worked out once: they're asked for a lot)
 function seasonOf(w){if(SEAS_OF[w]!==undefined)return SEAS_OF[w]; return SEAS_OF[w]=seasonOf0(w)}
-function seasonOf0(w){const d=WEEKS[w-1]&&WEEKS[w-1][1]; if(!d)return null; const y=+d.slice(0,4), m=+d.slice(5,7), q=Math.floor(((m+10)%12)/3), sy=m===1?y-1:y;
-  return ["Feb–Apr ","May–Jul ","Aug–Oct ",""][q]+(q===3?`Nov ${sy}–Jan ${sy+1}`:sy)}
+function seasonOf0(w){const d=WEEKS[w-1]&&WEEKS[w-1][1]; if(!d)return null; const y=+d.slice(0,4), q=Math.floor((+d.slice(5,7)-1)/3);
+  return ["Jan–Mar ","Apr–Jun ","Jul–Sep ","Oct–Dec "][q]+y}
 function seasonRange(id){if(SEAS_RNG[id])return SEAS_RNG[id]; let a=null,b=null; for(let w=1;w<=WEEKS.length;w++)if(seasonOf(w)===id){if(a==null)a=w; b=w} return SEAS_RNG[id]=[a,b]}
 function qSeasonTable(pi,id,upto){eloBuild(); const ck=pi+"|"+id+"|"+(upto||""); if(SEAS_TAB[ck])return SEAS_TAB[ck]; const [a,b]=seasonRange(id), end=Math.min(b,ELO_DONE,upto||1e9), out=SEAS_TAB[ck]={};
   Object.keys(ELO[pi].hist).forEach(n=>{const h=ELO[pi].hist[n]; let x1=null,x0=null; for(const e of h){if(e[0]<a)x0=e; else if(e[0]<=end)x1=e; else break}
@@ -2276,7 +2276,7 @@ const ptsTxt=x=>`${x.p} pts`, gainTxt=d=>`${d>=0?"+":"−"}${Math.abs(Math.round
 // every season with Elo games, oldest first (the first one may be partial: the scoreboards start in Week 440)
 function seasonList(){eloBuild(); const out=[]; for(let w=ELO[0].ws[0]||1;w<=ELO_DONE;w++){const id=seasonOf(w); if(id&&out[out.length-1]!==id)out.push(id)} return out}
 var SEASON_SEL=null;
-const SEASON_TIP="Seasons run Feb–Apr, May–Jul, Aug–Oct and Nov–Jan (a month off the usual business quarters, so a season doesn't end in a quarter-end crunch at work).\n\nPoints: on each week's main challenge (not bonus or God challenges), the top 10 who can win it score 25, 18, 15, 12, 10, 8, 6, 4, 2 and 1. Each class is its own championship, and the same rules as winning a challenge decide who counts (playing up or down doesn't). Points add up over the season, so showing up every week matters; ties go to more wins, then more 2nd places, and so on. The leader when the season ends is that class's season champion.\n\nMost improved: the biggest Elo gain in each class on a path over the season, for players with games in "+IMPROVE_WEEKS+" or more of its weeks.";
+const SEASON_TIP="Seasons run Jan–Mar, Apr–Jun, Jul–Sep and Oct–Dec, so a new season starts in January, when most new players join.\n\nPoints: on each week's main challenge (not bonus or God challenges), the top 10 who can win it score 25, 18, 15, 12, 10, 8, 6, 4, 2 and 1. Each class is its own championship, and the same rules as winning a challenge decide who counts (playing up or down doesn't). Points add up over the season, so showing up every week matters; ties go to more wins, then more 2nd places, and so on. The leader when the season ends is that class's season champion.\n\nMost improved: the biggest Elo gain in each class on a path over the season, for players with games in "+IMPROVE_WEEKS+" or more of its weeks.";
 function renderSeason(){const el=$("season-box"); if(!el)return; eloBuild(); const L=seasonList(); if(!L.length)return;
   const cur=seasonOf(ELO_DONE), id=SEASON_SEL&&L.includes(SEASON_SEL)?SEASON_SEL:cur, live=id===cur&&seasonOf(ELO_DONE+1)===cur;
   const [a,b]=seasonRange(id), done=Math.min(b,ELO_DONE)-a+1, len=b-a+1;
