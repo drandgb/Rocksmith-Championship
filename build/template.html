@@ -686,6 +686,21 @@ a.dl svg,.offpill svg{width:11px;height:11px}
 .golink:hover{color:var(--accent)}
 .golinks{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
 .plead:empty{display:none}
+/* first weeks: a newcomer's progress and next steps on their profile */
+.fw{grid-column:1/-1;border:1px solid color-mix(in srgb,var(--s-green) 40%,var(--line));border-radius:12px;padding:12px 14px;background:color-mix(in srgb,var(--s-green) 5%,transparent)}
+.fw .nwelo-h{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}.fw .nwelo-h small{font:600 .72rem var(--f-body);letter-spacing:0;text-transform:none}
+.fw-tiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:6px 0 12px}
+.fw-tiles>div{background:var(--panel2);border-radius:8px;padding:7px 10px;min-width:0}.fw-tiles small{display:block;color:var(--muted);font-size:.72rem}.fw-tiles b{font:800 1.15rem var(--f-display)}.fw-tiles .sub{display:block;font-size:.72rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fw-ms{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.fw-ms li{display:grid;grid-template-columns:20px minmax(0,1fr);gap:9px;align-items:start}
+.fw-ck{width:18px;height:18px;border-radius:50%;border:2px solid var(--line);display:grid;place-items:center;font-size:.66rem;font-weight:900;margin-top:1px}.fw-ms li.done .fw-ck{background:var(--s-green);border-color:var(--s-green);color:#0d0f14}
+.fw-ms .fwl{font-weight:700}.fw-ms li.done .fwl{color:var(--muted)}.fw-ms .fwd{font-size:.82rem;color:var(--muted)}
+.fw-ms .fwd .fwgo{color:var(--fg);font-weight:700;text-decoration:underline dotted;cursor:pointer}
+.fw-bars{display:flex;flex-wrap:wrap;gap:4px 14px;margin-top:3px;font-size:.78rem;color:var(--muted)}.fw-bars span{display:inline-flex;align-items:center;gap:6px}
+.fw-bar{display:inline-block;width:70px;height:6px;border-radius:3px;background:var(--panel2);overflow:hidden}.fw-bar i{display:block;height:100%;background:var(--pc,var(--s-green))}
+.fwnudge{border:1px solid color-mix(in srgb,var(--s-green) 45%,var(--line));background:color-mix(in srgb,var(--s-green) 7%,transparent);border-radius:10px;padding:9px 12px;margin:12px 0}
+.fwnudge .fwgo{font-weight:700;text-decoration:underline dotted;cursor:pointer}
+@media (max-width:600px){.fw-tiles{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .plead{margin-top:14px}.pc>.plead{grid-column:1/-1;margin-top:-4px}   /* profiles: medal leader runs full width under both columns */
 .plh{font:700 .78rem var(--f-display);letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin-bottom:6px}
 .plh small{font:400 .75rem var(--f-body);letter-spacing:0;text-transform:none;color:var(--muted);margin-left:4px}
@@ -2082,6 +2097,47 @@ function medalsFor(p,bitsOv){
   return (top.length?`<div class="medals">${top.join("")}</div>`:"")+(gems.length?`<div class="medals">${gems.join("")}</div>`:"")+(cls?`<div class="medals">${cls}</div>`:"")+(gemRow?`<div class="medals">${gemRow}</div>`:"")+(embers.length?`<div class="medals">${embers.join("")}</div>`:"")+(flames.length?`<div class="medals">${flames.join("")}</div>`:"");
 }
 let pYear=null;
+// ---------- first weeks: a newcomer's progress and next steps (players with 8 or fewer weeks on the scoreboards) ----------
+// newcomers who come back for week 2, play several challenges and try a second path are the ones who stay, so the panel points at those
+const FW_MAX=8, fwPlayed=(n,D)=>Math.max(+((byName[n]||[])[3])||0,D.wk.length);   // weeks played, from the player list (it goes back before the scoreboards)
+function fwData(n){const k=String(n).toLowerCase(), wk=new Set(), pw=[new Set(),new Set(),new Set()], ent=[];
+  Object.keys(SB.weeks).forEach(ws=>{const w=+ws; (SB.weeks[w]||[]).forEach(c=>{if(c[7])return; c[6].forEach(e=>{if(e[1]==null||isNaN(+e[1])||pvName(e).toLowerCase()!==k)return; wk.add(w); pw[c[0]].add(w); ent.push({w,c,pc:+e[1]})})})});
+  return {wk:[...wk].sort((a,b)=>a-b),pw,ent}}
+// a challenge this week on a path they haven't played yet, at their class on that path (Beginner if they have none)
+function fwTry(n,D){const tw=TW_MAX, cards=SB.weeks[tw]||[], tiers=((byName[n]||[])[8]||[]);
+  for(const pi of [0,1,2]){if(D.pw[pi].size)continue; let L=String(tiers[pi]||"").toUpperCase(); if(!"BIAM".includes(L)||!L)L="B";
+    const c=cards.find(c=>c[0]===pi&&cardLv(c[2])===L&&c[3]&&!/^n\/a$/i.test(c[3])); if(c)return {pi,L,c,w:tw}}
+  return null}
+function fwTryHtml(n,D){const t=fwTry(n,D); if(!t)return "";
+  return `Try <b style="color:${PATH_C[t.pi]}">${PATHS[t.pi]}</b> this week: <span class="fwgo" data-sbw="${t.w}" data-sbp="${t.pi}" data-sbs="${t.c[1]}" title="Open this challenge on the Scoreboard">${TIER_NAME[t.L]} · ${esc(t.c[3])}</span>`}
+function fwPanel(n){const D=fwData(n), W=D.wk; if(!W.length||fwPlayed(n,D)>FW_MAX)return "";
+  const tw=TW_MAX, last=W[W.length-1], ms=[];
+  let maxRun=1, run=1; for(let i=1;i<W.length;i++){run=W[i]===W[i-1]+1?run+1:1; if(run>maxRun)maxRun=run}
+  let cur=0; if(last>=tw-1){cur=1; for(let i=W.length-1;i>0&&W[i-1]===W[i]-1;i--)cur++}
+  const next=last===tw?`Week ${tw+1}`:`Week ${tw}`;
+  // 1. back for a second week
+  ms.push(W.length>=2?{done:1,l:"Back for a second week",d:`Week ${W[1]}`}:{l:"Come back for a second week",d:`Play ${next} to make it two`});
+  // 2. three weeks in a row
+  ms.push(maxRun>=3?{done:1,l:"Three weeks in a row",d:"Your best run: "+maxRun+" weeks"}:{l:"Three weeks in a row",d:cur?`${cur} of 3 so far · next: ${next}`:`Start a run: play ${next}`,bars:cur?[["",cur/3]]:null});
+  // 3. a second path
+  const paths=[0,1,2].filter(pi=>D.pw[pi].size);
+  ms.push(paths.length>=2?{done:1,l:"Played a second path",d:paths.map(pi=>PATHS[pi]).join(", ")}:{l:"Try a second path",d:fwTryHtml(n,D)||"Lead, Rhythm and Bass each have a challenge at every level every week"});
+  // 4. per path: Elo ranking (20 games) and the hardest-rating graph (4 weeks on the path, two 95%+ scores within 6 months)
+  paths.forEach(pi=>{let g=0; try{const x=eloAt(pi,eloKey(n),1e9); g=x?x[2]:0}catch(e){}
+    const wks=D.pw[pi].size, n95=D.ent.filter(x=>x.c[0]===pi&&x.pc>=95&&x.w>last-26).length;
+    const eloOk=g>=ELO_MIN, hrOk=wks>=4&&n95>=2;
+    ms.push({done:eloOk&&hrOk,pc:PATH_C[pi],l:`${PATHS[pi]}: Elo ranking and hardest-rating graph`,d:eloOk&&hrOk?"Both unlocked: see them below":"",
+      bars:[[`Elo ${Math.min(g,ELO_MIN)}/${ELO_MIN} games`,g/ELO_MIN],[`${Math.min(wks,4)}/4 weeks`,wks/4],[`${Math.min(n95,2)}/2 scores at 95%+ (last 6 months)`,n95/2]]})});
+  const best=D.ent.reduce((a,x)=>!a||x.pc>a.pc||(x.pc===a.pc&&"BIAMG".indexOf(cardLv(x.c[2]))>"BIAMG".indexOf(cardLv(a.c[2])))?x:a,null);
+  const n95=D.ent.filter(x=>x.pc>=95).length;
+  const bar=(lab,v,pc)=>`<span>${lab?esc(lab):""}<i class="fw-bar"${pc?` style="--pc:${pc}"`:""}><i style="width:${Math.round(Math.min(1,v)*100)}%"></i></i></span>`;
+  return `<div class="fw pcwide"><div class="nwelo-h"><span>First weeks</span><small>week ${fwPlayed(n,D)} of ${FW_MAX} · the first steps that keep players coming back</small></div>
+    <div class="fw-tiles"><div><small>Weeks played</small><b>${W.length}</b><span class="sub">since Week ${W[0]}</span></div><div><small>Challenges played</small><b>${D.ent.length}</b><span class="sub">${paths.map(pi=>PATHS[pi]).join(" · ")}</span></div>
+      <div${best?` class="pbx" data-pbest="${best.w}|${best.c[0]}" style="cursor:pointer" data-tip="${esc(best.c[3]||"")} · ${PATHS[best.c[0]]} ${esc(best.c[2])} · Week ${best.w} · click to open it on the Scoreboard"`:""}><small>Best %</small><b>${best?best.pc+"%":"–"}</b>${best?`<span class="sub">${PATHS[best.c[0]]} ${esc(best.c[2])}</span>`:""}</div><div><small>Scores at 95%+</small><b>${n95}</b><span class="sub">of ${D.ent.length}</span></div></div>
+    <ul class="fw-ms">${ms.map(m=>`<li class="${m.done?"done":""}"><span class="fw-ck">${m.done?"✓":""}</span><div><div class="fwl">${m.l}</div>${m.d?`<div class="fwd">${m.d}</div>`:""}${!m.done&&m.bars?`<div class="fw-bars">${m.bars.map(b=>bar(b[0],b[1],m.pc)).join("")}</div>`:""}</div></li>`).join("")}</ul></div>`}
+// Your week: the same "try a second path" nudge for a newcomer on one path
+function fwNudge(n){const D=fwData(n); if(!D.wk.length||fwPlayed(n,D)>FW_MAX||[0,1,2].filter(pi=>D.pw[pi].size).length>1)return ""; const t=fwTryHtml(n,D);
+  return t?`<div class="fwnudge">🎸 ${t} <small class="dim">· players who try a second path in their first weeks are far more likely to stick around</small></div>`:""}
 function showPlayer(name){
   const p=byName[name];
   if(!p){$("pcard").innerHTML=`<div class="empty">No player named “${esc(name)}”. Pick a name from the list as you type.</div>`;return}
@@ -2147,6 +2203,7 @@ function showPlayer(name){
       <div class="pres-legend"><span><i class="sw" style="background:var(--s-green)"></i>Played</span><span><i class="sw" style="background:var(--panel2)"></i>Missed</span></div>
       <div class="preshint">Tip: click a year on the left of the grid to filter the stats to that year; click it again to show all years.</div>
     </div>
+    ${(()=>{try{return fwPanel(n)}catch(e){return ""}})()}
     <div class="plead" data-n="${esc(n)}">${plLeads(n)}</div>
       ${(()=>{try{return eloProfile(n)+`<div class="pcwide">${eloChart(n)}</div>`}catch(e){return ""}})()}
       ${(()=>{try{const c=hrChart(n); return c?hrProfile(n)+`<div class="pcwide">${c}</div>`:hrNote(n)}catch(e){return ""}})()}
@@ -4882,7 +4939,7 @@ function acctDraw(msg,err){
   else if(ACCT.tab==="host")h+=`${hostSection(false).replace('class="acctsec hostsec"','class="acctsec hostsec hosttop"')}${adminRateSection()}${ratingLogSection()}`;
   else if(ACCT.tab==="banner")h+=bnTab(ACCT.claim.player);
   else if(ACCT.tab==="week"){const n=ACCT.claim.player; ACCT.twPart="week";
-    h+=`${ywAlert(n)}${ywList(n)}<div id="acct-tw">${acctThisWeek(n,"week")}</div>`}   // alert, how the week is going, rivals, Played before, then the scoreboard
+    h+=`${ywAlert(n)}${(()=>{try{return fwNudge(n)}catch(e){return ""}})()}${ywList(n)}<div id="acct-tw">${acctThisWeek(n,"week")}</div>`}   // alert, how the week is going, rivals, Played before, then the scoreboard
   else if(ACCT.tab==="manage"){
     h+=`<div class="adm acctsec"><h3>Verification animal</h3>${animalNote()||`<p class="dim">You'll get a verification animal once you claim your player profile.</p>`}</div>
       <div class="acctsec"><h3>Log out</h3><p class="dim">Log out of the site on this device.</p><div class="row"><button type="button" class="btn ghost" data-acct="logout">Log out</button></div></div>
