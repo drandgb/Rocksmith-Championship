@@ -694,7 +694,7 @@ a.dl svg,.offpill svg{width:11px;height:11px}
 .fwbass{display:block;margin-top:4px;font-size:.8rem;color:var(--muted)}
 /* motivation: next rung, nearest rival, welcome back, seasons, lapsed players, host highlights */
 .nwelo li .nwriv{grid-column:1/-1;font-size:.76rem;color:var(--muted);margin-top:-3px}.nwriv b{color:var(--fg);font-weight:700}.nwriv .nm{cursor:pointer;text-decoration:underline dotted}
-.hrnext{margin-top:12px}.hrnext li{grid-template-columns:62px minmax(0,1fr) auto}.hrnext .hnsong{font-size:.84rem;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.hrnext .hnsong .fwgo{font-weight:600}.hrnext .nwr{font-size:.8rem;white-space:nowrap}.hrnext .nwr b{color:var(--s-green)}
+.hrnext{margin-top:-6px;grid-column:1/-1}.pc>.hrnext{margin-top:-10px}.hrnext ul{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:20px}.hrnext li{grid-template-columns:62px minmax(0,1fr) auto}.hrnext li:nth-child(2){border-top:0}@media(max-width:700px){.hrnext ul{grid-template-columns:1fr}.hrnext li:nth-child(2){border-top:1px solid var(--line)}}.hrnext .hnsong{font-size:.84rem;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.hrnext .hnsong .fwgo{font-weight:600}.hrnext .nwr{font-size:.8rem;white-space:nowrap}.hrnext .nwr b{color:var(--s-green)}
 .wbl li{grid-template-columns:minmax(0,1fr) auto}.wbl .fwt{font-weight:700}.wbl .nwr{font-size:.8rem;color:var(--muted)}
 .wbtab td small{display:block;font-size:.7rem;color:var(--muted);font-weight:600}
 .seas h4{margin:8px 0 2px;font:800 .66rem var(--f-display);letter-spacing:.1em;text-transform:uppercase;color:var(--tc,var(--muted))}.seas h4:first-of-type{margin-top:0}
@@ -2319,6 +2319,7 @@ function showPlayer(name){
     ${(()=>{try{return wbPanel(n)}catch(e){return ""}})()}
     <div class="plead" data-n="${esc(n)}">${plLeads(n)}</div>
       ${(()=>{try{const c=hrChart(n); return c?hrProfile(n)+`<div class="pcwide">${c}</div>`:hrNote(n)}catch(e){return ""}})()}
+      ${(()=>{try{return hrNextHtml(n)}catch(e){return ""}})()}
       ${(()=>{try{return eloProfile(n)+`<div class="pcwide">${eloChart(n)}</div>`}catch(e){return ""}})()}
       ${(()=>{const u=WR.ups.filter(x=>x[0]===n).sort((a,b)=>b[4]-a[4]||b[1]-a[1]);return u.length?`<div class="ups pcwide">Rank changes: ${u.map(([,p,a,b,w])=>`<span class="pill hol rkpath" data-hl="${w}" data-tip="Click to highlight Week ${w}" style="cursor:pointer;--pc:${PATH_C[p]}">${PATHS[p]} ${a}${"BIAM".indexOf(b)<"BIAM".indexOf(a)?"↘":"↗"}${b} · wk ${w}</span>`).join("")}</div>`:""})()}
     </div>`;
@@ -3292,7 +3293,7 @@ function hrProfile(n){const H=hrBuild(), w1=H.w1;
     const dd=d==null?`<small data-tip="Less than a year of scores on this path">new</small>`:Math.abs(d)<.05?"–":`<span class="${d>0?"up":"dn"}">${d>0?"▲":"▼"}${Math.abs(d).toFixed(1)}</span>`;
     return `<li style="--pc:${PATH_C[pi]}"><span class="nwp">${PATHS[pi]}</span><b class="nwv">${now.toFixed(1)}</b><span class="nwd" data-tip="Change over the last year">${dd}</span><span class="nwr"><small data-tip="The typical ${PATHS[pi]} player${last[0]<w1?` in Week ${last[0]}, your last week with enough scores`:""}">${last[0]<w1?`Week ${last[0]} · `:""}typical ${typ!=null?typ.toFixed(1):"–"}</small></span></li>`}).join("");
   // just the year-by-year table now (the current-rating rows were dropped: its last column says the same)
-  const yrs=rows?hrYears(n):"", nx=(()=>{try{return hrNextHtml(n)}catch(e){return ""}})(); return yrs||nx?`<div class="pcwide nwelo pelo hrrows">${yrs}${nx}</div>`:""}
+  const yrs=rows?hrYears(n):""; return yrs?`<div class="pcwide nwelo pelo hrrows">${yrs}</div>`:""}
 // year by year: the hardest rating at the end of each year on each path, with the change from the year before
 function hrYears(n){const H=hrBuild(), first=[], by=[0,1,2].map(pi=>{const m={}; hrSeries(n,pi).forEach(e=>{if(e[1]==null)return; if(!first[pi])first[pi]=e; m[yearOfWeek(e[0])]=e[1]}); return m});
   const Y=[...new Set(by.flatMap(m=>Object.keys(m)))].sort(); if(!Y.length)return "";
@@ -4864,7 +4865,7 @@ function acctThisWeek(n,part){ part=part||ACCT.twPart||"me";
   if(part==="week")return `    <div class="acctsec acctriv"><h3>This week's rivals</h3>${riv||`<p class="dim">No rivals this week yet.</p>`}</div>${ywPast(n)}
     <div class="acctsec"><h3>This week's scoreboard <small>Week ${w}</small></h3>${sb.length?`<ul class="alist">${sb.join("")}</ul>`:`<p class="dim">No scoreboard for this week yet.</p>`}</div>`;   // the scoreboard comes last in Your week
   const ECH=(()=>{try{const c=eloChart(n); return c?`<div class="acctsec">${c}</div>`:""}catch(e){return ""}})();
-  const HCH=(()=>{try{const c=hrChart(n); return c?`<div class="acctsec">${hrProfile(n)}${c}</div>`:(()=>{const t=hrNote(n); return t?`<div class="acctsec">${t}</div>`:""})()}catch(e){return ""}})();
+  const HCH=(()=>{try{const c=hrChart(n); return c?`<div class="acctsec">${hrProfile(n)}${c}${hrNextHtml(n)}</div>`:(()=>{const t=hrNote(n); return t?`<div class="acctsec">${t}</div>`:""})()}catch(e){return ""}})();
   return HAUL+HCH+ECH+`
     <div class="acctsec"><h3>${RKc===RK_SHEET?"Rodman's Rankings":"Rankings"} ${RKc.weeks?`<small>Weeks ${esc(RKc.weeks)}</small>`:""}</h3>${RKc===RK_SHEET?"":`<p class="dim" style="margin:-4px 0 8px">Worked out by the site from the latest 10 weeks · may differ from Rodman's official rankings (Weeks ${esc(RK_SHEET.weeks)})</p>`}${rk.length?`<ul class="alist">${rk.join("")}</ul>`:`<p class="dim">Not ranked right now.</p>`}<div class="row"><button type="button" class="btn ghost" data-goview="rankings">Open Rodman's Rankings ›</button></div></div>`;
 }
