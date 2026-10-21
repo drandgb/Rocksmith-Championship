@@ -2414,7 +2414,7 @@ document.addEventListener("click",e=>{const b=e.target.closest("[data-hlcopy]");
     easter:()=>[T+`<span class="deco chick" aria-hidden="true">🐣</span>`,"Happy Easter!"],
     halloween:()=>[T+`<span class="deco boo" aria-hidden="true">👻</span>`,"Happy Halloween!"]};
   if(!D[pick])return; const [html,tt]=D[pick](); h.innerHTML=html; h.title=tt; h.classList.add("deco-"+pick);
-  if(pick==="fools")setTimeout(()=>{const u=h.querySelector(".afl"); if(u){u.classList.add("fix"); setTimeout(()=>{u.textContent="a"; u.classList.remove("fix"); u.style.color="inherit"; h.insertAdjacentHTML("beforeend",`<span class="deco clown" title="April Fools! The title said \u201cChumpionship\u201d for a moment">🤡</span>`)},260)}},2600)})();   // (the title corrects itself)
+  if(pick==="fools")setTimeout(()=>{const u=h.querySelector(".afl"); if(u){u.classList.add("fix"); setTimeout(()=>{u.textContent="a"; u.classList.remove("fix"); u.style.color="inherit"; h.insertAdjacentHTML("beforeend",`<span class="deco clown" title="April Fools!">🤡</span>`)},260)}},2600)})();   // (the title corrects itself)
 function showPlayer(name){
   const p=byName[name];
   if(!p){$("pcard").innerHTML=`<div class="empty">No player named “${esc(name)}”. Pick a name from the list as you type.</div>`;return}
