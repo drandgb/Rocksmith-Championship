@@ -2222,17 +2222,16 @@ function renderSeason(){const el=$("season-box"); if(!el)return; eloBuild(); con
     return `<div class="elocol" style="--pc:${PATH_C[pi]}"><h3>${PATHS[pi]}</h3>${cls||`<p class="dim">No one with ${SEASON_MIN}+ games yet this season.</p>`}${champs?`<div class="slast">${prevId} champions: ${champs}</div>`:""}</div>`}).join("")}
 
 // Host tab: players who stopped in the last year (or 2), with where they were when they left
-function lapsedSection(){const tw=TW_MAX, far=ACCT.lapsedAll?104:52, I=sbIx(), rows=[];
+function lapsedSection(){const tw=TW_MAX, far=52, I=sbIx(), rows=[];
   Object.entries(I.wk).forEach(([k,W])=>{const last=W[W.length-1], gap=tw-last; if(gap<9||gap>far)return; const n=I.disp[k];
     const paths=[0,1,2].filter(pi=>(I.ent[k]||[]).some(x=>x.c[0]===pi));
     const info=paths.map(pi=>{let e=null; try{const x=eloAt(pi,eloKey(n),last); e=x&&x[2]>=ELO_MIN?Math.round(x[1]):null}catch(err){} const h=hrAt(hrSeries(n,pi),last);
       return `<b style="color:${PATH_C[pi]}">${PATHS[pi]}</b>${e!=null?` Elo ${e}`:""}${h!=null?` · hardest ${h.toFixed(1)}`:""}`}).join(" &nbsp; ");
     rows.push({n,last,gap,cnt:W.length,info})});
   rows.sort((a,b)=>a.gap-b.gap);
-  return `<div class="acctsec fwhost lapsed"><h3>Lapsed players <small>${rows.length} who stopped in the last ${far===52?"year":"2 years"}</small><button type="button" class="clear lptog" data-lapsed="1">${ACCT.lapsedAll?"Show the last year only":"Show 1–2 years too"}</button></h3>
+  return `<div class="acctsec fwhost lapsed"><h3>Lapsed players <small>${rows.length} who stopped in the last year</small></h3>
     <p class="dim">Players who haven't posted a score for 8+ weeks, most recent first, with where they were when they left. A message from a host is often all it takes to bring someone back; when they return, their profile shows a Welcome back panel.</p>
     ${rows.length?`<ul class="alist">${rows.map(r=>`<li><span class="fwhn" data-fwp="${esc(r.n)}" title="Open ${esc(r.n)}'s profile">${esc(r.n)}</span><span class="dim">last played Week ${r.last}${WEEKS[r.last-1]?" · "+fmt(WEEKS[r.last-1][1]):""} · away ${r.gap-1} weeks · ${r.cnt} week${r.cnt===1?"":"s"} played</span><span class="fwhs">${r.info}</span></li>`).join("")}</ul>`:`<p class="dim">No lapsed players.</p>`}</div>`}
-document.addEventListener("click",e=>{if(!e.target.closest("[data-lapsed]"))return; ACCT.lapsedAll=!ACCT.lapsedAll; const el=document.querySelector(".acctdlg .lapsed"); if(el)el.outerHTML=lapsedSection()});
 
 // Host tab: a week's highlights as plain text to paste into the weekly post
 function hlText(w){eloBuild(); const I=sbIx(), L=[], played=Object.keys(I.wk).filter(k=>I.wk[k].includes(w)), nm=k=>I.disp[k];
@@ -2319,8 +2318,8 @@ function showPlayer(name){
     ${(()=>{try{return fwPanel(n)}catch(e){return ""}})()}
     ${(()=>{try{return wbPanel(n)}catch(e){return ""}})()}
     <div class="plead" data-n="${esc(n)}">${plLeads(n)}</div>
-      ${(()=>{try{return eloProfile(n)+`<div class="pcwide">${eloChart(n)}</div>`}catch(e){return ""}})()}
       ${(()=>{try{const c=hrChart(n); return c?hrProfile(n)+`<div class="pcwide">${c}</div>`:hrNote(n)}catch(e){return ""}})()}
+      ${(()=>{try{return eloProfile(n)+`<div class="pcwide">${eloChart(n)}</div>`}catch(e){return ""}})()}
       ${(()=>{const u=WR.ups.filter(x=>x[0]===n).sort((a,b)=>b[4]-a[4]||b[1]-a[1]);return u.length?`<div class="ups pcwide">Rank changes: ${u.map(([,p,a,b,w])=>`<span class="pill hol rkpath" data-hl="${w}" data-tip="Click to highlight Week ${w}" style="cursor:pointer;--pc:${PATH_C[p]}">${PATHS[p]} ${a}${"BIAM".indexOf(b)<"BIAM".indexOf(a)?"↘":"↗"}${b} · wk ${w}</span>`).join("")}</div>`:""})()}
     </div>`;
   $("pq").value=n;
@@ -4866,7 +4865,7 @@ function acctThisWeek(n,part){ part=part||ACCT.twPart||"me";
     <div class="acctsec"><h3>This week's scoreboard <small>Week ${w}</small></h3>${sb.length?`<ul class="alist">${sb.join("")}</ul>`:`<p class="dim">No scoreboard for this week yet.</p>`}</div>`;   // the scoreboard comes last in Your week
   const ECH=(()=>{try{const c=eloChart(n); return c?`<div class="acctsec">${c}</div>`:""}catch(e){return ""}})();
   const HCH=(()=>{try{const c=hrChart(n); return c?`<div class="acctsec">${hrProfile(n)}${c}</div>`:(()=>{const t=hrNote(n); return t?`<div class="acctsec">${t}</div>`:""})()}catch(e){return ""}})();
-  return HAUL+ECH+HCH+`
+  return HAUL+HCH+ECH+`
     <div class="acctsec"><h3>${RKc===RK_SHEET?"Rodman's Rankings":"Rankings"} ${RKc.weeks?`<small>Weeks ${esc(RKc.weeks)}</small>`:""}</h3>${RKc===RK_SHEET?"":`<p class="dim" style="margin:-4px 0 8px">Worked out by the site from the latest 10 weeks · may differ from Rodman's official rankings (Weeks ${esc(RK_SHEET.weeks)})</p>`}${rk.length?`<ul class="alist">${rk.join("")}</ul>`:`<p class="dim">Not ranked right now.</p>`}<div class="row"><button type="button" class="btn ghost" data-goview="rankings">Open Rodman's Rankings ›</button></div></div>`;
 }
 // ---------- rank-up readiness (private: only in the player's own profile) ----------
