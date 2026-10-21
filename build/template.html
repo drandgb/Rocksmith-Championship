@@ -755,11 +755,11 @@ a.dl svg,.offpill svg{width:11px;height:11px}
 .seashero .sh-pick select{background:none;border:0;color:var(--fg);font:800 clamp(1.05rem,3vw,1.35rem) var(--f-display);cursor:pointer;text-align:center;padding:2px 4px}.seashero .sh-pick select option{background:var(--panel);font-size:1rem}
 .seashero .sub{margin:6px auto 0;max-width:720px}
 /* Rodman's Rankings: the same centered title as the Season tab */
-.rkhero{flex-direction:column;align-items:center;text-align:center;gap:2px}
+.rkhero{flex-direction:column;align-items:center;text-align:center;gap:10px;padding-top:6px}
 .rkhero .sh-eye{font:700 .74rem var(--f-mono);letter-spacing:.24em;text-transform:uppercase;color:var(--muted)}
 .rkhero h2.rkinfo{font:900 clamp(2rem,7vw,3.4rem)/1.05 var(--f-display);letter-spacing:.02em;text-transform:uppercase;background:linear-gradient(180deg,#fff6c8 0%,#ffd86b 35%,#e9a826 70%,#b9761a 100%);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 14px rgba(255,200,80,.25))}
 .rkhero h2.rkinfo .infoi{font-size:.38em;vertical-align:super;-webkit-text-fill-color:var(--muted);color:var(--muted)}
-.rkhero .sub{margin-top:6px;max-width:760px}.rkhead #rk-stats{justify-content:center;text-align:center}
+.rkhero .sub{margin-top:4px;max-width:760px;line-height:1.7}.rkhead #rk-stats{justify-content:center;text-align:center;margin-top:16px;row-gap:12px}
 .seasprog{height:6px;border-radius:3px;background:var(--panel2);overflow:hidden;margin:0 0 12px}.seasprog i{display:block;height:100%;background:linear-gradient(90deg,var(--s-orange),var(--s-yellow))}
 .seas .smore{grid-template-columns:22px 1fr!important;font-size:.76rem}
 .seasch-wrap{position:relative;overflow-x:auto}.seasch-wrap.lpscroll{overflow-y:auto;overscroll-behavior:contain}
@@ -4153,8 +4153,8 @@ document.querySelectorAll(".panel.rkhead").forEach(p=>{
   const bullHead=`<svg viewBox="0 0 40 32" aria-hidden="true"><path d="M13 9C8 9 3 6 1 1c4 2 8 3 12 3z" fill="#f3e9d2" stroke="#6b5a3a" stroke-width=".8"/><path d="M27 9c5 0 10-3 12-8-4 2-8 3-12 3z" fill="#f3e9d2" stroke="#6b5a3a" stroke-width=".8"/><path d="M9 9.5c-2.2.2-4.2 1.4-5 3.2 1.8.8 4 .6 5.6-.5zM31 9.5c2.2.2 4.2 1.4 5 3.2-1.8.8-4 .6-5.6-.5z" fill="#5a3a22"/><path d="M12 7c2.4-1.6 13.6-1.6 16 0 1.6 3 1.6 8 .4 12-1 3.6-3.2 7.4-8.4 7.4s-7.4-3.8-8.4-7.4C10.4 15 10.4 10 12 7z" fill="#6b4226" stroke="#2a180c" stroke-width=".8"/><path d="M15 7.2c1.6 1.4 3 4 5 4s3.4-2.6 5-4c-3-.8-7-.8-10 0z" fill="#3a2414"/><ellipse cx="20" cy="22" rx="5.6" ry="4" fill="#b98a6a" stroke="#2a180c" stroke-width=".6"/><ellipse cx="17.9" cy="22.2" rx="1" ry="1.3" fill="#2a180c"/><ellipse cx="22.1" cy="22.2" rx="1" ry="1.3" fill="#2a180c"/><path d="M17.6 25.2a2.6 2.4 0 0 0 4.8 0" fill="none" stroke="#e8c45a" stroke-width="1.2" stroke-linecap="round"/><circle cx="16" cy="14.6" r="1.6" fill="#fff"/><circle cx="24" cy="14.6" r="1.6" fill="#fff"/><circle cx="16.3" cy="14.9" r=".9" fill="#1a0f08"/><circle cx="23.7" cy="14.9" r=".9" fill="#1a0f08"/><path d="M14.2 12.6l3.4 1M25.8 12.6l-3.4 1" stroke="#1a0f08" stroke-width="1" stroke-linecap="round"/></svg>`;
   // the lightning flashes are big wand-style sparkles (same timing as the box flash)
   const bolt=`<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C8.6 5.4 10.6 7.4 16 8 10.6 8.6 8.6 10.6 8 16 7.4 10.6 5.4 8.6 0 8 5.4 7.4 7.4 5.4 8 0z" fill="#ffd23f"/><path d="M8 4.5C8.3 7 9 7.7 11.5 8 9 8.3 8.3 9 8 11.5 7.7 9 7 8.3 4.5 8 7 7.7 7.7 7 8 4.5z" fill="#fffbe0"/></svg>`;
-  const items=[["bull",0,0,bullHead,22,-8],["bolt",32,0,bolt,0,-12],["wand",50,0,"🪄",20,-20],["bolt",80,0,bolt,0,14],["bull",100,0,bullHead,22,8],
-               ["bull",100,100,bullHead,22,-8],["bolt",84,100,bolt,0,170],["bolt",18,100,bolt,0,-170],["bull",0,100,bullHead,22,8]];
+  const items=[["bull",0,0,bullHead,22,-8],["bolt",32,0,bolt,0,-12],["wand",50,0,"🪄",20,-20],["bolt",80,0,bolt,0,14],
+               ["bull",100,100,bullHead,22,-8],["bolt",84,100,bolt,0,170],["bolt",18,100,bolt,0,-170]];   // (two bulls, on opposite corners)
   // scattered four-point sparkles like the ones off the wand, at uneven spots along (and just off) the border
   const spark=`<svg viewBox="0 0 16 16"><path d="M8 0C8.6 5.4 10.6 7.4 16 8 10.6 8.6 8.6 10.6 8 16 7.4 10.6 5.4 8.6 0 8 5.4 7.4 7.4 5.4 8 0z" fill="#ffd23f"/><path d="M8 4.5C8.3 7 9 7.7 11.5 8 9 8.3 8.3 9 8 11.5 7.7 9 7 8.3 4.5 8 7 7.7 7.7 7 8 4.5z" fill="#fffbe0"/></svg>`;
   const rnd=(i,k)=>{const x=Math.sin(i*12.9898+k*78.233)*43758.5453; return x-Math.floor(x)};
