@@ -2166,8 +2166,8 @@ var SBIX=null;
 function sbIx(){if(SBIX)return SBIX; const wk={}, ent={}, disp={};
   PLAYERS.forEach(p=>disp[p[0].toLowerCase()]=p[0]);
   Object.keys(SB.weeks).map(Number).sort((a,b)=>a-b).forEach(w=>(SB.weeks[w]||[]).forEach(c=>{if(c[7])return; c[6].forEach(e=>{if(e[1]==null||isNaN(+e[1]))return; const n=pvName(e), k=n.toLowerCase(); if(!disp[k])disp[k]=n; (wk[k]=wk[k]||new Set()).add(w); (ent[k]=ent[k]||[]).push({w,c,pc:+e[1]})})}));
-  // weeks played come from the player list (the scoreboards don't cover every week), plus this week's scoreboard while it runs
-  Object.keys(wk).forEach(k=>{const p=byName[disp[k]]; if(p){const cw=wk[k].has(TW_MAX); wk[k]=new Set(); const b=presOf(p); for(let i=0;i<b.length;i++)if(b[i]==="1")wk[k].add(i+PRES_START); if(cw)wk[k].add(TW_MAX)}});
+  // weeks played: the scoreboards plus the player list (the scoreboards don't cover every week, and the list can lag behind them)
+  Object.keys(wk).forEach(k=>{const p=byName[disp[k]]; if(p){const b=presOf(p); for(let i=0;i<b.length;i++)if(b[i]==="1")wk[k].add(i+PRES_START)}});
   PLAYERS.forEach(p=>{const k=p[0].toLowerCase(); if(wk[k])return; const b=presOf(p), st=new Set(); for(let i=0;i<b.length;i++)if(b[i]==="1")st.add(i+PRES_START); if(st.size)wk[k]=st});
   Object.keys(wk).forEach(k=>wk[k]=[...wk[k]].sort((a,b)=>a-b)); return SBIX={wk,ent,disp}}
 const ratedOf=c=>c[4]!=null&&c[4]!==""&&!isNaN(+c[4])?+c[4]:null;
@@ -2190,9 +2190,9 @@ function eloRivals(pi,k,w,kp){const T=eloTable(pi,w,kp), i=T.findIndex(x=>x[0]==
   const a=up?`<b>${Math.max(1,Math.round(up[1]-me))}</b> behind ${nm(up[0])}`:"top of the list", b=dn?`<b>${Math.max(1,Math.round(me-dn[1]))}</b> ahead of ${nm(dn[0])}`:"";
   return `<span class="nwriv">${up?"▲ ":"★ "}${a}${b?` · ▼ ${b}`:""}</span>`}
 
-// Welcome back: a player back after 8+ weeks away, for their first 4 weeks back
+// Welcome back: a player back after 4+ weeks away, for their first 4 weeks back
 function wbInfo(n){const W=sbIx().wk[String(n).toLowerCase()]||[], tw=TW_MAX; if(W.length<2||W[W.length-1]<tw-8)return null;
-  for(let i=W.length-1;i>0;i--)if(W[i]-W[i-1]>=9){const back=W.length-i; if(back>4)return null; return {left:W[i-1],ret:W[i],away:W[i]-W[i-1]-1,back,before:i}} return null}
+  for(let i=W.length-1;i>0;i--)if(W[i]-W[i-1]>=5){const back=W.length-i; if(back>4)return null; return {left:W[i-1],ret:W[i],away:W[i]-W[i-1]-1,back,before:i}} return null}
 function wbPanel(n){const B=wbInfo(n); if(!B)return ""; const k=eloKey(n);
   const left=`<div class="pcwide nwelo pelo fwl wbl"><div class="nwelo-h">Welcome back <span class="pelo-sub">week ${B.back} back</span></div><ul>
     <li class="done"><span class="fwt">Away</span><span class="nwr">${B.away} weeks</span></li><li class="done"><span class="fwt">Last played before</span><span class="nwr">Week ${B.left}${WEEKS[B.left-1]?" · "+fmt(WEEKS[B.left-1][1]):""}</span></li><li class="done"><span class="fwt">Back since</span><span class="nwr">Week ${B.ret}</span></li></ul></div>`;
@@ -2206,7 +2206,9 @@ function wbPanel(n){const B=wbInfo(n); if(!B)return ""; const k=eloKey(n);
 
 // Seasons: calendar quarters; the season's biggest Elo gains in each class (10+ games that season)
 const SEASON_MIN=10;
-function seasonOf(w){const d=WEEKS[w-1]&&WEEKS[w-1][1]; return d?`${d.slice(0,4)} Q${Math.floor((+d.slice(5,7)-1)/3)+1}`:null}
+// seasons are offset a month from the calendar quarters (Feb–Apr, May–Jul, Aug–Oct, Nov–Jan), so they don't end with most workplaces' quarter-end crunch
+function seasonOf(w){const d=WEEKS[w-1]&&WEEKS[w-1][1]; if(!d)return null; const y=+d.slice(0,4), m=+d.slice(5,7), q=Math.floor(((m+10)%12)/3), sy=m===1?y-1:y;
+  return ["Feb–Apr ","May–Jul ","Aug–Oct ",""][q]+(q===3?`Nov ${sy}–Jan ${sy+1}`:sy)}
 function seasonRange(id){let a=null,b=null; for(let w=1;w<=WEEKS.length;w++)if(seasonOf(w)===id){if(a==null)a=w; b=w} return [a,b]}
 function qSeasonTable(pi,id){eloBuild(); const [a,b]=seasonRange(id), end=Math.min(b,ELO_DONE), out={};
   Object.keys(ELO[pi].hist).forEach(n=>{const h=ELO[pi].hist[n]; let x1=null,x0=null; for(const e of h){if(e[0]<a)x0=e; else if(e[0]<=end)x1=e; else break}
@@ -2215,7 +2217,7 @@ function qSeasonTable(pi,id){eloBuild(); const [a,b]=seasonRange(id), end=Math.m
   Object.values(out).forEach(v=>v.sort((x,y)=>y.d-x.d)); return out}
 function renderSeason(){const el=$("season-box"); if(!el)return; eloBuild(); const id=seasonOf(ELO_DONE); if(!id){el.closest("section").hidden=true;return}
   const [a,b]=seasonRange(id), [pa]=seasonRange(id), prevId=seasonOf(pa-1);
-  $("season-sub").innerHTML=`${id} · Weeks ${a}–${b} · the biggest Elo gains in each class this season (${SEASON_MIN}+ games) · a fresh race every 3 months <span class="elohelp" data-tip="${esc("Seasons follow the calendar quarters. A player's season gain is their Elo now minus their Elo when the season started (or their starting rating, if they're new). Each class is its own race (a player's class on that path now), so anyone can win their class. The leader when the season ends is that class's season champion.")}">ⓘ</span>`;
+  $("season-sub").innerHTML=`${id} · Weeks ${a}–${b} · the biggest Elo gains in each class this season (${SEASON_MIN}+ games) · a fresh race every 3 months <span class="elohelp" data-tip="${esc("Seasons run Feb–Apr, May–Jul, Aug–Oct and Nov–Jan (a month off the usual business quarters, so a season doesn't end in a quarter-end crunch at work). A player's season gain is their Elo now minus their Elo when the season started (or their starting rating, if they're new). Each class is its own race (a player's class on that path now), so anyone can win their class. The leader when the season ends is that class's season champion.")}">ⓘ</span>`;
   el.innerHTML=[0,1,2].map(pi=>{const T=qSeasonTable(pi,id), P=prevId?qSeasonTable(pi,prevId):{};
     const cls=["M","A","I","B"].filter(c=>T[c]&&T[c].length).map(c=>`<h4 style="--tc:${TIER_C[c]}">${TIER_NAME[c]}</h4><ol>${T[c].slice(0,3).map((x,i)=>`<li class="${i===0?"top elo-t1":i===1?"elo-t2":"elo-t3"}"><span class="er">${i+1}</span><span class="nm" data-profile="${esc(x.n)}" style="cursor:pointer">${esc(x.n)}</span><span class="sgain${x.d<0?" neg":""}">${x.d>=0?"+":"−"}${Math.abs(Math.round(x.d))}</span><span class="sg" data-tip="Elo now ${Math.round(x.v)}">${x.g} games</span></li>`).join("")}</ol>`).join("");
     const champs=["M","A","I","B"].filter(c=>P[c]&&P[c].length).map(c=>`${TIER_NAME[c]} <b>${esc(P[c][0].n)}</b>`).join(" · ");
@@ -2223,20 +2225,20 @@ function renderSeason(){const el=$("season-box"); if(!el)return; eloBuild(); con
 
 // Host tab: players who stopped in the last year (or 2), with where they were when they left
 function lapsedSection(){const tw=TW_MAX, far=52, I=sbIx(), rows=[];
-  Object.entries(I.wk).forEach(([k,W])=>{const last=W[W.length-1], gap=tw-last; if(gap<9||gap>far)return; const n=I.disp[k];
+  Object.entries(I.wk).forEach(([k,W])=>{const last=W[W.length-1], gap=tw-last; if(gap<5||gap>far)return; const n=I.disp[k];
     const paths=[0,1,2].filter(pi=>(I.ent[k]||[]).some(x=>x.c[0]===pi));
     const info=paths.map(pi=>{let e=null; try{const x=eloAt(pi,eloKey(n),last); e=x&&x[2]>=ELO_MIN?Math.round(x[1]):null}catch(err){} const h=hrAt(hrSeries(n,pi),last);
       return `<b style="color:${PATH_C[pi]}">${PATHS[pi]}</b>${e!=null?` Elo ${e}`:""}${h!=null?` · hardest ${h.toFixed(1)}`:""}`}).join(" &nbsp; ");
     rows.push({n,last,gap,cnt:W.length,info})});
   rows.sort((a,b)=>a.gap-b.gap);
   return `<div class="acctsec fwhost lapsed"><h3>Lapsed players <small>${rows.length} who stopped in the last year</small></h3>
-    <p class="dim">Players who haven't posted a score for 8+ weeks, most recent first, with where they were when they left. A message from a host is often all it takes to bring someone back; when they return, their profile shows a Welcome back panel.</p>
+    <p class="dim">Players who haven't posted a score for 4+ weeks, most recent first, with where they were when they left. A message from a host is often all it takes to bring someone back; when they return, their profile shows a Welcome back panel.</p>
     ${rows.length?`<ul class="alist">${rows.map(r=>`<li><span class="fwhn" data-fwp="${esc(r.n)}" title="Open ${esc(r.n)}'s profile">${esc(r.n)}</span><span class="dim">last played Week ${r.last}${WEEKS[r.last-1]?" · "+fmt(WEEKS[r.last-1][1]):""} · away ${r.gap-1} weeks · ${r.cnt} week${r.cnt===1?"":"s"} played</span><span class="fwhs">${r.info}</span></li>`).join("")}</ul>`:`<p class="dim">No lapsed players.</p>`}</div>`}
 
 // Host tab: a week's highlights as plain text to paste into the weekly post
 function hlText(w){eloBuild(); const I=sbIx(), L=[], played=Object.keys(I.wk).filter(k=>I.wk[k].includes(w)), nm=k=>I.disp[k];
   const newc=played.filter(k=>I.wk[k][0]===w).map(nm); if(newc.length)L.push(`Welcome to our new players: ${newc.join(", ")}`);
-  const back=played.filter(k=>{const W=I.wk[k], i=W.indexOf(w); return i>0&&w-W[i-1]>=9}).map(k=>{const W=I.wk[k], i=W.indexOf(w); return `${nm(k)} (after ${w-W[i-1]-1} weeks away)`}); if(back.length)L.push(`Welcome back: ${back.join(", ")}`);
+  const back=played.filter(k=>{const W=I.wk[k], i=W.indexOf(w); return i>0&&w-W[i-1]>=5}).map(k=>{const W=I.wk[k], i=W.indexOf(w); return `${nm(k)} (after ${w-W[i-1]-1} weeks away)`}); if(back.length)L.push(`Welcome back: ${back.join(", ")}`);
   const ups=(WR.ups||[]).filter(u=>u[4]===w&&LVI.indexOf(u[3])>LVI.indexOf(u[2])).map(u=>`${u[0]} (${PATHS[u[1]]} ${TIER_NAME[u[2]]||u[2]} → ${TIER_NAME[u[3]]||u[3]})`); if(ups.length)L.push(`Rank-ups: ${ups.join(", ")}`);
   const first95=played.filter(k=>{const E=I.ent[k]||[]; const f=E.find(x=>x.pc>=95); return f&&f.w===w}).map(nm); if(first95.length)L.push(`First 95% score: ${first95.join(", ")}`);
   const hr=[]; played.forEach(k=>[0,1,2].forEach(pi=>{const s=hrSeries(nm(k),pi), now=hrAt(s,w); if(now==null)return; const prev=s.filter(e=>e[0]<w&&e[1]!=null).map(e=>e[1]); if(prev.length&&now>Math.max(...prev)+.04)hr.push(`${nm(k)} (${PATHS[pi]} ${Math.max(...prev).toFixed(1)} → ${now.toFixed(1)})`)})); if(hr.length)L.push(`New best hardest rating: ${hr.join(", ")}`);
