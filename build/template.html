@@ -3048,20 +3048,21 @@ document.addEventListener("click",e=>{if(e.target.closest(".elochart svg[data-ec
 function eloWhy(pi,n,w0,w1){eloBuild(); const L=ELO_LOG&&ELO_LOG[pi][n]; if(!L)return "";
   const f=x=>(x>=0?"+":"−")+Math.abs(x).toFixed(1), res=v=>v===1?"beat":v===0?"lost to":"drew with";
   const out=[], weeks=Object.keys(L).map(Number).filter(w=>w>=w0&&w<=w1).sort((a,b)=>a-b); if(!weeks.length)return "";
-  const head="Each game: points = K × (result − expected). Result: 1 for a win, ½ a draw, 0 a loss. Expected = 1 ÷ (1 + 10^((their rating − yours) ÷ 400)). K = 40 for your first 30 games, then 20 (10 from 2400), a quarter of that against a player from another class.";
+  const head="Each game: points = K × (result − expected). Result: 1 for a win, ½ a draw, 0 a loss. Expected = 1 ÷ (1 + 10^((their rating − yours) ÷ 400)). K = 40 for your first 30 games, then 20 (10 from 2400), and a quarter of that against a player from another class (so K = 10, 5 or 2.5). (ceiling): held at the class ceiling.";
   if(weeks.length===1){const G=L[weeks[0]], by={};
     G.forEach(x=>{const k=x.lv+" · "+x.song; (by[k]=by[k]||[]).push(x)});
-    Object.entries(by).forEach(([k,xs])=>{const t=xs.reduce((a,x)=>a+x.d,0); out.push(`${k}: ${f(t)}`);
+    const IN="\u00a0\u00a0\u00a0\u00a0• ";   // no-break spaces: the tooltip would collapse ordinary ones
+    Object.entries(by).forEach(([k,xs])=>{const t=xs.reduce((a,x)=>a+x.d,0); if(out.length)out.push(""); out.push(`▸ ${k}: ${f(t)}`);
       xs.slice().sort((a,b)=>Math.abs(b.d)-Math.abs(a.d)).slice(0,6).forEach(x=>{const e=1/(1+10**((x.ro-x.rm)/400));
-        out.push(`  ${res(x.res)} ${x.op} (${Math.round(x.ro)}): ${Math.round(x.k)} × (${x.res===.5?"½":x.res} − ${e.toFixed(2)}) = ${f(x.d)}${x.half?" · quarter stakes":""}${x.cap?" · held at the class ceiling":""}`)});
-      if(xs.length>6)out.push(`  … and ${xs.length-6} smaller games`)});
+        out.push(`${IN}${res(x.res)} ${x.op} (${Math.round(x.ro)}): ${Math.round(x.k)} × (${x.res===.5?"½":x.res} − ${e.toFixed(2)}) = ${f(x.d)}${x.cap?" (ceiling)":""}`)});
+      if(xs.length>6)out.push(`${IN}… and ${xs.length-6} smaller games`)});
     return `Week ${weeks[0]}: ${f(G.reduce((a,x)=>a+x.d,0))} from ${G.length} game${G.length===1?"":"s"}\n\n${out.join("\n")}\n\n${head}`}
   weeks.forEach(w=>{const G=L[w], t=G.reduce((a,x)=>a+x.d,0), wn=G.filter(x=>x.res===1).length, ls=G.filter(x=>x.res===0).length; out.push(`Week ${w}: ${f(t)} (${wn} won, ${ls} lost${G.length-wn-ls?`, ${G.length-wn-ls} drawn`:""})`)});
   const all=weeks.flatMap(w=>L[w].map(x=>({...x,w}))), big=all.slice().sort((a,b)=>Math.abs(b.d)-Math.abs(a.d)).slice(0,4);
-  return `${out.join("\n")}\n\nBiggest swings:\n${big.map(x=>`  Week ${x.w}: ${res(x.res)} ${x.op} (${Math.round(x.ro)}) on ${x.song}: ${f(x.d)}`).join("\n")}\n\n${head}`}
+  return `${out.join("\n")}\n\nBiggest swings:\n${big.map(x=>`\u00a0\u00a0\u00a0\u00a0• Week ${x.w}: ${res(x.res)} ${x.op} (${Math.round(x.ro)}) on ${x.song}: ${f(x.d)}`).join("\n")}\n\n${head}`}
 // hover text on a rank: the 10 players above and the 10 below in that list
 function eloAround(pi,k,w,keep){const T=eloTable(pi,w,keep), R=eloRanks(pi,w,keep), i=T.findIndex(x=>x[0]===k); if(i<0)return "";
-  return T.slice(Math.max(0,i-10),i+11).map(([n,v])=>`${n===k?"▶ ":"   "}#${R[n]} ${n} · ${Math.round(v)}`).join("\n")}
+  return T.slice(Math.max(0,i-10),i+11).map(([n,v])=>`${n===k?"▶ ":"\u00a0\u00a0\u00a0\u00a0"}#${R[n]} ${n} · ${Math.round(v)}`).join("\n")}
 // profiles: rating, rank and the change over the last 10 weeks on each path they've played
 function eloProfile(n){eloBuild(); const w=ELO_DONE, k=eloKey(n), kp=eloKeep(k);
   const rows=[0,1,2].map(pi=>{const x=eloAt(pi,k,w); if(!x)return ""; const rk=eloRanks(pi,w,kp)[k], tot=eloTable(pi,w,kp).length, o=eloAt(pi,k,w-10), d=o?Math.round(x[1]-o[1]):0, t=x[2]>=ELO_MIN&&rk&&rk<=3?" elo-t"+rk:"";
