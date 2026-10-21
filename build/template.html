@@ -686,21 +686,14 @@ a.dl svg,.offpill svg{width:11px;height:11px}
 .golink:hover{color:var(--accent)}
 .golinks{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
 .plead:empty{display:none}
-/* first weeks: a newcomer's progress and next steps on their profile */
-.fw{grid-column:1/-1;border:1px solid color-mix(in srgb,var(--s-green) 40%,var(--line));border-radius:12px;padding:12px 14px;background:color-mix(in srgb,var(--s-green) 5%,transparent)}
-.fw .nwelo-h{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}.fw .nwelo-h small{font:600 .72rem var(--f-body);letter-spacing:0;text-transform:none}
-.fw-tiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:6px 0 12px}
-.fw-tiles>div{background:var(--panel2);border-radius:8px;padding:7px 10px;min-width:0}.fw-tiles small{display:block;color:var(--muted);font-size:.72rem}.fw-tiles b{font:800 1.15rem var(--f-display)}.fw-tiles .sub{display:block;font-size:.72rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.fw-ms{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
-.fw-ms li{display:grid;grid-template-columns:20px minmax(0,1fr);gap:9px;align-items:start}
-.fw-ck{width:18px;height:18px;border-radius:50%;border:2px solid var(--line);display:grid;place-items:center;font-size:.66rem;font-weight:900;margin-top:1px}.fw-ms li.done .fw-ck{background:var(--s-green);border-color:var(--s-green);color:#0d0f14}
-.fw-ms .fwl{font-weight:700}.fw-ms li.done .fwl{color:var(--muted)}.fw-ms .fwd{font-size:.82rem;color:var(--muted)}
-.fw-ms .fwd .fwgo{color:var(--fg);font-weight:700;text-decoration:underline dotted;cursor:pointer}
-.fw-bars{display:flex;flex-wrap:wrap;gap:4px 14px;margin-top:3px;font-size:.78rem;color:var(--muted)}.fw-bars span{display:inline-flex;align-items:center;gap:6px}
-.fw-bar{display:inline-block;width:70px;height:6px;border-radius:3px;background:var(--panel2);overflow:hidden}.fw-bar i{display:block;height:100%;background:var(--pc,var(--s-green))}
-.fwnudge{border:1px solid color-mix(in srgb,var(--s-green) 45%,var(--line));background:color-mix(in srgb,var(--s-green) 7%,transparent);border-radius:10px;padding:9px 12px;margin:12px 0}
-.fwnudge .fwgo{font-weight:700;text-decoration:underline dotted;cursor:pointer}
-@media (max-width:600px){.fw-tiles{grid-template-columns:repeat(2,minmax(0,1fr))}}
+/* first weeks: a newcomer's progress and next steps on their profile (same look as the Elo and hardest-rating rows) */
+.fwl li{grid-template-columns:18px minmax(0,1fr) auto;border-left-color:var(--line)}.fwl li.done{border-left-color:var(--s-green)}
+.fwl .fwk{font-weight:900;font-size:.8rem;color:var(--muted)}.fwl li.done .fwk{color:var(--s-green)}.fwl .fwt{font-weight:700}.fwl li.done .fwt{color:var(--muted);font-weight:600}.fwl .nwr{font-size:.8rem;color:var(--muted)}
+.fwtab td{cursor:default}.fwtab .fwof{font:600 .72rem var(--f-body);color:var(--muted)}.fwtab td .fwok{color:var(--s-green)}.fwtab td b.hry-eq{color:var(--muted)}
+.fwhost .alist li{display:flex;flex-wrap:wrap;gap:2px 10px;align-items:baseline;padding:6px 10px;border-left:3px solid var(--s-green);background:var(--panel2);border-radius:6px;font-size:.86rem}.fwhn{font-weight:800;cursor:pointer;text-decoration:underline dotted}.fwhs{flex-basis:100%;font-size:.82rem}
+.fwgo{color:var(--fg);font-weight:700;text-decoration:underline dotted;cursor:pointer}
+.fwtry{margin:10px 0 2px;font-size:.86rem}.fwtry b{color:var(--pc)}
+.fwnudge{border-left:3px solid var(--pc);background:var(--panel2);border-radius:6px;padding:7px 10px;margin:12px 0;font-size:.88rem}.fwnudge b{color:var(--pc)}
 .plead{margin-top:14px}.pc>.plead{grid-column:1/-1;margin-top:-4px}   /* profiles: medal leader runs full width under both columns */
 .plh{font:700 .78rem var(--f-display);letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin-bottom:6px}
 .plh small{font:400 .75rem var(--f-body);letter-spacing:0;text-transform:none;color:var(--muted);margin-left:4px}
@@ -2108,36 +2101,47 @@ function fwTry(n,D){const tw=TW_MAX, cards=SB.weeks[tw]||[], tiers=((byName[n]||
   for(const pi of [0,1,2]){if(D.pw[pi].size)continue; let L=String(tiers[pi]||"").toUpperCase(); if(!"BIAM".includes(L)||!L)L="B";
     const c=cards.find(c=>c[0]===pi&&cardLv(c[2])===L&&c[3]&&!/^n\/a$/i.test(c[3])); if(c)return {pi,L,c,w:tw}}
   return null}
+function fwN95(D,pi,w){return D.ent.filter(x=>x.c[0]===pi&&x.pc>=95&&x.w>w-26&&x.c[4]!=null&&x.c[4]!==""&&!isNaN(+x.c[4])).length}
 function fwTryHtml(n,D){const t=fwTry(n,D); if(!t)return "";
-  return `Try <b style="color:${PATH_C[t.pi]}">${PATHS[t.pi]}</b> this week: <span class="fwgo" data-sbw="${t.w}" data-sbp="${t.pi}" data-sbs="${t.c[1]}" title="Open this challenge on the Scoreboard">${TIER_NAME[t.L]} · ${esc(t.c[3])}</span>`}
+  return `<span style="--pc:${PATH_C[t.pi]}">Try <b>${PATHS[t.pi]}</b> this week: <span class="fwgo" data-sbw="${t.w}" data-sbp="${t.pi}" data-sbs="${t.c[1]}" title="Open this challenge on the Scoreboard">${TIER_NAME[t.L]} · ${esc(t.c[3])}</span></span>`}
+const FW_TIP="Shown for a player's first 8 weeks.\n\nNewcomers who come back for a second week, play a few weeks in a row and try a second path are the ones who keep playing.\n\nUnlocks: the Elo ranking lists a player once they have 20 games on a path; the hardest-rating graph shows from their 4th week on a path, once they have two scores of 95% or better within 6 months.";
 function fwPanel(n){const D=fwData(n), W=D.wk; if(!W.length||fwPlayed(n,D)>FW_MAX)return "";
   const tw=TW_MAX, last=W[W.length-1], ms=[];
   let maxRun=1, run=1; for(let i=1;i<W.length;i++){run=W[i]===W[i-1]+1?run+1:1; if(run>maxRun)maxRun=run}
   let cur=0; if(last>=tw-1){cur=1; for(let i=W.length-1;i>0&&W[i-1]===W[i]-1;i--)cur++}
-  const next=last===tw?`Week ${tw+1}`:`Week ${tw}`;
-  // 1. back for a second week
-  ms.push(W.length>=2?{done:1,l:"Back for a second week",d:`Week ${W[1]}`}:{l:"Come back for a second week",d:`Play ${next} to make it two`});
-  // 2. three weeks in a row
-  ms.push(maxRun>=3?{done:1,l:"Three weeks in a row",d:"Your best run: "+maxRun+" weeks"}:{l:"Three weeks in a row",d:cur?`${cur} of 3 so far · next: ${next}`:`Start a run: play ${next}`,bars:cur?[["",cur/3]]:null});
-  // 3. a second path
-  const paths=[0,1,2].filter(pi=>D.pw[pi].size);
-  ms.push(paths.length>=2?{done:1,l:"Played a second path",d:paths.map(pi=>PATHS[pi]).join(", ")}:{l:"Try a second path",d:fwTryHtml(n,D)||"Lead, Rhythm and Bass each have a challenge at every level every week"});
-  // 4. per path: Elo ranking (20 games) and the hardest-rating graph (4 weeks on the path, two 95%+ scores within 6 months)
-  paths.forEach(pi=>{let g=0; try{const x=eloAt(pi,eloKey(n),1e9); g=x?x[2]:0}catch(e){}
-    const wks=D.pw[pi].size, n95=D.ent.filter(x=>x.c[0]===pi&&x.pc>=95&&x.w>last-26).length;
-    const eloOk=g>=ELO_MIN, hrOk=wks>=4&&n95>=2;
-    ms.push({done:eloOk&&hrOk,pc:PATH_C[pi],l:`${PATHS[pi]}: Elo ranking and hardest-rating graph`,d:eloOk&&hrOk?"Both unlocked: see them below":"",
-      bars:[[`Elo ${Math.min(g,ELO_MIN)}/${ELO_MIN} games`,g/ELO_MIN],[`${Math.min(wks,4)}/4 weeks`,wks/4],[`${Math.min(n95,2)}/2 scores at 95%+ (last 6 months)`,n95/2]]})});
-  const best=D.ent.reduce((a,x)=>!a||x.pc>a.pc||(x.pc===a.pc&&"BIAMG".indexOf(cardLv(x.c[2]))>"BIAMG".indexOf(cardLv(a.c[2])))?x:a,null);
+  const next=last===tw?`Week ${tw+1}`:`Week ${tw}`, paths=[0,1,2].filter(pi=>D.pw[pi].size);
+  ms.push(W.length>=2?[1,"Second week",`Week ${W[1]}`]:[0,"Second week",`play ${next}`]);
+  ms.push(maxRun>=3?[1,"Three weeks in a row",`best run ${maxRun}`]:[0,"Three weeks in a row",cur?`${cur} of 3 · next ${next}`:`play ${next}`]);
+  ms.push(paths.length>=2?[1,"A second path",paths.map(pi=>PATHS[pi]).join(" · ")]:[0,"A second path","see below"]);
   const n95=D.ent.filter(x=>x.pc>=95).length;
-  const bar=(lab,v,pc)=>`<span>${lab?esc(lab):""}<i class="fw-bar"${pc?` style="--pc:${pc}"`:""}><i style="width:${Math.round(Math.min(1,v)*100)}%"></i></i></span>`;
-  return `<div class="fw pcwide"><div class="nwelo-h"><span>First weeks</span><small>week ${fwPlayed(n,D)} of ${FW_MAX} · the first steps that keep players coming back</small></div>
-    <div class="fw-tiles"><div><small>Weeks played</small><b>${W.length}</b><span class="sub">since Week ${W[0]}</span></div><div><small>Challenges played</small><b>${D.ent.length}</b><span class="sub">${paths.map(pi=>PATHS[pi]).join(" · ")}</span></div>
-      <div${best?` class="pbx" data-pbest="${best.w}|${best.c[0]}" style="cursor:pointer" data-tip="${esc(best.c[3]||"")} · ${PATHS[best.c[0]]} ${esc(best.c[2])} · Week ${best.w} · click to open it on the Scoreboard"`:""}><small>Best %</small><b>${best?best.pc+"%":"–"}</b>${best?`<span class="sub">${PATHS[best.c[0]]} ${esc(best.c[2])}</span>`:""}</div><div><small>Scores at 95%+</small><b>${n95}</b><span class="sub">of ${D.ent.length}</span></div></div>
-    <ul class="fw-ms">${ms.map(m=>`<li class="${m.done?"done":""}"><span class="fw-ck">${m.done?"✓":""}</span><div><div class="fwl">${m.l}</div>${m.d?`<div class="fwd">${m.d}</div>`:""}${!m.done&&m.bars?`<div class="fw-bars">${m.bars.map(b=>bar(b[0],b[1],m.pc)).join("")}</div>`:""}</div></li>`).join("")}</ul></div>`}
+  ms.push(n95?[1,"A 95% score",`${n95} so far`]:[0,"A 95% score",`best ${Math.max(...D.ent.map(x=>x.pc))}%`]);
+  const left=`<div class="pcwide nwelo pelo fwl"><div class="nwelo-h">First weeks <span class="elohelp" data-tip="${esc(FW_TIP)}">ⓘ</span> <span class="pelo-sub">week ${fwPlayed(n,D)} of ${FW_MAX}</span></div><ul>${ms.map(([d,t,r])=>`<li class="${d?"done":""}"><span class="fwk">${d?"✓":"○"}</span><span class="fwt">${t}</span><span class="nwr">${r}</span></li>`).join("")}</ul></div>`;
+  const cell=(v,need,lab)=>v>=need?`<td data-tip="${esc(lab)}: done"><b class="fwok">✓</b></td>`:`<td data-tip="${esc(lab)}: ${v} of ${need}"><b>${v}<small class="fwof">/${need}</small></b></td>`;
+  const rows=paths.map(pi=>{let g=0; try{const x=eloAt(pi,eloKey(n),1e9); g=x?x[2]:0}catch(e){}
+    const hrOk=hrSeries(n,pi).some(e=>e[1]!=null), wks=hrOk?4:D.pw[pi].size, h95=hrOk?2:fwN95(D,pi,TW_MAX);
+    return `<tr style="--pc:${PATH_C[pi]}"><td>${PATHS[pi]}</td>${cell(g,ELO_MIN,"Elo games")}${cell(wks,4,"Weeks on this path")}${cell(h95,2,"Scores at 95%+ on rated songs in the last 6 months")}</tr>`}).join("");
+  const tr=paths.length<2?fwTryHtml(n,D):"";
+  const right=`<div class="pcwide"><div class="elochart"><div class="echhead"><h4>Unlocks</h4></div><div class="hryears fwtab"><table><tr><th></th><th>Elo games</th><th>Weeks</th><th>95%+ scores</th></tr>${rows}</table></div>
+    ${tr?`<p class="fwtry">${tr}</p>`:""}<p class="echnote">20 Elo games on a path put you in the Elo ranking · 4 weeks and two 95%+ scores on rated songs within 6 months unlock your hardest-rating graph</p></div></div>`;
+  return left+right}
+// Host tab: the newcomers seeing the First weeks panel (played in the last 8 weeks), and the next steps it's showing them,
+// so hosts can welcome them, encourage them or answer questions
+function fwHostSection(){const tw=TW_MAX, rows=[];
+  PLAYERS.forEach(p=>{const n=p[0], D=fwData(n), W=D.wk; if(!W.length||fwPlayed(n,D)>FW_MAX||W[W.length-1]<tw-8)return;
+    const paths=[0,1,2].filter(pi=>D.pw[pi].size), last=W[W.length-1], todo=[];
+    if(W.length<2)todo.push("come back for a second week");
+    else{let run=1,mx=1; for(let i=1;i<W.length;i++){run=W[i]===W[i-1]+1?run+1:1; mx=Math.max(mx,run)} if(mx<3)todo.push("three weeks in a row")}
+    if(paths.length<2){const t=fwTry(n,D); todo.push(t?`try ${PATHS[t.pi]} (${TIER_NAME[t.L]} · ${esc(t.c[3])})`:"try a second path")}
+    if(!D.ent.some(x=>x.pc>=95))todo.push("a first 95% score");
+    rows.push({n,W,last,paths,todo})});
+  rows.sort((a,b)=>b.last-a.last||a.W[0]-b.W[0]);
+  return `<div class="acctsec fwhost"><h3>Newcomers <small>${rows.length} in their first ${FW_MAX} weeks, played in the last 8</small></h3>
+    <p class="dim">Each of these players sees a First weeks panel on their profile with the next steps below (one-path players also get a "try a second path" nudge in Your week). A welcome, a word of encouragement or an answer to a question from a host goes a long way: new players who come back for a second week and try a second path are the ones who stay.</p>
+    ${rows.length?`<ul class="alist">${rows.map(r=>`<li><span class="fwhn" data-fwp="${esc(r.n)}" title="Open ${esc(r.n)}'s profile">${esc(r.n)}</span><span class="dim">week ${r.W.length} · since Week ${r.W[0]} · last played Week ${r.last} · ${r.paths.map(pi=>`<b style="color:${PATH_C[pi]}">${PATHS[pi]}</b>`).join(" ")}</span><span class="fwhs">${r.todo.length?"Shown next: "+r.todo.join(" · "):"All first steps done"}</span></li>`).join("")}</ul>`:`<p class="dim">No newcomers right now.</p>`}</div>`}
+document.addEventListener("click",e=>{const b=e.target.closest("[data-fwp]"); if(!b)return; const n=b.dataset.fwp; if(!byName[n])return; const d=$("acct"); if(d&&d.open)d.close(); showView("players"); showPlayer(n); $("pcard").closest("section").scrollIntoView({block:"start"})});
 // Your week: the same "try a second path" nudge for a newcomer on one path
-function fwNudge(n){const D=fwData(n); if(!D.wk.length||fwPlayed(n,D)>FW_MAX||[0,1,2].filter(pi=>D.pw[pi].size).length>1)return ""; const t=fwTryHtml(n,D);
-  return t?`<div class="fwnudge">🎸 ${t} <small class="dim">· players who try a second path in their first weeks are far more likely to stick around</small></div>`:""}
+function fwNudge(n){const D=fwData(n); if(!D.wk.length||fwPlayed(n,D)>FW_MAX||[0,1,2].filter(pi=>D.pw[pi].size).length>1)return ""; const t=fwTry(n,D); if(!t)return "";
+  return `<div class="fwnudge" style="--pc:${PATH_C[t.pi]}">${fwTryHtml(n,D)} <span class="dim">· new players who try a second path are much more likely to keep playing</span></div>`}
 function showPlayer(name){
   const p=byName[name];
   if(!p){$("pcard").innerHTML=`<div class="empty">No player named “${esc(name)}”. Pick a name from the list as you type.</div>`;return}
@@ -4936,7 +4940,7 @@ function acctDraw(msg,err){
   const tabs=`<div class="accttabs" role="tablist">${tb("me","Your profile")}${appr?tb("week",`Your week${ywN?`<span class="nbadge" title="Passed ${ywN} time${ywN===1?"":"s"} · the ✕ on the alert dismisses itt">${ywN}</span>`:""}`):""}${ACCT.claim&&ACCT.claim.status==="approved"?tb("banner","Forum banner"):""}${tb("manage","Manage account")}${canRateFor()?tb("host","Host"):""}${ACCT.admin?tb("admin",`Admin${(()=>{const t=typoScan().nNew; return t?`<span class="nbadge tybadge" title="${t} likely typo${t===1?"":"s"} in this week's scoreboard">${t}</span>`:""})()}${pendN?`<span class="nbadge" title="${pendN} claim${pendN===1?"":"s"} waiting for approval">${pendN}</span>`:""}`):""}</div>`;
   let h=tabs;
   if(ACCT.tab==="admin"){}
-  else if(ACCT.tab==="host")h+=`${hostSection(false).replace('class="acctsec hostsec"','class="acctsec hostsec hosttop"')}${adminRateSection()}${ratingLogSection()}`;
+  else if(ACCT.tab==="host")h+=`${hostSection(false).replace('class="acctsec hostsec"','class="acctsec hostsec hosttop"')}${(()=>{try{return fwHostSection()}catch(e){return ""}})()}${adminRateSection()}${ratingLogSection()}`;
   else if(ACCT.tab==="banner")h+=bnTab(ACCT.claim.player);
   else if(ACCT.tab==="week"){const n=ACCT.claim.player; ACCT.twPart="week";
     h+=`${ywAlert(n)}${(()=>{try{return fwNudge(n)}catch(e){return ""}})()}${ywList(n)}<div id="acct-tw">${acctThisWeek(n,"week")}</div>`}   // alert, how the week is going, rivals, Played before, then the scoreboard
