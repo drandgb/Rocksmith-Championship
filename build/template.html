@@ -2395,7 +2395,7 @@ document.addEventListener("click",e=>{const b=e.target.closest("[data-hlcopy]");
   // which one: the championship's anniversary week first, then every 100th week, then the holidays (?deco=name previews one)
   const force=(/[?&]deco=(\w+)/.exec(location.search)||[])[1], md=todayISO.slice(5), y=+todayISO.slice(0,4), td=new Date(todayISO+"T12:00:00");
   const inR=(a,b)=>md>=a&&md<=b, e=easter(y), dE=Math.round((td-new Date(e.getFullYear(),e.getMonth(),e.getDate(),12))/864e5);
-  const pick=force||(/Champ.*Anniversary/i.test(cur[3]||"")?"ann":cur[0]%100===0?"mile":md==="04-01"?"fools":td.getDate()===13&&td.getDay()===5?"fri13":(md==="12-31"||inR("01-01","01-06"))?"newyear":inR("12-01","12-26")?"xmas":inR("02-11","02-17")?"valentine":inR("03-14","03-20")?"stpat":(dE>=-6&&dE<=1)?"easter":md.slice(0,2)==="10"?"halloween":"");
+  const pick=force||(/Champ.*Anniversary/i.test(cur[3]||"")?"ann":cur[0]%100===0?"mile":md==="04-01"?"fools":(/Friday the 13th/.test(cur[3]||"")||(td.getDate()===13&&td.getDay()===5))?"fri13":(md==="12-31"||inR("01-01","01-06"))?"newyear":inR("12-01","12-26")?"xmas":inR("02-11","02-17")?"valentine":inR("03-14","03-20")?"stpat":(dE>=-6&&dE<=1)?"easter":md.slice(0,2)==="10"?"halloween":"");
   if(!pick)return;
   const T="Rocksmith Championship", css=v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim();
   const balloon=c=>`<svg viewBox="0 0 20 44" aria-hidden="true"><path d="M10 26c1 6-3 9 0 17" stroke="#c9ced8" stroke-width=".8" fill="none"/><ellipse cx="10" cy="12" rx="8.4" ry="10.6" fill="${c}"/><path d="M8.6 22.4h2.8l-1.4 2.6z" fill="${c}"/><ellipse cx="7" cy="8" rx="2.2" ry="3.4" fill="#fff" opacity=".35"/></svg>`;
