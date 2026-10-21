@@ -2104,14 +2104,15 @@ function fwTry(n,D){const tw=TW_MAX, cards=SB.weeks[tw]||[], tiers=((byName[n]||
 function fwN95(D,pi,w){return D.ent.filter(x=>x.c[0]===pi&&x.pc>=95&&x.w>w-26&&x.c[4]!=null&&x.c[4]!==""&&!isNaN(+x.c[4])).length}
 function fwTryHtml(n,D){const t=fwTry(n,D); if(!t)return "";
   return `<span style="--pc:${PATH_C[t.pi]}">Try <b>${PATHS[t.pi]}</b> this week: <span class="fwgo" data-sbw="${t.w}" data-sbp="${t.pi}" data-sbs="${t.c[1]}" title="Open this challenge on the Scoreboard">${TIER_NAME[t.L]} · ${esc(t.c[3])}</span></span>`}
-const FW_TIP="Shown for a player's first 8 weeks.\n\nNewcomers who come back for a second week, play a few weeks in a row and try a second path are the ones who keep playing.\n\nUnlocks: the Elo ranking lists a player once they have 20 games on a path; the hardest-rating graph shows from their 4th week on a path, once they have two scores of 95% or better within 6 months.";
+const FW_GAMES="Elo counts every pair of players on the same challenge as a game: the higher % wins. So one challenge with 5 other players is 5 games. 20 games on a path puts you in the Elo ranking.";
+const FW_TIP="Shown for a player's first 8 weeks.\n\nNewcomers who come back for a second week (One more time), play three weeks in a row (Hat trick) and try a second path are the ones who keep playing.\n\nUnlocks: the Elo ranking lists a player once they have 20 games on a path (a game is one other player on the same challenge, so a challenge with 5 others is 5 games); the hardest-rating graph shows from their 4th week on a path, once they have two scores of 95% or better within 6 months.";
 function fwPanel(n){const D=fwData(n), W=D.wk; if(!W.length||fwPlayed(n,D)>FW_MAX)return "";
   const tw=TW_MAX, last=W[W.length-1], ms=[];
   let maxRun=1, run=1; for(let i=1;i<W.length;i++){run=W[i]===W[i-1]+1?run+1:1; if(run>maxRun)maxRun=run}
   let cur=0; if(last>=tw-1){cur=1; for(let i=W.length-1;i>0&&W[i-1]===W[i]-1;i--)cur++}
   const next=last===tw?`Week ${tw+1}`:`Week ${tw}`, paths=[0,1,2].filter(pi=>D.pw[pi].size);
-  ms.push(W.length>=2?[1,"Second week",`Week ${W[1]}`]:[0,"Second week",`play ${next}`]);
-  ms.push(maxRun>=3?[1,"Three weeks in a row",`best run ${maxRun}`]:[0,"Three weeks in a row",cur?`${cur} of 3 · next ${next}`:`play ${next}`]);
+  ms.push(W.length>=2?[1,"One more time",`back in Week ${W[1]}`]:[0,"One more time",`come back: play ${next}`]);
+  ms.push(maxRun>=3?[1,"Hat trick",`${maxRun} weeks in a row`]:[0,"Hat trick: 3 weeks in a row",cur?`${cur} of 3 · next ${next}`:`play ${next}`]);
   ms.push(paths.length>=2?[1,"A second path",paths.map(pi=>PATHS[pi]).join(" · ")]:[0,"A second path","see below"]);
   const n95=D.ent.filter(x=>x.pc>=95).length;
   ms.push(n95?[1,"A 95% score",`${n95} so far`]:[0,"A 95% score",`best ${Math.max(...D.ent.map(x=>x.pc))}%`]);
@@ -2121,16 +2122,16 @@ function fwPanel(n){const D=fwData(n), W=D.wk; if(!W.length||fwPlayed(n,D)>FW_MA
     const hrOk=hrSeries(n,pi).some(e=>e[1]!=null), wks=hrOk?4:D.pw[pi].size, h95=hrOk?2:fwN95(D,pi,TW_MAX);
     return `<tr style="--pc:${PATH_C[pi]}"><td>${PATHS[pi]}</td>${cell(g,ELO_MIN,"Elo games")}${cell(wks,4,"Weeks on this path")}${cell(h95,2,"Scores at 95%+ on rated songs in the last 6 months")}</tr>`}).join("");
   const tr=paths.length<2?fwTryHtml(n,D):"";
-  const right=`<div class="pcwide"><div class="elochart"><div class="echhead"><h4>Unlocks</h4></div><div class="hryears fwtab"><table><tr><th></th><th>Elo games</th><th>Weeks</th><th>95%+ scores</th></tr>${rows}</table></div>
-    ${tr?`<p class="fwtry">${tr}</p>`:""}<p class="echnote">20 Elo games on a path put you in the Elo ranking · 4 weeks and two 95%+ scores on rated songs within 6 months unlock your hardest-rating graph</p></div></div>`;
+  const right=`<div class="pcwide"><div class="elochart"><div class="echhead"><h4>Unlocks</h4></div><div class="hryears fwtab"><table><tr><th></th><th data-tip="${esc(FW_GAMES)}" style="cursor:help">Elo games ⓘ</th><th>Weeks</th><th>95%+ scores</th></tr>${rows}</table></div>
+    ${tr?`<p class="fwtry">${tr}</p>`:""}<p class="echnote">A game is one other player on a challenge you played (a challenge with 5 others is 5 games) · 20 games on a path put you in the Elo ranking · 4 weeks and two 95%+ scores on rated songs within 6 months unlock your hardest-rating graph</p></div></div>`;
   return left+right}
 // Host tab: the newcomers seeing the First weeks panel (played in the last 8 weeks), and the next steps it's showing them,
 // so hosts can welcome them, encourage them or answer questions
 function fwHostSection(){const tw=TW_MAX, rows=[];
   PLAYERS.forEach(p=>{const n=p[0], D=fwData(n), W=D.wk; if(!W.length||fwPlayed(n,D)>FW_MAX||W[W.length-1]<tw-8)return;
     const paths=[0,1,2].filter(pi=>D.pw[pi].size), last=W[W.length-1], todo=[];
-    if(W.length<2)todo.push("come back for a second week");
-    else{let run=1,mx=1; for(let i=1;i<W.length;i++){run=W[i]===W[i-1]+1?run+1:1; mx=Math.max(mx,run)} if(mx<3)todo.push("three weeks in a row")}
+    if(W.length<2)todo.push("One more time (come back for a second week)");
+    else{let run=1,mx=1; for(let i=1;i<W.length;i++){run=W[i]===W[i-1]+1?run+1:1; mx=Math.max(mx,run)} if(mx<3)todo.push("Hat trick (three weeks in a row)")}
     if(paths.length<2){const t=fwTry(n,D); todo.push(t?`try ${PATHS[t.pi]} (${TIER_NAME[t.L]} · ${esc(t.c[3])})`:"try a second path")}
     if(!D.ent.some(x=>x.pc>=95))todo.push("a first 95% score");
     rows.push({n,W,last,paths,todo})});
