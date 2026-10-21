@@ -2245,7 +2245,7 @@ function seasonOf(w){if(SEAS_OF[w]!==undefined)return SEAS_OF[w]; return SEAS_OF
 function seasonOf0(w){const d=WEEKS[w-1]&&WEEKS[w-1][1]; if(!d)return null; const y=+d.slice(0,4), m=+d.slice(5,7), q=Math.floor(((m+10)%12)/3), sy=m===1?y-1:y;
   return ["Feb–Apr ","May–Jul ","Aug–Oct ",""][q]+(q===3?`Nov ${sy}–Jan ${sy+1}`:sy)}
 function seasonRange(id){if(SEAS_RNG[id])return SEAS_RNG[id]; let a=null,b=null; for(let w=1;w<=WEEKS.length;w++)if(seasonOf(w)===id){if(a==null)a=w; b=w} return SEAS_RNG[id]=[a,b]}
-function qSeasonTable(pi,id){eloBuild(); if(SEAS_TAB[pi+"|"+id])return SEAS_TAB[pi+"|"+id]; const [a,b]=seasonRange(id), end=Math.min(b,ELO_DONE), out=SEAS_TAB[pi+"|"+id]={};
+function qSeasonTable(pi,id,upto){eloBuild(); const ck=pi+"|"+id+"|"+(upto||""); if(SEAS_TAB[ck])return SEAS_TAB[ck]; const [a,b]=seasonRange(id), end=Math.min(b,ELO_DONE,upto||1e9), out=SEAS_TAB[ck]={};
   Object.keys(ELO[pi].hist).forEach(n=>{const h=ELO[pi].hist[n]; let x1=null,x0=null; for(const e of h){if(e[0]<a)x0=e; else if(e[0]<=end)x1=e; else break}
     if(!x1)return; const g=x1[2]-(x0?x0[2]:0); if(g<SEASON_MIN||!x1[3])return; const r1=eloAt(pi,n,end), r0=x0?eloAt(pi,n,a-1):null;
     const d=r1[1]-(r0?r0[1]:eloStart(pi,n)); (out[x1[3]]=out[x1[3]]||[]).push({n,d,g,v:r1[1]})});
@@ -2261,7 +2261,7 @@ function renderSeason(){const el=$("season-box"); if(!el)return; eloBuild(); con
   $("season-sub").innerHTML=`Weeks ${a}–${b} · ${live?`week ${done} of ${len} · ends after Week ${b}${WEEKS[b-1]?" ("+fmt(WEEKS[b-1][1])+")":""}`:"final standings"} · the biggest Elo gains in each class (${SEASON_MIN}+ games) <span class="elohelp" data-tip="${esc(SEASON_TIP)}">ⓘ</span>`;
   $("season-bar").innerHTML=live?`<div class="seasprog" data-tip="${done} of ${len} weeks played"><i style="width:${Math.round(done/len*100)}%"></i></div>`:"";
   el.innerHTML=[0,1,2].map(pi=>{const T=qSeasonTable(pi,id);
-    const cls=["M","A","I","B"].filter(c=>T[c]&&T[c].length).map(c=>`<h4 style="--tc:${TIER_C[c]}">${TIER_NAME[c]}</h4><ol>${(()=>{const top=T[c].slice(0,5), rd=top.map(x=>Math.round(x.d)); return top.map((x,i)=>({...x,dec:rd.filter(v=>v===rd[i]).length>1}))})().map((x,i)=>`<li class="${i===0?"top elo-t1":i===1?"elo-t2":i===2?"elo-t3":""}"><span class="er">${!live&&i===0?"🏆":i+1}</span><span class="nm" data-profile="${esc(x.n)}" style="cursor:pointer">${esc(x.n)}</span><span class="sgain${x.d<0?" neg":""}"${x.dec?` data-tip="Gains are rounded: a decimal place shows when two would look the same"`:""}>${x.d>=0?"+":"−"}${x.dec?Math.abs(x.d).toFixed(1):Math.abs(Math.round(x.d))}</span><span class="sg" data-tip="Elo ${live?"now":"at the end"}: ${Math.round(x.v)}">${x.g} games</span></li>`).join("")}${T[c].length>5?`<li class="dim smore"><span></span><span>… and ${T[c].length-5} more</span></li>`:""}</ol>`).join("");
+    const cls=["M","A","I","B"].filter(c=>T[c]&&T[c].length).map(c=>`<h4 style="--tc:${TIER_C[c]}">${TIER_NAME[c]}</h4><ol>${(()=>{const top=T[c].slice(0,5), rd=top.map(x=>Math.round(x.d)); return top.map((x,i)=>({...x,dec:rd.filter(v=>v===rd[i]).length>1}))})().map((x,i)=>`<li class="${i===0?"top elo-t1":i===1?"elo-t2":i===2?"elo-t3":""}"><span class="er">${!live&&i===0?"🏆":i+1}</span><span class="nm" data-profile="${esc(x.n)}" style="cursor:pointer">${esc(x.n)}</span><span class="sgain${x.d<0?" neg":""}"${x.dec?` data-tip="Gains are rounded: a decimal place shows when two would look the same"`:""}>${x.d>=0?"+":"−"}${x.dec?Math.abs(x.d).toFixed(1):Math.abs(Math.round(x.d))}</span><span class="sg" data-tip="Elo ${live?"now":"at the end"}: ${Math.round(x.v)}">${x.g} games</span></li>`).join("")}${T[c].length>5?`<li class="dim smore" data-tip="${esc(T[c].slice(5).map((x,i)=>`${i+6}. ${x.n} · ${x.d>=0?"+":"−"}${Math.abs(x.d).toFixed(1)} · ${x.g} games`).join("\n"))}" style="cursor:help"><span></span><span>… and ${T[c].length-5} more</span></li>`:""}</ol>`).join("");
     return `<div class="elocol" style="--pc:${PATH_C[pi]}"><h3>${PATHS[pi]}</h3>${cls||`<p class="dim">No one with ${SEASON_MIN}+ games yet.</p>`}</div>`}).join("");
   // every finished season's champions, counted per player
   const fin=L.filter(x=>seasonRange(x)[1]<=ELO_DONE), by={};
@@ -2272,6 +2272,8 @@ function renderSeason(){const el=$("season-box"); if(!el)return; eloBuild(); con
   $("season-titles").innerHTML=fin.length?`<div class="seasch-wrap"><table class="seasch"><thead><tr><th>Season</th>${PATHS.map((p,pi)=>`<th style="color:${PATH_C[pi]}">${p}</th>`).join("")}</tr></thead><tbody>${fin.slice().reverse().map(id=>`<tr><td class="ss">${id}<small>Weeks ${seasonRange(id).join("–")}</small></td>${[0,1,2].map(pi=>`<td data-p="${PATHS[pi]}" style="--pc:${PATH_C[pi]}">${["M","A","I","B"].map(c=>{const x=seasonChamps().find(y=>y.s===id&&y.pi===pi&&y.c===c); return x?`<div class="sc"><span class="sct" style="--tc:${TIER_C[c]}">${c}</span><span class="nm" data-profile="${esc(x.n)}" style="cursor:pointer" data-tip="${esc(`${x.n} · ${TIER_NAME[c]} season champion ${cnt[x.k]>1?cnt[x.k]+" times in all":"(first title)"}`)}">${esc(x.n)}</span><small>${sg(x.d)}</small></div>`:""}).join("")}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`:`<p class="dim">No finished seasons yet.</p>`;
   {const w=document.querySelector("#season-titles .seasch-wrap"), tr=w&&w.querySelectorAll("tbody tr"); const k=innerWidth<=700?3:10; if(tr&&tr.length>k){w.style.maxHeight=(tr[k].offsetTop)+"px"; w.classList.add("lpscroll")}}}   // 10 seasons (3 on a phone, where they stack), then scroll
 document.addEventListener("change",e=>{if(e.target.id!=="season-pick")return; SEASON_SEL=e.target.value; renderSeason()});
+$("view-season").addEventListener("mousemove",e=>{const p=e.target.closest("[data-tip]");if(!p){tip.hidden=true;return}tip.textContent=p.dataset.tip;tip.hidden=false;placeTip(e.clientX,e.clientY)});
+$("view-season").addEventListener("mouseleave",()=>tip.hidden=true);
 $("view-season").addEventListener("click",e=>{const pb=e.target.closest("[data-profile]"); if(!pb)return; const n=pb.dataset.profile; if(byName[n]){showView("players");showPlayer(n);$("pcard").closest("section").scrollIntoView({block:"start"})}});
 
 // Host tab: players who stopped in the last year (or 2), with where they were when they left
@@ -2301,10 +2303,14 @@ function hlText(w){eloBuild(); const I=sbIx(), L=[], played=Object.keys(I.wk).fi
   let head=""; const sNow=seasonOf(w), sNext=seasonOf(w+1);
   if(sNow&&sNext&&sNow!==sNext){const ch=[0,1,2].map(pi=>{const T=qSeasonTable(pi,sNow); const c=["M","A","I","B"].filter(c=>T[c]&&T[c].length).map(c=>`${TIER_NAME[c]} ${T[c][0].n} (${T[c][0].d>=0?"+":"−"}${Math.abs(Math.round(T[c][0].d))})`); return c.length?`${PATHS[pi]}: ${c.join(", ")}`:""}).filter(Boolean);
     head=`🏁 A new season starts this week: ${sNext}! Everyone starts the race level: the biggest Elo gain in each class wins, so new players can take it from their very first week.${ch.length?`\n${sNow} champions:${ch.map(x=>"\n    "+x).join("")}`:""}\n\n`}
-  return `Week ${w} highlights\n\n${head}${L.map(x=>"• "+x).join("\n")||"• Nothing to highlight yet."}`}
+  let lead="";
+  if(sNow&&!(sNext&&sNow!==sNext)){const [a,b]=seasonRange(sNow), sg=d=>`${d>=0?"+":"−"}${Math.abs(Math.round(d))}`;
+    const ln=[0,1,2].map(pi=>{const T=qSeasonTable(pi,sNow,w); const c=["M","A","I","B"].filter(c=>T[c]&&T[c].length).map(c=>`${TIER_NAME[c]} ${T[c][0].n} (${sg(T[c][0].d)})`); return c.length?`${PATHS[pi]}: ${c.join(", ")}`:""}).filter(Boolean);
+    if(ln.length)lead=`\n\n🏁 ${sNow} season leaders after Week ${w} (week ${w-a+1} of ${b-a+1}):${ln.map(x=>"\n    "+x).join("")}`}
+  return `Week ${w} highlights\n\n${head}${L.map(x=>"• "+x).join("\n")||"• Nothing to highlight yet."}${lead}`}
 function hlSection(){const ws=[]; for(let w=ELO_DONE;w>ELO_DONE-6&&w>0;w--)if(SB.weeks[w])ws.push(w); const w=ACCT.hlWeek&&ws.includes(ACCT.hlWeek)?ACCT.hlWeek:ws[0]; if(!w)return "";
   return `<div class="acctsec hlbox"><h3>Weekly highlights <select class="hlsel" data-hlweek>${ws.map(x=>`<option value="${x}"${x===w?" selected":""}>Week ${x}</option>`).join("")}</select></h3>
-    <p class="dim">New players, welcome backs, rank-ups, first 95% scores, new best hardest ratings, the biggest Elo gains and newcomers' milestones for Week ${w}, ready to copy into the Week ${w+1} post.</p><pre id="hltext">${esc(hlText(w))}</pre><div class="row"><button type="button" class="btn ghost" data-hlcopy>Copy</button></div></div>`}
+    <p class="dim">New players, welcome backs, rank-ups, first 95% scores, new best hardest ratings, the biggest Elo gains and newcomers' milestones and the season leaders for Week ${w}, ready to copy into the Week ${w+1} post.</p><pre id="hltext">${esc(hlText(w))}</pre><div class="row"><button type="button" class="btn ghost" data-hlcopy>Copy</button></div></div>`}
 document.addEventListener("change",e=>{const s=e.target.closest("[data-hlweek]"); if(!s)return; ACCT.hlWeek=+s.value; const el=document.querySelector(".acctdlg .hlbox"); if(el)el.outerHTML=hlSection()});
 document.addEventListener("click",e=>{const b=e.target.closest("[data-hlcopy]"); if(!b)return; const t=$("hltext").textContent; try{navigator.clipboard.writeText(t).then(()=>{b.textContent="Copied ✓"; setTimeout(()=>b.textContent="Copy",1500)})}catch(err){}});
 function showPlayer(name){
@@ -2464,7 +2470,7 @@ function showView(v){
   ["thisweek","rankings","season","hosting","players","winners","scores","songs"].forEach(k=>{const on=k===v;$("view-"+k).hidden=!on;$("tab-"+k).setAttribute("aria-selected",on)});
   tip.hidden=true;
   $("pfilter").hidden=v==="scores"||v==="songs"||v==="thisweek"||v==="rankings"||v==="season";
-  if(v==="season")try{renderSeason()}catch(e){}
+  if(v==="season")setTimeout(()=>{try{renderSeason()}catch(e){}},0);   // (after the page has finished loading: opening the site on #season runs this first)
   if(v==="thisweek"&&window.__twReady)renderThisWeek();
   if(v==="winners"||v==="players"||v==="hosting")setTimeout(()=>mlEnsure(v==="winners"?"win":v==="players"?"player":"host"),50);
   if(v==="songs"&&window.__songsStale){window.__songsStale=false; renderSongs()} // player ratings arrived while another page was open
