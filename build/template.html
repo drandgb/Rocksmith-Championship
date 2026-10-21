@@ -761,6 +761,14 @@ a.dl svg,.offpill svg{width:11px;height:11px}
 .rkhero h2.rkinfo{font:900 clamp(2rem,7vw,3.4rem)/1.05 var(--f-display);letter-spacing:.02em;text-transform:uppercase;background:linear-gradient(180deg,#fff6c8 0%,#ffd86b 35%,#e9a826 70%,#b9761a 100%);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 14px rgba(255,200,80,.25))}
 .rkhero h2.rkinfo{position:relative}.rkhero h2.rkinfo .infoi{position:absolute;left:100%;top:.35em;margin-left:.25em;font-size:.38em;-webkit-text-fill-color:var(--muted);color:var(--muted)}   /* (the ⓘ hangs outside, so the words themselves are centered) */
 .rkhero .sub{margin-top:4px;max-width:760px;line-height:1.7}.rkhead .rkhero #rk-sub{align-items:center;text-align:center}.rkhero .rkroll{display:block;font-size:.84rem;color:var(--fg);opacity:.85;margin-bottom:2px}.rkhead #rk-stats{justify-content:center;text-align:center;margin-top:16px;row-gap:12px}
+.swk{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:2px 0 14px}
+.swb{position:relative;width:30px;height:30px;border-radius:6px;border:1px solid var(--line);background:var(--panel2);color:var(--muted);font:inherit;padding:0;display:grid;place-items:center;cursor:default}
+button.swb{cursor:pointer}button.swb:hover{border-color:var(--s-yellow)}
+.swb small{font-size:11px;font-weight:700;color:inherit;opacity:1}
+.swb.fin{background:color-mix(in srgb,var(--s-orange) 14%,var(--panel2));border-color:color-mix(in srgb,var(--s-orange) 45%,var(--line))}
+.swb.fin small{opacity:0}
+.swb.fin::after{content:"";position:absolute;left:10px;top:5px;width:7px;height:13px;border:solid var(--s-orange);border-width:0 2.5px 2.5px 0;border-radius:1px;transform:rotate(45deg)}
+.swb.cur{border:2px solid var(--s-yellow);color:var(--s-yellow);box-shadow:0 0 8px color-mix(in srgb,var(--s-yellow) 40%,transparent)}
 .seasprog{height:6px;border-radius:3px;background:var(--panel2);overflow:hidden;margin:0 0 12px}.seasprog i{display:block;height:100%;background:linear-gradient(90deg,var(--s-orange),var(--s-yellow))}
 .seas .smore{grid-template-columns:22px 1fr!important;font-size:.76rem}
 .seasch-wrap{position:relative;overflow-x:auto}.seasch-wrap.lpscroll{overflow-y:auto;overscroll-behavior:contain}
@@ -2342,7 +2350,8 @@ function renderSeason(){const el=$("season-box"); if(!el)return; eloBuild(); con
   $("season-pick").innerHTML=L.slice().reverse().map(x=>`<option value="${x}"${x===id?" selected":""}>${x}</option>`).join("");
   $("season-num").textContent=`Season ${seasonNum(id)}`;
   $("season-sub").innerHTML=`Weeks ${a}–${b} · ${live?`week ${done} of ${len} · ends after Week ${b}${WEEKS[b-1]?" ("+fmt(WEEKS[b-1][1])+")":""}`:"final standings"} · season points in each class, plus the most improved in each class <span class="elohelp" data-tip="${esc(SEASON_TIP)}">ⓘ</span>`;
-  $("season-bar").innerHTML=live?`<div class="seasprog" data-tip="${done} of ${len} weeks played"><i style="width:${Math.round(done/len*100)}%"></i></div>`:"";
+  $("season-bar").innerHTML=`<div class="swk">${Array.from({length:len},(_,i)=>{const w=a+i, fin=w<=ELO_DONE, now=!fin&&w===TW_MAX, go=w<=TW_MAX||w===TW_NEXT, dt=WEEKS[w-1]?" · "+fmt(WEEKS[w-1][1]):"";
+    return `<${go?"button":"span"} class="swb${fin?" fin":now?" cur":""}"${go?` data-sw="${w}"`:""} data-tip="${esc(`Week ${w}${dt} · ${fin?"finished":now?"this week":w===TW_NEXT?"next week":"to go"}${go?"\nClick to open it in This Week":""}`)}"><small>${i+1}</small></${go?"button":"span"}>`}).join("")}</div>`;
   const SCLS=["M","A","I","B"].filter(c=>[0,1,2].some(pi=>{const T=seasonF1(pi,id), M=seasonImproved(pi,id); return (T[c]&&T[c].length)||M[c]}));
   el.style.setProperty("--srows",SCLS.length+1);
   el.innerHTML=[0,1,2].map(pi=>{const T=seasonF1(pi,id), MI=seasonImproved(pi,id);
@@ -2358,6 +2367,7 @@ function renderSeason(){const el=$("season-box"); if(!el)return; eloBuild(); con
   $("season-tsub").textContent=`${fin.length} finished season${fin.length===1?"":"s"} · newest first${fin.length>(innerWidth<=700?3:10)?" · scroll for more":""}`;
   $("season-titles").innerHTML=fin.length?`<div class="seasch-wrap"><table class="seasch"><thead><tr><th>Season</th>${PATHS.map((p,pi)=>`<th style="color:${PATH_C[pi]}">${p}</th>`).join("")}</tr></thead><tbody>${fin.slice().reverse().map(id=>`<tr><td class="ss"><span class="sn">Season ${seasonNum(id)}</span>${id}<small>Weeks ${seasonRange(id).join("–")}</small></td>${[0,1,2].map(pi=>`<td data-p="${PATHS[pi]}" style="--pc:${PATH_C[pi]}">${["M","A","I","B"].map(c=>{const x=seasonChamps().find(y=>y.s===id&&y.pi===pi&&y.c===c); return x?`<div class="sc"><span class="sct" style="--tc:${TIER_C[c]}">${c}</span><span class="nm" data-profile="${esc(x.n)}" style="cursor:pointer" data-tip="${esc(`${x.n} · ${TIER_NAME[c]} season champion ${cnt[x.k]>1?cnt[x.k]+" times in all":"(first title)"}`)}">${esc(x.n)}</span><small>${x.p} pts</small></div>${(()=>{const m=seasonMIChamps().find(y=>y.s===id&&y.pi===pi&&y.c===c); return m?`<div class="sc smic"><span class="sct">📈</span><span class="nm" data-profile="${esc(m.n)}" style="cursor:pointer" data-tip="Most improved ${TIER_NAME[c]} ${PATHS[pi]} player">${esc(m.n)}</span><small>${gainTxt(m.d)} Elo</small></div>`:""})()}`:""}).join("")}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`:`<p class="dim">No finished seasons yet.</p>`;
   {const w=document.querySelector("#season-titles .seasch-wrap"), tr=w&&w.querySelectorAll("tbody tr"); const k=innerWidth<=700?3:10; if(tr&&tr.length>k){w.style.maxHeight=(tr[k].offsetTop)+"px"; w.classList.add("lpscroll")}}}   // 10 seasons (3 on a phone, where they stack), then scroll
+document.addEventListener("click",e=>{const x=e.target.closest(".swb[data-sw]"); if(!x)return; twWeek=+x.dataset.sw; showView("thisweek"); renderThisWeek(); scrollTo({top:0})});
 document.addEventListener("change",e=>{if(e.target.id!=="season-pick")return; SEASON_SEL=e.target.value; renderSeason()});
 $("view-season").addEventListener("mousemove",e=>{const p=e.target.closest("[data-tip]");if(!p){tip.hidden=true;return}tip.textContent=p.dataset.tip;tip.hidden=false;placeTip(e.clientX,e.clientY)});
 $("view-season").addEventListener("mouseleave",()=>tip.hidden=true);
