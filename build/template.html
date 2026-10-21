@@ -588,7 +588,7 @@ a.dl svg,.offpill svg{width:11px;height:11px}
 .elogrid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}@media(max-width:700px){.elogrid{grid-template-columns:1fr}}
 .elocol{border:1px solid var(--line);border-top:3px solid var(--pc);border-radius:10px;padding:10px 12px;background:var(--panel2);min-width:0}.elocol h3{margin:0 0 6px;font:800 .78rem var(--f-display);letter-spacing:.1em;text-transform:uppercase;color:var(--pc)}
 .elocol ol{list-style:none;margin:0;padding:0}.elocol li{display:grid;grid-template-columns:22px minmax(0,1fr) auto 48px;gap:6px;align-items:center;padding:5px 0;border-top:1px solid var(--line);font-size:.88rem}.elocol li:first-child{border-top:0}
-#tw-elo small.slip{color:var(--s-orange)}   /* (a rank that slipped while the rating still went up: orange, not red) */
+#tw-elo small.slip,.nwelo small.slip{color:var(--s-orange)}   /* (a rank that slipped while the rating still went up: orange, not red) */
 #tw-elo .elocol li{grid-template-columns:minmax(0,1fr) auto 48px 46px}
 .elocol .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer}.elocol .er{color:var(--muted);font-family:var(--f-mono);font-size:.78rem}.elocol .ev{text-align:right;font:800 1rem var(--f-display)}
 .elocol li.top .nm{font-weight:800}.elocol li.top .ev{color:#ffd95e}.elocol li.inactive{opacity:.6}
@@ -3360,10 +3360,10 @@ function eloTable(pi,w,keep){eloBuild(); const out=[]; Object.keys(ELO[pi].hist)
 function eloRanks(pi,w,keep){const r={}; eloTable(pi,w,keep).forEach(([n],i)=>r[n]=i+1); return r}
 const eloKeep=n=>isActivePlayer(n)?isActivePlayer:null;
 const ELO_TIP="Elo correctly predicts who will win a head-to-head (the better score of two players on the same challenge) about 75% of the time, for players with 20+ games (checked against every game since Week 440).\n\nElo ratings, like chess: every time two players post on the same challenge it counts as a game. The higher % wins; the same % goes to the longer note streak, then the higher score; the same on all three is a draw. Two 100% scores never count as a game, whatever the streak or score: nobody could have done better, so a 100% can't lose you rating to another 100% (and a later chart update changing streaks or scores can't either).\n\nOn a chess-like scale: a new player starts at their class's average (Beginner 900, Intermediate 1200, Advanced 1500, Masterclass 1900). A game moves a rating by at most 40 points for the first 30 games, then 20, then 10 from 2400 up. Beating a higher-rated player earns more than beating a lower-rated one. On a busy card each game counts for less (divided by the square root of the number of opponents: 4 opponents ÷ 2, 9 opponents ÷ 3), so one big week doesn't swing a rating too far.\n\nGames against a player from another class count at quarter stakes (it goes by each player's own class, whatever card you're both on): you win and lose a quarter as much, so trying another class costs little. Below Masterclass, wins can't lift a rating past the next class's average (Beginner 1200, Intermediate 1500, Advanced 1900): to go higher, rank up.\n\nEach class's average is held steady: every week, everyone in a class is nudged up or down by the same small amount to bring the class back to its average. Without it, ratings drift down as players are promoted in with lower ratings. It never changes anyone's place within their class.\n\nRating levels, as in chess: FIDE Master 2300+, Candidate Master 2200–2300, Expert 2000–2200, Class A 1800–2000, Class B 1600–1800, Class C 1400–1600, Class D 1200–1400, Class E 1000–1200, Novice under 1000.\n\nOne rating per path, from every week since the scoreboards start (Week 440), in order. A rating is provisional (new) until 20 games; the rankings list players with 20 or more.";
-const eloD=d=>d?`<span class="${d>0?"up":"dn"}">${d>0?"▲":"▼"}${Math.abs(d)}</span>`:"";
+const eloD=d=>d>0?`<span class="up">▲${d}</span>`:d<0?"–":"";   // Elo losses are never shown
 // Winners: top 10 per path (follows All / Active only), with the change over the last 10 weeks
 function renderEloBox(){const el=$("elo-box"); if(!el)return; eloBuild(); const w=ELO_DONE;
-  $("elo-sub").innerHTML=`Head-to-head on the same challenge, like chess · after Week ${w} · ▲▼ last 10 weeks · rating colour: level, from Novice to FIDE Master (hover a rating) <span class="elohelp" data-tip="${esc(ELO_TIP)}">ⓘ</span>`;
+  $("elo-sub").innerHTML=`Head-to-head on the same challenge, like chess · after Week ${w} · ▲ last 10 weeks · rating colour: level, from Novice to FIDE Master (hover a rating) <span class="elohelp" data-tip="${esc(ELO_TIP)}">ⓘ</span>`;
   el.innerHTML=[0,1,2].map(pi=>{const rows=eloTable(pi,w,n=>!activeOnly||isActivePlayer(n)).slice(0,10);
     return `<div class="elocol" style="--pc:${PATH_C[pi]}"><h3>${PATHS[pi]}</h3><ol>${rows.map(([n,v,g],i)=>{const o=eloAt(pi,n,w-10), d=o?Math.round(v-o[1]):null;
       return `<li class="${i===0?"top":""}${i<3?" elo-t"+(i+1):""}${!isActivePlayer(n)?" inactive":""}"><span class="er">${i+1}</span><span class="nm" data-player="${esc(n)}">${esc(n)}</span><span class="ed" data-tip="${esc(eloWhy(pi,n,w-9,w))}">${d==null?"":eloD(d)}</span><b class="ev" style="color:${eloBand(v)[2]}" data-tip="${esc(eloBandTip(v))} · ${g} games">${Math.round(v)}</b></li>`}).join("")||`<li class="dim">No ratings yet</li>`}</ol></div>`}).join("")}
@@ -3436,7 +3436,7 @@ function eloChartTip(e){const sv=e.target.closest(".elochart svg[data-ech]"); if
   const rows=[0,1,2].filter(pi=>!c.dataset.h.includes("LRB"[pi])).map(pi=>{const h=ELO[pi].hist[k]; if(!h)return null; const i=h.findIndex(x=>x[0]>w), j=(i<0?h.length:i)-1; if(j<0)return null;
     const cur=h[j], played=cur[0]===w, d=played?Math.round(cur[1]-(j>0?h[j-1][1]:eloStart(pi,k))):0;
     if(c.dataset.mode==="t"){const v=[0,1,2,3].map(dd=>{const q=h.filter(x=>x[0]<=w-dd).pop(); return q?q[1]:null}).filter(v=>v!=null); const tp=eloPoolAt(pi,w); return `${PATHS[pi]} ${Math.round(v.reduce((a,b)=>a+b,0)/v.length)} (4-week avg)${tp!=null?` · typical ${Math.round(tp)}`:""}`}
-    return `${PATHS[pi]} ${Math.round(cur[1])}${played?(d?` ${d>0?"▲":"▼"}${Math.abs(d)}`:" (no change)"):""} · ${eloBand(cur[1])[1]}${eloPoolAt(pi,w)!=null?` · typical ${Math.round(eloPoolAt(pi,w))}`:""}`}).filter(Boolean);
+    return `${PATHS[pi]} ${Math.round(cur[1])}${played&&d>0?` ▲${d}`:""} · ${eloBand(cur[1])[1]}${eloPoolAt(pi,w)!=null?` · typical ${Math.round(eloPoolAt(pi,w))}`:""}`}).filter(Boolean);
   const ln=sv.querySelector(".echx"), xx=L+fx*(W-L-R); ln.setAttribute("x1",xx); ln.setAttribute("x2",xx); ln.setAttribute("opacity",".5");
   const ups=(WR.ups||[]).filter(u=>Math.abs(u[4]-w)<=1&&String(u[0]).toLowerCase()===k.toLowerCase()&&!c.dataset.h.includes("LRB"[u[1]])).map(u=>`Rank ${LVI.indexOf(u[3])>LVI.indexOf(u[2])?"up":"down"} on ${PATHS[u[1]]} (Week ${u[4]}): ${TIER_NAME[u[2]]||u[2]} → ${TIER_NAME[u[3]]||u[3]}`);
   tip.textContent=`Week ${w}${rows.length?"\n"+rows.join("\n"):""}${ups.length?"\n\n"+ups.join("\n"):""}`; tip.hidden=false; placeTip(e.clientX,e.clientY)}
@@ -3446,22 +3446,23 @@ document.addEventListener("click",e=>{if(e.target.closest(".elochart svg[data-ec
 function eloWhy(pi,n,w0,w1){eloBuild(); const L=ELO_LOG&&ELO_LOG[pi][n]; if(!L)return "";
   const f=x=>(x>=0?"+":"−")+Math.abs(x).toFixed(1), res=v=>v===1?"beat":v===0?"lost to":"drew with";
   const out=[], weeks=Object.keys(L).map(Number).filter(w=>w>=w0&&w<=w1).sort((a,b)=>a-b); if(!weeks.length)return "";
+  { const e1=eloAt(pi,n,w1), e0=eloAt(pi,n,w0-1); if(e1&&e1[1]-(e0?e0[1]:eloStart(pi,n))<0)return ""; }   // no breakdown for a net loss
   const head="Each game: points = K × (result − expected). Result: 1 for a win, ½ a draw, 0 a loss. Expected = 1 ÷ (1 + 10^((their rating − yours) ÷ 400)). K = 40 for your first 30 games, then 20 (10 from 2400), a quarter of that against a player from another class, and divided by the square root of how many opponents were on the card (9 opponents: ÷ 3). (ceiling): held at the class ceiling.";
   if(weeks.length===1){const G=L[weeks[0]], by={};
     G.forEach(x=>{const k=x.lv+" · "+x.song; (by[k]=by[k]||[]).push(x)});
     const IN="\u00a0\u00a0\u00a0\u00a0• ";   // no-break spaces: the tooltip would collapse ordinary ones
-    Object.entries(by).forEach(([k,xs])=>{const t=xs.reduce((a,x)=>a+x.d,0); if(out.length)out.push(""); out.push(`▸ ${k}: ${f(t)}`);
+    Object.entries(by).forEach(([k,xs0])=>{const xs=xs0.filter(x=>x.d>0), t=xs.reduce((a,x)=>a+x.d,0); if(!xs.length)return; if(out.length)out.push(""); out.push(`▸ ${k}: ${f(t)}`);
       xs.slice().sort((a,b)=>Math.abs(b.d)-Math.abs(a.d)).slice(0,6).sort((a,b)=>b.d-a.d).forEach(x=>{   // the 6 that mattered most, wins first, highest to lowest
         const e=1/(1+10**((x.ro-x.rm)/400));
         out.push(`${IN}${res(x.res)} ${x.op} (${Math.round(x.ro)}): ${+x.k.toFixed(1)} × (${x.res===.5?"½":x.res} − ${e.toFixed(2)}) = ${f(x.d)}${x.cap?" (ceiling)":""}`)});
-      if(xs.length>6)out.push(`${IN}… and ${xs.length-6} smaller games`)});
+      if(xs.length>6)out.push(`${IN}… and ${xs.length-6} smaller gains`)});
     const gsum=G.reduce((a,x)=>a+x.d,0), a1=eloAt(pi,n,weeks[0]), a0=eloAt(pi,n,weeks[0]-1), adj=a1&&a0?(a1[1]-a0[1])-gsum:0;
-    return `Week ${weeks[0]}: ${f(gsum+adj)} from ${G.length} game${G.length===1?"":"s"}${Math.abs(adj)>=.1?` (games ${f(gsum)}, class adjustment ${f(adj)})`:""}\n\n${out.join("\n")}\n\n${head}`}
-  weeks.forEach(w=>{const G=L[w], t=G.reduce((a,x)=>a+x.d,0), wn=G.filter(x=>x.res===1).length, ls=G.filter(x=>x.res===0).length; out.push(`Week ${w}: ${f(t)} (${wn} won, ${ls} lost${G.length-wn-ls?`, ${G.length-wn-ls} drawn`:""})`)});
-  const all=weeks.flatMap(w=>L[w].map(x=>({...x,w}))), big=all.slice().sort((a,b)=>Math.abs(b.d)-Math.abs(a.d)).slice(0,4);
+    return `Week ${weeks[0]}: ${f(gsum+adj)} from ${G.length} game${G.length===1?"":"s"}\n\n${out.join("\n")}\n\n${head}`}
+  weeks.forEach(w=>{const G=L[w], t=G.reduce((a,x)=>a+x.d,0), wn=G.filter(x=>x.res===1).length, ls=G.filter(x=>x.res===0).length; if(t>0)out.push(`Week ${w}: ${f(t)} (${wn} won, ${ls} lost${G.length-wn-ls?`, ${G.length-wn-ls} drawn`:""})`)});
+  const all=weeks.flatMap(w=>L[w].map(x=>({...x,w}))), big=all.filter(x=>x.d>0).sort((a,b)=>b.d-a.d).slice(0,4);
   const a1=eloAt(pi,n,w1), a0=eloAt(pi,n,w0-1), gs=all.reduce((a,x)=>a+x.d,0), adj=a1&&a0?(a1[1]-a0[1])-gs:0;
-  if(Math.abs(adj)>=.1)out.push(`Class adjustment: ${f(adj)}`);
-  return `${out.join("\n")}\n\nBiggest swings:\n${big.map(x=>`\u00a0\u00a0\u00a0\u00a0• Week ${x.w}: ${res(x.res)} ${x.op} (${Math.round(x.ro)}) on ${x.song}: ${f(x.d)}`).join("\n")}\n\n${head}`}
+  if(adj>=.1)out.push(`Class adjustment: ${f(adj)}`);
+  return `${out.join("\n")}\n\nBiggest gains:\n${big.map(x=>`\u00a0\u00a0\u00a0\u00a0• Week ${x.w}: ${res(x.res)} ${x.op} (${Math.round(x.ro)}) on ${x.song}: ${f(x.d)}`).join("\n")}\n\n${head}`}
 // hover text on a rank: the 10 players above and the 10 below in that list
 function eloAround(pi,k,w,keep){const T=eloTable(pi,w,keep), R=eloRanks(pi,w,keep), i=T.findIndex(x=>x[0]===k); if(i<0)return "";
   return T.slice(Math.max(0,i-10),i+11).map(([n,v])=>`${n===k?"▶ ":"\u00a0\u00a0\u00a0\u00a0"}#${R[n]} ${n} · ${Math.round(v)}`).join("\n")}
@@ -3470,7 +3471,7 @@ function eloProfile(n){eloBuild(); const w=ELO_DONE, k=eloKey(n), kp=eloKeep(k);
   const rows=[0,1,2].map(pi=>{const x=eloAt(pi,k,w); if(!x)return ""; const rk=eloRanks(pi,w,kp)[k], tot=eloTable(pi,w,kp).length, o=eloAt(pi,k,w-10), d=o?Math.round(x[1]-o[1]):0, t=x[2]>=ELO_MIN&&rk&&rk<=3?" elo-t"+rk:"";
     const r=x[2]<ELO_MIN?`<small data-tip="Provisional: ${x[2]} of ${ELO_MIN} games">new</small>`:rk?`<small data-tip="${esc(`#${rk} of ${tot} ${kp?"active players":"players (inactive, so ranked among everyone)"} · ${x[2]} games\n\n${eloAround(pi,k,w,kp)}`)}">#${rk}</small>`:"";
     return `<li class="${t.trim()}" style="--pc:${PATH_C[pi]}"><span class="nwp">${PATHS[pi]}</span><b class="nwv">${Math.round(x[1])}</b><span class="nwd" data-tip="${esc("Change over the last 10 weeks"+(()=>{const t=eloWhy(pi,k,w-9,w); return t?"\n\n"+t:""})())}">${d?eloD(d):"–"}</span><span class="nwr">${eloBandTag(x[1])}${r}</span>${x[2]>=ELO_MIN&&rk?eloRivals(pi,k,w,kp):""}</li>`}).join("");
-  return rows?`<div class="pcwide nwelo pelo"><div class="nwelo-h">Elo after Week ${w} <span class="elohelp" data-tip="${esc(ELO_TIP)}">ⓘ</span> <span class="pelo-sub">▲▼ last 10 weeks</span></div><ul>${rows}</ul></div>`:""}
+  return rows?`<div class="pcwide nwelo pelo"><div class="nwelo-h">Elo after Week ${w} <span class="elohelp" data-tip="${esc(ELO_TIP)}">ⓘ</span> <span class="pelo-sub">▲ last 10 weeks</span></div><ul>${rows}</ul></div>`:""}
 // ---------- hardest rating you score 95% on ----------
 // For each week: the second-best song rating a player scored 95% or more on over the last 6 months, on each path
 // (second-best, so one lucky week doesn't count), from a player's 4th week on that path. Straight from the scores, no estimating; it climbs as players start
@@ -4387,7 +4388,7 @@ function renderNewWeekNote(){
 function nwElo(n,w){eloBuild(); const k=eloKey(n), kp=eloKeep(k);
   const rows=[0,1,2].map(pi=>{const x=eloAt(pi,k,w); if(!x||x[0]!==w)return ""; const b=eloAt(pi,k,w-1), d=Math.round(x[1]-(b?b[1]:eloStart(pi,k)));
     const r0=eloRanks(pi,w-1,kp)[k], r1=eloRanks(pi,w,kp)[k], t=x[2]>=ELO_MIN&&r1&&r1<=3?" elo-t"+r1:"";
-    const mv=x[2]<ELO_MIN?`<small data-tip="Provisional: ${x[2]} of ${ELO_MIN} games">new</small>`:r0&&r1&&r0!==r1?`<small class="${r1<r0?"up":"dn"}" data-tip="${esc(eloAround(pi,k,w,kp))}">#${r0} → #${r1}</small>`:r1?`<small data-tip="${esc(eloAround(pi,k,w,kp))}">#${r1}</small>`:"";
+    const mv=x[2]<ELO_MIN?`<small data-tip="Provisional: ${x[2]} of ${ELO_MIN} games">new</small>`:r0&&r1&&r0!==r1?`<small class="${r1<r0?"up":"slip"}" data-tip="${esc(eloAround(pi,k,w,kp))}">#${r0} → #${r1}</small>`:r1?`<small data-tip="${esc(eloAround(pi,k,w,kp))}">#${r1}</small>`:"";
     return `<li class="${t.trim()}" style="--pc:${PATH_C[pi]}"><span class="nwp">${PATHS[pi]}</span><b class="nwv">${Math.round(x[1])}</b><span class="nwd" data-tip="${esc(eloWhy(pi,k,w,w))}">${d?eloD(d):"–"}</span><span class="nwr">${eloBandTag(x[1])}${mv}</span></li>`}).join("");
   return rows?`<div class="nwelo"><div class="nwelo-h">Elo after Week ${w} <span class="elohelp" data-tip="${esc(ELO_TIP)}">ⓘ</span></div><ul>${rows}</ul></div>`:""}
 function renderDownloads(){
