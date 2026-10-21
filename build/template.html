@@ -50,7 +50,6 @@ header.top{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-end;justify-con
 #sitetitle{position:relative}#sitetitle.deco-fri13{overflow-x:clip}
 #sitetitle .deco{display:inline-block;margin-left:.22em;font-size:.82em;vertical-align:.04em;position:relative}
 #sitetitle .boo{filter:drop-shadow(0 0 6px rgba(220,230,255,.45))}
-#sitetitle .mile{display:inline-block;margin-left:.3em;padding:.12em .45em;border-radius:999px;font-size:.36em;vertical-align:.9em;background:var(--accent,#ff9a2e);color:#10131a;font-weight:800;letter-spacing:.02em}
 #sitetitle .afl{display:inline-block;color:var(--s-yellow);transition:transform .25s}#sitetitle .afl.fix{transform:rotateX(90deg)}
 #sitetitle .tree{filter:drop-shadow(0 0 6px rgba(255,217,94,.45))}
 #sitetitle .snow{position:absolute;inset:-.4em 0 -.2em;pointer-events:none;overflow:hidden}
@@ -2402,7 +2401,7 @@ document.addEventListener("click",e=>{const b=e.target.closest("[data-hlcopy]");
   const balloons=t=>`<span class="balloons" title="${esc(t)}">${["--s-red","--s-yellow","--s-blue"].map(v=>balloon(css(v)||"#ef4a55")).join("")}</span>`;
   const D={
     ann:()=>{const yrs=(/(\d+)\s*Year/i.exec(cur[3]||"")||[])[1]; return [T+balloons((cur[3]||"Anniversary").replace(/\bRS ?2014\b/,"Rocksmith 2014").replace(/\bChamp\b/,"Championship")),`Happy ${yrs?yrs+"th ":""}anniversary, Rocksmith Championship!`]},
-    mile:()=>[T+balloons(`Week ${cur[0]}`)+`<span class="mile">${cur[0]} weeks!</span>`,`Week ${cur[0]}: ${cur[0]} weeks of the championship!`],
+    mile:()=>[T+balloons(`Week ${cur[0]} of the championship`),`Week ${cur[0]} of the championship!`],
     fools:()=>[`Rocksmith Ch<span class="afl">u</span>mpionship`,"April Fools!"],
     fri13:()=>[T+`<span class="deco cat" aria-hidden="true">🐈‍⬛</span>`,"Friday the 13th"],
     newyear:()=>[T+`<span class="deco fw" aria-hidden="true">🎆<i>✦</i><i>✦</i><i>✦</i></span>`,"Happy New Year!"],
