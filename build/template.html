@@ -2913,16 +2913,16 @@ const ARR_CODES=["L","R","B","BL","BR","BB","AL","AR","AB"];
 // ---------- Elo ratings: head-to-head on the same challenge, like chess (one rating per path) ----------
 // every pair of players on a challenge is a game: the higher % wins, then the longer note streak, then the higher score;
 // equal on all three is a draw. FIDE-style: a new player starts at their class's base (ELO_BASE), a game moves a rating by
-// at most 40 points for the first 30 games, then 20, then 10 from 2100 up (ELO_K). Entries playing up don't count (so trying
+// at most 40 points for the first 30 games, then 20, then 10 from 2400 up (ELO_K). Entries playing up don't count (so trying
 // a harder class never costs points); playing down does. Below Masterclass, own-class wins can't lift a rating past the next
 // class's base (ELO_CAP), so nobody out-rates a higher class just by beating their own; a rank change doesn't move it. Weeks are
 // played in order from the first scoreboard; a multi-week God challenge counts at the end of its run (the week in
 // progress counts provisionally). Ratings with fewer than 20 games are provisional ("new").
 var ELO=null, ELO_MIN=20, ELO_LIVE=null, ELO_DONE=null;
-const ELO_BASE={B:1400,I:1600,A:1850,M:2150}, ELO_CAP={B:1600,I:1850,A:2150};
-function ELO_K(r,g){return g<30?40:r>=2100?10:20}
+const ELO_BASE={B:800,I:1300,A:1800,M:2300}, ELO_CAP={B:1300,I:1800,A:2300};   // a chess-like scale: beginners in the 700s-800s, the very best in the 2200s-2300s
+function ELO_K(r,g){return g<30?40:r>=2400?10:20}
 // rating levels, named like chess (US Chess classes up to FIDE titles); shown beside ratings and as bands on the Elo chart
-const ELO_BANDS=[[2100,"Grandmaster","#f5c84a"],[2000,"International Master","#ff8fb0"],[1800,"Master","#b277ff"],[1600,"Expert","#6aa8ff"],[1400,"Class A","#5ec4b6"],[1200,"Class B","#9fb6c8"],[-1e9,"Class C","#7e8aa3"]];
+const ELO_BANDS=[[2300,"FIDE Master","#f5c84a"],[2200,"Candidate Master","#ff8fb0"],[2000,"Expert","#b277ff"],[1800,"Class A","#6aa8ff"],[1600,"Class B","#5ec4b6"],[1400,"Class C","#79d2a0"],[1200,"Class D","#9fb6c8"],[1000,"Class E","#8a96ab"],[-1e9,"Novice","#7e8aa3"]];   // the chess ladder (US Chess classes, then FIDE titles)
 function eloBand(v){return ELO_BANDS.find(b=>v>=b[0])}
 function eloBandTip(v){const i=ELO_BANDS.indexOf(eloBand(v)), b=ELO_BANDS[i], up=i>0?ELO_BANDS[i-1][0]:null; return `${b[1]}: ${b[0]<0?"under "+up:up?b[0]+"–"+up:b[0]+" and up"}`}
 function eloBandTag(v){const b=eloBand(v); return `<span class="eloband" style="--bc:${b[2]}" data-tip="${esc(eloBandTip(v))}">${b[1]}</span>`}
@@ -2957,11 +2957,11 @@ function eloTable(pi,w,keep){eloBuild(); const out=[]; Object.keys(ELO[pi].hist)
 // ranks among active players (as on the Winners page by default); an inactive player is ranked among everyone
 function eloRanks(pi,w,keep){const r={}; eloTable(pi,w,keep).forEach(([n],i)=>r[n]=i+1); return r}
 const eloKeep=n=>isActivePlayer(n)?isActivePlayer:null;
-const ELO_TIP="Elo ratings, like chess: every time two players post on the same challenge it counts as a game. The higher % wins; the same % goes to the longer note streak, then the higher score; the same on all three is a draw.\n\nFIDE-style: a new player starts at their class's level (Beginner 1400, Intermediate 1600, Advanced 1850, Masterclass 2150). A game moves a rating by at most 40 points for the first 30 games, then 20, then 10 from 2100 up. Beating a higher-rated player earns more than beating a lower-rated one.\n\nPlaying up a class doesn't count, so trying a harder class never costs you points. Playing down does count. Below Masterclass, wins can't lift a rating past the next class's starting level (Beginner 1600, Intermediate 1850, Advanced 2150): to go higher, rank up.\n\nRating levels: Grandmaster 2100+, International Master 2000–2100, Master 1800–2000, Expert 1600–1800, Class A 1400–1600, Class B 1200–1400, Class C under 1200.\n\nOne rating per path, from every week since the scoreboards start (Week 440), in order. A rating is provisional (new) until 20 games; the rankings list players with 20 or more.";
+const ELO_TIP="Elo ratings, like chess: every time two players post on the same challenge it counts as a game. The higher % wins; the same % goes to the longer note streak, then the higher score; the same on all three is a draw.\n\nOn a chess-like scale: a new player starts at their class's level (Beginner 800, Intermediate 1300, Advanced 1800, Masterclass 2300). A game moves a rating by at most 40 points for the first 30 games, then 20, then 10 from 2400 up. Beating a higher-rated player earns more than beating a lower-rated one.\n\nPlaying up a class doesn't count, so trying a harder class never costs you points. Playing down does count. Below Masterclass, wins can't lift a rating past the next class's starting level (Beginner 1300, Intermediate 1800, Advanced 2300): to go higher, rank up.\n\nRating levels, as in chess: FIDE Master 2300+, Candidate Master 2200–2300, Expert 2000–2200, Class A 1800–2000, Class B 1600–1800, Class C 1400–1600, Class D 1200–1400, Class E 1000–1200, Novice under 1000.\n\nOne rating per path, from every week since the scoreboards start (Week 440), in order. A rating is provisional (new) until 20 games; the rankings list players with 20 or more.";
 const eloD=d=>d?`<span class="${d>0?"up":"dn"}">${d>0?"▲":"▼"}${Math.abs(d)}</span>`:"";
 // Winners: top 10 per path (follows All / Active only), with the change over the last 10 weeks
 function renderEloBox(){const el=$("elo-box"); if(!el)return; eloBuild(); const w=ELO_DONE;
-  $("elo-sub").innerHTML=`Head-to-head on the same challenge, like chess · after Week ${w} · ▲▼ last 10 weeks · rating colour: level, from Class C to Grandmaster (hover a rating) <span class="elohelp" data-tip="${esc(ELO_TIP)}">ⓘ</span>`;
+  $("elo-sub").innerHTML=`Head-to-head on the same challenge, like chess · after Week ${w} · ▲▼ last 10 weeks · rating colour: level, from Novice to FIDE Master (hover a rating) <span class="elohelp" data-tip="${esc(ELO_TIP)}">ⓘ</span>`;
   el.innerHTML=[0,1,2].map(pi=>{const rows=eloTable(pi,w,n=>!activeOnly||isActivePlayer(n)).slice(0,10);
     return `<div class="elocol" style="--pc:${PATH_C[pi]}"><h3>${PATHS[pi]}</h3><ol>${rows.map(([n,v,g],i)=>{const o=eloAt(pi,n,w-10), d=o?Math.round(v-o[1]):null;
       return `<li class="${i===0?"top":""}${i<3?" elo-t"+(i+1):""}${!isActivePlayer(n)?" inactive":""}"><span class="er">${i+1}</span><span class="nm" data-player="${esc(n)}">${esc(n)}</span><span class="ed">${d==null?"":eloD(d)}</span><b class="ev" style="color:${eloBand(v)[2]}" data-tip="${esc(eloBandTip(v))} · ${g} games">${Math.round(v)}</b></li>`}).join("")||`<li class="dim">No ratings yet</li>`}</ol></div>`}).join("")}
