@@ -2105,13 +2105,13 @@ function fwN95(D,pi,w){return D.ent.filter(x=>x.c[0]===pi&&x.pc>=95&&x.w>w-26&&x
 function fwTryHtml(n,D){const t=fwTry(n,D); if(!t)return "";
   return `<span style="--pc:${PATH_C[t.pi]}">Try <b>${PATHS[t.pi]}</b> this week: <span class="fwgo" data-sbw="${t.w}" data-sbp="${t.pi}" data-sbs="${t.c[1]}" title="Open this challenge on the Scoreboard">${TIER_NAME[t.L]} · ${esc(t.c[3])}</span></span>`}
 const FW_GAMES="Elo counts every pair of players on the same challenge as a game: the higher % wins. So one challenge with 5 other players is 5 games. 20 games on a path puts you in the Elo ranking.";
-const FW_TIP="Shown for a player's first 8 weeks.\n\nNewcomers who come back for a second week (One more time), play three weeks in a row (Hat trick) and try a second path are the ones who keep playing.\n\nUnlocks: the Elo ranking lists a player once they have 20 games on a path (a game is one other player on the same challenge, so a challenge with 5 others is 5 games); the hardest-rating graph shows from their 4th week on a path, once they have two scores of 95% or better within 6 months.";
+const FW_TIP="Shown for a player's first 8 weeks.\n\nNewcomers who play a second week (One more time), play three weeks in a row (Hat trick) and try a second path are the ones who keep playing.\n\nUnlocks: the Elo ranking lists a player once they have 20 games on a path (a game is one other player on the same challenge, so a challenge with 5 others is 5 games); the hardest-rating graph shows from their 4th week on a path, once they have two scores of 95% or better within 6 months.";
 function fwPanel(n){const D=fwData(n), W=D.wk; if(!W.length||fwPlayed(n,D)>FW_MAX)return "";
   const tw=TW_MAX, last=W[W.length-1], ms=[];
   let maxRun=1, run=1; for(let i=1;i<W.length;i++){run=W[i]===W[i-1]+1?run+1:1; if(run>maxRun)maxRun=run}
   let cur=0; if(last>=tw-1){cur=1; for(let i=W.length-1;i>0&&W[i-1]===W[i]-1;i--)cur++}
   const next=last===tw?`Week ${tw+1}`:`Week ${tw}`, paths=[0,1,2].filter(pi=>D.pw[pi].size);
-  ms.push(W.length>=2?[1,"One more time",`back in Week ${W[1]}`]:[0,"One more time",`come back: play ${next}`]);
+  ms.push(W.length>=2?[1,"One more time",`Week ${W[1]}`]:[0,"One more time",`play ${next}`]);
   ms.push(maxRun>=3?[1,"Hat trick",`${maxRun} weeks in a row`]:[0,"Hat trick: 3 weeks in a row",cur?`${cur} of 3 · next ${next}`:`play ${next}`]);
   ms.push(paths.length>=2?[1,"A second path",paths.map(pi=>PATHS[pi]).join(" · ")]:[0,"A second path","see below"]);
   const n95=D.ent.filter(x=>x.pc>=95).length;
@@ -2130,14 +2130,14 @@ function fwPanel(n){const D=fwData(n), W=D.wk; if(!W.length||fwPlayed(n,D)>FW_MA
 function fwHostSection(){const tw=TW_MAX, rows=[];
   PLAYERS.forEach(p=>{const n=p[0], D=fwData(n), W=D.wk; if(!W.length||fwPlayed(n,D)>FW_MAX||W[W.length-1]<tw-8)return;
     const paths=[0,1,2].filter(pi=>D.pw[pi].size), last=W[W.length-1], todo=[];
-    if(W.length<2)todo.push("One more time (come back for a second week)");
-    else{let run=1,mx=1; for(let i=1;i<W.length;i++){run=W[i]===W[i-1]+1?run+1:1; mx=Math.max(mx,run)} if(mx<3)todo.push("Hat trick (three weeks in a row)")}
+    if(W.length<2)todo.push("One more time");
+    else{let run=1,mx=1; for(let i=1;i<W.length;i++){run=W[i]===W[i-1]+1?run+1:1; mx=Math.max(mx,run)} if(mx<3)todo.push("Hat trick")}
     if(paths.length<2){const t=fwTry(n,D); todo.push(t?`try ${PATHS[t.pi]} (${TIER_NAME[t.L]} · ${esc(t.c[3])})`:"try a second path")}
     if(!D.ent.some(x=>x.pc>=95))todo.push("a first 95% score");
     rows.push({n,W,last,paths,todo})});
   rows.sort((a,b)=>b.last-a.last||a.W[0]-b.W[0]);
   return `<div class="acctsec fwhost"><h3>Newcomers <small>${rows.length} in their first ${FW_MAX} weeks, played in the last 8</small></h3>
-    <p class="dim">Each of these players sees a First weeks panel on their profile with the next steps below (one-path players also get a "try a second path" nudge in Your week). A welcome, a word of encouragement or an answer to a question from a host goes a long way: new players who come back for a second week and try a second path are the ones who stay.</p>
+    <p class="dim">Each of these players sees a First weeks panel on their profile with the next steps below (one-path players also get a "try a second path" nudge in Your week). A welcome, a word of encouragement or an answer to a question from a host goes a long way: new players who play a second week and try a second path are the ones who stay.</p>
     ${rows.length?`<ul class="alist">${rows.map(r=>`<li><span class="fwhn" data-fwp="${esc(r.n)}" title="Open ${esc(r.n)}'s profile">${esc(r.n)}</span><span class="dim">week ${r.W.length} · since Week ${r.W[0]} · last played Week ${r.last} · ${r.paths.map(pi=>`<b style="color:${PATH_C[pi]}">${PATHS[pi]}</b>`).join(" ")}</span><span class="fwhs">${r.todo.length?"Shown next: "+r.todo.join(" · "):"All first steps done"}</span></li>`).join("")}</ul>`:`<p class="dim">No newcomers right now.</p>`}</div>`}
 document.addEventListener("click",e=>{const b=e.target.closest("[data-fwp]"); if(!b)return; const n=b.dataset.fwp; if(!byName[n])return; const d=$("acct"); if(d&&d.open)d.close(); showView("players"); showPlayer(n); $("pcard").closest("section").scrollIntoView({block:"start"})});
 // Your week: the same "try a second path" nudge for a newcomer on one path
