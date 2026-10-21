@@ -692,6 +692,16 @@ a.dl svg,.offpill svg{width:11px;height:11px}
 .fwtab td{cursor:default}.fwtab .fwof{font:600 .72rem var(--f-body);color:var(--muted)}.fwtab td .fwok{color:var(--s-green)}.fwtab td b.hry-eq{color:var(--muted)}
 .fwhost .alist li{display:flex;flex-wrap:wrap;gap:2px 10px;align-items:baseline;padding:6px 10px;border-left:3px solid var(--s-green);background:var(--panel2);border-radius:6px;font-size:.86rem}.fwhn{font-weight:800;cursor:pointer;text-decoration:underline dotted}.fwhs{flex-basis:100%;font-size:.82rem}
 .fwbass{display:block;margin-top:4px;font-size:.8rem;color:var(--muted)}
+/* motivation: next rung, nearest rival, welcome back, seasons, lapsed players, host highlights */
+.nwelo li .nwriv{grid-column:1/-1;font-size:.76rem;color:var(--muted);margin-top:-3px}.nwriv b{color:var(--fg);font-weight:700}.nwriv .nm{cursor:pointer;text-decoration:underline dotted}
+.hrnext{margin-top:12px}.hrnext li{grid-template-columns:62px minmax(0,1fr) auto}.hrnext .hnsong{font-size:.84rem;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.hrnext .hnsong .fwgo{font-weight:600}.hrnext .nwr{font-size:.8rem;white-space:nowrap}.hrnext .nwr b{color:var(--s-green)}
+.wbl li{grid-template-columns:minmax(0,1fr) auto}.wbl .fwt{font-weight:700}.wbl .nwr{font-size:.8rem;color:var(--muted)}
+.wbtab td small{display:block;font-size:.7rem;color:var(--muted);font-weight:600}
+.seas h4{margin:8px 0 2px;font:800 .66rem var(--f-display);letter-spacing:.1em;text-transform:uppercase;color:var(--tc,var(--muted))}.seas h4:first-of-type{margin-top:0}
+.seas .elocol li{grid-template-columns:22px minmax(0,1fr) auto 46px}.seas .sgain{font:800 .9rem var(--f-display);color:var(--s-green);text-align:right}.seas .sgain.neg{color:var(--s-red)}.seas .sg{font-size:.72rem;color:var(--muted);text-align:right}
+.seas .slast{margin-top:8px;padding-top:6px;border-top:1px dashed var(--line);font-size:.76rem;color:var(--muted)}.seas .slast b{color:var(--fg)}
+.lapsed .alist li{border-left-color:var(--muted)}.lapsed .lptog{margin-left:6px}
+.hlbox .hlsel{margin-left:8px}.hlbox pre{white-space:pre-wrap;background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:10px 12px;font:500 .84rem/1.45 var(--f-body);max-height:360px;overflow:auto;margin:8px 0}
 .fwgo{color:var(--fg);font-weight:700;text-decoration:underline dotted;cursor:pointer}
 .fwtry{margin:10px 0 2px;font-size:.86rem}.fwtry b{color:var(--pc)}
 .fwnudge{border-left:3px solid var(--pc);background:var(--panel2);border-radius:6px;padding:7px 10px;margin:12px 0;font-size:.88rem}.fwnudge b{color:var(--pc)}
@@ -1495,6 +1505,10 @@ footer{color:var(--dim);font-size:.78rem}
     <div class="panel-head"><h2>♟ Elo ratings</h2><span class="sub" id="elo-sub"></span></div>
     <div class="elogrid" id="elo-box"></div>
   </section>
+  <section class="panel elosec seas">
+    <div class="panel-head"><h2>🏁 Season</h2><span class="sub" id="season-sub"></span></div>
+    <div class="elogrid" id="season-box"></div>
+  </section>
 
 
   <div class="grid2 even">
@@ -2146,6 +2160,97 @@ document.addEventListener("click",e=>{const b=e.target.closest("[data-fwp]"); if
 // Your week: the same "try a second path" nudge for a newcomer on one path
 function fwNudge(n){const D=fwData(n); if(!D.wk.length||fwPlayed(n,D)>FW_MAX)return ""; const t=fwTry(n,D); if(!t)return "";
   return `<div class="fwnudge" style="--pc:${PATH_C[t.pi]}">${fwTryHtml(n,D)} ${t.pi===2?"":`<span class="dim">· new players who play more than one path are much more likely to keep playing</span>`}</div>`}
+// ---------- motivation: next rung, nearest rival, welcome back, seasons, lapsed players, host highlights ----------
+// one pass over the scoreboards: each player's weeks played and scores (keyed by lower-case name)
+var SBIX=null;
+function sbIx(){if(SBIX)return SBIX; const wk={}, ent={}, disp={};
+  PLAYERS.forEach(p=>disp[p[0].toLowerCase()]=p[0]);
+  Object.keys(SB.weeks).map(Number).sort((a,b)=>a-b).forEach(w=>(SB.weeks[w]||[]).forEach(c=>{if(c[7])return; c[6].forEach(e=>{if(e[1]==null||isNaN(+e[1]))return; const n=pvName(e), k=n.toLowerCase(); if(!disp[k])disp[k]=n; (wk[k]=wk[k]||new Set()).add(w); (ent[k]=ent[k]||[]).push({w,c,pc:+e[1]})})}));
+  // weeks played come from the player list (the scoreboards don't cover every week), plus this week's scoreboard while it runs
+  Object.keys(wk).forEach(k=>{const p=byName[disp[k]]; if(p){const cw=wk[k].has(TW_MAX); wk[k]=new Set(); const b=presOf(p); for(let i=0;i<b.length;i++)if(b[i]==="1")wk[k].add(i+PRES_START); if(cw)wk[k].add(TW_MAX)}});
+  PLAYERS.forEach(p=>{const k=p[0].toLowerCase(); if(wk[k])return; const b=presOf(p), st=new Set(); for(let i=0;i<b.length;i++)if(b[i]==="1")st.add(i+PRES_START); if(st.size)wk[k]=st});
+  Object.keys(wk).forEach(k=>wk[k]=[...wk[k]].sort((a,b)=>a-b)); return SBIX={wk,ent,disp}}
+const ratedOf=c=>c[4]!=null&&c[4]!==""&&!isNaN(+c[4])?+c[4]:null;
+
+// Next rung: this week's challenges that would raise a player's hardest rating if they score 95% on them
+function hrNext(n,pi){const k=String(n).toLowerCase(), tw=TW_MAX, E=(sbIx().ent[k]||[]);
+  const s=hrSeries(n,pi); if(!s.length||s[s.length-1][1]==null)return null; if(!E.some(x=>x.c[0]===pi&&x.w>tw-8))return null;   // only for players active on this path
+  const rs=E.filter(x=>x.c[0]===pi&&x.w>tw-26&&x.pc>=95&&ratedOf(x.c)!=null).map(x=>ratedOf(x.c)).sort((a,b)=>b-a);
+  const r1=rs[0], r2=rs[1], base=r2!=null?r2:s[s.length-1][1], done=new Set(E.filter(x=>x.w===tw&&x.pc>=95).map(x=>x.c[0]+"|"+x.c[1]));
+  const opts=(SB.weeks[tw]||[]).filter(c=>c[0]===pi&&!c[7]&&c[3]&&!/^n\/a$/i.test(c[3])&&ratedOf(c)!=null&&!done.has(c[0]+"|"+c[1])).map(c=>{const x=ratedOf(c);
+    const nv=r1==null?x:x>r1?r1:r2==null?Math.min(x,r1):x>r2?x:r2; return {c,x,nv,g:nv-base}}).filter(o=>o.g>.04).sort((a,b)=>a.x-b.x);
+  return opts.length?{base,opts}:null}
+function hrNextHtml(n){const rows=[0,1,2].map(pi=>{const N=hrNext(n,pi); if(!N)return "";
+    return N.opts.slice(0,2).map(o=>`<li style="--pc:${PATH_C[pi]}"><span class="nwp">${PATHS[pi]}</span><span class="hnsong"><span class="fwgo" data-sbw="${TW_MAX}" data-sbp="${pi}" data-sbs="${o.c[1]}" title="Open this challenge on the Scoreboard">${esc(o.c[2])} · ${esc(o.c[3])}</span></span><span class="nwr" data-tip="A 95% on this ${o.x} would take your ${PATHS[pi]} hardest rating from ${N.base.toFixed(1)} to ${o.nv.toFixed(1)}">${o.x} · ${N.base.toFixed(1)} → <b>${o.nv.toFixed(1)}</b></span></li>`).join("")}).join("");
+  return rows?`<div class="nwelo hrnext"><div class="nwelo-h">Next rung this week <span class="elohelp" data-tip="This week's challenges that would raise your hardest rating if you score 95% or better on them (the easiest first): your hardest rating is your second-best song rating with a 95% score in the last 6 months.">ⓘ</span> <span class="pelo-sub">score 95% on</span></div><ul>${rows}</ul></div>`:""}
+
+// Nearest rival: the players just above and below in the Elo ranking on a path
+function eloRivals(pi,k,w,kp){const T=eloTable(pi,w,kp), i=T.findIndex(x=>x[0]===k); if(i<0)return "";
+  const up=T[i-1], dn=T[i+1], me=T[i][1], nm=n=>`<span class="nm" data-player="${esc(n)}">${esc(n)}</span>`;
+  const a=up?`<b>${Math.max(1,Math.round(up[1]-me))}</b> behind ${nm(up[0])}`:"top of the list", b=dn?`<b>${Math.max(1,Math.round(me-dn[1]))}</b> ahead of ${nm(dn[0])}`:"";
+  return `<span class="nwriv">${up?"▲ ":"★ "}${a}${b?` · ▼ ${b}`:""}</span>`}
+
+// Welcome back: a player back after 8+ weeks away, for their first 4 weeks back
+function wbInfo(n){const W=sbIx().wk[String(n).toLowerCase()]||[], tw=TW_MAX; if(W.length<2||W[W.length-1]<tw-8)return null;
+  for(let i=W.length-1;i>0;i--)if(W[i]-W[i-1]>=9){const back=W.length-i; if(back>4)return null; return {left:W[i-1],ret:W[i],away:W[i]-W[i-1]-1,back,before:i}} return null}
+function wbPanel(n){const B=wbInfo(n); if(!B)return ""; const k=eloKey(n);
+  const left=`<div class="pcwide nwelo pelo fwl wbl"><div class="nwelo-h">Welcome back <span class="pelo-sub">week ${B.back} back</span></div><ul>
+    <li class="done"><span class="fwt">Away</span><span class="nwr">${B.away} weeks</span></li><li class="done"><span class="fwt">Last played before</span><span class="nwr">Week ${B.left}${WEEKS[B.left-1]?" · "+fmt(WEEKS[B.left-1][1]):""}</span></li><li class="done"><span class="fwt">Back since</span><span class="nwr">Week ${B.ret}</span></li></ul></div>`;
+  const paths=[0,1,2].filter(pi=>(sbIx().ent[String(n).toLowerCase()]||[]).some(x=>x.c[0]===pi));
+  const cell=(a,b,f)=>`<td><b>${a==null?"–":f(a)}</b><small>${b==null?"":"now "+f(b)}</small></td>`;
+  const rows=paths.map(pi=>{let e0=null,e1=null; try{const x=eloAt(pi,k,B.left), y=eloAt(pi,k,ELO_DONE); e0=x?x[1]:null; e1=y&&y[0]>=B.ret?y[1]:null}catch(e){}
+    const s=hrSeries(n,pi), h0=hrAt(s,B.left), h1=s.length&&s[s.length-1][0]>=B.ret?s[s.length-1][1]:null;
+    return `<tr style="--pc:${PATH_C[pi]}"><td>${PATHS[pi]}</td>${cell(e0,e1,v=>Math.round(v))}${cell(h0,h1,v=>v.toFixed(1))}</tr>`}).join("");
+  const right=`<div class="pcwide"><div class="elochart"><div class="echhead"><h4>When you left</h4></div><div class="hryears fwtab wbtab"><table><tr><th></th><th>Elo</th><th>Hardest rating</th></tr>${rows}</table></div><p class="echnote">Your ratings in Week ${B.left}, and now (once you've played that path again)</p></div></div>`;
+  return left+right}
+
+// Seasons: calendar quarters; the season's biggest Elo gains in each class (10+ games that season)
+const SEASON_MIN=10;
+function seasonOf(w){const d=WEEKS[w-1]&&WEEKS[w-1][1]; return d?`${d.slice(0,4)} Q${Math.floor((+d.slice(5,7)-1)/3)+1}`:null}
+function seasonRange(id){let a=null,b=null; for(let w=1;w<=WEEKS.length;w++)if(seasonOf(w)===id){if(a==null)a=w; b=w} return [a,b]}
+function qSeasonTable(pi,id){eloBuild(); const [a,b]=seasonRange(id), end=Math.min(b,ELO_DONE), out={};
+  Object.keys(ELO[pi].hist).forEach(n=>{const h=ELO[pi].hist[n]; let x1=null,x0=null; for(const e of h){if(e[0]<a)x0=e; else if(e[0]<=end)x1=e; else break}
+    if(!x1)return; const g=x1[2]-(x0?x0[2]:0); if(g<SEASON_MIN||!x1[3])return; const r1=eloAt(pi,n,end), r0=x0?eloAt(pi,n,a-1):null;
+    const d=r1[1]-(r0?r0[1]:eloStart(pi,n)); (out[x1[3]]=out[x1[3]]||[]).push({n,d,g,v:r1[1]})});
+  Object.values(out).forEach(v=>v.sort((x,y)=>y.d-x.d)); return out}
+function renderSeason(){const el=$("season-box"); if(!el)return; eloBuild(); const id=seasonOf(ELO_DONE); if(!id){el.closest("section").hidden=true;return}
+  const [a,b]=seasonRange(id), [pa]=seasonRange(id), prevId=seasonOf(pa-1);
+  $("season-sub").innerHTML=`${id} · Weeks ${a}–${b} · the biggest Elo gains in each class this season (${SEASON_MIN}+ games) · a fresh race every 3 months <span class="elohelp" data-tip="${esc("Seasons follow the calendar quarters. A player's season gain is their Elo now minus their Elo when the season started (or their starting rating, if they're new). Each class is its own race (a player's class on that path now), so anyone can win their class. The leader when the season ends is that class's season champion.")}">ⓘ</span>`;
+  el.innerHTML=[0,1,2].map(pi=>{const T=qSeasonTable(pi,id), P=prevId?qSeasonTable(pi,prevId):{};
+    const cls=["M","A","I","B"].filter(c=>T[c]&&T[c].length).map(c=>`<h4 style="--tc:${TIER_C[c]}">${TIER_NAME[c]}</h4><ol>${T[c].slice(0,3).map((x,i)=>`<li class="${i===0?"top elo-t1":i===1?"elo-t2":"elo-t3"}"><span class="er">${i+1}</span><span class="nm" data-profile="${esc(x.n)}" style="cursor:pointer">${esc(x.n)}</span><span class="sgain${x.d<0?" neg":""}">${x.d>=0?"+":"−"}${Math.abs(Math.round(x.d))}</span><span class="sg" data-tip="Elo now ${Math.round(x.v)}">${x.g} games</span></li>`).join("")}</ol>`).join("");
+    const champs=["M","A","I","B"].filter(c=>P[c]&&P[c].length).map(c=>`${TIER_NAME[c]} <b>${esc(P[c][0].n)}</b>`).join(" · ");
+    return `<div class="elocol" style="--pc:${PATH_C[pi]}"><h3>${PATHS[pi]}</h3>${cls||`<p class="dim">No one with ${SEASON_MIN}+ games yet this season.</p>`}${champs?`<div class="slast">${prevId} champions: ${champs}</div>`:""}</div>`}).join("")}
+
+// Host tab: players who stopped in the last year (or 2), with where they were when they left
+function lapsedSection(){const tw=TW_MAX, far=ACCT.lapsedAll?104:52, I=sbIx(), rows=[];
+  Object.entries(I.wk).forEach(([k,W])=>{const last=W[W.length-1], gap=tw-last; if(gap<9||gap>far)return; const n=I.disp[k];
+    const paths=[0,1,2].filter(pi=>(I.ent[k]||[]).some(x=>x.c[0]===pi));
+    const info=paths.map(pi=>{let e=null; try{const x=eloAt(pi,eloKey(n),last); e=x&&x[2]>=ELO_MIN?Math.round(x[1]):null}catch(err){} const h=hrAt(hrSeries(n,pi),last);
+      return `<b style="color:${PATH_C[pi]}">${PATHS[pi]}</b>${e!=null?` Elo ${e}`:""}${h!=null?` · hardest ${h.toFixed(1)}`:""}`}).join(" &nbsp; ");
+    rows.push({n,last,gap,cnt:W.length,info})});
+  rows.sort((a,b)=>a.gap-b.gap);
+  return `<div class="acctsec fwhost lapsed"><h3>Lapsed players <small>${rows.length} who stopped in the last ${far===52?"year":"2 years"}</small><button type="button" class="clear lptog" data-lapsed="1">${ACCT.lapsedAll?"Show the last year only":"Show 1–2 years too"}</button></h3>
+    <p class="dim">Players who haven't posted a score for 8+ weeks, most recent first, with where they were when they left. A message from a host is often all it takes to bring someone back; when they return, their profile shows a Welcome back panel.</p>
+    ${rows.length?`<ul class="alist">${rows.map(r=>`<li><span class="fwhn" data-fwp="${esc(r.n)}" title="Open ${esc(r.n)}'s profile">${esc(r.n)}</span><span class="dim">last played Week ${r.last}${WEEKS[r.last-1]?" · "+fmt(WEEKS[r.last-1][1]):""} · away ${r.gap-1} weeks · ${r.cnt} week${r.cnt===1?"":"s"} played</span><span class="fwhs">${r.info}</span></li>`).join("")}</ul>`:`<p class="dim">No lapsed players.</p>`}</div>`}
+document.addEventListener("click",e=>{if(!e.target.closest("[data-lapsed]"))return; ACCT.lapsedAll=!ACCT.lapsedAll; const el=document.querySelector(".acctdlg .lapsed"); if(el)el.outerHTML=lapsedSection()});
+
+// Host tab: a week's highlights as plain text to paste into the weekly post
+function hlText(w){eloBuild(); const I=sbIx(), L=[], played=Object.keys(I.wk).filter(k=>I.wk[k].includes(w)), nm=k=>I.disp[k];
+  const newc=played.filter(k=>I.wk[k][0]===w).map(nm); if(newc.length)L.push(`Welcome to our new players: ${newc.join(", ")}`);
+  const back=played.filter(k=>{const W=I.wk[k], i=W.indexOf(w); return i>0&&w-W[i-1]>=9}).map(k=>{const W=I.wk[k], i=W.indexOf(w); return `${nm(k)} (after ${w-W[i-1]-1} weeks away)`}); if(back.length)L.push(`Welcome back: ${back.join(", ")}`);
+  const ups=(WR.ups||[]).filter(u=>u[4]===w&&LVI.indexOf(u[3])>LVI.indexOf(u[2])).map(u=>`${u[0]} (${PATHS[u[1]]} ${TIER_NAME[u[2]]||u[2]} → ${TIER_NAME[u[3]]||u[3]})`); if(ups.length)L.push(`Rank-ups: ${ups.join(", ")}`);
+  const first95=played.filter(k=>{const E=I.ent[k]||[]; const f=E.find(x=>x.pc>=95); return f&&f.w===w}).map(nm); if(first95.length)L.push(`First 95% score: ${first95.join(", ")}`);
+  const hr=[]; played.forEach(k=>[0,1,2].forEach(pi=>{const s=hrSeries(nm(k),pi), now=hrAt(s,w); if(now==null)return; const prev=s.filter(e=>e[0]<w&&e[1]!=null).map(e=>e[1]); if(prev.length&&now>Math.max(...prev)+.04)hr.push(`${nm(k)} (${PATHS[pi]} ${Math.max(...prev).toFixed(1)} → ${now.toFixed(1)})`)})); if(hr.length)L.push(`New best hardest rating: ${hr.join(", ")}`);
+  const el=[]; [0,1,2].forEach(pi=>{const g=Object.keys(ELO[pi].hist).map(n=>{const x=eloAt(pi,n,w); if(!x||x[0]!==w)return null; const b=eloAt(pi,n,w-1); return {n,d:x[1]-(b?b[1]:eloStart(pi,n))}}).filter(x=>x&&x.d>=1).sort((a,b)=>b.d-a.d).slice(0,3);
+    if(g.length)el.push(`${PATHS[pi]}: ${g.map(x=>`${x.n} +${Math.round(x.d)}`).join(", ")}`)}); if(el.length)L.push(`Biggest Elo gains: ${el.join(" · ")}`);
+  const nw=played.filter(k=>{const W=I.wk[k]; return W.length===2&&W[1]===w}).map(nm); if(nw.length)L.push(`One more time (back for a second week): ${nw.join(", ")}`);
+  const ht=played.filter(k=>{const W=I.wk[k], i=W.indexOf(w); if(i<2||W[i-1]!==w-1||W[i-2]!==w-2)return false; return !(i>=3&&W[i-3]===w-3)&&W.length<=FW_MAX}).map(nm); if(ht.length)L.push(`Hat trick (first three weeks in a row): ${ht.join(", ")}`);
+  return `Week ${w} highlights\n\n${L.map(x=>"• "+x).join("\n")||"• Nothing to highlight yet."}`}
+function hlSection(){const ws=[]; for(let w=ELO_DONE;w>ELO_DONE-6&&w>0;w--)if(SB.weeks[w])ws.push(w); const w=ACCT.hlWeek&&ws.includes(ACCT.hlWeek)?ACCT.hlWeek:ws[0]; if(!w)return "";
+  return `<div class="acctsec hlbox"><h3>Weekly highlights <select class="hlsel" data-hlweek>${ws.map(x=>`<option value="${x}"${x===w?" selected":""}>Week ${x}</option>`).join("")}</select></h3>
+    <p class="dim">New players, welcome backs, rank-ups, first 95% scores, new best hardest ratings, the biggest Elo gains and newcomers' milestones, ready to copy into your weekly post.</p><pre id="hltext">${esc(hlText(w))}</pre><div class="row"><button type="button" class="btn ghost" data-hlcopy>Copy</button></div></div>`}
+document.addEventListener("change",e=>{const s=e.target.closest("[data-hlweek]"); if(!s)return; ACCT.hlWeek=+s.value; const el=document.querySelector(".acctdlg .hlbox"); if(el)el.outerHTML=hlSection()});
+document.addEventListener("click",e=>{const b=e.target.closest("[data-hlcopy]"); if(!b)return; const t=$("hltext").textContent; try{navigator.clipboard.writeText(t).then(()=>{b.textContent="Copied ✓"; setTimeout(()=>b.textContent="Copy",1500)})}catch(err){}});
 function showPlayer(name){
   const p=byName[name];
   if(!p){$("pcard").innerHTML=`<div class="empty">No player named “${esc(name)}”. Pick a name from the list as you type.</div>`;return}
@@ -2212,6 +2317,7 @@ function showPlayer(name){
       <div class="preshint">Tip: click a year on the left of the grid to filter the stats to that year; click it again to show all years.</div>
     </div>
     ${(()=>{try{return fwPanel(n)}catch(e){return ""}})()}
+    ${(()=>{try{return wbPanel(n)}catch(e){return ""}})()}
     <div class="plead" data-n="${esc(n)}">${plLeads(n)}</div>
       ${(()=>{try{return eloProfile(n)+`<div class="pcwide">${eloChart(n)}</div>`}catch(e){return ""}})()}
       ${(()=>{try{const c=hrChart(n); return c?hrProfile(n)+`<div class="pcwide">${c}</div>`:hrNote(n)}catch(e){return ""}})()}
@@ -2809,7 +2915,7 @@ const LVI="BIAM";
 const isUp=u=>LVI.indexOf(u[3])>LVI.indexOf(u[2]);
 const RU_KEY=new Set(WR.ups.filter(isUp).map(([n,p,a,b,w])=>`${w}|${n}|${p}|${b}`));
 try{const r=localStorage.getItem("rsc-wpath");if(r!==null&&["0","1","2"].includes(r))wPath=+r}catch(e){}
-renderWinners(); setTimeout(()=>{try{renderEloBox()}catch(e){}},0);
+renderWinners(); setTimeout(()=>{try{renderEloBox()}catch(e){} try{renderSeason()}catch(e){}},0);
 function setActiveOnly(v){
   activeOnly=v; try{localStorage.setItem("rsc-activeonly2",v?"1":"0")}catch(e){}
   document.querySelectorAll("#pfilter button").forEach(b=>b.setAttribute("aria-pressed",(b.dataset.af==="1")===activeOnly));
@@ -3149,7 +3255,7 @@ function eloAround(pi,k,w,keep){const T=eloTable(pi,w,keep), R=eloRanks(pi,w,kee
 function eloProfile(n){eloBuild(); const w=ELO_DONE, k=eloKey(n), kp=eloKeep(k);
   const rows=[0,1,2].map(pi=>{const x=eloAt(pi,k,w); if(!x)return ""; const rk=eloRanks(pi,w,kp)[k], tot=eloTable(pi,w,kp).length, o=eloAt(pi,k,w-10), d=o?Math.round(x[1]-o[1]):0, t=x[2]>=ELO_MIN&&rk&&rk<=3?" elo-t"+rk:"";
     const r=x[2]<ELO_MIN?`<small data-tip="Provisional: ${x[2]} of ${ELO_MIN} games">new</small>`:rk?`<small data-tip="${esc(`#${rk} of ${tot} ${kp?"active players":"players (inactive, so ranked among everyone)"} · ${x[2]} games\n\n${eloAround(pi,k,w,kp)}`)}">#${rk}</small>`:"";
-    return `<li class="${t.trim()}" style="--pc:${PATH_C[pi]}"><span class="nwp">${PATHS[pi]}</span><b class="nwv">${Math.round(x[1])}</b><span class="nwd" data-tip="${esc("Change over the last 10 weeks"+(()=>{const t=eloWhy(pi,k,w-9,w); return t?"\n\n"+t:""})())}">${d?eloD(d):"–"}</span><span class="nwr">${eloBandTag(x[1])}${r}</span></li>`}).join("");
+    return `<li class="${t.trim()}" style="--pc:${PATH_C[pi]}"><span class="nwp">${PATHS[pi]}</span><b class="nwv">${Math.round(x[1])}</b><span class="nwd" data-tip="${esc("Change over the last 10 weeks"+(()=>{const t=eloWhy(pi,k,w-9,w); return t?"\n\n"+t:""})())}">${d?eloD(d):"–"}</span><span class="nwr">${eloBandTag(x[1])}${r}</span>${x[2]>=ELO_MIN&&rk?eloRivals(pi,k,w,kp):""}</li>`}).join("");
   return rows?`<div class="pcwide nwelo pelo"><div class="nwelo-h">Elo after Week ${w} <span class="elohelp" data-tip="${esc(ELO_TIP)}">ⓘ</span> <span class="pelo-sub">▲▼ last 10 weeks</span></div><ul>${rows}</ul></div>`:""}
 // ---------- hardest rating you score 95% on ----------
 // For each week: the second-best song rating a player scored 95% or more on over the last 6 months, on each path
@@ -3187,7 +3293,7 @@ function hrProfile(n){const H=hrBuild(), w1=H.w1;
     const dd=d==null?`<small data-tip="Less than a year of scores on this path">new</small>`:Math.abs(d)<.05?"–":`<span class="${d>0?"up":"dn"}">${d>0?"▲":"▼"}${Math.abs(d).toFixed(1)}</span>`;
     return `<li style="--pc:${PATH_C[pi]}"><span class="nwp">${PATHS[pi]}</span><b class="nwv">${now.toFixed(1)}</b><span class="nwd" data-tip="Change over the last year">${dd}</span><span class="nwr"><small data-tip="The typical ${PATHS[pi]} player${last[0]<w1?` in Week ${last[0]}, your last week with enough scores`:""}">${last[0]<w1?`Week ${last[0]} · `:""}typical ${typ!=null?typ.toFixed(1):"–"}</small></span></li>`}).join("");
   // just the year-by-year table now (the current-rating rows were dropped: its last column says the same)
-  const yrs=rows?hrYears(n):""; return yrs?`<div class="pcwide nwelo pelo hrrows">${yrs}</div>`:""}
+  const yrs=rows?hrYears(n):"", nx=(()=>{try{return hrNextHtml(n)}catch(e){return ""}})(); return yrs||nx?`<div class="pcwide nwelo pelo hrrows">${yrs}${nx}</div>`:""}
 // year by year: the hardest rating at the end of each year on each path, with the change from the year before
 function hrYears(n){const H=hrBuild(), first=[], by=[0,1,2].map(pi=>{const m={}; hrSeries(n,pi).forEach(e=>{if(e[1]==null)return; if(!first[pi])first[pi]=e; m[yearOfWeek(e[0])]=e[1]}); return m});
   const Y=[...new Set(by.flatMap(m=>Object.keys(m)))].sort(); if(!Y.length)return "";
@@ -4944,10 +5050,10 @@ function acctDraw(msg,err){
   const tabs=`<div class="accttabs" role="tablist">${tb("me","Your profile")}${appr?tb("week",`Your week${ywN?`<span class="nbadge" title="Passed ${ywN} time${ywN===1?"":"s"} · the ✕ on the alert dismisses itt">${ywN}</span>`:""}`):""}${ACCT.claim&&ACCT.claim.status==="approved"?tb("banner","Forum banner"):""}${tb("manage","Manage account")}${canRateFor()?tb("host","Host"):""}${ACCT.admin?tb("admin",`Admin${(()=>{const t=typoScan().nNew; return t?`<span class="nbadge tybadge" title="${t} likely typo${t===1?"":"s"} in this week's scoreboard">${t}</span>`:""})()}${pendN?`<span class="nbadge" title="${pendN} claim${pendN===1?"":"s"} waiting for approval">${pendN}</span>`:""}`):""}</div>`;
   let h=tabs;
   if(ACCT.tab==="admin"){}
-  else if(ACCT.tab==="host")h+=`${hostSection(false).replace('class="acctsec hostsec"','class="acctsec hostsec hosttop"')}${(()=>{try{return fwHostSection()}catch(e){return ""}})()}${adminRateSection()}${ratingLogSection()}`;
+  else if(ACCT.tab==="host")h+=`${hostSection(false).replace('class="acctsec hostsec"','class="acctsec hostsec hosttop"')}${(()=>{try{return hlSection()}catch(e){return ""}})()}${(()=>{try{return fwHostSection()}catch(e){return ""}})()}${(()=>{try{return lapsedSection()}catch(e){return ""}})()}${adminRateSection()}${ratingLogSection()}`;
   else if(ACCT.tab==="banner")h+=bnTab(ACCT.claim.player);
   else if(ACCT.tab==="week"){const n=ACCT.claim.player; ACCT.twPart="week";
-    h+=`${ywAlert(n)}${(()=>{try{return fwNudge(n)}catch(e){return ""}})()}${ywList(n)}<div id="acct-tw">${acctThisWeek(n,"week")}</div>`}   // alert, how the week is going, rivals, Played before, then the scoreboard
+    h+=`${ywAlert(n)}${(()=>{try{return fwNudge(n)}catch(e){return ""}})()}${(()=>{try{const x=hrNextHtml(n); return x?`<div class="acctsec">${x}</div>`:""}catch(e){return ""}})()}${ywList(n)}<div id="acct-tw">${acctThisWeek(n,"week")}</div>`}   // alert, how the week is going, rivals, Played before, then the scoreboard
   else if(ACCT.tab==="manage"){
     h+=`<div class="adm acctsec"><h3>Verification animal</h3>${animalNote()||`<p class="dim">You'll get a verification animal once you claim your player profile.</p>`}</div>
       <div class="acctsec"><h3>Log out</h3><p class="dim">Log out of the site on this device.</p><div class="row"><button type="button" class="btn ghost" data-acct="logout">Log out</button></div></div>
