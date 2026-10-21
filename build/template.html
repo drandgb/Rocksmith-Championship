@@ -1298,7 +1298,7 @@ footer{color:var(--dim);font-size:.78rem}
 .bn .bn-st{position:relative}
 .bn .bn-hot{position:absolute;top:-7px;right:-5px;display:inline-flex;align-items:center;gap:2px;padding:2px 7px 2px 5px;border-radius:999px;font:800 13px/1 var(--f-display);color:#1a0d02;background:linear-gradient(180deg,#ffc24a,#ff7a1a);box-shadow:0 0 8px rgba(255,120,30,.55);border:1px solid #ffd27a}
 .bn .bn-hot svg{width:10px;height:13px}
-.bn .bn-elos{margin-left:auto;display:flex;flex-direction:column;gap:3px;align-self:center}.bn .bn-seas{font:900 8px/1 var(--f-display);letter-spacing:.12em;text-transform:uppercase;color:#e9b84a;text-align:center;margin-bottom:1px}
+.bn .bn-elos{margin-left:auto;display:flex;flex-direction:column;gap:3px;align-self:center}.bn .bn-elo .bn-cl{font-weight:800;font-size:10px}.bn .bn-seas{font:900 8px/1 var(--f-display);letter-spacing:.12em;text-transform:uppercase;color:#e9b84a;text-align:center;margin-bottom:1px}
 .bn .bn-elo{font:800 11px/1 var(--f-display);color:#e9edf5;border:1px solid color-mix(in srgb,var(--pc) 55%,transparent);border-radius:999px;padding:2px 7px;white-space:nowrap}.bn .bn-elo i{font-style:normal;color:var(--pc)}.bn .bn-elo.bn-e1{border-color:#f5c542;background:linear-gradient(180deg,rgba(245,197,66,.18),rgba(245,197,66,.05));box-shadow:0 0 8px rgba(245,197,66,.4)}.bn .bn-elo.bn-e1 small{color:#ffd95e}.bn .bn-elo.bn-e2{border-color:#b9c2d0;background:linear-gradient(180deg,rgba(201,208,220,.12),rgba(201,208,220,.03))}.bn .bn-elo.bn-e2 small{color:#e3e8f0}.bn .bn-elo.bn-e3{border-color:#c98a4b;background:linear-gradient(180deg,rgba(205,127,50,.14),rgba(205,127,50,.03))}.bn .bn-elo.bn-e3 small{color:#e0a46a}.bn .bn-elo small{font:600 11px/1 var(--f-display);color:#8b93a7}
 .bn .bn-hot svg path{fill:#1a0d02}
 .bn .bn-meds{display:flex;align-items:center;gap:27px;flex:1;min-height:0;padding:0 0 4px 3px}
@@ -5245,7 +5245,7 @@ function bannerHtml(n){
     <div class="bn-stats">${st("Weeks",p[3])}${st("Wins",winsB,hk>=2?"bn-hotbox":"")}${["Lead","Rhythm","Bass"].map(pn=>{const r=rk[pn]; return st(`${pn==="Rhythm"?"Rhy":pn} rank`,r?`#${r.r}<i>${esc(r.lv.slice(0,3))}</i>`:"–",r&&r.r<=3?"bn-r"+r.r:"")}).join("")}</div></div>
     <div class="bn-meds">${meds.join("")}${(()=>{try{eloBuild(); const id=seasonOf(ELO_DONE); if(!id)return ""; const ps=[0,1,2].map(pi=>{   // this season's standing on each path (their best class)
       let best=null; Object.entries(seasonF1(pi,id)).forEach(([c,L])=>{const i=L.findIndex(x=>x.n.toLowerCase()===key); if(i>=0&&(!best||i<best.i))best={i,c,p:L[i].p}}); if(!best)return "";
-      const rk=best.i+1; return `<span class="bn-elo${rk<=3?" bn-e"+rk:""}" style="--pc:${["#ff9a2e","#45d17a","#3fa0ff"][pi]}"><i>${"LRB"[pi]}</i> #${rk}<small> ${best.p} pts</small></span>`}).join("");
+      const rk=best.i+1; return `<span class="bn-elo${rk<=3?" bn-e"+rk:""}" style="--pc:${["#ff9a2e","#45d17a","#3fa0ff"][pi]}"><i>${"LRB"[pi]}</i> #${rk} <b class="bn-cl" style="color:${TIER_C[best.c]}">${TIER_NAME[best.c].slice(0,3)}</b><small> ${best.p} pts</small></span>`}).join("");
       return ps?`<div class="bn-elos"><span class="bn-seas">Season ${seasonNum(id)}</span>${ps}</div>`:""}catch(e){return ""}})()}</div>${BN_STRIPE}</div>`;
 }
 // long names: shrink the name until it fits its column (down to 12px) instead of cutting it off
