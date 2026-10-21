@@ -521,6 +521,7 @@ a.dl svg,.offpill svg{width:11px;height:11px}
 .acctdlg .tytag{font:800 .6rem var(--f-display);letter-spacing:.06em;text-transform:uppercase;background:#f59e0b;color:#1a1204;border-radius:999px;padding:1px 6px;margin-right:6px}
 .acctdlg .ratelog{list-style:none;margin:0;padding:0;max-height:320px;overflow:auto}
 .ywalert{border:1px solid color-mix(in srgb,var(--s-red) 55%,transparent);background:color-mix(in srgb,var(--s-red) 9%,transparent);border-radius:10px;padding:10px 12px;margin:12px 0 14px}
+.ywalert.ywrate{border-color:color-mix(in srgb,var(--s-yellow) 60%,transparent);background:color-mix(in srgb,var(--s-yellow) 9%,transparent)}.ywalert.ywrate h4{color:var(--s-yellow)}.ywalert.ywrate p{margin:0 0 6px;font-size:.86rem;color:var(--muted)}
 .ywalert h4{margin:0 0 6px;font:800 .78rem var(--f-display);letter-spacing:.08em;text-transform:uppercase;color:var(--s-red)}
 .yw .ywp{margin:10px 0 0;font:800 .7rem var(--f-display);letter-spacing:.1em;text-transform:uppercase;color:var(--pc);border-left:3px solid var(--pc);padding-left:6px}
 .ywtop{font:800 .66rem var(--f-display);letter-spacing:.06em;text-transform:uppercase;color:#1a1204;background:linear-gradient(180deg,#ffe28a,#f5c84a);border-radius:999px;padding:2px 8px;align-self:center;cursor:help}
@@ -2183,10 +2184,14 @@ function hrNext(n,pi){const k=String(n).toLowerCase(), tw=TW_MAX, E=(sbIx().ent[
   const r1=rs[0], r2=rs[1], base=r2!=null?r2:s[s.length-1][1], done=new Set(E.filter(x=>x.w===tw&&x.pc>=95).map(x=>x.c[0]+"|"+x.c[1]));
   const opts=(SB.weeks[tw]||[]).filter(c=>c[0]===pi&&!c[7]&&c[3]&&!/^n\/a$/i.test(c[3])&&ratedOf(c)!=null&&!done.has(c[0]+"|"+c[1])).map(c=>{const x=ratedOf(c);
     const nv=r1==null?x:x>r1?r1:r2==null?Math.min(x,r1):x>r2?x:r2; return {c,x,nv,g:nv-base}}).filter(o=>o.g>.04).sort((a,b)=>a.x-b.x);
-  return opts.length?{base,opts}:null}
+  return opts.length?{base,r1,r2,opts}:null}
+// hover text for a Next rung row: why a 95% here moves the hardest rating as far as it does
+function hrNextWhy(pi,N,o){const f=v=>(+v).toFixed(1), x=o.x, P=PATHS[pi], now=`Your ${P} hardest rating is ${f(N.base)}`+(N.r1!=null&&N.r2!=null?`: your best 95%+ songs in the last 6 months are rated ${f(N.r1)} and ${f(N.r2)}, and it's the second-best that counts.`:".");
+  if(N.r1!=null&&x>N.r1)return `${now}\n\nA 95% on this ${f(x)} would become your best, and your old best (${f(N.r1)}) would become your second-best, so your hardest rating would go ${f(N.base)} → ${f(o.nv)}.\n\nIt takes two: a second 95% on a song rated above ${f(N.r1)} would lift it again (to ${f(x)} with another ${f(x)}).`;
+  return N.r1!=null&&x===N.r1?`${now}\n\nA 95% on this ${f(x)} would give you two 95%s at ${f(x)}, so your second-best would be ${f(x)} and your hardest rating would go ${f(N.base)} → ${f(o.nv)}.`:`${now}\n\nA 95% on this ${f(x)} would become your second-best, so your hardest rating would go ${f(N.base)} → ${f(o.nv)}.`}
 function hrNextHtml(n){const rows=[0,1,2].map(pi=>{const N=hrNext(n,pi); if(!N)return "";
-    return N.opts.slice(0,2).map(o=>`<li style="--pc:${PATH_C[pi]}"><span class="nwp">${PATHS[pi]}</span><span class="hnsong"><span class="fwgo" data-sbw="${TW_MAX}" data-sbp="${pi}" data-sbs="${o.c[1]}" title="Open this challenge on the Scoreboard">${esc(o.c[2])} · ${esc(o.c[3])}</span></span><span class="nwr" data-tip="A 95% on this ${o.x} would take your ${PATHS[pi]} hardest rating from ${N.base.toFixed(1)} to ${o.nv.toFixed(1)}">${o.x} · ${N.base.toFixed(1)} → <b>${o.nv.toFixed(1)}</b></span></li>`).join("")}).join("");
-  return rows?`<div class="nwelo hrnext"><div class="nwelo-h">Next rung this week <span class="elohelp" data-tip="This week's challenges that would raise your hardest rating if you score 95% or better on them (the easiest first): your hardest rating is your second-best song rating with a 95% score in the last 6 months.">ⓘ</span> <span class="pelo-sub">score 95% on</span></div><ul>${rows}</ul></div>`:""}
+    return N.opts.slice(0,2).map(o=>`<li style="--pc:${PATH_C[pi]}"><span class="nwp">${PATHS[pi]}</span><span class="hnsong"><span class="fwgo" data-sbw="${TW_MAX}" data-sbp="${pi}" data-sbs="${o.c[1]}" title="Open this challenge on the Scoreboard">${esc(o.c[2])} · ${esc(o.c[3])}</span></span><span class="nwr" data-tip="${esc(hrNextWhy(pi,N,o))}">${o.x} · ${N.base.toFixed(1)} → <b>${o.nv.toFixed(1)}</b></span></li>`).join("")}).join("");
+  return rows?`<div class="nwelo hrnext"><div class="nwelo-h">Next rung this week <span class="elohelp" data-tip="${esc("This week's challenges that would raise your hardest rating if you score 95% or better on them, the easiest first.\n\nYour hardest rating is the second-best song rating you've scored 95% on in the last 6 months: the second-best, so one lucky score can't jump it. That's why a 95% on a song rated above your best only lifts it to your old best: it takes two 95%s at a level to reach that level. Hover a row to see the numbers.")}">ⓘ</span> <span class="pelo-sub">score 95% on</span></div><ul>${rows}</ul></div>`:""}
 
 // Nearest rival: the players just above and below in the Elo ranking on a path
 function eloRivals(pi,k,w,kp){const T=eloTable(pi,w,kp), i=T.findIndex(x=>x[0]===k); if(i<0)return "";
@@ -4493,6 +4498,7 @@ async function acctLoadWeek(){
   const S={}; Object.values(best).forEach(x=>(S[x.k]=S[x.k]||[]).push({p:x.p,r:x.r,u:x.u}));
   ACCT.songs=S; ACCT.mine=mine; ACCT.rows=rows; sbRender();
   if($("acct").open&&ACCT.tab==="host")admRateRedraw();
+  if($("acct").open&&ACCT.tab==="week"&&!ACCT.rateDrawn){ACCT.rateDrawn=true; try{acctDraw()}catch(e){}}
   {const tw=document.getElementById("acct-tw"); if(tw&&$("acct").open&&ACCT.claim)tw.innerHTML=acctThisWeek(ACCT.claim.player);} if(typeof renderSongs==="function"){if(!$("view-songs").hidden)renderSongs(); else window.__songsStale=true}
 }
 // a song's rating boxes on the Songs page, one per path in the path's colour: the players' average for the song on
@@ -4808,6 +4814,14 @@ function ywAlert(n){
   return `<div class="ywalert"><button type="button" class="ywx" data-ywdismiss="${esc(n)}" title="Dismiss: mark these as seen" aria-label="Dismiss">✕</button><h4>⚠ You've been passed · ${L.length}</h4><ul>${L.map(e=>{const tie=e.bp===e.mp;
     return `<li><span class="dn">${e.fp&&e.tp&&e.tp>e.fp?`#${e.fp} → #${e.tp}`:`${ywOrd(e.from)} → ${ywOrd(e.to)}`}</span> · <span class="ywgo"${SB.weeks[e.w]?` data-sbw="${e.w}" data-sbp="${e.p}"${e.s!=null?` data-sbs="${e.s}"`:""} data-sbn="${esc(n)}" title="Open this challenge on the Scoreboard (Week ${e.w})"`:""}>${PATHS[e.p]} ${esc(e.lv)}</span> · <b>${esc(e.by)}</b> ${sc(e.bp,e.bs,tie)} passed your ${sc(e.mp,e.ms,tie)} <small>· ${day(e.t)}</small></li>`}).join("")}</ul></div>`;
 }
+// Your week: a reminder to rate the arrangements you've posted a score on this week (it goes once each one is rated)
+function rateTodo(n){if(!ACCT.songs||!acctCanRate())return null; const w=TW_MAX, key=n.toLowerCase(), me=ACCT.claim.player, seen=new Set(), out=[];
+  (SB.weeks[w]||[]).slice().sort((a,b)=>a[0]-b[0]||a[1]-b[1]).forEach(c=>{if(!c[3]||/^n\/a$/i.test(c[3])||!c[6].some(e=>e[1]!=null&&pvName(e).toLowerCase()===key))return;
+    const rp=arrP(w,c[0],c[1]), k=rp+"|"+acctSongKey(c[3]); if(seen.has(k))return; seen.add(k);
+    if(songVotes(rp,c[3]).some(v=>v.p===me)||myHostRating(songRating(rp,c[3])))return; out.push({c,rp,w})});
+  return out}
+function rateAlert(n){const L=rateTodo(n); if(L==null){acctLoadWeek(); return ""} ACCT.rateDrawn=false; if(!L.length)return "";
+  return `<div class="ywalert ywrate"><h4>★ Rate your arrangements · ${L.length}</h4><p>You posted a score on ${L.length===1?"this one":"these"} this week. Open ${L.length===1?"it":"one"} on the Scoreboard and click its rating number to say how hard it felt: your ratings set the difficulty everyone sees.</p><ul>${L.slice(0,6).map(x=>`<li><span class="ywgo" data-sbw="${x.w}" data-sbp="${x.c[0]}" data-sbs="${x.c[1]}" data-sbn="${esc(n)}" title="Open this challenge on the Scoreboard"><b style="color:${arrC(x.rp)}">${arrName(x.rp)}</b> · ${esc(x.c[2])} · ${esc(x.c[3])}</span></li>`).join("")}${L.length>6?`<li><small>… and ${L.length-6} more: <span class="ywgo" data-sbw="${L[0].w}" data-sbn="${esc(n)}" title="Open this week's Scoreboard">open this week's Scoreboard</span></small></li>`:""}</ul></div>`}
 function ywList(n){
   const w=TW_MAX, W=WEEKLOG[w], k=n.toLowerCase(), cards={};
   (SB.weeks[w]||[]).forEach(c=>cards[c[0]+"|"+c[1]]=c);
@@ -5073,7 +5087,7 @@ function acctDraw(msg,err){
   else if(ACCT.tab==="host")h+=`${hostSection(false).replace('class="acctsec hostsec"','class="acctsec hostsec hosttop"')}${(()=>{try{return hlSection()}catch(e){return ""}})()}${(()=>{try{return fwHostSection()}catch(e){return ""}})()}${(()=>{try{return lapsedSection()}catch(e){return ""}})()}${adminRateSection()}${ratingLogSection()}`;
   else if(ACCT.tab==="banner")h+=bnTab(ACCT.claim.player);
   else if(ACCT.tab==="week"){const n=ACCT.claim.player; ACCT.twPart="week";
-    h+=`${ywAlert(n)}${(()=>{try{return fwNudge(n)}catch(e){return ""}})()}${(()=>{try{const x=hrNextHtml(n); return x?`<div class="acctsec">${x}</div>`:""}catch(e){return ""}})()}${ywList(n)}<div id="acct-tw">${acctThisWeek(n,"week")}</div>`}   // alert, how the week is going, rivals, Played before, then the scoreboard
+    h+=`${ywAlert(n)}${(()=>{try{return rateAlert(n)}catch(e){return ""}})()}${(()=>{try{return fwNudge(n)}catch(e){return ""}})()}${(()=>{try{const x=hrNextHtml(n); return x?`<div class="acctsec">${x}</div>`:""}catch(e){return ""}})()}${ywList(n)}<div id="acct-tw">${acctThisWeek(n,"week")}</div>`}   // alert, how the week is going, rivals, Played before, then the scoreboard
   else if(ACCT.tab==="manage"){
     h+=`<div class="adm acctsec"><h3>Verification animal</h3>${animalNote()||`<p class="dim">You'll get a verification animal once you claim your player profile.</p>`}</div>
       <div class="acctsec"><h3>Log out</h3><p class="dim">Log out of the site on this device.</p><div class="row"><button type="button" class="btn ghost" data-acct="logout">Log out</button></div></div>
