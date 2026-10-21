@@ -2247,7 +2247,7 @@ function lapsedSection(){const tw=TW_MAX, far=52, I=sbIx(), rows=[];
 // Host tab: a week's highlights as plain text to paste into the weekly post
 function hlText(w){eloBuild(); const I=sbIx(), L=[], played=Object.keys(I.wk).filter(k=>I.wk[k].includes(w)), nm=k=>I.disp[k];
   const newc=played.filter(k=>I.wk[k][0]===w).map(nm); if(newc.length)L.push(`Welcome to our new players: ${newc.join(", ")}`);
-  const back=played.filter(k=>{const W=I.wk[k], i=W.indexOf(w); return i>0&&w-W[i-1]>=5}).map(k=>{const W=I.wk[k], i=W.indexOf(w); return `${nm(k)} (after ${w-W[i-1]-1} weeks away)`}); if(back.length)L.push(`Welcome back: ${back.join(", ")}`);
+  const back=played.filter(k=>{const W=I.wk[k], i=W.indexOf(w); return i>0&&w-W[i-1]>=5}).map(k=>{const W=I.wk[k], i=W.indexOf(w); return `${nm(k)} (after ${w-W[i-1]-1} weeks away)`}); if(back.length)L.push(`Welcome back, ${back.length>1?back.slice(0,-1).join(", ")+" and "+back[back.length-1]:back[0]}!`);
   const ups=(WR.ups||[]).filter(u=>u[4]===w&&LVI.indexOf(u[3])>LVI.indexOf(u[2])).map(u=>`${u[0]} (${PATHS[u[1]]} ${TIER_NAME[u[2]]||u[2]} → ${TIER_NAME[u[3]]||u[3]})`); if(ups.length)L.push(`Rank-ups: ${ups.join(", ")}`);
   const first95=played.filter(k=>{const E=I.ent[k]||[]; const f=E.find(x=>x.pc>=95); return f&&f.w===w}).map(nm); if(first95.length)L.push(`First 95% score: ${first95.join(", ")}`);
   const hr=[]; played.forEach(k=>[0,1,2].forEach(pi=>{const s=hrSeries(nm(k),pi), now=hrAt(s,w); if(now==null)return; const prev=s.filter(e=>e[0]<w&&e[1]!=null).map(e=>e[1]); if(prev.length&&now>Math.max(...prev)+.04)hr.push(`${nm(k)} (${PATHS[pi]} ${Math.max(...prev).toFixed(1)} → ${now.toFixed(1)})`)})); if(hr.length)L.push(`New best hardest rating: ${hr.join(", ")}`);
@@ -2262,7 +2262,7 @@ function hlText(w){eloBuild(); const I=sbIx(), L=[], played=Object.keys(I.wk).fi
   return `Week ${w} highlights\n\n${head}${L.map(x=>"• "+x).join("\n")||"• Nothing to highlight yet."}`}
 function hlSection(){const ws=[]; for(let w=ELO_DONE;w>ELO_DONE-6&&w>0;w--)if(SB.weeks[w])ws.push(w); const w=ACCT.hlWeek&&ws.includes(ACCT.hlWeek)?ACCT.hlWeek:ws[0]; if(!w)return "";
   return `<div class="acctsec hlbox"><h3>Weekly highlights <select class="hlsel" data-hlweek>${ws.map(x=>`<option value="${x}"${x===w?" selected":""}>Week ${x}</option>`).join("")}</select></h3>
-    <p class="dim">New players, welcome backs, rank-ups, first 95% scores, new best hardest ratings, the biggest Elo gains and newcomers' milestones, ready to copy into your weekly post.</p><pre id="hltext">${esc(hlText(w))}</pre><div class="row"><button type="button" class="btn ghost" data-hlcopy>Copy</button></div></div>`}
+    <p class="dim">New players, welcome backs, rank-ups, first 95% scores, new best hardest ratings, the biggest Elo gains and newcomers' milestones for Week ${w}, ready to copy into the Week ${w+1} post.</p><pre id="hltext">${esc(hlText(w))}</pre><div class="row"><button type="button" class="btn ghost" data-hlcopy>Copy</button></div></div>`}
 document.addEventListener("change",e=>{const s=e.target.closest("[data-hlweek]"); if(!s)return; ACCT.hlWeek=+s.value; const el=document.querySelector(".acctdlg .hlbox"); if(el)el.outerHTML=hlSection()});
 document.addEventListener("click",e=>{const b=e.target.closest("[data-hlcopy]"); if(!b)return; const t=$("hltext").textContent; try{navigator.clipboard.writeText(t).then(()=>{b.textContent="Copied ✓"; setTimeout(()=>b.textContent="Copy",1500)})}catch(err){}});
 function showPlayer(name){
