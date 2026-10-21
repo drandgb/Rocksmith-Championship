@@ -691,6 +691,7 @@ a.dl svg,.offpill svg{width:11px;height:11px}
 .fwl .fwk{font-weight:900;font-size:.8rem;color:var(--muted)}.fwl li.done .fwk{color:var(--s-green)}.fwl .fwt{font-weight:700}.fwl li.done .fwt{color:var(--muted);font-weight:600}.fwl .nwr{font-size:.8rem;color:var(--muted)}
 .fwtab td{cursor:default}.fwtab .fwof{font:600 .72rem var(--f-body);color:var(--muted)}.fwtab td .fwok{color:var(--s-green)}.fwtab td b.hry-eq{color:var(--muted)}
 .fwhost .alist li{display:flex;flex-wrap:wrap;gap:2px 10px;align-items:baseline;padding:6px 10px;border-left:3px solid var(--s-green);background:var(--panel2);border-radius:6px;font-size:.86rem}.fwhn{font-weight:800;cursor:pointer;text-decoration:underline dotted}.fwhs{flex-basis:100%;font-size:.82rem}
+.fwbass{display:block;margin-top:4px;font-size:.8rem;color:var(--muted)}
 .fwgo{color:var(--fg);font-weight:700;text-decoration:underline dotted;cursor:pointer}
 .fwtry{margin:10px 0 2px;font-size:.86rem}.fwtry b{color:var(--pc)}
 .fwnudge{border-left:3px solid var(--pc);background:var(--panel2);border-radius:6px;padding:7px 10px;margin:12px 0;font-size:.88rem}.fwnudge b{color:var(--pc)}
@@ -2102,8 +2103,9 @@ function fwTry(n,D){const tw=TW_MAX, cards=SB.weeks[tw]||[], tiers=((byName[n]||
     const c=cards.find(c=>c[0]===pi&&cardLv(c[2])===L&&c[3]&&!/^n\/a$/i.test(c[3])); if(c)return {pi,L,c,w:tw}}
   return null}
 function fwN95(D,pi,w){return D.ent.filter(x=>x.c[0]===pi&&x.pc>=95&&x.w>w-26&&x.c[4]!=null&&x.c[4]!==""&&!isNaN(+x.c[4])).length}
+const FW_BASS="No bass? You can play the bass arrangement on your guitar with Rocksmith's bass emulation and it still counts. Bass charts also tend to be more approachable at lower difficulty ratings, so if Lead and Rhythm feel too hard, the bass arrangement is a good place to start.";
 function fwTryHtml(n,D){const t=fwTry(n,D); if(!t)return "";
-  return `<span style="--pc:${PATH_C[t.pi]}">Try <b>${PATHS[t.pi]}</b> this week: <span class="fwgo" data-sbw="${t.w}" data-sbp="${t.pi}" data-sbs="${t.c[1]}" title="Open this challenge on the Scoreboard">${TIER_NAME[t.L]} · ${esc(t.c[3])}</span></span>`}
+  return `<span style="--pc:${PATH_C[t.pi]}">Try <b>${PATHS[t.pi]}</b> this week: <span class="fwgo" data-sbw="${t.w}" data-sbp="${t.pi}" data-sbs="${t.c[1]}" title="Open this challenge on the Scoreboard">${TIER_NAME[t.L]} · ${esc(t.c[3])}</span></span>${t.pi===2?`<span class="fwbass">${FW_BASS}</span>`:""}`}
 const FW_GAMES="Elo counts every pair of players on the same challenge as a game: the higher % wins. So one challenge with 5 other players is 5 games. 20 games on a path puts you in the Elo ranking.";
 const FW_TIP="Shown for a player's first 8 weeks.\n\nNewcomers who play a second week (One more time), play three weeks in a row (Hat trick) and try a second path are the ones who keep playing.\n\nUnlocks: the Elo ranking lists a player once they have 20 games on a path (a game is one other player on the same challenge, so a challenge with 5 others is 5 games); the hardest-rating graph shows from their 4th week on a path, once they have two scores of 95% or better within 6 months.";
 function fwPanel(n){const D=fwData(n), W=D.wk; if(!W.length||fwPlayed(n,D)>FW_MAX)return "";
@@ -2113,7 +2115,8 @@ function fwPanel(n){const D=fwData(n), W=D.wk; if(!W.length||fwPlayed(n,D)>FW_MA
   const next=last===tw?`Week ${tw+1}`:`Week ${tw}`, paths=[0,1,2].filter(pi=>D.pw[pi].size);
   ms.push(W.length>=2?[1,"One more time",`Week ${W[1]}`]:[0,"One more time",`play ${next}`]);
   ms.push(maxRun>=3?[1,"Hat trick",`${maxRun} weeks in a row`]:[0,"Hat trick: 3 weeks in a row",cur?`${cur} of 3 · next ${next}`:`play ${next}`]);
-  ms.push(paths.length>=2?[1,"A second path",paths.map(pi=>PATHS[pi]).join(" · ")]:[0,"A second path","see below"]);
+  const unp=[0,1,2].filter(pi=>!D.pw[pi].size);
+  ms.push(paths.length>=2?[1,"A second path",paths.map(pi=>PATHS[pi]).join(" · ")]:[0,"A second path","play "+unp.map(pi=>PATHS[pi]).join(" or ")]);
   const n95=D.ent.filter(x=>x.pc>=95).length;
   ms.push(n95?[1,"A 95% score",`${n95} so far`]:[0,"A 95% score",`best ${Math.max(...D.ent.map(x=>x.pc))}%`]);
   const left=`<div class="pcwide nwelo pelo fwl"><div class="nwelo-h">First weeks <span class="elohelp" data-tip="${esc(FW_TIP)}">ⓘ</span> <span class="pelo-sub">week ${fwPlayed(n,D)} of ${FW_MAX}</span></div><ul>${ms.map(([d,t,r])=>`<li class="${d?"done":""}"><span class="fwk">${d?"✓":"○"}</span><span class="fwt">${t}</span><span class="nwr">${r}</span></li>`).join("")}</ul></div>`;
@@ -2121,7 +2124,7 @@ function fwPanel(n){const D=fwData(n), W=D.wk; if(!W.length||fwPlayed(n,D)>FW_MA
   const rows=paths.map(pi=>{let g=0; try{const x=eloAt(pi,eloKey(n),1e9); g=x?x[2]:0}catch(e){}
     const hrOk=hrSeries(n,pi).some(e=>e[1]!=null), wks=hrOk?4:D.pw[pi].size, h95=hrOk?2:fwN95(D,pi,TW_MAX);
     return `<tr style="--pc:${PATH_C[pi]}"><td>${PATHS[pi]}</td>${cell(g,ELO_MIN,"Elo games")}${cell(wks,4,"Weeks on this path")}${cell(h95,2,"Scores at 95%+ on rated songs in the last 6 months")}</tr>`}).join("");
-  const tr=paths.length<2?fwTryHtml(n,D):"";
+  const tr=fwTryHtml(n,D);   // any path they haven't played yet (so a Lead and Rhythm player is pointed at Bass)
   const right=`<div class="pcwide"><div class="elochart"><div class="echhead"><h4>Unlocks</h4></div><div class="hryears fwtab"><table><tr><th></th><th data-tip="${esc(FW_GAMES)}" style="cursor:help">Elo games ⓘ</th><th>Weeks</th><th>95%+ scores</th></tr>${rows}</table></div>
     ${tr?`<p class="fwtry">${tr}</p>`:""}<p class="echnote">A game is one other player on a challenge you played (a challenge with 5 others is 5 games) · 20 games on a path put you in the Elo ranking · 4 weeks and two 95%+ scores on rated songs within 6 months unlock your hardest-rating graph</p></div></div>`;
   return left+right}
@@ -2132,17 +2135,17 @@ function fwHostSection(){const tw=TW_MAX, rows=[];
     const paths=[0,1,2].filter(pi=>D.pw[pi].size), last=W[W.length-1], todo=[];
     if(W.length<2)todo.push("One more time");
     else{let run=1,mx=1; for(let i=1;i<W.length;i++){run=W[i]===W[i-1]+1?run+1:1; mx=Math.max(mx,run)} if(mx<3)todo.push("Hat trick")}
-    if(paths.length<2){const t=fwTry(n,D); todo.push(t?`try ${PATHS[t.pi]} (${TIER_NAME[t.L]} · ${esc(t.c[3])})`:"try a second path")}
+    if(paths.length<3){const t=fwTry(n,D); if(t)todo.push(`try ${PATHS[t.pi]} (${TIER_NAME[t.L]} · ${esc(t.c[3])})`); else if(paths.length<2)todo.push("A second path")}
     if(!D.ent.some(x=>x.pc>=95))todo.push("a first 95% score");
     rows.push({n,W,last,paths,todo})});
   rows.sort((a,b)=>b.last-a.last||a.W[0]-b.W[0]);
   return `<div class="acctsec fwhost"><h3>Newcomers <small>${rows.length} in their first ${FW_MAX} weeks, played in the last 8</small></h3>
-    <p class="dim">Each of these players sees a First weeks panel on their profile with the next steps below (one-path players also get a "try a second path" nudge in Your week). A welcome, a word of encouragement or an answer to a question from a host goes a long way: new players who play a second week and try a second path are the ones who stay.</p>
+    <p class="dim">Each of these players sees a First weeks panel on their profile with the next steps below (and, in Your week, a "try" link to this week's challenge on a path they haven't played yet). A welcome, a word of encouragement or an answer to a question from a host goes a long way: new players who play a second week and try a second path are the ones who stay.</p>
     ${rows.length?`<ul class="alist">${rows.map(r=>`<li><span class="fwhn" data-fwp="${esc(r.n)}" title="Open ${esc(r.n)}'s profile">${esc(r.n)}</span><span class="dim">week ${r.W.length} · since Week ${r.W[0]} · last played Week ${r.last} · ${r.paths.map(pi=>`<b style="color:${PATH_C[pi]}">${PATHS[pi]}</b>`).join(" ")}</span><span class="fwhs">${r.todo.length?"Shown next: "+r.todo.join(" · "):"All first steps done"}</span></li>`).join("")}</ul>`:`<p class="dim">No newcomers right now.</p>`}</div>`}
 document.addEventListener("click",e=>{const b=e.target.closest("[data-fwp]"); if(!b)return; const n=b.dataset.fwp; if(!byName[n])return; const d=$("acct"); if(d&&d.open)d.close(); showView("players"); showPlayer(n); $("pcard").closest("section").scrollIntoView({block:"start"})});
 // Your week: the same "try a second path" nudge for a newcomer on one path
-function fwNudge(n){const D=fwData(n); if(!D.wk.length||fwPlayed(n,D)>FW_MAX||[0,1,2].filter(pi=>D.pw[pi].size).length>1)return ""; const t=fwTry(n,D); if(!t)return "";
-  return `<div class="fwnudge" style="--pc:${PATH_C[t.pi]}">${fwTryHtml(n,D)} <span class="dim">· new players who try a second path are much more likely to keep playing</span></div>`}
+function fwNudge(n){const D=fwData(n); if(!D.wk.length||fwPlayed(n,D)>FW_MAX)return ""; const t=fwTry(n,D); if(!t)return "";
+  return `<div class="fwnudge" style="--pc:${PATH_C[t.pi]}">${fwTryHtml(n,D)} ${t.pi===2?"":`<span class="dim">· new players who play more than one path are much more likely to keep playing</span>`}</div>`}
 function showPlayer(name){
   const p=byName[name];
   if(!p){$("pcard").innerHTML=`<div class="empty">No player named “${esc(name)}”. Pick a name from the list as you type.</div>`;return}
