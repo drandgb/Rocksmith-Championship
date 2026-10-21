@@ -881,7 +881,7 @@ footer .updated{display:block;margin-top:4px}
 .twl li.hostbox{position:relative;border:2px solid transparent;background:linear-gradient(var(--panel2),var(--panel2)) padding-box,repeating-linear-gradient(135deg,#ffb347 0 5px,#ffe0a3 5px 8px,#e07a1f 8px 13px) border-box;box-shadow:0 0 0 1px rgba(255,179,71,.25),0 0 14px rgba(255,159,67,.28)}
 .twl li.hostbox .hosttag{position:absolute;top:-9px;right:14px;z-index:3;font:800 .58rem/1 var(--f-display);letter-spacing:.14em;padding:3px 9px;border-radius:999px;background:linear-gradient(180deg,#ffd27a,#ff9f43);color:#2a1604;box-shadow:0 1px 4px rgba(0,0,0,.4)}
 .twl li.hostbox.celestial{background:radial-gradient(120% 140% at 50% 0%,color-mix(in srgb,#7fe9ff 26%,transparent),transparent 70%),var(--panel2) padding-box}
-/* gold God winners on This Week: a celestial glow (an aurora rim, a soft halo and a few twinkling stars) */
+/* gold God winners on This Week: a celestial glow (a slowly turning aurora rim, a soft halo and a few twinkling stars) */
 .celestial{position:relative;isolation:isolate;border-color:transparent;background:
   radial-gradient(1.5px 1.5px at 12% 22%,#fff 50%,transparent 51%),radial-gradient(1px 1px at 78% 18%,#fff 50%,transparent 51%),
   radial-gradient(1.2px 1.2px at 92% 70%,#fff 50%,transparent 51%),radial-gradient(1px 1px at 40% 85%,#fff 50%,transparent 51%),
@@ -890,7 +890,7 @@ footer .updated{display:block;margin-top:4px}
 }
 .celestial::before{content:"";position:absolute;inset:-2px;border-radius:inherit;padding:2px;z-index:-1;pointer-events:none;
   background:conic-gradient(from var(--cang,0deg),#7fe9ff,#b48cff,#ffd86b,#fff6d5,#7fe9ff);
-  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude}   /* (a still rim: the turning one was dropped, the glow and gems are enough) */
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;animation:celSpin 9s linear infinite}
 .celestial .celc{position:absolute;width:30px;height:30px;pointer-events:none;z-index:2;filter:drop-shadow(0 0 3px rgba(255,216,107,.55))}
 .celestial .celc svg{width:100%;height:100%;display:block}
 .celestial .celc.c-tl{top:-7px;left:-7px}.celestial .celc.c-tr{top:-7px;right:-7px;transform:scaleX(-1)}
@@ -1158,15 +1158,13 @@ footer .updated{display:block;margin-top:4px}
 @keyframes sparkle{0%,60%,100%{opacity:0;transform:scale(.3) rotate(0)}75%{opacity:1;transform:scale(1.2) rotate(45deg)}}
 @keyframes dglow{0%,100%{opacity:1}50%{opacity:.8}}   /* (opacity, not the glow itself: animating drop-shadows repaints every frame) */
 .medal-m.wm svg{width:28px;height:30px;filter:drop-shadow(0 0 3px var(--ec)) drop-shadow(0 0 8px color-mix(in srgb,var(--ec) 55%,transparent))}
-.medal-m.wm::after{content:"";position:absolute;inset:2px 3px 4px;border-radius:40%;background:linear-gradient(115deg,transparent 35%,rgba(255,255,255,.45) 48%,transparent 60%);background-size:250% 100%;background-position:120% 0;pointer-events:none}
-@media (prefers-reduced-motion:no-preference){.medal-m.wm::after{animation:shine 3.4s ease-in-out infinite}.medal-m.wm:nth-child(3n+2)::after{animation-delay:.7s}.medal-m.wm:nth-child(3n)::after{animation-delay:1.4s}}
+/* (no shine sweep on medals: the glow and sparkles are enough, and a sweep on every medal kept the page repainting) */
+
 .medal-m.wm b{position:absolute;right:-5px;bottom:-3px;min-width:14px;height:14px;padding:0 3px;border-radius:7px;background:#e7eaf2;color:#10131a;font:800 9px/14px var(--f-display);text-align:center;box-shadow:0 0 0 1.5px var(--panel)}
 .medal-m.zod{overflow:visible;box-shadow:0 0 6px color-mix(in srgb,var(--ec) 70%,transparent),0 0 12px color-mix(in srgb,var(--ec) 35%,transparent),0 1px 3px rgba(0,0,0,.45),inset 0 0 0 1.5px rgba(0,0,0,.25)}
 .medal-m.zod::after{content:"";position:absolute;inset:0;border-radius:50%;background:linear-gradient(115deg,transparent 35%,rgba(255,255,255,.55) 48%,transparent 60%);background-size:250% 100%;background-position:120% 0;pointer-events:none}
 .medal-m.flm svg{transform-origin:50% 100%;filter:drop-shadow(0 0 3px var(--ec)) drop-shadow(0 0 7px color-mix(in srgb,var(--ec) 60%,transparent))}
 @media (prefers-reduced-motion:no-preference){
-  .medal-m.zod::after{animation:shine 3.2s ease-in-out infinite}
-  .medal-m.zod:nth-child(3n+2)::after{animation-delay:.6s}.medal-m.zod:nth-child(3n)::after{animation-delay:1.2s}
   .medal-m.flm svg{animation:flicker 1.8s ease-in-out infinite}
   .medal-m.flm:nth-child(2n)::after,.medal-m.flm:nth-child(2n) svg{animation-delay:.5s}
 }
