@@ -2095,7 +2095,7 @@ function medalsFor(p,bitsOv){
    [0,1,2].forEach(pp=>{const pw=completionistWeeks(n,doneM,pp); if(!pw.length)return; const col=COMP_PATH[pp][1];
      cRow+=`<span class="medal-m wm" style="--ec:${col};cursor:pointer" data-all="${pw.join(",")}" data-hl="${pw.join(",")}" data-tip="${PATHS[pp]} completionist · posted a score on every ${PATHS[pp]} challenge of the week, every class (a multi-week God challenge already played earlier in its run counts) · ${pw.length} week${pw.length===1?"":"s"} · click to highlight">${completionistSvg(pp)}<b>${pw.length}</b></span>`});}
   {const hw=hbfsWins(n,doneM); if(hw.length){const ws=hw.map(x=>x.w);
-    cRow+=uniqIds(`<span class="medal-m wm" style="--ec:#ffa13a;cursor:pointer" data-all="${ws.join(",")}" data-hl="${[...new Set(ws)].join(",")}" data-tip="Harder, Better, Faster, Stronger · beat your own score from the last time you played the same challenge (a higher %, then a longer note streak, then a higher score) · ${hw.length} time${hw.length===1?"":"s"} · click to highlight${esc("\n\n"+hw.slice().sort((a,b)=>b.w-a.w).slice(0,12).map(hbfsLine).join("\n")+(hw.length>12?`\n… and ${hw.length-12} more`:""))}">${hbfsSvg()}<b>${hw.length}</b></span>`,["hbfg"])}}
+    cRow+=uniqIds(`<span class="medal-m wm" style="--ec:#ffa13a;cursor:pointer" data-all="${ws.join(",")}" data-hl="${[...new Set(ws)].join(",")}" data-tip="Harder, Better, Faster, Stronger · beat your own score from the last time you played the same challenge (a higher %, then a longer note streak, then a higher score; 100% again always counts) · ${hw.length} time${hw.length===1?"":"s"} · click to highlight${esc("\n\n"+hw.slice().sort((a,b)=>b.w-a.w).slice(0,12).map(hbfsLine).join("\n")+(hw.length>12?`\n… and ${hw.length-12} more`:""))}">${hbfsSvg()}<b>${hw.length}</b></span>`,["hbfg"])}}
   // Perfectionist (100% scores): every 100% score on a finished week's challenge, whatever the place or class
   // one medal per class, in that class's gem colour (God stays red)
   const mastBy=masteryByClass(n,doneM);
@@ -2702,15 +2702,18 @@ function clefSvg(kind){
 const COMP_PATH=[["#ffcf8a","#ff9a2e","#c86a0e"],["#9ff0bb","#45d17a","#1f9a52"],["#a8d4ff","#3fa0ff","#1f63c9"]];
 // Harder, Better, Faster, Stronger: beat your own score from the last time you played the same challenge
 // (same song and arrangement, any earlier week since the scoreboards start): a higher %, or the same % and a longer
-// note streak, or the same % and streak and a higher score. Finished weeks only; a God run counts at its last week.
+// note streak, or the same % and streak and a higher score; 100% again always counts, since a chart update can change
+// the streak and score. Finished weeks only; a God run counts at its last week.
 // what got better on a Harder, Better, Faster, Stronger beat: the %, or (same %) the note streak, or (same streak) the score
 function hbfsGain(x){const e=x.e, o=x.o, f=v=>Number(v).toLocaleString("en-US");
+  if(+e[1]>=100&&+o[1]>=100)return `100% again`;
   if(e[1]!==o[1]){const d=Math.round((e[1]-o[1])*100)/100; return `${o[1]}% → ${e[1]}% (+${d}%)`}
   if(e[2]!=null&&o[2]!=null&&e[2]!==o[2])return `same ${e[1]}%, streak ${f(o[2])} → ${f(e[2])} (+${f(e[2]-o[2])})`;
   return `same ${e[1]}% and streak, score ${f(o[3])} → ${f(e[3])} (+${f(e[3]-o[3])})`}
 function hbfsLine(x){return `• ${x.c[3]} (${PATHS[x.c[0]]}, ${x.c[2]}) · Week ${x.ow} → ${x.w}: ${hbfsGain(x)}`}   // (no cardLv here: profiles draw before it is defined)
 function hbfsWins(name,weeks){const k=String(name).toLowerCase(), out=[];
-  const better=(e,o)=>{if(e[1]==null||o[1]==null)return false; if(e[1]!==o[1])return e[1]>o[1];
+  const better=(e,o)=>{if(e[1]==null||o[1]==null)return false; if(+e[1]>=100&&+o[1]>=100)return true;   // 100% again counts, whatever the streak or score (a chart update can change those)
+    if(e[1]!==o[1])return e[1]>o[1];
     if(e[2]!=null&&o[2]!=null&&e[2]!==o[2])return e[2]>o[2]; return e[3]!=null&&o[3]!=null&&e[3]>o[3]};
   weeks.forEach(w=>(SB.weeks[w]||[]).forEach(c=>{if(c[7])return; const e=c[6].find(x=>pvName(x).toLowerCase()===k); if(!e)return;
     for(const x of pastPlays(w,c[0],c[1],c[3])){const o=x.c[6].find(y=>pvName(y).toLowerCase()===k); if(o){if(better(e,o))out.push({w,c,e,ow:x.w,o}); break}}}));
@@ -3814,7 +3817,7 @@ const mlCmp=(a,b)=>b.v-a.v||(b.t||0)-(a.t||0)||a.n.localeCompare(b.n,undefined,{
 const mlSame=(a,b)=>a.v===b.v&&(a.t||0)===(b.t||0);
 const mlVal=(r,k)=>`${r.v}${k.unit}${r.t>1?` ×${r.t}`:""}`;
 // plain descriptions for the medals whose own hover text is all about one player's numbers
-const ML_DESC={"Harder, Better, Faster, Stronger":"beat their own score from the last time they played the same challenge (a higher %, then a longer note streak, then a higher score) · ranked by how many times","Kintsugi gem":"played every week from joining until the first missed week, then mended with gold on coming back · ranked by how many weeks that first unbroken run lasted",
+const ML_DESC={"Harder, Better, Faster, Stronger":"beat their own score from the last time they played the same challenge (a higher %, then a longer note streak, then a higher score; 100% again always counts) · ranked by how many times","Kintsugi gem":"played every week from joining until the first missed week, then mended with gold on coming back · ranked by how many weeks that first unbroken run lasted",
   "Perfect gem":"played every week since joining, never missing one · ranked by weeks so far",
   playstreak:"most weeks played in a row",years:"time since first joining the championship",
   winstreak:"most weeks in a row winning at least one challenge",bestweek:"the most challenges won in a single week · ×N is how many weeks they did it, which breaks ties",
