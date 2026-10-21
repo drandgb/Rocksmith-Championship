@@ -2978,7 +2978,7 @@ function renderTwElo(){const el=$("tw-elo"); if(!el)return; eloBuild(); const w=
     const rows=Object.keys(ELO[pi].hist).map(n=>{const x=eloAt(pi,n,w); if(!x||x[0]!==w)return null; const b=eloAt(pi,n,w-1); return {n,now:x[1],g:x[2],d:Math.round(x[1]-(b?b[1]:eloStart(pi,n)))}}).filter(Boolean).sort((a,b)=>b.d-a.d||b.now-a.now);
     if(!rows.length)return "";
     return `<div class="elocol" style="--pc:${PATH_C[pi]}"><h3>${PATHS[pi]}</h3><ol>${rows.map((x,i)=>{const a=r0[x.n], b=r1[x.n];
-      const mv=x.g<ELO_MIN?`<small class="elonew" data-tip="Provisional: ${x.g} of ${ELO_MIN} games">new</small>`:a&&b&&a!==b?`<small class="${b<a?"up":"dn"}">#${a}→#${b}</small>`:b?`<small>#${b}</small>`:"";
+      const mv=x.g<ELO_MIN?`<small class="elonew" data-tip="Provisional: ${x.g} of ${ELO_MIN} games">new</small>`:a&&b&&a!==b?`<small class="${b<a?"up":"dn"}" data-tip="${esc(eloAround(pi,x.n,w,isActivePlayer))}">#${a}→#${b}</small>`:b?`<small data-tip="${esc(eloAround(pi,x.n,w,isActivePlayer))}">#${b}</small>`:"";
       return `<li class="${i===0&&x.d>0?"top":""}">${twName(x.n)}${mv}<span class="ed" data-tip="${esc(eloWhy(pi,x.n,w,w))}">${x.d?eloD(x.d):"–"}</span><b class="ev" style="color:${eloBand(x.now)[2]}" data-tip="${esc(eloBandTip(x.now))}">${Math.round(x.now)}</b></li>`}).join("")}</ol></div>`}).join("")||`<p class="dim">No scores yet this week.</p>`}
 // Elo over time: one line per path (in its colour), from the week they first played it to the latest finished week.
 // Range buttons (all / last year / last 6 months), tap a path in the legend to hide it, hover or tap for the week's numbers.
@@ -3059,10 +3059,13 @@ function eloWhy(pi,n,w0,w1){eloBuild(); const L=ELO_LOG&&ELO_LOG[pi][n]; if(!L)r
   weeks.forEach(w=>{const G=L[w], t=G.reduce((a,x)=>a+x.d,0), wn=G.filter(x=>x.res===1).length, ls=G.filter(x=>x.res===0).length; out.push(`Week ${w}: ${f(t)} (${wn} won, ${ls} lost${G.length-wn-ls?`, ${G.length-wn-ls} drawn`:""})`)});
   const all=weeks.flatMap(w=>L[w].map(x=>({...x,w}))), big=all.slice().sort((a,b)=>Math.abs(b.d)-Math.abs(a.d)).slice(0,4);
   return `${out.join("\n")}\n\nBiggest swings:\n${big.map(x=>`  Week ${x.w}: ${res(x.res)} ${x.op} (${Math.round(x.ro)}) on ${x.song}: ${f(x.d)}`).join("\n")}\n\n${head}`}
+// hover text on a rank: the 10 players above and the 10 below in that list
+function eloAround(pi,k,w,keep){const T=eloTable(pi,w,keep), R=eloRanks(pi,w,keep), i=T.findIndex(x=>x[0]===k); if(i<0)return "";
+  return T.slice(Math.max(0,i-10),i+11).map(([n,v])=>`${n===k?"▶ ":"   "}#${R[n]} ${n} · ${Math.round(v)}`).join("\n")}
 // profiles: rating, rank and the change over the last 10 weeks on each path they've played
 function eloProfile(n){eloBuild(); const w=ELO_DONE, k=eloKey(n), kp=eloKeep(k);
   const rows=[0,1,2].map(pi=>{const x=eloAt(pi,k,w); if(!x)return ""; const rk=eloRanks(pi,w,kp)[k], tot=eloTable(pi,w,kp).length, o=eloAt(pi,k,w-10), d=o?Math.round(x[1]-o[1]):0, t=x[2]>=ELO_MIN&&rk&&rk<=3?" elo-t"+rk:"";
-    const r=x[2]<ELO_MIN?`<small data-tip="Provisional: ${x[2]} of ${ELO_MIN} games">new</small>`:rk?`<small data-tip="#${rk} of ${tot} ${kp?"active players":"players (inactive, so ranked among everyone)"} · ${x[2]} games">#${rk}</small>`:"";
+    const r=x[2]<ELO_MIN?`<small data-tip="Provisional: ${x[2]} of ${ELO_MIN} games">new</small>`:rk?`<small data-tip="${esc(`#${rk} of ${tot} ${kp?"active players":"players (inactive, so ranked among everyone)"} · ${x[2]} games\n\n${eloAround(pi,k,w,kp)}`)}">#${rk}</small>`:"";
     return `<li class="${t.trim()}" style="--pc:${PATH_C[pi]}"><span class="nwp">${PATHS[pi]}</span><b class="nwv">${Math.round(x[1])}</b><span class="nwd" data-tip="${esc("Change over the last 10 weeks"+(()=>{const t=eloWhy(pi,k,w-9,w); return t?"\n\n"+t:""})())}">${d?eloD(d):"–"}</span><span class="nwr">${eloBandTag(x[1])}${r}</span></li>`}).join("");
   return rows?`<div class="pcwide nwelo pelo"><div class="nwelo-h">Elo after Week ${w} <span class="elohelp" data-tip="${esc(ELO_TIP)}">ⓘ</span> <span class="pelo-sub">▲▼ last 10 weeks</span></div><ul>${rows}</ul></div>`:""}
 // ---------- hardest rating you score 95% on ----------
@@ -3965,7 +3968,7 @@ function renderNewWeekNote(){
 function nwElo(n,w){eloBuild(); const k=eloKey(n), kp=eloKeep(k);
   const rows=[0,1,2].map(pi=>{const x=eloAt(pi,k,w); if(!x||x[0]!==w)return ""; const b=eloAt(pi,k,w-1), d=Math.round(x[1]-(b?b[1]:eloStart(pi,k)));
     const r0=eloRanks(pi,w-1,kp)[k], r1=eloRanks(pi,w,kp)[k], t=x[2]>=ELO_MIN&&r1&&r1<=3?" elo-t"+r1:"";
-    const mv=x[2]<ELO_MIN?`<small data-tip="Provisional: ${x[2]} of ${ELO_MIN} games">new</small>`:r0&&r1&&r0!==r1?`<small class="${r1<r0?"up":"dn"}">#${r0} → #${r1}</small>`:r1?`<small>#${r1}</small>`:"";
+    const mv=x[2]<ELO_MIN?`<small data-tip="Provisional: ${x[2]} of ${ELO_MIN} games">new</small>`:r0&&r1&&r0!==r1?`<small class="${r1<r0?"up":"dn"}" data-tip="${esc(eloAround(pi,k,w,kp))}">#${r0} → #${r1}</small>`:r1?`<small data-tip="${esc(eloAround(pi,k,w,kp))}">#${r1}</small>`:"";
     return `<li class="${t.trim()}" style="--pc:${PATH_C[pi]}"><span class="nwp">${PATHS[pi]}</span><b class="nwv">${Math.round(x[1])}</b><span class="nwd" data-tip="${esc(eloWhy(pi,k,w,w))}">${d?eloD(d):"–"}</span><span class="nwr">${eloBandTag(x[1])}${mv}</span></li>`}).join("");
   return rows?`<div class="nwelo"><div class="nwelo-h">Elo after Week ${w} <span class="elohelp" data-tip="${esc(ELO_TIP)}">ⓘ</span></div><ul>${rows}</ul></div>`:""}
 function renderDownloads(){
