@@ -1295,7 +1295,7 @@ footer{color:var(--dim);font-size:.78rem}
 .bn .bn-tags{display:flex;gap:6px;align-items:stretch}
 .bn .bn-tg{flex:1;display:flex;align-items:baseline;justify-content:center;padding-top:1.9px!important;padding-bottom:.1px!important;gap:4px;font:700 10.5px/1 var(--f-display);letter-spacing:.06em;color:#8b93a7;border:1px solid #34363b;background:#17181a;border-radius:6px;padding:1px 0}
 .bn .bn-tg b{font:800 14px/1 var(--f-display)}
-.bn .bn-stats{flex:1;display:grid;grid-template-columns:.8fr .8fr 1fr 1fr 1fr;gap:5px}
+.bn .bn-stats{flex:1;display:grid;grid-template-columns:.9fr .9fr 1fr 1fr 1fr;gap:5px}
 .bn .bn-st{background:rgba(255,255,255,.035);border:1px solid #34363b;border-radius:8px;padding:3.5px 6px .5px;min-width:0;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center}
 .bn .bn-st small{display:block;font:700 9.5px/1 var(--f-display);letter-spacing:.06em;white-space:nowrap;color:#8b93a7;text-transform:uppercase}
 .bn .bn-st small em{font-style:normal;color:var(--s-red);letter-spacing:.03em}   /* Rodman's Rankings are a rolling 10-week average */
@@ -1308,7 +1308,7 @@ footer{color:var(--dim);font-size:.78rem}
 .bn .bn-st{position:relative}
 .bn .bn-hot{position:absolute;top:-7px;right:-5px;display:inline-flex;align-items:center;gap:2px;padding:2px 7px 2px 5px;border-radius:999px;font:800 13px/1 var(--f-display);color:#1a0d02;background:linear-gradient(180deg,#ffc24a,#ff7a1a);box-shadow:0 0 8px rgba(255,120,30,.55);border:1px solid #ffd27a}
 .bn .bn-hot svg{width:10px;height:13px}
-.bn .bn-st.bn-num b{align-self:stretch;text-align:left;padding-left:3px}.bn .bn-num .bn-hot{top:auto;bottom:-7px;right:-6px;font-size:11px;padding:1px 5px 1px 3px}.bn .bn-num .bn-hot svg{width:9px;height:11px}   /* weeks and wins: number on the left, streak badge on the bottom-right corner */
+.bn .bn-st.bn-num b{align-self:stretch;display:flex;align-items:center;gap:4px;padding-left:1px}.bn .bn-num .bn-hot{position:static;font-size:11px;padding:2px 5px 2px 3px}.bn .bn-num .bn-hot svg{width:9px;height:11px}.bn .bn-hot.bn-ply{background:linear-gradient(180deg,#d2a8ff,#9b5cf0);border-color:#e4ccff;box-shadow:0 0 8px rgba(160,100,255,.55);color:#1a0b2e}.bn .bn-hot.bn-ply svg path{fill:#1a0b2e}   /* play streak: purple, win streak: orange */   /* weeks and wins: number on the left, streak badge right beside it inside the box */
 .bn .bn-elos{margin-left:auto;display:flex;flex-direction:column;gap:3px;align-self:center}.bn .bn-elo .bn-cl{font-weight:800;font-size:12px}.bn .bn-seas{font:900 10.5px/1 var(--f-display);letter-spacing:.12em;text-transform:uppercase;color:#e9b84a;text-align:center;margin:2px 0 -2px}
 .bn .bn-elo{display:flex;align-items:center;gap:.28em;font:800 13.5px/1 var(--f-display);color:#e9edf5;border:1px solid color-mix(in srgb,var(--pc) 55%,transparent);border-radius:999px;padding:3.5px 10px 1.5px;white-space:nowrap}.bn .bn-elo i{font-style:normal;color:var(--pc)}.bn .bn-elo.bn-e1{border-color:#f5c542;background:linear-gradient(180deg,rgba(245,197,66,.18),rgba(245,197,66,.05));box-shadow:0 0 8px rgba(245,197,66,.4)}.bn .bn-elo.bn-e1 small{color:#ffd95e}.bn .bn-elo.bn-e2{border-color:#b9c2d0;background:linear-gradient(180deg,rgba(201,208,220,.12),rgba(201,208,220,.03))}.bn .bn-elo.bn-e2 small{color:#e3e8f0}.bn .bn-elo.bn-e3{border-color:#c98a4b;background:linear-gradient(180deg,rgba(205,127,50,.14),rgba(205,127,50,.03))}.bn .bn-elo.bn-e3 small{color:#e0a46a}.bn .bn-elo small{margin-left:auto;padding-left:6px;font:600 13.5px/1 var(--f-display);color:#8b93a7}
 .bn .bn-hot svg path{fill:#1a0d02}
@@ -5254,7 +5254,7 @@ function bannerHtml(n){
   const hot=Object.entries(hotStreaks(-1)).find(([k])=>k.toLowerCase()===key), hk=hot?hot[1]:0;
   const flame=`<svg viewBox="0 0 16 20" aria-hidden="true"><path d="M8 1c1 3.5 5.5 5.6 5.5 10.5A5.5 5.5 0 0 1 2.5 11.5C2.5 8.6 4.3 7 5.2 5.4c.5 1.6 1.2 2.4 2.1 2.8C7.7 6 7.3 3.4 8 1z" fill="url(#bnfl)"/><defs><linearGradient id="bnfl" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#ff5a1f"/><stop offset=".6" stop-color="#ff9f1c"/><stop offset="1" stop-color="#ffe066"/></linearGradient></defs></svg>`;
   const winsB=v[1]+(hk>=2?`<span class="bn-hot" title="Won a challenge in each of the last ${hk} weeks">${flame}${hk}</span>`:"");  // a badge beside the number
-  const pk=+p[5]||0, weeksB=p[3]+(pk>=2?`<span class="bn-hot" title="Played in each of the last ${pk} weeks">${flame}${pk}</span>`:"");   // play streak, same badge
+  const pk=+p[5]||0, weeksB=p[3]+(pk>=2?`<span class="bn-hot bn-ply" title="Played in each of the last ${pk} weeks">${flame}${pk}</span>`:"");   // play streak, same badge
   // best rank highlight: #1 gold, #2 silver, #3 bronze
   return `<div class="bn"><div class="bn-top"><div class="bn-who"><div class="bn-nm">${esc(n)}</div><div class="bn-tags">${["L","R","B"].map((l,i)=>`<span class="bn-tg">${l}<b style="color:${tc(T[i])}">${tier(T[i])}</b></span>`).join("")}</div></div>
     <div class="bn-stats">${st("Weeks",weeksB,"bn-num")}${st("Wins",winsB,"bn-num"+(hk>=2?" bn-hotbox":""))}${["Lead","Rhythm","Bass"].map(pn=>{const r=rk[pn]; return st(`<em>10wk</em> ${pn==="Rhythm"?"Rhy":pn} rank`,r?`#${r.r}<i>${esc(r.lv.slice(0,3))}</i>`:"–",r&&r.r<=3?"bn-r"+r.r:"")}).join("")}</div></div>
