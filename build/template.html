@@ -66,6 +66,7 @@ header.top{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-end;justify-con
   #sitetitle .hearts i{animation:heartup 3.4s ease-out infinite}#sitetitle .hearts i:nth-child(2){left:60%;animation-delay:1.7s}
   #sitetitle .clover{animation:rock 3s ease-in-out infinite;transform-origin:50% 90%}
   #sitetitle .chick{animation:hop 1.6s ease-in-out infinite}
+  #sitetitle .clown{animation:clownin .5s cubic-bezier(.3,1.6,.5,1) both}
   #sitetitle .cat{animation:catwalk 5s ease-out 1 both}
 }
 @keyframes snowfall{0%{transform:translateY(0) rotate(0);opacity:0}10%{opacity:.9}100%{transform:translateY(2.6em) rotate(180deg);opacity:0}}
@@ -73,6 +74,7 @@ header.top{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-end;justify-con
 @keyframes spark{0%{transform:translate(0,0) scale(.3);opacity:0}10%{opacity:1}60%{transform:translate(var(--dx),var(--dy)) scale(1);opacity:0}100%{opacity:0}}
 @keyframes heartup{0%{transform:translateY(0) scale(.6);opacity:0}15%{opacity:1}100%{transform:translateY(-1.4em) scale(1);opacity:0}}
 @keyframes rock{0%,100%{transform:rotate(-8deg)}50%{transform:rotate(8deg)}}
+@keyframes clownin{from{transform:scale(0) rotate(-30deg)}to{transform:scale(1) rotate(0)}}
 @keyframes hop{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-.18em)}}
 @keyframes catwalk{0%{transform:translateX(3.5em);opacity:0}10%{opacity:1}80%{transform:translateX(0)}100%{transform:translateX(0)}}
 @media (prefers-reduced-motion:no-preference){
@@ -2412,7 +2414,7 @@ document.addEventListener("click",e=>{const b=e.target.closest("[data-hlcopy]");
     easter:()=>[T+`<span class="deco chick" aria-hidden="true">🐣</span>`,"Happy Easter!"],
     halloween:()=>[T+`<span class="deco boo" aria-hidden="true">👻</span>`,"Happy Halloween!"]};
   if(!D[pick])return; const [html,tt]=D[pick](); h.innerHTML=html; h.title=tt; h.classList.add("deco-"+pick);
-  if(pick==="fools")setTimeout(()=>{const u=h.querySelector(".afl"); if(u){u.classList.add("fix"); setTimeout(()=>{u.textContent="a"; u.classList.remove("fix"); u.style.color="inherit"},260)}},2600)})();   // (the title corrects itself)
+  if(pick==="fools")setTimeout(()=>{const u=h.querySelector(".afl"); if(u){u.classList.add("fix"); setTimeout(()=>{u.textContent="a"; u.classList.remove("fix"); u.style.color="inherit"; h.insertAdjacentHTML("beforeend",`<span class="deco clown" title="April Fools! The title said \u201cChumpionship\u201d for a moment">🤡</span>`)},260)}},2600)})();   // (the title corrects itself)
 function showPlayer(name){
   const p=byName[name];
   if(!p){$("pcard").innerHTML=`<div class="empty">No player named “${esc(name)}”. Pick a name from the list as you type.</div>`;return}
