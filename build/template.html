@@ -704,6 +704,7 @@ a.dl svg,.offpill svg{width:11px;height:11px}
 .hlbox .hlsel{margin-left:8px}.hlbox pre{white-space:pre-wrap;background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:10px 12px;font:500 .84rem/1.45 var(--f-body);max-height:360px;overflow:auto;margin:8px 0}
 .fwgo{color:var(--fg);font-weight:700;text-decoration:underline dotted;cursor:pointer}
 .fwtry{margin:10px 0 2px;font-size:.86rem}.fwtry b{color:var(--pc)}
+.fwjan{border-left:3px solid var(--s-orange);background:var(--panel2);border-radius:6px;padding:7px 10px;font-size:.88rem;margin:6px 0}
 .fwnudge{border-left:3px solid var(--pc);background:var(--panel2);border-radius:6px;padding:7px 10px;margin:12px 0;font-size:.88rem}.fwnudge b{color:var(--pc)}
 .plead{margin-top:14px}.pc>.plead{grid-column:1/-1;margin-top:-4px}   /* profiles: medal leader runs full width under both columns */
 .plh{font:700 .78rem var(--f-display);letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin-bottom:6px}
@@ -2154,6 +2155,7 @@ function fwHostSection(){const tw=TW_MAX, rows=[];
     rows.push({n,W,last,paths,todo})});
   rows.sort((a,b)=>b.last-a.last||a.W[0]-b.W[0]);
   return `<div class="acctsec fwhost"><h3>Newcomers <small>${rows.length} in their first ${FW_MAX} weeks, played in the last 8</small></h3>
+    ${(()=>{const d=WEEKS[TW_MAX-1]; return d&&d[1].slice(5,7)==="01"?`<p class="fwjan">January is when most new players arrive (about 40% more than an average month), and January's newcomers are the least likely to stick around: a quick welcome matters most right now.</p>`:""})()}
     <p class="dim">Each of these players sees a First weeks panel on their profile with the next steps below (and, in Your week, a "try" link to this week's challenge on a path they haven't played yet). A welcome, a word of encouragement or an answer to a question from a host goes a long way: new players who play a second week and try a second path are the ones who stay.</p>
     ${rows.length?`<ul class="alist">${rows.map(r=>`<li><span class="fwhn" data-fwp="${esc(r.n)}" title="Open ${esc(r.n)}'s profile">${esc(r.n)}</span><span class="dim">week ${r.W.length} · since Week ${r.W[0]} · last played Week ${r.last} · ${r.paths.map(pi=>`<b style="color:${PATH_C[pi]}">${PATHS[pi]}</b>`).join(" ")}</span><span class="fwhs">${r.todo.length?"Shown next: "+r.todo.join(" · "):"All first steps done"}</span></li>`).join("")}</ul>`:`<p class="dim">No newcomers right now.</p>`}</div>`}
 document.addEventListener("click",e=>{const b=e.target.closest("[data-fwp]"); if(!b)return; const n=b.dataset.fwp; if(!byName[n])return; const d=$("acct"); if(d&&d.open)d.close(); showView("players"); showPlayer(n); $("pcard").closest("section").scrollIntoView({block:"start"})});
@@ -2246,7 +2248,11 @@ function hlText(w){eloBuild(); const I=sbIx(), L=[], played=Object.keys(I.wk).fi
     if(g.length)el.push(`${PATHS[pi]}: ${g.map(x=>`${x.n} +${Math.round(x.d)}`).join(", ")}`)}); if(el.length)L.push(`Biggest Elo gains: ${el.join(" · ")}`);
   const nw=played.filter(k=>{const W=I.wk[k]; return W.length===2&&W[1]===w}).map(nm); if(nw.length)L.push(`One more time (back for a second week): ${nw.join(", ")}`);
   const ht=played.filter(k=>{const W=I.wk[k], i=W.indexOf(w); if(i<2||W[i-1]!==w-1||W[i-2]!==w-2)return false; return !(i>=3&&W[i-3]===w-3)&&W.length<=FW_MAX}).map(nm); if(ht.length)L.push(`Hat trick (first three weeks in a row): ${ht.join(", ")}`);
-  return `Week ${w} highlights\n\n${L.map(x=>"• "+x).join("\n")||"• Nothing to highlight yet."}`}
+  // the last week of a season: announce the new one, with the champions of the one just finished
+  let head=""; const sNow=seasonOf(w), sNext=seasonOf(w+1);
+  if(sNow&&sNext&&sNow!==sNext){const ch=[0,1,2].map(pi=>{const T=qSeasonTable(pi,sNow); const c=["M","A","I","B"].filter(c=>T[c]&&T[c].length).map(c=>`${TIER_NAME[c]} ${T[c][0].n} (${T[c][0].d>=0?"+":"−"}${Math.abs(Math.round(T[c][0].d))})`); return c.length?`${PATHS[pi]}: ${c.join(", ")}`:""}).filter(Boolean);
+    head=`🏁 A new season starts this week: ${sNext}! Everyone starts the race level: the biggest Elo gain in each class wins, so new players can take it from their very first week.${ch.length?`\n${sNow} champions · ${ch.join(" · ")}`:""}\n\n`}
+  return `Week ${w} highlights\n\n${head}${L.map(x=>"• "+x).join("\n")||"• Nothing to highlight yet."}`}
 function hlSection(){const ws=[]; for(let w=ELO_DONE;w>ELO_DONE-6&&w>0;w--)if(SB.weeks[w])ws.push(w); const w=ACCT.hlWeek&&ws.includes(ACCT.hlWeek)?ACCT.hlWeek:ws[0]; if(!w)return "";
   return `<div class="acctsec hlbox"><h3>Weekly highlights <select class="hlsel" data-hlweek>${ws.map(x=>`<option value="${x}"${x===w?" selected":""}>Week ${x}</option>`).join("")}</select></h3>
     <p class="dim">New players, welcome backs, rank-ups, first 95% scores, new best hardest ratings, the biggest Elo gains and newcomers' milestones, ready to copy into your weekly post.</p><pre id="hltext">${esc(hlText(w))}</pre><div class="row"><button type="button" class="btn ghost" data-hlcopy>Copy</button></div></div>`}
