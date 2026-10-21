@@ -2349,7 +2349,7 @@ function renderSeason(){const el=$("season-box"); if(!el)return; eloBuild(); con
   const [a,b]=seasonRange(id), done=Math.min(b,ELO_DONE)-a+1, len=b-a+1;
   $("season-pick").innerHTML=L.slice().reverse().map(x=>`<option value="${x}"${x===id?" selected":""}>${x}</option>`).join("");
   $("season-num").textContent=`Season ${seasonNum(id)}`;
-  $("season-sub").innerHTML=`Weeks ${a}–${b} · ${live?`week ${done} of ${len} · ends after Week ${b}${WEEKS[b-1]?" ("+fmt(WEEKS[b-1][1])+")":""}`:"final standings"} · season points in each class, plus the most improved in each class <span class="elohelp" data-tip="${esc(SEASON_TIP)}">ⓘ</span>`;
+  $("season-sub").innerHTML=`Weeks ${a}–${b} · ${live?`week ${done} of ${len} · ends after Week ${b}${WEEKS[b-1]?` (week starts on ${fmt(WEEKS[b-1][1])} and ends on ${fmt(WEEKS[b]?WEEKS[b][1]:new Date(Date.parse(WEEKS[b-1][1]+"T12:00Z")+7*864e5).toISOString().slice(0,10))})`:""}`:"final standings"} · season points in each class, plus the most improved in each class <span class="elohelp" data-tip="${esc(SEASON_TIP)}">ⓘ</span>`;
   $("season-bar").innerHTML=`<div class="swk">${Array.from({length:len},(_,i)=>{const w=a+i, fin=w<=ELO_DONE, now=!fin&&w===TW_MAX, go=w<=TW_MAX||w===TW_NEXT, dt=WEEKS[w-1]?" · "+fmt(WEEKS[w-1][1]):"";
     return `<${go?"button":"span"} class="swb${fin?" fin":now?" cur":""}"${go?` data-sw="${w}"`:""} data-tip="${esc(`Week ${w}${dt} · ${fin?"finished":now?"this week":w===TW_NEXT?"next week":"to go"}${go?"\nClick to open it in This Week":""}`)}"><small>${i+1}</small></${go?"button":"span"}>`}).join("")}</div>`;
   const SCLS=["M","A","I","B"].filter(c=>[0,1,2].some(pi=>{const T=seasonF1(pi,id), M=seasonImproved(pi,id); return (T[c]&&T[c].length)||M[c]}));
