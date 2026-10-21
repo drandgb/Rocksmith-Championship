@@ -2235,10 +2235,12 @@ function wbPanel(n){const B=wbInfo(n); if(!B)return ""; const k=eloKey(n);
 // Seasons: calendar quarters; the season's biggest Elo gains in each class (10+ games that season)
 const SEASON_MIN=10;
 // seasons are offset a month from the calendar quarters (Feb–Apr, May–Jul, Aug–Oct, Nov–Jan), so they don't end with most workplaces' quarter-end crunch
-function seasonOf(w){const d=WEEKS[w-1]&&WEEKS[w-1][1]; if(!d)return null; const y=+d.slice(0,4), m=+d.slice(5,7), q=Math.floor(((m+10)%12)/3), sy=m===1?y-1:y;
+var SEAS_OF=[], SEAS_RNG={}, SEAS_TAB={};   // (worked out once: they're asked for a lot)
+function seasonOf(w){if(SEAS_OF[w]!==undefined)return SEAS_OF[w]; return SEAS_OF[w]=seasonOf0(w)}
+function seasonOf0(w){const d=WEEKS[w-1]&&WEEKS[w-1][1]; if(!d)return null; const y=+d.slice(0,4), m=+d.slice(5,7), q=Math.floor(((m+10)%12)/3), sy=m===1?y-1:y;
   return ["Feb–Apr ","May–Jul ","Aug–Oct ",""][q]+(q===3?`Nov ${sy}–Jan ${sy+1}`:sy)}
-function seasonRange(id){let a=null,b=null; for(let w=1;w<=WEEKS.length;w++)if(seasonOf(w)===id){if(a==null)a=w; b=w} return [a,b]}
-function qSeasonTable(pi,id){eloBuild(); const [a,b]=seasonRange(id), end=Math.min(b,ELO_DONE), out={};
+function seasonRange(id){if(SEAS_RNG[id])return SEAS_RNG[id]; let a=null,b=null; for(let w=1;w<=WEEKS.length;w++)if(seasonOf(w)===id){if(a==null)a=w; b=w} return SEAS_RNG[id]=[a,b]}
+function qSeasonTable(pi,id){eloBuild(); if(SEAS_TAB[pi+"|"+id])return SEAS_TAB[pi+"|"+id]; const [a,b]=seasonRange(id), end=Math.min(b,ELO_DONE), out=SEAS_TAB[pi+"|"+id]={};
   Object.keys(ELO[pi].hist).forEach(n=>{const h=ELO[pi].hist[n]; let x1=null,x0=null; for(const e of h){if(e[0]<a)x0=e; else if(e[0]<=end)x1=e; else break}
     if(!x1)return; const g=x1[2]-(x0?x0[2]:0); if(g<SEASON_MIN||!x1[3])return; const r1=eloAt(pi,n,end), r0=x0?eloAt(pi,n,a-1):null;
     const d=r1[1]-(r0?r0[1]:eloStart(pi,n)); (out[x1[3]]=out[x1[3]]||[]).push({n,d,g,v:r1[1]})});
@@ -2258,7 +2260,7 @@ function renderSeason(){const el=$("season-box"); if(!el)return; eloBuild(); con
     return `<div class="elocol" style="--pc:${PATH_C[pi]}"><h3>${PATHS[pi]}</h3>${cls||`<p class="dim">No one with ${SEASON_MIN}+ games yet.</p>`}</div>`}).join("");
   // every finished season's champions, counted per player
   const fin=L.filter(x=>seasonRange(x)[1]<=ELO_DONE), by={};
-  fin.forEach(x=>[0,1,2].forEach(pi=>{const T=qSeasonTable(pi,x); ["M","A","I","B"].forEach(c=>{const w=T[c]&&T[c][0]; if(w)(by[w.n]=by[w.n]||[]).push({s:x,pi,c})})}));
+  seasonChamps().forEach(x=>(by[x.n]=by[x.n]||[]).push(x));
   const rows=Object.entries(by).sort((a,b)=>b[1].length-a[1].length||a[0].localeCompare(b[0],undefined,{sensitivity:"base"}));
   $("season-tsub").textContent=`${fin.length} finished season${fin.length===1?"":"s"} · ${rows.length} champions · most class titles first${rows.length>10?" · scroll for more":""}`;
   $("season-titles").innerHTML=rows.length?`<ol class="seastitles">${rows.map(([n,t],i)=>`<li><span class="er">${t.length}×</span><span class="nm" data-profile="${esc(n)}" style="cursor:pointer">${esc(n)}</span><span class="stl">${t.slice().reverse().map(x=>`<span class="pill hol" style="--pc:${PATH_C[x.pi]}">${x.s} · ${PATHS[x.pi]} ${TIER_NAME[x.c]}</span>`).join("")}</span></li>`).join("")}</ol>`:`<p class="dim">No finished seasons yet.</p>`;
@@ -2795,7 +2797,17 @@ function masteryWeeks(name,done,path=-1){
 var mastN=0;
 function masterySvg(col){const id="mst"+(++mastN); let d=""; for(let i=0;i<10;i++){const a=-Math.PI/2+i*Math.PI/5, r=i%2?3.4:7.6; d+=(i?"L":"M")+(15+r*Math.cos(a)).toFixed(2)+" "+(15.6+r*Math.sin(a)).toFixed(2)}
   return `<svg viewBox="0 0 30 30" aria-hidden="true"><defs><radialGradient id="${id}" cx=".35" cy=".28" r=".85"><stop offset="0" stop-color="${col==="#d4202c"?"#ffd2c8":"#fff"}"/><stop offset=".45" stop-color="${col}" stop-opacity="${col==="#d4202c"?".8":".55"}"/><stop offset="1" stop-color="${col}"/></radialGradient></defs><circle cx="15" cy="15" r="12.6" fill="url(#${id})"/><circle cx="15" cy="15" r="12.6" fill="none" stroke="#fff" stroke-opacity=".55" stroke-width="1"/><path d="${d}Z" fill="#fff"/><path d="M7.6 10.4a8.6 8.6 0 0 1 5-4.4" stroke="#fff" stroke-opacity=".8" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg>`}
-function winMedals(per,done,bestN,streak,total,trip,ties,pod,rivw,unc){
+// season champion trophies: one per class, the count is how many seasons they won it (on any path); the season's last week lights up
+var SEASON_CHAMPS=null;
+function seasonChamps(){if(SEASON_CHAMPS)return SEASON_CHAMPS; eloBuild(); const out=[];
+  seasonList().forEach(id=>{const b=seasonRange(id)[1]; if(b>ELO_DONE)return; [0,1,2].forEach(pi=>{const T=qSeasonTable(pi,id); ["M","A","I","B"].forEach(c=>{const x=T[c]&&T[c][0]; if(x)out.push({n:x.n,k:x.n.toLowerCase(),s:id,pi,c,end:b,d:x.d})})})});
+  return SEASON_CHAMPS=out}
+function seasonCupSvg(col){return trophySvg(col).replace("</svg>",'<path d="M14 4.4l1.1 2.3 2.5.3-1.8 1.7.5 2.5-2.3-1.2-2.3 1.2.5-2.5-1.8-1.7 2.5-.3z" fill="#fff" opacity=".92"/></svg>')}
+function seasonTrophies(name,done,path){const ds=new Set(done), k=String(name).toLowerCase();
+  const T=seasonChamps().filter(x=>x.k===k&&ds.has(x.end)&&(path==null||path<0||x.pi===path));
+  return ["M","A","I","B"].map(c=>{const t=T.filter(x=>x.c===c); if(!t.length)return ""; const ws=t.map(x=>x.end);
+    return `<span class="medal-m wm" style="--ec:${TIER_C[c]};cursor:pointer" data-all="${ws.join(",")}" data-hl="${[...new Set(ws)].join(",")}" data-tip="${TIER_NAME[c]} season champion · the biggest Elo gain among ${TIER_NAME[c]} players on a path over a whole season · ${t.length} time${t.length===1?"":"s"} · click to highlight${esc("\n\n"+t.slice().reverse().map(x=>`• ${x.s} · ${PATHS[x.pi]} (${x.d>=0?"+":"−"}${Math.abs(Math.round(x.d))} Elo)`).join("\n"))}">${seasonCupSvg(TIER_C[c])}<b>${t.length}</b></span>`}).filter(Boolean)}
+function winMedals(per,done,bestN,streak,total,trip,ties,pod,rivw,unc,sea){
   const rows=[], asc=done.slice().sort((a,b)=>a-b), rec=w=>w?` (collected Week ${w})`:"";
   const mk=(svg,num,tip)=>{const c=(svg.match(/fill="(#[0-9a-fA-F]{6})"/)||[])[1]||"#4fd6ff";return `<span class="medal-m wm" style="--ec:${c}" data-tip="${tip}">${svg}<b>${num}</b></span>`};
   const firstK=k=>asc.find(w=>per[w][1]>=k);
@@ -2812,7 +2824,8 @@ function winMedals(per,done,bestN,streak,total,trip,ties,pod,rivw,unc){
   // Uncrowned (1st), then silver and bronze: places reached while playing up, which can't be claimed from a lower class
   (unc||[]).forEach((ws,i)=>{if(!ws||!ws.length)return; const what=["had the best score","finished 2nd","finished 3rd"][i];
     xr.push(`<span class="medal-m wm" style="--ec:${UNC_GLOW[i]};cursor:pointer" data-all="${ws.join(",")}" data-hl="${[...new Set(ws)].sort((a,b)=>a-b).join(",")}" data-tip="${UNC_NAME[i]} · ${what} on a board, counting everyone not playing down, while playing up from a lower class (only players in that class can claim the place) · ${ws.length} time${ws.length===1?"":"s"} · click to highlight">${uncrownSvg(UNC_COL[i])}<b>${ws.length}</b></span>`)});
-  // God diamonds get their own row first, then the gold, silver and bronze medals
+  // season champion trophies first, then God diamonds, then the gold, silver and bronze medals
+  if(sea&&sea.length)rows.push(sea);
   if(P.god.length)rows.push(P.god);
   if(P.reg.length)rows.push(P.reg);
   if(tc.length||xr.length)rows.push([...tc,...xr]); // triple crown leads the row with close wins and rivalry wins
@@ -2887,7 +2900,7 @@ function showWinner(name){
       <div class="golinks"><button type="button" class="clear" data-profile="${esc(name)}">Open player profile ›</button>${hosts[name]?`<button type="button" class="clear" data-gohost="${esc(name)}">Open host profile ›</button>`:""}</div>
     </div>
     <div style="min-width:0">
-      ${winMedals(per,doneAll,A.best?per[A.best][1]:0,A.bestRun,v?v[1]:0,A.trip,A.ties,podiumCounts(name,doneAll,wPath),rivalryWins(name,doneAll,wPath),[0,1,2].map(i=>uncrownedWins(name,doneAll,wPath,i)))}
+      ${winMedals(per,doneAll,A.best?per[A.best][1]:0,A.bestRun,v?v[1]:0,A.trip,A.ties,podiumCounts(name,doneAll,wPath),rivalryWins(name,doneAll,wPath),[0,1,2].map(i=>uncrownedWins(name,doneAll,wPath,i)),(()=>{try{return seasonTrophies(name,doneAll,wPath)}catch(e){return []}})())}
       <div class="scroll"><div class="pres wpres${wYear?" yf":""}" id="wpres">${grid}</div></div>
       <div class="pres-legend wleg">${[["var(--wg1)","1 win",w=>per[w][1]===1],["var(--wg2)","2 wins",w=>per[w][1]===2],["var(--wg3)","3+ wins",w=>per[w][1]>=3],["#3a4254","Played, no win",w=>per[w][0]&&!per[w][1]],["repeating-linear-gradient(45deg,var(--lost) 0 2px,var(--panel2) 2px 4px)","Didn't play",w=>!per[w][0]]].map(([bg,lab,f])=>{const ws=doneAll.filter(f);return `<span${ws.length?` data-hl="${ws.join(",")}" title="Click to highlight these ${ws.length} week${ws.length===1?"":"s"}"`:""}><i class="sw" style="background:${bg}"></i>${lab}</span>`}).join("")}<span><i class="sw" style="background:repeating-linear-gradient(-45deg,color-mix(in srgb,var(--s-blue) 80%,transparent) 0 2px,var(--panel2) 2px 4px)"></i>This week</span></div>
       <div class="preshint">Tip: click a year on the left of the grid to filter the stats to that year; click it again to show all years.</div>
@@ -3650,7 +3663,7 @@ function allMedalsHtml(name){
     let best=null; done.forEach(w=>{if(per[w][1]>0&&(!best||per[w][1]>per[best][1]))best=w});
     let run=0,bestRun=0; done.slice().sort((a,b)=>a-b).forEach(w=>{run=per[w][1]>0?run+1:0; if(run>bestRun)bestRun=run});
     const ties=[]; done.forEach(w=>(SB.weeks[w]||[]).forEach(card=>{if(card[7])return;const el=card[6].filter(x=>canWin(x)); if(el.length<2)return; if(SB.names[el[0][0]].replace(/[*~]+$/,"")!==name)return; if(Math.round((el[0][1]-el[1][1])*100)===0)ties.push(w)}));
-    const v=wv(name,-1), m=winMedals(per,done,best?per[best][1]:0,bestRun,v?v[1]:0,tripleWeeks(name,done),ties,podiumCounts(name,done),rivalryWins(name,done),[0,1,2].map(i=>uncrownedWins(name,done,-1,i)));
+    const v=wv(name,-1), m=winMedals(per,done,best?per[best][1]:0,bestRun,v?v[1]:0,tripleWeeks(name,done),ties,podiumCounts(name,done),rivalryWins(name,done),[0,1,2].map(i=>uncrownedWins(name,done,-1,i)),(()=>{try{return seasonTrophies(name,done,-1)}catch(e){return []}})());
     if(m)html+=`<div class="ms">Win medals</div>${m}`;
   }
   return medalCache[name]=html;
@@ -3869,7 +3882,7 @@ const mlCmp=(a,b)=>b.v-a.v||(b.t||0)-(a.t||0)||a.n.localeCompare(b.n,undefined,{
 const mlSame=(a,b)=>a.v===b.v&&(a.t||0)===(b.t||0);
 const mlVal=(r,k)=>`${r.v}${k.unit}${r.t>1?` ×${r.t}`:""}`;
 // plain descriptions for the medals whose own hover text is all about one player's numbers
-const ML_DESC={"Still got it":"scored 100% again on a challenge they'd scored 100% on the last time they played it · ranked by how many times","Harder, Better, Faster, Stronger":"beat their own score from the last time they played the same challenge (a higher %, then a longer note streak, then a higher score) · ranked by how many times","Kintsugi gem":"played every week from joining until the first missed week, then mended with gold on coming back · ranked by how many weeks that first unbroken run lasted",
+const ML_DESC={"Masterclass season champion":"won a season's biggest Elo gain among Masterclass players on a path · ranked by how many seasons","Advanced season champion":"won a season's biggest Elo gain among Advanced players on a path · ranked by how many seasons","Intermediate season champion":"won a season's biggest Elo gain among Intermediate players on a path · ranked by how many seasons","Beginner season champion":"won a season's biggest Elo gain among Beginner players on a path · ranked by how many seasons","Still got it":"scored 100% again on a challenge they'd scored 100% on the last time they played it · ranked by how many times","Harder, Better, Faster, Stronger":"beat their own score from the last time they played the same challenge (a higher %, then a longer note streak, then a higher score) · ranked by how many times","Kintsugi gem":"played every week from joining until the first missed week, then mended with gold on coming back · ranked by how many weeks that first unbroken run lasted",
   "Perfect gem":"played every week since joining, never missing one · ranked by weeks so far",
   playstreak:"most weeks played in a row",years:"time since first joining the championship",
   winstreak:"most weeks in a row winning at least one challenge",bestweek:"the most challenges won in a single week · ×N is how many weeks they did it, which breaks ties",
@@ -3879,7 +3892,7 @@ const mlSbNote=()=>`Counted from scoreboards since Week ${SB_W[0]} (earlier week
 const mlFromSb=(kind,key)=>kind==="win"||/^(Played guitar|Played bass|Catch ‘em all|Lead completionist|Rhythm completionist|Bass completionist|Harder, Better, Faster, Stronger|Still got it|Perfect God medal)$| perfectionist$/.test(key);
 function mlRender(kind){const acc=ML[kind].acc, link=kind==="win"?"data-gowin":kind==="host"?"data-gohost":"data-goplayer";
   // fixed order, like the medal rows: God diamonds, gold/silver/bronze (Lead, Rhythm, Bass), then the rest
-  const ORDER=["Gold God diamond","Silver God diamond","Bronze God diamond","Gold medal","Silver medal","Bronze medal","Triple crown","Close win medal","Rivalry win","Uncrowned","Uncrowned silver","Uncrowned bronze","Most wins in one week","Longest win streak",
+  const ORDER=["Masterclass season champion","Advanced season champion","Intermediate season champion","Beginner season champion","Gold God diamond","Silver God diamond","Bronze God diamond","Gold medal","Silver medal","Bronze medal","Triple crown","Close win medal","Rivalry win","Uncrowned","Uncrowned silver","Uncrowned bronze","Most wins in one week","Longest win streak",
     "Years in the championship","Longest play streak","Perfect gem","Kintsugi gem","Played guitar","Played bass","Catch ‘em all","Lead completionist","Rhythm completionist","Bass completionist","Harder, Better, Faster, Stronger","Still got it","Beginner perfectionist","Intermediate perfectionist","Advanced perfectionist","Masterclass perfectionist","Perfect God medal","God tier perfectionist",
     "Most weeks hosted","Longest hosting streak"];
   const ordOf=k=>{const [base,path]=k.label.split(" · "); const i=ORDER.indexOf(base); return (i<0?999:i)*4+(path?PATHS.indexOf(path)+1:0)};
@@ -4123,6 +4136,8 @@ function twMedals(n,w,live){
     else if(/^Close win/.test(t))from=fin.filter(x=>x.place===0&&x.tie);
     else if(/^Harder, Better, Faster, Stronger/.test(t))from=hbfsWins(n,[w]).map(x=>({c:x.c,god:/^god|tribute/i.test(x.c[2]),gain:` · Week ${x.ow}: ${hbfsGain(x)}`}));
     else if(/^Still got it/.test(t))from=sgaWins(n,[w]).map(x=>({c:x.c,god:/^god|tribute/i.test(x.c[2]),gain:` · 100% in Week ${x.ow} too`}));
+    else if(/season champion/.test(t)){const c=Object.keys(TIER_NAME).find(x=>t.startsWith(TIER_NAME[x])); const ws=seasonChamps().filter(x=>x.k===String(n).toLowerCase()&&x.end===w&&x.c===c);
+      if(ws.length)t=`${TIER_NAME[c]} season champion · ${ws.map(x=>`${x.s} · ${PATHS[x.pi]} (${x.d>=0?"+":"−"}${Math.abs(Math.round(x.d))} Elo)`).join(", ")}`}
     else if(/-win week trophy/.test(t))from=fin.filter(x=>x.place===0);
     else if(/^Uncrowned/.test(t)){const key=String(n).toLowerCase(), pos=/^Uncrowned silver/.test(t)?1:/^Uncrowned bronze/.test(t)?2:0;
       (SB.weeks[w]||[]).forEach(c=>{if(c[7])return; const e=c[6].filter(x=>x[4]>=0)[pos];
