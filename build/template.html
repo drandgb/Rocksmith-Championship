@@ -3505,7 +3505,7 @@ function hrAt(s,w){let v=null; for(const e of s){if(e[0]>w)break; if(e[1]!=null)
 // profile rows: the rating now (6-month window), the change over a year and the typical player on that path
 function hrProfile(n){const H=hrBuild(), w1=H.w1;
   const rows=[0,1,2].map(pi=>{const s=hrSeries(n,pi,26); if(!s.length)return ""; const last=s.filter(e=>e[1]!=null).pop(), now=last[1], old=last[0]>w1-52?hrAt(s,last[0]-52):null, d=old==null?null:now-old, typ=hrAt(hrPool(pi,26),last[0]);
-    const dd=d==null?`<small data-tip="Less than a year of scores on this path">new</small>`:Math.abs(d)<.05?"–":d<0?"":`<span class="up">▲${d.toFixed(1)}</span>`;   // drops are never shown
+    const dd=d==null?`<small data-tip="Less than a year of scores on this path">new</small>`:Math.abs(d)<.05?"–":`<span class="${d>0?"up":"dn"}">${d>0?"▲":"▼"}${Math.abs(d).toFixed(1)}</span>`;
     return `<li style="--pc:${PATH_C[pi]}"><span class="nwp">${PATHS[pi]}</span><b class="nwv">${now.toFixed(1)}</b><span class="nwd" data-tip="Change over the last year">${dd}</span><span class="nwr"><small data-tip="The typical ${PATHS[pi]} player${last[0]<w1?` in Week ${last[0]}, your last week with enough scores`:""}">${last[0]<w1?`Week ${last[0]} · `:""}typical ${typ!=null?typ.toFixed(1):"–"}</small></span></li>`}).join("");
   // just the year-by-year table now (the current-rating rows were dropped: its last column says the same)
   const yrs=rows?hrYears(n):""; return yrs?`<div class="pcwide nwelo pelo hrrows">${yrs}</div>`:""}
@@ -3513,9 +3513,9 @@ function hrProfile(n){const H=hrBuild(), w1=H.w1;
 function hrYears(n){const H=hrBuild(), first=[], by=[0,1,2].map(pi=>{const m={}; hrSeries(n,pi).forEach(e=>{if(e[1]==null)return; if(!first[pi])first[pi]=e; m[yearOfWeek(e[0])]=e[1]}); return m});
   const Y=[...new Set(by.flatMap(m=>Object.keys(m)))].sort(); if(!Y.length)return "";
   const nowY=String(yearOfWeek(H.w1)), paths=[0,1,2].filter(pi=>first[pi]);
-  const chg=(d,from)=>d==null?`<span class="hry-eq"></span>`:Math.abs(d)<.05?`<span class="hry-eq">±0</span>`:d<0?`<span class="hry-eq"></span>`:`<span class="up">▲${d.toFixed(1)}</span>`;   // drops are never shown
+  const chg=(d,from)=>d==null?`<span class="hry-eq"></span>`:Math.abs(d)<.05?`<span class="hry-eq">±0</span>`:`<span class="${d>0?"up":"dn"}">${d>0?"▲":"▼"}${Math.abs(d).toFixed(1)}</span>`;
   const cell=(pi,y,i)=>{const v=by[pi][y]; if(v==null)return `<td><b class="hry-eq">–</b><span class="hry-eq"></span></td>`;
-    let pv=null, from=null; for(let k=i-1;k>=0;k--)if(by[pi][Y[k]]!=null){pv=by[pi][Y[k]]; from=Y[k]; break} const d=pv==null?null:v-pv, tipT=`${PATHS[pi]} ${y===nowY?"now":"at the end of "+y}: ${v.toFixed(1)}`+(d==null?"":Math.abs(d)<.05?` (same as ${from})`:d<0?"":` (up ${d.toFixed(1)} from ${from})`);
+    let pv=null, from=null; for(let k=i-1;k>=0;k--)if(by[pi][Y[k]]!=null){pv=by[pi][Y[k]]; from=Y[k]; break} const d=pv==null?null:v-pv, tipT=`${PATHS[pi]} ${y===nowY?"now":"at the end of "+y}: ${v.toFixed(1)}`+(d==null?"":Math.abs(d)<.05?` (same as ${from})`:` (${d>0?"up":"down"} ${Math.abs(d).toFixed(1)} from ${from})`);
     return `<td data-tip="${esc(tipT)}"><b>${v.toFixed(1)}</b>${chg(d)}</td>`};
   return `<div class="hryears"><div class="nwelo-h">Hardest rating you score 95% on <span class="elohelp" data-tip="${esc(HR_TIP)}">ⓘ</span> <span class="pelo-sub">at each year's end</span></div><div class="hry-scroll"><table><tr><th></th>${Y.map(y=>`<th>${y}${y===nowY?"<small> so far</small>":""}</th>`).join("")}</tr>${paths.map(pi=>`<tr style="--pc:${PATH_C[pi]}"><td>${PATHS[pi]}</td>${Y.map((y,i)=>cell(pi,y,i)).join("")}</tr>`).join("")}</table></div></div>`}
 function hrChart(n,opt){opt=opt||{}; const H=hrBuild(), w1=H.w1, win=+opt.win||26, rng=opt.r||"all", hid=opt.h||"";
