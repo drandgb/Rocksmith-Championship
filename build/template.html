@@ -2913,12 +2913,13 @@ const ARR_CODES=["L","R","B","BL","BR","BB","AL","AR","AB"];
 // ---------- Elo ratings: head-to-head on the same challenge, like chess (one rating per path) ----------
 // every pair of players on a challenge is a game: the higher % wins, then the longer note streak, then the higher score;
 // equal on all three is a draw. FIDE-style: a new player starts at their class's base (ELO_BASE), a game moves a rating by
-// at most 40 points for the first 30 games, then 20, then 10 from 2100 up (ELO_K); a rank change moves the rating by the gap
-// between the class bases (gaps measured from players playing up against a class's regulars). Weeks are
+// at most 40 points for the first 30 games, then 20, then 10 from 2100 up (ELO_K). Entries playing up don't count (so trying
+// a harder class never costs points); playing down does. Below Masterclass, own-class wins can't lift a rating past the next
+// class's base (ELO_CAP), so nobody out-rates a higher class just by beating their own; a rank change doesn't move it. Weeks are
 // played in order from the first scoreboard; a multi-week God challenge counts at the end of its run (the week in
 // progress counts provisionally). Ratings with fewer than 20 games are provisional ("new").
 var ELO=null, ELO_MIN=20, ELO_LIVE=null, ELO_DONE=null;
-const ELO_BASE={B:1200,I:1400,A:1650,M:1950};
+const ELO_BASE={B:1400,I:1600,A:1850,M:2150}, ELO_CAP={B:1600,I:1850,A:2150};
 function ELO_K(r,g){return g<30?40:r>=2100?10:20}
 // rating levels, named like chess (US Chess classes up to FIDE titles); shown beside ratings and as bands on the Elo chart
 const ELO_BANDS=[[2100,"Grandmaster","#f5c84a"],[2000,"International Master","#ff8fb0"],[1800,"Master","#b277ff"],[1600,"Expert","#6aa8ff"],[1400,"Class A","#5ec4b6"],[1200,"Class B","#9fb6c8"],[-1e9,"Class C","#7e8aa3"]];
@@ -2928,14 +2929,11 @@ function eloBandTag(v){const b=eloBand(v); return `<span class="eloband" style="
 function eloStart(pi,n){return ELO&&ELO[pi].start[n]||1500}
 function eloBuild(){if(ELO)return ELO; const ws=Object.keys(SB.weeks).map(Number).sort((a,b)=>a-b), mx=ws[ws.length-1];
   ELO_LIVE=mx>DATA_WEEK?mx:null; ELO_DONE=ELO_LIVE?ELO_LIVE-1:mx;
-  const ups={}; (WR.ups||[]).forEach(u=>{if(ELO_BASE[u[2]]&&ELO_BASE[u[3]])(ups[u[4]]=ups[u[4]]||[]).push(u)});
   ELO=[0,1,2].map(pi=>{const r={}, g={}, hist={}, start={}, lc={};
     ws.forEach(w=>{const touched=new Set();
-      // rank changes this week: move the rating by the gap between the class bases
-      (ups[w]||[]).forEach(u=>{if(u[1]!==pi)return; const n=lc[String(u[0]).toLowerCase()]; if(n==null)return; r[n]+=ELO_BASE[u[3]]-ELO_BASE[u[2]]; touched.add(n)});
       (SB.weeks[w]||[]).forEach(c=>{if(c[0]!==pi||(c[7]&&w!==ELO_LIVE))return;
         const li=Math.min(3,"BIAMG".indexOf(cardLv(c[2])));
-        const es=c[6].filter(e=>e[1]!=null).map(e=>({n:pvName(e),p:e[1],s:e[2],c:e[3],own:li>=0?"BIAM"[Math.max(0,li-(+e[4]||0))]:null}));
+        const es=c[6].filter(e=>e[1]!=null&&e[4]!==1&&e[4]!==2).map(e=>({n:pvName(e),p:e[1],s:e[2],c:e[3],own:li>=0?"BIAM"[Math.max(0,li-(+e[4]||0))]:null}));   // playing up doesn't count
         es.forEach(e=>{if(r[e.n]==null){r[e.n]=start[e.n]=ELO_BASE[e.own]||1500; lc[e.n.toLowerCase()]=e.n}});   // first game: start at their class's base
         for(let i=0;i<es.length;i++)for(let j=i+1;j<es.length;j++){const a=es[i], b=es[j]; if(a.n===b.n)continue;
           const ra=r[a.n], rb=r[b.n];
@@ -2943,7 +2941,10 @@ function eloBuild(){if(ELO)return ELO; const ws=Object.keys(SB.weeks).map(Number
           if(sa==null&&a.s!=null&&b.s!=null&&a.s!==b.s)sa=a.s>b.s?1:0;
           if(sa==null&&a.c!=null&&b.c!=null&&a.c!==b.c)sa=a.c>b.c?1:0;
           if(sa==null)sa=.5;
-          const ea=1/(1+10**((rb-ra)/400)), ka=ELO_K(ra,g[a.n]||0), kb=ELO_K(rb,g[b.n]||0); r[a.n]=ra+ka*(sa-ea); r[b.n]=rb-kb*(sa-ea);
+          const ea=1/(1+10**((rb-ra)/400)), ka=ELO_K(ra,g[a.n]||0), kb=ELO_K(rb,g[b.n]||0); let na=ra+ka*(sa-ea), nb=rb-kb*(sa-ea);
+          // class ceiling: a gain can't take a player past the next class's base (losses always count)
+          const ca=ELO_CAP[a.own], cb=ELO_CAP[b.own]; if(ca&&na>ra&&na>ca)na=Math.max(ra,ca); if(cb&&nb>rb&&nb>cb)nb=Math.max(rb,cb);
+          r[a.n]=na; r[b.n]=nb;
           g[a.n]=(g[a.n]||0)+1; g[b.n]=(g[b.n]||0)+1; touched.add(a.n); touched.add(b.n)}});
       touched.forEach(n=>(hist[n]=hist[n]||[]).push([w,r[n],g[n]||0]))});
     return {hist,start}});
@@ -2956,7 +2957,7 @@ function eloTable(pi,w,keep){eloBuild(); const out=[]; Object.keys(ELO[pi].hist)
 // ranks among active players (as on the Winners page by default); an inactive player is ranked among everyone
 function eloRanks(pi,w,keep){const r={}; eloTable(pi,w,keep).forEach(([n],i)=>r[n]=i+1); return r}
 const eloKeep=n=>isActivePlayer(n)?isActivePlayer:null;
-const ELO_TIP="Elo ratings, like chess: every time two players post on the same challenge it counts as a game. The higher % wins; the same % goes to the longer note streak, then the higher score; the same on all three is a draw.\n\nFIDE-style: a new player starts at their class's level (Beginner 1200, Intermediate 1400, Advanced 1650, Masterclass 1950). A game moves a rating by at most 40 points for the first 30 games, then 20, then 10 from 2100 up. A rank change moves the rating by the gap between the classes. Beating a higher-rated player earns more than beating a lower-rated one.\n\nRating levels: Grandmaster 2100+, International Master 2000–2100, Master 1800–2000, Expert 1600–1800, Class A 1400–1600, Class B 1200–1400, Class C under 1200.\n\nOne rating per path, from every week since the scoreboards start (Week 440), in order. A rating is provisional (new) until 20 games; the rankings list players with 20 or more.";
+const ELO_TIP="Elo ratings, like chess: every time two players post on the same challenge it counts as a game. The higher % wins; the same % goes to the longer note streak, then the higher score; the same on all three is a draw.\n\nFIDE-style: a new player starts at their class's level (Beginner 1400, Intermediate 1600, Advanced 1850, Masterclass 2150). A game moves a rating by at most 40 points for the first 30 games, then 20, then 10 from 2100 up. Beating a higher-rated player earns more than beating a lower-rated one.\n\nPlaying up a class doesn't count, so trying a harder class never costs you points. Playing down does count. Below Masterclass, wins can't lift a rating past the next class's starting level (Beginner 1600, Intermediate 1850, Advanced 2150): to go higher, rank up.\n\nRating levels: Grandmaster 2100+, International Master 2000–2100, Master 1800–2000, Expert 1600–1800, Class A 1400–1600, Class B 1200–1400, Class C under 1200.\n\nOne rating per path, from every week since the scoreboards start (Week 440), in order. A rating is provisional (new) until 20 games; the rankings list players with 20 or more.";
 const eloD=d=>d?`<span class="${d>0?"up":"dn"}">${d>0?"▲":"▼"}${Math.abs(d)}</span>`:"";
 // Winners: top 10 per path (follows All / Active only), with the change over the last 10 weeks
 function renderEloBox(){const el=$("elo-box"); if(!el)return; eloBuild(); const w=ELO_DONE;
