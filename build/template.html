@@ -2918,6 +2918,10 @@ const ARR_CODES=["L","R","B","BL","BR","BB","AL","AR","AB"];
 // class's base (ELO_CAP), so nobody out-rates a higher class just by beating their own; a rank change doesn't move it. Weeks are
 // played in order from the first scoreboard; a multi-week God challenge counts at the end of its run (the week in
 // progress counts provisionally). Ratings with fewer than 20 games are provisional ("new").
+// a player's own class that week: from the card and their flag (own class or playing up), or, when they're playing down
+// (the flag doesn't say how far), from their rank history
+function eloOwn(e,c,w,pi,li){if(li<0)return null; const f=+e[4]||0; if(f>=0)return "BIAM"[Math.max(0,li-f)];
+  try{const k=classAt(pvName(e),pi,w,e,c[2]); if(k&&"BIAM".includes(k)&&"BIAM".indexOf(k)>li)return k}catch(x){} return "BIAM"[Math.min(3,li+1)]}
 var ELO=null, ELO_MIN=20, ELO_LIVE=null, ELO_DONE=null, ELO_LOG=null;   // ELO_LOG: every game of the last 12 weeks, for the "how it was worked out" hover text
 const ELO_BASE={B:800,I:1300,A:1800,M:2300}, ELO_CAP={B:1300,I:1800,A:2300};   // a chess-like scale: beginners in the 700s-800s, the very best in the 2200s-2300s
 function ELO_K(r,g){return g<30?40:r>=2400?10:20}
@@ -2934,7 +2938,7 @@ function eloBuild(){if(ELO)return ELO; const ws=Object.keys(SB.weeks).map(Number
     ws.forEach(w=>{const touched=new Set();
       (SB.weeks[w]||[]).forEach(c=>{if(c[0]!==pi||(c[7]&&w!==ELO_LIVE))return;
         const li=Math.min(3,"BIAMG".indexOf(cardLv(c[2])));
-        const es=c[6].filter(e=>e[1]!=null).map(e=>({n:pvName(e),p:e[1],s:e[2],c:e[3],up:e[4]===1||e[4]===2,dn:e[4]===-1,own:li>=0?"BIAM"[Math.max(0,li-(+e[4]||0))]:null}));
+        const es=c[6].filter(e=>e[1]!=null).map(e=>({n:pvName(e),p:e[1],s:e[2],c:e[3],up:e[4]===1||e[4]===2,dn:e[4]===-1,own:eloOwn(e,c,w,pi,li)}));
         es.forEach(e=>{if(r[e.n]==null){r[e.n]=start[e.n]=ELO_BASE[e.own]||1500; lc[e.n.toLowerCase()]=e.n}});   // first game: start at their class's base
         for(let i=0;i<es.length;i++)for(let j=i+1;j<es.length;j++){const a=es[i], b=es[j]; if(a.n===b.n)continue;
           const ra=r[a.n], rb=r[b.n];
@@ -3053,7 +3057,8 @@ function eloWhy(pi,n,w0,w1){eloBuild(); const L=ELO_LOG&&ELO_LOG[pi][n]; if(!L)r
     G.forEach(x=>{const k=x.lv+" · "+x.song; (by[k]=by[k]||[]).push(x)});
     const IN="\u00a0\u00a0\u00a0\u00a0• ";   // no-break spaces: the tooltip would collapse ordinary ones
     Object.entries(by).forEach(([k,xs])=>{const t=xs.reduce((a,x)=>a+x.d,0); if(out.length)out.push(""); out.push(`▸ ${k}: ${f(t)}`);
-      xs.slice().sort((a,b)=>Math.abs(b.d)-Math.abs(a.d)).slice(0,6).forEach(x=>{const e=1/(1+10**((x.ro-x.rm)/400));
+      xs.slice().sort((a,b)=>Math.abs(b.d)-Math.abs(a.d)).slice(0,6).sort((a,b)=>b.d-a.d).forEach(x=>{   // the 6 that mattered most, wins first, highest to lowest
+        const e=1/(1+10**((x.ro-x.rm)/400));
         out.push(`${IN}${res(x.res)} ${x.op} (${Math.round(x.ro)}): ${Math.round(x.k)} × (${x.res===.5?"½":x.res} − ${e.toFixed(2)}) = ${f(x.d)}${x.cap?" (ceiling)":""}`)});
       if(xs.length>6)out.push(`${IN}… and ${xs.length-6} smaller games`)});
     return `Week ${weeks[0]}: ${f(G.reduce((a,x)=>a+x.d,0))} from ${G.length} game${G.length===1?"":"s"}\n\n${out.join("\n")}\n\n${head}`}
