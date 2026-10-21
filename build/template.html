@@ -3262,7 +3262,7 @@ function eloProfile(n){eloBuild(); const w=ELO_DONE, k=eloKey(n), kp=eloKeep(k);
 // scoring 95% on harder songs, which is what earns rank-ups. Points start 6 months into the data so the window is full.
 var HR=null;
 const HR_TIP="Your second-best song rating with a 95% or better score in the last 6 months (second-best, so one lucky week doesn't count). It goes up when you start scoring 95% on harder songs. It shows from your 4th week playing that path.";
-function hrBuild(){if(HR)return HR; const by={}, w1=ELO_DONE; let w0=1e9;
+function hrBuild(){if(HR)return HR; eloBuild(); const by={}, w1=ELO_DONE; let w0=1e9;   // eloBuild first: this needs its last finished week
   Object.keys(SB.weeks).map(Number).sort((a,b)=>a-b).forEach(w=>{if(w>w1)return; (SB.weeks[w]||[]).forEach(c=>{const r=+c[4]; if(c[7]||c[4]==null||c[4]===""||isNaN(r))return;
     c[6].forEach(e=>{if(e[1]==null||isNaN(+e[1]))return; const k=pvName(e).toLowerCase()+"|"+c[0]; (by[k]=by[k]||[]).push({w,r,pc:+e[1]}); if(w<w0)w0=w})})});
   HR={by,w0,w1,pool:{},ser:{}}; return HR}
