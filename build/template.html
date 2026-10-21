@@ -2323,7 +2323,7 @@ function qSeasonTable(pi,id,upto){eloBuild(); const ck=pi+"|"+id+"|"+(upto||"");
   Object.values(out).forEach(v=>v.sort((x,y)=>y.d-x.d)); return out}
 // season points: on each main challenge (not bonus or God) the top 10 who can win it (in that class) score
 // 25-18-15-12-10-8-6-4-2-1. Each class is its own championship (the challenge's level). Ties go to more wins, then more 2nds, and so on, then the higher average score across the season; players still level share the place.
-const F1_PTS=[25,18,15,12,10,8,6,4,2,1], IMPROVE_WEEKS=5;
+const F1_PTS=[25,18,15,12,10,8,6,4,2,1], IMPROVE_WEEKS=4;
 const f1Avg=x=>x.r?x.s/x.r:0;   // average score % over the season's counted results
 const f1Cmp=(x,y)=>{if(y.p!==x.p)return y.p-x.p; for(let i=0;i<10;i++)if(y.pl[i]!==x.pl[i])return y.pl[i]-x.pl[i]; const d=f1Avg(y)-f1Avg(x); return Math.abs(d)>1e-9?d:0};   // points, then countback, then higher average score; 0 = a shared place
 function seasonF1(pi,id,upto){const ck="f1|"+pi+"|"+id+"|"+(upto||""); if(SEAS_TAB[ck])return SEAS_TAB[ck]; const [a,b]=seasonRange(id), end=Math.min(b,ELO_DONE,upto||1e9), T={};
@@ -2331,7 +2331,7 @@ function seasonF1(pi,id,upto){const ck="f1|"+pi+"|"+id+"|"+(upto||""); if(SEAS_T
     c[6].filter(e=>e[1]!=null&&canWin(e)).forEach((e,i)=>{const n=pvName(e), t=T[L]=T[L]||{}, x=t[n]=t[n]||{n,p:0,r:0,s:0,ws:new Set(),pl:Array(10).fill(0)}; x.r++; x.s+=+e[1]||0; x.ws.add(w); if(i<10){x.p+=F1_PTS[i]; x.pl[i]++}})});
   const out={}; Object.entries(T).forEach(([L,t])=>out[L]=Object.values(t).filter(x=>x.p>0).sort(f1Cmp));
   return SEAS_TAB[ck]=out}
-// Most improved: the biggest Elo gain in each class on a path over the season, among players with games in 5+ of its weeks
+// Most improved: the biggest Elo gain in each class on a path over the season, among players with games in 4+ of its weeks
 function seasonImproved(pi,id,upto){const ck="mi|"+pi+"|"+id+"|"+(upto||""); if(SEAS_TAB[ck])return SEAS_TAB[ck]; const [a,b]=seasonRange(id), end=Math.min(b,ELO_DONE,upto||1e9), T=qSeasonTable(pi,id,upto);
   const wk=n=>(ELO[pi].hist[n]||[]).filter(e=>e[0]>=a&&e[0]<=end).length;
   const out={}; Object.entries(T).forEach(([c,v])=>{const z=v.map(x=>({...x,w:wk(x.n)})).filter(x=>x.w>=IMPROVE_WEEKS&&x.d>0).sort((x,y)=>y.d-x.d); if(z.length)out[c]=z});   // (a gain: no Most improved for losing the least)
