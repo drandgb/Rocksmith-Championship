@@ -4885,9 +4885,8 @@ function acctThisWeek(n,part){ part=part||ACCT.twPart||"me";
       return g?`<div class="haulbox celestial" data-tip="Gold God winner last week">${celCorners()}${inner}</div>`:inner})():`<p class="dim">No new medals last week.</p>`}</div>`;
   if(part==="week")return `    <div class="acctsec acctriv"><h3>This week's rivals</h3>${riv||`<p class="dim">No rivals this week yet.</p>`}</div>${ywPast(n)}
     <div class="acctsec"><h3>This week's scoreboard <small>Week ${w}</small></h3>${sb.length?`<ul class="alist">${sb.join("")}</ul>`:`<p class="dim">No scoreboard for this week yet.</p>`}</div>`;   // the scoreboard comes last in Your week
-  const ECH=(()=>{try{const c=eloChart(n); return c?`<div class="acctsec">${c}</div>`:""}catch(e){return ""}})();
-  const HCH=(()=>{try{const c=hrChart(n); return c?`<div class="acctsec">${hrProfile(n)}${c}${hrNextHtml(n)}</div>`:(()=>{const t=hrNote(n); return t?`<div class="acctsec">${t}</div>`:""})()}catch(e){return ""}})();
-  return HAUL+HCH+ECH+`
+  // (the Elo and hardest-rating charts aren't repeated here: they're in the profile section further down)
+  return HAUL+`
     <div class="acctsec"><h3>${RKc===RK_SHEET?"Rodman's Rankings":"Rankings"} ${RKc.weeks?`<small>Weeks ${esc(RKc.weeks)}</small>`:""}</h3>${RKc===RK_SHEET?"":`<p class="dim" style="margin:-4px 0 8px">Worked out by the site from the latest 10 weeks · may differ from Rodman's official rankings (Weeks ${esc(RK_SHEET.weeks)})</p>`}${rk.length?`<ul class="alist">${rk.join("")}</ul>`:`<p class="dim">Not ranked right now.</p>`}<div class="row"><button type="button" class="btn ghost" data-goview="rankings">Open Rodman's Rankings ›</button></div></div>`;
 }
 // ---------- rank-up readiness (private: only in the player's own profile) ----------
