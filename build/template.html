@@ -387,7 +387,7 @@ button.clear:hover{border-color:var(--accent)}
 .nwnote .nwelo{margin-top:12px;max-width:420px}.pelo{margin:12px 0 4px;max-width:420px}.pelo-sub{font:600 .7rem var(--f-body);letter-spacing:0;text-transform:none;margin-left:6px}.nwelo-h{font:800 .72rem var(--f-display);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
 .nwelo ul{list-style:none;margin:0;padding:0}.nwelo li{display:grid;grid-template-columns:70px 52px 52px 1fr;align-items:center;gap:8px;padding:5px 0 5px 9px;border-left:3px solid var(--pc);border-top:1px solid var(--line);font-size:.9rem}.nwelo li:first-child{border-top:0}
 .nwelo .nwp{color:var(--pc);font-weight:700}.nwelo .nwv{font:800 1rem var(--f-display)}.nwelo .nwd{font-size:.8rem;font-weight:800}.nwelo .nwd .up{color:var(--s-green)}.nwelo .nwd .dn{color:var(--s-red)}.nwelo .nwr{text-align:right;padding-right:4px}
-.hryears{margin-top:0}.hry-scroll{overflow-x:auto}.hryears table{border-collapse:collapse;width:100%;font-size:.84rem}
+.hryears{margin-top:0}.hrnote p{margin:2px 0 8px;font-size:.86rem;color:var(--muted)}.hrn-list{display:flex;flex-wrap:wrap;gap:6px}.hrn-b{padding:4px 10px;border-left:3px solid var(--pc);background:var(--panel2);border-radius:6px;font-size:.86rem}.hrn-b b{color:var(--pc);margin-right:4px}.hrn-b small{color:var(--muted)}.hry-scroll{overflow-x:auto}.hryears table{border-collapse:collapse;width:100%;font-size:.84rem}
 .hryears th{font:700 .7rem var(--f-body);color:var(--muted);text-align:center;padding:2px 4px;white-space:nowrap}.hryears th small{font-weight:400}
 .hryears td{text-align:center;padding:5px 4px;border-top:1px solid var(--line);white-space:nowrap;cursor:help}.hryears td:first-child{text-align:left;font-weight:700;color:var(--pc);cursor:default;padding-left:9px;border-left:3px solid var(--pc)}
 .hryears td b{display:block;font:800 .92rem var(--f-display);line-height:1.2}.hryears td .up,.hryears td .dn,.hryears td .hry-eq{display:block;font-size:.7rem;font-weight:800;line-height:1.2;min-height:1.2em}.hryears .up{color:var(--s-green)}.hryears .dn{color:var(--s-red)}.hry-eq{color:var(--muted)}
@@ -2149,7 +2149,7 @@ function showPlayer(name){
     </div>
     <div class="plead" data-n="${esc(n)}">${plLeads(n)}</div>
       ${(()=>{try{return eloProfile(n)+`<div class="pcwide">${eloChart(n)}</div>`}catch(e){return ""}})()}
-      ${(()=>{try{const c=hrChart(n); return c?hrProfile(n)+`<div class="pcwide">${c}</div>`:""}catch(e){return ""}})()}
+      ${(()=>{try{const c=hrChart(n); return c?hrProfile(n)+`<div class="pcwide">${c}</div>`:hrNote(n)}catch(e){return ""}})()}
       ${(()=>{const u=WR.ups.filter(x=>x[0]===n).sort((a,b)=>b[4]-a[4]||b[1]-a[1]);return u.length?`<div class="ups pcwide">Rank changes: ${u.map(([,p,a,b,w])=>`<span class="pill hol rkpath" data-hl="${w}" data-tip="Click to highlight Week ${w}" style="cursor:pointer;--pc:${PATH_C[p]}">${PATHS[p]} ${a}${"BIAM".indexOf(b)<"BIAM".indexOf(a)?"↘":"↗"}${b} · wk ${w}</span>`).join("")}</div>`:""})()}
     </div>`;
   $("pq").value=n;
@@ -3063,6 +3063,12 @@ function hrSeries(n,pi){const H=hrBuild(), key=String(n).toLowerCase()+"|"+pi; i
       let r1=-1,r2=-1; for(let i=a;i<b;i++)if(xs[i].pc>=95){const r=xs[i].r; if(r>r1){r2=r1;r1=r}else if(r>r2)r2=r} out.push([w,r2>=0?r2:null])}}
   while(out.length&&out[out.length-1][1]==null)out.pop(); while(out.length&&out[0][1]==null)out.shift();
   return H.ser[key]=out}
+// no hardest rating to show yet: say why, and the best score so far on each path (the one to beat)
+function hrNote(n){const H=hrBuild(), k=String(n).toLowerCase(), paths=[0,1,2].filter(pi=>(H.by[k+"|"+pi]||[]).length); if(!paths.length)return "";
+  const any95=paths.some(pi=>H.by[k+"|"+pi].some(x=>x.pc>=95));
+  const best=paths.map(pi=>{const b=H.by[k+"|"+pi].reduce((a,x)=>!a||x.pc>a.pc||(x.pc===a.pc&&x.r>a.r)?x:a,null); return `<span class="hrn-b" style="--pc:${PATH_C[pi]}"><b>${PATHS[pi]}</b> ${b.pc}% on a ${b.r} <small>(Week ${b.w})</small></span>`}).join("");
+  return `<div class="pcwide nwelo pelo hrnote"><div class="nwelo-h">Hardest rating you score 95% on <span class="elohelp" data-tip="${esc(HR_TIP)}">ⓘ</span></div>
+    <p>${any95?"Not enough 95% scores yet: it shows once you have 95% or better on two songs within 6 months, from your 4th week on a path.":"No 95% scores yet: it shows once you have 95% or better on two songs within 6 months."} Best so far:</p><div class="hrn-list">${best}</div></div>`}
 // the typical (median) player on a path, every 2 weeks, for the dotted reference lines
 function hrPool(pi){const H=hrBuild(); if(H.pool[pi])return H.pool[pi];
   const ss=Object.keys(H.by).filter(k=>k.endsWith("|"+pi)).map(k=>{const m={}; hrSeries(k.slice(0,k.lastIndexOf("|")),pi).forEach(e=>{if(e[1]!=null)m[e[0]]=e[1]}); return m}), out=[];
@@ -4647,7 +4653,7 @@ function acctThisWeek(n,part){ part=part||ACCT.twPart||"me";
   if(part==="week")return `    <div class="acctsec acctriv"><h3>This week's rivals</h3>${riv||`<p class="dim">No rivals this week yet.</p>`}</div>${ywPast(n)}
     <div class="acctsec"><h3>This week's scoreboard <small>Week ${w}</small></h3>${sb.length?`<ul class="alist">${sb.join("")}</ul>`:`<p class="dim">No scoreboard for this week yet.</p>`}</div>`;   // the scoreboard comes last in Your week
   const ECH=(()=>{try{const c=eloChart(n); return c?`<div class="acctsec">${c}</div>`:""}catch(e){return ""}})();
-  const HCH=(()=>{try{const c=hrChart(n); return c?`<div class="acctsec">${hrProfile(n)}${c}</div>`:""}catch(e){return ""}})();
+  const HCH=(()=>{try{const c=hrChart(n); return c?`<div class="acctsec">${hrProfile(n)}${c}</div>`:(()=>{const t=hrNote(n); return t?`<div class="acctsec">${t}</div>`:""})()}catch(e){return ""}})();
   return HAUL+ECH+HCH+`
     <div class="acctsec"><h3>${RKc===RK_SHEET?"Rodman's Rankings":"Rankings"} ${RKc.weeks?`<small>Weeks ${esc(RKc.weeks)}</small>`:""}</h3>${RKc===RK_SHEET?"":`<p class="dim" style="margin:-4px 0 8px">Worked out by the site from the latest 10 weeks · may differ from Rodman's official rankings (Weeks ${esc(RK_SHEET.weeks)})</p>`}${rk.length?`<ul class="alist">${rk.join("")}</ul>`:`<p class="dim">Not ranked right now.</p>`}<div class="row"><button type="button" class="btn ghost" data-goview="rankings">Open Rodman's Rankings ›</button></div></div>`;
 }
