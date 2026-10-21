@@ -482,7 +482,8 @@ a.dl svg,.offpill svg{width:11px;height:11px}
 .sbstat{margin-top:6px}
 .sbtw{margin-top:8px;padding:2px 12px;font-size:.78rem;width:auto}
 .acctdlg .adm.acctsec{border-top:0;margin-top:0;padding-top:2px}
-.acctdlg .adm.acctsec+.adm.acctsec{margin-top:16px} /* the same gap between every Admin section */
+.acctdlg .adm.acctsec+.adm.acctsec{margin-top:16px}
+.acctdlg .acctsec:not(.adm)+.adm.acctsec{margin-top:16px;border-top:1px solid var(--line);padding-top:12px}   /* e.g. after Lapsed players in the Host tab */ /* the same gap between every Admin section */
 .acctdlg .adm.acctsec>:last-child{margin-bottom:0}
 .acctdlg .acctsec>h3 small{font:400 .72rem var(--f-body);letter-spacing:0;text-transform:none;color:var(--muted);margin-left:8px}
 .acctdlg .dim{color:var(--muted);font-size:.85rem}
@@ -702,7 +703,7 @@ a.dl svg,.offpill svg{width:11px;height:11px}
 .seas h4{margin:8px 0 2px;font:800 .66rem var(--f-display);letter-spacing:.1em;text-transform:uppercase;color:var(--tc,var(--muted))}.seas h4:first-of-type{margin-top:0}
 .seas .elocol li{grid-template-columns:22px minmax(0,1fr) auto 46px}.seas .sgain{font:800 .9rem var(--f-display);color:var(--s-green);text-align:right}.seas .sgain.neg{color:var(--s-red)}.seas .sg{font-size:.72rem;color:var(--muted);text-align:right}
 .seas .slast{margin-top:8px;padding-top:6px;border-top:1px dashed var(--line);font-size:.76rem;color:var(--muted)}.seas .slast b{color:var(--fg)}
-.lapsed .alist li{border-left-color:var(--muted)}.lapsed .lptog{margin-left:6px}
+.lapsed .alist li{border-left-color:var(--muted)}.lapsed .alist.lpscroll{overflow-y:auto;position:relative;padding-right:4px;overscroll-behavior:contain}.lapsed .lptog{margin-left:6px}
 .hlbox .hlsel{margin-left:8px}.hlbox pre{white-space:pre-wrap;background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:10px 12px;font:500 .84rem/1.45 var(--f-body);max-height:360px;overflow:auto;margin:8px 0}
 .fwgo{color:var(--fg);font-weight:700;text-decoration:underline dotted;cursor:pointer}
 .fwtry{margin:10px 0 2px;font-size:.86rem}.fwtry b{color:var(--pc)}
@@ -2241,9 +2242,9 @@ function lapsedSection(){const tw=TW_MAX, far=52, I=sbIx(), rows=[];
       return `<b style="color:${PATH_C[pi]}">${PATHS[pi]}</b>${e!=null?` Elo ${e}`:""}${h!=null?` · hardest ${h.toFixed(1)}`:""}`}).join(" &nbsp; ");
     rows.push({n,last,gap,cnt:W.length,info})});
   rows.sort((a,b)=>a.gap-b.gap);
-  return `<div class="acctsec fwhost lapsed"><h3>Lapsed players <small>${rows.length} who stopped in the last year</small></h3>
+  return `<div class="acctsec fwhost lapsed"><h3>Lapsed players <small>${rows.length} who stopped in the last year${rows.length>10?" · scroll for more":""}</small></h3>
     <p class="dim">Players who haven't posted a score for 4+ weeks, most recent first, with where they were when they left. A message from a host is often all it takes to bring someone back; when they return, their profile shows a Welcome back panel.</p>
-    ${rows.length?`<ul class="alist">${rows.map(r=>`<li><span class="fwhn" data-fwp="${esc(r.n)}" title="Open ${esc(r.n)}'s profile">${esc(r.n)}</span><span class="dim">last played Week ${r.last}${WEEKS[r.last-1]?" · "+fmt(WEEKS[r.last-1][1]):""} · away ${r.gap-1} weeks · ${r.cnt} week${r.cnt===1?"":"s"} played</span><span class="fwhs">${r.info}</span></li>`).join("")}</ul>`:`<p class="dim">No lapsed players.</p>`}</div>`}
+    ${rows.length?`<ul class="alist${rows.length>10?" lpscroll":""}">${rows.map(r=>`<li><span class="fwhn" data-fwp="${esc(r.n)}" title="Open ${esc(r.n)}'s profile">${esc(r.n)}</span><span class="dim">last played Week ${r.last}${WEEKS[r.last-1]?" · "+fmt(WEEKS[r.last-1][1]):""} · away ${r.gap-1} weeks · ${r.cnt} week${r.cnt===1?"":"s"} played</span><span class="fwhs">${r.info}</span></li>`).join("")}</ul>`:`<p class="dim">No lapsed players.</p>`}</div>`}
 
 // Host tab: a week's highlights as plain text to paste into the weekly post
 function hlText(w){eloBuild(); const I=sbIx(), L=[], played=Object.keys(I.wk).filter(k=>I.wk[k].includes(w)), nm=k=>I.disp[k];
@@ -2253,13 +2254,13 @@ function hlText(w){eloBuild(); const I=sbIx(), L=[], played=Object.keys(I.wk).fi
   const first95=played.filter(k=>{const E=I.ent[k]||[]; const f=E.find(x=>x.pc>=95); return f&&f.w===w}).map(nm); if(first95.length)L.push(`First 95% score: ${first95.join(", ")}`);
   const hr=[]; played.forEach(k=>[0,1,2].forEach(pi=>{const s=hrSeries(nm(k),pi), now=hrAt(s,w); if(now==null)return; const prev=s.filter(e=>e[0]<w&&e[1]!=null).map(e=>e[1]); if(prev.length&&now>Math.max(...prev)+.04)hr.push(`${nm(k)} (${PATHS[pi]} ${Math.max(...prev).toFixed(1)} → ${now.toFixed(1)})`)})); if(hr.length)L.push(`New best hardest rating: ${hr.join(", ")}`);
   const el=[]; [0,1,2].forEach(pi=>{const g=Object.keys(ELO[pi].hist).map(n=>{const x=eloAt(pi,n,w); if(!x||x[0]!==w)return null; const b=eloAt(pi,n,w-1); return {n,d:x[1]-(b?b[1]:eloStart(pi,n))}}).filter(x=>x&&x.d>=1).sort((a,b)=>b.d-a.d).slice(0,3);
-    if(g.length)el.push(`${PATHS[pi]}: ${g.map(x=>`${x.n} +${Math.round(x.d)}`).join(", ")}`)}); if(el.length)L.push(`Biggest Elo gains: ${el.join(" · ")}`);
+    if(g.length)el.push(`${PATHS[pi]}: ${g.map(x=>`${x.n} +${Math.round(x.d)}`).join(", ")}`)}); if(el.length)L.push(`Biggest Elo gains:${el.map(x=>"\n    "+x).join("")}`);
   const nw=played.filter(k=>{const W=I.wk[k]; return W.length===2&&W[1]===w}).map(nm); if(nw.length)L.push(`One more time (back for a second week): ${nw.join(", ")}`);
   const ht=played.filter(k=>{const W=I.wk[k], i=W.indexOf(w); if(i<2||W[i-1]!==w-1||W[i-2]!==w-2)return false; return !(i>=3&&W[i-3]===w-3)&&W.length<=FW_MAX}).map(nm); if(ht.length)L.push(`Hat trick (first three weeks in a row): ${ht.join(", ")}`);
   // the last week of a season: announce the new one, with the champions of the one just finished
   let head=""; const sNow=seasonOf(w), sNext=seasonOf(w+1);
   if(sNow&&sNext&&sNow!==sNext){const ch=[0,1,2].map(pi=>{const T=qSeasonTable(pi,sNow); const c=["M","A","I","B"].filter(c=>T[c]&&T[c].length).map(c=>`${TIER_NAME[c]} ${T[c][0].n} (${T[c][0].d>=0?"+":"−"}${Math.abs(Math.round(T[c][0].d))})`); return c.length?`${PATHS[pi]}: ${c.join(", ")}`:""}).filter(Boolean);
-    head=`🏁 A new season starts this week: ${sNext}! Everyone starts the race level: the biggest Elo gain in each class wins, so new players can take it from their very first week.${ch.length?`\n${sNow} champions · ${ch.join(" · ")}`:""}\n\n`}
+    head=`🏁 A new season starts this week: ${sNext}! Everyone starts the race level: the biggest Elo gain in each class wins, so new players can take it from their very first week.${ch.length?`\n${sNow} champions:${ch.map(x=>"\n    "+x).join("")}`:""}\n\n`}
   return `Week ${w} highlights\n\n${head}${L.map(x=>"• "+x).join("\n")||"• Nothing to highlight yet."}`}
 function hlSection(){const ws=[]; for(let w=ELO_DONE;w>ELO_DONE-6&&w>0;w--)if(SB.weeks[w])ws.push(w); const w=ACCT.hlWeek&&ws.includes(ACCT.hlWeek)?ACCT.hlWeek:ws[0]; if(!w)return "";
   return `<div class="acctsec hlbox"><h3>Weekly highlights <select class="hlsel" data-hlweek>${ws.map(x=>`<option value="${x}"${x===w?" selected":""}>Week ${x}</option>`).join("")}</select></h3>
@@ -5106,6 +5107,7 @@ function acctDraw(msg,err){
   // redrawing keeps the popup where it was scrolled to (e.g. after changing a rating in the Admin tab)
   const dlg=$("acct"), keep=[dlg.scrollTop,b.scrollTop];
   b.innerHTML=h+note;
+  {const l=b.querySelector(".lapsed .lpscroll"), li=l&&l.children; if(li&&li.length>10)l.style.maxHeight=(li[10].offsetTop-li[0].offsetTop-6)+"px"}   // Lapsed players: 10 rows, then scroll
   if(ACCT.tab===ACCT.lastTab){dlg.scrollTop=keep[0];b.scrollTop=keep[1]} ACCT.lastTab=ACCT.tab;
   if(ACCT.tab==="me"&&ACCT.claim&&ACCT.claim.status==="approved")acctMount(ACCT.claim.player);
   if(ACCT.tab==="banner")bnMount(ACCT.claim.player);
