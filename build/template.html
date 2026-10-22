@@ -2426,7 +2426,7 @@ function siText(id){const cur=TW_MAX, [a,b]=siRange(id,cur), n=b-a+1, need=Math.
   return [`🏁 Season ${seasonNum(id)} of the Rocksmith 2014 Championship`,
     `${id}: Week ${a} to Week ${b} (${n} weeks), from ${fmt(weekAt(a-1)[1])} to ${fmt(weekAt(b)[1])}. ${up?`It starts with Week ${a}.`:`We're in week ${cur-a+1} of ${n}.`}`,
     "",
-    `What it is: on top of each week's challenges, every week also counts towards the season. Your result on each week's main challenge earns season points, and they add up over all ${n} weeks. Each class on each path (Lead, Rhythm and Bass; Beginner, Intermediate, Advanced and Masterclass) is its own championship, so you're up against players at your own level.`,
+    `What it is: your main challenge results earn season points that add up over the ${n} weeks. Each class on each path is its own championship.`,
     "",
     "Points: on each week's main challenge (not bonus or God challenges), the top 10 in the class score 25, 18, 15, 12, 10, 8, 6, 4, 2 and 1. The same rules as winning a challenge decide who counts, so playing up or down a class doesn't score. Ties go to more wins, then more 2nd places and so on, then the higher average score over the season.",
     "",
