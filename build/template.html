@@ -753,6 +753,7 @@ a.dl svg,.offpill svg{width:11px;height:11px}
 .seas .elocol li{grid-template-columns:22px minmax(0,1fr) auto auto}.seas .sg{white-space:nowrap;min-width:4.4em}.seas .sgain{font:800 .9rem var(--f-display);color:var(--s-green);text-align:right}.seas .sgain.neg{color:var(--s-red)}.seas .sg{font-size:.72rem;color:var(--muted);text-align:right}
 .seas .slast{margin-top:8px;padding-top:6px;border-top:1px dashed var(--line);font-size:.76rem;color:var(--muted)}.seas .slast b{color:var(--fg)}
 .lapsed .alist li{border-left-color:var(--muted)}.lapsed .alist.lpscroll{overflow-y:auto;position:relative;padding-right:4px;overscroll-behavior:contain}.lapsed .lptog{margin-left:6px}
+.newhere{position:relative;margin:0 0 16px;padding:12px 40px 10px 16px;border:1px solid color-mix(in srgb,var(--s-yellow) 45%,var(--line));border-left:4px solid var(--s-yellow);border-radius:10px;background:color-mix(in srgb,var(--s-yellow) 6%,var(--panel));font-size:.92rem;line-height:1.5}.newhere p{margin:0}.newhere p+p{margin-top:6px}.newhere ol{margin:6px 0 8px;padding-left:22px}.newhere li{margin:2px 0}.newhere a{color:var(--s-yellow)}.newhere .nhl{font-size:.85rem}.newhere .nhx{position:absolute;top:8px;right:8px;background:none;border:0;color:var(--muted);font-size:1rem;cursor:pointer;padding:4px 6px;border-radius:6px}.newhere .nhx:hover{color:var(--fg);background:var(--panel2)}   /* first-visit explainer */
 .hlbox .hlsel{margin-left:8px}.hlbox pre{white-space:pre-wrap;background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:10px 12px;font:500 .84rem/1.45 var(--f-body);max-height:360px;overflow:auto;margin:8px 0}
 .fwgo{color:var(--fg);font-weight:700;text-decoration:underline dotted;cursor:pointer}
 .fwtry{margin:10px 0 2px;font-size:.86rem}.fwtry b{color:var(--pc)}
@@ -1347,6 +1348,13 @@ footer{color:var(--dim);font-size:.78rem}
       <a class="forum playhere" href="https://customsforge.com/forum/38-rocksmith-championship/" target="_blank" rel="noopener" title="Opens the Rocksmith 2014 Championship forum on CustomsForge, where the weekly challenges are posted and scores are submitted">Play here ↗</a>
     </nav>
   </header>
+  <div class="newhere" id="newhere" hidden>
+    <button type="button" class="nhx" id="newherex" title="Close (it stays closed on this device)" aria-label="Close">✕</button>
+    <p><b>New here?</b> This is the companion stats site for the <b>Rocksmith 2014 Championship</b>, a weekly guitar and bass challenge on the CustomsForge forum. Anyone can join, at any level.</p>
+    <ol><li>Download this week's songs from the weekly post on the forum (<a href="https://customsforge.com/forum/38-rocksmith-championship/" target="_blank" rel="noopener">Play here ↗</a>)</li><li>Play them in Rocksmith 2014 and take a screenshot of your score</li><li>Post the screenshot in that week's forum thread</li></ol>
+    <p><b>Already playing?</b> Claim your player profile: tap <b>👤 Log in</b> at the top, sign in with your email and pick your player name. An admin checks it's you with a quick forum message, then you get your own stats page, can rate songs and get a forum banner.</p>
+    <p class="nhl"><a href="https://customsforge.com/index.php?/topic/2055-how-and-why-to-join-the-championships/" target="_blank" rel="noopener">How to join ↗</a> · <a href="https://customsforge.com/index.php?/topic/6569-rocksmith-2014-championship-rules-read-this-first-updated-31082015/" target="_blank" rel="noopener">Rules ↗</a></p>
+  </div>
 
   <nav class="tabs" role="tablist" aria-label="Pages">
     <button type="button" role="tab" id="tab-thisweek" data-view="thisweek" aria-selected="false">This Week</button>
@@ -2448,6 +2456,9 @@ function siSection(){const cur=TW_MAX, now=siLab(cur), [,b]=siRange(now,cur), id
     <p class="dim">What the season is, when it runs, how points are scored and the season awards, ready to copy into a forum post for new and current players.</p><pre id="sitext">${esc(siText(id))}</pre><div class="row"><button type="button" class="btn ghost" data-sicopy>Copy</button></div></div>`}
 document.addEventListener("change",e=>{const s=e.target.closest("[data-siid]"); if(!s)return; ACCT.siId=s.value; const el=document.querySelector(".acctdlg .sibox"); if(el)el.outerHTML=siSection()});
 document.addEventListener("click",e=>{const b=e.target.closest("[data-sicopy]"); if(!b)return; const t=$("sitext").textContent; try{navigator.clipboard.writeText(t).then(()=>{b.textContent="Copied ✓"; setTimeout(()=>b.textContent="Copy",1500)})}catch(err){}});
+// first-visit explainer: shown until closed (remembered on this device)
+(function(){const el=$("newhere"); if(!el)return; let seen=false; try{seen=localStorage.getItem("rsc-newhere")==="1"}catch(e){} if(!seen)el.hidden=false;
+  $("newherex").addEventListener("click",()=>{el.hidden=true; try{localStorage.setItem("rsc-newhere","1")}catch(e){}})})();
 document.addEventListener("change",e=>{const s=e.target.closest("[data-hlweek]"); if(!s)return; ACCT.hlWeek=+s.value; const el=document.querySelector(".acctdlg .hlbox"); if(el)el.outerHTML=hlSection()});
 document.addEventListener("click",e=>{const b=e.target.closest("[data-hlcopy]"); if(!b)return; const t=$("hltext").textContent; try{navigator.clipboard.writeText(t).then(()=>{b.textContent="Copied ✓"; setTimeout(()=>b.textContent="Copy",1500)})}catch(err){}});
 // medals and glowing panels only animate while they're on screen: a profile can show hundreds of medals, and every glow, shine and sparkle costs a repaint
