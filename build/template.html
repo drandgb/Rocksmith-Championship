@@ -2436,7 +2436,7 @@ function siText(id){const cur=TW_MAX, [a,b]=siRange(id,cur), n=b-a+1, need=Math.
     "",
     `New or coming back? Everyone starts the season on zero points and every week counts the same, so ${up?"the start of the season":"any week"} is a good time to join. Playing well will get you the most points, but playing consistently adds up.`,
     "",
-    `Standings: ${BN_SITE}#season`].join("\n")}
+    `Check your standings here: ${BN_SITE}#season`].join("\n")}
 function siSection(){const cur=TW_MAX, now=siLab(cur), [,b]=siRange(now,cur), ids=[now]; if(b-cur<4)ids.push(siLab(b+1));   // the next season too, in the last weeks of this one
   const id=ACCT.siId&&ids.includes(ACCT.siId)?ACCT.siId:ids[0];
   return `<div class="adm acctsec hlbox sibox"><h3>Season introduction <select class="hlsel" data-siid>${ids.map(x=>`<option value="${x}"${x===id?" selected":""}>Season ${seasonNum(x)} (${x})</option>`).join("")}</select></h3>
