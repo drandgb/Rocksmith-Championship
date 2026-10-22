@@ -2434,7 +2434,7 @@ function siText(id){const cur=TW_MAX, [a,b]=siRange(id,cur), n=b-a+1, need=Math.
     "",
     `Most improved: in each class, the biggest Elo gain over the season, for players who play at least ${need} of the ${n} weeks. A projected winner begins to show in week ${MI_PREVIEW} and adjusts as the season goes on.`,
     "",
-    `New or coming back? Everyone starts the season on zero points and every week counts the same, so ${up?"the start of the season":"any week"} is a good time to join. Playing every week is what adds up.`,
+    `New or coming back? Everyone starts the season on zero points and every week counts the same, so ${up?"the start of the season":"any week"} is a good time to join. Playing well will get you the most points, but playing consistently adds up.`,
     "",
     `Standings: ${BN_SITE}#season`].join("\n")}
 function siSection(){const cur=TW_MAX, now=siLab(cur), [,b]=siRange(now,cur), ids=[now]; if(b-cur<4)ids.push(siLab(b+1));   // the next season too, in the last weeks of this one
