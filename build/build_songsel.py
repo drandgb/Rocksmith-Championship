@@ -29,3 +29,36 @@ except Exception as e:
 json.dump(base, open("songsel_byweek.json", "w"))
 json.dump(base, open(cached, "w"))
 json.dump({**info, "last": max(map(int, base))}, open("cache/songsel_info.json", "w"))
+
+# Tunings: the Song Selection List tab has Tuning Lead / Tuning Rhythm / Tuning Bass columns (P, Q, R). For each song
+# (artist - title) the most recently added row with a tuning wins. Written to tunings.json for the page; if the tab can't
+# be read, the last saved copy is used.
+def _key(s): return re.sub(r"[^a-z0-9]+", " ", s.lower()).strip()
+tcache = "cache/tunings.json"
+tunings = json.load(open(tcache)) if os.path.exists(tcache) else {}
+try:
+    turl = f"https://docs.google.com/spreadsheets/d/{SSL_ID}/gviz/tq?tqx=out:csv&headers=0&sheet=Song%20Selection%20List"
+    text = urllib.request.urlopen(turl, timeout=60).read().decode("utf-8")
+    if text.lstrip().startswith("<"): raise ValueError("not shared (got a sign-in page)")
+    rows = list(csv.reader(io.StringIO(text)))
+    hdr = next((i for i, r in enumerate(rows[:6]) if any("tuning" in (c or "").lower() for c in r)), None)
+    if hdr is None: raise ValueError("no Tuning columns found")
+    h = [(c or "").lower() for c in rows[hdr]]
+    col = lambda *names: next((i for i, c in enumerate(h) if any(n in c for n in names)), None)
+    ca, ct, cd = col("artist"), col("title"), col("date added")
+    cl, cr, cb = col("tuning lead"), col("tuning rhythm"), col("tunig bass", "tuning bass")
+    fresh = {}
+    for n, r in enumerate(rows[hdr + 1:]):
+        g = lambda i: (r[i].strip() if i is not None and i < len(r) else "")
+        a, t = g(ca), g(ct)
+        tl = [g(cl), g(cr), g(cb)]
+        if not a or not t or not any(tl): continue
+        k = _key(f"{a} - {t}")
+        when = (g(cd), n)
+        if k not in fresh or when >= fresh[k][0]: fresh[k] = (when, tl)
+    tunings = {k: v[1] for k, v in fresh.items()}
+    json.dump(tunings, open(tcache, "w"))
+    print(f"songsel: {len(tunings)} songs with tunings")
+except Exception as e:
+    print("songsel: couldn't read tunings, using the saved copy:", e)
+json.dump(tunings, open("tunings.json", "w"))

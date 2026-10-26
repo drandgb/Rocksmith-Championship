@@ -10,6 +10,7 @@ for key, f in [("__WEEKS__", "weeks.json"), ("__PLAYERS__", "players.json"), ("_
 t = (t.replace("__BUILT__", f"{d:%B} {d.day}, {d.year}")
       .replace("__BUILT_ISO__", datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds"))
       .replace("__SHEET_EDITED__", (json.load(open("cache/sheet_edited.json")) if os.path.exists("cache/sheet_edited.json") else ""))
+      .replace("__TUNINGS__", open("tunings.json").read() if os.path.exists("tunings.json") else "{}")
       .replace("__DATAWEEK__", open("data_week.txt").read().strip())
       .replace("__SBMAX__", str(max(map(int, sb["weeks"]))))
       # medal leaders worked out by a first build of the page in headless Chrome (build.sh); null if that step was skipped
