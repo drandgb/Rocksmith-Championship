@@ -724,6 +724,18 @@ a.dl svg,.offpill svg{width:11px;height:11px}
 #annmode{margin-left:auto;flex:none}
 @media (max-width:400px){#annmode button{padding:4px 7px;font-size:.62rem;letter-spacing:.04em}.panel-head:has(#annmode){column-gap:8px}.panel-head:has(#annmode) h2{font-size:.92rem;letter-spacing:.05em;white-space:nowrap}}
 .tabs{align-items:center;flex-wrap:wrap}
+/* Level tab */
+.lvhead .lvtitle{margin:0;font:900 clamp(2rem,7vw,3.4rem)/1.05 var(--f-display);letter-spacing:.02em;text-transform:uppercase;background:linear-gradient(90deg,#f5c84a,#45d17a,#3fa0ff,#b277ff);-webkit-background-clip:text;background-clip:text;color:transparent}.lvhead #lv-sub{display:block;max-width:760px;margin:6px auto 0;line-height:1.6}.lvhead #lv-sub .dim{display:block;font-size:.8rem;color:var(--muted);margin-top:4px}
+.lvbands{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin:12px 0 2px}.lvband{border:1px solid color-mix(in srgb,var(--tc) 55%,transparent);border-radius:999px;padding:3px 10px;font-size:.8rem;color:var(--muted)}.lvband b{color:var(--tc);margin-right:4px}
+.lvlist{list-style:none;margin:0;padding:0}.lvlist li{display:grid;grid-template-columns:28px minmax(0,8.5em) minmax(40px,1fr) 3.2em 14px 62px;gap:8px;align-items:center;padding:4px 0;border-top:1px solid var(--line);font-size:.9rem;cursor:default}
+.lvlist li:first-child{border-top:0}.lvlist .rr{color:var(--muted);font:600 .8rem var(--f-mono);text-align:center}.lvlist li.p1 .rr{color:#f5c84a}.lvlist li.p2 .rr{color:#c9d0dc}.lvlist li.p3 .rr{color:#d8925a}
+.lvlist .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer}
+.lvbar{height:8px;border-radius:4px;background:color-mix(in srgb,var(--tc) 14%,var(--panel2));overflow:hidden}.lvbar i{display:block;height:100%;border-radius:4px;background:linear-gradient(90deg,color-mix(in srgb,var(--tc) 55%,transparent),var(--tc))}
+.lvv{font:700 .9rem var(--f-mono);text-align:right}.lvtr{font-size:.7rem;text-align:center}.lvtr.up{color:var(--s-green)}.lvtr.down{color:var(--s-red)}
+.lvsp{width:60px;height:18px;display:block;opacity:.85}
+@media (max-width:520px){.lvlist li{grid-template-columns:24px minmax(0,1fr) 3.2em 14px 50px}.lvlist .lvbar{display:none}.lvsp{width:50px}}
+#lvmode button[aria-pressed="true"]{background:var(--accent)}
+
 .tabrow{display:flex;gap:4px;flex-wrap:wrap;align-self:stretch}
 /* phones: the page tabs stay on one line and swipe sideways; a fade at the edge shows there's more */
 @media (max-width:640px){
@@ -1419,6 +1431,7 @@ footer{color:var(--dim);font-size:.78rem}
     <button type="button" role="tab" id="tab-thisweek" data-view="thisweek" aria-selected="false">This Week</button>
     <button type="button" role="tab" id="tab-scores" data-view="scores" aria-selected="false">Scoreboard</button>
     <button type="button" role="tab" id="tab-season" data-view="season" aria-selected="false">Season</button>
+    <button type="button" role="tab" id="tab-level" data-view="level" aria-selected="false">Level</button>
     <button type="button" role="tab" id="tab-rankings" data-view="rankings" aria-selected="false">Rankings</button>
     <button type="button" role="tab" id="tab-winners" data-view="winners" aria-selected="true">Winners</button>
     <button type="button" role="tab" id="tab-players" data-view="players" aria-selected="false">Players</button>
@@ -1653,6 +1666,15 @@ footer{color:var(--dim);font-size:.78rem}
   </section>
   </div>
 
+  <div class="view" id="view-level" role="tabpanel" aria-labelledby="tab-level" hidden>
+  <section class="panel lvhead">
+    <div class="panel-head rkhero"><div class="sh-eye">📈 Rocksmith Championship</div><h2 class="lvtitle">Player Level</h2><span class="sub" id="lv-sub"></span></div>
+    <div class="lvbands" id="lv-bands"></div>
+  </section>
+  <div class="wpathbar"><div class="seg" role="radiogroup" aria-label="Show" id="lvmode"><button type="button" data-lvm="now" class="s-all" aria-pressed="true">Now</button><button type="button" data-lvm="m6" aria-pressed="false">Last 6 months</button><button type="button" data-lvm="year" aria-pressed="false">By year</button></div><label class="shostpick" id="lvyrl" hidden><span>Year</span><select id="lvyear" aria-label="Year"></select></label></div>
+  <div id="lv-body" class="rkbody"></div>
+  </div>
+
   <div class="view" id="view-rankings" role="tabpanel" aria-labelledby="tab-rankings" hidden>
   <section class="panel rkhead">
     <div class="panel-head rkhero"><div class="sh-eye">🏆 Rocksmith Championship</div><h2 class="rkinfo" data-tip="How Rodman’s Rankings work&#10;&#10;Each path (Lead, Rhythm, Bass) and level (Beginner to Masterclass) has its own leaderboard covering the last 10 weeks.&#10;&#10;Points: on each challenge the top 4 earn 10, 5, 3 and 1 points, added up over the 10 weeks. Players with the same points share a rank.&#10;&#10;Who counts: only the main challenges (bonus and God challenges don’t count). Places go to players in that class or playing one class up, using the class they were in that week, so after a rank-up their points start counting in the new class. Players playing down, two or more classes up, or marked on the sheet as a new player or with no class on that path are skipped, and the next player takes the place.&#10;&#10;Arrows show how many places a player’s own rank moved since last week; New means they just entered the list, and Out means they have no points left in the last 10 weeks. With ties, one player can move without another moving the other way: if two players shared 1st last week and one pulls ahead, that one stays 1st (no change) and the other drops to 2nd (↓1).&#10;&#10;Rodman’s official table is kept in the scoreboard sheet. Tap the weeks pill for the latest 10 weeks, worked out by the site with the same rules. Players’ profiles and forum banners use whichever is more recent.">Rodman’s Rankings <span class="infoi" aria-hidden="true">ⓘ</span></h2><span class="sub" id="rk-sub"></span></div>
@@ -1827,6 +1849,7 @@ footer{color:var(--dim);font-size:.78rem}
       <dt><a href="#thisweek" data-faqgo="thisweek">This Week</a></dt><dd>The current week: this week's songs to download, the week's winners, new medals, rivals, Elo changes, who's new or back, anniversaries and play streaks at stake. Use the arrows to look at earlier weeks.</dd>
       <dt><a href="#scoreboard" data-faqgo="scores">Scoreboard</a></dt><dd>Every challenge card for any week, with everyone's accuracy, streak and score in order. Pick a path and class, highlight a player, or open <b>Your cards</b> to see all your ranked cards at once.</dd>
       <dt><a href="#season" data-faqgo="season">Season</a></dt><dd>The 13-week season standings for each class on each path, the projected most improved, and past season champions.</dd>
+      <dt><a href="#level" data-faqgo="level">Level</a></dt><dd>Rodman's XP player levels for each path, now, over the last 6 months and year by year. Roughly song rating × accuracy.</dd>
       <dt><a href="#rankings" data-faqgo="rankings">Rankings</a></dt><dd>Rodman's Rankings for each path and class, and the year-end standings.</dd>
       <dt><a href="#winners" data-faqgo="winners">Winners</a></dt><dd>Hall of fame, hot streaks, Elo ratings, most wins and win rates, by path and by year, plus the Winner lookup.</dd>
       <dt><a href="#players" data-faqgo="players">Players</a></dt><dd>Attendance: players per week, play streaks, perfect attendance, play rates, newcomers and rank changes, all time or by year, plus the Player lookup with each player's medals and history.</dd>
@@ -1892,6 +1915,7 @@ var HOSTORIG={}/*HOSTORIG*/;
 // tunings per song from the Song Selection List (most recently added row): "artist title" key -> [Lead, Rhythm, Bass]
 var TUNINGS=__TUNINGS__;
 function tuneOf(song,p){if(!song)return ""; const k=String(song).toLowerCase().replace(/[^a-z0-9]+/g," ").trim(), t=TUNINGS[k]; return t&&t[p]?t[p]:""}
+var LEVEL=__LEVEL__;   // Rodman's PlayerLevel tab (build_level.py)
 var YEAREND=__YEAREND__;   // year-end Rodman's Rankings (build_yearend.py)
 const WEEKS = __WEEKS__; // [week, isoDate, host, holidays]
 const PLAYERS = __PLAYERS__; // [name, firstWeek, latestWeek, played, playRate, activeStreak, longestStreak, presenceHex (from week 2), tiers L/R/B]
@@ -2884,10 +2908,11 @@ function tabReveal(v){const r=$("tabrow"), b=$("tab-"+v); if(!r||!b||r.scrollWid
   const L=b.getBoundingClientRect().left-r.getBoundingClientRect().left+r.scrollLeft, R=L+b.offsetWidth; if(L<r.scrollLeft+24||R>r.scrollLeft+r.clientWidth-24)r.scrollTo({left:Math.max(0,L-(r.clientWidth-b.offsetWidth)/2),behavior:"smooth"}); setTimeout(tabEdges,350)}
 function showView(v){
   try{tabReveal(v)}catch(e){}
-  ["thisweek","rankings","season","hosting","players","winners","scores","songs","faq"].forEach(k=>{const on=k===v;$("view-"+k).hidden=!on;$("tab-"+k).setAttribute("aria-selected",on)});
+  ["thisweek","level","rankings","season","hosting","players","winners","scores","songs","faq"].forEach(k=>{const on=k===v;$("view-"+k).hidden=!on;$("tab-"+k).setAttribute("aria-selected",on)});
   tip.hidden=true;
-  $("pfilter").hidden=v==="scores"||v==="songs"||v==="thisweek"||v==="rankings"||v==="season"||v==="faq";
-  if(v==="season")setTimeout(()=>{try{renderSeason()}catch(e){}},0);   // (after the page has finished loading: opening the site on #season runs this first)
+  $("pfilter").hidden=v==="scores"||v==="songs"||v==="thisweek"||v==="rankings"||v==="season"||v==="faq"||v==="level";
+  if(v==="season")setTimeout(()=>{try{renderSeason()}catch(e){}},0);
+  if(v==="level")setTimeout(()=>{try{renderLevel()}catch(e){console.error(e)}},0);   // (after the page has finished loading: opening the site on #season runs this first)
   if(v==="thisweek"&&window.__twReady)renderThisWeek();
   if(v==="winners"||v==="players"||v==="hosting")setTimeout(()=>mlEnsure(v==="winners"?"win":v==="players"?"player":"host"),50);
   if(v==="songs"&&window.__songsStale){window.__songsStale=false; renderSongs()} // player ratings arrived while another page was open
@@ -2897,7 +2922,7 @@ $("tabrow").addEventListener("scroll",tabEdges,{passive:true}); addEventListener
 document.addEventListener("click",e=>{const a=e.target.closest("[data-faqgo]"); if(a){e.preventDefault(); showView(a.dataset.faqgo); scrollTo({top:0,behavior:"smooth"}); return}
   const j=e.target.closest(".faqjump a"); if(j){e.preventDefault(); const t=document.querySelector(j.getAttribute("href")); if(t){const d=t.querySelector("details"); if(d)d.open=true; t.scrollIntoView({behavior:"smooth"})}}});
 document.querySelector(".tabs").addEventListener("click",e=>{const b=e.target.closest("button[data-view]");if(b)showView(b.dataset.view)});
-{const H={"#thisweek":"thisweek","#rankings":"rankings","#season":"season","#hosts":"hosting","#players":"players","#winners":"winners","#scoreboard":"scores","#songs":"songs","#faq":"faq"};let v=H[location.hash.split("/")[0]]||null; showView(["thisweek","rankings","season","hosting","scores","winners","songs","players","faq"].includes(v)?v:"thisweek");}
+{const H={"#thisweek":"thisweek","#level":"level","#rankings":"rankings","#season":"season","#hosts":"hosting","#players":"players","#winners":"winners","#scoreboard":"scores","#songs":"songs","#faq":"faq"};let v=H[location.hash.split("/")[0]]||null; showView(["thisweek","rankings","season","hosting","scores","winners","songs","players","faq","level"].includes(v)?v:"thisweek");}
 const SB=__SCORES__;
 const SONGS_OLD=__SONGS_OLD__; // weeks before the scoreboards: [week, path, tier, bonus, song, difficulty]
 // ---------- win rates & rank-ups (from scoreboards, weeks 440+) ----------
@@ -2949,6 +2974,37 @@ function renderRankups(){
 
 // winner lookup: one player's weeks with a win
 const SB_W=Object.keys(SB.weeks).map(Number).sort((a,b)=>a-b);
+// ---------- Level: Rodman's PlayerLevel tab, read as a level you can picture ----------
+// His XP level lines up with song rating × accuracy (an XP of 70 is like scoring 100% on songs rated 7, or 93% on 7.5s),
+// taken from a player's recent scores; the sheet doesn't spell out its formula, so this is the site's reading of it.
+const LV_BANDS=[[80,"M","Masterclass"],[60,"A","Advanced"],[40,"I","Intermediate"],[0,"B","Beginner"]];
+const lvBand=x=>LV_BANDS.find(b=>x>=b[0]);
+let lvMode="now", lvYear=null;
+function lvSpark(p,years){const pts=years.slice().reverse().map(y=>p.y[y]||null); if(p.m6)pts.push(p.m6); if(p.xp)pts.push(p.xp);
+  const v=pts.filter(x=>x!=null); if(v.length<2)return ""; const W=60,H=18, n=pts.length, lo=Math.min(...v)-2, hi=Math.max(...v)+2;
+  let d="", pen=false; pts.forEach((x,i)=>{if(x==null)return; const X=(i/(n-1)*W).toFixed(1), Y=(H-(x-lo)/(hi-lo)*H).toFixed(1); d+=(pen?"L":"M")+X+","+Y; pen=true});
+  return `<svg class="lvsp" viewBox="-1 -1 ${W+2} ${H+2}" aria-hidden="true"><path d="${d}" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`}
+function lvTip(p,years){const L=[`${p.n}`]; if(p.xp)L.push(`Now: ${p.xp.toFixed(1)} · ${lvSay(p.xp)}`); if(p.m6)L.push(`Last 6 months: ${p.m6.toFixed(1)}`);
+  const ys=years.filter(y=>p.y[y]); if(ys.length)L.push("",...ys.map(y=>`${y}: ${p.y[y].toFixed(1)}`)); return L.join("\n")}
+const lvSay=x=>{const r=x/10, b=lvBand(x); return `like 100% on songs rated ${(Math.round(r*2)/2).toFixed(1)} (${b[2]})`};
+function renderLevel(){
+  const D=LEVEL; if(!D||!D.paths){$("lv-body").innerHTML=`<div class="empty">The PlayerLevel tab wasn't found in the sheet.</div>`; return}
+  const years=D.years||[];
+  $("lv-sub").innerHTML=`Rodman’s XP levels from the championship sheet: a number for how hard the songs you play are and how well you play them.<br>Roughly <b>song rating × accuracy</b>: an XP of <b>70</b> is like scoring 100% on songs rated 7, or 93% on 7.5s. <span class="dim">“Now” needs 3+ score entries over the last ${D.weeks||12} weeks scored (to Week ${D.last||"?"}); each year needs 5+ entries that year.</span>`;
+  $("lv-bands").innerHTML=LV_BANDS.slice().reverse().map(([min,k,name],i,a)=>`<span class="lvband" style="--tc:${TIER_C[k]}"><b>${name}</b> ${i===a.length-1?`${min}+`:`${min}–${a[i+1][0]-1}`}</span>`).join("");
+  if(!lvYear||!years.includes(+lvYear))lvYear=String(years[0]);
+  $("lvyear").innerHTML=years.map(y=>`<option${String(y)===lvYear?" selected":""}>${y}</option>`).join("");
+  $("lvyrl").hidden=lvMode!=="year";
+  document.querySelectorAll("#lvmode button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.lvm===lvMode));
+  const val=p=>lvMode==="now"?p.xp:lvMode==="m6"?p.m6:p.y[lvYear];
+  const what=lvMode==="now"?"now":lvMode==="m6"?"over the last 6 months":`in ${lvYear}`;
+  $("lv-body").innerHTML=D.paths.map((L,pi)=>{const rows=L.filter(p=>val(p)).sort((a,b)=>val(b)-val(a)); const max=Math.max(90,...rows.map(val));
+    let rk=0; const body=rows.map((p,i)=>{const v=val(p); if(i===0||v<val(rows[i-1]))rk=i+1; const b=lvBand(v), tr=lvMode==="now"&&p.m6?v-p.m6:null;
+      return `<li class="${rk<=3?"p"+rk:""}" data-tip="${esc(lvTip(p,years))}"><span class="rr">${rk}</span><span class="nm" data-player="${esc(p.n)}">${esc(p.n)}</span><span class="lvbar" style="--tc:${TIER_C[b[1]]}"><i style="width:${(v/max*100).toFixed(1)}%"></i></span><b class="lvv" style="color:${TIER_C[b[1]]}">${v.toFixed(1)}</b><span class="lvtr ${tr==null||Math.abs(tr)<.5?"":tr>0?"up":"down"}">${tr==null||Math.abs(tr)<.5?"":tr>0?"▲":"▼"}</span><span class="lvspw" style="color:${TIER_C[b[1]]}">${lvSpark(p,years)}</span></li>`}).join("");
+    return `<section class="panel rkpath" style="--pc:${PATH_C[pi]}"><div class="panel-head"><h2>${PATHS[pi]}</h2><span class="sub">${rows.length} player${rows.length===1?"":"s"} ${what}</span></div>${rows.length?`<ol class="lvlist">${body}</ol>`:`<div class="empty">Nobody ${what}</div>`}</section>`}).join("");
+}
+$("lvmode").addEventListener("click",e=>{const b=e.target.closest("[data-lvm]"); if(!b)return; lvMode=b.dataset.lvm; renderLevel()});
+$("lvyear").addEventListener("change",e=>{lvYear=e.target.value; renderLevel()});
 // ---------- shared by Winner lookup and This Week: canonical names, God carry-overs and rivals ----------
 const TW_ALIAS={AndreCardoso:"ALSRC",BetterCallJamie:"FlatCap Jay",jasmith85:"FlatCap Jay",aand14:"drand",mattimatti:"mattibassi",Tinman86:"TinMan86"};
 const TW_CANON={}; PLAYERS.forEach(p=>TW_CANON[p[0].toLowerCase()]=p[0]);
