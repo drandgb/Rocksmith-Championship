@@ -721,6 +721,17 @@ a.dl svg,.offpill svg{width:11px;height:11px}
 #annmode{margin-left:auto;flex:none}
 @media (max-width:400px){#annmode button{padding:4px 7px;font-size:.62rem;letter-spacing:.04em}.panel-head:has(#annmode){column-gap:8px}.panel-head:has(#annmode) h2{font-size:.92rem;letter-spacing:.05em;white-space:nowrap}}
 .tabs{align-items:center;flex-wrap:wrap}
+.tabrow{display:flex;gap:4px;flex-wrap:wrap;align-self:stretch}
+/* phones: the page tabs stay on one line and swipe sideways; a fade at the edge shows there's more */
+@media (max-width:640px){
+  .tabrow{flex:1 1 100%;min-width:0;flex-wrap:nowrap;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:none;-webkit-overflow-scrolling:touch;scroll-snap-type:x proximity}
+  .tabrow::-webkit-scrollbar{display:none}
+  .tabrow button{flex:none;white-space:nowrap;scroll-snap-align:start}
+  .tabrow.more-r{-webkit-mask-image:linear-gradient(90deg,#000 82%,transparent);mask-image:linear-gradient(90deg,#000 82%,transparent)}
+  .tabrow.more-l{-webkit-mask-image:linear-gradient(90deg,transparent,#000 18%);mask-image:linear-gradient(90deg,transparent,#000 18%)}
+  .tabrow.more-l.more-r{-webkit-mask-image:linear-gradient(90deg,transparent,#000 18%,#000 82%,transparent);mask-image:linear-gradient(90deg,transparent,#000 18%,#000 82%,transparent)}
+  .actfilter{margin-top:6px}
+}
 .actfilter{margin-left:auto;margin-bottom:6px}
 #pfilter .s-all[aria-pressed="true"],#wpath .s-all[aria-pressed="true"],#rufilter .s-all[aria-pressed="true"]{background:var(--accent)}
 .ruf{margin-bottom:12px}
@@ -1361,6 +1372,7 @@ footer{color:var(--dim);font-size:.78rem}
   </div>
 
   <nav class="tabs" role="tablist" aria-label="Pages">
+    <div class="tabrow" id="tabrow">
     <button type="button" role="tab" id="tab-thisweek" data-view="thisweek" aria-selected="false">This Week</button>
     <button type="button" role="tab" id="tab-scores" data-view="scores" aria-selected="false">Scoreboard</button>
     <button type="button" role="tab" id="tab-season" data-view="season" aria-selected="false">Season</button>
@@ -1369,6 +1381,7 @@ footer{color:var(--dim);font-size:.78rem}
     <button type="button" role="tab" id="tab-players" data-view="players" aria-selected="false">Players</button>
     <button type="button" role="tab" id="tab-hosting" data-view="hosting" aria-selected="false">Hosts</button>
     <button type="button" role="tab" id="tab-songs" data-view="songs" aria-selected="false">Songs</button>
+    </div>
     <div class="seg actfilter" role="radiogroup" aria-label="Show everyone or active only" id="pfilter">
       <button type="button" data-af="0" class="s-all" aria-pressed="false">All</button>
       <button type="button" data-af="1" class="s-act" aria-pressed="true">Active only</button>
@@ -2457,6 +2470,8 @@ function siText(id){const cur=TW_MAX, [a,b]=siRange(id,cur), n=b-a+1, need=Math.
 // ---------- Admin: recruitment post for the Steam discussion boards (title and post, ready to copy) ----------
 function rpPlayers(){eloBuild(); const P={}; [0,1,2].forEach(pi=>Object.entries(ELO[pi].hist).forEach(([n,h])=>h.forEach(x=>{if(x[0]>ELO_DONE-13)(P[x[0]]=P[x[0]]||new Set()).add(n)})));
   const v=Object.values(P).map(s=>s.size); return v.length?Math.max(5,Math.round(v.reduce((a,b)=>a+b,0)/v.length/5)*5):20}   // players a week over the last 13 weeks, to the nearest 5
+// this week's songs, each one once, as "Band - Song" in the scoreboard's order
+function rpSongs(){const seen=new Set(), out=[]; (SB.weeks[TW_MAX]||[]).slice().sort((a,b)=>a[0]-b[0]||a[1]-b[1]).forEach(c=>{const t=String(c[3]||"").trim(); if(!t||/^n\/a$/i.test(t))return; const k=t.toLowerCase().replace(/\s+/g," "); if(seen.has(k))return; seen.add(k); out.push(t)}); return out}
 const RP_TITLE="I went from Beginner to Advanced in 2 years with this weekly RS2014 challenge";
 function rpText(){return [`I started as a Beginner two years ago and can play Advanced songs now, all thanks to a weekly challenge on the CustomsForge forum. Every week about ${rpPlayers()} of us play the same new songs and compete on accuracy. It's friendly and laid back, and it really does help you improve! 🎸`,
   "",
@@ -2464,6 +2479,7 @@ function rpText(){return [`I started as a Beginner two years ago and can play Ad
   "",
   "To join: grab this week's songs from the forum thread, play them on Score Attack (Hard) or Learn a Song with every section maxed, then post a screenshot showing your accuracy % and streak as a new reply before Saturday. Post as many tries as you like; your best one counts.",
   "",
+  ...(()=>{const L=rpSongs(); return L.length?[`This week's songs:`,...L.map(x=>"- "+x),""]:[]})(),
   "Forum thread: https://customsforge.com/forum/38-rocksmith-championship/",
   `New to custom songs, or want the full guide? Everything's on the stats site: ${BN_SITE}`,
   "",
@@ -2668,7 +2684,12 @@ $("tl").addEventListener("click",e=>{
   renderLog(); document.getElementById("wk-"+w[0])?.scrollIntoView({block:"nearest"});
 });
 
+// phones: keep the open tab in view in the swipeable tab row, and fade the edges that have more tabs
+function tabEdges(){const r=$("tabrow"); if(!r)return; r.classList.toggle("more-l",r.scrollLeft>4); r.classList.toggle("more-r",r.scrollLeft+r.clientWidth<r.scrollWidth-4)}
+function tabReveal(v){const r=$("tabrow"), b=$("tab-"+v); if(!r||!b||r.scrollWidth<=r.clientWidth)return tabEdges();
+  const L=b.getBoundingClientRect().left-r.getBoundingClientRect().left+r.scrollLeft, R=L+b.offsetWidth; if(L<r.scrollLeft+24||R>r.scrollLeft+r.clientWidth-24)r.scrollTo({left:Math.max(0,L-(r.clientWidth-b.offsetWidth)/2),behavior:"smooth"}); setTimeout(tabEdges,350)}
 function showView(v){
+  try{tabReveal(v)}catch(e){}
   ["thisweek","rankings","season","hosting","players","winners","scores","songs"].forEach(k=>{const on=k===v;$("view-"+k).hidden=!on;$("tab-"+k).setAttribute("aria-selected",on)});
   tip.hidden=true;
   $("pfilter").hidden=v==="scores"||v==="songs"||v==="thisweek"||v==="rankings"||v==="season";
@@ -2678,6 +2699,7 @@ function showView(v){
   if(v==="songs"&&window.__songsStale){window.__songsStale=false; renderSongs()} // player ratings arrived while another page was open
   if(v==="hosting"){renderUpcoming(); if(!logScrolled)requestAnimationFrame(scrollLogToCurrent)}
 }
+$("tabrow").addEventListener("scroll",tabEdges,{passive:true}); addEventListener("resize",tabEdges);
 document.querySelector(".tabs").addEventListener("click",e=>{const b=e.target.closest("button[data-view]");if(b)showView(b.dataset.view)});
 {const H={"#thisweek":"thisweek","#rankings":"rankings","#season":"season","#hosts":"hosting","#players":"players","#winners":"winners","#scoreboard":"scores","#songs":"songs"};let v=H[location.hash.split("/")[0]]||null; showView(["thisweek","rankings","season","hosting","scores","winners","songs","players"].includes(v)?v:"thisweek");}
 const SB=__SCORES__;
