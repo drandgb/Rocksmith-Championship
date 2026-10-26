@@ -985,7 +985,7 @@ footer .updated{display:block;margin-top:4px}
 @media (prefers-reduced-motion:reduce){.twarrow.glow{animation:none}}
 .twpv-hide{display:none!important}
 .twnp .npn{display:block;font-size:.72rem;font-weight:400;color:var(--s-green)}
-.twseas{margin-top:14px}.twseasin{border:1px solid color-mix(in srgb,var(--s-yellow) 35%,var(--line));border-radius:10px;padding:10px 12px;background:color-mix(in srgb,var(--s-yellow) 4%,var(--panel2));cursor:pointer}.twseasin:hover{border-color:var(--s-yellow)}
+.twseas{margin-top:14px}.panel.twseas{padding:12px}.panel.twseas .twseasin{border:0;background:none;padding:2px 4px}.twseasin{border:1px solid color-mix(in srgb,var(--s-yellow) 35%,var(--line));border-radius:10px;padding:10px 12px;background:color-mix(in srgb,var(--s-yellow) 4%,var(--panel2));cursor:pointer}.twseasin:hover{border-color:var(--s-yellow)}
 .twseas .tsh{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 12px;font-size:.9rem;color:var(--muted)}.twseas .tsn{font:900 1rem var(--f-display);letter-spacing:.06em;text-transform:uppercase;color:#f5c84a}.twseas .golink{margin-left:auto;color:var(--s-yellow);font-weight:600}
 .twseas .tsnote{font-size:.74rem;color:var(--muted);margin:4px 0 6px}.twseas .tsg{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px 16px}@media(max-width:700px){.twseas .tsg{grid-template-columns:1fr}}
 .twseas .lvchip{font:700 .64rem var(--f-mono);padding:1px 6px;border-radius:4px;color:#10131a;background:var(--tc);text-align:center}.twseas h4{margin:0 0 3px;font:800 .7rem var(--f-display);letter-spacing:.1em;text-transform:uppercase;color:var(--pc)}.twseas ul{list-style:none;margin:0;padding:0}.twseas li{display:grid;grid-template-columns:44px minmax(0,1fr) auto;align-items:center;gap:6px;font-size:.84rem;padding:2px 0}.twseas .tsl{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.twseas li b{font-family:var(--f-display);color:var(--s-green)}
@@ -1612,7 +1612,6 @@ footer{color:var(--dim);font-size:.78rem}
       <button type="button" class="clear sblatest" id="twnow" hidden></button>
     </div>
     <div class="twstats" id="tw-stats"></div>
-    <div class="twseas" id="tw-seas" hidden></div>
   </section>
   <section class="panel dlsec pvsec" id="twpast" hidden></section>
   <section class="panel dlsec" id="twdl" hidden></section>
@@ -1625,13 +1624,14 @@ footer{color:var(--dim);font-size:.78rem}
     <div class="panel-head"><h2>🏅 New medals</h2><span class="sub" id="tw-med-sub"></span></div>
     <ul class="twl cols" id="tw-med"></ul>
   </section>
-  <section class="panel twrksec" id="tw-rksec" hidden>
-    <div class="panel-head"><h2>👑 Rodman’s Rankings</h2><span class="sub" id="tw-rk-sub"></span></div>
-    <div class="twrk" id="tw-rk"></div>
-  </section>
+  <section class="panel twseas" id="tw-seas" hidden></section>
   <section class="panel glowrim" style="--rc:#ff4f5e">
     <div class="panel-head"><h2>⚔️ Rivals</h2><span class="sub" id="tw-riv-sub"></span></div>
     <div class="twpaths" id="tw-riv"></div>
+  </section>
+  <section class="panel twrksec" id="tw-rksec" hidden>
+    <div class="panel-head"><h2>👑 Rodman’s Rankings</h2><span class="sub" id="tw-rk-sub"></span></div>
+    <div class="twrk" id="tw-rk"></div>
   </section>
   <section class="panel elosec" hidden>
     <div class="panel-head"><h2 id="tw-elo-h">♟ Elo this week</h2><span class="sub" id="tw-elo-sub"></span></div>
@@ -1825,7 +1825,7 @@ footer{color:var(--dim);font-size:.78rem}
     <details><summary>How many times can I post a score?</summary><p>As many as you like during the week. Your best one counts.</p></details>
     <details><summary>When does the week end?</summary><p>On <b>Saturday evening, around 7–9 pm CET</b>, when the host closes it and posts the new week, which announces the winners and reveals the next week's songs. Get your scores in before then. When a host sets a countdown, it shows on This Week and the Scoreboard.</p></details>
     <details><summary>How do I post a screenshot from Steam?</summary><p>Press <b>F12</b> in the game, then open <b>Steam → View → Recordings &amp; Screenshots</b>. Click the image and choose <b>Share → Share on Steam → Unlisted → Upload</b>, click <b>View on my Profile</b>, then right-click the image, choose <b>Copy link address</b> and paste it into your reply. With other image hosts, drag and drop the image into your reply.</p></details>
-    <details><summary>Lead and Rhythm feel too hard. Any tips?</summary><p>Try the <b>bass</b> arrangement. It's mostly single notes, so there are no chords to wrestle with and you can enjoy the groove. You don't need a bass: play it on your guitar with Rocksmith's bass emulation and it still counts.</p></details>
+    <details><summary>Beginner Lead and Rhythm feel too hard. Any tips?</summary><p>Try the <b>bass</b> arrangement. It's mostly single notes, so there are no chords to wrestle with and you can enjoy the groove. You don't need a bass: play it on your guitar with Rocksmith's bass emulation and it still counts.</p></details>
   </section>
 
   <section class="panel faq" id="faq-rules">
@@ -3164,7 +3164,7 @@ function twSeason(w,live){eloBuild(); const id=seasonOf(w); if(!id)return ""; co
   const head=`<div class="tsh"><span class="tsn">🏁 Season ${seasonNum(id)}</span><span>week ${n} of ${len}</span><span class="golink">Season standings ›</span></div>`;
   if(upto<a)return `<div class="twseasin" data-goseason role="button" tabindex="0" title="Open the Season tab">${head}<p class="dim">The season starts this week: everyone's on zero points.</p></div>`;
   const cols=[0,1,2].map(pi=>{const T=seasonF1(pi,id,upto); const rows=["M","A","I","B"].filter(c=>T[c]&&T[c].length).map(c=>{const L=T[c], top=L.filter(x=>f1Cmp(x,L[0])===0);
-      return `<li><span class="lvchip" style="--tc:${TIER_C[c]}">${TIER_NAME[c].slice(0,3)}</span><span class="tsl">${top.map(x=>esc(x.n)).join(" = ")}</span><b>${L[0].p}</b></li>`}).join("");
+      return `<li><span class="lvchip" style="--tc:${TIER_C[c]}">${TIER_NAME[c].slice(0,3)}</span><span class="tsl">${top.map(x=>"🥇 "+esc(x.n)).join(" = ")}</span><b>${L[0].p}</b></li>`}).join("");
     return rows?`<div class="tsc" style="--pc:${PATH_C[pi]}"><h4>${PATHS[pi]}</h4><ul>${rows}</ul></div>`:""}).join("");
   const note=upto<w?`Leaders after week ${upto-a+1}`:`Leaders after week ${n}`;
   return `<div class="twseasin" data-goseason role="button" tabindex="0" title="Open the Season tab">${head}<div class="tsnote">${note}</div><div class="tsg">${cols}</div></div>`}
@@ -4805,12 +4805,29 @@ function renderNewWeekNote(){
   if(!TW_LIVE||twWeek!==w||!SB.weeks[w]||days>3||lsGet(NW_SEEN)===String(w)){el.hidden=true;return}
   const n=myPlayer(); let meds=[]; try{if(n)meds=twMedals(n,w-1,false)}catch(e){meds=[]}
   const songs=new Set((SB.weeks[w]||[]).filter(c=>c[3]&&!/^n\/a$/i.test(c[3])).map(c=>c[3].toLowerCase())).size;
-  el.innerHTML=`<button type="button" class="nwx" data-nw="x" aria-label="Close" title="Close">✕</button><div class="nwic">🎸</div><div class="nwbody"><h2>Week ${w-1} is final · Week ${w} is on</h2>
+  el.innerHTML=`<button type="button" class="nwx" data-nw="x" aria-label="Close" title="Close">✕</button><div class="nwbody"><h2>Week ${w-1} is final · Week ${w} is on</h2>
     <div class="sub">${n&&meds.length?`Your medals from Week ${w-1} (hover one to see what it's for). `:`Week ${w-1}'s winners are in. `}The new songs are out: ${songs} to download.</div>
-    ${n&&meds.length?`<div class="nwmeds">${meds.join("")}</div>`:""}${n?(()=>{try{return nwElo(n,w-1)}catch(e){return ""}})():""}</div>
+    ${n&&meds.length?`<div class="nwmeds">${meds.join("")}</div>`:""}${n?["nwSeason","nwRodman","nwElo"].map(f=>{try{return window[f](n,w-1)}catch(e){return ""}}).join(""):""}</div>
     <div class="nwbtns"><button type="button" class="clear" data-nw="dl" style="background:var(--accent);color:#1a1004;font-weight:800">Download Week ${w} songs ↓</button>${n?`<button type="button" class="clear" data-nw="me">Go to my profile ›</button>`:""}</div>`;
   el.hidden=false;
 }
+// the new-week note: the player's season standing after the week that just finished (their best class on each path),
+// with the points and places it moved, in the same layout as the Elo rows
+const nwTag=c=>`<span class="eloband" style="--bc:${TIER_C[c]}">${TIER_NAME[c]}</span>`;
+const nwMv=(r0,r1)=>r0&&r1&&r0!==r1?`<small class="${r1<r0?"up":"slip"}">#${r0} → #${r1}</small>`:r1?`<small>#${r1}</small>`:"";
+function nwSeason(n,w){eloBuild(); const id=seasonOf(w); if(!id)return ""; const [a,b]=seasonRange(id), key=n.toLowerCase();
+  const rows=[0,1,2].map(pi=>{const T1=seasonF1(pi,id,w), T0=w>a?seasonF1(pi,id,w-1):{}; let best=null;
+    Object.entries(T1).forEach(([c,L])=>{const i=L.findIndex(x=>x.n.toLowerCase()===key); if(i>=0&&(!best||i<best.i))best={c,i,p:L[i].p}}); if(!best)return "";
+    const L0=T0[best.c]||[], i0=L0.findIndex(x=>x.n.toLowerCase()===key), p0=i0>=0?L0[i0].p:0, d=best.p-p0, r1=best.i+1;
+    return `<li class="${r1<=3?"elo-t"+r1:""}" style="--pc:${PATH_C[pi]}"><span class="nwp">${PATHS[pi]}</span><b class="nwv">${best.p}</b><span class="nwd">${d>0?`<span class="up">▲${d}</span>`:"–"}</span><span class="nwr">${nwTag(best.c)}${nwMv(i0>=0?i0+1:null,r1)}</span></li>`}).join("");
+  return rows?`<div class="nwelo"><div class="nwelo-h">Season ${seasonNum(id)} after Week ${w} <span class="pelo-sub">week ${w-a+1} of ${b-a+1} · points</span></div><ul>${rows}</ul></div>`:""}
+// ...and in Rodman's Rankings (the 10 weeks up to that week, worked out like the Rankings tab's latest weeks)
+function nwRodman(n,w){const now=rkCompute(w), prev=rkCompute(w-1), key=n.toLowerCase();
+  const rank=(o,k)=>{const r=Object.entries(o||{}).sort((x,y)=>y[1]-x[1]); const i=r.findIndex(([m])=>m.toLowerCase()===k); if(i<0)return null; return {r:1+r.filter(x=>x[1]>r[i][1]).length,p:r[i][1]}};
+  const rows=[0,1,2].map(pi=>{let best=null; ["M","A","I","B"].forEach(c=>{const x=rank(now[pi+"|"+c],key); if(x&&(!best||x.r<best.r))best={...x,c}}); if(!best)return "";
+    const o=rank(prev[pi+"|"+best.c],key), d=best.p-(o?o.p:0);
+    return `<li class="${best.r<=3?"elo-t"+best.r:""}" style="--pc:${PATH_C[pi]}"><span class="nwp">${PATHS[pi]}</span><b class="nwv">${best.p}</b><span class="nwd">${d>0?`<span class="up">▲${d}</span>`:"–"}</span><span class="nwr">${nwTag(best.c)}${nwMv(o?o.r:null,best.r)}</span></li>`}).join("");
+  return rows?`<div class="nwelo"><div class="nwelo-h">Rodman’s Rankings after Week ${w} <span class="pelo-sub">weeks ${w-9}–${w} · points</span></div><ul>${rows}</ul></div>`:""}
 // the new-week note: how the player's Elo moved in the week that just finished, on each path they played
 function nwElo(n,w){eloBuild(); const k=eloKey(n), kp=eloKeep(k);
   const rows=[0,1,2].map(pi=>{const x=eloAt(pi,k,w); if(!x||x[0]!==w)return ""; const b=eloAt(pi,k,w-1), d=Math.round(x[1]-(b?b[1]:eloStart(pi,k)));
@@ -4850,7 +4867,7 @@ document.addEventListener("click",e=>{
   if(e.target.closest("#twdl [data-dl=fold]")){lsSet(DL_FOLD,lsGet(DL_FOLD)===String(TW_MAX)?null:String(TW_MAX)); renderDownloads(); return}
 });
 // This Week: Rodman's Rankings over the 10 weeks up to the week shown (the week before, while a week is still running),
-// worked out from the scoreboards like the Rankings tab's latest weeks; the top 3 of each class with the change since the week before
+// worked out from the scoreboards like the Rankings tab's latest weeks; first place in each class (everyone sharing it)
 function renderTwRk(){const w=twWeek, last=w===TW_LIVE?w-1:w, sec=$("tw-rksec"); if(!sec)return;
   if(!(last>=449&&last<=DATA_WEEK)){sec.hidden=true; return}
   const now=rkCompute(last), prev=rkCompute(last-1), LV=[["M","Masterclass"],["A","Advanced"],["I","Intermediate"],["B","Beginner"]];
@@ -4858,7 +4875,7 @@ function renderTwRk(){const w=twWeek, last=w===TW_LIVE?w-1:w, sec=$("tw-rksec");
   const crown=["","🥇","🥈","🥉"];
   $("tw-rk-sub").innerHTML=`Weeks ${last-9}–${last}${w===TW_LIVE?" · this week counts once it's finished":""} · <span class="golink" role="button" tabindex="0" data-gorank>All rankings ›</span>`;
   $("tw-rk").innerHTML=[0,1,2].map(pi=>`<div class="twpath twrkp" style="--pc:${PATH_C[pi]}"><h3>${PATHS[pi]}</h3>${LV.map(([lv,name])=>{const N=ranked(now[pi+"|"+lv]), P={}; ranked(prev[pi+"|"+lv]).forEach(([k,n])=>P[n]=k);
-    const top=N.filter(x=>x[0]<=3); if(!top.length)return "";
+    const top=N.filter(x=>x[0]===1); if(!top.length)return "";
     return `<div class="twrkl" style="--tc:${TIER_C[lv]}"><h4>${name}</h4><ol>${top.map(([k,n,p])=>{const was=P[n], ch=was==null?`<span class="chg new" data-tip="New in the top of the rankings">new</span>`:was>k?`<span class="chg up" data-tip="Up ${was-k} since Week ${last-1}">↑${was-k}</span>`:was<k?`<span class="chg down" data-tip="Down ${k-was} since Week ${last-1}">↓${k-was}</span>`:"";
       return `<li class="p${k}"><span class="rr">${crown[k]}</span><span class="nm" data-player="${esc(n)}">${esc(n)}</span><span class="pts">${p}</span>${ch}</li>`}).join("")}</ol></div>`}).join("")||`<div class="empty">Nobody ranked</div>`}</div>`).join("");
   sec.hidden=false}
