@@ -575,7 +575,7 @@ a.dl svg,.offpill svg{width:11px;height:11px}
 .ywlink{color:var(--accent);cursor:pointer;text-decoration:underline;text-underline-offset:2px}
 .ywalert .ywgo[data-sbw]{text-decoration:underline dotted;text-underline-offset:3px;font-weight:700}
 #sbcards .card.sbflash{animation:sbflash 1.6s ease-out}@keyframes sbflash{0%,30%{box-shadow:0 0 0 3px var(--accent)}100%{box-shadow:0 0 0 0 transparent}}
-.ywalert{position:relative}.ywx{position:absolute;top:6px;right:8px;background:none;border:0;color:var(--muted);font-size:1rem;line-height:1;padding:4px 6px;border-radius:6px;cursor:pointer}.ywx:hover{color:var(--text,#e9edf5);background:color-mix(in srgb,var(--s-red) 18%,transparent)}.ywalert h4{padding-right:26px}
+.ywalert{position:relative}/* Wrapped: a year in review */.wrap .wr-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:12px}.wr-eye{font:700 .68rem var(--f-display);letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}.wr-title{font:800 1.45rem/1.15 var(--f-display);margin:3px 0 0;background:linear-gradient(90deg,#ff5fa2,#ffb03a,#45d17a,#3fa0ff,#b277ff);-webkit-background-clip:text;background-clip:text;color:transparent;text-transform:none;letter-spacing:.01em}.wr-note{font-size:.78rem;color:var(--muted);margin-top:3px}.wr-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));grid-auto-flow:dense;gap:10px}.wrap .wr-head select{flex:none;width:auto;margin:0}.wr-t{border-radius:14px;padding:12px 14px;color:#fff;position:relative;overflow:hidden;min-height:96px;display:flex;flex-direction:column;gap:2px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.08)}.wr-t::after{content:"";position:absolute;width:120px;height:120px;border-radius:50%;right:-40px;top:-50px;background:rgba(255,255,255,.12)}.wr-wide{grid-column:span 2}@media (max-width:420px){.wr-wide{grid-column:auto}}.wr-l{font:700 .68rem var(--f-display);letter-spacing:.12em;text-transform:uppercase;opacity:.85}.wr-v{font:800 1.8rem/1.1 var(--f-display);letter-spacing:.01em;word-break:break-word}.wr-s{font-size:.8rem;opacity:.92;line-height:1.35}.wr-s small{display:block;opacity:.8;font-size:.72rem}.wr-t .ywgo,.wr-t .nm{color:inherit;cursor:pointer;text-decoration:underline dotted}.wr-a{background:linear-gradient(135deg,#1db954,#0f6b34)}.wr-t.wr-b{background:linear-gradient(135deg,#f5b52e,#c4521c)}.wr-c{background:linear-gradient(135deg,#8a4cf0,#d64fb8)}.wr-d{background:linear-gradient(135deg,#2f7fef,#1a3f9c)}.wr-e{background:linear-gradient(135deg,#ff6a4a,#a3243a)}.wr-f{background:linear-gradient(135deg,#17b5c4,#156b8a)}.wr-g{background:linear-gradient(135deg,#e9406b,#7a1f6b)}.wr-h{background:linear-gradient(135deg,#6b5cf0,#2b2a7a)}.wr-i{background:linear-gradient(135deg,#45d17a,#1c7a7a)}.wr-j{background:linear-gradient(135deg,#ff9a2e,#9c3d12)}.wr-k{background:linear-gradient(135deg,#3a4256,#1d2433)}.wr-k .wr-v{font-size:1.15rem;display:flex;gap:10px;flex-wrap:wrap}.ywx{position:absolute;top:6px;right:8px;background:none;border:0;color:var(--muted);font-size:1rem;line-height:1;padding:4px 6px;border-radius:6px;cursor:pointer}.ywx:hover{color:var(--text,#e9edf5);background:color-mix(in srgb,var(--s-red) 18%,transparent)}.ywalert h4{padding-right:26px}
 .ywalert ul{margin:0;padding:0}.ywalert li{list-style:none;padding:4px 0;font-size:.86rem}.ywalert .dn{color:var(--s-red);font-weight:800}.ywalert small{color:var(--muted)}
 .pvbar{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:8px 10px 10px;padding:7px 10px;border-radius:8px;background:color-mix(in srgb,var(--tc) 8%,transparent);border:1px dashed color-mix(in srgb,var(--tc) 40%,transparent);font-size:.8rem;color:var(--muted)}
 .pvwrap{margin-top:auto}.pvbar .pvlab{margin-right:auto}a.pvw{text-decoration:none}.pvold .pvsub{display:block;font-size:.72rem;color:var(--muted);margin-top:2px}.pvold .pvlab{flex:1 1 0;min-width:0}.pvbar+.pvbar,.pvbody+.pvbar{margin-top:-4px}.pvbar .pvlab b{color:var(--fg)}
@@ -5102,6 +5102,51 @@ function ywAlert(n){
   return `<div class="ywalert"><button type="button" class="ywx" data-ywdismiss="${esc(n)}" title="Dismiss: mark these as seen" aria-label="Dismiss">✕</button><h4>⚠ You've been passed · ${L.length}</h4><ul>${L.map(e=>{const tie=e.bp===e.mp;
     return `<li><span class="dn">${e.fp&&e.tp&&e.tp>e.fp?`#${e.fp} → #${e.tp}`:`${ywOrd(e.from)} → ${ywOrd(e.to)}`}</span> · <span class="ywgo"${SB.weeks[e.w]?` data-sbw="${e.w}" data-sbp="${e.p}"${e.s!=null?` data-sbs="${e.s}"`:""} data-sbn="${esc(n)}" title="Open this challenge on the Scoreboard (Week ${e.w})"`:""}>${PATHS[e.p]} ${esc(e.lv)}</span> · <b>${esc(e.by)}</b> ${sc(e.bp,e.bs,tie)} passed your ${sc(e.mp,e.ms,tie)} <small>· ${day(e.t)}</small></li>`}).join("")}</ul></div>`;
 }
+// ---------- Wrapped: a claimed player's year in review (from the scoreboards and attendance) ----------
+function wrapYears(n){const k=String(n).toLowerCase(); return [...new Set((sbIx().ent[k]||[]).filter(x=>x.w<=DATA_WEEK).map(x=>yearOfWeek(x.w)))].filter(Boolean).sort().reverse()}
+function wrapData(n,y){const k=String(n).toLowerCase(), all=(sbIx().ent[k]||[]).filter(x=>x.w<=DATA_WEEK&&!x.c[7]&&yearOfWeek(x.w)===y&&x.e[1]!=null);
+  if(!all.length)return null; const D={y,n:all.length,weeks:new Set(all.map(x=>x.w)).size,paths:[0,0,0],wins:0,pods:0,perf:0,byWeek:{},bands:{}};
+  all.forEach(x=>{const {w,c,e}=x; D.paths[c[0]]++; if(+e[1]>=100)D.perf++;
+    const band=String(c[3]).split(" - ")[0].trim(); if(band)D.bands[band]=(D.bands[band]||0)+1;
+    const ranked=c[6].filter(canWin), pl=canWin(e)?ranked.indexOf(e)+1:0, bw=D.byWeek[w]=D.byWeek[w]||{w,wins:0,pods:0,n:0,sum:0}; bw.n++; bw.sum+=+e[1];
+    if(pl===1){D.wins++; bw.wins++; const r2=ranked[1]; if(r2&&r2[1]!=null){const m=+(e[1]-r2[1]).toFixed(2), ms=(e[2]||0)-(r2[2]||0), cand={x,by:r2,m,ms};
+      if(!D.close||m<D.close.m||(m===D.close.m&&ms<D.close.ms))D.close=cand}}
+    if(pl>=1&&pl<=3){D.pods++; bw.pods++}
+    // best performance: the hardest song rating, then the highest %
+    const d=+c[4]||0; if(!D.best||d>+D.best.c[4]||(d===+D.best.c[4]&&+e[1]>+D.best.e[1]))D.best=x;
+    if(e[3]!=null&&(!D.score||+e[3]>+D.score.e[3]))D.score=x;
+    if(e[2]!=null&&(!D.streak||+e[2]>+D.streak.e[2]))D.streak=x});
+  D.bestWeek=Object.values(D.byWeek).sort((a,b)=>b.wins-a.wins||b.pods-a.pods||b.sum/b.n-a.sum/a.n)[0];
+  D.band=Object.entries(D.bands).sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0]))[0];
+  D.path=[0,1,2].sort((a,b)=>D.paths[b]-D.paths[a])[0];
+  // longest run of weeks in a row within the year
+  const p=byName[n]||PLAYERS.find(q=>q[0].toLowerCase()===k); if(p){const b=presOf(p); let run=0; WEEKS.forEach(w=>{if(w[0]<PRES_START||w[0]>DATA_WEEK||w[1].slice(0,4)!==y)return; if(b[w[0]-PRES_START]==="1"){run++; D.run=Math.max(D.run||0,run)}else run=0})}
+  // Elo over the year on each path
+  try{eloBuild(); const ek=eloKey(n), ws=WEEKS.filter(w=>w[1].slice(0,4)===y).map(w=>w[0]), a=ws[0], b=Math.min(ws[ws.length-1],ELO_DONE);
+    D.elo=[0,1,2].map(pi=>{const x1=eloAt(pi,ek,b), x0=eloAt(pi,ek,a-1); return x1&&x1[0]>=a?{pi,v:x1[1],d:x0?x1[1]-x0[1]:null}:null}).filter(Boolean)}catch(e){D.elo=[]}
+  // most frequent rival
+  try{const ws=[...new Set(all.map(x=>x.w))]; let best=null; [0,1,2].forEach(pi=>{const rc=rivalCounts(twCanon(n),ws,pi); if(rc[0]&&(!best||rc[0][1].length>best.c))best={n:rc[0][0],c:rc[0][1].length,pi}}); D.rival=best}catch(e){}
+  return D}
+function wrapSection(n){const ys=wrapYears(n); if(!ys.length)return `<div class="acctsec"><p class="dim">Your Wrapped shows up once you have scores on the scoreboards.</p></div>`;
+  const y=ys.includes(ACCT.wrY)?ACCT.wrY:ys[0], D=wrapData(n,y); if(!D)return "";
+  const nm=x=>`<span class="nm" data-player="${esc(x)}">${esc(x)}</span>`, lv=c=>esc(c[2]), go=(x,t)=>`<span class="ywgo" data-sbw="${x.w}" data-sbp="${x.c[0]}" data-sbs="${x.c[1]}" data-sbn="${esc(n)}" title="Open this challenge on the Scoreboard (Week ${x.w})">${t}</span>`;
+  const song=x=>`${go(x,esc(x.c[3]))}<small>${PATHS[x.c[0]]} · ${lv(x.c)} · rated ${x.c[4]} · Week ${x.w}</small>`;
+  const live=y===yearOfWeek(DATA_WEEK)&&WEEKS.some(w=>w[1].slice(0,4)===y&&w[0]>DATA_WEEK);
+  const T=(cls,lab,big,sub)=>`<div class="wr-t ${cls}"><div class="wr-l">${lab}</div><div class="wr-v">${big}</div>${sub?`<div class="wr-s">${sub}</div>`:""}</div>`;
+  const tiles=[
+    T("wr-a","Weeks played",D.weeks,`${D.n} challenge${D.n===1?"":"s"}${D.run>1?` · ${D.run} weeks in a row at best`:""}`),
+    T("wr-b","Wins",D.wins,`${D.pods} podium${D.pods===1?"":"s"} · ${D.perf} perfect 100%${D.perf===1?"":"s"}`),
+    D.best?T("wr-c wr-wide","Best performance",`${D.best.e[1]}%`,song(D.best)):"",
+    D.bestWeek?T("wr-d","Best week",`Week ${D.bestWeek.w}`,D.bestWeek.wins?`${D.bestWeek.wins} win${D.bestWeek.wins===1?"":"s"}${D.bestWeek.pods>D.bestWeek.wins?` · ${D.bestWeek.pods} podiums`:""}`:`${(D.bestWeek.sum/D.bestWeek.n).toFixed(1)}% average`):"",
+    D.score?T("wr-e","Highest score",(+D.score.e[3]).toLocaleString(),song(D.score)):"",
+    D.streak?T("wr-f","Longest note streak",D.streak.e[2],song(D.streak)):"",
+    D.close?T("wr-g wr-wide","Closest victory",D.close.m>0?`by ${D.close.m}%`:`on streak (+${D.close.ms})`,`${song(D.close.x)}<small>${D.close.x.e[1]}% vs ${nm(pvName(D.close.by))} ${D.close.by[1]}%</small>`):"",
+    D.band?T("wr-h","Most played band",esc(D.band[0]),`${D.band[1]} challenge${D.band[1]===1?"":"s"}`):"",
+    T("wr-i","Favourite path",PATHS[D.path],`${D.paths[D.path]} of ${D.n} challenges`),
+    D.rival?T("wr-j","Biggest rival",nm(D.rival.n),`your ${PATHS[D.rival.pi]} rival ${D.rival.c} week${D.rival.c===1?"":"s"}`):"",
+    D.elo.length?T("wr-k","Elo",D.elo.map(x=>`<span style="color:${PATH_C[x.pi]}">${"LRB"[x.pi]} ${Math.round(x.v)}</span>`).join(" "),D.elo.filter(x=>x.d!=null).map(x=>`${PATHS[x.pi]} ${x.d>=0?"+":""}${Math.round(x.d)}`).join(" · ")+(D.elo.some(x=>x.d!=null)?` over ${y}`:"")):""].join("");
+  return `<div class="acctsec wrap"><div class="wr-head"><div><div class="wr-eye">🎁 Rocksmith Championship</div><h3 class="wr-title">${esc(n)}'s ${y} Wrapped</h3>${live?`<div class="wr-note">${y} isn't over yet: this is your year so far.</div>`:""}</div>${ys.length>1?`<select class="hlsel" data-wry aria-label="Year">${ys.map(x=>`<option${x===y?" selected":""}>${x}</option>`).join("")}</select>`:""}</div><div class="wr-grid">${tiles}</div></div>`}
+document.addEventListener("change",e=>{const s=e.target.closest("[data-wry]"); if(!s)return; ACCT.wrY=s.value; const el=document.querySelector(".acctdlg .wrap"); if(el)el.outerHTML=wrapSection(ACCT.claim.player)});
 // Your week: a reminder to rate the arrangements you've posted a score on this week (it goes once each one is rated)
 function rateTodo(n){if(!ACCT.songs||!acctCanRate())return null; const w=TW_MAX, key=n.toLowerCase(), me=ACCT.claim.player, seen=new Set(), out=[];
   (SB.weeks[w]||[]).slice().sort((a,b)=>a[0]-b[0]||a[1]-b[1]).forEach(c=>{if(!c[3]||/^n\/a$/i.test(c[3])||!c[6].some(e=>e[1]!=null&&pvName(e).toLowerCase()===key))return;
@@ -5373,15 +5418,16 @@ function acctDraw(msg,err){
   // tabs: Your profile, Manage account, and (for admins) Admin with a badge for claims waiting
   const tb=(k,label)=>`<button type="button" role="tab" data-accttab="${k}" aria-selected="${ACCT.tab===k}">${label}</button>`;
   const appr=ACCT.claim&&ACCT.claim.status==="approved";
-  if(ACCT.tab==="week"&&!appr)ACCT.tab="me";
+  if((ACCT.tab==="week"||ACCT.tab==="wrapped")&&!appr)ACCT.tab="me";
   // the passes stay (alert and badges) until you dismiss the alert with its ✕
   if(ACCT.tab==="week"){const n=ACCT.claim.player; ACCT.ywShown=ywUnseen(n)}
   const ywN=appr?ywUnseen(ACCT.claim.player).length:0;
-  const tabs=`<div class="accttabs" role="tablist">${tb("me","Your profile")}${appr?tb("week",`Your week${ywN?`<span class="nbadge" title="Passed ${ywN} time${ywN===1?"":"s"} · the ✕ on the alert dismisses itt">${ywN}</span>`:""}`):""}${ACCT.claim&&ACCT.claim.status==="approved"?tb("banner","Forum banner"):""}${tb("manage","Manage account")}${canRateFor()?tb("host","Host"):""}${ACCT.admin?tb("admin",`Admin${(()=>{const t=typoScan().nNew; return t?`<span class="nbadge tybadge" title="${t} likely typo${t===1?"":"s"} in this week's scoreboard">${t}</span>`:""})()}${pendN?`<span class="nbadge" title="${pendN} claim${pendN===1?"":"s"} waiting for approval">${pendN}</span>`:""}`):""}</div>`;
+  const tabs=`<div class="accttabs" role="tablist">${tb("me","Your profile")}${appr?tb("week",`Your week${ywN?`<span class="nbadge" title="Passed ${ywN} time${ywN===1?"":"s"} · the ✕ on the alert dismisses itt">${ywN}</span>`:""}`):""}${appr?tb("wrapped","🎁 Wrapped"):""}${ACCT.claim&&ACCT.claim.status==="approved"?tb("banner","Forum banner"):""}${tb("manage","Manage account")}${canRateFor()?tb("host","Host"):""}${ACCT.admin?tb("admin",`Admin${(()=>{const t=typoScan().nNew; return t?`<span class="nbadge tybadge" title="${t} likely typo${t===1?"":"s"} in this week's scoreboard">${t}</span>`:""})()}${pendN?`<span class="nbadge" title="${pendN} claim${pendN===1?"":"s"} waiting for approval">${pendN}</span>`:""}`):""}</div>`;
   let h=tabs;
   if(ACCT.tab==="admin"){}
   else if(ACCT.tab==="host")h+=`${hostSection(false).replace('class="acctsec hostsec"','class="acctsec hostsec hosttop"')}${(()=>{try{return hlSection()}catch(e){return ""}})()}${(()=>{try{return fwHostSection()}catch(e){return ""}})()}${(()=>{try{return lapsedSection()}catch(e){return ""}})()}${adminRateSection()}${ratingLogSection()}`;
   else if(ACCT.tab==="banner")h+=bnTab(ACCT.claim.player);
+  else if(ACCT.tab==="wrapped")h+=(()=>{try{return wrapSection(ACCT.claim.player)}catch(e){console.error(e); return ""}})();
   else if(ACCT.tab==="week"){const n=ACCT.claim.player; ACCT.twPart="week";
     h+=`${ywAlert(n)}${(()=>{try{return rateAlert(n)}catch(e){return ""}})()}${(()=>{try{return fwNudge(n)}catch(e){return ""}})()}${(()=>{try{const x=hrNextHtml(n); return x?`<div class="acctsec">${x}</div>`:""}catch(e){return ""}})()}${ywList(n)}<div id="acct-tw">${acctThisWeek(n,"week")}</div>`}   // alert, how the week is going, rivals, Played before, then the scoreboard
   else if(ACCT.tab==="manage"){
