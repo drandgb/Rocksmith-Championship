@@ -948,6 +948,8 @@ footer .updated{display:block;margin-top:4px}
 .yecol h3{margin:0 0 8px;padding-top:6px;border-top:3px solid var(--pc);color:var(--pc);font:800 .8rem var(--f-display);letter-spacing:.12em;text-transform:uppercase}
 .yecls{border:1px solid var(--line);border-top:3px solid var(--tc);border-radius:8px;padding:8px 10px 6px;margin-bottom:8px;background:color-mix(in srgb,var(--tc) 5%,var(--panel))}.yecls h4{margin:0 0 4px;font:800 .66rem var(--f-display);letter-spacing:.1em;text-transform:uppercase;color:var(--tc)}
 .yecls ol{list-style:none;margin:0;padding:0}.yecls li{display:grid;grid-template-columns:26px minmax(0,1fr) auto;gap:6px;align-items:center;padding:3px 0;border-top:1px solid var(--line);font-size:.88rem}.yecls li:first-child{border-top:0}.yecls .yer{text-align:center;color:var(--muted);font-size:.8rem}.yecls li b{font-family:var(--f-display);color:var(--s-green)}.yecls .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cdown{display:inline-block;padding:1px 8px;border-radius:999px;border:1px solid color-mix(in srgb,var(--s-orange) 55%,var(--line));color:var(--s-orange);font-weight:700;white-space:nowrap}.cdsec input[type=datetime-local]{background:var(--panel2);color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:6px 8px;font:inherit}
+.hmsec h4{margin:12px 0 4px;font-size:.9rem}.hml{list-style:none;margin:0;padding:0}.hml li{display:flex;gap:10px;align-items:flex-start;justify-content:space-between;padding:8px 0;border-top:1px solid var(--line)}.hml li:first-child{border-top:0}.hmt{font-size:.88rem;line-height:1.45}.hmk{display:block;font-size:.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}.hmcp{flex:none}
 .twstats{display:flex;flex-wrap:wrap;gap:8px 18px;margin-top:12px;color:var(--muted);font-size:.9rem}
 .twstats b{color:var(--fg);font-family:var(--f-display);font-size:1.1rem}
 .twstats .pill.hol{cursor:default}
@@ -3294,7 +3296,7 @@ function sbRender(){
    const ok=(sbWeek>=3&&sbWeek<=twMax)||sbWeek===twNext; $("sbtw").hidden=!ok; $("sbtw").title=`Open week ${sbWeek} on the This Week page`; $("sbtw").textContent=`Open Week ${sbWeek} on This Week ›`} $("sblatest").textContent=`Back to this week (${SB_HOME}) ›`;
   const sbLive=sbWeek>DATA_WEEK&&sbWeek===cur[0];
   const sbNext=sbWeek>cur[0];
-  $("sbmeta").innerHTML=`<div>${(wk?`${fmt(wk[1])}${wk[2]&&wk[2]!==LOST?` · hosted by <b>${esc(wk[2])}</b>`:""}`:"")}</div><div class="sbstat">${(sbNext?'<span class="pill nextwk" style="width:auto" data-tip="Next week: scores can be posted already. It becomes the current week, and this week&#39;s winners are decided, at 9 pm CET (Central European time) on its start Saturday">UPCOMING</span> ':sbLive?'<span class="pill new" style="width:auto">IN PROGRESS</span> ':'<span class="pill done" style="width:auto">CONCLUDED</span> ')}</div>`;
+  $("sbmeta").innerHTML=`<div>${(wk?`${fmt(wk[1])}${wk[2]&&wk[2]!==LOST?` · hosted by <b>${esc(wk[2])}</b>`:""}`:"")}${sbLive&&typeof closeFor==="function"&&closeFor(sbWeek)?` · ${cdChip(sbWeek)}`:""}</div><div class="sbstat">${(sbNext?'<span class="pill nextwk" style="width:auto" data-tip="Next week: scores can be posted already. It becomes the current week, and this week&#39;s winners are decided, at 9 pm CET (Central European time) on its start Saturday">UPCOMING</span> ':sbLive?'<span class="pill new" style="width:auto">IN PROGRESS</span> ':'<span class="pill done" style="width:auto">CONCLUDED</span> ')}</div>`;
   $("sbseg").innerHTML=["Lead","Rhythm","Bass"].map((k,i)=>{const t=sbLv[i], on=i===sbPath, nx=SB_CYC[(SB_CYC.indexOf(t)+1)%SB_CYC.length];
     return `<button type="button" class="tier" data-path="${i}" aria-pressed="${on}" style="--pc:${PATH_C[i]};--tc:${t?(TIER_C[t]||"var(--s-red)"):"var(--fg)"}" title="${on?`${k}: showing ${t?LV_NAME[t]:"all levels"} · click for ${nx?LV_NAME[nx]:"all levels"}`:`Show ${k}`}"><small>${k}</small><b>${t||"All"}</b><i>${t?LV_NAME[t]:"all levels"}</i></button>`}).join("");
   // "Your cards": every card where the highlighted player (or you, when logged in) is ranked in their own class, Lead, Rhythm and Bass together
@@ -4586,7 +4588,7 @@ function renderThisWeek(){
   const start=W?new Date(W[1]+"T12:00:00"):null, end=start?new Date(start.getTime()+6*864e5):null;
   const left=end?Math.ceil((new Date(W[1]+"T00:00:00").getTime()+7*864e5-Date.now())/864e5):0;
   $("tw-title").innerHTML=`${SB.weeks[w]?`<span class="golink" data-sbw="${w}" title="Open this week on the Scoreboard">Week ${w}</span>`:`Week ${w}`}${live?' <span class="pill new" style="width:auto">IN PROGRESS</span>':' <span class="pill done" style="width:auto">CONCLUDED</span>'}`;
-  $("tw-meta").innerHTML=W?`${fmtShort(W[1])} – ${fmt(iso(end))}${W[2]&&W[2]!==LOST?` · hosted by <span class="nm" data-name="${esc(W[2])}" data-gohost="${esc(W[2])}" style="cursor:pointer;font-weight:700;color:var(--fg)">${esc(W[2])}</span>`:""}${live&&left>0?` · ${twPl(left,"day")} left`:""}`:"";
+  $("tw-meta").innerHTML=W?`${fmtShort(W[1])} – ${fmt(iso(end))}${W[2]&&W[2]!==LOST?` · hosted by <span class="nm" data-name="${esc(W[2])}" data-gohost="${esc(W[2])}" style="cursor:pointer;font-weight:700;color:var(--fg)">${esc(W[2])}</span>`:""}${live&&closeFor(w)?` · ${cdChip(w)}`:live&&left>0?` · ${twPl(left,"day")} left`:""}`:"";
   const ents=SB.weeks[w]?twEntries(w):[];
   // back from a break
   const back=names.map(n=>{const prev=twPlayed(n,w-1)?null:twLastBefore(n,w); return prev?{n,prev,gap:w-prev-1}:null}).filter(Boolean).sort((a,b)=>b.gap-a.gap||a.n.localeCompare(b.n));
@@ -4936,8 +4938,68 @@ function hostVerified(){if(!acctOn()||!ACCT.claim||ACCT.claim.status!=="approved
 function hostOpenWeeks(){const out=[];for(let i=0;i<=hostAhead();i++){const w=weekAt(curIdx+i);if(!w[2])out.push([w,i])}return out}
 async function hostLoad(){if(!ACCT.sb)return;
   const {data,error}=await ACCT.sb.from("host_signups").select("week,player,user_id,created_at").gte("week",WEEKS[curIdx][0]);
+  closeLoad();
   hostReady=true; if(error){renderHostWarn();return} ACCT.hostSign={}; (data||[]).forEach(r=>ACCT.hostSign[r.week]=r); hsSave(data); renderUpcoming(); renderNow(); renderHostWarn(); renderLog(); renderTL(); if(twWeek===TW_NEXT)renderThisWeek(); if(hName&&hosts[hName])showHost(hName);
 }
+// ---------- Host tab: ready-to-copy welcome messages for new players, and congratulations for milestone medals ----------
+function hmWeeks(){return [TW_MAX,TW_MAX-1].filter(w=>SB.weeks[w])}
+// each player's own classes in week w (cards they're on without the * mark; God challenges don't count)
+function hmClasses(w){const C={}; (SB.weeks[w]||[]).forEach(c=>{const L=cardLv(c[2]); if(!L||L==="G")return;
+  c[6].forEach(e=>{const raw=SB.names[e[0]]; if(raw.includes("*"))return; const n=raw.replace(/[*~]+$/,""); const x=C[n]=C[n]||{fb:false,p:{}}; if(raw.includes("~"))x.fb=true; else x.p[c[0]]=L})}); return C}
+const andList=xs=>xs.length<2?xs.join(""):xs.slice(0,-1).join(", ")+" and "+xs[xs.length-1];
+function hmWelcome(w){const byName=Object.fromEntries(PLAYERS.map(p=>[p[0].toLowerCase(),p])), C=hmClasses(w), live=w>DATA_WEEK;
+  return Object.keys(C).filter(n=>{const p=byName[n.toLowerCase()]; return live?!p:(p&&p[1]===w)}).sort((a,b)=>a.localeCompare(b)).map(n=>{const x=C[n], cls=Object.entries(x.p).sort((a,b)=>a[0]-b[0]).map(([pi,L])=>`${TIER_NAME[L]} ${PATHS[pi]}`);
+    return {n,t:cls.length?`Welcome to the championship ${n}, you have been placed in ${andList(cls)}. Let us know if you prefer to be placed in a different difficulty bracket.`
+      :`Welcome to the championship ${n}! You're playing as a FreeBird for now. Let us know which difficulty bracket you'd like to be placed in.`}})}
+// milestone medals collected in week w, as encouraging messages: new play streaks and hosting milestones, round numbers
+// (every 50 weeks played, every 25 wins on a path), and firsts (the medal's all-time count is all from this week)
+function hmMsg(n,tip){const k=tip.split(" · ")[0], all=+((/\((\d+) all time\)/.exec(tip)||[])[1]||0), plus=+((/\+(\d+) this week/.exec(tip)||[])[1]||0), first=all>0&&all===plus;
+  let m;
+  if((m=/^(\d+)-week play streak medal/.exec(k)))return `Congratulations ${n}, you've reached your first ${m[1]}-week play streak! 🔥 Keep it going!`;
+  if((m=/^(\d+)-week host medal/.exec(k)))return `Thank you ${n} for hosting ${m[1]} weeks! 🙌 The championship runs on hosts like you.`;
+  if((m=/^Played (guitar|bass)/.exec(k))){const wk=+((/· (\d+) weeks \(/.exec(tip)||[])[1]||0); return wk&&wk%50===0?`Congratulations ${n} on ${wk} weeks playing ${m[1]} in the championship! 🎸`:""}
+  if((m=/^Gold medal · (\w+)/.exec(tip)))return first?`Congratulations ${n} on your first ${m[1]} win! 🥇`:all%25===0&&all-plus<all-all%25+25&&all-plus<all?`${n} has now won ${all} ${m[1]} challenges! 🏆`:"";
+  if(!first)return "";
+  if((m=/^(\w+) perfectionist/.exec(k)))return `Congratulations ${n} on your first 100% ${m[1]==="God"?"on a God challenge":`in ${m[1]}`}! 💯`;
+  if(/^Catch ‘em all/.test(k))return `Amazing ${n}: your first Catch 'em all, a score on every challenge of the week! 🎯`;
+  if((m=/^(\w+) completionist/.exec(k)))return `Nice one ${n}, you played every ${m[1]} challenge of the week for the first time! ✅`;
+  if(/^Harder, Better, Faster, Stronger/.test(k))return `Harder, better, faster, stronger! ${n} beat their own past score on a returning song for the first time. 📈`;
+  if(/^Still got it/.test(k))return `${n} still got it! A first 100% again on a song they'd already perfected. 💪`;
+  if((m=/^(\d+)-win week trophy/.exec(k)))return `Congratulations ${n} on your first ${m[1]}-win week! 🏆`;
+  if(/^Gold God/.test(k))return `Congratulations ${n} on your first God challenge win! ⚡`;
+  return ""}
+function hmMilestones(w){const live=w>DATA_WEEK, names=[...new Set(twEntries(w).map(x=>x.n))], out=[];
+  names.forEach(n=>{let ms=[]; try{ms=twMedals(n,w,live)}catch(e){}
+    ms.forEach(h=>{const tip=(/data-tip="([^"]*)"/.exec(h)||[])[1]||"", t=hmMsg(n,tip.replace(/&#39;/g,"'").replace(/&quot;/g,'"').replace(/&amp;/g,"&")); if(t&&!out.some(x=>x.t===t))out.push({n,what:tip.split(" · ")[0],t})})});
+  return out.sort((a,b)=>a.n.localeCompare(b.n))}
+function hmSection(){const ws=hmWeeks(); if(!ws.length)return ""; const w=ACCT.hmWeek&&ws.includes(ACCT.hmWeek)?ACCT.hmWeek:ws[0];
+  const W=hmWelcome(w), M=hmMilestones(w), row=(t,tag)=>`<li><div class="hmt">${tag?`<span class="hmk">${esc(tag)}</span>`:""}${esc(t)}</div><button type="button" class="btn ghost hmcp" data-hmcopy="${esc(t)}">Copy</button></li>`;
+  return `<div class="acctsec hmsec"><h3>Messages for players <select class="hlsel" data-hmweek>${ws.map(x=>`<option value="${x}"${x===w?" selected":""}>Week ${x}</option>`).join("")}</select></h3>
+    <p class="dim">Ready to copy into a forum reply or message.${w>DATA_WEEK?" This week is still running, so medals can still change.":""}</p>
+    <h4>👋 Welcome new players</h4>${W.length?`<ul class="hml">${W.map(x=>row(x.t)).join("")}</ul>`:`<p class="dim">No new players in Week ${w}.</p>`}
+    <h4>🎉 Milestones</h4>${M.length?`<ul class="hml">${M.map(x=>row(x.t,x.what)).join("")}</ul>`:`<p class="dim">No milestone medals in Week ${w} yet.</p>`}</div>`}
+document.addEventListener("change",e=>{const s=e.target.closest("[data-hmweek]"); if(!s)return; ACCT.hmWeek=+s.value; const el=document.querySelector(".acctdlg .hmsec"); if(el)el.outerHTML=hmSection()});
+document.addEventListener("click",e=>{const b=e.target.closest("[data-hmcopy]"); if(!b)return; try{navigator.clipboard.writeText(b.dataset.hmcopy).then(()=>{b.textContent="Copied ✓"; setTimeout(()=>b.textContent="Copy",1500)})}catch(err){}});
+// ---------- week close countdown (set by the week's host in the Host tab; week_close.sql) ----------
+var WCLOSE={};
+async function closeLoad(){if(!ACCT.sb)return; try{const {data,error}=await ACCT.sb.from("week_close").select("week,ends_at,set_by").gte("week",TW_MAX-1); if(error)return;
+  WCLOSE={}; (data||[]).forEach(r=>WCLOSE[r.week]=r); renderThisWeek(); if(typeof sbRender==="function")sbRender(); if($("acct").open&&ACCT.tab==="host")acctDraw()}catch(e){}}
+function closeFor(w){const r=typeof WCLOSE!=="undefined"&&WCLOSE?WCLOSE[w]:null; return r&&r.ends_at?r:null}
+function cdText(ms){if(ms<=0)return "closing any moment"; const m=Math.floor(ms/6e4), d=Math.floor(m/1440), h=Math.floor(m%1440/60), mm=m%60;
+  return "closes in "+(d?`${d}d ${h}h`:h?`${h}h ${mm}m`:`${mm}m`)}
+function cdChip(w){const r=closeFor(w); if(!r)return ""; const t=new Date(r.ends_at);
+  return `<span class="cdown" data-cd="${esc(r.ends_at)}" data-tip="${esc(`Week ${w} closes ${t.toLocaleString(undefined,{weekday:"short",month:"short",day:"numeric",hour:"numeric",minute:"2-digit"})} your time${r.set_by?` · set by ${r.set_by}`:""}`)}">⏱ <span class="cdt">${cdText(t-Date.now())}</span></span>`}
+setInterval(()=>document.querySelectorAll("[data-cd] .cdt").forEach(el=>{el.textContent=cdText(new Date(el.parentNode.dataset.cd)-Date.now())}),30000);
+// Host tab: set or clear the countdown for the current week
+function closeSection(){const w=TW_MAX, r=closeFor(w), def=nyAt(weekAt(w)[1]), t=r?new Date(r.ends_at):new Date(def);
+  const loc=new Date(t.getTime()-t.getTimezoneOffset()*6e4).toISOString().slice(0,16);
+  return `<div class="acctsec cdsec"><h3>Week close countdown</h3><p class="dim">Set when Week ${w} closes, in your own time. This Week and the Scoreboard then show a countdown so players know how long they have. ${r?`Now set to <b>${esc(t.toLocaleString(undefined,{weekday:"short",month:"short",day:"numeric",hour:"numeric",minute:"2-digit"}))}</b>${r.set_by?` by ${esc(r.set_by)}`:""}.`:"Not set yet."}</p>
+    <div class="row"><input type="datetime-local" id="cdwhen" value="${loc}"><button type="button" class="btn" data-cdset="${w}">${r?"Update":"Start countdown"}</button>${r?`<button type="button" class="btn ghost" data-cdclear="${w}">Clear</button>`:""}</div></div>`}
+document.addEventListener("click",async e=>{const s=e.target.closest("[data-cdset]"), c=e.target.closest("[data-cdclear]"); if(!s&&!c)return;
+  if(s){const v=$("cdwhen").value; if(!v){alert("Pick a date and time first.");return} const at=new Date(v); if(isNaN(at)){alert("That date doesn't look right.");return}
+    const {error}=await ACCT.sb.from("week_close").upsert({week:+s.dataset.cdset,ends_at:at.toISOString(),set_by:ACCT.claim&&ACCT.claim.player||null,updated_at:new Date().toISOString()},{onConflict:"week"}); if(error){alert("Couldn't save it: "+error.message);return}}
+  else{const {error}=await ACCT.sb.from("week_close").delete().eq("week",+c.dataset.cdclear); if(error){alert("Couldn't clear it: "+error.message);return}}
+  await closeLoad()});
 // admin sign-up list: hosts by latest week hosted (most recently active first), then other players A–Z
 // an upcoming week the schedule sheet already names a host for: shown like a sign-up (SIGNED UP, and ✕ for them or an admin)
 function hostBooked(w){
@@ -5468,7 +5530,7 @@ function acctDraw(msg,err){
   const tabs=`<div class="accttabs" role="tablist">${tb("me","Your profile")}${appr?tb("week",`Your week${ywN?`<span class="nbadge" title="Passed ${ywN} time${ywN===1?"":"s"} · the ✕ on the alert dismisses itt">${ywN}</span>`:""}`):""}${ACCT.claim&&ACCT.claim.status==="approved"?tb("banner","Forum banner"):""}${tb("manage","Manage account")}${canRateFor()?tb("host","Host"):""}${ACCT.admin?tb("admin",`Admin${(()=>{const t=typoScan().nNew; return t?`<span class="nbadge tybadge" title="${t} likely typo${t===1?"":"s"} in this week's scoreboard">${t}</span>`:""})()}${pendN?`<span class="nbadge" title="${pendN} claim${pendN===1?"":"s"} waiting for approval">${pendN}</span>`:""}`):""}</div>`;
   let h=tabs;
   if(ACCT.tab==="admin"){}
-  else if(ACCT.tab==="host")h+=`${hostSection(false).replace('class="acctsec hostsec"','class="acctsec hostsec hosttop"')}${(()=>{try{return hlSection()}catch(e){return ""}})()}${(()=>{try{return fwHostSection()}catch(e){return ""}})()}${(()=>{try{return lapsedSection()}catch(e){return ""}})()}${adminRateSection()}${ratingLogSection()}`;
+  else if(ACCT.tab==="host")h+=`${hostSection(false).replace('class="acctsec hostsec"','class="acctsec hostsec hosttop"')}${(()=>{try{return closeSection()}catch(e){return ""}})()}${(()=>{try{return hmSection()}catch(e){return ""}})()}${(()=>{try{return hlSection()}catch(e){return ""}})()}${(()=>{try{return fwHostSection()}catch(e){return ""}})()}${(()=>{try{return lapsedSection()}catch(e){return ""}})()}${adminRateSection()}${ratingLogSection()}`;
   else if(ACCT.tab==="banner")h+=bnTab(ACCT.claim.player);
   else if(ACCT.tab==="week"){const n=ACCT.claim.player; ACCT.twPart="week";
     h+=`${ywAlert(n)}${(()=>{try{return rateAlert(n)}catch(e){return ""}})()}${(()=>{try{return fwNudge(n)}catch(e){return ""}})()}${(()=>{try{const x=hrNextHtml(n); return x?`<div class="acctsec">${x}</div>`:""}catch(e){return ""}})()}${ywList(n)}<div id="acct-tw">${acctThisWeek(n,"week")}</div>`}   // alert, how the week is going, rivals, Played before, then the scoreboard
