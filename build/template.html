@@ -1444,6 +1444,7 @@ footer{color:var(--dim);font-size:.78rem}
   </div>
 
   <div class="view" id="view-players" role="tabpanel" aria-labelledby="tab-players" hidden>
+  <div class="wpathbar"><label class="shostpick"><span>Year</span><select id="plyear" aria-label="Calendar year"></select></label></div>
   <section class="panel">
     <div class="panel-head"><h2>Players per week</h2><span class="sub" id="parts-sub"></span></div>
     <div class="chartbox" id="parts"></div>
@@ -1459,14 +1460,14 @@ footer{color:var(--dim);font-size:.78rem}
     <div class="badges" id="perfect"></div>
   </section>
 
-  <section class="panel" id="ml-player">
+  <section data-allonly class="panel" id="ml-player">
     <div class="panel-head"><h2>🏅 Player medal leaders</h2><span class="sub">Who leads each kind of player medal · hover for second and third · click a name to look them up</span></div>
     <div class="mlgrid" id="ml-player-g"><p class="dimtxt">Counting medals…</p></div>
   </section>
 
 
   <div class="grid2 even">
-    <section class="panel">
+    <section data-allonly class="panel">
       <div class="panel-head"><h2>Active play streaks</h2><span class="sub">Top 20 · still going</span></div>
       <div class="bars flame" id="streaks"></div>
     </section>
@@ -1476,7 +1477,7 @@ footer{color:var(--dim);font-size:.78rem}
     </section>
   </div>
 
-  <section class="panel">
+  <section data-allonly class="panel">
     <div class="panel-head"><h2>Most active in past year</h2><span class="sub" id="yr-sub"></span></div>
     <div class="rings" id="yrings"></div>
   </section>
@@ -1490,7 +1491,7 @@ footer{color:var(--dim);font-size:.78rem}
       <div class="panel-head"><h2>Longest all-time play streaks</h2><span class="sub">Top 20 · any era</span></div>
       <div class="bars" id="b-alltime"></div>
     </section>
-    <section class="panel">
+    <section data-allonly class="panel">
       <div class="panel-head"><h2>Longest playing careers</h2><span class="sub">Top 20 · first week to latest week</span></div>
       <div class="bars" id="b-careers"></div>
     </section>
@@ -1605,7 +1606,7 @@ footer{color:var(--dim);font-size:.78rem}
     <button type="button" data-rp="0" class="s-lead" aria-pressed="false">Lead</button>
     <button type="button" data-rp="1" class="s-rhy" aria-pressed="false">Rhythm</button>
     <button type="button" data-rp="2" class="s-bass" aria-pressed="false">Bass</button>
-  </div><label class="shostpick"><span>Season</span><select id="wseason" aria-label="Season"></select></label></div>
+  </div><label class="shostpick"><span>Year</span><select id="wseason" aria-label="Calendar year"></select></label></div>
   <section class="panel hof">
     <div class="panel-head"><h2>Hall of fame</h2><span class="sub" id="whof-sub"></span></div>
     <div class="podium" id="wpodium"></div>
@@ -2010,7 +2011,48 @@ const shinyStar=i=>`<svg class="shiny" viewBox="0 0 24 24" aria-hidden="true"><d
 const STAR=`<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="var(--s-yellow)" d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9z"/></svg>`;
 const RATE_BRACKETS=[[100,"var(--s-yellow)","100%"],[90,"var(--s-green)","90s"],[80,"var(--s-blue)","80s"],[70,"var(--s-purple)","70s"],[60,"var(--s-orange)","60s"],[50,"var(--s-red)","50s"],[0,"#6b7489","Under 50"]];
 const rateColor=p=>RATE_BRACKETS.find(([min])=>p>=min)[1];
+// calendar-year view of the Players tab: the year's weeks, and each player's weeks played, longest run and play rate in it
+let plYearF=null;
+function yearWeeks(y){return WEEKS.filter(w=>w[0]>=PRES_START&&w[0]<=DATA_WEEK&&w[1].slice(0,4)===y).map(w=>w[0])}
+function yearPlayerStats(y){const ws=yearWeeks(y), last=ws[ws.length-1];
+  return PLAYERS.filter(p=>!activeOnly||pAct(p)).map(p=>{const b=presOf(p); let c=0,run=0,best=0,bestEnd=null,first=null;
+    ws.forEach(w=>{if(b[w-PRES_START]==="1"){c++; run++; if(first==null)first=w; if(run>best){best=run;bestEnd=w}}else run=0});
+    const since=first==null?0:ws.filter(w=>w>=first).length;
+    return {n:p[0],c,best,bestEnd,first,since,joined:ws.includes(p[1]),all:first!=null&&c===since&&b[last-PRES_START]==="1",tot:p[3]}}).filter(x=>x.c>0)}
+function renderRecordsYear(y){const ys=yearPlayerStats(y), ws=yearWeeks(y), M=["#f5c84a","#c9d0dc","#d8925a"], R=34, C=2*Math.PI*R;
+  const played=ys.slice().sort((a,b)=>b.c-a.c||b.tot-a.tot).map(x=>[x.n,x.c]);
+  const top=played.slice(0,3), maxP=Math.max(1,top[0]?top[0][1]:1);
+  $("podium").innerHTML=[1,0,2].filter(i=>top[i]).map(i=>{const [n,v]=top[i], h=Math.round(70+130*v/maxP);
+    return `<div class="pod" style="--m:${M[i]}"><div class="medal">${i+1}</div><div class="pname" data-player="${esc(n)}">${esc(n)}</div><div class="block" style="height:${h}px;animation-delay:${[150,0,300][i]}ms"><b>${v}</b><small>weeks</small><small>in ${y}</small></div></div>`}).join("");
+  $("b-played").innerHTML=barRows(played.slice(0,20),(n,i)=>STR[i%6]);
+  $("b-alltime").innerHTML=barRows(ys.slice().sort((a,b)=>b.best-a.best||b.c-a.c).slice(0,20).map(x=>[x.n,x.best]),(n,i)=>STR[(i+4)%6]," wks");
+  const rates=ys.filter(x=>x.since>=Math.min(10,ws.length)).map(x=>[x.n,Math.round(x.c/x.since*1000)/10,x]).sort((a,b)=>b[1]-a[1]||b[2].c-a[2].c).slice(0,20);
+  $("rings").innerHTML=rates.map(([n,p,x],i)=>{const col=rateColor(p);
+    return `<div class="ring${p>=100?" full":""}" style="--gc:${col}" data-tip="${esc(`${x.c} of ${x.since} weeks in ${y} since their first week of the year`)}"><svg viewBox="0 0 84 84" role="img" aria-label="${esc(n)} ${p}%"><circle class="rt" cx="42" cy="42" r="${R}"/><circle class="rv" cx="42" cy="42" r="${R}" stroke="${col}" stroke-dasharray="${C.toFixed(1)}" stroke-dashoffset="${(C*(1-p/100)).toFixed(1)}"/><text x="42" y="42">${p%1===0?p:p.toFixed(1)}%</text></svg><span class="nmrow"><span class="nm" data-player="${esc(n)}">${esc(n)}</span>${RING_PILL_SPACE}</span></div>`}).join("");
+  const perf=ys.filter(x=>x.all&&x.c>=Math.min(4,ws.length)).sort((a,b)=>b.c-a.c||a.n.localeCompare(b.n)), pmax=Math.max(1,...perf.map(x=>x.c));
+  $("perfect").innerHTML=perf.length?perf.map((x,i)=>`<div class="badge pbar" style="--h:${Math.round(52+120*x.c/pmax)}px">${shinyStar(i)}<div class="pnm"><div class="nmrow"><span class="nm" data-player="${esc(x.n)}">${esc(x.n)}</span></div></div><div class="wk">${x.c}<small>weeks, every one played</small></div></div>`).join(""):`<p class="dimtxt">Nobody played every week of ${y} from their first week that year.</p>`;
+  const nw=ys.filter(x=>x.joined).sort((a,b)=>b.first-a.first||a.n.localeCompare(b.n));
+  $("new-h").textContent=`New in ${y}`;
+  $("new-sub").textContent=`${nw.length} player${nw.length===1?"":"s"} joined in ${y} · newest first`;
+  $("newlist").innerHTML=nw.map(x=>{const w=WEEKS[x.first-1];
+    return `<div class="nrow"><div><span class="nm" data-player="${esc(x.n)}" title="${esc(x.n)}">${esc(x.n)}</span><span class="j">Joined wk ${x.first}${w?" · "+fmtShort(w[1]):""}</span></div><span class="track"><span class="fill" style="width:${Math.max(3,x.c/x.since*100)}%"></span></span><span class="val" title="${x.c} of ${x.since} weeks in ${y}">${x.c}/${x.since}</span></div>`}).join("");
+}
+// the sections that only have an all-time view are hidden while a year is picked, and the headings say which year
+function plYearHeads(y){
+  const set=(id,all,yr)=>{const el=$(id); if(el)el.textContent=y?yr:all};
+  document.querySelectorAll("#view-players [data-allonly]").forEach(el=>el.hidden=!!y);
+  [["#podium","Most weeks played, all time",`Most weeks played in ${y}`],["#perfect","Never missed a week since joining",`Played every week of ${y} from their first week that year`],
+   ["#b-played","Top 20",`Top 20 · weeks played in ${y}`],["#b-alltime","Top 20 · any era",`Top 20 · longest run of weeks in a row within ${y}`],
+   ["#rings","Top 20 · share of weeks played since a player's first week",`Top 20 · share of ${y}'s weeks played from their first week that year · 10+ weeks`]].forEach(([sel,all,yr])=>{
+    const sub=$(sel.slice(1)).closest("section").querySelector(".panel-head .sub"); if(sub)sub.textContent=y?yr:all});
+  const h=(sel,all,yr)=>{const el=$(sel).closest("section").querySelector(".panel-head h2"); if(el)el.textContent=y?yr:all};
+  h("b-alltime","Longest all-time play streaks",`Longest play streaks in ${y}`); h("b-played","Most weeks played",`Most weeks played in ${y}`);
+  h("rings","Highest play rates",`Highest play rates in ${y}`); h("perfect","Perfect attendance",`Perfect attendance in ${y}`); h("podium","Hall of fame",`Hall of fame · ${y}`);
+  $("plyear").value=y||""; $("plyear").closest("label").classList.toggle("on",!!y);
+}
 function renderRecords(){
+  plYearHeads(plYearF);
+  if(plYearF){renderRecordsYear(plYearF); renderParts(); return}
   const played=RECORDS["Most weeks played"];
   const M=["#f5c84a","#c9d0dc","#d8925a"];
   const top=played.slice(0,3), maxP=numOf(top[0][1]);
@@ -2049,32 +2091,35 @@ function renderRecords(){
 
 // players-per-week chart
 function renderParts(){
-  const W=1000,H=240,L=34,Rr=14,T=14,B=26, n=PARTS.length;
-  const max=Math.ceil(Math.max(...PARTS)/10)*10;
+  // with a year picked in the Players tab, only that year's weeks
+  const yw=plYearF?yearWeeks(plYearF):null, o=yw&&yw.length?yw[0]-PRES_START:0, ALL=PARTS, PARTS_=yw&&yw.length?ALL.slice(o,o+yw.length):ALL, P0=PRES_START+o, LASTW=P0+PARTS_.length-1;
+  const W=1000,H=240,L=34,Rr=14,T=14,B=26, n=PARTS_.length;
+  const max=Math.ceil(Math.max(...PARTS_)/10)*10;
   const x=i=>L+(W-L-Rr)*i/(n-1), y=v=>T+(H-T-B)*(1-v/max);
-  const avg=PARTS.map((_,i)=>{const a=PARTS.slice(Math.max(0,i-9),i+1);return a.reduce((s,v)=>s+v,0)/a.length});
+  const avg=PARTS_.map((_,i)=>{const a=ALL.slice(Math.max(0,o+i-9),o+i+1);return a.reduce((s,v)=>s+v,0)/a.length});
   let g="";
   for(let v=0;v<=max;v+=max/4){g+=`<line class="gl" x1="${L}" x2="${W-Rr}" y1="${y(v)}" y2="${y(v)}"/><text class="tk" x="${L-6}" y="${y(v)+4}" text-anchor="end">${v}</text>`}
-  // year ticks from the schedule dates
-  WEEKS.forEach(w=>{const i=w[0]-PRES_START; if(i<0||i>=n)return; const prev=WEEKS[w[0]-2]; if(prev&&prev[1].slice(0,4)!==w[1].slice(0,4)){g+=`<line class="gl" x1="${x(i)}" x2="${x(i)}" y1="${T}" y2="${H-B}" stroke-dasharray="2 4"/><text class="tk" x="${x(i)}" y="${H-8}" text-anchor="middle">${w[1].slice(0,4)}</text>`}});
-  const area=`M${x(0)},${y(0)} `+PARTS.map((v,i)=>`L${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(" ")+` L${x(n-1)},${y(0)} Z`;
+  // year ticks from the schedule dates (month ticks in a single year)
+  if(yw)WEEKS.forEach(w=>{const i=w[0]-P0; if(i<=0||i>=n)return; const prev=WEEKS[w[0]-2]; if(prev&&prev[1].slice(5,7)!==w[1].slice(5,7)){g+=`<line class="gl" x1="${x(i)}" x2="${x(i)}" y1="${T}" y2="${H-B}" stroke-dasharray="2 4"/><text class="tk" x="${x(i)}" y="${H-8}" text-anchor="middle">${["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][+w[1].slice(5,7)-1]}</text>`}});
+  else   WEEKS.forEach(w=>{const i=w[0]-P0; if(i<0||i>=n)return; const prev=WEEKS[w[0]-2]; if(prev&&prev[1].slice(0,4)!==w[1].slice(0,4)){g+=`<line class="gl" x1="${x(i)}" x2="${x(i)}" y1="${T}" y2="${H-B}" stroke-dasharray="2 4"/><text class="tk" x="${x(i)}" y="${H-8}" text-anchor="middle">${w[1].slice(0,4)}</text>`}});
+  const area=`M${x(0)},${y(0)} `+PARTS_.map((v,i)=>`L${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(" ")+` L${x(n-1)},${y(0)} Z`;
   const line="M"+avg.map((v,i)=>`${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(" L");
-  const last=PARTS[n-1];
-  $("parts").innerHTML=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Players per week from week ${PRES_START} to ${DATA_WEEK}">
+  const last=PARTS_[n-1];
+  $("parts").innerHTML=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Players per week from week ${P0} to ${LASTW}">
     <defs><linearGradient id="pg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--s-blue)" stop-opacity=".45"/><stop offset="1" stop-color="var(--s-blue)" stop-opacity=".03"/></linearGradient></defs>
     ${g}<path d="${area}" fill="url(#pg)"/><path d="${line}" fill="none" stroke="var(--accent)" stroke-width="2.2"/>
     <circle cx="${x(n-1)}" cy="${y(last)}" r="4.5" fill="var(--accent)" stroke="var(--bg)" stroke-width="2"/>
     <line class="hov" id="phov" y1="${T}" y2="${H-B}" x1="-10" x2="-10"/>
     <rect x="${L}" y="${T}" width="${W-L-Rr}" height="${H-T-B}" fill="transparent" id="phit"/></svg>`;
-  const peak=PARTS.indexOf(Math.max(...PARTS));
-  $("parts-sub").innerHTML=`Week ${DATA_WEEK}: <b>${last}</b> players · peak ${PARTS[peak]} in week ${peak+PRES_START} · <span style="color:var(--accent)">━</span> 10-week average`;
+  const peak=PARTS_.indexOf(Math.max(...PARTS_));
+  $("parts-sub").innerHTML=`Week ${LASTW}: <b>${last}</b> players · peak ${PARTS_[peak]} in week ${peak+P0} · <span style="color:var(--accent)">━</span> 10-week average`;
   const svg=$("parts").querySelector("svg"), hov=$("phov");
   $("phit").addEventListener("mousemove",e=>{
     const r=svg.getBoundingClientRect(), sx=(e.clientX-r.left)/r.width*W;
     const i=Math.max(0,Math.min(n-1,Math.round((sx-L)/(W-L-Rr)*(n-1))));
     hov.setAttribute("x1",x(i));hov.setAttribute("x2",x(i));
-    const wk=WEEKS[i+PRES_START-1];
-    tip.innerHTML=`<b class="num">Week ${i+PRES_START}</b>${wk?" · "+fmt(wk[1]):""}<br>${PARTS[i]} players · avg ${avg[i].toFixed(1)}`;
+    const wk=WEEKS[i+P0-1];
+    tip.innerHTML=`<b class="num">Week ${i+P0}</b>${wk?" · "+fmt(wk[1]):""}<br>${PARTS_[i]} players · avg ${avg[i].toFixed(1)}`;
     tip.hidden=false; placeTip(e.clientX,e.clientY);
   });
   $("phit").addEventListener("mouseleave",()=>{tip.hidden=true;hov.setAttribute("x1",-10);hov.setAttribute("x2",-10)});
@@ -3202,6 +3247,9 @@ function renderWinners(){
 }
 {const ys=[...new Set(Object.keys(SB.weeks).map(Number).filter(w=>w<=DATA_WEEK).map(yearOfWeek))].filter(Boolean).sort().reverse();
  $("wseason").innerHTML=`<option value="">All time</option>`+ys.map(y=>`<option value="${y}">${y}</option>`).join("");}
+{const ys=[...new Set(WEEKS.filter(w=>w[0]>=PRES_START&&w[0]<=DATA_WEEK).map(w=>w[1].slice(0,4)))].sort().reverse();
+ $("plyear").innerHTML=`<option value="">All time</option>`+ys.map(y=>`<option value="${y}">${y}</option>`).join("");}
+$("plyear").addEventListener("change",e=>{plYearF=e.target.value||null; pYear=plYearF; renderRecords(); const q=$("pq").value.trim(); if(q&&typeof showPlayer==="function")showPlayer(q); updateBubble()});
 $("wseason").addEventListener("change",e=>{wSeason=e.target.value||null; wYear=wSeason; renderWinners(); updateBubble()});
 $("wpath").addEventListener("click",e=>{const b=e.target.closest("button[data-rp]");if(b){wPath=+b.dataset.rp;renderWinners()}});
 $("rufilter").addEventListener("click",e=>{const b=e.target.closest("button[data-rp]");if(b){ruPath=+b.dataset.rp;renderRankups();if(typeof updateBubble==="function")updateBubble()}});
@@ -3842,14 +3890,15 @@ function curView(){return ["thisweek","rankings","season","hosting","players","w
 function activeFilters(){
   const v=curView(), f=[];
   if((v==="hosting"||v==="players"||v==="winners")&&activeOnly)f.push(["Active players only",()=>setActiveOnly(false)]);
-  if(v==="players"&&pYear)f.push([`Player lookup: ${pYear}`,()=>{pYear=null;showPlayer($("pq").value.trim())}]);
+  if(v==="players"&&plYearF)f.push([`Year: ${plYearF}`,()=>{plYearF=null;pYear=null;renderRecords();showPlayer($("pq").value.trim())}]);
+  if(v==="players"&&pYear&&pYear!==plYearF)f.push([`Player lookup: ${pYear}`,()=>{pYear=null;showPlayer($("pq").value.trim())}]);
   if(v==="players"&&ruPath>=0)f.push([`Rank changes: ${PATHS[ruPath]}`,()=>document.querySelector('#rufilter [data-rp="-1"]').click()]);
   if(v==="hosting"&&holF)f.push([`Holiday: ${holF}`,()=>{holF=null;renderLog()}]);
   if(v==="hosting"&&hYear)f.push([`Host lookup: ${hYear}`,()=>{hYear=null;showHost(hName)}]);
   if(v==="hosting"&&selHost)f.push([`Host: ${CATS[selHost]||selHost}`,()=>setHost(selHost)]);
   if(v==="winners"){
     if(wPath>=0)f.push([`Path: ${PATHS[wPath]}`,()=>document.querySelector('#wpath [data-rp="-1"]').click()]);
-    if(wSeason)f.push([`Season: ${wSeason}`,()=>{wSeason=null;wYear=null;renderWinners()}]);
+    if(wSeason)f.push([`Year: ${wSeason}`,()=>{wSeason=null;wYear=null;renderWinners()}]);
     if(wYear&&wYear!==wSeason)f.push([`Winner lookup: ${wYear}`,()=>{wYear=null;showWinner(wName);markHot()}]);
   }
   if(v==="songs"){
