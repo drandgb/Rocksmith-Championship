@@ -939,6 +939,10 @@ footer .updated{display:block;margin-top:4px}
 @media (prefers-reduced-motion:reduce){.twarrow.glow{animation:none}}
 .twpv-hide{display:none!important}
 .twnp .npn{display:block;font-size:.72rem;font-weight:400;color:var(--s-green)}
+.twseas{margin-top:14px}.twseasin{border:1px solid color-mix(in srgb,var(--s-yellow) 35%,var(--line));border-radius:10px;padding:10px 12px;background:color-mix(in srgb,var(--s-yellow) 4%,var(--panel2));cursor:pointer}.twseasin:hover{border-color:var(--s-yellow)}
+.twseas .tsh{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 12px;font-size:.9rem;color:var(--muted)}.twseas .tsn{font:900 1rem var(--f-display);letter-spacing:.06em;text-transform:uppercase;color:#f5c84a}.twseas .golink{margin-left:auto;color:var(--s-yellow);font-weight:600}
+.twseas .tsnote{font-size:.74rem;color:var(--muted);margin:4px 0 6px}.twseas .tsg{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px 16px}@media(max-width:700px){.twseas .tsg{grid-template-columns:1fr}}
+.twseas .lvchip{font:700 .64rem var(--f-mono);padding:1px 6px;border-radius:4px;color:#10131a;background:var(--tc);text-align:center}.twseas h4{margin:0 0 3px;font:800 .7rem var(--f-display);letter-spacing:.1em;text-transform:uppercase;color:var(--pc)}.twseas ul{list-style:none;margin:0;padding:0}.twseas li{display:grid;grid-template-columns:44px minmax(0,1fr) auto;align-items:center;gap:6px;font-size:.84rem;padding:2px 0}.twseas .tsl{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.twseas li b{font-family:var(--f-display);color:var(--s-green)}
 .twstats{display:flex;flex-wrap:wrap;gap:8px 18px;margin-top:12px;color:var(--muted);font-size:.9rem}
 .twstats b{color:var(--fg);font-family:var(--f-display);font-size:1.1rem}
 .twstats .pill.hol{cursor:default}
@@ -1057,6 +1061,12 @@ footer .updated{display:block;margin-top:4px}
 /* amber glowing rim for the streak boxes */
 .panel.amber{border-color:color-mix(in srgb,#ffb020 70%,var(--line));box-shadow:0 0 0 1px rgba(255,176,32,.25),0 0 14px rgba(255,160,40,.28),inset 0 0 18px rgba(255,160,40,.06)}
 @media (prefers-reduced-motion:no-preference){.panel.amber{animation:amberglow 3.2s ease-in-out infinite}}
+/* Streaks at stake: vampire fangs biting the top edge; New this week: a waving hand and a sprout, like the palm and flower on Back from a break */
+.panel.amber.fangs{position:relative}.panel.amber.fangs::before{content:"";position:absolute;top:-4px;right:18px;width:50px;height:30px;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 34 20'%3E%3Cpath d='M1 1h32' stroke='%237a1020' stroke-width='3' stroke-linecap='round'/%3E%3Cpath d='M4 2h8l-3.6 15.5q-.4 1-.8 0z' fill='%23f6f2e8' stroke='%23a59c88' stroke-width='.7'/%3E%3Cpath d='M22 2h8l-3.6 15.5q-.4 1-.8 0z' fill='%23f6f2e8' stroke='%23a59c88' stroke-width='.7'/%3E%3Cellipse cx='26' cy='18.6' rx='1.1' ry='1.4' fill='%23d0142a'/%3E%3C/svg%3E") no-repeat center/contain;filter:drop-shadow(0 2px 2px rgba(0,0,0,.45));pointer-events:none}
+.panel.waving.lit::before{content:"👋";position:absolute;top:-13px;right:12px;font-size:20px;filter:drop-shadow(0 2px 3px rgba(0,0,0,.5));transform-origin:70% 80%}
+.panel.waving.lit::after{content:"🌱";position:absolute;bottom:-11px;left:10px;font-size:17px;filter:drop-shadow(0 2px 3px rgba(0,0,0,.5))}
+@media (prefers-reduced-motion:no-preference){.panel.waving.lit::before{animation:handwave 2.6s ease-in-out infinite}}
+@keyframes handwave{0%,60%,100%{transform:rotate(0)}10%,30%{transform:rotate(16deg)}20%,40%{transform:rotate(-10deg)}50%{transform:rotate(8deg)}}
 @keyframes amberglow{0%,100%{box-shadow:0 0 0 1px rgba(255,176,32,.22),0 0 10px rgba(255,160,40,.22),inset 0 0 16px rgba(255,160,40,.05)}50%{box-shadow:0 0 0 1px rgba(255,190,60,.4),0 0 20px rgba(255,160,40,.4),inset 0 0 22px rgba(255,160,40,.09)}}
 /* Rodman's Rankings */
 /* Rodman's Rankings header: a red, black and white rim with charging bulls, a magic wand, sparkles and lightning */
@@ -1536,6 +1546,7 @@ footer{color:var(--dim);font-size:.78rem}
       <button type="button" class="clear sblatest" id="twnow" hidden></button>
     </div>
     <div class="twstats" id="tw-stats"></div>
+    <div class="twseas" id="tw-seas" hidden></div>
   </section>
   <section class="panel dlsec pvsec" id="twpast" hidden></section>
   <section class="panel dlsec" id="twdl" hidden></section>
@@ -1562,7 +1573,7 @@ footer{color:var(--dim);font-size:.78rem}
       <div class="panel-head"><h2>👋 Back from a break</h2><span class="sub" id="tw-back-sub"></span></div>
       <ul class="twl" id="tw-back"></ul>
     </section>
-    <section class="panel glowrim" style="--rc:#3fcf7a">
+    <section class="panel glowrim waving" style="--rc:#3fcf7a">
       <div class="panel-head"><h2>🌱 New this week</h2><span class="sub" id="tw-new-sub"></span></div>
       <ul class="twl" id="tw-new"></ul>
     </section>
@@ -2880,9 +2891,23 @@ const CEL_SPRIG=(()=>{let s="";
       [-38,38].forEach(off=>{const a=dir+off, ox=x+Math.cos(a*Math.PI/180)*2.3*sz, oy=y+Math.sin(a*Math.PI/180)*2.3*sz;
         s+=`<ellipse cx="${ox.toFixed(2)}" cy="${oy.toFixed(2)}" rx="${(2.7*sz).toFixed(2)}" ry="${(1.15*sz).toFixed(2)}" transform="rotate(${a.toFixed(1)} ${ox.toFixed(2)} ${oy.toFixed(2)})" fill="url(#celg)" stroke="#9a6b18" stroke-width=".3"/>`})}});
   return `<svg viewBox="0 0 30 30" aria-hidden="true"><defs><linearGradient id="celg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff2b0"/><stop offset=".5" stop-color="#f5c84a"/><stop offset="1" stop-color="#b8862a"/></linearGradient></defs>${s}<circle cx="4" cy="4" r="1.9" fill="#f5c84a" stroke="#9a6b18" stroke-width=".35"/><circle cx="3.4" cy="3.4" r=".6" fill="#fff6d5"/></svg>`})();
+// This Week: which week of the season it is, and who leads each class (after the weeks finished so far); click to open the Season tab
+function twSeason(w,live){eloBuild(); const id=seasonOf(w); if(!id)return ""; const [a,b]=seasonRange(id), n=w-a+1, len=b-a+1, upto=Math.min(w,ELO_DONE);
+  const head=`<div class="tsh"><span class="tsn">🏁 Season ${seasonNum(id)}</span><span>week ${n} of ${len}</span><span class="golink">Season standings ›</span></div>`;
+  if(upto<a)return `<div class="twseasin" data-goseason role="button" tabindex="0" title="Open the Season tab">${head}<p class="dim">The season starts this week: everyone's on zero points.</p></div>`;
+  const cols=[0,1,2].map(pi=>{const T=seasonF1(pi,id,upto); const rows=["M","A","I","B"].filter(c=>T[c]&&T[c].length).map(c=>{const L=T[c], top=L.filter(x=>f1Cmp(x,L[0])===0);
+      return `<li><span class="lvchip" style="--tc:${TIER_C[c]}">${TIER_NAME[c].slice(0,3)}</span><span class="tsl">${top.map(x=>esc(x.n)).join(" = ")}</span><b>${L[0].p}</b></li>`}).join("");
+    return rows?`<div class="tsc" style="--pc:${PATH_C[pi]}"><h4>${PATHS[pi]}</h4><ul>${rows}</ul></div>`:""}).join("");
+  const note=upto<w?`Leaders after week ${upto-a+1}`:`Leaders after week ${n}`;
+  return `<div class="twseasin" data-goseason role="button" tabindex="0" title="Open the Season tab">${head}<div class="tsnote">${note}</div><div class="tsg">${cols}</div></div>`}
+document.addEventListener("click",e=>{if(!e.target.closest("[data-goseason]")||e.target.closest("[data-profile],[data-player]"))return; showView("season"); scrollTo({top:0})});
 // New medals order: gold God winners first, then silver, then bronze God diamond winners, then everyone else
 // then most new regular gold medals, then silver, then bronze (all paths), then most new medals overall
 function podNew(m,i){return m.reduce((t,h)=>{if(!/medal-m wm pod/.test(h)||!new RegExp(`data-tip="${POD_NAME[i]} medal`).test(h))return t; const k=/data-k="(\d+)"/.exec(h); return t+(k?+k[1]:1)},0)}
+// same number of medals: new players (Joined medal) first, then play streak medals, then Still got it, then the hardest perfectionist medal
+function medTie(m){const h=m.join(""), lv={Beginner:1,Intermediate:2,Advanced:3,Masterclass:4,God:5}; let pf=0;
+  for(const x of h.matchAll(/data-tip="(\w+) perfectionist/g))pf=Math.max(pf,lv[x[1]]||0);
+  return (/data-tip="Joined medal/.test(h)?1000:0)+(/play streak medal/.test(h)?100:0)+(/data-tip="Still got it/.test(h)?10:0)+pf}
 function godRank(m){const h=m.join(""); return /diamond d0/.test(h)?0:/diamond d1/.test(h)?1:/diamond d2/.test(h)?2:3}
 // plus small diamonds that pop up along the edges between the sprigs in waves, drift along the trim (round the box,
 // clockwise) and fade out at scattered points, so there's a steady flow of them travelling between the corners
@@ -4434,6 +4459,7 @@ function renderNextPreview(){
   $("twsb").hidden=false; $("twsb").dataset.sbw=nw; $("twsb").title=`Open week ${nw} on the Scoreboard`;
   $("tw-title").innerHTML=`<span class="golink" data-sbw="${nw}" title="Open this week on the Scoreboard">Week ${nw}</span> <span class="pill nextwk" style="width:auto">UPCOMING</span>`;
   $("tw-meta").innerHTML=W?`Starts ${fmt(W[1])} at 9 pm CET${host?` · hosted by <span class="nm" data-name="${esc(host)}" data-gohost="${esc(host)}" style="cursor:pointer;font-weight:700;color:var(--fg)">${esc(host)}</span>${W[2]?"":" (signed up)"}`:` · <span data-tip="No host for Week ${nw} in the schedule sheet yet, and nobody has signed up on the site">host needed</span>`}`:"";
+  $("tw-seas").hidden=true;
   $("tw-stats").innerHTML=`<span><b>${players.size}</b> player${players.size===1?"":"s"} posted so far</span><span><b>${ents.length}</b> entr${ents.length===1?"y":"ies"}</span>`;
   const cols=[0,1,2].map(p=>{const cs=ch.filter(c=>c[0]===p&&c[3]&&!/^n\/a$/i.test(c[3])).sort((a,b)=>a[1]-b[1]); if(!cs.length)return "";
     return `<div class="twnp" style="--pc:${PATH_C[p]}"><h3>${PATHS[p]}</h3><ul>${cs.map(c=>{const L=cardLv(c[2]), id=SB.links&&SB.links[nw]&&SB.links[nw][c[0]*9+c[1]];
@@ -4537,7 +4563,7 @@ function renderThisWeek(){
   const medSig=m=>m.map(h=>((/data-tip="([^"]*)"/.exec(h)||[])[1]||"").split(" · ")[0]).sort().join("|");
   const med0=[...cand].map(n=>({n,m:twMedals(n,w,live&&set.has(n))})).filter(x=>x.m.length);
   const sigN={}; med0.forEach(x=>{x.sig=medalTotal(x.m)+"#"+medSig(x.m); sigN[x.sig]=(sigN[x.sig]||0)+1});
-  const med=med0.sort((a,b)=>(b.n===wHost)-(a.n===wHost)||godRank(a.m)-godRank(b.m)||podNew(b.m,0)-podNew(a.m,0)||podNew(b.m,1)-podNew(a.m,1)||podNew(b.m,2)-podNew(a.m,2)||medalTotal(b.m)-medalTotal(a.m)||sigN[b.sig]-sigN[a.sig]||a.sig.localeCompare(b.sig)||a.n.localeCompare(b.n,undefined,{sensitivity:"base"}));
+  const med=med0.sort((a,b)=>(b.n===wHost)-(a.n===wHost)||godRank(a.m)-godRank(b.m)||podNew(b.m,0)-podNew(a.m,0)||podNew(b.m,1)-podNew(a.m,1)||podNew(b.m,2)-podNew(a.m,2)||medalTotal(b.m)-medalTotal(a.m)||medTie(b.m)-medTie(a.m)||sigN[b.sig]-sigN[a.sig]||a.sig.localeCompare(b.sig)||a.n.localeCompare(b.n,undefined,{sensitivity:"base"}));
   // rival pairs for each path (mutual pairs shown once)
   const pairsFor=pi=>{const riv=SB.weeks[w]?rivalsOfWeek(w,pi):{}, pairs=[], done=new Set();
     const lvl=r=>"BIAM".indexOf(tierOf(r.best.c[2])||"M"); // Beginner first, then Intermediate, Advanced, Masterclass
@@ -4560,6 +4586,7 @@ function renderThisWeek(){
   const tipB=back.length?`Back from a break:\n`+back.map(b=>`${b.n} (last played Week ${b.prev})`).join(", "):"Nobody back from a break";
   const tipN=fresh.length?`New this week:\n`+abc(fresh).join(", "):"No new players";
   $("tw-stats").innerHTML=`<span data-tip="${esc(tipP)}"><b>${names.length}</b> player${names.length===1?"":"s"}${live?" so far":""}</span>${ents.length?`<span data-tip="${esc(tipE)}"><b>${ents.length}</b> entries</span>`:""}<span data-tip="${esc(tipB)}"><b>${back.length}</b> back</span><span data-tip="${esc(tipN)}"><b>${fresh.length}</b> new</span>${hol}`;
+  try{const h=twSeason(w,live); $("tw-seas").innerHTML=h; $("tw-seas").hidden=!h}catch(e){$("tw-seas").hidden=true}
   {const html=!live&&w<=DATA_WEEK?twWinnersPost(w):""; $("tw-winsec").hidden=!html; $("tw-winpost").innerHTML=html;}
   // lists
   $("tw-back-sub").textContent=`Played week ${w} after missing week ${w-1}`;
@@ -4588,7 +4615,7 @@ function renderThisWeek(){
     return `<li${cls?` class="${cls}" data-tip="${tipL}"`:""}>${g?celCorners():""}${hb?`<span class="hosttag">YOUR HOST</span>`:""}${twName(x.n)}<span class="dt">${twPl(medalTotal(x.m),"new medal")}</span><div class="medals">${x.m.join("")}</div></li>`}).join(""):twEmpty("No new medals this week.");
   const lit=(id,on)=>$(id).closest("section").classList.toggle("lit",!!on);
   lit("tw-med",med.length); lit("tw-back",back.length);
-  {const s=$("tw-dng").closest("section"); s.classList.toggle("amber",live); s.classList.toggle("gloom",!live&&dng.length>0)} lit("tw-new",fresh.length); lit("tw-ann",(twAnnAll?annAll:ann).length); lit("tw-riv",SB.weeks[w]&&[0,1,2].some(pi=>Object.keys(rivalsOfWeek(w,pi)).length));
+  {const s=$("tw-dng").closest("section"); s.classList.toggle("amber",live); s.classList.toggle("fangs",live&&dng.length>0); s.classList.toggle("gloom",!live&&dng.length>0)} lit("tw-new",fresh.length); lit("tw-ann",(twAnnAll?annAll:ann).length); lit("tw-riv",SB.weeks[w]&&[0,1,2].some(pi=>Object.keys(rivalsOfWeek(w,pi)).length));
   $("tw-riv-sub").textContent=ents.length?"Each player's closest match within their own rank: smallest average % gap on the ranked challenges they both played (no playing up or down, no God challenges)":"";
   const r2=v=>Math.round(v*100)/100;
   $("tw-riv").innerHTML=!SB.weeks[w]?`<ul class="twl">${twEmpty(`No scoreboard for week ${w} (scoreboards start at week ${SB_W[0]}).`)}</ul>`:[0,1,2].map(pi=>{const pairs=pairsFor(pi);
