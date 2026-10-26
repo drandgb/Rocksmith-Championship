@@ -389,7 +389,7 @@ button.clear:hover{border-color:var(--accent)}
 .sbtitle select{background:none;border:0;color:var(--fg);font:800 clamp(1.4rem,4vw,2rem) var(--f-display);text-align:center;cursor:pointer;max-width:100%}
 .sbtitle select option{background:var(--panel);font-size:1rem}
 .sbtools{display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:center}
-.sbtools #sbseg{grid-column:2;grid-row:1}
+.sbtools #sbseg{grid-column:2;grid-row:1}.sbtiers .tier.mine b{color:var(--s-yellow)}.card .sbpath{font-style:normal;font-weight:800}
 .sbtools #sbme{grid-column:1;grid-row:1;justify-self:start}
 .sbme{background:var(--panel2);color:var(--fg);border:1px solid var(--line);border-radius:6px;padding:7px 12px;font:inherit;font-size:.88rem;cursor:pointer;white-space:nowrap}
 .sbme:hover{border-color:var(--accent)}.sbme[aria-pressed="true"]{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 16%,var(--panel2))}
@@ -3256,6 +3256,10 @@ function sbRender(){
   $("sbmeta").innerHTML=`<div>${(wk?`${fmt(wk[1])}${wk[2]&&wk[2]!==LOST?` · hosted by <b>${esc(wk[2])}</b>`:""}`:"")}</div><div class="sbstat">${(sbNext?'<span class="pill nextwk" style="width:auto" data-tip="Next week: scores can be posted already. It becomes the current week, and this week&#39;s winners are decided, at 9 pm CET (Central European time) on its start Saturday">UPCOMING</span> ':sbLive?'<span class="pill new" style="width:auto">IN PROGRESS</span> ':'<span class="pill done" style="width:auto">CONCLUDED</span> ')}</div>`;
   $("sbseg").innerHTML=["Lead","Rhythm","Bass"].map((k,i)=>{const t=sbLv[i], on=i===sbPath, nx=SB_CYC[(SB_CYC.indexOf(t)+1)%SB_CYC.length];
     return `<button type="button" class="tier" data-path="${i}" aria-pressed="${on}" style="--pc:${PATH_C[i]};--tc:${t?(TIER_C[t]||"var(--s-red)"):"var(--fg)"}" title="${on?`${k}: showing ${t?LV_NAME[t]:"all levels"} · click for ${nx?LV_NAME[nx]:"all levels"}`:`Show ${k}`}"><small>${k}</small><b>${t||"All"}</b><i>${t?LV_NAME[t]:"all levels"}</i></button>`}).join("");
+  // "Your cards": every card where the highlighted player (or you, when logged in) is ranked in their own class, Lead, Rhythm and Bass together
+  const mineWho=(sbFind||myPlayer()||"").toLowerCase();
+  if(sbPath===3&&!mineWho)sbPath=0;
+  $("sbseg").insertAdjacentHTML("beforeend",mineWho?`<button type="button" class="tier mine" data-path="3" aria-pressed="${sbPath===3}" style="--pc:var(--s-yellow);--tc:var(--fg)" title="All of ${esc(sbFind||myPlayer())}'s ranked cards this week (their own class on Lead, Rhythm and Bass) in one place"><small>Your cards</small><b>★</b><i>L · R · B</i></button>`:"");
   const all=ch.flatMap(c=>c[6]), players=new Set(all.map(e=>SB.names[e[0]].replace(/[*~]+$/,"")));
   const pathEnts=ch.filter(c=>c[0]===sbPath).flatMap(c=>c[6]);
   // players this week = posted a score this week (as on the Players page chart); competing = everyone on the board,
@@ -3268,15 +3272,16 @@ function sbRender(){
   const nm=e=>SB.names[e[0]].replace(/[*~]+$/,"");
   const perList=es=>{const m={}; es.forEach(e=>{const n=nm(e); m[n]=(m[n]||0)+1}); return Object.entries(m).sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0],undefined,{sensitivity:"base"})).map(([n,k])=>`${n} (${k})`).join(", ")};
   const carriedOnly=abc([...players].filter(n=>!posted.has(twCanon(n))&&!posted.has(n)));
-  const pathName=["Lead","Rhythm","Bass"][sbPath];
+  const pathName=["Lead","Rhythm","Bass","All paths"][sbPath];
   const compTipL=compTip+`\n\nPlayers:\n${abc(players).join(", ")}${carriedOnly.length?`\n\nOnly carried-over God scores:\n${carriedOnly.join(", ")}`:""}`;
   const postTipL=postTip+`\n\nPlayers:\n${abc(posted).join(", ")}`;
   const plainTip=players.size?`Players:\n${abc(players).join(", ")}`:"";
   const allTip=all.length?`Entries per player, all paths:\n${perList(all)}`:"";
   const pathTip=pathEnts.length?`${pathName} entries per player:\n${perList(pathEnts)}`:"";
   $("sbstats").innerHTML=(carried>0?`<span data-tip="${esc(compTipL)}"><b>${players.size}</b> players competing</span><span data-tip="${esc(postTipL)}"><b>${posted.size}</b> players this week</span>`:`<span data-tip="${esc(plainTip)}"><b>${players.size}</b> players this week</span>`)+`<span data-tip="${esc(allTip)}"><b>${all.length}</b> entries in all paths</span><span data-tip="${esc(pathTip)}"><b>${pathEnts.length}</b> ${["lead","rhythm","bass"][sbPath]} entries</span>`;
-  const cards=ch.filter(c=>c[0]===sbPath&&(!sbLv[sbPath]||cardLv(c[2])===sbLv[sbPath]));
-  const findLc=sbFind.toLowerCase();
+  const cards=sbPath===3?ch.filter(c=>cardLv(c[2])!=="G"&&c[6].some(e=>{const r=SB.names[e[0]]; return r.replace(/[*~]+$/,"").toLowerCase()===mineWho&&!r.includes("*")})).sort((a,b)=>a[0]-b[0]||a[1]-b[1])
+    :ch.filter(c=>c[0]===sbPath&&(!sbLv[sbPath]||cardLv(c[2])===sbLv[sbPath]));
+  const findLc=sbPath===3&&!sbFind?mineWho:sbFind.toLowerCase();
   // "Highlight a player" only suggests players on the cards being shown (this week, path and level)
   // (a plain dropdown so it works on iPhone Safari, which doesn't show datalist suggestions)
   {const names=[...new Set(cards.flatMap(c=>c[6].map(e=>SB.names[e[0]].replace(/[*~]+$/,""))))].sort((a,b)=>a.localeCompare(b,undefined,{sensitivity:"base"}));
@@ -3300,8 +3305,8 @@ function sbRender(){
       const up=!raw.includes("*")&&lvLetter&&RU_KEY.has(`${sbWeek}|${base}|${p}|${lvLetter}`)?`<span class="rkup" data-tip="First week in ${TIER_NAME[lvLetter]} ${PATHS[p]} after ranking up">RANKED UP</span>`:"";
       return `<tr class="${me}${e[4]<0?" down":""}" data-tip="${me?`Click the row to clear the highlight`:`Click the row to highlight ${esc(base)} on every card · click the name to open their profile`}"><td>${rk}</td><td class="n"><span data-player="${esc(base)}">${esc(base)}</span>${marks}${up}${SB.aka&&SB.aka[e[0]]?`<span class="aka">as ${esc(SB.aka[e[0]])}</span>`:""}</td><td>${pct}</td><td>${fmtNum(e[2])}</td><td>${fmtNum(e[3])}</td></tr>`;
     }).join("");
-    return `<article class="card" data-slot="${slot}" style="--tc:${tc}"><div class="ch"><div class="lv"><span>${esc(lvl)}</span><div class="lvr">${(()=>{const id=SB.links&&SB.links[sbWeek]&&SB.links[sbWeek][p*9+slot];return songPill(song,id)})()}${rateBadge(sbWeek,p,slot,diff,ents)}</div></div><div class="song">${songHtml}</div>${(()=>{const t=arrTag(sbWeek,p,slot); return t?`<div class="arrrow">${t}</div>`:""})()}${extra?`<div class="note">${esc(extra)}</div>`:""}${cont?`<div class="note">⏳ Continues next week · the winner is decided in its final week</div>`:""}${acctCard(sbWeek,p,slot,ents,sbLive)}</div>${ents.length?`<table><thead><tr><th>#</th><th>Player</th><th>%</th><th>Streak</th><th>Score</th></tr></thead><tbody>${rows}</tbody></table>`:`<div class="empty">No entries yet</div>`}${pvStrip(sbWeek,p,slot,song,ents)}</article>`;
-  }).join("")||(sbLv[sbPath]?`<div class="empty">No ${LV_NAME[sbLv[sbPath]]} ${PATHS[sbPath]} challenge this week</div>`:"");
+    return `<article class="card" data-slot="${slot}" style="--tc:${tc}"><div class="ch"><div class="lv"><span>${sbPath===3?`<em class="sbpath" style="color:${PATH_C[p]}">${PATHS[p]}</em> · `:""}${esc(lvl)}</span><div class="lvr">${(()=>{const id=SB.links&&SB.links[sbWeek]&&SB.links[sbWeek][p*9+slot];return songPill(song,id)})()}${rateBadge(sbWeek,p,slot,diff,ents)}</div></div><div class="song">${songHtml}</div>${(()=>{const t=arrTag(sbWeek,p,slot); return t?`<div class="arrrow">${t}</div>`:""})()}${extra?`<div class="note">${esc(extra)}</div>`:""}${cont?`<div class="note">⏳ Continues next week · the winner is decided in its final week</div>`:""}${acctCard(sbWeek,p,slot,ents,sbLive)}</div>${ents.length?`<table><thead><tr><th>#</th><th>Player</th><th>%</th><th>Streak</th><th>Score</th></tr></thead><tbody>${rows}</tbody></table>`:`<div class="empty">No entries yet</div>`}${pvStrip(sbWeek,p,slot,song,ents)}</article>`;
+  }).join("")||(sbPath===3?`<div class="empty">No ranked cards for ${esc(sbFind||myPlayer())} this week yet</div>`:sbLv[sbPath]?`<div class="empty">No ${LV_NAME[sbLv[sbPath]]} ${PATHS[sbPath]} challenge this week</div>`:"");
   try{localStorage.setItem("rsc-sb",JSON.stringify({w:sbWeek,p:sbPath}))}catch(e){}
 }
 
@@ -3337,6 +3342,7 @@ $("sbprev").addEventListener("click",()=>{const i=SB_WEEKS.indexOf(sbWeek);if(i<
 $("sbnext").addEventListener("click",()=>{const i=SB_WEEKS.indexOf(sbWeek);if(i>0){sbWeek=SB_WEEKS[i-1];sbRender()}});
 // click a path to show it; click the shown path again to cycle its level: All → B → I → A → M → God → All
 $("sbseg").addEventListener("click",e=>{const b=e.target.closest("button[data-path]");if(!b)return;const i=+b.dataset.path;
+  if(i===3){sbPath=3; tip.hidden=true; sbRender(); return}
   if(i===sbPath)sbLv[i]=SB_CYC[(SB_CYC.indexOf(sbLv[i])+1)%SB_CYC.length]; else sbPath=i;
   tip.hidden=true;sbRender();$("sbseg").querySelector(`[data-path="${i}"]`).focus()});
 $("sbfind").addEventListener("change",e=>{sbFind=e.target.value.trim();sbPv={};sbRender()});
