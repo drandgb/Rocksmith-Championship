@@ -290,6 +290,8 @@ button.clear:hover{border-color:var(--accent)}
 .brow .fill::after{content:"";position:absolute;right:0;top:50%;width:12px;height:12px;margin-top:-6px;border-radius:50%;background:var(--fg);box-shadow:0 0 8px var(--c)}
 .brow .val{font-family:var(--f-mono);font-size:.8rem;font-variant-numeric:tabular-nums;text-align:right;min-width:3.5em}
 .brow.top .nm{font-weight:600}
+/* number 1 names in gold, like the season champions */
+#view-players .brow.first .nm,#rk-body li.p1 .nm,.twrkl li.p1 .nm,.lvlist li.p1 .nm,#rk-year li:first-child .nm{color:#ffd86b;font-weight:800;text-shadow:0 0 10px rgba(255,216,107,.35)}
 :is(#view-players,#view-winners) .brow.top .rk{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;font:700 .7rem var(--f-display);color:#10131a;background:radial-gradient(circle at 35% 30%,color-mix(in srgb,var(--rkm) 45%,#fff),var(--rkm) 65%);box-shadow:0 0 6px color-mix(in srgb,var(--rkm) 45%,transparent)}
 .brow.top:nth-child(1){--rkm:#f5c84a}.brow.top:nth-child(2){--rkm:#c9d0dc}.brow.top:nth-child(3){--rkm:#d8925a}
 .pod .medal{position:relative;overflow:hidden;background:radial-gradient(circle at 32% 28%,color-mix(in srgb,var(--m) 35%,#fff),var(--m) 55%,color-mix(in srgb,var(--m) 75%,#000));text-shadow:0 1px 0 rgba(255,255,255,.35)}
@@ -1370,7 +1372,7 @@ footer{color:var(--dim);font-size:.78rem}
 .bn .bn-stats{flex:1;display:grid;grid-template-columns:.9fr .9fr 1fr 1fr 1fr;gap:5px}
 .bn .bn-st{background:rgba(255,255,255,.035);border:1px solid #34363b;border-radius:8px;padding:3.5px 6px .5px;min-width:0;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center}
 .bn .bn-st small{display:block;font:700 9.5px/1 var(--f-display);letter-spacing:.06em;white-space:nowrap;color:#8b93a7;text-transform:uppercase}
-.bn .bn-st small em{font-style:normal;color:var(--s-red);letter-spacing:.03em}   /* Rodman's Rankings are a rolling 10-week average */
+.bn .bn-st small em{font-style:normal;color:var(--s-red);letter-spacing:.03em}   /* LVL: Rodman's player level (XP) */
 .bn .bn-st b{display:block;font:800 18px/1 var(--f-display);margin-top:2px;white-space:nowrap;color:#e9edf5}
 .bn .bn-st b i{font:600 11px var(--f-body);color:#8b93a7;font-style:normal;margin-left:2px}
 .bn .bn-st.bn-r1{border-color:#f5c542;background:linear-gradient(180deg,rgba(245,197,66,.16),rgba(245,197,66,.04));box-shadow:0 0 10px rgba(245,197,66,.35),inset 0 0 0 1px rgba(245,197,66,.25)}
@@ -2172,7 +2174,7 @@ function barRows(list,color,unit="",tags=true){
   return list.map(([n,v],i)=>{
     const x=numOf(v), pct=Math.max(2,x/max*100);
     const c=typeof color==="function"?color(n,i):color;
-    return `<div class="brow${i<3?" top":""}${tags?"":" notag"}${tags&&!isActivePlayer(n)?" inactive":""}" style="--c:${c}"><span class="rk">${i+1}</span><span class="nm" data-player="${esc(n)}" title="${esc(n)}">${esc(n)}</span>${tags?`<span class="act">${actPill(n)}</span>`:""}<span class="track"><span class="fill" style="width:${pct}%;animation-delay:${i*30}ms"></span></span><span class="val">${typeof v==="string"&&/^\d+\.\d$/.test(v)?v:x}${unit}</span></div>`;
+    return `<div class="brow${i<3?" top":""}${i===0?" first":""}${tags?"":" notag"}${tags&&!isActivePlayer(n)?" inactive":""}" style="--c:${c}"><span class="rk">${i+1}</span><span class="nm" data-player="${esc(n)}" title="${esc(n)}">${esc(n)}</span>${tags?`<span class="act">${actPill(n)}</span>`:""}<span class="track"><span class="fill" style="width:${pct}%;animation-delay:${i*30}ms"></span></span><span class="val">${typeof v==="string"&&/^\d+\.\d$/.test(v)?v:x}${unit}</span></div>`;
   }).join("");
 }
 const ACTIVE_PLAYER_WINDOW=52;
@@ -2648,8 +2650,6 @@ function hlText(w){eloBuild(); const I=sbIx(), L=[], played=Object.keys(I.wk).fi
   const ups=(WR.ups||[]).filter(u=>u[4]===w&&LVI.indexOf(u[3])>LVI.indexOf(u[2])).map(u=>`${u[0]} (${PATHS[u[1]]} ${TIER_NAME[u[2]]||u[2]} → ${TIER_NAME[u[3]]||u[3]})`); if(ups.length)L.push(`Rank-ups: ${ups.join(", ")}`);
   const first95=played.filter(k=>{const E=I.ent[k]||[]; const f=E.find(x=>x.pc>=95); return f&&f.w===w}).map(nm); if(first95.length)L.push(`First 95% score: ${first95.join(", ")}`);
   const hr=[]; played.forEach(k=>[0,1,2].forEach(pi=>{const s=hrSeries(nm(k),pi), now=hrAt(s,w); if(now==null)return; const prev=s.filter(e=>e[0]<w&&e[1]!=null).map(e=>e[1]); if(prev.length&&now>Math.max(...prev)+.04)hr.push(`${nm(k)} (${PATHS[pi]} ${Math.max(...prev).toFixed(1)} → ${now.toFixed(1)})`)})); if(hr.length)L.push(`New best hardest rating: ${hr.join(", ")}`);
-  const el=[]; [0,1,2].forEach(pi=>{const g=Object.keys(ELO[pi].hist).map(n=>{const x=eloAt(pi,n,w); if(!x||x[0]!==w)return null; const b=eloAt(pi,n,w-1); return {n,d:x[1]-(b?b[1]:eloStart(pi,n))}}).filter(x=>x&&x.d>=1).sort((a,b)=>b.d-a.d).slice(0,3);
-    if(g.length)el.push(`${PATHS[pi]}: ${g.map(x=>`${x.n} +${Math.round(x.d)}`).join(", ")}`)}); if(el.length)L.push(`Biggest Elo gains:${el.map(x=>"\n    "+x).join("")}`);
   const nw=played.filter(k=>{const W=I.wk[k]; return W.length===2&&W[1]===w}).map(nm); if(nw.length)L.push(`One more time (back for a second week): ${nw.join(", ")}`);
   const ht=played.filter(k=>{const W=I.wk[k], i=W.indexOf(w); if(i<2||W[i-1]!==w-1||W[i-2]!==w-2)return false; return !(i>=3&&W[i-3]===w-3)&&W.length<=FW_MAX}).map(nm); if(ht.length)L.push(`Hat trick (first three weeks in a row): ${ht.join(", ")}`);
   // the last week of a season: announce the new one, with the champions of the one just finished
@@ -2666,7 +2666,7 @@ function hlText(w){eloBuild(); const I=sbIx(), L=[], played=Object.keys(I.wk).fi
   return `Week ${w} highlights\n\n${head}${L.map(x=>"• "+x).join("\n")||"• Nothing to highlight yet."}${lead}`}
 function hlSection(){const ws=[]; for(let w=ELO_DONE;w>ELO_DONE-6&&w>0;w--)if(SB.weeks[w])ws.push(w); const w=ACCT.hlWeek&&ws.includes(ACCT.hlWeek)?ACCT.hlWeek:ws[0]; if(!w)return "";
   return `<div class="acctsec hlbox"><h3>Weekly highlights <select class="hlsel" data-hlweek>${ws.map(x=>`<option value="${x}"${x===w?" selected":""}>Week ${x}</option>`).join("")}</select></h3>
-    <p class="dim">New players, welcome backs, rank-ups, first 95% scores, new best hardest ratings, the biggest Elo gains and newcomers' milestones and the season leaders for Week ${w}, ready to copy into the Week ${w+1} post.</p><pre id="hltext">${esc(hlText(w))}</pre><div class="row"><button type="button" class="btn ghost" data-hlcopy>Copy</button></div></div>`}
+    <p class="dim">New players, welcome backs, rank-ups, first 95% scores, new best hardest ratings, newcomers' milestones and the season leaders for Week ${w}, ready to copy into the Week ${w+1} post.</p><pre id="hltext">${esc(hlText(w))}</pre><div class="row"><button type="button" class="btn ghost" data-hlcopy>Copy</button></div></div>`}
 // ---------- Admin: season introduction, ready to copy into a forum post (for new and current players) ----------
 function siLab(w){const d=weekAt(w-1)[1], q=Math.floor((+d.slice(5,7)-1)/3); return ["Jan–Mar ","Apr–Jun ","Jul–Sep ","Oct–Dec "][q]+d.slice(0,4)}
 function siRange(id,from){let a=null,b=null; for(let w=Math.max(1,from-20);w<from+40;w++){if(siLab(w)===id){if(a==null)a=w; b=w}else if(a!=null)break} return [a,b]}
@@ -4106,7 +4106,7 @@ function renderSongLookup(){const el=$("sqres"); if(!el)return;
   if(!hits.length){el.innerHTML=`<div class="empty">No songs found${q?` with “${esc(sqQ)}” in the title`:""}${sqTun?` in ${esc(sqTun)}`:""}.</div>`;return}
   const rows=hits.slice(0,40).map(g=>{const ps=paths(g), last=Math.max(...g.cs.map(c=>c.w)), lv=[...new Set(g.cs.map(c=>c.t))].sort((a,b)=>TIER_ORDER.indexOf(a)-TIER_ORDER.indexOf(b));
     const tn=ps.map(p=>[p,tuneOf(g.song,p)]).filter(x=>x[1]), same=tn.length&&tn.every(x=>x[1]===tn[0][1]);
-    return `<tr><td><b class="golink" data-goband="${esc(g.artist)}" data-gosong="${esc(g.title)}" title="Show this song in Band lookup">${esc(g.title)}</b><small class="golink" data-goband="${esc(g.artist)}" title="Show this band in Band lookup">${esc(g.artist)}</small></td>
+    return `<tr><td><b class="golink" data-goband="${esc(g.artist)}" data-gosong="${esc(g.title)}" title="Show this song in Band lookup">${esc(g.title)}</b>${songRateBox(g.cs)}<small class="golink" data-goband="${esc(g.artist)}" title="Show this band in Band lookup">${esc(g.artist)}</small></td>
       <td><div class="chips">${lv.map(t=>`<span class="lvchip" style="--tc:${TIER_COL[t]}">${TIER_LABEL[t]||t}</span>`).join("")}</div></td>
       <td class="sqp">${ps.map(p=>`<span style="color:${PATH_C[p]}">${"LRB"[p]}</span>`).join(" ")}</td>
       <td class="sqt">${same?esc(tn[0][1]):tn.map(([p,t])=>`${"LRB"[p]}: ${esc(t)}`).join("<br>")||"–"}</td>
@@ -4401,8 +4401,8 @@ $("sblatest").addEventListener("click",()=>{sbWeek=SB_HOME;sbRender()});
 $("sbtw").addEventListener("click",()=>{twWeek=sbWeek; showView("thisweek"); renderThisWeek(); scrollTo({top:0})});
 
 // ---------- scoreboard song and band names open Band lookup on the Songs tab ----------
-$("view-scores").addEventListener("click",e=>{
-  const g=e.target.closest("[data-goband]"); if(!g)return;
+document.addEventListener("click",e=>{   // (the Scoreboard and Song lookup)
+  const g=e.target.closest("#view-scores [data-goband],#sqres [data-goband]"); if(!g)return;
   // names on the scoreboard can differ slightly from the song list ("The Ramones" vs "Ramones"), so match loosely
   const norm=x=>String(x||"").toLowerCase().replace(/^the\s+/,"").replace(/&/g,"and").replace(/[^a-z0-9]/g,"");
   const find=()=>{songsReady(); const bs=songCards.filter(c=>norm(c.artist)===norm(g.dataset.goband)); if(!bs.length)return null;
@@ -5232,6 +5232,10 @@ function hmWelcome(w){const byName=Object.fromEntries(PLAYERS.map(p=>[p[0].toLow
   return Object.keys(C).filter(n=>{const p=byName[n.toLowerCase()]; return live?!p:(p&&p[1]===w)}).sort((a,b)=>a.localeCompare(b)).map(n=>{const x=C[n], cls=Object.entries(x.p).sort((a,b)=>a[0]-b[0]).map(([pi,L])=>`${TIER_NAME[L]} ${PATHS[pi]}`);
     return {n,t:cls.length?`Welcome to the championship ${n}, you have been placed in ${andList(cls)}. Let us know if you prefer to be placed in a different difficulty bracket.`
       :`Welcome to the championship ${n}! You're playing as a FreeBird for now. Let us know which difficulty bracket you'd like to be placed in.`}})}
+// players back in week w after 4+ weeks away, with a friendly message
+function hmBack(w){const I=sbIx();
+  return Object.keys(I.wk).map(k=>{const W=I.wk[k], i=W.indexOf(w); if(i<1||w-W[i-1]<5)return null; const n=I.disp[k], away=w-W[i-1]-1;
+    return {n,away,t:`Welcome back ${n}! Great to see you again after ${away} week${away===1?"":"s"} away. 🎸`}}).filter(Boolean).sort((a,b)=>a.n.localeCompare(b.n))}
 // milestone medals collected in week w, as encouraging messages: new play streaks and hosting milestones, round numbers
 // (every 50 weeks played, every 25 wins on a path), and firsts (the medal's all-time count is all from this week)
 function hmMsg(n,tip){const k=tip.split(" · ")[0], all=+((/\((\d+) all time\)/.exec(tip)||[])[1]||0), plus=+((/\+(\d+) this week/.exec(tip)||[])[1]||0), first=all>0&&all===plus;
@@ -5260,10 +5264,11 @@ function hostMsgSection(){const ws=hmWeeks(); if(!ws.length)return ""; const w=A
   return `<div class="adm acctsec hmsec hmhost"><h3>Host milestones <select class="hlsel" data-hmweek>${ws.map(x=>`<option value="${x}"${x===w?" selected":""}>Week ${x}</option>`).join("")}</select></h3>
     <p class="dim">Thank-you messages for hosts who reached a host medal, ready to copy.</p>${M.length?`<ul class="hml">${M.map(x=>row(x.t,x.what)).join("")}</ul>`:`<p class="dim">No host medal milestones in Week ${w}.</p>`}</div>`}
 function hmSection(){const ws=hmWeeks(); if(!ws.length)return ""; const w=ACCT.hmWeek&&ws.includes(ACCT.hmWeek)?ACCT.hmWeek:ws[0];
-  const W=hmWelcome(w), M=hmMilestones(w).filter(x=>!hmIsHost(x)), row=(t,tag)=>`<li><div class="hmt">${tag?`<span class="hmk">${esc(tag)}</span>`:""}${esc(t)}</div><button type="button" class="btn ghost hmcp" data-hmcopy="${esc(t)}">Copy</button></li>`;
+  const W=hmWelcome(w), B=hmBack(w), M=hmMilestones(w).filter(x=>!hmIsHost(x)), row=(t,tag)=>`<li><div class="hmt">${tag?`<span class="hmk">${esc(tag)}</span>`:""}${esc(t)}</div><button type="button" class="btn ghost hmcp" data-hmcopy="${esc(t)}">Copy</button></li>`;
   return `<div class="acctsec hmsec"><h3>Messages for players <select class="hlsel" data-hmweek>${ws.map(x=>`<option value="${x}"${x===w?" selected":""}>Week ${x}</option>`).join("")}</select></h3>
     <p class="dim">Ready to copy into a forum reply or message.${w>DATA_WEEK?" This week is still running, so medals can still change.":""}</p>
     <h4>👋 Welcome new players</h4>${W.length?`<ul class="hml">${W.map(x=>row(x.t)).join("")}</ul>`:`<p class="dim">No new players in Week ${w}.</p>`}
+    <h4>🔁 Welcome back</h4>${B.length?`<ul class="hml">${B.map(x=>row(x.t,`${x.away} weeks away`)).join("")}</ul>`:`<p class="dim">Nobody back from a break in Week ${w}.</p>`}
     <h4>🎉 Milestones</h4>${M.length?`<ul class="hml">${M.map(x=>row(x.t,x.what)).join("")}</ul>`:`<p class="dim">No milestone medals in Week ${w} yet.</p>`}</div>`}
 document.addEventListener("change",e=>{const s=e.target.closest("[data-hmweek]"); if(!s)return; ACCT.hmWeek=+s.value; const el=document.querySelector(".acctdlg .hmsec:not(.hmhost)"); if(el)el.outerHTML=hmSection(); const eh=document.querySelector(".acctdlg .hmhost"); if(eh)eh.outerHTML=hostMsgSection()});
 document.addEventListener("click",e=>{const b=e.target.closest("[data-hmcopy]"); if(!b)return; try{navigator.clipboard.writeText(b.dataset.hmcopy).then(()=>{b.textContent="Copied ✓"; setTimeout(()=>b.textContent="Copy",1500)})}catch(err){}});
@@ -5789,6 +5794,9 @@ async function acctRefresh(){
 var BN_SITE="https://drandgb.github.io/Rocksmith-Championship/";
 function bnSlug(n){return String(n).toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"")||"player"}
 const BN_STRIPE=`<div class="bn-stripe">${["#e5484d","#f5c84a","#3f8cff","#ff9a2e","#3fcf7a","#a46bff"].map(c=>`<i style="background:${c}"></i>`).join("")}</div>`;
+// banner: Rodman's player level (XP now) on each path, and its place among everyone with a level now
+function bnLevel(n,pi){if(typeof LEVEL==="undefined"||!LEVEL||!LEVEL.paths)return null; const k=String(n).toLowerCase(), L=(LEVEL.paths[pi]||[]).filter(p=>p.xp);
+  const me=L.find(p=>p.n.toLowerCase()===k); if(!me)return null; return {v:me.xp,r:1+L.filter(p=>p.xp>me.xp).length}}
 function bannerHtml(n){
   const p=byName[n]; if(!p)return ""; const T=String(p[8]||"").split(""), v=wv(n,-1)||[0,0,0];
   const tier=t=>t&&t!=="?"?t:"–", tc=t=>TIER_C[t]||"#8b93a7";
@@ -5819,7 +5827,7 @@ function bannerHtml(n){
   const pk=+p[5]||0, weeksB=p[3]+(pk>=2?`<span class="bn-hot bn-ply" title="Played in each of the last ${pk} weeks">${flame}${pk}</span>`:"");   // play streak, same badge
   // best rank highlight: #1 gold, #2 silver, #3 bronze
   return `<div class="bn"><div class="bn-top"><div class="bn-who"><div class="bn-nm">${esc(n)}</div><div class="bn-tags">${["L","R","B"].map((l,i)=>`<span class="bn-tg">${l}<b style="color:${tc(T[i])}">${tier(T[i])}</b></span>`).join("")}</div></div>
-    <div class="bn-stats">${st("Weeks",weeksB,"bn-num")}${st("Wins",winsB,"bn-num"+(hk>=2?" bn-hotbox":""))}${["Lead","Rhythm","Bass"].map(pn=>{const r=rk[pn]; return st(`<em>10wk</em> ${pn==="Rhythm"?"Rhy":pn}`,r?`#${r.r}<i>${esc(r.lv.slice(0,3))}</i>`:"–",r&&r.r<=3?"bn-r"+r.r:"")}).join("")}</div></div>
+    <div class="bn-stats">${st("Weeks",weeksB,"bn-num")}${st("Wins",winsB,"bn-num"+(hk>=2?" bn-hotbox":""))}${["Lead","Rhythm","Bass"].map((pn,pi)=>{const L=bnLevel(n,pi); return st(`<em>LVL</em> ${pn==="Rhythm"?"Rhy":pn}`,L?`<span style="color:${TIER_C[lvBand(L.v)[1]]}">${L.v.toFixed(1)}</span>`:"–",L&&L.r<=3?"bn-r"+L.r:"")}).join("")}</div></div>
     <div class="bn-meds"><div class="bn-medrow" style="--n:${meds.length}">${meds.join("")}</div>${(()=>{try{eloBuild(); const id=seasonOf(ELO_DONE); if(!id)return ""; const ps=[0,1,2].map(pi=>{   // this season's standing on each path (their best class)
       let best=null; Object.entries(seasonF1(pi,id)).forEach(([c,L])=>{const i=L.findIndex(x=>x.n.toLowerCase()===key); if(i>=0&&(!best||i<best.i))best={i,c,p:L[i].p}}); if(!best)return "";
       const rk=best.i+1; return `<span class="bn-elo${rk<=3?" bn-e"+rk:""}" style="--pc:${["#ff9a2e","#45d17a","#3fa0ff"][pi]}"><i>${"LRB"[pi]}</i> #${rk} <b class="bn-cl" style="color:${TIER_C[best.c]}">${TIER_NAME[best.c].slice(0,3)}</b><small> ${best.p} pts</small></span>`}).join("");
