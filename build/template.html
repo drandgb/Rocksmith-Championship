@@ -944,6 +944,10 @@ footer .updated{display:block;margin-top:4px}
 .twseas .tsnote{font-size:.74rem;color:var(--muted);margin:4px 0 6px}.twseas .tsg{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px 16px}@media(max-width:700px){.twseas .tsg{grid-template-columns:1fr}}
 .twseas .lvchip{font:700 .64rem var(--f-mono);padding:1px 6px;border-radius:4px;color:#10131a;background:var(--tc);text-align:center}.twseas h4{margin:0 0 3px;font:800 .7rem var(--f-display);letter-spacing:.1em;text-transform:uppercase;color:var(--pc)}.twseas ul{list-style:none;margin:0;padding:0}.twseas li{display:grid;grid-template-columns:44px minmax(0,1fr) auto;align-items:center;gap:6px;font-size:.84rem;padding:2px 0}.twseas .tsl{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.twseas li b{font-family:var(--f-display);color:var(--s-green)}
 .sqctl{display:flex;gap:8px;flex-wrap:wrap}.sqctl #sq{flex:1 1 220px}.sqctl select{background:var(--panel2);color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:6px 8px;font:inherit}.sqtbl td small{display:block;color:var(--muted);font-size:.78rem}.sqtbl .sqt{font:600 .74rem var(--f-mono);color:var(--muted);white-space:nowrap}.sqtbl .sqp{font-weight:800;white-space:nowrap}.sqtbl td.r small{display:block}.sqhint{margin:6px 0 0}
+.yebox .panel-head h2{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.yegrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-top:6px}@media(max-width:800px){.yegrid{grid-template-columns:1fr}}
+.yecol h3{margin:0 0 8px;padding-top:6px;border-top:3px solid var(--pc);color:var(--pc);font:800 .8rem var(--f-display);letter-spacing:.12em;text-transform:uppercase}
+.yecls{border:1px solid var(--line);border-top:3px solid var(--tc);border-radius:8px;padding:8px 10px 6px;margin-bottom:8px;background:color-mix(in srgb,var(--tc) 5%,var(--panel))}.yecls h4{margin:0 0 4px;font:800 .66rem var(--f-display);letter-spacing:.1em;text-transform:uppercase;color:var(--tc)}
+.yecls ol{list-style:none;margin:0;padding:0}.yecls li{display:grid;grid-template-columns:26px minmax(0,1fr) auto;gap:6px;align-items:center;padding:3px 0;border-top:1px solid var(--line);font-size:.88rem}.yecls li:first-child{border-top:0}.yecls .yer{text-align:center;color:var(--muted);font-size:.8rem}.yecls li b{font-family:var(--f-display);color:var(--s-green)}.yecls .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .twstats{display:flex;flex-wrap:wrap;gap:8px 18px;margin-top:12px;color:var(--muted);font-size:.9rem}
 .twstats b{color:var(--fg);font-family:var(--f-display);font-size:1.1rem}
 .twstats .pill.hol{cursor:default}
@@ -1609,6 +1613,7 @@ footer{color:var(--dim);font-size:.78rem}
   </section>
   <div class="wpathbar"><div class="tiers rktiers" id="rkpath" aria-label="Level shown for each path"></div><button type="button" class="clear" id="rkall" hidden>Show all levels</button></div>
   <div id="rk-body" class="rkbody"></div>
+  <section class="panel yebox" id="rk-year" hidden></section>
   </div>
 
   <div class="view" id="view-winners" role="tabpanel" aria-labelledby="tab-winners">
@@ -1758,6 +1763,7 @@ var HOSTORIG={}/*HOSTORIG*/;
 // tunings per song from the Song Selection List (most recently added row): "artist title" key -> [Lead, Rhythm, Bass]
 var TUNINGS=__TUNINGS__;
 function tuneOf(song,p){if(!song)return ""; const k=String(song).toLowerCase().replace(/[^a-z0-9]+/g," ").trim(), t=TUNINGS[k]; return t&&t[p]?t[p]:""}
+var YEAREND=__YEAREND__;   // year-end Rodman's Rankings (build_yearend.py)
 const WEEKS = __WEEKS__; // [week, isoDate, host, holidays]
 const PLAYERS = __PLAYERS__; // [name, firstWeek, latestWeek, played, playRate, activeStreak, longestStreak, presenceHex (from week 2), tiers L/R/B]
 const PARTS = __PARTS__; // players per week, starting week 2
@@ -2394,7 +2400,7 @@ function renderSeason(){const el=$("season-box"); if(!el)return; eloBuild(); con
   const [a,b]=seasonRange(id), done=Math.min(b,ELO_DONE)-a+1, len=b-a+1;
   $("season-pick").innerHTML=L.slice().reverse().map(x=>`<option value="${x}"${x===id?" selected":""}>${x}</option>`).join("");
   $("season-num").textContent=`Season ${seasonNum(id)}`;
-  $("season-sub").innerHTML=`Weeks ${a}–${b} · ${live?`week ${done} of ${len} · ends after Week ${b}${WEEKS[b-1]?` (week starts on ${fmt(WEEKS[b-1][1])} and ends on ${fmt(WEEKS[b]?WEEKS[b][1]:new Date(Date.parse(WEEKS[b-1][1]+"T12:00Z")+7*864e5).toISOString().slice(0,10))})`:""}`:"final standings"} · season points in each class, plus the most improved in each class <span class="elohelp" data-tip="${esc(SEASON_TIP)}">ⓘ</span>`;
+  $("season-sub").innerHTML=`Weeks ${a}–${b} · ${fmt(weekAt(a-1)[1])} to ${fmt(weekAt(b)[1])} · ${live?`week ${Math.min(len,done+1)} of ${len}`:"final standings"} · season points in each class, plus the most improved in each class <span class="elohelp" data-tip="${esc(SEASON_TIP)}">ⓘ</span>`;
   $("season-bar").innerHTML=`<div class="swk">${Array.from({length:len},(_,i)=>{const w=a+i, fin=w<=ELO_DONE, now=!fin&&w===TW_MAX, go=w<=TW_MAX||w===TW_NEXT, dt=WEEKS[w-1]?" · "+fmt(WEEKS[w-1][1]):"";
     return `<${go?"button":"span"} class="swb${fin?" fin":now?" cur":""}"${go?` data-sw="${w}"`:""} data-tip="${esc(`Week ${w}${dt} · ${fin?"finished":now?"this week":w===TW_NEXT?"next week":"to go"}${go?"\nClick to open it in This Week":""}`)}"><small>${i+1}</small></${go?"button":"span"}>`}).join("")}</div>`;
   const SCLS=["M","A","I","B"].filter(c=>[0,1,2].some(pi=>{const T=seasonF1(pi,id), M=seasonImproved(pi,id); return (T[c]&&T[c].length)||M[c]}));
@@ -4729,7 +4735,20 @@ const RK_CYC=["","B","I","A","M"]; let rkLv=["","",""]; // level shown per path 
 // site's latest 10 weeks (whichever ends at the more recent week; Rodman's wins a tie)
 function rkCurrent(){const end=d=>{const m=String(d&&d.weeks||"").match(/(\d+)\D+(\d+)/); return m?+m[2]:0};
   try{const L=rkLiveData(); return end(RK_SHEET)>=end(L)?RK_SHEET:L}catch(e){return RK_SHEET}}
+// Year-end Rodman's Rankings: the leaderboard as it stood at the end of each year, from the year tabs in the championship sheet
+let yeYear=null;
+function renderYearEnd(){const el=$("rk-year"); if(!el)return; if(!YEAREND||!YEAREND.length){el.hidden=true;return}
+  const Y=YEAREND.find(x=>x.year===yeYear)||YEAREND[0]; yeYear=Y.year;
+  const MED=["🥇","🥈","🥉"];
+  const cols=Y.paths.map((blocks,pi)=>{const boxes=blocks.filter(b=>b.rows.length).map(b=>{const top=b.rows.slice(0,5), rest=b.rows.slice(5);
+      return `<div class="yecls" style="--tc:${TIER_C[b.cls]}"><h4>${TIER_NAME[b.cls]}</h4><ol>${top.map(([rk,n,pt])=>`<li><span class="yer">${MED[rk-1]||rk}</span><span class="nm" data-profile="${esc(n)}" style="cursor:pointer">${esc(n)}</span><b>${pt}</b></li>`).join("")}${rest.length?`<li class="dim yemore" data-tip="${esc(rest.map(([rk,n,pt])=>`${rk}. ${n} · ${pt} pts`).join("\n"))}" style="cursor:help"><span></span><span>… and ${rest.length} more</span></li>`:""}</ol></div>`}).join("");
+    return boxes?`<div class="yecol" style="--pc:${PATH_C[pi]}"><h3>${PATHS[pi]}</h3>${boxes}</div>`:""}).join("");
+  el.innerHTML=`<div class="panel-head"><h2>📅 Year-end standings <select class="hlsel" id="yesel" aria-label="Year">${YEAREND.map(x=>`<option value="${x.year}"${x.year===Y.year?" selected":""}>${x.year}</option>`).join("")}</select></h2>
+    <span class="sub">Rodman's Rankings as they stood at the end of ${Y.year}${Y.weeks?` · weeks ${esc(Y.weeks.replace("-","–"))}`:""}${Y.rules?` · ${esc(Y.rules.replace(/^Rules:\s*/,"").replace(/\s+scored\s*$/,""))}`:""}</span></div><div class="yegrid">${cols}</div>`;
+  el.hidden=false}
+document.addEventListener("change",e=>{if(e.target.id!=="yesel")return; yeYear=+e.target.value; renderYearEnd()});
 function renderRankings(){
+  try{renderYearEnd()}catch(e){}
   if(rkLive===null)rkLive=rkCurrent()!==RK_SHEET;
   const RK=rkLive?rkLiveData():RK_SHEET;
   $("rkpath").innerHTML=["Lead","Rhythm","Bass"].map((k,i)=>{const t=rkLv[i], nx=RK_CYC[(RK_CYC.indexOf(t)+1)%RK_CYC.length];
