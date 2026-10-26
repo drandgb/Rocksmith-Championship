@@ -2922,7 +2922,9 @@ $("tabrow").addEventListener("scroll",tabEdges,{passive:true}); addEventListener
 document.addEventListener("click",e=>{const a=e.target.closest("[data-faqgo]"); if(a){e.preventDefault(); showView(a.dataset.faqgo); scrollTo({top:0,behavior:"smooth"}); return}
   const j=e.target.closest(".faqjump a"); if(j){e.preventDefault(); const t=document.querySelector(j.getAttribute("href")); if(t){const d=t.querySelector("details"); if(d)d.open=true; t.scrollIntoView({behavior:"smooth"})}}});
 document.querySelector(".tabs").addEventListener("click",e=>{const b=e.target.closest("button[data-view]");if(b)showView(b.dataset.view)});
-{const H={"#thisweek":"thisweek","#level":"level","#rankings":"rankings","#season":"season","#hosts":"hosting","#players":"players","#winners":"winners","#scoreboard":"scores","#songs":"songs","#faq":"faq"};let v=H[location.hash.split("/")[0]]||null; showView(["thisweek","rankings","season","hosting","scores","winners","songs","players","faq","level"].includes(v)?v:"thisweek");}
+{const H={"#thisweek":"thisweek","#level":"level","#rankings":"rankings","#season":"season","#hosts":"hosting","#players":"players","#winners":"winners","#scoreboard":"scores","#songs":"songs","#faq":"faq"};let v=H[location.hash.split("/")[0]]||null; v=["thisweek","rankings","season","hosting","scores","winners","songs","players","faq","level"].includes(v)?v:"thisweek";
+ // some tabs (Hosts) need data set up further down: if opening one this early fails, start on This Week and open it once the page is ready
+ try{showView(v)}catch(e){window.__pendingView=v; try{showView("thisweek")}catch(e2){}}}
 const SB=__SCORES__;
 const SONGS_OLD=__SONGS_OLD__; // weeks before the scoreboards: [week, path, tier, bonus, song, difficulty]
 // ---------- win rates & rank-ups (from scoreboards, weeks 440+) ----------
@@ -6058,4 +6060,6 @@ if(!/[?&](banner|mlpre)\b/.test(location.search)&&history.pushState){
 {const q=new URLSearchParams(location.search), bn=q.get("banner"); if(bn!=null){
   const st=document.createElement("style"); st.textContent="html,body{background:transparent!important;margin:0!important;overflow:hidden!important}body>*:not(#bnshot){display:none!important}#bnshot{position:fixed;left:0;top:0;z-index:2147483647}";
   document.head.appendChild(st); const d=document.createElement("div"); d.id="bnshot"; d.innerHTML=bannerHtml(bn)||"<p style='color:red'>no such player</p>"; document.body.appendChild(d); bnFit(d)}}
+// a tab that couldn't open at the start (see the early hash routing): open it now that everything is set up
+if(window.__pendingView){const v=window.__pendingView; window.__pendingView=null; setTimeout(()=>{try{showView(v)}catch(e){console.error(e)}},0)}
 </script>
