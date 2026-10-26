@@ -939,6 +939,7 @@ footer .updated{display:block;margin-top:4px}
 @media (prefers-reduced-motion:reduce){.twarrow.glow{animation:none}}
 .twpv-hide{display:none!important}
 .twnp .npn{display:block;font-size:.72rem;font-weight:400;color:var(--s-green)}
+.sqctl{display:flex;gap:8px;flex-wrap:wrap}.sqctl #sq{flex:1 1 220px}.sqctl select{background:var(--panel2);color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:6px 8px;font:inherit}.sqtbl td small{display:block;color:var(--muted);font-size:.78rem}.sqtbl .sqt{font:600 .74rem var(--f-mono);color:var(--muted);white-space:nowrap}.sqtbl .sqp{font-weight:800;white-space:nowrap}.sqtbl td.r small{display:block}.sqhint{margin:6px 0 0}
 .twstats{display:flex;flex-wrap:wrap;gap:8px 18px;margin-top:12px;color:var(--muted);font-size:.9rem}
 .twstats b{color:var(--fg);font-family:var(--f-display);font-size:1.1rem}
 .twstats .pill.hol{cursor:default}
@@ -1697,6 +1698,12 @@ footer{color:var(--dim);font-size:.78rem}
       <div class="bars" id="b-tough"></div>
     </section>
   </div>
+
+  <section class="panel" id="sqsec">
+    <div class="panel-head"><h2>Song lookup</h2><span class="sub">Search song titles, or find songs in a tuning</span></div>
+    <div class="controls sqctl"><input id="sq" type="search" placeholder="Type a song title" aria-label="Find a song" autocomplete="off"><select id="stun" aria-label="Tuning"><option value="">Any tuning</option></select></div>
+    <div id="sqres"></div>
+  </section>
 
   <section class="panel">
     <div class="panel-head"><h2>Band lookup</h2><span class="sub">Click any band on this page, or search</span></div>
@@ -3724,6 +3731,7 @@ function renderSongs(){
    cards.forEach(c=>{c.cont=c.card==="G"&&g.has(c.p+"|"+acctSongKey(c.song)+"|"+(c.w+1))});}
   const scored=cards.filter(c=>c.n!=null);
   songCards=cards;
+  setTimeout(()=>{try{renderSongLookup()}catch(e){}},0);
   // each card's arrangement played, and the level its song's current average rating on that arrangement puts it at
   {const memo={}; cards.forEach(c=>{c.code=c.slot!=null?arrP(c.w,c.p,c.slot):"LRB"[c.p]; const k=c.code+"|"+acctSongKey(c.song);
     if(!(k in memo)){const R=songRating(c.code,c.song); memo[k]=R.avg!=null?tierByRating(c.card,+R.avg):null}
@@ -3786,6 +3794,28 @@ function renderSongs(){
   if(featured.length)showBand(bandName&&bands[bandName]?bandName:featured[0][0]); else $("bcard").innerHTML=`<div class="empty">No songs on record for ${esc(sHost||"this filter")}.</div>`;
   try{localStorage.setItem("rsc-spath",String(sPath))}catch(e){}
 }
+// Song lookup: search the titles of every song played (this path, this host), and/or filter by tuning (Song Selection List)
+let sqQ="", sqTun="";
+function renderSongLookup(){const el=$("sqres"); if(!el)return;
+  const groups={}; songCards.forEach(c=>{const k=c.song.toLowerCase(); (groups[k]=groups[k]||{song:c.song,artist:c.artist,title:c.title,cs:[]}).cs.push(c)});
+  const G=Object.values(groups), tunes=new Set();
+  G.forEach(g=>[0,1,2].forEach(p=>{const t=tuneOf(g.song,p); if(t)tunes.add(t)}));
+  const sel=$("stun"); sel.innerHTML=`<option value="">Any tuning</option>`+[...tunes].sort((a,b)=>a.localeCompare(b)).map(t=>`<option${t===sqTun?" selected":""}>${esc(t)}</option>`).join(""); sel.hidden=!tunes.size;
+  if(!sqQ&&!sqTun){el.innerHTML=`<p class="dim sqhint">Type part of a song title${tunes.size?", or pick a tuning,":""} to find it. ${G.length} different songs played${sPath>=0?` on ${PATHS[sPath]}`:""}.</p>`;return}
+  const q=sqQ.toLowerCase(), paths=g=>[...new Set(g.cs.map(c=>c.p))].sort();
+  const hits=G.filter(g=>(!q||g.title.toLowerCase().includes(q))&&(!sqTun||paths(g).some(p=>tuneOf(g.song,p)===sqTun)))
+    .sort((a,b)=>Math.max(...b.cs.map(c=>c.w))-Math.max(...a.cs.map(c=>c.w)));
+  if(!hits.length){el.innerHTML=`<div class="empty">No songs found${q?` with “${esc(sqQ)}” in the title`:""}${sqTun?` in ${esc(sqTun)}`:""}.</div>`;return}
+  const rows=hits.slice(0,40).map(g=>{const ps=paths(g), last=Math.max(...g.cs.map(c=>c.w)), lv=[...new Set(g.cs.map(c=>c.t))].sort((a,b)=>TIER_ORDER.indexOf(a)-TIER_ORDER.indexOf(b));
+    const tn=ps.map(p=>[p,tuneOf(g.song,p)]).filter(x=>x[1]), same=tn.length&&tn.every(x=>x[1]===tn[0][1]);
+    return `<tr><td><b class="golink" data-goband="${esc(g.artist)}" data-gosong="${esc(g.title)}" title="Show this song in Band lookup">${esc(g.title)}</b><small class="golink" data-goband="${esc(g.artist)}" title="Show this band in Band lookup">${esc(g.artist)}</small></td>
+      <td><div class="chips">${lv.map(t=>`<span class="lvchip" style="--tc:${TIER_COL[t]}">${TIER_LABEL[t]||t}</span>`).join("")}</div></td>
+      <td class="sqp">${ps.map(p=>`<span style="color:${PATH_C[p]}">${"LRB"[p]}</span>`).join(" ")}</td>
+      <td class="sqt">${same?esc(tn[0][1]):tn.map(([p,t])=>`${"LRB"[p]}: ${esc(t)}`).join("<br>")||"–"}</td>
+      <td class="r"><span${SB.weeks[last]?` class="golink" data-sbw="${last}" title="Open Week ${last} on the Scoreboard"`:""}>Wk ${last}</span><small>${g.cs.length}×</small></td></tr>`}).join("");
+  el.innerHTML=`<div class="bandscroll"><table class="bandtbl sqtbl"><thead><tr><th>Song</th><th>Levels</th><th>Paths</th><th>Tuning</th><th class="r">Last played</th></tr></thead><tbody>${rows}</tbody></table></div>${hits.length>40?`<p class="dim">Showing the 40 most recent of ${hits.length} songs. Type more to narrow it down.</p>`:""}`}
+document.addEventListener("input",e=>{if(e.target.id!=="sq")return; sqQ=e.target.value.trim(); renderSongLookup()});
+document.addEventListener("change",e=>{if(e.target.id!=="stun")return; sqTun=e.target.value; renderSongLookup()});
 function showBand(name){songsReady();
   const list=songCards.filter(c=>c.artist.toLowerCase()===String(name).toLowerCase());
   if(!list.length){$("bcard").innerHTML=`<div class="empty">No challenges for “${esc(name)}”${sPath<0?"":" on "+PATHS[sPath]}. Pick a band from the list as you type.</div>`;return}
