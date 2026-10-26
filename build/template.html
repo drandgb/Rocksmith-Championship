@@ -721,6 +721,24 @@ a.dl svg,.offpill svg{width:11px;height:11px}
 #annmode{margin-left:auto;flex:none}
 @media (max-width:400px){#annmode button{padding:4px 7px;font-size:.62rem;letter-spacing:.04em}.panel-head:has(#annmode){column-gap:8px}.panel-head:has(#annmode) h2{font-size:.92rem;letter-spacing:.05em;white-space:nowrap}}
 .tabs{align-items:center;flex-wrap:wrap}
+/* FAQ tab */
+.faqhero{text-align:center;padding:22px 18px 18px}.faqhero .sh-eye{font:700 .72rem var(--f-display);letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+.faqbig{font:800 clamp(2rem,6vw,2.8rem)/1.1 var(--f-display);margin:6px 0 8px;letter-spacing:.04em}
+.faqlead{color:var(--muted);max-width:560px;margin:0 auto 12px}
+.faqjump{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}.faqjump a{padding:5px 12px;border:1px solid var(--line);border-radius:999px;color:var(--fg);text-decoration:none;font-size:.85rem}.faqjump a:hover{border-color:var(--accent);color:var(--accent)}
+.faq{scroll-margin-top:12px}
+.faq details{border-top:1px solid var(--line);padding:2px 0}.faq details:first-of-type{border-top:0}
+.faq summary{cursor:pointer;padding:10px 4px;font-weight:600;list-style:none;display:flex;gap:10px;align-items:baseline}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary::before{content:"›";color:var(--accent);font-weight:800;transition:transform .15s;display:inline-block;width:.7em}
+.faq details[open] summary::before{transform:rotate(90deg)}
+.faq details>:not(summary){margin:0 4px 12px 24px;color:var(--fg);line-height:1.55}
+.faq ol,.faq ul{padding-left:20px}.faq li{margin:3px 0}
+.faq a{color:var(--accent)}
+.faqcls{list-style:none;padding:0!important;display:flex;flex-wrap:wrap;gap:6px 16px}
+.faqtabs{display:grid;grid-template-columns:max-content 1fr;gap:6px 14px}.faqtabs dt{font-weight:700}.faqtabs dd{margin:0;color:var(--muted)}
+@media (max-width:560px){.faqtabs{grid-template-columns:1fr}.faqtabs dd{margin-bottom:6px}}
+
 .actfilter{margin-left:auto;margin-bottom:6px}
 #pfilter .s-all[aria-pressed="true"],#wpath .s-all[aria-pressed="true"],#rufilter .s-all[aria-pressed="true"]{background:var(--accent)}
 .ruf{margin-bottom:12px}
@@ -1369,6 +1387,7 @@ footer{color:var(--dim);font-size:.78rem}
     <button type="button" role="tab" id="tab-players" data-view="players" aria-selected="false">Players</button>
     <button type="button" role="tab" id="tab-hosting" data-view="hosting" aria-selected="false">Hosts</button>
     <button type="button" role="tab" id="tab-songs" data-view="songs" aria-selected="false">Songs</button>
+    <button type="button" role="tab" id="tab-faq" data-view="faq" aria-selected="false">FAQ</button>
     <div class="seg actfilter" role="radiogroup" aria-label="Show everyone or active only" id="pfilter">
       <button type="button" data-af="0" class="s-all" aria-pressed="false">All</button>
       <button type="button" data-af="1" class="s-act" aria-pressed="true">Active only</button>
@@ -1704,6 +1723,88 @@ footer{color:var(--dim);font-size:.78rem}
     <div id="bcard"></div>
   </section>
 
+  </div>
+
+  <div class="view" id="view-faq" role="tabpanel" aria-labelledby="tab-faq" hidden>
+  <section class="panel faqhero">
+    <div class="sh-eye">❓ Rocksmith Championship</div>
+    <h2 class="faqbig">FAQ</h2>
+    <p class="faqlead">How to play, the rules, and how to find your way around this site and its stats. Tap a question to open it.</p>
+    <div class="faqjump"><a href="#faq-play">How to play</a><a href="#faq-rules">Rules</a><a href="#faq-site">Using the site</a><a href="#faq-stats">The stats</a><a href="#faq-you">Your profile</a></div>
+  </section>
+
+  <section class="panel faq" id="faq-play">
+    <div class="panel-head"><h2>🎸 How to play</h2></div>
+    <details open><summary>What is the Rocksmith Championship?</summary><p>A friendly weekly challenge on the CustomsForge forum: everyone plays the same new custom songs and competes on accuracy, in their own class. Come for the fun, the new songs and the friendly competition, and watch yourself improve week by week.</p></details>
+    <details><summary>How do I join?</summary><ol>
+      <li>Make a <b>CustomsForge account</b> if you don't have one. You need it to download songs and post scores.</li>
+      <li>Set up custom songs (CDLC) if you haven't yet: <a href="https://customsforge.com/topic/901-how-to-use-custom-dlcs-in-rs2014-remastered-updated-for-2023/" target="_blank" rel="noopener">How to use custom DLCs in RS2014 Remastered ↗</a></li>
+      <li><b>Pick your class</b> for each path you want to play (Lead, Rhythm or Bass). You don't have to play them all: if you only play bass, just pick a Bass class, and you can try the other paths later. You can also start as a FreeBird with no class.</li>
+      <li><b>Download this week's songs</b> from the weekly thread.</li>
+      <li><b>Play</b> on Score Attack (Hard), or Learn a Song with every section maxed (all purple bars: in Riff Repeater, select all sections and set them to 100%).</li>
+      <li><b>Take a screenshot</b> showing both your accuracy % and streak.</li>
+      <li><b>Post it as a new reply</b> in that week's thread, not as an edit, or it won't reach the scoreboard.</li></ol></details>
+    <details><summary>How many times can I post a score?</summary><p>As many as you like during the week. Your best one counts.</p></details>
+    <details><summary>When does the week end?</summary><p>On <b>Saturday evening, around 7–9 pm CET</b>, when the host closes it and posts the new week, which announces the winners and reveals the next week's songs. Get your scores in before then. When a host sets a countdown, it shows on This Week and the Scoreboard.</p></details>
+    <details><summary>How do I post a screenshot from Steam?</summary><p>Press <b>F12</b> in the game, then open <b>Steam → View → Recordings &amp; Screenshots</b>. Click the image and choose <b>Share → Share on Steam → Unlisted → Upload</b>, click <b>View on my Profile</b>, then right-click the image, choose <b>Copy link address</b> and paste it into your reply. With other image hosts, drag and drop the image into your reply.</p></details>
+    <details><summary>Lead and Rhythm feel too hard. Any tips?</summary><p>Try the <b>bass</b> arrangement. It's mostly single notes, so there are no chords to wrestle with and you can enjoy the groove. You don't need a bass: play it on your guitar with Rocksmith's bass emulation and it still counts.</p></details>
+  </section>
+
+  <section class="panel faq" id="faq-rules">
+    <div class="panel-head"><h2>📜 Rules</h2><span class="sub"><a href="https://customsforge.com/index.php?/topic/6569-rocksmith-2014-championship-rules-read-this-first-updated-31082015/" target="_blank" rel="noopener">Full rules on the forum ↗</a></span></div>
+    <details><summary>What are the classes?</summary><p>Each path (Lead, Rhythm, Bass) has its own class, so you can be in different classes on different paths. Songs are rated in steps of 0.5, and classes go by song difficulty:</p>
+      <ul class="faqcls"><li><b style="color:var(--s-yellow)">Beginner</b> 1–3.5</li><li><b style="color:var(--s-green)">Intermediate</b> 4–5.5</li><li><b style="color:var(--s-blue)">Advanced</b> 6–7.5</li><li><b style="color:var(--s-purple)">Masterclass</b> 8–9.5</li><li><b style="color:var(--s-red)">God</b> 10 (bonus)</li></ul>
+      <p>You choose your class on each path you play when you start, and can add other paths later. Masterclass is the highest class.</p></details>
+    <details><summary>How do I move up or down a class?</summary><ul>
+      <li><b>Up automatically:</b> score 99%+ (Bass: 99.5%+) on a song rated 3 or higher as a Beginner, 5 or higher as an Intermediate, or 7 or higher as an Advanced player.</li>
+      <li><b>Up whenever you feel ready:</b> post in the thread and message an organiser.</li>
+      <li><b>Ranking up from a win:</b> if you play up a class and finish above everyone in that class, you'll be asked whether you want to rank up. If you do, you take the win in your new class and give up any wins you got that week in your old class.</li>
+      <li><b>Down:</b> score 79% or less two weeks in a row and you move down one class. You can also ask to move down.</li>
+      <li><b>Away 3+ weeks:</b> you can come back in your old class, or any class below it if you're feeling rusty.</li>
+      <li><b>Easy songs don't push you up:</b> if a song is easier than its rating, scoring well on it won't move you up unless you want it to (the "Pour Some Sugar On Me" rule).</li>
+      <li>Organisers can hold back a move if it keeps the competition fair.</li></ul></details>
+    <details><summary>Can I play songs from other classes?</summary><p>Yes, you can play any class's song, but only your own class counts for you; scores in a lower class don't count. You get one entry per path.</p></details>
+    <details><summary>How are winners decided?</summary><p>Accuracy first, then streak, then score. Only Score Attack gives a score, and it shows accuracy to two decimals (99.02%) where Learn a Song shows whole percentages (99%), so if you're tied on accuracy and streak, the Score Attack play comes out ahead. If everything is the same, the score posted first stays ahead.</p></details>
+    <details><summary>My score is missing or wrong. What do I do?</summary><p>Hosts enter scores into the scoreboard spreadsheet, and this site updates from it. If yours is missing or wrong, let a host know so they can fix it. Edited forum posts aren't picked up, so always post a new reply.</p></details>
+    <details><summary>How are the songs picked?</summary><p>Anyone can suggest songs with the <b>Request a song</b> button at the top of this site; every request goes onto the Song Selection List. Each week's host picks the songs from that list and tests each one for playability issues. Only custom songs on CustomsForge are used. Some songs only have a guitar or only a bass arrangement, but every class on every path always has at least one song, and a challenge may use a bonus or alternate arrangement (the weekly post will say so). Songs might still change until Monday to fix any issues.</p></details>
+    <details><summary>What is a FreeBird?</summary><p>A player without a class, marked with <b>~</b> in grey. A FreeBird can't win weekly, can't earn Rodman's Rankings crowns or Die Hard Member. You get the FreeBird Award after 2 weeks in a row and lose it if you miss 2 weeks in a row. You can switch to FreeBird at any time (your awards are removed) and rejoin your class, or a higher one, at any time.</p></details>
+  </section>
+
+  <section class="panel faq" id="faq-site">
+    <div class="panel-head"><h2>🧭 Using the site</h2></div>
+    <details><summary>What's on each tab?</summary><dl class="faqtabs">
+      <dt><a href="#thisweek" data-faqgo="thisweek">This Week</a></dt><dd>The current week: this week's songs to download, the week's winners, new medals, rivals, Elo changes, who's new or back, anniversaries and play streaks at stake. Use the arrows to look at earlier weeks.</dd>
+      <dt><a href="#scoreboard" data-faqgo="scores">Scoreboard</a></dt><dd>Every challenge card for any week, with everyone's accuracy, streak and score in order. Pick a path and class, highlight a player, or open <b>Your cards</b> to see all your ranked cards at once.</dd>
+      <dt><a href="#season" data-faqgo="season">Season</a></dt><dd>The 13-week season standings for each class on each path, the projected most improved, and past season champions.</dd>
+      <dt><a href="#rankings" data-faqgo="rankings">Rankings</a></dt><dd>Rodman's Rankings for each path and class, and the year-end standings.</dd>
+      <dt><a href="#winners" data-faqgo="winners">Winners</a></dt><dd>Hall of fame, hot streaks, Elo ratings, most wins and win rates, by path and by year, plus the Winner lookup.</dd>
+      <dt><a href="#players" data-faqgo="players">Players</a></dt><dd>Attendance: players per week, play streaks, perfect attendance, play rates, newcomers and rank changes, all time or by year, plus the Player lookup with each player's medals and history.</dd>
+      <dt><a href="#hosts" data-faqgo="hosting">Hosts</a></dt><dd>Who hosted which week, and the host medals.</dd>
+      <dt><a href="#songs" data-faqgo="songs">Songs</a></dt><dd>Every song played, the Song lookup (search by title or tuning) and the Band lookup.</dd></dl></details>
+    <details><summary>How do I look someone up?</summary><p>Click any name anywhere on the site to open their player profile, or type it into the Player lookup on the Players tab. Band names open the Band lookup the same way.</p></details>
+    <details><summary>What do the * and ~ marks mean?</summary><p><b>*</b> means the score was outside the player's own class (faded when playing down, which doesn't count for wins). <b>~</b> is a FreeBird.</p></details>
+    <details><summary>What does "Active only" do?</summary><p>The All / Active only switch on some tabs hides players who haven't played in the last 52 weeks (about a year), so the lists show who's around now.</p></details>
+    <details><summary>Hover and tap</summary><p>Most numbers, medals and badges have more detail: hover them on a computer or tap them on a phone. Clicking a medal highlights the weeks it came from. On a phone, swipe the tab row sideways to see every tab.</p></details>
+    <details><summary>How often does the site update?</summary><p>It updates from the scoreboard spreadsheet shortly after the hosts enter scores, and again on a regular schedule. The footer shows when the data was last updated.</p></details>
+  </section>
+
+  <section class="panel faq" id="faq-stats">
+    <div class="panel-head"><h2>📊 The stats</h2></div>
+    <details><summary>What is a win?</summary><p>First place among the players in their own class on a challenge (playing up into the class counts; playing down doesn't). Wins are counted from the scoreboards since week 440.</p></details>
+    <details><summary>How do Rodman's Rankings work?</summary><p>A rolling score over the last 10 completed weeks, counting your class and above: 10 points for 1st place, 5 for 2nd, 3 for 3rd, 1 for 4th, +1 for a 100% score and +1 for a score within 2% of your best ever.</p></details>
+    <details><summary>How do seasons work?</summary><p>A season is 13 weeks (a calendar quarter). On each week's main challenge in your class, the top 10 score 25, 18, 15, 12, 10, 8, 6, 4, 2 and 1 season points. Whoever leads each class when the season ends is its season champion. Most improved goes to the biggest Elo gain in each class over the season, for players who play at least half of its weeks; a projected winner starts showing in week 4. Everyone starts each season on zero.</p></details>
+    <details><summary>What is Elo?</summary><p>A rating like in chess. Every time two players post on the same challenge it counts as a game: the higher % wins, then the longer streak, then the higher score. Beating a higher-rated player moves your rating more. New players start at their class's average (Beginner 900, Intermediate 1200, Advanced 1500, Masterclass 1900). Two 100% scores never count as a game. Hover the ⓘ next to any Elo list for the full details.</p></details>
+    <details><summary>What is the hardest rating?</summary><p>Your second-best song rating with a 95% or better score in the last 6 months, on each path. It's the second-best so one lucky week doesn't count, and it goes up when you start scoring 95% on harder songs. Your profile's <b>Next rung</b> shows this week's songs that would raise it.</p></details>
+    <details><summary>What are rivals?</summary><p>On This Week, your rival on each path is the player in your own class whose scores were closest to yours that week; whoever beat the other on more shared challenges wins the rivalry. On your profile, your rival is the player just above you in the Elo ranking.</p></details>
+    <details><summary>How do medals work?</summary><p>Medals are earned from the scoreboards and attendance: wins and podium places, win and play streaks, perfect scores (perfectionist medals for each class), playing every challenge of a week (Catch 'em all and the path completionists), beating your own past score on a returning song, 100% again on a song you'd already scored 100% on (Still got it), hosting, and a few themed ones. Hover any medal to see what it's for and when you earned it. The medal leaders on Winners, Players and Hosts show who has the most of each.</p></details>
+  </section>
+
+  <section class="panel faq" id="faq-you">
+    <div class="panel-head"><h2>👤 Your profile</h2></div>
+    <details><summary>How do I claim my player profile?</summary><p>Tap <b>👤 Log in</b> at the top, sign in with your email and pick your player name. An admin will check it's you with a quick forum message, and then you'll have your own stats page.</p></details>
+    <details><summary>What do I get with a claimed profile?</summary><ul><li><b>Your week:</b> your first and best score on each challenge this week, and an alert when someone passes you.</li><li>Rival updates, your season standing and the songs that would raise your hardest rating.</li><li>Rate songs: click any rating number to say how hard an arrangement felt. Your ratings help set the difficulty everyone sees.</li><li>A forum signature banner with your stats, updated every week.</li></ul></details>
+    <details><summary>Is my email shown anywhere?</summary><p>No. It's only used to log in, and you can unlink it at any time under <b>Manage account</b>.</p></details>
+  </section>
   </div>
 
   <div class="view" id="view-scores" role="tabpanel" aria-labelledby="tab-scores" hidden>
@@ -2669,17 +2770,19 @@ $("tl").addEventListener("click",e=>{
 });
 
 function showView(v){
-  ["thisweek","rankings","season","hosting","players","winners","scores","songs"].forEach(k=>{const on=k===v;$("view-"+k).hidden=!on;$("tab-"+k).setAttribute("aria-selected",on)});
+  ["thisweek","rankings","season","hosting","players","winners","scores","songs","faq"].forEach(k=>{const on=k===v;$("view-"+k).hidden=!on;$("tab-"+k).setAttribute("aria-selected",on)});
   tip.hidden=true;
-  $("pfilter").hidden=v==="scores"||v==="songs"||v==="thisweek"||v==="rankings"||v==="season";
+  $("pfilter").hidden=v==="scores"||v==="songs"||v==="thisweek"||v==="rankings"||v==="season"||v==="faq";
   if(v==="season")setTimeout(()=>{try{renderSeason()}catch(e){}},0);   // (after the page has finished loading: opening the site on #season runs this first)
   if(v==="thisweek"&&window.__twReady)renderThisWeek();
   if(v==="winners"||v==="players"||v==="hosting")setTimeout(()=>mlEnsure(v==="winners"?"win":v==="players"?"player":"host"),50);
   if(v==="songs"&&window.__songsStale){window.__songsStale=false; renderSongs()} // player ratings arrived while another page was open
   if(v==="hosting"){renderUpcoming(); if(!logScrolled)requestAnimationFrame(scrollLogToCurrent)}
 }
+document.addEventListener("click",e=>{const a=e.target.closest("[data-faqgo]"); if(a){e.preventDefault(); showView(a.dataset.faqgo); scrollTo({top:0,behavior:"smooth"}); return}
+  const j=e.target.closest(".faqjump a"); if(j){e.preventDefault(); const t=document.querySelector(j.getAttribute("href")); if(t){const d=t.querySelector("details"); if(d)d.open=true; t.scrollIntoView({behavior:"smooth"})}}});
 document.querySelector(".tabs").addEventListener("click",e=>{const b=e.target.closest("button[data-view]");if(b)showView(b.dataset.view)});
-{const H={"#thisweek":"thisweek","#rankings":"rankings","#season":"season","#hosts":"hosting","#players":"players","#winners":"winners","#scoreboard":"scores","#songs":"songs"};let v=H[location.hash.split("/")[0]]||null; showView(["thisweek","rankings","season","hosting","scores","winners","songs","players"].includes(v)?v:"thisweek");}
+{const H={"#thisweek":"thisweek","#rankings":"rankings","#season":"season","#hosts":"hosting","#players":"players","#winners":"winners","#scoreboard":"scores","#songs":"songs","#faq":"faq"};let v=H[location.hash.split("/")[0]]||null; showView(["thisweek","rankings","season","hosting","scores","winners","songs","players","faq"].includes(v)?v:"thisweek");}
 const SB=__SCORES__;
 const SONGS_OLD=__SONGS_OLD__; // weeks before the scoreboards: [week, path, tier, bonus, song, difficulty]
 // ---------- win rates & rank-ups (from scoreboards, weeks 440+) ----------
