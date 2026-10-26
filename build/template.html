@@ -1375,6 +1375,9 @@ footer{color:var(--dim);font-size:.78rem}
 .bn .bn-st small em{font-style:normal;color:var(--s-red);letter-spacing:.03em}   /* LVL: Rodman's player level (XP) */
 .bn .bn-st b{display:block;font:800 18px/1 var(--f-display);margin-top:2px;white-space:nowrap;color:#e9edf5}
 .bn .bn-st b i{font:600 11px var(--f-body);color:#8b93a7;font-style:normal;margin-left:2px}
+/* level boxes in the path colours (Lead orange, Rhythm green, Bass blue) */
+.bn .bn-st.bn-lv{--pc:#ff9a2e;border-color:color-mix(in srgb,var(--pc) 70%,transparent);background:linear-gradient(180deg,color-mix(in srgb,var(--pc) 20%,transparent),color-mix(in srgb,var(--pc) 6%,transparent))}
+.bn .bn-st.bn-lv1{--pc:#45d17a}.bn .bn-st.bn-lv2{--pc:#3fa0ff}.bn .bn-st.bn-lv small{color:var(--pc)}.bn .bn-st.bn-lv small em{color:#e9edf5}
 .bn .bn-st.bn-r1{border-color:#f5c542;background:linear-gradient(180deg,rgba(245,197,66,.16),rgba(245,197,66,.04));box-shadow:0 0 10px rgba(245,197,66,.35),inset 0 0 0 1px rgba(245,197,66,.25)}
 .bn .bn-st.bn-r1 b{color:#ffd95e}
 .bn .bn-st.bn-r2{border-color:#b9c2d0;background:linear-gradient(180deg,rgba(201,208,220,.10),rgba(201,208,220,.02))}
@@ -5829,7 +5832,7 @@ function bannerHtml(n){
   const pk=+p[5]||0, weeksB=p[3]+(pk>=2?`<span class="bn-hot bn-ply" title="Played in each of the last ${pk} weeks">${flame}${pk}</span>`:"");   // play streak, same badge
   // best rank highlight: #1 gold, #2 silver, #3 bronze
   return `<div class="bn"><div class="bn-top"><div class="bn-who"><div class="bn-nm">${esc(n)}</div><div class="bn-tags">${["L","R","B"].map((l,i)=>`<span class="bn-tg">${l}<b style="color:${tc(T[i])}">${tier(T[i])}</b></span>`).join("")}</div></div>
-    <div class="bn-stats">${st("Weeks",weeksB,"bn-num")}${st("Wins",winsB,"bn-num"+(hk>=2?" bn-hotbox":""))}${["Lead","Rhythm","Bass"].map((pn,pi)=>{const L=bnLevel(n,pi); return st(`<em>LVL</em> ${pn==="Rhythm"?"Rhy":pn}`,L?`<span style="color:${TIER_C[lvBand(L.v)[1]]}">${L.v.toFixed(1)}</span>`:"–",L&&L.r<=3?"bn-r"+L.r:"")}).join("")}</div></div>
+    <div class="bn-stats">${st("Weeks",weeksB,"bn-num")}${st("Wins",winsB,"bn-num"+(hk>=2?" bn-hotbox":""))}${["Lead","Rhythm","Bass"].map((pn,pi)=>{const L=bnLevel(n,pi); return st(`${pn==="Rhythm"?"Rhy":pn} <em>LVL</em>`,L?String(Math.floor(L.v)):"–","bn-lv bn-lv"+pi)}).join("")}</div></div>
     <div class="bn-meds"><div class="bn-medrow" style="--n:${meds.length}">${meds.join("")}</div>${(()=>{try{eloBuild(); const id=seasonOf(ELO_DONE); if(!id)return ""; const ps=[0,1,2].map(pi=>{   // this season's standing on each path (their best class)
       let best=null; Object.entries(seasonF1(pi,id)).forEach(([c,L])=>{const i=L.findIndex(x=>x.n.toLowerCase()===key); if(i>=0&&(!best||i<best.i))best={i,c,p:L[i].p}}); if(!best)return "";
       const rk=best.i+1; return `<span class="bn-elo${rk<=3?" bn-e"+rk:""}" style="--pc:${["#ff9a2e","#45d17a","#3fa0ff"][pi]}"><i>${"LRB"[pi]}</i> #${rk} <b class="bn-cl" style="color:${TIER_C[best.c]}">${TIER_NAME[best.c].slice(0,3)}</b><small> ${best.p} pts</small></span>`}).join("");
