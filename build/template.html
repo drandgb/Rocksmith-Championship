@@ -5611,16 +5611,17 @@ function ywAlert(n){
     return `<li><span class="dn" data-tip="${esc(`Ranked place in your class: ${ywOrd(e.from)} → ${ywOrd(e.to)}${e.fp&&e.tp?`\nPosition on the card: #${e.fp} → #${e.tp}`:""}`)}">${ywMed(e.from)} → ${ywMed(e.to)}${e.fp&&e.tp&&e.tp>e.fp?` <small>#${e.fp} → #${e.tp}</small>`:""}</span> · <span class="ywgo"${SB.weeks[e.w]?` data-sbw="${e.w}" data-sbp="${e.p}"${e.s!=null?` data-sbs="${e.s}"`:""} data-sbn="${esc(n)}" title="Open this challenge on the Scoreboard (Week ${e.w})"`:""}>${PATHS[e.p]} ${esc(e.lv)}</span> · <b>${esc(e.by)}</b> ${sc(e.bp,e.bs,tie)} passed your ${sc(e.mp,e.ms,tie)} <small>· ${day(e.t)}</small></li>`}).join("")}</ul></div>`;
 }
 // Your rival: the same as on This Week, the player in your own rank whose scores were closest to yours on each path.
-// After each finished week: who your rival was, who won the rivalry (more of the challenges you both played), and
-// whether your rival changed since the last week you had one on that path.
-function rivAlert(n){let out=[]; try{const w=DATA_WEEK, me=twCanon(n), nm=x=>`<span class="nm" data-player="${esc(x)}">${esc(x)}</span>`;
+// For the current week, like You've been passed: who your rival is so far, who's ahead on the challenges you both played,
+// and whether your rival changed since the last week you had one on that path.
+function rivAlert(n){let out=[]; try{const w=TW_MAX, live=w>DATA_WEEK, sf=live?" so far":"", me=twCanon(n), nm=x=>`<span class="nm" data-player="${esc(x)}">${esc(x)}</span>`;
   [0,1,2].forEach(pi=>{const r=(rivalsOfWeek(w,pi)||{})[me]; if(!r)return;
     let prev=null; for(let v=w-1;v>=w-8&&v>0;v--){const q=(rivalsOfWeek(v,pi)||{})[me]; if(q){prev=q.them; break}}
     const P=`<span class="nwp" style="color:${PATH_C[pi]}">${PATHS[pi]}</span>`, sc=`${r.w}–${r.l}`;
-    const res=r.l>r.w?`<b>${nm(r.them)}</b> beat you ${r.l}–${r.w}`:r.w>r.l?`you beat <b>${nm(r.them)}</b> ${sc}`:`you and <b>${nm(r.them)}</b> tied ${sc}`;
-    const ch=prev&&prev!==r.them?` · your rival has changed <small>(was ${nm(prev)})</small>`:!prev?` · a new rival`:"";
+    const res=live?(r.l>r.w?`your rival <b>${nm(r.them)}</b> leads ${r.l}–${r.w}${sf}`:r.w>r.l?`you lead your rival <b>${nm(r.them)}</b> ${sc}${sf}`:`you and your rival <b>${nm(r.them)}</b> are tied ${sc}${sf}`)
+      :(r.l>r.w?`your rival <b>${nm(r.them)}</b> beat you ${r.l}–${r.w}`:r.w>r.l?`you beat your rival <b>${nm(r.them)}</b> ${sc}`:`you and your rival <b>${nm(r.them)}</b> tied ${sc}`);
+    const ch=prev&&prev!==r.them?` · a new rival <small>(before: ${nm(prev)})</small>`:"";
     out.push(`<li class="${r.l>r.w?"rlost":r.w>r.l?"rwon":""}">${P} · ${res}${ch}</li>`)})}catch(e){return ""}
-  return out.length?`<div class="ywalert ywriv"><h4>⚔️ Rivals in Week ${DATA_WEEK}</h4><ul>${out.join("")}</ul></div>`:""}
+  return out.length?`<div class="ywalert ywriv"><h4>⚔️ Your rivals this week · ${out.length}</h4><ul>${out.join("")}</ul></div>`:""}
 // ---------- Restringed: a claimed player's year in review (from the scoreboards and attendance) ----------
 // a year's Restringed opens on January 1 of the next year, once the year is over (so 2026's arrives on 1 January 2027)
 const WRAP_OPEN=()=>new Date().getFullYear();
