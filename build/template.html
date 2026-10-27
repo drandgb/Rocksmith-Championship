@@ -273,6 +273,7 @@ button.clear:hover{border-color:var(--accent)}
 .bdiff .btag{font:700 .58rem var(--f-display);letter-spacing:.06em;text-transform:uppercase;white-space:nowrap;justify-self:start;padding:2px 6px;border-radius:999px;border:1px solid var(--tc);color:var(--tc);cursor:help}
 .bdiff .btag:empty{border:0;padding:0}
 .bdiff .brow.hostfav{--tc:var(--s-yellow);background:linear-gradient(90deg,color-mix(in srgb,var(--tc) 13%,transparent),transparent 70%);box-shadow:inset 3px 0 var(--tc)}
+.cfav,.cfav *{}/* crowd favourites (bands played a lot for how often they're featured): purple wherever their name shows */.cfav{color:#c79bff!important;text-decoration-color:color-mix(in srgb,#b277ff 60%,transparent)}.songlist li.cfavrow{background:linear-gradient(90deg,color-mix(in srgb,var(--s-purple) 14%,transparent),transparent 70%);box-shadow:inset 3px 0 var(--s-purple);border-radius:6px}.songlist li.cfavrow .songlink{color:#d9b8ff}.unusedbox .alist li{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr) auto;gap:4px 12px;align-items:center}.unusedbox .unmiss small{color:var(--muted);font-size:.74rem;margin-right:8px}@media(max-width:640px){.unusedbox .alist li{grid-template-columns:1fr}}.unp{display:inline-block;font:700 .7rem var(--f-display);text-transform:uppercase;letter-spacing:.06em;color:var(--pc);border:1px solid color-mix(in srgb,var(--pc) 55%,transparent);border-radius:999px;padding:1px 8px;margin-right:4px}
 .bdiff .brow.crowdfav{--tc:var(--s-purple);background:linear-gradient(90deg,color-mix(in srgb,var(--tc) 13%,transparent),transparent 70%);box-shadow:inset 3px 0 var(--tc)}
 .bdiff .brow.bothfav{--tc:var(--s-green);background:linear-gradient(90deg,color-mix(in srgb,var(--tc) 13%,transparent),transparent 70%);box-shadow:inset 3px 0 var(--tc)}
 .bdiff .brow.xhl{background:color-mix(in srgb,var(--accent) 16%,transparent);box-shadow:0 0 0 1px var(--accent)}
@@ -2322,7 +2323,7 @@ function renderParts(){
     <line class="hov" id="phov" y1="${T}" y2="${H-B}" x1="-10" x2="-10"/>
     <rect x="${L}" y="${T}" width="${W-L-Rr}" height="${H-T-B}" fill="transparent" id="phit"/></svg>`;
   const peak=PARTS_.indexOf(Math.max(...PARTS_));
-  $("parts-sub").innerHTML=`Week ${LASTW}: <b>${last}</b> players · peak ${PARTS_[peak]} in week ${peak+P0} · <span style="color:var(--accent)">━</span> 10-week average`;
+  $("parts-sub").innerHTML=`Week ${LASTW}: <b>${last}</b> players · <span style="color:var(--accent)">━</span> 10-week average <b>${avg[n-1].toFixed(1)}</b> · peak ${PARTS_[peak]} in week ${peak+P0}`;
   const svg=$("parts").querySelector("svg"), hov=$("phov");
   $("phit").addEventListener("mousemove",e=>{
     const r=svg.getBoundingClientRect(), sx=(e.clientX-r.left)/r.width*W;
@@ -3667,6 +3668,7 @@ function sbRender(){
     box.innerHTML=[0,1,2].map(pi=>`<section class="panel rkpath sbcol" style="--pc:${PATH_C[pi]}"><div class="panel-head"><h2>${PATHS[pi]}</h2><span class="sub"></span></div><div class="sbcolc"></div></section>`).join("");
     const cols=box.querySelectorAll(".sbcolc"); arts.forEach(x=>cols[+x.dataset.p].appendChild(x));
     cols.forEach((c,pi)=>{const n=c.children.length; c.previousElementSibling.querySelector(".sub").textContent=n?`${n} card${n===1?"":"s"}`:""; if(!n)c.innerHTML=`<div class="empty">No ranked ${PATHS[pi]} cards this week</div>`})}
+  try{markCrowdFav($("sbcards"))}catch(e){}
   try{localStorage.setItem("rsc-sb",JSON.stringify({w:sbWeek,p:sbPath}))}catch(e){}
 }
 
@@ -4037,6 +4039,19 @@ function setSongLv(t){lvlPlayed=lvlReplay=bandTier=t||null; bandTierAvg=false}
 function songLvToggle(t){setSongLv(t&&lvlPlayed!==t?t:null); renderSongs(); if(typeof updateBubble==="function")updateBubble()}
 // Most featured vs Most played bands: bands in only one of the two top 20s get a tag (Host favourite: picked often,
 // played less; Crowd favourite: played a lot for how often it's picked); hovering a band lights it up in the other list
+// Crowd favourites: bands in the top 20 most played (scores posted) but not in the top 20 most featured, worked out once
+// from every challenge (whatever filters the Songs page has on). Their songs and band names show in purple across the site.
+let CROWD_FAV=null;
+function crowdFav(){if(CROWD_FAV)return CROWD_FAV; const feat={}, play={}, low=a=>String(a).toLowerCase().replace(/\s+/g," ").trim();
+  Object.entries(SB.weeks).forEach(([w,ch])=>ch.forEach(c=>{if(+w>cur[0]||!c[3]||/^n\/a$/i.test(c[3])||!tierOf(c[2]))return; const a=low(splitSong(c[3])[0]); feat[a]=(feat[a]||0)+1; play[a]=(play[a]||0)+c[6].length}));
+  SONGS_OLD.forEach(r=>{const a=low(splitSong(r[4])[0]); feat[a]=(feat[a]||0)+1});
+  const top=o=>new Set(Object.entries(o).filter(x=>x[1]>0).sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0])).slice(0,20).map(x=>x[0]));
+  const F=top(feat), P=top(play); return CROWD_FAV=new Set([...P].filter(a=>!F.has(a)))}
+const isCrowdFav=a=>{try{return crowdFav().has(String(a||"").toLowerCase().replace(/\s+/g," ").trim())}catch(e){return false}};
+// mark band names and songs by crowd favourites inside a box (any [data-band] / [data-goband] name, and song rows)
+function markCrowdFav(box){if(!box)return; box.querySelectorAll("[data-band],[data-goband]").forEach(el0=>{const a=el0.dataset.band||el0.dataset.goband; if(!isCrowdFav(a))return;
+  const el=el0.matches("li,.brow")?(el0.querySelector(".nm,span")||el0):el0; el.classList.add("cfav"); if(!el.title&&!el.dataset.tip)el.title="Crowd favourite: one of the most played bands"});
+  box.querySelectorAll(".songlist li").forEach(li=>{const b=li.querySelector("[data-band]"); li.classList.toggle("cfavrow",!!b&&isCrowdFav(b.dataset.band))})}
 function bandDiff(avg){
   const F=$("b-featured"), P=$("b-playedbands"); if(!F||!P)return;
   const names=el=>new Set([...el.querySelectorAll(".brow .nm")].map(e=>e.textContent.toLowerCase()));
@@ -4107,6 +4122,7 @@ function renderSongs(){
   $("bpsub").textContent=bandAvg?`Top 20 · average scores per challenge since week 440 · bands with ${BP_MIN}+ challenge${BP_MIN===1?"":"s"} · overall average ${(entries/scored.length).toFixed(1)}`:"Top 20 · scores posted on their songs since week 440";
   document.querySelectorAll("#bpmode button").forEach(b=>b.setAttribute("aria-pressed",(+b.dataset.bp===1)===bandAvg));
   bandDiff(bandAvg);
+  setTimeout(()=>{try{markCrowdFav($("view-songs"))}catch(e){}},0);
   // Bands by difficulty: each song is placed once per arrangement (Lead, Rhythm, Bass, or a bonus/alternate one), by its
   // current average rating (host initial ratings and player ratings, as in its rating box); unrated songs keep their level
   {const seen=new Set(); cards.forEach(c=>{const k=c.code+"|"+acctSongKey(c.song); if(seen.has(k))return; seen.add(k); c.first=true});}
@@ -4166,7 +4182,7 @@ function renderSongLookup(){const el=$("sqres"); if(!el)return;
       <td class="sqt">${same?esc(tn[0][1]):tn.map(([p,t])=>`${"LRB"[p]}: ${esc(t)}`).join("<br>")||`<span class="dim" title="Not in the Song Selection List's tuning columns">?</span>`}</td>
       <td class="r"><span${SB.weeks[last]?` class="golink" data-sbw="${last}" title="Open Week ${last} on the Scoreboard"`:""}>Wk ${last}</span><small>${g.cs.length}×</small></td></tr>`}).join("");
   el.innerHTML=`<div class="bandscroll"><table class="bandtbl sqtbl"><thead><tr><th>Song</th><th>Levels</th><th>Paths</th><th>Tuning</th><th class="r">Last played</th></tr></thead><tbody>${rows}</tbody></table></div>${hits.length>40?`<p class="dim">Showing the 40 most recent of ${hits.length} songs. Type more to narrow it down.</p>`:""}`}
-document.addEventListener("input",e=>{if(e.target.id!=="sq")return; sqQ=e.target.value.trim(); renderSongLookup()});
+document.addEventListener("input",e=>{if(e.target.id!=="sq")return; sqQ=e.target.value.trim(); renderSongLookup(); try{markCrowdFav($("sqres"))}catch(err){}});
 document.addEventListener("change",e=>{if(e.target.id!=="stun")return; sqTun=e.target.value; renderSongLookup()});
 function showBand(name){songsReady();
   const list=songCards.filter(c=>c.artist.toLowerCase()===String(name).toLowerCase());
@@ -5351,6 +5367,23 @@ function hmSection(){const ws=hmWeeks(); if(!ws.length)return ""; const w=ACCT.h
     <h4>🎉 Milestones</h4>${M.length?`<ul class="hml">${M.map(x=>row(x.t,x.what)).join("")}</ul>`:`<p class="dim">No milestone medals in Week ${w} yet.</p>`}</div>`}
 document.addEventListener("change",e=>{const s=e.target.closest("[data-hmweek]"); if(!s)return; ACCT.hmWeek=+s.value; const el=document.querySelector(".acctdlg .hmsec:not(.hmhost)"); if(el)el.outerHTML=hmSection(); const eh=document.querySelector(".acctdlg .hmhost"); if(eh)eh.outerHTML=hostMsgSection()});
 document.addEventListener("click",e=>{const b=e.target.closest("[data-hmcopy]"); if(!b)return; try{navigator.clipboard.writeText(b.dataset.hmcopy).then(()=>{b.textContent="Copied ✓"; setTimeout(()=>b.textContent="Copy",1500)})}catch(err){}});
+// Host tab: arrangements left unused recently. Songs played in the last 26 weeks whose latest week left out a path the
+// song has: one it was played on in an earlier week, or one with a tuning in the Song Selection List / NewWeek tab.
+const UNUSED_WEEKS=26;
+function unusedArr(){const last=Math.max(DATA_WEEK,TW_MAX), key=t=>String(t).toLowerCase().replace(/\s+/g," ").trim(), S={};
+  Object.entries(SB.weeks).forEach(([w,ch])=>{w=+w; if(w>last)return; ch.forEach(c=>{if(!c[3]||/^n\/a$/i.test(c[3]))return; const k=key(c[3]); const x=S[k]=S[k]||{song:c[3],weeks:{}};
+    // the main Lead / Rhythm / Bass arrangements; a bonus or alternate one (BR, AL…) played instead is noted, but the main one still counts as unused
+    const code=arrP(w,c[0],c[1]); if(code.length===1)(x.weeks[w]=x.weeks[w]||new Set()).add("LRB".indexOf(code)); else{(x.weeks[w]=x.weeks[w]||new Set()); (x.alt=x.alt||{})[w]=(x.alt[w]||[]).concat(code)}})});
+  const out=[]; Object.values(S).forEach(x=>{const ws=Object.keys(x.weeks).map(Number).sort((a,b)=>a-b), lw=ws[ws.length-1]; if(lw<=last-UNUSED_WEEKS)return;
+    const used=x.weeks[lw], miss=[];
+    [0,1,2].forEach(pi=>{if(used.has(pi))return; const before=ws.filter(w=>w<lw&&x.weeks[w].has(pi)), tu=tuneOf(x.song,pi);
+      if(before.length||tu)miss.push({pi,before:before[before.length-1]||null,tu})});
+    if(miss.length)out.push({song:x.song,lw,used:[...used].sort(),alt:(x.alt&&x.alt[lw])||[],miss})});
+  return out.sort((a,b)=>b.lw-a.lw||a.song.localeCompare(b.song))}
+function unusedSection(){const L=unusedArr();
+  return `<div class="acctsec hlbox unusedbox"><h3>🎸 Unused arrangements <small>${L.length} song${L.length===1?"":"s"} · last ${UNUSED_WEEKS} weeks${L.length>8?" · scroll for more":""}</small></h3>
+    <p class="dim">Songs played recently that left a path out, though the song has that arrangement: it was played on that path before, or the Song Selection List has a tuning for it. Ideas for a future week.</p>
+    ${L.length?`<ul class="alist${L.length>8?" lpscroll":""}">${L.map(x=>`<li><span><b>${esc(x.song)}</b></span><span class="dim">Week ${x.lw}: ${x.used.length?`played ${x.used.map(p=>`<span style="color:${PATH_C[p]}">${PATHS[p]}</span>`).join(", ")}`:""}${x.alt.length?`${x.used.length?", plus ":"played "}${x.alt.map(arrName).join(", ")}`:""}</span><span class="unmiss">${x.miss.map(m=>`<span class="unp" style="--pc:${PATH_C[m.pi]}">${PATHS[m.pi]} unused</span><small>${m.before?`played in Week ${m.before}`:""}${m.before&&m.tu?" · ":""}${m.tu?esc(m.tu):""}</small>`).join(" ")}</span></li>`).join("")}</ul>`:`<p class="dim">No unused arrangements in the last ${UNUSED_WEEKS} weeks.</p>`}</div>`}
 // ---------- week close countdown (set by the week's host in the Host tab; week_close.sql) ----------
 var WCLOSE={};
 async function closeLoad(){if(!ACCT.sb)return; try{const {data,error}=await ACCT.sb.from("week_close").select("week,ends_at,set_by").gte("week",TW_MAX-1); if(error)return;
@@ -6031,7 +6064,7 @@ function acctDraw(msg,err){
   const tabs=`<div class="accttabs" role="tablist">${tb("me","Your profile")}${appr?tb("week",`Your week${ywN?`<span class="nbadge" title="Passed ${ywN} time${ywN===1?"":"s"} · the ✕ on the alert dismisses itt">${ywN}</span>`:""}`):""}${appr?tb("wrapped",`🎸 ${WRAP_OPEN()-1} Restringed`):""}${ACCT.claim&&ACCT.claim.status==="approved"?tb("banner","Forum banner"):""}${tb("manage","Manage account")}${canRateFor()?tb("host","Host"):""}${ACCT.admin?tb("admin",`Admin${(()=>{const t=typoScan().nNew; return t?`<span class="nbadge tybadge" title="${t} likely typo${t===1?"":"s"} in this week's scoreboard">${t}</span>`:""})()}${pendN?`<span class="nbadge" title="${pendN} claim${pendN===1?"":"s"} waiting for approval">${pendN}</span>`:""}`):""}</div>`;
   let h=tabs;
   if(ACCT.tab==="admin"){}
-  else if(ACCT.tab==="host")h+=`${hostSection(false).replace('class="acctsec hostsec"','class="acctsec hostsec hosttop"')}${(()=>{try{return closeSection()}catch(e){return ""}})()}${(()=>{try{return hmSection()}catch(e){return ""}})()}${(()=>{try{return hlSection()}catch(e){return ""}})()}${(()=>{try{return fwHostSection()}catch(e){return ""}})()}${(()=>{try{return lapsedSection()}catch(e){return ""}})()}${adminRateSection()}${ratingLogSection()}`;
+  else if(ACCT.tab==="host")h+=`${hostSection(false).replace('class="acctsec hostsec"','class="acctsec hostsec hosttop"')}${(()=>{try{return closeSection()}catch(e){return ""}})()}${(()=>{try{return hmSection()}catch(e){return ""}})()}${(()=>{try{return unusedSection()}catch(e){console.error(e); return ""}})()}${(()=>{try{return hlSection()}catch(e){return ""}})()}${(()=>{try{return fwHostSection()}catch(e){return ""}})()}${(()=>{try{return lapsedSection()}catch(e){return ""}})()}${adminRateSection()}${ratingLogSection()}`;
   else if(ACCT.tab==="banner")h+=bnTab(ACCT.claim.player);
   else if(ACCT.tab==="wrapped")h+=(()=>{try{return wrapSection(ACCT.claim.player)}catch(e){console.error(e); return ""}})();
   else if(ACCT.tab==="week"){const n=ACCT.claim.player; ACCT.twPart="week";
