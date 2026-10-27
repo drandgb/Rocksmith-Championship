@@ -483,7 +483,7 @@ a.dl svg,.offpill svg{width:11px;height:11px}
 .acctdlg .btn.ghost{background:none;color:var(--accent);border:1px solid var(--line)}
 .acctdlg .msg{color:#7dffb0}.acctdlg .err{color:#ff8a9e}
 .acctdlg .adm{margin-top:4px}
-.accttabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin:-4px 0 12px}
+.accttabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin:-4px 0 12px}@media (max-width:640px){.accttabs{flex-wrap:wrap;row-gap:2px}.accttabs button{flex:0 0 auto}}
 .accttabs button{background:none;border:0;border-bottom:2px solid transparent;color:var(--muted);font:700 .78rem var(--f-display);letter-spacing:.08em;text-transform:uppercase;padding:8px 10px;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
 .accttabs button[aria-selected="true"]{color:var(--fg);border-bottom-color:var(--accent)}
 .nbadge{display:inline-flex;align-items:center;justify-content:center;min-width:17px;height:17px;padding:0 5px;border-radius:9px;background:#ff4d6d;color:#fff;font:800 .66rem/1 var(--f-display);letter-spacing:0;box-shadow:0 0 8px rgba(255,77,109,.6)}
@@ -794,7 +794,7 @@ a.dl svg,.offpill svg{width:11px;height:11px}
 .golink:hover{color:var(--accent)}
 .golinks{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
 .plead:empty{display:none}
-/* first weeks: a newcomer's progress and next steps on their profile (same look as the Elo and hardest-rating rows) */
+/* first weeks: a newcomer's progress and next steps on their profile (same look as the Elo and skill-rating rows) */
 .fwl li{grid-template-columns:18px minmax(0,1fr) auto;border-left-color:var(--line)}.fwl li.done{border-left-color:var(--s-green)}
 .fwl .fwk{font-weight:900;font-size:.8rem;color:var(--muted)}.fwl li.done .fwk{color:var(--s-green)}.fwl .fwt{font-weight:700}.fwl li.done .fwt{color:var(--muted);font-weight:600}.fwl .nwr{font-size:.8rem;color:var(--muted)}
 .fwtab td{cursor:default}.fwtab .fwof{font:600 .72rem var(--f-body);color:var(--muted)}.fwtab td .fwok{color:var(--s-green)}.fwtab td b.hry-eq{color:var(--muted)}
@@ -1902,7 +1902,7 @@ footer{color:var(--dim);font-size:.78rem}
     <details><summary>How do Rodman's Rankings work?</summary><p>A rolling score over the last 10 completed weeks, counting your class and above: 10 points for 1st place, 5 for 2nd, 3 for 3rd, 1 for 4th, +1 for a 100% score and +1 for a score within 2% of your best ever.</p></details>
     <details><summary>How do seasons work?</summary><p>A season is 13 weeks (a calendar quarter). On each week's main challenge in your class, the top 10 score 25, 18, 15, 12, 10, 8, 6, 4, 2 and 1 season points. Whoever leads each class when the season ends is its season champion. Most improved goes to the biggest Elo gain in each class over the season, for players who play at least half of its weeks; a projected winner starts showing in week 4. Everyone starts each season on zero.</p></details>
     <details><summary>What is Elo?</summary><p>A rating like in chess. Every time two players post on the same challenge it counts as a game: the higher % wins, then the longer streak, then the higher score. Beating a higher-rated player moves your rating more. New players start at their class's average (Beginner 900, Intermediate 1200, Advanced 1500, Masterclass 1900). Two 100% scores never count as a game. Hover the ⓘ next to any Elo list for the full details.</p></details>
-    <details><summary>What is the hardest rating?</summary><p>Your second-best song rating with a 95% or better score in the last 6 months, on each path. It's the second-best so one lucky week doesn't count, and it goes up when you start scoring 95% on harder songs. Your profile's <b>Next rung</b> shows this week's songs that would raise it.</p></details>
+    <details><summary>What is the skill rating?</summary><p>Your second-best song rating with a 95% or better score in the last 6 months, on each path. It's the second-best so one lucky week doesn't count, and it goes up when you start scoring 95% on harder songs. Your profile's <b>Next rung</b> shows this week's songs that would raise it.</p></details>
     <details><summary>What are rivals?</summary><p>On This Week, your rival on each path is the player in your own class whose scores were closest to yours that week; whoever beat the other on more shared challenges wins the rivalry. On your profile, your rival is the player just above you in the Elo ranking.</p></details>
     <details><summary>How do medals work?</summary><p>Medals are earned from the scoreboards and attendance: wins and podium places, win and play streaks, perfect scores (perfectionist medals for each class), playing every challenge of a week (Catch 'em all and the path completionists), beating your own past score on a returning song, 100% again on a song you'd already scored 100% on (Still got it), hosting, and a few themed ones. Hover any medal to see what it's for and when you earned it. The medal leaders on Winners, Players and Hosts show who has the most of each.</p></details>
   </section>
@@ -1910,7 +1910,7 @@ footer{color:var(--dim);font-size:.78rem}
   <section class="panel faq" id="faq-you">
     <div class="panel-head"><h2>👤 Your profile</h2></div>
     <details><summary>How do I claim my player profile?</summary><p>Tap <b>👤 Log in</b> at the top, sign in with your email and pick your player name. An admin will check it's you with a quick forum message, and then you'll have your own stats page.</p></details>
-    <details><summary>What do I get with a claimed profile?</summary><ul><li><b>Your week:</b> your first and best score on each challenge this week, and an alert when someone passes you.</li><li>Rival updates, your season standing and the songs that would raise your hardest rating.</li><li>Rate songs: click any rating number to say how hard an arrangement felt. Your ratings help set the difficulty everyone sees.</li><li>A forum signature banner with your stats, updated every week.</li></ul></details>
+    <details><summary>What do I get with a claimed profile?</summary><ul><li><b>Your week:</b> your first and best score on each challenge this week, and an alert when someone passes you.</li><li>Rival updates, your season standing and the songs that would raise your skill rating.</li><li>Rate songs: click any rating number to say how hard an arrangement felt. Your ratings help set the difficulty everyone sees.</li><li>A forum signature banner with your stats, updated every week.</li></ul></details>
     <details><summary>Is my email shown anywhere?</summary><p>No. It's only used to log in, and you can unlink it at any time under <b>Manage account</b>.</p></details>
   </section>
   </div>
@@ -2502,7 +2502,7 @@ const FW_BASS="No bass? You can play the bass arrangement on your guitar with Ro
 function fwTryHtml(n,D){const t=fwTry(n,D); if(!t)return "";
   return `<span style="--pc:${PATH_C[t.pi]}">Try <b>${PATHS[t.pi]}</b> this week: <span class="fwgo" data-sbw="${t.w}" data-sbp="${t.pi}" data-sbs="${t.c[1]}" title="Open this challenge on the Scoreboard">${TIER_NAME[t.L]} · ${esc(t.c[3])}</span></span>${t.pi===2?`<span class="fwbass">${FW_BASS}</span>`:""}`}
 const FW_GAMES="Elo counts every pair of players on the same challenge as a game: the higher % wins. So one challenge with 5 other players is 5 games. 20 games on a path puts you in the Elo ranking.";
-const FW_TIP="Shown for a player's first 8 weeks.\n\nNewcomers who play a second week (One more time), play three weeks in a row (Hat trick) and try a second path are the ones who keep playing.\n\nUnlocks: the Elo ranking lists a player once they have 20 games on a path (a game is one other player on the same challenge, so a challenge with 5 others is 5 games); the hardest-rating graph shows from their 4th week on a path, once they have two scores of 95% or better within 6 months.";
+const FW_TIP="Shown for a player's first 8 weeks.\n\nNewcomers who play a second week (One more time), play three weeks in a row (Hat trick) and try a second path are the ones who keep playing.\n\nUnlocks: the Elo ranking lists a player once they have 20 games on a path (a game is one other player on the same challenge, so a challenge with 5 others is 5 games); the skill-rating graph shows from their 4th week on a path, once they have two scores of 95% or better within 6 months.";
 function fwPanel(n){const D=fwData(n), W=D.wk; if(!W.length||fwPlayed(n,D)>FW_MAX)return "";
   const tw=TW_MAX, last=W[W.length-1], ms=[];
   let maxRun=1, run=1; for(let i=1;i<W.length;i++){run=W[i]===W[i-1]+1?run+1:1; if(run>maxRun)maxRun=run}
@@ -2521,7 +2521,7 @@ function fwPanel(n){const D=fwData(n), W=D.wk; if(!W.length||fwPlayed(n,D)>FW_MA
     return `<tr style="--pc:${PATH_C[pi]}"><td>${PATHS[pi]}</td>${cell(g,ELO_MIN,"Elo games")}${cell(wks,4,"Weeks on this path")}${cell(h95,2,"Scores at 95%+ on rated songs in the last 6 months")}</tr>`}).join("");
   const tr=fwTryHtml(n,D);   // any path they haven't played yet (so a Lead and Rhythm player is pointed at Bass)
   const right=`<div class="pcwide"><div class="elochart"><div class="echhead"><h4>Unlocks</h4></div><div class="hryears fwtab"><table><tr><th></th><th data-tip="${esc(FW_GAMES)}" style="cursor:help">Elo games ⓘ</th><th>Weeks</th><th>95%+ scores</th></tr>${rows}</table></div>
-    ${tr?`<p class="fwtry">${tr}</p>`:""}<p class="echnote">A game is one other player on a challenge you played (a challenge with 5 others is 5 games) · 20 games on a path put you in the Elo ranking · 4 weeks and two 95%+ scores on rated songs within 6 months unlock your hardest-rating graph</p></div></div>`;
+    ${tr?`<p class="fwtry">${tr}</p>`:""}<p class="echnote">A game is one other player on a challenge you played (a challenge with 5 others is 5 games) · 20 games on a path put you in the Elo ranking · 4 weeks and two 95%+ scores on rated songs within 6 months unlock your skill-rating graph</p></div></div>`;
   return left+right}
 // Host tab: the newcomers seeing the First weeks panel (played in the last 8 weeks), and the next steps it's showing them,
 // so hosts can welcome them, encourage them or answer questions
@@ -2554,7 +2554,7 @@ function sbIx(){if(SBIX)return SBIX; const wk={}, ent={}, disp={};
   Object.keys(wk).forEach(k=>wk[k]=[...wk[k]].sort((a,b)=>a-b)); return SBIX={wk,ent,disp}}
 const ratedOf=c=>c[4]!=null&&c[4]!==""&&!isNaN(+c[4])?+c[4]:null;
 
-// Next rung: this week's challenges that would raise a player's hardest rating if they score 95% on them
+// Next rung: this week's challenges that would raise a player's skill rating if they score 95% on them
 function hrNext(n,pi){const k=String(n).toLowerCase(), tw=TW_MAX, E=(sbIx().ent[k]||[]);
   const s=hrSeries(n,pi); if(!s.length||s[s.length-1][1]==null)return null; if(!E.some(x=>x.c[0]===pi&&x.w>tw-8))return null;   // only for players active on this path
   const rs=E.filter(x=>x.c[0]===pi&&x.w>tw-26&&x.pc>=95&&ratedOf(x.c)!=null).map(x=>ratedOf(x.c)).sort((a,b)=>b-a);
@@ -2562,13 +2562,13 @@ function hrNext(n,pi){const k=String(n).toLowerCase(), tw=TW_MAX, E=(sbIx().ent[
   const opts=(SB.weeks[tw]||[]).filter(c=>c[0]===pi&&!c[7]&&c[3]&&!/^n\/a$/i.test(c[3])&&ratedOf(c)!=null&&!done.has(c[0]+"|"+c[1])).map(c=>{const x=ratedOf(c);
     const nv=r1==null?x:x>r1?r1:r2==null?Math.min(x,r1):x>r2?x:r2; return {c,x,nv,g:nv-base}}).filter(o=>o.g>.04).sort((a,b)=>a.x-b.x);
   return opts.length?{base,r1,r2,opts}:null}
-// hover text for a Next rung row: why a 95% here moves the hardest rating as far as it does
-function hrNextWhy(pi,N,o){const f=v=>(+v).toFixed(1), x=o.x, P=PATHS[pi], now=`Your ${P} hardest rating is ${f(N.base)}`+(N.r1!=null&&N.r2!=null?`: your best 95%+ songs in the last 6 months are rated ${f(N.r1)} and ${f(N.r2)}, and it's the second-best that counts.`:".");
-  if(N.r1!=null&&x>N.r1)return `${now}\n\nA 95% on this ${f(x)} would become your best, and your old best (${f(N.r1)}) would become your second-best, so your hardest rating would go ${f(N.base)} → ${f(o.nv)}.\n\nIt takes two: a second 95% on a song rated above ${f(N.r1)} would lift it again (to ${f(x)} with another ${f(x)}).`;
-  return N.r1!=null&&x===N.r1?`${now}\n\nA 95% on this ${f(x)} would give you two 95%s at ${f(x)}, so your second-best would be ${f(x)} and your hardest rating would go ${f(N.base)} → ${f(o.nv)}.`:`${now}\n\nA 95% on this ${f(x)} would become your second-best, so your hardest rating would go ${f(N.base)} → ${f(o.nv)}.`}
+// hover text for a Next rung row: why a 95% here moves the skill rating as far as it does
+function hrNextWhy(pi,N,o){const f=v=>(+v).toFixed(1), x=o.x, P=PATHS[pi], now=`Your ${P} skill rating is ${f(N.base)}`+(N.r1!=null&&N.r2!=null?`: your best 95%+ songs in the last 6 months are rated ${f(N.r1)} and ${f(N.r2)}, and it's the second-best that counts.`:".");
+  if(N.r1!=null&&x>N.r1)return `${now}\n\nA 95% on this ${f(x)} would become your best, and your old best (${f(N.r1)}) would become your second-best, so your skill rating would go ${f(N.base)} → ${f(o.nv)}.\n\nIt takes two: a second 95% on a song rated above ${f(N.r1)} would lift it again (to ${f(x)} with another ${f(x)}).`;
+  return N.r1!=null&&x===N.r1?`${now}\n\nA 95% on this ${f(x)} would give you two 95%s at ${f(x)}, so your second-best would be ${f(x)} and your skill rating would go ${f(N.base)} → ${f(o.nv)}.`:`${now}\n\nA 95% on this ${f(x)} would become your second-best, so your skill rating would go ${f(N.base)} → ${f(o.nv)}.`}
 function hrNextHtml(n){const rows=[0,1,2].map(pi=>{const N=hrNext(n,pi); if(!N)return "";
     return N.opts.slice(0,2).map(o=>`<li style="--pc:${PATH_C[pi]}"><span class="nwp">${PATHS[pi]}</span><span class="hnsong"><span class="fwgo" data-sbw="${TW_MAX}" data-sbp="${pi}" data-sbs="${o.c[1]}" title="Open this challenge on the Scoreboard">${esc(o.c[2])} · ${esc(o.c[3])}</span></span><span class="nwr" data-tip="${esc(hrNextWhy(pi,N,o))}">${o.x} · ${N.base.toFixed(1)} → <b>${o.nv.toFixed(1)}</b></span></li>`).join("")}).join("");
-  return rows?`<div class="nwelo hrnext"><div class="nwelo-h">Next rung this week <span class="elohelp" data-tip="${esc("This week's challenges that would raise your hardest rating if you score 95% or better on them, the easiest first.\n\nYour hardest rating is the second-best song rating you've scored 95% on in the last 6 months: the second-best, so one lucky score can't jump it. That's why a 95% on a song rated above your best only lifts it to your old best: it takes two 95%s at a level to reach that level. Hover a row to see the numbers.")}">ⓘ</span> <span class="pelo-sub">score 95% on</span></div><ul>${rows}</ul></div>`:""}
+  return rows?`<div class="nwelo hrnext"><div class="nwelo-h">Next rung this week <span class="elohelp" data-tip="${esc("This week's challenges that would raise your skill rating if you score 95% or better on them, the easiest first.\n\nYour skill rating is the second-best song rating you've scored 95% on in the last 6 months: the second-best, so one lucky score can't jump it. That's why a 95% on a song rated above your best only lifts it to your old best: it takes two 95%s at a level to reach that level. Hover a row to see the numbers.")}">ⓘ</span> <span class="pelo-sub">score 95% on</span></div><ul>${rows}</ul></div>`:""}
 
 // Nearest rival: the players just above and below in the Elo ranking on a path
 function eloRivals(pi,k,w,kp){const T=eloTable(pi,w,kp), i=T.findIndex(x=>x[0]===k); if(i<0)return "";
@@ -2587,7 +2587,7 @@ function wbPanel(n){const B=wbInfo(n); if(!B)return ""; const k=eloKey(n);
   const rows=paths.map(pi=>{let e0=null,e1=null; try{const x=eloAt(pi,k,B.left), y=eloAt(pi,k,ELO_DONE); e0=x?x[1]:null; e1=y&&y[0]>=B.ret?y[1]:null}catch(e){}
     const s=hrSeries(n,pi), h0=hrAt(s,B.left), h1=s.length&&s[s.length-1][0]>=B.ret?s[s.length-1][1]:null;
     return `<tr style="--pc:${PATH_C[pi]}"><td>${PATHS[pi]}</td>${cell(e0,e1,v=>Math.round(v))}${cell(h0,h1,v=>v.toFixed(1))}</tr>`}).join("");
-  const right=`<div class="pcwide"><div class="elochart"><div class="echhead"><h4>When you left</h4></div><div class="hryears fwtab wbtab"><table><tr><th></th><th>Elo</th><th>Hardest rating</th></tr>${rows}</table></div><p class="echnote">Your ratings in Week ${B.left}, and now (once you've played that path again)</p></div></div>`;
+  const right=`<div class="pcwide"><div class="elochart"><div class="echhead"><h4>When you left</h4></div><div class="hryears fwtab wbtab"><table><tr><th></th><th>Elo</th><th>Skill rating</th></tr>${rows}</table></div><p class="echnote">Your ratings in Week ${B.left}, and now (once you've played that path again)</p></div></div>`;
   return left+right}
 
 // Seasons: calendar quarters; the season's biggest Elo gains in each class (10+ games that season)
@@ -2672,7 +2672,7 @@ function lapsedSection(){const tw=TW_MAX, far=52, I=sbIx(), rows=[];
   Object.entries(I.wk).forEach(([k,W])=>{const last=W[W.length-1], gap=tw-last; if(gap<5||gap>far)return; const n=I.disp[k];
     const paths=[0,1,2].filter(pi=>(I.ent[k]||[]).some(x=>x.c[0]===pi));
     const info=paths.map(pi=>{let e=null; try{const x=eloAt(pi,eloKey(n),last); e=x&&x[2]>=ELO_MIN?Math.round(x[1]):null}catch(err){} const h=hrAt(hrSeries(n,pi),last);
-      return `<b style="color:${PATH_C[pi]}">${PATHS[pi]}</b>${e!=null?` Elo ${e}`:""}${h!=null?` · hardest ${h.toFixed(1)}`:""}`}).join(" &nbsp; ");
+      return `<b style="color:${PATH_C[pi]}">${PATHS[pi]}</b>${e!=null?` Elo ${e}`:""}${h!=null?` · skill rating ${h.toFixed(1)}`:""}`}).join(" &nbsp; ");
     rows.push({n,last,gap,cnt:W.length,info})});
   rows.sort((a,b)=>a.gap-b.gap);
   return `<div class="acctsec fwhost lapsed"><h3>Lapsed players <small>${rows.length} who stopped in the last year${rows.length>10?" · scroll for more":""}</small></h3>
@@ -2680,18 +2680,25 @@ function lapsedSection(){const tw=TW_MAX, far=52, I=sbIx(), rows=[];
     ${rows.length?`<ul class="alist${rows.length>10?" lpscroll":""}">${rows.map(r=>`<li><span class="fwhn" data-fwp="${esc(r.n)}" title="Open ${esc(r.n)}'s profile">${esc(r.n)}</span><span class="dim">last played Week ${r.last}${WEEKS[r.last-1]?" · "+fmt(WEEKS[r.last-1][1]):""} · away ${r.gap-1} weeks · ${r.cnt} week${r.cnt===1?"":"s"} played</span><span class="fwhs">${r.info}</span></li>`).join("")}</ul>`:`<p class="dim">No lapsed players.</p>`}</div>`}
 
 // Host tab: a week's highlights as plain text to paste into the weekly post
-function hlText(w){eloBuild(); const I=sbIx(), L=[], played=Object.keys(I.wk).filter(k=>I.wk[k].includes(w)), nm=k=>I.disp[k];
+function hlText(w){eloBuild(); const I=sbIx(), L=[], played=Object.keys(I.wk).filter(k=>I.wk[k].includes(w)), nm=k=>"@"+I.disp[k];   // names with @, as in the forum
+  const both=xs=>xs.length>1?xs.slice(0,-1).join(", ")+" and "+xs[xs.length-1]:xs[0];
   const newc=played.filter(k=>I.wk[k][0]===w).map(nm); if(newc.length)L.push(`Welcome to our new players: ${newc.join(", ")}`);
-  const back=played.filter(k=>{const W=I.wk[k], i=W.indexOf(w); return i>0&&w-W[i-1]>=5}).map(k=>{const W=I.wk[k], i=W.indexOf(w); return `${nm(k)} (after ${w-W[i-1]-1} weeks away)`}); if(back.length)L.push(`Welcome back, ${back.length>1?back.slice(0,-1).join(", ")+" and "+back[back.length-1]:back[0]}!`);
-  const ups=(WR.ups||[]).filter(u=>u[4]===w&&LVI.indexOf(u[3])>LVI.indexOf(u[2])).map(u=>`${u[0]} (${PATHS[u[1]]} ${TIER_NAME[u[2]]||u[2]} → ${TIER_NAME[u[3]]||u[3]})`); if(ups.length)L.push(`Rank-ups: ${ups.join(", ")}`);
+  const back=played.filter(k=>{const W=I.wk[k], i=W.indexOf(w); return i>0&&w-W[i-1]>=5}).map(k=>{const W=I.wk[k], i=W.indexOf(w); return `${nm(k)} (after ${w-W[i-1]-1} weeks away)`}); if(back.length)L.push(`Welcome back to the championship, ${both(back)}!`);
+  const ups=(WR.ups||[]).filter(u=>u[4]===w&&LVI.indexOf(u[3])>LVI.indexOf(u[2])).map(u=>`@${u[0]} (${PATHS[u[1]]} ${TIER_NAME[u[2]]||u[2]} → ${TIER_NAME[u[3]]||u[3]})`); if(ups.length)L.push(`Rank-ups: ${ups.join(", ")}`);
   const first95=played.filter(k=>{const E=I.ent[k]||[]; const f=E.find(x=>x.pc>=95); return f&&f.w===w}).map(nm); if(first95.length)L.push(`First 95% score: ${first95.join(", ")}`);
-  const hr=[]; played.forEach(k=>[0,1,2].forEach(pi=>{const s=hrSeries(nm(k),pi), now=hrAt(s,w); if(now==null)return; const prev=s.filter(e=>e[0]<w&&e[1]!=null).map(e=>e[1]); if(prev.length&&now>Math.max(...prev)+.04)hr.push(`${nm(k)} (${PATHS[pi]} ${Math.max(...prev).toFixed(1)} → ${now.toFixed(1)})`)})); if(hr.length)L.push(`New best hardest rating: ${hr.join(", ")}`);
+  // firsts: a medal collected for the first time ever this week, other than the ones the Host tab's player messages already cover
+  {const fm=[]; played.forEach(k=>{const n=I.disp[k]; let ms=[]; try{ms=twMedals(n,w,w>DATA_WEEK)}catch(e){}
+     const got=[]; ms.forEach(h=>{const tip=((/data-tip="([^"]*)"/.exec(h)||[])[1]||"").replace(/&#39;/g,"'").replace(/&quot;/g,'"').replace(/&amp;/g,"&");
+       const all=+((/\((\d+) all time\)/.exec(tip)||[])[1]||0), plus=+((/\+(\d+) this week/.exec(tip)||[])[1]||0), name=tip.split(" · ")[0];
+       if(!(all>0&&all===plus)||!name||/^(Joined|Played guitar|Played bass)/.test(name))return; let covered=""; try{covered=hmMsg(n,tip)}catch(e){} if(!covered&&!got.includes(name))got.push(name)});
+     if(got.length)fm.push(`@${n} (${got.join(", ")})`)});
+   if(fm.length)L.push(`Congratulations on a first: ${fm.join(", ")}`)}
   const nw=played.filter(k=>{const W=I.wk[k]; return W.length===2&&W[1]===w}).map(nm); if(nw.length)L.push(`One more time (back for a second week): ${nw.join(", ")}`);
   const ht=played.filter(k=>{const W=I.wk[k], i=W.indexOf(w); if(i<2||W[i-1]!==w-1||W[i-2]!==w-2)return false; return !(i>=3&&W[i-3]===w-3)&&W.length<=FW_MAX}).map(nm); if(ht.length)L.push(`Hat trick (first three weeks in a row): ${ht.join(", ")}`);
   // the last week of a season: announce the new one, with the champions of the one just finished
   let head=""; const sNow=seasonOf(w), sNext=seasonOf(w+1);
   const sLine=(pi,up)=>{const T=seasonF1(pi,sNow,up), M=seasonImproved(pi,sNow,up);
-    const c=["M","A","I","B"].filter(c=>(T[c]&&T[c].length)||M[c]).map(c=>`${TIER_NAME[c]}: ${T[c]&&T[c][0]?`${T[c][0].n} (${T[c][0].p} pts)`:"no points yet"}${M[c]?` · most improved ${M[c][0].n} (${gainTxt(M[c][0].d)} Elo)`:""}`);
+    const c=["M","A","I","B"].filter(c=>(T[c]&&T[c].length)||M[c]).map(c=>`${TIER_NAME[c]}: ${T[c]&&T[c][0]?`@${T[c][0].n} (${T[c][0].p} pts)`:"no points yet"}${M[c]?` · most improved @${M[c][0].n} (${gainTxt(M[c][0].d)} Elo)`:""}`);
     return c.length?`${PATHS[pi]}:${c.map(x=>"\n        "+x).join("")}`:""};
   if(sNow&&sNext&&sNow!==sNext){const ch=[0,1,2].map(pi=>sLine(pi)).filter(Boolean);
     head=`🏁 A new season starts this week: Season ${seasonNum(sNext)} (${sNext})! Everyone starts on zero points: 25 for a win, 18 for 2nd, down to 1 for 10th on each week's main challenge in your class. Show up every week to keep scoring.${ch.length?`\nSeason ${seasonNum(sNow)} (${sNow}) champions:${ch.map(x=>"\n    "+x).join("")}`:""}\n\n`}
@@ -2702,7 +2709,7 @@ function hlText(w){eloBuild(); const I=sbIx(), L=[], played=Object.keys(I.wk).fi
   return `Week ${w} highlights\n\n${head}${L.map(x=>"• "+x).join("\n")||"• Nothing to highlight yet."}${lead}`}
 function hlSection(){const ws=[]; for(let w=ELO_DONE;w>ELO_DONE-6&&w>0;w--)if(SB.weeks[w])ws.push(w); const w=ACCT.hlWeek&&ws.includes(ACCT.hlWeek)?ACCT.hlWeek:ws[0]; if(!w)return "";
   return `<div class="acctsec hlbox"><h3>Weekly highlights <select class="hlsel" data-hlweek>${ws.map(x=>`<option value="${x}"${x===w?" selected":""}>Week ${x}</option>`).join("")}</select></h3>
-    <p class="dim">New players, welcome backs, rank-ups, first 95% scores, new best hardest ratings, newcomers' milestones and the season leaders for Week ${w}, ready to copy into the Week ${w+1} post.</p><pre id="hltext">${esc(hlText(w))}</pre><div class="row"><button type="button" class="btn ghost" data-hlcopy>Copy</button></div></div>`}
+    <p class="dim">New players, welcome backs, rank-ups, first 95% scores, first medals, newcomers' milestones and the season leaders for Week ${w}, ready to copy into the Week ${w+1} post.</p><pre id="hltext">${esc(hlText(w))}</pre><div class="row"><button type="button" class="btn ghost" data-hlcopy>Copy</button></div></div>`}
 // ---------- Admin: season introduction, ready to copy into a forum post (for new and current players) ----------
 function siLab(w){const d=weekAt(w-1)[1], q=Math.floor((+d.slice(5,7)-1)/3); return ["Jan–Mar ","Apr–Jun ","Jul–Sep ","Oct–Dec "][q]+d.slice(0,4)}
 function siRange(id,from){let a=null,b=null; for(let w=Math.max(1,from-20);w<from+40;w++){if(siLab(w)===id){if(a==null)a=w; b=w}else if(a!=null)break} return [a,b]}
@@ -3920,7 +3927,7 @@ function eloProfile(n){eloBuild(); const w=ELO_DONE, k=eloKey(n), kp=eloKeep(k);
     const r=x[2]<ELO_MIN?`<small data-tip="Provisional: ${x[2]} of ${ELO_MIN} games">new</small>`:rk?`<small data-tip="${esc(`#${rk} of ${tot} ${kp?"active players":"players (inactive, so ranked among everyone)"} · ${x[2]} games\n\n${eloAround(pi,k,w,kp)}`)}">#${rk}</small>`:"";
     return `<li class="${t.trim()}" style="--pc:${PATH_C[pi]}"><span class="nwp">${PATHS[pi]}</span><b class="nwv">${Math.round(x[1])}</b><span class="nwd" data-tip="${esc("Change over the last 10 weeks"+(()=>{const t=eloWhy(pi,k,w-9,w); return t?"\n\n"+t:""})())}">${d?eloD(d):"–"}</span><span class="nwr">${eloBandTag(x[1])}${r}</span>${x[2]>=ELO_MIN&&rk?eloRivals(pi,k,w,kp):""}</li>`}).join("");
   return rows?`<div class="pcwide nwelo pelo"><div class="nwelo-h">Elo after Week ${w} <span class="elohelp" data-tip="${esc(ELO_TIP)}">ⓘ</span> <span class="pelo-sub">▲ last 10 weeks</span></div><ul>${rows}</ul></div>`:""}
-// ---------- hardest rating you score 95% on ----------
+// ---------- skill rating ----------
 // For each week: the second-best song rating a player scored 95% or more on over the last 6 months, on each path
 // (second-best, so one lucky week doesn't count), from a player's 4th week on that path. Straight from the scores, no estimating; it climbs as players start
 // scoring 95% on harder songs, which is what earns rank-ups. Points start 6 months into the data so the window is full.
@@ -3938,11 +3945,11 @@ function hrSeries(n,pi){const H=hrBuild(), key=String(n).toLowerCase()+"|"+pi; i
       let r1=-1,r2=-1; for(let i=a;i<b;i++)if(xs[i].pc>=95){const r=xs[i].r; if(r>r1){r2=r1;r1=r}else if(r>r2)r2=r} out.push([w,r2>=0?r2:null])}}
   while(out.length&&out[out.length-1][1]==null)out.pop(); while(out.length&&out[0][1]==null)out.shift();
   return H.ser[key]=out}
-// no hardest rating to show yet: say why, and the best score so far on each path (the one to beat)
+// no skill rating to show yet: say why, and the best score so far on each path (the one to beat)
 function hrNote(n){const H=hrBuild(), k=String(n).toLowerCase(), paths=[0,1,2].filter(pi=>(H.by[k+"|"+pi]||[]).length); if(!paths.length)return "";
   const any95=paths.some(pi=>H.by[k+"|"+pi].some(x=>x.pc>=95));
   const best=paths.map(pi=>{const b=H.by[k+"|"+pi].reduce((a,x)=>!a||x.pc>a.pc||(x.pc===a.pc&&x.r>a.r)?x:a,null); return `<span class="hrn-b" style="--pc:${PATH_C[pi]}"><b>${PATHS[pi]}</b> ${b.pc}% on a ${b.r} <small>(Week ${b.w})</small></span>`}).join("");
-  return `<div class="pcwide nwelo pelo hrnote"><div class="nwelo-h">Hardest rating you score 95% on <span class="elohelp" data-tip="${esc(HR_TIP)}">ⓘ</span></div>
+  return `<div class="pcwide nwelo pelo hrnote"><div class="nwelo-h">Skill rating <span class="elohelp" data-tip="${esc(HR_TIP)}">ⓘ</span></div>
     <p>${any95?"Not enough 95% scores yet: it shows once you have 95% or better on two songs within 6 months, from your 4th week on a path.":"No 95% scores yet: it shows once you have 95% or better on two songs within 6 months."} Best so far:</p><div class="hrn-list">${best}</div></div>`}
 // the typical (median) player on a path, every 2 weeks, for the dotted reference lines
 function hrPool(pi){const H=hrBuild(); if(H.pool[pi])return H.pool[pi];
@@ -3957,7 +3964,7 @@ function hrProfile(n){const H=hrBuild(), w1=H.w1;
     return `<li style="--pc:${PATH_C[pi]}"><span class="nwp">${PATHS[pi]}</span><b class="nwv">${now.toFixed(1)}</b><span class="nwd" data-tip="Change over the last year">${dd}</span><span class="nwr"><small data-tip="The typical ${PATHS[pi]} player${last[0]<w1?` in Week ${last[0]}, your last week with enough scores`:""}">${last[0]<w1?`Week ${last[0]} · `:""}typical ${typ!=null?typ.toFixed(1):"–"}</small></span></li>`}).join("");
   // just the year-by-year table now (the current-rating rows were dropped: its last column says the same)
   const yrs=rows?hrYears(n):""; return yrs?`<div class="pcwide nwelo pelo hrrows">${yrs}</div>`:""}
-// year by year: the hardest rating at the end of each year on each path, with the change from the year before
+// year by year: the skill rating at the end of each year on each path, with the change from the year before
 function hrYears(n){const H=hrBuild(), first=[], by=[0,1,2].map(pi=>{const m={}; hrSeries(n,pi).forEach(e=>{if(e[1]==null)return; if(!first[pi])first[pi]=e; m[yearOfWeek(e[0])]=e[1]}); return m});
   const Y=[...new Set(by.flatMap(m=>Object.keys(m)))].sort(); if(!Y.length)return "";
   const nowY=String(yearOfWeek(H.w1)), paths=[0,1,2].filter(pi=>first[pi]);
@@ -3965,7 +3972,7 @@ function hrYears(n){const H=hrBuild(), first=[], by=[0,1,2].map(pi=>{const m={};
   const cell=(pi,y,i)=>{const v=by[pi][y]; if(v==null)return `<td><b class="hry-eq">–</b><span class="hry-eq"></span></td>`;
     let pv=null, from=null; for(let k=i-1;k>=0;k--)if(by[pi][Y[k]]!=null){pv=by[pi][Y[k]]; from=Y[k]; break} const d=pv==null?null:v-pv, tipT=`${PATHS[pi]} ${y===nowY?"now":"at the end of "+y}: ${v.toFixed(1)}`+(d==null?"":Math.abs(d)<.05?` (same as ${from})`:` (${d>0?"up":"down"} ${Math.abs(d).toFixed(1)} from ${from})`);
     return `<td data-tip="${esc(tipT)}"><b>${v.toFixed(1)}</b>${chg(d)}</td>`};
-  return `<div class="hryears"><div class="nwelo-h">Hardest rating you score 95% on <span class="elohelp" data-tip="${esc(HR_TIP)}">ⓘ</span> <span class="pelo-sub">at each year's end</span></div><div class="hry-scroll"><table><tr><th></th>${Y.map(y=>`<th>${y}${y===nowY?"<small> so far</small>":""}</th>`).join("")}</tr>${paths.map(pi=>`<tr style="--pc:${PATH_C[pi]}"><td>${PATHS[pi]}</td>${Y.map((y,i)=>cell(pi,y,i)).join("")}</tr>`).join("")}</table></div></div>`}
+  return `<div class="hryears"><div class="nwelo-h">Skill rating <span class="elohelp" data-tip="${esc(HR_TIP)}">ⓘ</span> <span class="pelo-sub">at each year's end</span></div><div class="hry-scroll"><table><tr><th></th>${Y.map(y=>`<th>${y}${y===nowY?"<small> so far</small>":""}</th>`).join("")}</tr>${paths.map(pi=>`<tr style="--pc:${PATH_C[pi]}"><td>${PATHS[pi]}</td>${Y.map((y,i)=>cell(pi,y,i)).join("")}</tr>`).join("")}</table></div></div>`}
 function hrChart(n,opt){opt=opt||{}; const H=hrBuild(), w1=H.w1, win=+opt.win||26, rng=opt.r||"all", hid=opt.h||"";
   const all=[0,1,2].map(pi=>hrSeries(n,pi,win)); if(!all.some(s=>s.length))return "";
   const first=Math.min(...all.filter(s=>s.length).map(s=>s[0][0])), w0=Math.min(w1-1,rng==="1y"?Math.max(first,w1-52):first);
@@ -3986,7 +3993,7 @@ function hrChart(n,opt){opt=opt||{}; const H=hrBuild(), w1=H.w1, win=+opt.win||2
     rk+=`<rect x="${(xx-15).toFixed(1)}" y="${py}" width="30" height="13" rx="6.5" fill="${c}"/><text x="${xx.toFixed(1)}" y="${py+9.5}" text-anchor="middle" font-size="9" font-weight="800" fill="#0d0f14">${u[2]}→${u[3]}</text>`+(v!=null?`<circle cx="${xx.toFixed(1)}" cy="${Y(v).toFixed(1)}" r="4" fill="#0d0f14" stroke="${c}" stroke-width="2"/>`:"")});
   const leg=[0,1,2].filter(pi=>all[pi].length).map(pi=>`<button type="button" class="echp${hid.includes("LRB"[pi])?" off":""}" data-hr-p="${"LRB"[pi]}" style="--pc:${ELO_C[pi]}" title="Show just ${PATHS[pi]}, or add it to the paths shown">${PATHS[pi]}</button>`).join("");
   const rb=[["all","All"],["1y","Last year"]].map(([v,t])=>`<button type="button" class="echr${rng===v?" on":""}" data-hr-r="${v}">${t}</button>`).join("");
-  return `<div class="elochart hrchart" data-n="${esc(n)}" data-r="${rng}" data-h="${hid}" data-win="${win}" data-w0="${w0}" data-w1="${w1}"><div class="echhead"><h4>Hardest rating over time</h4><span class="echleg">${leg}</span><span class="echrs">${rb}</span></div>
+  return `<div class="elochart hrchart" data-n="${esc(n)}" data-r="${rng}" data-h="${hid}" data-win="${win}" data-w0="${w0}" data-w1="${w1}"><div class="echhead"><h4>Skill rating over time</h4><span class="echleg">${leg}</span><span class="echrs">${rb}</span></div>
     <svg viewBox="0 0 ${W} ${H2}" preserveAspectRatio="none" data-hr="1">${g}${pl}${ln}${rk}<line class="echx" x1="0" x2="0" y1="${T}" y2="${H2-B}" stroke="#8b93a7" stroke-width="1" opacity="0"/></svg>
     <p class="echnote">Your second-best song rating with a 95%+ score in the last 6 months · coloured pill: rank change · dotted: the typical player on each path · hover or tap the chart for a week</p></div>`}
 document.addEventListener("click",e=>{const b=e.target.closest(".hrchart [data-hr-p],.hrchart [data-hr-r]"); if(!b)return; e.stopPropagation();
@@ -5340,28 +5347,28 @@ function hmClasses(w){const C={}; (SB.weeks[w]||[]).forEach(c=>{const L=cardLv(c
 const andList=xs=>xs.length<2?xs.join(""):xs.slice(0,-1).join(", ")+" and "+xs[xs.length-1];
 function hmWelcome(w){const byName=Object.fromEntries(PLAYERS.map(p=>[p[0].toLowerCase(),p])), C=hmClasses(w), live=w>DATA_WEEK;
   return Object.keys(C).filter(n=>{const p=byName[n.toLowerCase()]; return live?!p:(p&&p[1]===w)}).sort((a,b)=>a.localeCompare(b)).map(n=>{const x=C[n], cls=Object.entries(x.p).sort((a,b)=>a[0]-b[0]).map(([pi,L])=>`${TIER_NAME[L]} ${PATHS[pi]}`);
-    return {n,t:cls.length?`Welcome to the championship ${n}, you have been placed in ${andList(cls)}. Let us know if you prefer to be placed in a different difficulty bracket.`
-      :`Welcome to the championship ${n}! You're playing as a FreeBird for now. Let us know which difficulty bracket you'd like to be placed in.`}})}
+    return {n,t:cls.length?`Welcome to the championship @${n}, you have been placed in ${andList(cls)}. Let us know if you prefer to be placed in a different difficulty bracket.`
+      :`Welcome to the championship @${n}! You're playing as a FreeBird for now. Let us know which difficulty bracket you'd like to be placed in.`}})}
 // players back in week w after 4+ weeks away, with a friendly message
 function hmBack(w){const I=sbIx();
   return Object.keys(I.wk).map(k=>{const W=I.wk[k], i=W.indexOf(w); if(i<1||w-W[i-1]<5)return null; const n=I.disp[k], away=w-W[i-1]-1;
-    return {n,away,t:`Welcome back ${n}! Great to see you again after ${away} week${away===1?"":"s"} away. 🎸`}}).filter(Boolean).sort((a,b)=>a.n.localeCompare(b.n))}
+    return {n,away,t:`Welcome back to the championship, @${n}! Great to see you again after ${away} week${away===1?"":"s"} away. 🎸`}}).filter(Boolean).sort((a,b)=>a.n.localeCompare(b.n))}
 // milestone medals collected in week w, as encouraging messages: new play streaks and hosting milestones, round numbers
 // (every 50 weeks played, every 25 wins on a path), and firsts (the medal's all-time count is all from this week)
 function hmMsg(n,tip){const k=tip.split(" · ")[0], all=+((/\((\d+) all time\)/.exec(tip)||[])[1]||0), plus=+((/\+(\d+) this week/.exec(tip)||[])[1]||0), first=all>0&&all===plus;
   let m;
-  if((m=/^(\d+)-week play streak medal/.exec(k)))return `Congratulations ${n}, you've reached your first ${m[1]}-week play streak! 🔥 Keep it going!`;
-  if((m=/^(\d+)-week host medal/.exec(k)))return `Thank you ${n} for hosting ${m[1]} weeks! 🙌 The championship runs on hosts like you.`;
-  if((m=/^Played (guitar|bass)/.exec(k))){const wk=+((/· (\d+) weeks \(/.exec(tip)||[])[1]||0); return wk&&wk%50===0?`Congratulations ${n} on ${wk} weeks playing ${m[1]} in the championship! 🎸`:""}
-  if((m=/^Gold medal · (\w+)/.exec(tip)))return first?`Congratulations ${n} on your first ${m[1]} win! 🥇`:all%25===0&&all-plus<all-all%25+25&&all-plus<all?`${n} has now won ${all} ${m[1]} challenges! 🏆`:"";
+  if((m=/^(\d+)-week play streak medal/.exec(k)))return `Congratulations @${n}, you've reached your first ${m[1]}-week play streak! 🔥 Keep it going!`;
+  if((m=/^(\d+)-week host medal/.exec(k)))return `Thank you @${n} for hosting ${m[1]} weeks! 🙌 The championship runs on hosts like you.`;
+  if((m=/^Played (guitar|bass)/.exec(k))){const wk=+((/· (\d+) weeks \(/.exec(tip)||[])[1]||0); return wk&&wk%50===0?`Congratulations @${n} on ${wk} weeks playing ${m[1]} in the championship! 🎸`:""}
+  if((m=/^Gold medal · (\w+)/.exec(tip)))return first?`Congratulations @${n} on your first ${m[1]} win! 🥇`:all%25===0&&all-plus<all-all%25+25&&all-plus<all?`@${n} has now won ${all} ${m[1]} challenges! 🏆`:"";
   if(!first)return "";
-  if((m=/^(\w+) perfectionist/.exec(k)))return `Congratulations ${n} on your first 100% ${m[1]==="God"?"on a God challenge":`in ${m[1]}`}! 💯`;
-  if(/^Catch ‘em all/.test(k))return `Amazing ${n}: your first Catch 'em all, a score on every challenge of the week! 🎯`;
-  if((m=/^(\w+) completionist/.exec(k)))return `Nice one ${n}, you played every ${m[1]} challenge of the week for the first time! ✅`;
-  if(/^Harder, Better, Faster, Stronger/.test(k))return `Harder, better, faster, stronger! ${n} beat their own past score on a returning song for the first time. 📈`;
-  if(/^Still got it/.test(k))return `${n} still got it! A first 100% again on a song they'd already perfected. 💪`;
-  if((m=/^(\d+)-win week trophy/.exec(k)))return `Congratulations ${n} on your first ${m[1]}-win week! 🏆`;
-  if(/^Gold God/.test(k))return `Congratulations ${n} on your first God challenge win! ⚡`;
+  if((m=/^(\w+) perfectionist/.exec(k)))return `Congratulations @${n} on your first 100% ${m[1]==="God"?"on a God challenge":`in ${m[1]}`}! 💯`;
+  if(/^Catch ‘em all/.test(k))return `Amazing @${n}: your first Catch 'em all, a score on every challenge of the week! 🎯`;
+  if((m=/^(\w+) completionist/.exec(k)))return `Nice one @${n}, you played every ${m[1]} challenge of the week for the first time! ✅`;
+  if(/^Harder, Better, Faster, Stronger/.test(k))return `Harder, better, faster, stronger! @${n} beat their own past score on a returning song for the first time. 📈`;
+  if(/^Still got it/.test(k))return `@${n} still got it! A first 100% again on a song they'd already perfected. 💪`;
+  if((m=/^(\d+)-win week trophy/.exec(k)))return `Congratulations @${n} on your first ${m[1]}-win week! 🏆`;
+  if(/^Gold God/.test(k))return `Congratulations @${n} on your first God challenge win! ⚡`;
   return ""}
 function hmMilestones(w){const live=w>DATA_WEEK, names=[...new Set(twEntries(w).map(x=>x.n))], out=[];
   names.forEach(n=>{let ms=[]; try{ms=twMedals(n,w,live)}catch(e){}
@@ -5892,7 +5899,7 @@ function acctThisWeek(n,part){ part=part||ACCT.twPart||"me";
       return g?`<div class="haulbox celestial" data-tip="Gold God winner last week">${celCorners()}${inner}</div>`:inner})():`<p class="dim">No new medals last week.</p>`}</div>`;
   if(part==="week")return `    <div class="acctsec acctriv"><h3>This week's rivals</h3>${riv||`<p class="dim">No rivals this week yet.</p>`}</div>${ywPast(n)}
     <div class="acctsec"><h3>This week's scoreboard <small>Week ${w}</small></h3>${sb.length?`<ul class="alist">${sb.join("")}</ul>`:`<p class="dim">No scoreboard for this week yet.</p>`}</div>`;   // the scoreboard comes last in Your week
-  // (the Elo and hardest-rating charts aren't repeated here: they're in the profile section further down)
+  // (the Elo and skill-rating charts aren't repeated here: they're in the profile section further down)
   return HAUL+(()=>{try{return seasonStanding(n)}catch(e){return ""}})()+`
     <div class="acctsec"><h3>${RKc===RK_SHEET?"Rodman's Rankings":"Rankings"} ${RKc.weeks?`<small>Weeks ${esc(RKc.weeks)}</small>`:""}</h3>${RKc===RK_SHEET?"":`<p class="dim" style="margin:-4px 0 8px">Worked out by the site from the latest 10 weeks · may differ from Rodman's official rankings (Weeks ${esc(RK_SHEET.weeks)})</p>`}${rk.length?`<ul class="alist">${rk.join("")}</ul>`:`<p class="dim">Not ranked right now.</p>`}<div class="row"><button type="button" class="btn ghost" data-goview="rankings">Open Rodman's Rankings ›</button></div></div>`;
 }
@@ -6079,7 +6086,7 @@ function acctDraw(msg,err){
   const tabs=`<div class="accttabs" role="tablist">${tb("me","Your profile")}${appr?tb("week",`Your week${ywN?`<span class="nbadge" title="Passed ${ywN} time${ywN===1?"":"s"} · the ✕ on the alert dismisses itt">${ywN}</span>`:""}`):""}${appr?tb("wrapped",`🎸 ${WRAP_OPEN()-1} Restringed`):""}${ACCT.claim&&ACCT.claim.status==="approved"?tb("banner","Forum banner"):""}${tb("manage","Manage account")}${canRateFor()?tb("host","Host"):""}${ACCT.admin?tb("admin",`Admin${(()=>{const t=typoScan().nNew; return t?`<span class="nbadge tybadge" title="${t} likely typo${t===1?"":"s"} in this week's scoreboard">${t}</span>`:""})()}${pendN?`<span class="nbadge" title="${pendN} claim${pendN===1?"":"s"} waiting for approval">${pendN}</span>`:""}`):""}</div>`;
   let h=tabs;
   if(ACCT.tab==="admin"){}
-  else if(ACCT.tab==="host")h+=`${hostSection(false).replace('class="acctsec hostsec"','class="acctsec hostsec hosttop"')}${(()=>{try{return closeSection()}catch(e){return ""}})()}${(()=>{try{return hmSection()}catch(e){return ""}})()}${(()=>{try{return unusedSection()}catch(e){console.error(e); return ""}})()}${(()=>{try{return hlSection()}catch(e){return ""}})()}${(()=>{try{return fwHostSection()}catch(e){return ""}})()}${(()=>{try{return lapsedSection()}catch(e){return ""}})()}${adminRateSection()}${ratingLogSection()}`;
+  else if(ACCT.tab==="host")h+=`${hostSection(false).replace('class="acctsec hostsec"','class="acctsec hostsec hosttop"')}${(()=>{try{return closeSection()}catch(e){return ""}})()}${(()=>{try{return unusedSection()}catch(e){console.error(e); return ""}})()}${(()=>{try{return hmSection()}catch(e){return ""}})()}${(()=>{try{return hlSection()}catch(e){return ""}})()}${(()=>{try{return fwHostSection()}catch(e){return ""}})()}${(()=>{try{return lapsedSection()}catch(e){return ""}})()}${adminRateSection()}${ratingLogSection()}`;
   else if(ACCT.tab==="banner")h+=bnTab(ACCT.claim.player);
   else if(ACCT.tab==="wrapped")h+=(()=>{try{return wrapSection(ACCT.claim.player)}catch(e){console.error(e); return ""}})();
   else if(ACCT.tab==="week"){const n=ACCT.claim.player; ACCT.twPart="week";
@@ -6246,7 +6253,7 @@ if(!/[?&](banner|mlpre)\b/.test(location.search)&&history.pushState){
     return st}
   {const m=/^#([a-z]+)\/(.+)$/.exec(location.hash); const st=m&&hashState(m); if(st)restore(st)}
   try{const st=state(); history.replaceState({...st,y:scrollY},"",location.hash?hashOf(st):location.pathname+location.search)}catch(e){}
-  // the first profile is drawn before the Elo and hardest-rating code has loaded, so its charts are missing: draw it again now
+  // the first profile is drawn before the Elo and skill-rating code has loaded, so its charts are missing: draw it again now
   {const n=$("pq").value.trim(); if(n&&byName[n]&&!$("pcard").querySelector(".elochart"))showPlayer(n)}
   NAV.ready=true;
 }
