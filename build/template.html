@@ -432,7 +432,10 @@ button.clear:hover{border-color:var(--accent)}
 .nwnote .nwbody{flex:1;min-width:0}
 .nwnote .nwmeds{display:flex;flex-wrap:wrap;gap:12px 16px;align-items:center;margin-top:9px}
 .nwnote .nwmeds>.medal-m{margin:0!important}.nwnote .nwmeds>.medal-m.diamond:not(.classgem){margin:0 -2px 0 -4px!important}
-.nwnote .nwelo{margin-top:12px;max-width:420px}.pelo{margin:12px 0 4px;max-width:420px}.pelo-sub{font:600 .7rem var(--f-body);letter-spacing:0;text-transform:none;margin-left:6px}.nwelo-h{font:800 .72rem var(--f-display);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+.nwnote .nwelo{margin-top:12px;max-width:420px}
+.nwnote .nwgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,270px),1fr));gap:4px 22px;align-items:start}.nwnote .nwgrid .nwelo{max-width:none}
+.nwelo-s{font-size:.72rem;color:var(--muted);margin:-2px 0 5px}.nwelo .nwv small{font:600 .68rem var(--f-body);color:var(--muted)}
+.nwgrid .nwelo li{grid-template-columns:62px 64px 40px 1fr}.pelo{margin:12px 0 4px;max-width:420px}.pelo-sub{font:600 .7rem var(--f-body);letter-spacing:0;text-transform:none;margin-left:6px}.nwelo-h{font:800 .72rem var(--f-display);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
 .nwelo ul{list-style:none;margin:0;padding:0}.nwelo li{display:grid;grid-template-columns:70px 52px 52px 1fr;align-items:center;gap:8px;padding:5px 0 5px 9px;border-left:3px solid var(--pc);border-top:1px solid var(--line);font-size:.9rem}.nwelo li:first-child{border-top:0}
 .nwelo .nwp{color:var(--pc);font-weight:700}.nwelo .nwv{font:800 1rem var(--f-display)}.nwelo .nwd{font-size:.8rem;font-weight:800}.nwelo .nwd .up{color:var(--s-green)}.nwelo .nwd .dn{color:var(--s-red)}.nwelo .nwr{text-align:right;padding-right:4px}
 .hryears{margin-top:0}.hrnote p{margin:2px 0 8px;font-size:.86rem;color:var(--muted)}.hrn-list{display:flex;flex-wrap:wrap;gap:6px}.hrn-b{padding:4px 10px;border-left:3px solid var(--pc);background:var(--panel2);border-radius:6px;font-size:.86rem}.hrn-b b{color:var(--pc);margin-right:4px}.hrn-b small{color:var(--muted)}.hry-scroll{overflow-x:auto}.hryears table{border-collapse:collapse;width:100%;font-size:.84rem}
@@ -985,7 +988,11 @@ footer .updated{display:block;margin-top:4px}
 @media (prefers-reduced-motion:reduce){.twarrow.glow{animation:none}}
 .twpv-hide{display:none!important}
 .twnp .npn{display:block;font-size:.72rem;font-weight:400;color:var(--s-green)}
-.twseas{margin-top:14px}.panel.twseas{padding:12px}.panel.twseas .twseasin{border:0;background:none;padding:2px 4px}.twseasin{border:1px solid color-mix(in srgb,var(--s-yellow) 35%,var(--line));border-radius:10px;padding:10px 12px;background:color-mix(in srgb,var(--s-yellow) 4%,var(--panel2));cursor:pointer}.twseasin:hover{border-color:var(--s-yellow)}
+.twseas{margin-top:14px}
+#view-season li,#view-season .sc{cursor:pointer}
+#view-season .seashl:not(.nm){background:color-mix(in srgb,var(--accent) 16%,transparent);border-radius:6px}
+#view-season .nm.seashl{color:var(--accent);font-weight:800}
+.twseas .tsl{color:#ffd86b;font-weight:800;text-shadow:0 0 10px rgba(255,216,107,.3)}.panel.twseas{padding:12px}.panel.twseas .twseasin{border:0;background:none;padding:2px 4px}.twseasin{border:1px solid color-mix(in srgb,var(--s-yellow) 35%,var(--line));border-radius:10px;padding:10px 12px;background:color-mix(in srgb,var(--s-yellow) 4%,var(--panel2));cursor:pointer}.twseasin:hover{border-color:var(--s-yellow)}
 .twseas .tsh{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 12px;font-size:.9rem;color:var(--muted)}.twseas .tsn{font:900 1rem var(--f-display);letter-spacing:.06em;text-transform:uppercase;color:#f5c84a}.twseas .golink{margin-left:auto;color:var(--s-yellow);font-weight:600}
 .twseas .tsnote{font-size:.74rem;color:var(--muted);margin:4px 0 6px}.twseas .tsg{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px 16px}@media(max-width:700px){.twseas .tsg{grid-template-columns:1fr}}
 .twseas .lvchip{font:700 .64rem var(--f-mono);padding:1px 6px;border-radius:4px;color:#10131a;background:var(--tc);text-align:center}.twseas h4{margin:0 0 3px;font:800 .7rem var(--f-display);letter-spacing:.1em;text-transform:uppercase;color:var(--pc)}.twseas ul{list-style:none;margin:0;padding:0}.twseas li{display:grid;grid-template-columns:44px minmax(0,1fr) auto;align-items:center;gap:6px;font-size:.84rem;padding:2px 0}.twseas .tsl{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.twseas li b{font-family:var(--f-display);color:var(--s-green)}
@@ -1114,11 +1121,14 @@ footer .updated{display:block;margin-top:4px}
 /* amber glowing rim for the streak boxes */
 .panel.amber{border-color:color-mix(in srgb,#ffb020 70%,var(--line));box-shadow:0 0 0 1px rgba(255,176,32,.25),0 0 14px rgba(255,160,40,.28),inset 0 0 18px rgba(255,160,40,.06)}
 @media (prefers-reduced-motion:no-preference){.panel.amber{animation:amberglow 3.2s ease-in-out infinite}}
-/* Streaks at stake: vampire fangs biting the top edge; New this week: a waving hand and a sprout, like the palm and flower on Back from a break */
-.panel.amber.fangs{position:relative}.panel.amber.fangs::before{content:"";position:absolute;top:-2px;right:18px;width:78px;height:39px;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 42 21'%3E%3Cpath d='M1 1.2h40' stroke='%237a1020' stroke-width='1.3' stroke-linecap='round'/%3E%3Cpath d='M3 1.6h7l-3.2 16.4q-.3.9-.6 0z' fill='%23f6f2e8' stroke='%23a59c88' stroke-width='.6'/%3E%3Cpath d='M32 1.6h7l-3.2 16.4q-.3.9-.6 0z' fill='%23f6f2e8' stroke='%23a59c88' stroke-width='.6'/%3E%3Cpath d='M10.6 1.6h3.2l-.5 5.2q-1.4 1.2-2.8 0z' fill='%23f6f2e8' stroke='%23a59c88' stroke-width='.6'/%3E%3Cpath d='M15.1 1.6h3.8l-.5 5.2q-1.4 1.2-2.8 0z' fill='%23f6f2e8' stroke='%23a59c88' stroke-width='.6'/%3E%3Cpath d='M19.6 1.6h3.8l-.5 5.2q-1.4 1.2-2.8 0z' fill='%23f6f2e8' stroke='%23a59c88' stroke-width='.6'/%3E%3Cpath d='M24.1 1.6h3.8l-.5 5.2q-1.4 1.2-2.8 0z' fill='%23f6f2e8' stroke='%23a59c88' stroke-width='.6'/%3E%3Cpath d='M28.6 1.6h3.2l-.5 5.2q-1.4 1.2-2.8 0z' fill='%23f6f2e8' stroke='%23a59c88' stroke-width='.6'/%3E%3Cellipse cx='35.5' cy='19.4' rx='1' ry='1.3' fill='%23d0142a'/%3E%3C/svg%3E") no-repeat center/contain;filter:drop-shadow(0 2px 2px rgba(0,0,0,.45));pointer-events:none}
-.panel.waving.lit::before{content:"👋";position:absolute;top:-13px;right:12px;font-size:20px;filter:drop-shadow(0 2px 3px rgba(0,0,0,.5));transform-origin:70% 80%}
+/* Streaks at stake: vampire jaws chomping on the top edge; New this week: a sprout, like the palm and flower on Back from a break */
+.panel.amber.fangs{position:relative}.panel.amber.fangs::before{content:"";position:absolute;top:-3px;right:18px;width:80px;height:50px;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 40'%3E%3Cg%3E%3Cpath d='M3 1.8h58' stroke='%237a1020' stroke-width='1.4' stroke-linecap='round'/%3E%3Cpath d='M6 2.5H13L9.9 21Q9.5 21.8 9.1 21z' fill='%23f6f2e8' stroke='%23a59c88' stroke-width='.6'/%3E%3Cpath d='M51 2.5H58L54.9 21Q54.5 21.8 54.1 21z' fill='%23f6f2e8' stroke='%23a59c88' stroke-width='.6'/%3E%3Cpath d='M14 2.5H22.5V8.5Q18.25 11 14 8.5z' fill='%23f6f2e8' stroke='%23a59c88' stroke-width='.6'/%3E%3Cpath d='M23 2.5H31.5V8.5Q27.25 11 23 8.5z' fill='%23f6f2e8' stroke='%23a59c88' stroke-width='.6'/%3E%3Cpath d='M32.5 2.5H41V8.5Q36.75 11 32.5 8.5z' fill='%23f6f2e8' stroke='%23a59c88' stroke-width='.6'/%3E%3Cpath d='M41.5 2.5H50V8.5Q45.75 11 41.5 8.5z' fill='%23f6f2e8' stroke='%23a59c88' stroke-width='.6'/%3E%3CanimateTransform attributeName='transform' type='translate' values='0 0;0 5;0 0;0 0' keyTimes='0;.18;.36;1' dur='1.8s' repeatCount='indefinite'/%3E%3C/g%3E%3Cg%3E%3Cpath d='M11 38.2h42' stroke='%237a1020' stroke-width='1.4' stroke-linecap='round'/%3E%3Cpath d='M14 37.5H20L17.4 27Q17.0 26.2 16.6 27z' fill='%23f6f2e8' stroke='%23a59c88' stroke-width='.6'/%3E%3Cpath d='M44 37.5H50L47.4 27Q47.0 26.2 46.6 27z' fill='%23f6f2e8' stroke='%23a59c88' stroke-width='.6'/%3E%3Cpath d='M21 37.5H26V32.5Q23.5 30 21 32.5z' fill='%23f6f2e8' stroke='%23a59c88' stroke-width='.6'/%3E%3Cpath d='M26.5 37.5H31.5V32.5Q29.0 30 26.5 32.5z' fill='%23f6f2e8' stroke='%23a59c88' stroke-width='.6'/%3E%3Cpath d='M32.5 37.5H37.5V32.5Q35.0 30 32.5 32.5z' fill='%23f6f2e8' stroke='%23a59c88' stroke-width='.6'/%3E%3Cpath d='M38 37.5H43V32.5Q40.5 30 38 32.5z' fill='%23f6f2e8' stroke='%23a59c88' stroke-width='.6'/%3E%3CanimateTransform attributeName='transform' type='translate' values='0 0;0 -5;0 0;0 0' keyTimes='0;.18;.36;1' dur='1.8s' repeatCount='indefinite'/%3E%3C/g%3E%3C/svg%3E") no-repeat center/contain;filter:drop-shadow(0 2px 2px rgba(0,0,0,.45));pointer-events:none}
+/* Anniversaries: confetti on the trim (a span, since the starry rim uses both pseudo-elements) */
+.trimemo{display:none;position:absolute;top:-13px;right:12px;font-size:20px;line-height:1;filter:drop-shadow(0 2px 3px rgba(0,0,0,.5));pointer-events:none;z-index:2}
+.panel.lit>.trimemo{display:block}
+@media (prefers-reduced-motion:no-preference){.panel.lit>.trimemo{animation:sway 3.4s ease-in-out infinite;transform-origin:50% 100%}}
 .panel.waving.lit::after{content:"🌱";position:absolute;bottom:-11px;left:10px;font-size:17px;filter:drop-shadow(0 2px 3px rgba(0,0,0,.5))}
-@media (prefers-reduced-motion:no-preference){.panel.waving.lit::before{animation:handwave 2.6s ease-in-out infinite}}
+
 @keyframes handwave{0%,60%,100%{transform:rotate(0)}10%,30%{transform:rotate(16deg)}20%,40%{transform:rotate(-10deg)}50%{transform:rotate(8deg)}}
 @keyframes amberglow{0%,100%{box-shadow:0 0 0 1px rgba(255,176,32,.22),0 0 10px rgba(255,160,40,.22),inset 0 0 16px rgba(255,160,40,.05)}50%{box-shadow:0 0 0 1px rgba(255,190,60,.4),0 0 20px rgba(255,160,40,.4),inset 0 0 22px rgba(255,160,40,.09)}}
 /* Rodman's Rankings */
@@ -1647,7 +1657,7 @@ footer{color:var(--dim);font-size:.78rem}
       <div class="panel-head"><h2>🌱 New this week</h2><span class="sub" id="tw-new-sub"></span></div>
       <ul class="twl" id="tw-new"></ul>
     </section>
-    <section class="panel glowrim starry" style="--rc:#c9b8ff">
+    <section class="panel glowrim starry" style="--rc:#c9b8ff"><span class="trimemo" aria-hidden="true">🎊</span>
       <div class="panel-head"><h2>🎂 Anniversaries</h2><div class="seg annmode" role="radiogroup" aria-label="Everyone or active players only" id="annmode"><button type="button" data-ann="1" class="s-all" aria-pressed="false" title="Everyone who first played this week in an earlier year">All</button><button type="button" data-ann="0" class="s-act" aria-pressed="true" title="Only players who played in the past year">Active</button></div><span class="sub" id="tw-ann-sub" style="flex-basis:100%"></span></div>
       <ul class="twl" id="tw-ann"></ul>
     </section>
@@ -2604,7 +2614,7 @@ function seasonNum(id){const L=seasonList(), i=L.indexOf(id); return roman(i>=0?
 // season numbers in Roman numerals, like a Super Bowl (Season XX)
 function roman(n){let o=""; [[1000,"M"],[900,"CM"],[500,"D"],[400,"CD"],[100,"C"],[90,"XC"],[50,"L"],[40,"XL"],[10,"X"],[9,"IX"],[5,"V"],[4,"IV"],[1,"I"]].forEach(([v,r])=>{while(n>=v){o+=r; n-=v}}); return o}
 const SEASON_TIP="Seasons run Jan–Mar, Apr–Jun, Jul–Sep and Oct–Dec, so a new season starts in January, when most new players join.\n\nPoints: on each week's main challenge (not bonus or God challenges), the top 10 who can win it score 25, 18, 15, 12, 10, 8, 6, 4, 2 and 1. Each class is its own championship, and the same rules as winning a challenge decide who counts (playing up or down doesn't). Points add up over the season, so showing up every week matters; ties go to more wins, then more 2nd places, and so on. The leader when the season ends is that class's season champion.\n\nMost improved: the biggest Elo gain in each class on a path over the season, for players with games in at least half of its weeks (7 of a 13-week season).";
-function renderSeason(){const el=$("season-box"); if(!el)return; eloBuild(); const L=seasonList(); if(!L.length)return;
+function renderSeason(){setTimeout(()=>{try{seasHl()}catch(e){}},0); const el=$("season-box"); if(!el)return; eloBuild(); const L=seasonList(); if(!L.length)return;
   const cur=seasonOf(ELO_DONE), id=SEASON_SEL&&L.includes(SEASON_SEL)?SEASON_SEL:cur, live=id===cur&&seasonOf(ELO_DONE+1)===cur;
   const [a,b]=seasonRange(id), done=Math.min(b,ELO_DONE)-a+1, len=b-a+1;
   $("season-pick").innerHTML=L.slice().reverse().map(x=>`<option value="${x}"${x===id?" selected":""}>${x}</option>`).join("");
@@ -2632,6 +2642,13 @@ document.addEventListener("click",e=>{const x=e.target.closest(".swb[data-sw]");
 document.addEventListener("change",e=>{if(e.target.id!=="season-pick")return; SEASON_SEL=e.target.value; renderSeason()});
 $("view-season").addEventListener("mousemove",e=>{const p=e.target.closest("[data-tip]");if(!p){tip.hidden=true;return}tip.textContent=p.dataset.tip;tip.hidden=false;placeTip(e.clientX,e.clientY)});
 $("view-season").addEventListener("mouseleave",()=>tip.hidden=true);
+// Season tab: clicking a row (around a name, not the name itself) highlights that player everywhere on the tab, like the
+// Scoreboard; click the same row again to clear it. Clicking the name opens their profile as before.
+let SEAS_HL=null;
+function seasHl(){document.querySelectorAll("#view-season .seashl").forEach(el=>el.classList.remove("seashl"));
+  if(!SEAS_HL)return; document.querySelectorAll("#view-season [data-profile]").forEach(el=>{if(el.dataset.profile.toLowerCase()!==SEAS_HL)return; el.classList.add("seashl"); const row=el.closest("li,.sc,.smi,tr"); if(row)row.classList.add("seashl")})}
+$("view-season").addEventListener("click",e=>{if(e.target.closest("[data-profile],a,button,select,[data-goseason]"))return; const row=e.target.closest("#view-season li,#view-season .sc,#view-season .smi"); const nm=row&&row.querySelector("[data-profile]"); if(!nm)return;
+  const k=nm.dataset.profile.toLowerCase(); SEAS_HL=SEAS_HL===k?null:k; seasHl()});
 $("view-season").addEventListener("click",e=>{const pb=e.target.closest("[data-profile]"); if(!pb)return; const n=pb.dataset.profile; if(byName[n]){showView("players");showPlayer(n);$("pcard").closest("section").scrollIntoView({block:"start"})}});
 
 // Host tab: players who stopped in the last year (or 2), with where they were when they left
@@ -3195,6 +3212,13 @@ function celCorners(){
 // to every other copy, and the laurel leaves would vanish there (leaving only the thin stem, like a plain ring)
 var dgN=0;
 // a fresh set of gradient ids for a copied medal (copies made from another medal's HTML)
+// give every id inside a box its own name (and point its url(#…) and href="#…" references at the new names), so medal
+// drawings copied into a list many times, or also drawn elsewhere on the page, never borrow a gradient from a hidden copy
+let BOX_ID_N=0;
+function uniqBoxIds(box){if(!box)return; const map={}; box.querySelectorAll("[id]").forEach(el=>{const n=el.id+"_b"+(++BOX_ID_N); map[el.id]=n; el.id=n});
+  if(!Object.keys(map).length)return;
+  box.querySelectorAll("*").forEach(el=>{for(const a of ["fill","stroke","filter","clip-path","mask","href","xlink:href","style"]){const v=el.getAttribute(a); if(!v||v.indexOf("#")<0)continue;
+    const nv=v.replace(/url\(#([^)]+)\)/g,(m,id)=>map[id]?`url(#${map[id]})`:m).replace(/^#(.+)$/,(m,id)=>map[id]?"#"+map[id]:m); if(nv!==v)el.setAttribute(a,nv)}})}
 function reIds(h){const u=++dgN; return h.replace(/((?:id="|url\(#)(?:laurelg\d|dg\d|celg|lfg|lfl))(?:_\d+)?(?=["\)])/g,"$1_"+u)}
 function uniqIds(h,ids){const u=++dgN; return ids.reduce((t,id)=>t.replace(new RegExp(`(id="|url\\(#)${id}(?=["\\)])`,"g"),`$1${id}_${u}`),h)}
 function diamondSvg(i,p){const u=++dgN; return diamondSvg0(i,p).replace(/laurelg(\d)/g,"laurelg$1_"+u).replace(/(["#(])dg(\d)/g,"$1dg$2_"+u)}
@@ -3677,6 +3701,7 @@ sbRender();
 
 // ---------- songs ----------
 const TIER_ORDER=["B","I","A","M","G"], TIER_LABEL={B:"Beginner",I:"Intermediate",A:"Advanced",M:"Masterclass",G:"God of…"};
+const TIER_SHORT={B:"Beg",I:"Int",A:"Adv",M:"Mas",G:"God"};   // level pills on the Songs tab, like This Week's
 const TIER_COL={B:"var(--s-yellow)",I:"var(--s-green)",A:"var(--s-blue)",M:"var(--s-purple)",G:"var(--s-red)"};
 const tierOf=l=>/^god/i.test(l)?"G":/master/i.test(l)?"M":/^adv/i.test(l)?"A":/^int/i.test(l)?"I":/begin/i.test(l)?"B":null;
 // level from the difficulty rating when there is one: under 4 Beginner, 4–5.5 Intermediate, 6–7.5 Advanced, 8–9.5 Masterclass, 10+ God tier
@@ -4076,7 +4101,7 @@ function renderSongs(){
    $("b-easy").innerHTML=easy.map(([n,x],i)=>`<div class="brow${i<3?" top":""} notag" style="--c:var(--s-green)"><span class="rk">${i+1}</span><span class="nm" data-band="${esc(n)}" title="${esc(n)}">${esc(n)}</span><span class="track"><span class="fill" style="width:${Math.max(2,x/10*100)}%;animation-delay:${i*30}ms"></span></span><span class="val">${x}</span></div>`).join("");}
   // a level pill in either list narrows that list to challenges at that level
   const byLvl=lv=>Object.entries(songs).map(([sg,v])=>[sg,lv?v.filter(c=>c.t===lv):v]).filter(([,v])=>v.length);
-  const lvPill=(t,attr,sel)=>`<span class="lvchip lvbtn${sel===t?" sel":""}" data-${attr}="${t}" style="--tc:${TIER_COL[t]}" title="${sel===t?"Show all levels":`Show only ${TIER_LABEL[t]} challenges`}">${TIER_LABEL[t]}</span>`;
+  const lvPill=(t,attr,sel)=>`<span class="lvchip lvbtn${sel===t?" sel":""}" data-${attr}="${t}" style="--tc:${TIER_COL[t]}" title="${sel===t?"Show all levels":`Show only ${TIER_LABEL[t]} challenges`}">${TIER_SHORT[t]||TIER_LABEL[t]}</span>`;
   const lvNote=(id,lv,attr)=>{$(id).innerHTML=lv?`<span class="lvchip" style="--tc:${TIER_COL[lv]}">${TIER_LABEL[lv]} only</span><button type="button" class="clear" data-${attr}="" style="padding:1px 8px;font-size:.72rem">Show all levels</button>`:""};
   lvNote("sl-f",lvlPlayed,"lvp"); lvNote("rl-f",lvlReplay,"lvr");
   const topSongs=byLvl(lvlPlayed).map(([sg,v])=>[sg,new Set(v.flatMap(c=>c.who||[])).size,v]).filter(x=>x[1]>0).sort((a,b)=>b[1]-a[1]||b[2].length-a[2].length).slice(0,20);
@@ -4111,10 +4136,10 @@ function renderSongLookup(){const el=$("sqres"); if(!el)return;
   if(!hits.length){el.innerHTML=`<div class="empty">No songs found${q?` with “${esc(sqQ)}” in the title`:""}${sqTun?` in ${esc(sqTun)}`:""}.</div>`;return}
   const rows=hits.slice(0,40).map(g=>{const ps=paths(g), last=Math.max(...g.cs.map(c=>c.w)), lv=[...new Set(g.cs.map(c=>c.t))].sort((a,b)=>TIER_ORDER.indexOf(a)-TIER_ORDER.indexOf(b));
     const tn=ps.map(p=>[p,tuneOf(g.song,p)]).filter(x=>x[1]), same=tn.length&&tn.every(x=>x[1]===tn[0][1]);
-    return `<tr><td><b class="golink" data-goband="${esc(g.artist)}" data-gosong="${esc(g.title)}" title="Show this song in Band lookup">${esc(g.title)}</b>${songRateBox(g.cs)}<small class="golink" data-goband="${esc(g.artist)}" title="Show this band in Band lookup">${esc(g.artist)}</small></td>
-      <td><div class="chips">${lv.map(t=>`<span class="lvchip" style="--tc:${TIER_COL[t]}">${TIER_LABEL[t]||t}</span>`).join("")}</div></td>
+    return `<tr><td><b class="golink" data-goband="${esc(g.artist)}" data-gosong="${esc(g.title)}" title="Show this song in Band lookup">${esc(g.title)}</b>${songRateBox(g.cs)}${songPill(g.song,IG_LATEST(g.song))}<small class="golink" data-goband="${esc(g.artist)}" title="Show this band in Band lookup">${esc(g.artist)}</small></td>
+      <td><div class="chips">${lv.map(t=>`<span class="lvchip" style="--tc:${TIER_COL[t]}" title="${TIER_LABEL[t]||t}">${TIER_SHORT[t]||t}</span>`).join("")}</div></td>
       <td class="sqp">${ps.map(p=>`<span style="color:${PATH_C[p]}">${"LRB"[p]}</span>`).join(" ")}</td>
-      <td class="sqt">${same?esc(tn[0][1]):tn.map(([p,t])=>`${"LRB"[p]}: ${esc(t)}`).join("<br>")||"–"}</td>
+      <td class="sqt">${same?esc(tn[0][1]):tn.map(([p,t])=>`${"LRB"[p]}: ${esc(t)}`).join("<br>")||`<span class="dim" title="Not in the Song Selection List's tuning columns">?</span>`}</td>
       <td class="r"><span${SB.weeks[last]?` class="golink" data-sbw="${last}" title="Open Week ${last} on the Scoreboard"`:""}>Wk ${last}</span><small>${g.cs.length}×</small></td></tr>`}).join("");
   el.innerHTML=`<div class="bandscroll"><table class="bandtbl sqtbl"><thead><tr><th>Song</th><th>Levels</th><th>Paths</th><th>Tuning</th><th class="r">Last played</th></tr></thead><tbody>${rows}</tbody></table></div>${hits.length>40?`<p class="dim">Showing the 40 most recent of ${hits.length} songs. Type more to narrow it down.</p>`:""}`}
 document.addEventListener("input",e=>{if(e.target.id!=="sq")return; sqQ=e.target.value.trim(); renderSongLookup()});
@@ -4143,7 +4168,7 @@ function showBand(name){songsReady();
     <div>
       <h3>${esc(name)}</h3>
       <div class="tierbar">${tierCount.map(([t,k])=>`<span style="--tc:${TIER_COL[t]};width:${k/tierTotal*100}%" title="${TIER_LABEL[t]}: ${k} song${k===1?"":"s"}"></span>`).join("")}</div>
-      <div class="chips bchips">${(()=>{const pill=([t,k])=>`<button type="button" class="lvchip lvbtn${bandTier===t?" sel":""}" data-btier="${t}" aria-pressed="${bandTier===t}" style="--tc:${TIER_COL[t]}" title="${k} different song${k===1?"":"s"} at ${TIER_LABEL[t]} · click to show only these">${TIER_LABEL[t]}</button>`;
+      <div class="chips bchips">${(()=>{const pill=([t,k])=>`<button type="button" class="lvchip lvbtn${bandTier===t?" sel":""}" data-btier="${t}" aria-pressed="${bandTier===t}" style="--tc:${TIER_COL[t]}" title="${k} different song${k===1?"":"s"} at ${TIER_LABEL[t]} · click to show only these">${TIER_SHORT[t]||TIER_LABEL[t]}</button>`;
         const r1=tierCount.filter(([t])=>"BIA".includes(t)).map(pill).join(""), r2=tierCount.filter(([t])=>"MG".includes(t)).map(pill).join("");
         return `${r1?`<div class="brow1">${r1}</div>`:""}${r2||bandTier?`<div class="brow1">${r2}${bandTier?`<button type="button" class="clear" data-btier="" style="padding:1px 8px;font-size:.72rem">Show all levels</button>`:""}</div>`:""}${(()=>{const fp=bandPathF!=null?bandPathF:sPath;return fp>=0?`<div class="brow1"><span class="pth" style="--pc:${PATH_C[fp]}">${PATHS[fp]} only</span><button type="button" class="clear" data-bpath="" style="padding:1px 8px;font-size:.72rem">Show all paths</button></div>`:""})()}${bandSong?`<div class="brow1"><span class="songf">♪ ${esc(bandSong)}</span><button type="button" class="clear" data-bsong="" style="padding:1px 8px;font-size:.72rem">Show all songs</button></div>`:""}`})()}</div>
       <div class="stats">
@@ -4157,7 +4182,7 @@ function showBand(name){songsReady();
     </div>
     <div style="min-width:0"><div class="bandscroll"><table class="bandtbl"><thead><tr>${th("song","Song")}${th("levels","Levels")}${th("paths","Paths")}${th("ratings","Ratings","r")}${th("challenges","Challenges","r","How many challenges used this song. Each path counts separately, so one week on Lead, Rhythm and Bass is 3.")}${th("weeks","Weeks","r")}</tr></thead><tbody>${
       songsArr.map(([ti,v])=>{const lv=[...new Set(v.map(c=>c.t))].sort((a,b)=>TIER_ORDER.indexOf(a)-TIER_ORDER.indexOf(b));const ps=[...new Set(v.map(c=>c.p))].sort();const r=[...new Set(v.filter(c=>!c.cont).map(c=>c.diff).filter(d=>d!=null&&d>0))].sort((a,b)=>a-b);const ws=[...new Set(v.map(c=>c.w))].sort((a,b)=>b-a);
-        return `<tr><td><b>${esc(ti)}</b>${songRateBox(v)}${songPill(name+" - "+ti,IG_LATEST(name+" - "+ti))}</td><td><div class="chips">${lv.map(t=>`<span class="lvchip lvclick" data-btier="${t}" style="--tc:${TIER_COL[t]}" title="Show only ${TIER_LABEL[t]} songs">${TIER_LABEL[t]}</span>`).join("")}</div></td>${(()=>{ // paths and ratings follow the arrangement actually played (like the rating boxes): a Lead challenge played on the
+        return `<tr><td><b>${esc(ti)}</b>${songRateBox(v)}${songPill(name+" - "+ti,IG_LATEST(name+" - "+ti))}</td><td><div class="chips">${lv.map(t=>`<span class="lvchip lvclick" data-btier="${t}" style="--tc:${TIER_COL[t]}" title="Show only ${TIER_LABEL[t]} songs">${TIER_SHORT[t]||TIER_LABEL[t]}</span>`).join("")}</div></td>${(()=>{ // paths and ratings follow the arrangement actually played (like the rating boxes): a Lead challenge played on the
           // Rhythm arrangement counts as Rhythm, and a bonus or alternate arrangement gets its own line
           const codeOf=c=>c.slot!=null?arrP(c.w,c.p,c.slot):"LRB"[c.p], codes=ARR_CODES.filter(k=>v.some(c=>codeOf(c)===k));
           const chip=k=>{if(k.length===1){const p="LRB".indexOf(k); return `<span class="pth lvclick${bandPathF===p?" sel":""}" data-bpath="${p}" style="--pc:${PATH_C[p]}" title="Show only ${PATHS[p]} songs">${PATHS[p]}</span>`}
@@ -4271,7 +4296,7 @@ function hostMedals(name){
   const ys=Object.keys(yrs).sort();
   // styled like the lunar year medallions: animal of the lunar year that starts in that calendar year, colored by its element
   rows.push(ys.map(y=>{const l=LNY.find(x=>x[0].startsWith(y)), ly=l?{animal:l[1],element:l[2]}:null, col=ly?ELEMENT_COL[ly.element]:"#ffb347";
-    return `<span class="medal-m zod" style="--ec:${col}" data-tip="${y} host medal${ly?` · Year of the ${ly.element} ${ly.animal}`:""}${rec(yrs[y][0])}"><span class="ani">${ly?ANIMAL_EMOJI[ly.animal]:"🎙️"}</span><b>${y}</b></span>`}));
+    return `<span class="medal-m zod" style="--ec:${col}" data-tip="${y} host medal · Hosted at least once in ${ly?`the Year of the ${ly.element} ${ly.animal}`:y}${rec(yrs[y][0])}"><span class="ani">${ly?ANIMAL_EMOJI[ly.animal]:"🎙️"}</span><b>${y}</b></span>`}));
   return hostMedalCache[name]=rows.map((r,i)=>`<div class="medals${i===rows.length-1?" yrm":""}">${r.join("")}</div>`).join("");
 }
 $("filterbar").addEventListener("mousemove",e=>{const p=e.target.closest("[data-tip]");if(!p){tip.hidden=true;return}tip.textContent=p.dataset.tip;tip.hidden=false;placeTip(e.clientX,e.clientY)});
@@ -4807,7 +4832,7 @@ function renderNewWeekNote(){
   const songs=new Set((SB.weeks[w]||[]).filter(c=>c[3]&&!/^n\/a$/i.test(c[3])).map(c=>c[3].toLowerCase())).size;
   el.innerHTML=`<button type="button" class="nwx" data-nw="x" aria-label="Close" title="Close">✕</button><div class="nwbody"><h2>Week ${w-1} is final · Week ${w} is on</h2>
     <div class="sub">${n&&meds.length?`Your medals from Week ${w-1} (hover one to see what it's for). `:`Week ${w-1}'s winners are in. `}The new songs are out: ${songs} to download.</div>
-    ${n&&meds.length?`<div class="nwmeds">${meds.join("")}</div>`:""}${n?["nwSeason","nwRodman","nwElo"].map(f=>{try{return window[f](n,w-1)}catch(e){return ""}}).join(""):""}</div>
+    ${n&&meds.length?`<div class="nwmeds">${meds.join("")}</div>`:""}${n?`<div class="nwgrid">${["nwSeason","nwRodman","nwElo"].map(f=>{try{return window[f](n,w-1)}catch(e){return ""}}).join("")}</div>`:""}</div>
     <div class="nwbtns"><button type="button" class="clear" data-nw="dl" style="background:var(--accent);color:#1a1004;font-weight:800">Download Week ${w} songs ↓</button>${n?`<button type="button" class="clear" data-nw="me">Go to my profile ›</button>`:""}</div>`;
   el.hidden=false;
 }
@@ -4819,22 +4844,22 @@ function nwSeason(n,w){eloBuild(); const id=seasonOf(w); if(!id)return ""; const
   const rows=[0,1,2].map(pi=>{const T1=seasonF1(pi,id,w), T0=w>a?seasonF1(pi,id,w-1):{}; let best=null;
     Object.entries(T1).forEach(([c,L])=>{const i=L.findIndex(x=>x.n.toLowerCase()===key); if(i>=0&&(!best||i<best.i))best={c,i,p:L[i].p}}); if(!best)return "";
     const L0=T0[best.c]||[], i0=L0.findIndex(x=>x.n.toLowerCase()===key), p0=i0>=0?L0[i0].p:0, d=best.p-p0, r1=best.i+1;
-    return `<li class="${r1<=3?"elo-t"+r1:""}" style="--pc:${PATH_C[pi]}"><span class="nwp">${PATHS[pi]}</span><b class="nwv">${best.p}</b><span class="nwd">${d>0?`<span class="up">▲${d}</span>`:"–"}</span><span class="nwr">${nwTag(best.c)}${nwMv(i0>=0?i0+1:null,r1)}</span></li>`}).join("");
-  return rows?`<div class="nwelo"><div class="nwelo-h">Season ${seasonNum(id)} after Week ${w} <span class="pelo-sub">week ${w-a+1} of ${b-a+1} · points</span></div><ul>${rows}</ul></div>`:""}
+    return `<li class="${r1<=3?"elo-t"+r1:""}" style="--pc:${PATH_C[pi]}"><span class="nwp">${PATHS[pi]}</span><b class="nwv">${best.p}<small> pts</small></b><span class="nwd" data-tip="Season points you scored in Week ${w}">${d>0?`<span class="up">▲${d}</span>`:"–"}</span><span class="nwr">${nwTag(best.c)}${nwMv(i0>=0?i0+1:null,r1)}</span></li>`}).join("");
+  return rows?`<div class="nwelo"><div class="nwelo-h">Season ${seasonNum(id)} after Week ${w}</div><div class="nwelo-s">Season points in your class (week ${w-a+1} of ${b-a+1}) · ▲ points from Week ${w} · your place</div><ul>${rows}</ul></div>`:""}
 // ...and in Rodman's Rankings (the 10 weeks up to that week, worked out like the Rankings tab's latest weeks)
 function nwRodman(n,w){const now=rkCompute(w), prev=rkCompute(w-1), key=n.toLowerCase();
   const rank=(o,k)=>{const r=Object.entries(o||{}).sort((x,y)=>y[1]-x[1]); const i=r.findIndex(([m])=>m.toLowerCase()===k); if(i<0)return null; return {r:1+r.filter(x=>x[1]>r[i][1]).length,p:r[i][1]}};
   const rows=[0,1,2].map(pi=>{let best=null; ["M","A","I","B"].forEach(c=>{const x=rank(now[pi+"|"+c],key); if(x&&(!best||x.r<best.r))best={...x,c}}); if(!best)return "";
     const o=rank(prev[pi+"|"+best.c],key), d=best.p-(o?o.p:0);
-    return `<li class="${best.r<=3?"elo-t"+best.r:""}" style="--pc:${PATH_C[pi]}"><span class="nwp">${PATHS[pi]}</span><b class="nwv">${best.p}</b><span class="nwd">${d>0?`<span class="up">▲${d}</span>`:"–"}</span><span class="nwr">${nwTag(best.c)}${nwMv(o?o.r:null,best.r)}</span></li>`}).join("");
-  return rows?`<div class="nwelo"><div class="nwelo-h">Rodman’s Rankings after Week ${w} <span class="pelo-sub">weeks ${w-9}–${w} · points</span></div><ul>${rows}</ul></div>`:""}
+    return `<li class="${best.r<=3?"elo-t"+best.r:""}" style="--pc:${PATH_C[pi]}"><span class="nwp">${PATHS[pi]}</span><b class="nwv">${best.p}<small> pts</small></b><span class="nwd" data-tip="How your points changed with Week ${w} (the 10-week window moved on a week)">${d>0?`<span class="up">▲${d}</span>`:d<0?`<span class="dn">▼${-d}</span>`:"–"}</span><span class="nwr">${nwTag(best.c)}${nwMv(o?o.r:null,best.r)}</span></li>`}).join("");
+  return rows?`<div class="nwelo"><div class="nwelo-h">Rodman’s Rankings after Week ${w}</div><div class="nwelo-s">Points over Weeks ${w-9}–${w} in your class · ▲▼ change with Week ${w} · your place</div><ul>${rows}</ul></div>`:""}
 // the new-week note: how the player's Elo moved in the week that just finished, on each path they played
 function nwElo(n,w){eloBuild(); const k=eloKey(n), kp=eloKeep(k);
   const rows=[0,1,2].map(pi=>{const x=eloAt(pi,k,w); if(!x||x[0]!==w)return ""; const b=eloAt(pi,k,w-1), d=Math.round(x[1]-(b?b[1]:eloStart(pi,k)));
     const r0=eloRanks(pi,w-1,kp)[k], r1=eloRanks(pi,w,kp)[k], t=x[2]>=ELO_MIN&&r1&&r1<=3?" elo-t"+r1:"";
     const mv=x[2]<ELO_MIN?`<small data-tip="Provisional: ${x[2]} of ${ELO_MIN} games">new</small>`:r0&&r1&&r0!==r1?`<small class="${r1<r0?"up":"slip"}" data-tip="${esc(eloAround(pi,k,w,kp))}">#${r0} → #${r1}</small>`:r1?`<small data-tip="${esc(eloAround(pi,k,w,kp))}">#${r1}</small>`:"";
     return `<li class="${t.trim()}" style="--pc:${PATH_C[pi]}"><span class="nwp">${PATHS[pi]}</span><b class="nwv">${Math.round(x[1])}</b><span class="nwd" data-tip="${esc(eloWhy(pi,k,w,w))}">${d?eloD(d):"–"}</span><span class="nwr">${eloBandTag(x[1])}${mv}</span></li>`}).join("");
-  return rows?`<div class="nwelo"><div class="nwelo-h">Elo after Week ${w} <span class="elohelp" data-tip="${esc(ELO_TIP)}">ⓘ</span></div><ul>${rows}</ul></div>`:""}
+  return rows?`<div class="nwelo"><div class="nwelo-h">Elo after Week ${w} <span class="elohelp" data-tip="${esc(ELO_TIP)}">ⓘ</span></div><div class="nwelo-s">Your Elo rating · ▲ gained in Week ${w} · your rank</div><ul>${rows}</ul></div>`:""}
 // the song's tunings on the paths it's played on: one line if they're all the same, else per path
 function dlTune(s){const ps=[...new Set(s.ch.map(c=>c[0]))].sort(), t=ps.map(p=>[p,tuneOf(s.song,p)]).filter(x=>x[1]); if(!t.length)return "";
   const same=t.every(x=>x[1]===t[0][1]); return `<small class="dltun">🎸 ${same?esc(t[0][1]):t.map(([p,v])=>`${"LRB"[p]}: ${esc(v)}`).join(" · ")}</small>`}
@@ -4946,10 +4971,11 @@ function renderThisWeek(){
   $("tw-back").innerHTML=back.length?back.map(x=>`<li>${twName(x.n)}<span class="dt">last played ${twWk(x.prev)}</span><span class="rt">${x.gap>=52?`${(x.gap/52).toFixed(1).replace(/\.0$/,"")} yr`:twPl(x.gap,"wk")}<small>away</small></span></li>`).join(""):twEmpty(live?"Nobody back from a break yet.":"Nobody came back from a break this week.");
   $("tw-new-sub").textContent=live?"First scores ever, so far":"First week in the championship";
   // starting rank per path: the level they played at their own class (no * mark); playing up or down doesn't count
-  const startRanks=n=>[0,1,2].map(pi=>{const own=ents.filter(x=>x.n===n&&x.c[0]===pi&&!/[*]/.test(SB.names[x.e[0]])).map(x=>tierOf(x.c[2])).filter(l=>"BIAM".includes(l||"-"));
-    if(own.length)return own.sort((a,b)=>"BIAM".indexOf(b)-"BIAM".indexOf(a))[0];
-    const p=byName[n]; const t=p&&p[8]?p[8][pi].toUpperCase():"?"; return "BIAM".includes(t)?t:"?"});
-  $("tw-new").innerHTML=fresh.length?fresh.map(n=>{const r=startRanks(n); return `<li>${twName(n)}<span class="pill new" style="width:auto">NEW</span><div class="twtiers">${["Lead","Rhythm","Bass"].map((k,i)=>`<div class="tier" style="--tc:${TIER_C[r[i]]||"var(--muted)"}" title="${r[i]==="?"?`No ${k} rank yet`:`Started ${k} as ${TIER_NAME[r[i]]}`}"><small>${k}</small><b>${r[i]==="?"?"–":r[i]}</b></div>`).join("")}</div></li>`}).join(""):twEmpty(live?"No new players yet this week.":"No new players this week.");
+  // a FreeBird's scores carry the ~ mark: they show as F
+  const startRanks=n=>[0,1,2].map(pi=>{const own=ents.filter(x=>x.n===n&&x.c[0]===pi&&!/[*]/.test(SB.names[x.e[0]])).map(x=>/~/.test(SB.names[x.e[0]])?"F":tierOf(x.c[2])).filter(l=>"FBIAM".includes(l||"-"));
+    if(own.length)return own.sort((a,b)=>"FBIAM".indexOf(b)-"FBIAM".indexOf(a))[0];
+    const p=byName[n]; const t=p&&p[8]?p[8][pi].toUpperCase():"?"; return "FBIAM".includes(t)?t:"?"});
+  $("tw-new").innerHTML=fresh.length?fresh.map(n=>{const r=startRanks(n); return `<li>${twName(n)}<span class="pill new" style="width:auto">NEW</span><div class="twtiers">${["Lead","Rhythm","Bass"].map((k,i)=>`<div class="tier" style="--tc:${TIER_C[r[i]]||"var(--muted)"}" title="${r[i]==="?"?`No ${k} rank yet`:r[i]==="F"?`Playing ${k} as a FreeBird for now`:`Started ${k} as ${TIER_NAME[r[i]]}`}"><small>${k}</small><b>${r[i]==="?"?"–":r[i]}</b></div>`).join("")}</div></li>`}).join(""):twEmpty(live?"No new players yet this week.":"No new players this week.");
   // Played this year (default): only players who played in the past year; All: everyone whose first week was this week
   document.querySelectorAll("#annmode button").forEach(b=>b.setAttribute("aria-pressed",String((b.dataset.ann==="1")===twAnnAll)));
   $("tw-ann-sub").textContent=twAnnAll?"First played this week in an earlier year":"First played this week in an earlier year and last played within the past year";
@@ -4966,6 +4992,7 @@ function renderThisWeek(){
   $("tw-med").innerHTML=med.length?med.map(x=>{const g=x.m.some(h=>/diamond d0/.test(h)), hb=x.n===wHost;
     const cls=[g?"celestial":"",hb?"hostbox":""].filter(Boolean).join(" "), tipL=[hb?`Host of Week ${w}`:"",g?"Gold God winner this week":""].filter(Boolean).join(" · ");
     return `<li${cls?` class="${cls}" data-tip="${tipL}"`:""}>${g?celCorners():""}${hb?`<span class="hosttag">YOUR HOST</span>`:""}${twName(x.n)}<span class="dt">${twPl(medalTotal(x.m),"new medal")}</span><div class="medals">${x.m.join("")}</div></li>`}).join(""):twEmpty("No new medals this week.");
+  uniqBoxIds($("tw-med"));
   const lit=(id,on)=>$(id).closest("section").classList.toggle("lit",!!on);
   lit("tw-med",med.length); lit("tw-back",back.length);
   {const s=$("tw-dng").closest("section"); s.classList.toggle("amber",live); s.classList.toggle("fangs",live&&dng.length>0); s.classList.toggle("gloom",!live&&dng.length>0)} lit("tw-new",fresh.length); lit("tw-ann",(twAnnAll?annAll:ann).length); lit("tw-riv",SB.weeks[w]&&[0,1,2].some(pi=>Object.keys(rivalsOfWeek(w,pi)).length));
