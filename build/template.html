@@ -5614,7 +5614,9 @@ function rivAlert(n){let out=[]; try{const w=DATA_WEEK, me=twCanon(n), nm=x=>`<s
     out.push(`<li class="${r.l>r.w?"rlost":r.w>r.l?"rwon":""}">${P} · ${res}${ch}</li>`)})}catch(e){return ""}
   return out.length?`<div class="ywalert ywriv"><h4>⚔️ Rivals in Week ${DATA_WEEK}</h4><ul>${out.join("")}</ul></div>`:""}
 // ---------- Restringed: a claimed player's year in review (from the scoreboards and attendance) ----------
-function wrapYears(n){const k=String(n).toLowerCase(); return [...new Set((sbIx().ent[k]||[]).filter(x=>x.w<=DATA_WEEK).map(x=>yearOfWeek(x.w)))].filter(Boolean).sort().reverse()}
+// a year's Restringed opens on January 1 of the next year, once the year is over (so 2026's arrives on 1 January 2027)
+const WRAP_OPEN=()=>new Date().getFullYear();
+function wrapYears(n){const k=String(n).toLowerCase(), now=WRAP_OPEN(); return [...new Set((sbIx().ent[k]||[]).filter(x=>x.w<=DATA_WEEK).map(x=>yearOfWeek(x.w)))].filter(y=>y&&+y<now).sort().reverse()}
 function wrapData(n,y){const k=String(n).toLowerCase(), all=(sbIx().ent[k]||[]).filter(x=>x.w<=DATA_WEEK&&!x.c[7]&&yearOfWeek(x.w)===y&&x.e[1]!=null);
   if(!all.length)return null; const D={y,n:all.length,weeks:new Set(all.map(x=>x.w)).size,paths:[0,0,0],wins:0,pods:0,perf:0,byWeek:{},bands:{}};
   all.forEach(x=>{const {w,c,e}=x; D.paths[c[0]]++; if(+e[1]>=100)D.perf++;
@@ -5650,7 +5652,7 @@ function wrapPack(tiles){const W=tiles.map(h=>/wr-wide/.test(h)?2:1);
     return {ord,span}};
   const a=pack(4), b=pack(2);
   return tiles.map((h,i)=>h.replace('<div class="wr-t ',`<div style="--o4:${a.ord[i]};--s4:${a.span[i]};--o2:${b.ord[i]};--s2:${b.span[i]}" class="wr-t `)).join("")}
-function wrapSection(n){const ys=wrapYears(n); if(!ys.length)return `<div class="acctsec"><p class="dim">Your Restringed shows up once you have scores on the scoreboards.</p></div>`;
+function wrapSection(n){const ys=wrapYears(n); if(!ys.length)return `<div class="acctsec"><p class="dim">Your ${WRAP_OPEN()} Restringed arrives on 1 January ${WRAP_OPEN()+1}, once the year is over.</p></div>`;
   const y=ys.includes(ACCT.wrY)?ACCT.wrY:ys[0], D=wrapData(n,y); if(!D)return "";
   const nm=x=>`<span class="nm" data-player="${esc(x)}">${esc(x)}</span>`, lv=c=>esc(c[2]), go=(x,t)=>`<span class="ywgo" data-sbw="${x.w}" data-sbp="${x.c[0]}" data-sbs="${x.c[1]}" data-sbn="${esc(n)}" title="Open this challenge on the Scoreboard (Week ${x.w})">${t}</span>`;
   const song=x=>`${go(x,esc(x.c[3]))}<small>${PATHS[x.c[0]]} · ${lv(x.c)} · rated ${x.c[4]} · Week ${x.w}</small>`;
@@ -5949,7 +5951,7 @@ function acctDraw(msg,err){
   // the passes stay (alert and badges) until you dismiss the alert with its ✕
   if(ACCT.tab==="week"){const n=ACCT.claim.player; ACCT.ywShown=ywUnseen(n)}
   const ywN=appr?ywUnseen(ACCT.claim.player).length:0;
-  const tabs=`<div class="accttabs" role="tablist">${tb("me","Your profile")}${appr?tb("week",`Your week${ywN?`<span class="nbadge" title="Passed ${ywN} time${ywN===1?"":"s"} · the ✕ on the alert dismisses itt">${ywN}</span>`:""}`):""}${appr?tb("wrapped",`🎸 ${yearOfWeek(DATA_WEEK)} Restringed`):""}${ACCT.claim&&ACCT.claim.status==="approved"?tb("banner","Forum banner"):""}${tb("manage","Manage account")}${canRateFor()?tb("host","Host"):""}${ACCT.admin?tb("admin",`Admin${(()=>{const t=typoScan().nNew; return t?`<span class="nbadge tybadge" title="${t} likely typo${t===1?"":"s"} in this week's scoreboard">${t}</span>`:""})()}${pendN?`<span class="nbadge" title="${pendN} claim${pendN===1?"":"s"} waiting for approval">${pendN}</span>`:""}`):""}</div>`;
+  const tabs=`<div class="accttabs" role="tablist">${tb("me","Your profile")}${appr?tb("week",`Your week${ywN?`<span class="nbadge" title="Passed ${ywN} time${ywN===1?"":"s"} · the ✕ on the alert dismisses itt">${ywN}</span>`:""}`):""}${appr?tb("wrapped",`🎸 ${WRAP_OPEN()-1} Restringed`):""}${ACCT.claim&&ACCT.claim.status==="approved"?tb("banner","Forum banner"):""}${tb("manage","Manage account")}${canRateFor()?tb("host","Host"):""}${ACCT.admin?tb("admin",`Admin${(()=>{const t=typoScan().nNew; return t?`<span class="nbadge tybadge" title="${t} likely typo${t===1?"":"s"} in this week's scoreboard">${t}</span>`:""})()}${pendN?`<span class="nbadge" title="${pendN} claim${pendN===1?"":"s"} waiting for approval">${pendN}</span>`:""}`):""}</div>`;
   let h=tabs;
   if(ACCT.tab==="admin"){}
   else if(ACCT.tab==="host")h+=`${hostSection(false).replace('class="acctsec hostsec"','class="acctsec hostsec hosttop"')}${(()=>{try{return closeSection()}catch(e){return ""}})()}${(()=>{try{return hmSection()}catch(e){return ""}})()}${(()=>{try{return hlSection()}catch(e){return ""}})()}${(()=>{try{return fwHostSection()}catch(e){return ""}})()}${(()=>{try{return lapsedSection()}catch(e){return ""}})()}${adminRateSection()}${ratingLogSection()}`;
