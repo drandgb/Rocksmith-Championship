@@ -745,7 +745,7 @@ a.dl svg,.offpill svg{width:11px;height:11px}
 .lvbands{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin:12px 0 2px}.lvband{border:1px solid color-mix(in srgb,var(--tc) 55%,transparent);border-radius:999px;padding:3px 10px;font-size:.8rem;color:var(--muted)}.lvband b{color:var(--tc);margin-right:4px}
 .lvlist{list-style:none;margin:0;padding:0}.lvlist li{display:grid;grid-template-columns:28px minmax(0,8.5em) minmax(40px,1fr) 3.2em 14px 62px;gap:8px;align-items:center;padding:4px 0;border-top:1px solid var(--line);font-size:.9rem;cursor:default}
 .lvlist li:first-child{border-top:0}.lvlist .rr{color:var(--muted);font:600 .8rem var(--f-mono);text-align:center}.lvlist li.p1 .rr{color:#f5c84a}.lvlist li.p2 .rr{color:#c9d0dc}.lvlist li.p3 .rr{color:#d8925a}
-.lvlist li{cursor:pointer}.lvlist li.lvhl{background:color-mix(in srgb,var(--accent) 16%,transparent);border-radius:6px}.lvlist li.lvhl .nm{color:var(--accent);font-weight:800}.lvlist .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer}
+.lvlist li{cursor:pointer}.lvlist .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer}
 .lvbar{height:8px;border-radius:4px;background:color-mix(in srgb,var(--tc) 14%,var(--panel2));overflow:hidden}.lvbar i{display:block;height:100%;border-radius:4px;background:linear-gradient(90deg,color-mix(in srgb,var(--tc) 55%,transparent),var(--tc))}
 .lvv{font:700 .9rem var(--f-mono);text-align:right}.lvtr{font-size:.7rem;text-align:center}.lvtr.up{color:var(--s-green)}.lvtr.down{color:var(--s-red)}
 .lvsp{width:60px;height:18px;display:block;opacity:.85}
@@ -1001,8 +1001,10 @@ footer .updated{display:block;margin-top:4px}
 .twnp .npn{display:block;font-size:.72rem;font-weight:400;color:var(--s-green)}
 .twseas{margin-top:14px}
 #view-season li,#view-season .sc{cursor:pointer}
-#view-season .seashl:not(.nm){background:color-mix(in srgb,var(--accent) 16%,transparent);border-radius:6px}
-#view-season .nm.seashl{color:var(--accent);font-weight:800}
+/* the highlighted player on Season, Level and Rankings (like the Scoreboard's) */
+#view-season .plhl:not(.nm):not(span),#view-level li.plhl,#view-rankings li.plhl,#view-rankings tr.plhl td{background:color-mix(in srgb,var(--accent) 16%,transparent)!important;border-radius:6px}
+#view-season .nm.plhl,#view-level .nm.plhl,#view-rankings .nm.plhl{color:var(--accent)!important;font-weight:800}
+#view-season li,#view-season .sc,#view-level .lvlist li,#view-rankings li{cursor:pointer}
 .twseas .tsl{color:#ffd86b;font-weight:800;text-shadow:0 0 10px rgba(255,216,107,.3)}.panel.twseas{padding:12px}.panel.twseas .twseasin{border:0;background:none;padding:2px 4px}.twseasin{border:1px solid color-mix(in srgb,var(--s-yellow) 35%,var(--line));border-radius:10px;padding:10px 12px;background:color-mix(in srgb,var(--s-yellow) 4%,var(--panel2));cursor:pointer}.twseasin:hover{border-color:var(--s-yellow)}
 .twseas .tsh{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 12px;font-size:.9rem;color:var(--muted)}.twseas .tsn{font:900 1rem var(--f-display);letter-spacing:.06em;text-transform:uppercase;color:#f5c84a}.twseas .golink{margin-left:auto;color:var(--s-yellow);font-weight:600}
 .twseas .tsnote{font-size:.74rem;color:var(--muted);margin:4px 0 6px}.twseas .tsg{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px 16px}@media(max-width:700px){.twseas .tsg{grid-template-columns:1fr}}
@@ -2661,11 +2663,8 @@ $("view-season").addEventListener("mousemove",e=>{const p=e.target.closest("[dat
 $("view-season").addEventListener("mouseleave",()=>tip.hidden=true);
 // Season tab: clicking a row (around a name, not the name itself) highlights that player everywhere on the tab, like the
 // Scoreboard; click the same row again to clear it. Clicking the name opens their profile as before.
-let SEAS_HL=null;
-function seasHl(){document.querySelectorAll("#view-season .seashl").forEach(el=>el.classList.remove("seashl"));
-  if(!SEAS_HL)return; document.querySelectorAll("#view-season [data-profile]").forEach(el=>{if(el.dataset.profile.toLowerCase()!==SEAS_HL)return; el.classList.add("seashl"); const row=el.closest("li,.sc,.smi,tr"); if(row)row.classList.add("seashl")})}
-$("view-season").addEventListener("click",e=>{if(e.target.closest("[data-profile],a,button,select,[data-goseason]"))return; const row=e.target.closest("#view-season li,#view-season .sc,#view-season .smi"); const nm=row&&row.querySelector("[data-profile]"); if(!nm)return;
-  const k=nm.dataset.profile.toLowerCase(); SEAS_HL=SEAS_HL===k?null:k; seasHl()});
+// (the Season tab's row highlight is the shared player highlight below, PL_HL)
+function seasHl(){try{plHl()}catch(e){}}
 $("view-season").addEventListener("click",e=>{const pb=e.target.closest("[data-profile]"); if(!pb)return; const n=pb.dataset.profile; if(byName[n]){showView("players");showPlayer(n);$("pcard").closest("section").scrollIntoView({block:"start"})}});
 
 // Host tab: players who stopped in the last year (or 2), with where they were when they left
@@ -2949,7 +2948,8 @@ function showView(v){
   tip.hidden=true;
   $("pfilter").hidden=v==="scores"||v==="songs"||v==="thisweek"||v==="rankings"||v==="season"||v==="faq"||v==="level";
   if(v==="season")setTimeout(()=>{try{renderSeason()}catch(e){}},0);
-  if(v==="level")setTimeout(()=>{try{renderLevel()}catch(e){console.error(e)}},0);   // (after the page has finished loading: opening the site on #season runs this first)
+  if(v==="level")setTimeout(()=>{try{renderLevel()}catch(e){console.error(e)}},0);
+  if(v==="season"||v==="level"||v==="rankings")setTimeout(()=>{try{plHl()}catch(e){}},30);   // (after the page has finished loading: opening the site on #season runs this first)
   if(v==="thisweek"&&window.__twReady)renderThisWeek();
   if(v==="winners"||v==="players"||v==="hosting")setTimeout(()=>mlEnsure(v==="winners"?"win":v==="players"?"player":"host"),50);
   if(v==="songs"&&window.__songsStale){window.__songsStale=false; renderSongs()} // player ratings arrived while another page was open
@@ -3043,11 +3043,7 @@ function renderLevel(){
     return `<section class="panel rkpath" style="--pc:${PATH_C[pi]}"><div class="panel-head"><h2>${PATHS[pi]}</h2><span class="sub">${rows.length} player${rows.length===1?"":"s"} ${what}</span></div>${rows.length?`<ol class="lvlist">${body}</ol>`:`<div class="empty">Nobody ${what}</div>`}</section>`}).join("");
   lvHl();
 }
-let LV_HL=null;
-function lvHl(){document.querySelectorAll("#lv-body li.lvhl").forEach(li=>li.classList.remove("lvhl")); if(!LV_HL)return;
-  document.querySelectorAll("#lv-body li .nm[data-player]").forEach(el=>{if(el.dataset.player.toLowerCase()===LV_HL)el.closest("li").classList.add("lvhl")})}
-$("lv-body").addEventListener("click",e=>{if(e.target.closest("[data-player],a,button"))return; const li=e.target.closest("li"); const nm=li&&li.querySelector(".nm[data-player]"); if(!nm)return;
-  const k=nm.dataset.player.toLowerCase(); LV_HL=LV_HL===k?null:k; lvHl()});
+function lvHl(){try{plHl()}catch(e){}}
 $("lvmode").addEventListener("click",e=>{const b=e.target.closest("[data-lvm]"); if(!b)return; lvMode=b.dataset.lvm; renderLevel()});
 $("lvyear").addEventListener("change",e=>{lvYear=e.target.value; renderLevel()});
 // ---------- shared by Winner lookup and This Week: canonical names, God carry-overs and rivals ----------
@@ -4245,7 +4241,7 @@ $("view-songs").addEventListener("mouseleave",()=>tip.hidden=true);
 
 // ---------- floating bubble showing which filters are on in the current tab ----------
 const fbub=document.createElement("div"); fbub.id="fbub"; fbub.setAttribute("role","status"); fbub.setAttribute("aria-live","polite"); fbub.hidden=true; document.body.appendChild(fbub);
-function curView(){return ["thisweek","rankings","season","hosting","players","winners","songs","scores"].find(k=>!$("view-"+k).hidden)}
+function curView(){return ["thisweek","level","rankings","season","hosting","players","winners","songs","scores","faq"].find(k=>$("view-"+k)&&!$("view-"+k).hidden)}
 function activeFilters(){
   const v=curView(), f=[];
   if((v==="hosting"||v==="players"||v==="winners")&&activeOnly)f.push(["Active players only",()=>setActiveOnly(false)]);
@@ -4268,6 +4264,7 @@ function activeFilters(){
   }
   if(v==="songs"&&sHost)f.push([`Picked by: ${sHost}`,()=>{sHost=null;renderSongs()}]);
   if(v==="scores"&&sbFind)f.push([`Player: ${sbFind}`,()=>{sbFind="";$("sbfind").value="";sbRender()}]);
+  if((v==="season"||v==="level"||v==="rankings")&&sbFind)f.push([`Player: ${sbFind}`,()=>{sbFind="";$("sbfind").value=""; plHl()}]);
   return f;
 }
 let fbubList=[];
@@ -4695,6 +4692,24 @@ $("refreshbtn").addEventListener("click",async()=>{
    .then(rs=>{const t=rs.flatMap(r=>r&&r.workflow_runs||[]).map(x=>new Date(x.updated_at)).filter(d=>!isNaN(d)).sort((a,b)=>b-a)[0];
      if(t&&t>new Date(el.dataset.iso))show(t)});}
 
+// ---------- one highlighted player across the Scoreboard, Season, Level and Rankings tabs ----------
+// The same player as the Scoreboard's "Highlight a player" (sbFind). On Season, Level and Rankings: clicking a row
+// highlights that player everywhere on the tab (and keeps them highlighted on the other tabs); clicking a name the
+// first time highlights it too, and clicking an already highlighted name opens the profile. Clicking their row again,
+// or the ✕ on the filter bubble, clears it.
+const PL_VIEWS=["view-season","view-level","view-rankings"], PL_ATTR="[data-profile],[data-player],[data-goplayer],[data-name]";
+const plNameOf=el=>el.dataset.profile||el.dataset.player||el.dataset.goplayer||el.dataset.name||"";
+function plHl(){const k=String(sbFind||"").toLowerCase();
+  PL_VIEWS.forEach(id=>{const v=$(id); if(!v)return; v.querySelectorAll(".plhl").forEach(el=>el.classList.remove("plhl"));
+    if(!k)return; v.querySelectorAll(PL_ATTR).forEach(el=>{if(plNameOf(el).toLowerCase()!==k)return; el.classList.add("plhl"); const row=el.closest("li,tr,.sc,.smi"); if(row)row.classList.add("plhl")})})}
+function plClick(e){const view=e.target.closest("#view-season,#view-level,#view-rankings"); if(!view)return;
+  if(e.target.closest("a,button,select,input,[data-goseason],[data-gorank],.lvchip,.tier,[data-rk]"))return;
+  const nmEl=e.target.closest(PL_ATTR), row=e.target.closest("li,tr,.sc,.smi"), el=nmEl||(row&&row.querySelector(PL_ATTR)); if(!el)return;
+  const n=plNameOf(el); if(!n)return; const same=String(sbFind||"").toLowerCase()===n.toLowerCase();
+  if(nmEl&&same){if(view.id==="view-level"&&byName[n]){e.stopPropagation(); showView("players"); showPlayer(n); $("pcard").closest("section").scrollIntoView({block:"start"})} return}   // second click on the highlighted name: open the profile
+  e.preventDefault(); e.stopPropagation(); tip.hidden=true;
+  sbFind=same?"":n; try{$("sbfind").value=sbFind}catch(err){} plHl(); if(typeof updateBubble==="function")updateBubble()};
+window.addEventListener("click",plClick,true);
 // ---------- level pills in Most played / Most replayed songs filter that list ----------
 ["sl-f","rl-f","songlist","replaylist"].forEach(id=>$(id).addEventListener("click",e=>{
   const b=e.target.closest("[data-lvp],[data-lvr]"); if(!b)return; e.stopPropagation(); tip.hidden=true;
@@ -5124,9 +5139,9 @@ function renderYearEnd(){const el=$("rk-year"); if(!el)return; if(!YEAREND||!YEA
   el.innerHTML=`<div class="panel-head"><h2>📅 Year-end standings <select class="hlsel" id="yesel" aria-label="Year"><option value="all"${Y.year==="all"?" selected":""}>All time</option>${YEAREND.map(x=>`<option value="${x.year}"${x.year===Y.year?" selected":""}>${x.year}</option>`).join("")}</select></h2>
     <span class="sub">${Y.year==="all"?`Every year's end-of-year points added up (${Y.label}, the years in the sheet)`:`Rodman's Rankings as they stood at the end of ${Y.year}${Y.weeks?` · weeks ${esc(Y.weeks.replace("-","–"))}`:""}${Y.rules?` · ${esc(Y.rules.replace(/^Rules:\s*/,"").replace(/\s+scored\s*$/,""))}`:""}`}</span></div><div class="yegrid">${cols}</div>`;
   el.hidden=false}
-document.addEventListener("change",e=>{if(e.target.id!=="yesel")return; yeYear=e.target.value==="all"?"all":+e.target.value; renderYearEnd()});
+document.addEventListener("change",e=>{if(e.target.id!=="yesel")return; yeYear=e.target.value==="all"?"all":+e.target.value; renderYearEnd(); try{plHl()}catch(err){}});
 function renderRankings(){
-  try{renderYearEnd()}catch(e){}
+  try{renderYearEnd()}catch(e){} setTimeout(()=>{try{plHl()}catch(e){}},0);
   if(rkLive===null)rkLive=rkCurrent()!==RK_SHEET;
   const RK=rkLive?rkLiveData():RK_SHEET;
   $("rkpath").innerHTML=["Lead","Rhythm","Bass"].map((k,i)=>{const t=rkLv[i], nx=RK_CYC[(RK_CYC.indexOf(t)+1)%RK_CYC.length];
