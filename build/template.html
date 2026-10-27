@@ -5601,14 +5601,19 @@ function ywAlert(n){
   return `<div class="ywalert"><button type="button" class="ywx" data-ywdismiss="${esc(n)}" title="Dismiss: mark these as seen" aria-label="Dismiss">✕</button><h4>⚠ You've been passed · ${L.length}</h4><ul>${L.map(e=>{const tie=e.bp===e.mp;
     return `<li><span class="dn" data-tip="${esc(`Ranked place in your class: ${ywOrd(e.from)} → ${ywOrd(e.to)}${e.fp&&e.tp?`\nPosition on the card: #${e.fp} → #${e.tp}`:""}`)}">${ywMed(e.from)} → ${ywMed(e.to)}${e.fp&&e.tp&&e.tp>e.fp?` <small>#${e.fp} → #${e.tp}</small>`:""}</span> · <span class="ywgo"${SB.weeks[e.w]?` data-sbw="${e.w}" data-sbp="${e.p}"${e.s!=null?` data-sbs="${e.s}"`:""} data-sbn="${esc(n)}" title="Open this challenge on the Scoreboard (Week ${e.w})"`:""}>${PATHS[e.p]} ${esc(e.lv)}</span> · <b>${esc(e.by)}</b> ${sc(e.bp,e.bs,tie)} passed your ${sc(e.mp,e.ms,tie)} <small>· ${day(e.t)}</small></li>`}).join("")}</ul></div>`;
 }
-// Your rival: the player just above you in the Elo ranking on each path. After each week: a new rival, and anyone who passed you
-function rivAlert(n){let out=[]; try{eloBuild(); const k=eloKey(n), kp=eloKeep(k), w=ELO_DONE, nm=x=>`<span class="nm" data-player="${esc(x)}">${esc(x)}</span>`;
-  [0,1,2].forEach(pi=>{const T1=eloTable(pi,w,kp), T0=eloTable(pi,w-1,kp), i1=T1.findIndex(x=>x[0]===k), i0=T0.findIndex(x=>x[0]===k); if(i1<0||i0<0)return;
+// Your rival: the player just above you in the Elo ranking on each path, among players active lately (a score in the last
+// 13 weeks, a season). After each week: who passed you, who you passed, and your new rival.
+const RIV_RECENT=13;
+function rivAlert(n){let out=[]; try{eloBuild(); const k=eloKey(n), w=ELO_DONE, I=sbIx(), nm=x=>`<span class="nm" data-player="${esc(x)}">${esc(x)}</span>`;
+  const keep=m=>{if(m===k)return true; const W=I.wk[String(m).toLowerCase()]; return !!W&&W.length&&W[W.length-1]>w-RIV_RECENT};
+  [0,1,2].forEach(pi=>{const T1=eloTable(pi,w,keep), T0=eloTable(pi,w-1,keep), i1=T1.findIndex(x=>x[0]===k), i0=T0.findIndex(x=>x[0]===k); if(i1<0||i0<0)return;
     const P=`<span class="nwp" style="color:${PATH_C[pi]}">${PATHS[pi]}</span>`, up1=T1[i1-1], up0=T0[i0-1];
-    const was=new Set(T0.slice(i0+1).map(x=>x[0])), passed=T1.slice(0,i1).filter(x=>was.has(x[0]));
-    passed.forEach(x=>out.push(`<li>${P} · <b>${nm(x[0])}</b> passed you in Elo${up1&&x[0]===up1[0]?` and is your new rival${up0&&up0[0]!==up1[0]?` <small>(was ${nm(up0[0])})</small>`:""}`:""} <small>(#${i0+1} → #${i1+1})</small></li>`));
-    if(up1&&(!up0||up0[0]!==up1[0])&&!passed.some(x=>x[0]===up1[0]))out.push(`<li>${P} · your rival has changed: now <b>${nm(up1[0])}</b>${up0?` <small>(was ${nm(up0[0])})</small>`:""}</li>`);
-    else if(!up1&&up0)out.push(`<li>${P} · you passed your rival ${nm(up0[0])} and you're top of the list 🏆</li>`)})}catch(e){return ""}
+    const below0=new Set(T0.slice(i0+1).map(x=>x[0])), above0=new Set(T0.slice(0,i0).map(x=>x[0]));
+    const passedMe=T1.slice(0,i1).filter(x=>below0.has(x[0])), iPassed=T1.slice(i1+1).filter(x=>above0.has(x[0]));
+    const mv=`<small>(#${i0+1} → #${i1+1} among active players)</small>`;
+    passedMe.forEach(x=>out.push(`<li>${P} · <b>${nm(x[0])}</b> passed you in Elo${up1&&x[0]===up1[0]?" and is your new rival":""} ${mv}</li>`));
+    if(iPassed.length)out.push(`<li>${P} · you passed ${iPassed.map(x=>nm(x[0])).join(", ")} in Elo${up1?`: your rival is now <b>${nm(up1[0])}</b>`:" and you're top of the list 🏆"} ${mv}</li>`);
+    else if(up1&&(!up0||up0[0]!==up1[0])&&!passedMe.some(x=>x[0]===up1[0]))out.push(`<li>${P} · your rival is now <b>${nm(up1[0])}</b>${up0?` <small>(was ${nm(up0[0])})</small>`:""}</li>`)})}catch(e){return ""}
   return out.length?`<div class="ywalert ywriv"><h4>⚔️ Rivals after Week ${ELO_DONE}</h4><ul>${out.join("")}</ul></div>`:""}
 // ---------- Restringed: a claimed player's year in review (from the scoreboards and attendance) ----------
 function wrapYears(n){const k=String(n).toLowerCase(); return [...new Set((sbIx().ent[k]||[]).filter(x=>x.w<=DATA_WEEK).map(x=>yearOfWeek(x.w)))].filter(Boolean).sort().reverse()}
