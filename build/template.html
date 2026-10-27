@@ -2323,7 +2323,7 @@ function renderParts(){
     <line class="hov" id="phov" y1="${T}" y2="${H-B}" x1="-10" x2="-10"/>
     <rect x="${L}" y="${T}" width="${W-L-Rr}" height="${H-T-B}" fill="transparent" id="phit"/></svg>`;
   const peak=PARTS_.indexOf(Math.max(...PARTS_));
-  $("parts-sub").innerHTML=`Week ${LASTW}: <b>${last}</b> players · <span style="color:var(--accent)">━</span> 10-week average <b>${avg[n-1].toFixed(1)}</b> · peak ${PARTS_[peak]} in week ${peak+P0}`;
+  $("parts-sub").innerHTML=`Week ${LASTW}: <b>${last}</b> players · <span style="color:var(--accent)">━</span> 10-week average <b>${Math.round(avg[n-1])}</b> · peak ${PARTS_[peak]} in week ${peak+P0}`;
   const svg=$("parts").querySelector("svg"), hov=$("phov");
   $("phit").addEventListener("mousemove",e=>{
     const r=svg.getBoundingClientRect(), sx=(e.clientX-r.left)/r.width*W;
