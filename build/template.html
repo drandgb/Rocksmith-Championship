@@ -750,7 +750,7 @@ a.dl svg,.offpill svg{width:11px;height:11px}
 .lvv{font:700 .9rem var(--f-mono);text-align:right}.lvtr{font-size:.7rem;text-align:center}.lvtr.up{color:var(--s-green)}.lvtr.down{color:var(--s-red)}
 .lvsp{width:60px;height:18px;display:block;opacity:.85}
 .lvc{display:inline-block;margin-left:5px;padding:0 5px;border-radius:6px;font:700 .68rem/1.45 var(--f-mono);color:var(--tc);border:1px solid color-mix(in srgb,var(--tc) 55%,transparent);background:color-mix(in srgb,var(--tc) 12%,transparent);vertical-align:1px;cursor:help;flex:none}
-.lvc.lvq{--tc:var(--dim);border-style:dashed}
+.lvc.lvq{--tc:var(--dim);border-style:dashed}.lvc.lve{border-style:dashed}
 .rklv li .nmw{display:flex;align-items:center;min-width:0}.rklv li .nmw .nm{min-width:0}
 .lvextra{margin-bottom:20px}
 .lvcl .panel-head{flex-wrap:wrap;gap:8px}.lvclsel{margin-left:auto}
@@ -3078,7 +3078,7 @@ const lvSay=x=>{const r=x/10, b=lvBand(x); return `like 100% on songs rated ${(M
 // ---------- our own estimates for the years the sheet doesn't have yet (2025 on) ----------
 // Same idea as the sheet: each week, the player's best card on the path (song rating × accuracy, not playing down), then the
 // year's average without its lowest and highest week, for players with 5+ weeks that year. Close to Rodman's numbers, not exact.
-let LV_EST=null, LV_N12=null, LV_END=0;   // scores per path in the sheet's last 12 weeks (for the "?" chip)
+let LV_EST=null;
 function lvYearOf(w){const W=weekAt(w-WEEKS[0][0]); if(!W)return 0; const d=new Date(W[1]+"T12:00:00"); d.setDate(d.getDate()+3); return d.getFullYear()}
 const lvKey=n=>{let b=String(n).replace(/[*~]+$/,"").trim(); b=TW_ALIAS[b]||b; return b.toLowerCase()};
 function lvEnsure(){if(LV_EST||typeof LEVEL==="undefined"||!LEVEL||!LEVEL.paths)return; LV_EST=[];
@@ -3087,7 +3087,6 @@ function lvEnsure(){if(LV_EST||typeof LEVEL==="undefined"||!LEVEL||!LEVEL.paths)
   try{const end=LEVEL.last||DATA_WEEK, n12=[{},{},{}], n26=[{},{},{}];
     for(let w=end-25;w<=end;w++)(SB.weeks[w]||[]).forEach(c=>{if(c[7])return; c[6].forEach(e=>{if(e[1]==null)return; const k=lvKey(SB.names[e[0]]); n26[c[0]][k]=(n26[c[0]][k]||0)+1; if(w>end-12)n12[c[0]][k]=(n12[c[0]][k]||0)+1})});
     LEVEL.paths.forEach((L,pi)=>L.forEach(p=>{const k=lvKey(p.n); if(p.xp&&(n12[pi][k]||0)<3)p.xp=null; if(p.m6&&(n26[pi][k]||0)<3)p.m6=null}));
-    LV_N12=n12; LV_END=end;
   }catch(e){console.error(e)}
   try{const last=Math.max(...LEVEL.years), best=[{},{},{}], disp={};
     Object.keys(SB.weeks).map(Number).filter(w=>w<=DATA_WEEK).forEach(w=>{const y=lvYearOf(w); if(y<=last)return;
@@ -3113,12 +3112,16 @@ function lvChip(n,pi,q){if(typeof LEVEL==="undefined"||!LEVEL||!LEVEL.paths)retu
   const v=LV_NOW[pi]&&LV_NOW[pi][lvKey(n)]; if(!v)return q?lvQChip(n,pi):""; const b=lvBand(v);
   return `<span class="lvc" style="--tc:${TIER_C[b[1]]}" data-tip="Rodman’s Player Level on ${PATHS[pi]}: ${v.toFixed(1)} (${b[2]})">${Math.floor(v)}</span>`}
 // "?" chip on the Scoreboard for a player with no level on the path yet: how many scores they have and how many they need
-function lvQChip(n,pi){const k=lvKey(n), have=(LV_N12&&LV_N12[pi][k])||0, need=Math.max(0,3-have);
-  const TW_MAX=Math.max(DATA_WEEK,cur[0]);   // (the This Week constant isn't set yet when the Scoreboard first draws)
-  let pend=0; for(let w=LV_END+1;w<=TW_MAX;w++)(SB.weeks[w]||[]).forEach(c=>{if(c[0]!==pi||c[7])return; c[6].forEach(e=>{if(e[1]!=null&&lvKey(SB.names[e[0]])===k)pend++})});
-  const t=[`No ${PATHS[pi]} player level yet`, `${have} ${PATHS[pi]} score${have===1?"":"s"} in the last 12 weeks (up to Week ${LV_END}), 3 needed`+(need?` · ${need} more to get a level`:" · the level shows once Rodman’s sheet updates")];
-  if(pend)t.push(`+${pend} score${pend===1?"":"s"} from Week ${LV_END+1}${TW_MAX>LV_END+1?`–${TW_MAX}`:""}, which count${pend===1?"s":""} once Rodman’s sheet has ${TW_MAX>LV_END+1?"those weeks":"that week"}`);
-  return `<span class="lvc lvq" data-tip="${esc(t.join("\n"))}">?</span>`}
+function lvQChip(n,pi){const k=lvKey(n), W=Math.max(DATA_WEEK,cur[0]);   // (the This Week constant isn't set yet when the Scoreboard first draws)
+  // the site counts their scores itself, this week included
+  let have=0; const best={};
+  for(let w=W-11;w<=W;w++)(SB.weeks[w]||[]).forEach(c=>{if(c[0]!==pi||c[7])return; c[6].forEach(e=>{if(e[1]==null||lvKey(SB.names[e[0]])!==k)return; have++;
+    if(c[4]!=null&&e[4]>=0)best[w]=Math.max(best[w]||0,c[4]*e[1]/10)})});
+  const v=Object.values(best).sort((a,b)=>a-b);
+  if(have>=3&&v.length){const t=v.length>=3?v.slice(1,-1):v, x=t.reduce((a,b)=>a+b,0)/t.length, bd=lvBand(x);
+    return `<span class="lvc lve" style="--tc:${TIER_C[bd[1]]}" data-tip="${esc(`${PATHS[pi]} player level: ${x.toFixed(1)} (${bd[2]})\nWorked out by the site from ${have} ${PATHS[pi]} scores in the last 12 weeks, as Rodman’s sheet doesn’t have a level for them yet`)}">${Math.floor(x)}</span>`}
+  const need=3-have;
+  return `<span class="lvc lvq" data-tip="${esc(`No ${PATHS[pi]} player level yet\n${have} ${PATHS[pi]} score${have===1?"":"s"} in the last 12 weeks, 3 needed · ${need} more to get a level`)}">?</span>`}
 // profile chart: the player's level by year on each path, then now (dashed: this site's estimates)
 function lvChart(n){if(typeof LEVEL==="undefined"||!LEVEL||!LEVEL.paths)return ""; const P=lvOf(n); lvEnsure();
   const ys=LEVEL.years.slice().sort((a,b)=>a-b), cols=[...ys.map(String),"now"];
