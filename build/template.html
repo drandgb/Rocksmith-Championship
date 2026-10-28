@@ -1012,7 +1012,7 @@ footer .updated{display:block;margin-top:4px}
 @media (prefers-reduced-motion:reduce){.twarrow.glow{animation:none}}
 .twpv-hide{display:none!important}
 .twcalrow{display:flex;align-items:stretch;gap:20px;flex-wrap:wrap;margin:12px 0 4px}.twcalrow .twcal{margin:0;flex:0 1 400px}.twcalside{padding-top:2px;flex:1 1 320px;display:flex;flex-direction:column;gap:12px;min-width:0}.twcalside #twsb{margin-top:auto;align-self:flex-start}
-.twlead{margin:0}.twlead .tsg{grid-template-columns:repeat(3,minmax(0,1fr))}@media(max-width:1000px){.twlead .tsg{grid-template-columns:1fr}}.twlead .twseasin{cursor:default}.twlead li{grid-template-columns:40px minmax(0,1fr) auto;gap:4px;font-size:.8rem}.twlead li b{font-size:.74rem}.twlead .lvchip{padding:1px 3px;font-size:.6rem}.twlead .tsg{gap:6px 12px}.twlead .dim{color:var(--dim)}.twcalside .clear{white-space:nowrap}@media (max-width:520px){.twcalside{flex:1 1 100%}.twcalside .clear{width:100%}}
+.twlead{margin:0}.twlead .tsg{grid-template-columns:repeat(3,minmax(0,1fr))}@media(max-width:1000px){.twlead .tsg{grid-template-columns:1fr}}.twlead .twseasin{cursor:default}.twlead li{grid-template-columns:40px minmax(0,1fr) auto;gap:4px;font-size:.8rem}.twlead li b{font-size:.74rem}.twlead .lvchip{padding:1px 3px;font-size:.6rem}.twlead .tsg{gap:6px 12px}.twlead .dim{color:var(--dim)}.twlead .wlost{color:var(--muted);font-size:.74rem;font-weight:700;letter-spacing:.02em}.twcalside .clear{white-space:nowrap}@media (max-width:520px){.twcalside{flex:1 1 100%}.twcalside .clear{width:100%}}
 .twcal{margin:12px 0 4px;max-width:440px}
 .twcal .tch{display:flex;align-items:center;gap:8px;margin-bottom:8px}.twcal .tch b{flex:1;text-align:center;font-size:1rem}
 .twcal .tch select{background:var(--panel2);color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:4px 6px}
@@ -5141,7 +5141,7 @@ function renderTwLead(){const el=$("twlead"); if(!el)return; const w=twWeek, car
   if(!cards.length){el.hidden=true; return}
   const live=w===TW_LIVE, cols=[0,1,2].map(pi=>{const rows=cards.filter(c=>c[0]===pi).map(c=>{const L=cardLv(c[2]), e=c[6].find(x=>x[1]!=null&&canWin(x));
       const chip=`<span class="lvchip" style="--tc:${TIER_C[L]||"var(--s-red)"}" data-tip="${esc(c[2])}">${L==="G"?"God":(TIER_NAME[L]||c[2]).slice(0,3)}${/bonus/i.test(c[2])?"+":""}</span>`;
-      return `<li data-tip="${esc(`${c[2]} · ${c[3]}`)}">${chip}${e?`<span class="tsl">${twName(twCanon(SB.names[e[0]]))}</span><b>${e[1]}%</b>`:`<span class="dim">Nobody yet</span><b></b>`}</li>`}).join("");
+      return `<li data-tip="${esc(`${c[2]} · ${c[3]}`)}">${chip}${e?`<span class="tsl">${twName(twCanon(SB.names[e[0]]))}</span><b>${e[1]}%</b>`:(c[7]?`<span class="dim" data-tip="This God challenge continues next week, which decides the winner">Continues</span><b></b>`:live||w>DATA_WEEK?`<span class="dim">Nobody yet</span><b></b>`:`<span class="wlost" data-tip="Nobody in this class posted a score that can win it">LOST TROPHY</span><b></b>`)}</li>`}).join("");
     return rows?`<div class="tsc" style="--pc:${PATH_C[pi]}"><h4>${PATHS[pi]}</h4><ul>${rows}</ul></div>`:""}).join("");
   el.innerHTML=`<div class="twseasin"><div class="tsh"><span class="tsn">${live?"🥇 Leading now":"🥇 First place"}</span><span>Week ${w}</span></div><div class="tsnote">${live?"First place on each challenge so far (among players who can win it)":"First place on each challenge"}</div><div class="tsg">${cols}</div></div>`;
   el.hidden=false}
