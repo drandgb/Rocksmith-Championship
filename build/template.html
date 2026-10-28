@@ -1005,7 +1005,7 @@ footer .updated{display:block;margin-top:4px}
 #view-season .plhl:not(.nm):not(span),#view-level li.plhl,#view-rankings li.plhl,#view-rankings tr.plhl td{background:color-mix(in srgb,var(--accent) 16%,transparent)!important;border-radius:6px}
 #view-season .nm.plhl,#view-level .nm.plhl,#view-rankings .nm.plhl{color:var(--accent)!important;font-weight:800}
 #view-season li,#view-season .sc,#view-level .lvlist li,#view-rankings li{cursor:pointer}
-.twseas .tsl{color:#ffd86b;font-weight:800;text-shadow:0 0 10px rgba(255,216,107,.3)}.panel.twseas{padding:12px}.panel.twseas .twseasin{border:0;background:none;padding:2px 4px}.twseasin{border:1px solid color-mix(in srgb,var(--s-yellow) 35%,var(--line));border-radius:10px;padding:10px 12px;background:color-mix(in srgb,var(--s-yellow) 4%,var(--panel2));cursor:pointer}.twseasin:hover{border-color:var(--s-yellow)}
+.twseas .tsl .chg{font-size:.7rem;text-shadow:none}.twseas .tsl .chg.up{color:var(--s-green)}.twseas .tsl .chg.new{color:var(--s-yellow)}.twseas .tsl{color:#ffd86b;font-weight:800;text-shadow:0 0 10px rgba(255,216,107,.3)}.panel.twseas{padding:12px}.panel.twseas .twseasin{border:0;background:none;padding:2px 4px}.twseasin{border:1px solid color-mix(in srgb,var(--s-yellow) 35%,var(--line));border-radius:10px;padding:10px 12px;background:color-mix(in srgb,var(--s-yellow) 4%,var(--panel2));cursor:pointer}.twseasin:hover{border-color:var(--s-yellow)}
 .twseas .tsh{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 12px;font-size:.9rem;color:var(--muted)}.twseas .tsn{font:900 1rem var(--f-display);letter-spacing:.06em;text-transform:uppercase;color:#f5c84a}.twseas .golink{margin-left:auto;color:var(--s-yellow);font-weight:600}
 .twseas .tsnote{font-size:.74rem;color:var(--muted);margin:4px 0 6px}.twseas .tsg{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px 16px}@media(max-width:700px){.twseas .tsg{grid-template-columns:1fr}}
 .twseas .lvchip{font:700 .64rem var(--f-mono);padding:1px 6px;border-radius:4px;color:#10131a;background:var(--tc);text-align:center}.twseas h4{margin:0 0 3px;font:800 .7rem var(--f-display);letter-spacing:.1em;text-transform:uppercase;color:var(--pc)}.twseas ul{list-style:none;margin:0;padding:0}.twseas li{display:grid;grid-template-columns:44px minmax(0,1fr) auto;align-items:center;gap:6px;font-size:.84rem;padding:2px 0}.twseas .tsl{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.twseas li b{font-family:var(--f-display);color:var(--s-green)}
@@ -1658,10 +1658,7 @@ footer{color:var(--dim);font-size:.78rem}
     <div class="panel-head"><h2>⚔️ Rivals</h2><span class="sub" id="tw-riv-sub"></span></div>
     <div class="twpaths" id="tw-riv"></div>
   </section>
-  <section class="panel twrksec" id="tw-rksec" hidden>
-    <div class="panel-head"><h2>👑 Rodman’s Rankings</h2><span class="sub" id="tw-rk-sub"></span></div>
-    <div class="twrk" id="tw-rk"></div>
-  </section>
+  <section class="panel twseas twrksec" id="tw-rksec" hidden></section>
   <section class="panel elosec" hidden>
     <div class="panel-head"><h2 id="tw-elo-h">♟ Elo this week</h2><span class="sub" id="tw-elo-sub"></span></div>
     <div class="elogrid" id="tw-elo"></div>
@@ -4966,14 +4963,15 @@ function renderTwRk(){const w=twWeek, last=w===TW_LIVE?w-1:w, sec=$("tw-rksec");
   if(!(last>=449&&last<=DATA_WEEK)){sec.hidden=true; return}
   const now=rkCompute(last), prev=rkCompute(last-1), LV=[["M","Masterclass"],["A","Advanced"],["I","Intermediate"],["B","Beginner"]];
   const ranked=o=>{const r=Object.entries(o||{}).sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0],undefined,{sensitivity:"base"})); let k=0; return r.map(([n,p],i)=>{if(i===0||p<r[i-1][1])k=i+1; return [k,n,p]})};
-  const crown=["","🥇","🥈","🥉"];
-  $("tw-rk-sub").innerHTML=`Weeks ${last-9}–${last}${w===TW_LIVE?" · this week counts once it's finished":""} · <span class="golink" role="button" tabindex="0" data-gorank>All rankings ›</span>`;
-  $("tw-rk").innerHTML=[0,1,2].map(pi=>`<div class="twpath twrkp" style="--pc:${PATH_C[pi]}"><h3>${PATHS[pi]}</h3>${LV.map(([lv,name])=>{const N=ranked(now[pi+"|"+lv]), P={}; ranked(prev[pi+"|"+lv]).forEach(([k,n])=>P[n]=k);
-    const top=N.filter(x=>x[0]===1); if(!top.length)return "";
-    return `<div class="twrkl" style="--tc:${TIER_C[lv]}"><h4>${name}</h4><ol>${top.map(([k,n,p])=>{const was=P[n], ch=was==null?`<span class="chg new" data-tip="New in the top of the rankings">new</span>`:was>k?`<span class="chg up" data-tip="Up ${was-k} since Week ${last-1}">↑${was-k}</span>`:was<k?`<span class="chg down" data-tip="Down ${k-was} since Week ${last-1}">↓${k-was}</span>`:"";
-      return `<li class="p${k}"><span class="rr">${crown[k]}</span><span class="nm" data-player="${esc(n)}">${esc(n)}</span><span class="pts">${p}</span>${ch}</li>`}).join("")}</ol></div>`}).join("")||`<div class="empty">Nobody ranked</div>`}</div>`).join("");
+  // laid out like the Season box above: a heading line, then a column per path with each class's leader (shared firsts joined by =)
+  const head=`<div class="tsh"><span class="tsn">👑 Rodman’s Rankings</span><span>weeks ${last-9}–${last}</span><span class="golink">All rankings ›</span></div>`;
+  const cols=[0,1,2].map(pi=>{const rows=LV.map(([lv])=>{const N=ranked(now[pi+"|"+lv]), P={}; ranked(prev[pi+"|"+lv]).forEach(([k,n])=>P[n]=k);
+      const top=N.filter(x=>x[0]===1); if(!top.length)return "";
+      return `<li><span class="lvchip" style="--tc:${TIER_C[lv]}">${TIER_NAME[lv].slice(0,3)}</span><span class="tsl">${top.map(x=>"🥇 "+twName(x[1])).join(" = ")}</span><b>${top[0][2]}</b></li>`}).join("");
+    return rows?`<div class="tsc" style="--pc:${PATH_C[pi]}"><h4>${PATHS[pi]}</h4><ul>${rows}</ul></div>`:""}).join("");
+  sec.innerHTML=`<div class="twseasin" data-gorank role="button" tabindex="0" title="Open the Rankings tab">${head}<div class="tsnote">Leaders over the last 10 finished weeks${w===TW_LIVE?" · this week counts once it's finished":""}</div><div class="tsg">${cols}</div></div>`;
   sec.hidden=false}
-document.addEventListener("click",e=>{if(e.target.closest("[data-gorank]")){showView("rankings"); scrollTo({top:0,behavior:"smooth"})}});
+document.addEventListener("click",e=>{if(e.target.closest("[data-gorank]")&&!e.target.closest("[data-player],[data-goplayer],[data-name]")){showView("rankings"); scrollTo({top:0,behavior:"smooth"})}});
 function renderThisWeek(){
   setTimeout(()=>{renderNewWeekNote();renderTwPast();renderDownloads();try{renderTwElo()}catch(e){}try{renderTwRk()}catch(e){}},0);
   renderHostWarn(); if(renderNextPreview())return;
