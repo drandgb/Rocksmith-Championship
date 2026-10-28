@@ -3157,17 +3157,19 @@ function lvChart(n){if(typeof LEVEL==="undefined"||!LEVEL||!LEVEL.paths)return "
     <svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(n)}'s player level by year">${g}${xl}${ln}</svg>
     <p class="echnote">Rodman’s Player Level (song rating × accuracy) for each year and now · dotted lines: class bands${LV_EST&&LV_EST.length?` · * hollow points and dashed lines: this site’s own estimate for ${LV_EST.slice().sort().join(" and ")}, which Rodman’s sheet doesn’t have yet`:""}</p></div>`}
 // Level tab extra: the biggest climbers on each path
-let lvClimb=null;   // "m6", or the later year of a pair (2026 = 2025 → 2026)
 function lvExtra(val,what,years,D){const el=$("lv-extra"); if(!el)return; D=D||LEVEL;
-  // climbers: this year vs last year (by year), or now vs the last 6 months
-  const ey=years.slice().sort((a,b)=>b-a), has=y=>D.paths.some(L=>L.some(p=>p.y[y])), pairs=ey.filter(y=>has(y)&&has(y-1));
-  if(lvClimb!=="m6"&&!pairs.includes(+lvClimb))lvClimb=pairs[0]!=null?String(pairs[0]):"m6";
-  const yr=lvClimb!=="m6", y1=+lvClimb, y0=y1-1;
-  const cl=D.paths.map(L=>L.map(p=>{const a=yr?p.y[y0]:p.m6, b=yr?p.y[y1]:p.xp; return a&&b?{n:p.n,a,b,d:b-a}:null}).filter(x=>x&&x.d>0).sort((x,y)=>y.d-x.d).slice(0,5));
-  el.innerHTML=`<section class="panel lvcl"><div class="panel-head"><h2>📈 Biggest climbers</h2><label class="shostpick lvclsel"><span>Compare</span><select data-lvcl aria-label="Compare">${pairs.map(y=>`<option value="${y}"${yr&&y===y1?" selected":""}>${lvYl(y-1)} → ${lvYl(y)}</option>`).join("")}<option value="m6"${yr?"":" selected"}>Last 6 months → now</option></select>${yr&&(lvIsEst(y0)||lvIsEst(y1))?lvAst():""}</label></div>
-      <div class="lvclg">${cl.map((L,pi)=>`<div class="lvclp" style="--pc:${ELO_C[pi]}"><h4>${PATHS[pi]}</h4>${L.length?`<ol>${L.map((x,i)=>`<li data-tip="${esc(x.n)} · ${PATHS[pi]}\n${yr?lvYl(y0):"Last 6 months"}: ${x.a.toFixed(1)}\n${yr?lvYl(y1):"Now"}: ${x.b.toFixed(1)}"><span class="nm" data-player="${esc(x.n)}">${esc(x.n)}</span><b class="up">+${x.d.toFixed(1)}</b><small>${x.a.toFixed(1)} → ${x.b.toFixed(1)}</small></li>`).join("")}</ol>`:`<p class="dim">Nobody climbed</p>`}</div>`).join("")}</div>
+  // climbers follow the Now / Last 6 months / By year switch: Now = the last 6 months → now; Last 6 months = the last full
+  // year → the last 6 months; By year = the year before → the year picked
+  const ey=years.slice().sort((a,b)=>b-a), yNow=new Date().getFullYear(), prevY=ey.find(y=>y<yNow)||ey[1];
+  const yh=y=>`${y}${lvIsEst(y)?lvAst():""}`;   // a year in the heading, with the hoverable * when it's estimated
+  let A,B,la,lb,ha,hb,none="";
+  if(lvMode==="now"){A=p=>p.m6; B=p=>p.xp; la=ha="Last 6 months"; lb=hb="Now"}
+  else if(lvMode==="m6"){A=p=>p.y[prevY]; B=p=>p.m6; la=lvYl(prevY); ha=yh(prevY); lb=hb="Last 6 months"}
+  else{const y1=+lvYear, y0=y1-1; A=p=>p.y[y0]; B=p=>p.y[y1]; la=lvYl(y0); lb=lvYl(y1); ha=yh(y0); hb=yh(y1); if(!years.includes(y0))none=`No year before ${y1} to compare with`}
+  const cl=D.paths.map(L=>L.map(p=>{const a=A(p), b=B(p); return a&&b?{n:p.n,a,b,d:b-a}:null}).filter(x=>x&&x.d>0).sort((x,y)=>y.d-x.d).slice(0,5));
+  el.innerHTML=`<section class="panel lvcl"><div class="panel-head"><h2>📈 Biggest climbers</h2><span class="sub">${none?"":`${ha} → ${hb}`}</span></div>${none?`<p class="dim">${none}</p>`:`
+      <div class="lvclg">${cl.map((L,pi)=>`<div class="lvclp" style="--pc:${ELO_C[pi]}"><h4>${PATHS[pi]}</h4>${L.length?`<ol>${L.map((x,i)=>`<li data-tip="${esc(x.n)} · ${PATHS[pi]}\n${la}: ${x.a.toFixed(1)}\n${lb}: ${x.b.toFixed(1)}"><span class="nm" data-player="${esc(x.n)}">${esc(x.n)}</span><b class="up">+${x.d.toFixed(1)}</b><small>${x.a.toFixed(1)} → ${x.b.toFixed(1)}</small></li>`).join("")}</ol>`:`<p class="dim">Nobody climbed</p>`}</div>`).join("")}</div>`}
 </section>`}
-document.addEventListener("change",e=>{const b=e.target.closest("select[data-lvcl]"); if(!b||!b.closest("#lv-extra"))return; lvClimb=b.value; renderLevel()});
 // Like Rodman's Rankings: when his PlayerLevel tab is behind the latest finished week, the site can show its own "Now" and
 // "Last 6 months" levels worked out from the scoreboards (each week's best card on the path, rating × accuracy, the average
 // without the lowest and highest week; 3+ scores needed in the last 12 or 26 finished weeks). The years stay the same.
