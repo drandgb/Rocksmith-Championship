@@ -1044,7 +1044,7 @@ footer .updated{display:block;margin-top:4px}
 #view-season li,#view-season .sc,#view-level .lvlist li,#view-rankings li{cursor:pointer}
 .twseas .tsl .chg{font-size:.7rem;text-shadow:none}.twseas .tsl .chg.up{color:var(--s-green)}.twseas .tsl .chg.new{color:var(--s-yellow)}.twseas .tsl{color:#ffd86b;font-weight:800;text-shadow:0 0 10px rgba(255,216,107,.3)}.panel.twseas{padding:12px}.panel.twseas .twseasin{border:0;background:none;padding:2px 4px}.twseasin{border:1px solid color-mix(in srgb,var(--s-yellow) 35%,var(--line));border-radius:10px;padding:10px 12px;background:color-mix(in srgb,var(--s-yellow) 4%,var(--panel2));cursor:pointer}.twseasin:hover{border-color:var(--s-yellow)}
 .twseas .tsh{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 12px;font-size:.9rem;color:var(--muted)}.twseas .tsn{font:900 1rem var(--f-display);letter-spacing:.06em;text-transform:uppercase;color:#f5c84a}.twseas .golink{margin-left:auto;color:var(--s-yellow);font-weight:600}
-.twseas li.tscl{display:block;padding:6px 0 2px}.twseas li.tsp{grid-template-columns:18px minmax(0,1fr) auto 2.4em;gap:4px;font-size:.8rem;padding:1px 0}.twseas .tsr{color:var(--muted);font:600 .7rem var(--f-mono);text-align:right}.twseas .tsn2{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.twseas li.tsp1 .tsn2{color:#ffd86b;font-weight:800}.twseas li.tsp b{color:var(--fg)!important;font-size:.8rem}.twseas li.tsp small{font:600 .7rem var(--f-mono);color:var(--dim);text-align:right}.twseas li.tsp small.up{color:var(--s-green)}
+.twseas li.tscl{display:block;padding:6px 0 2px}.twseas li.tsp{grid-template-columns:18px minmax(0,1fr) auto 2.4em;gap:4px;font-size:.8rem;padding:1px 0}.twseas .tsr{color:var(--muted);font:600 .7rem var(--f-mono);text-align:right}.twseas .tsn2{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.twseas li.tsp1 .tsn2{color:#ffd86b;font-weight:800}.twseas li.tsp b{color:var(--fg)!important;font-size:.8rem}.twseas li.tsp small{font:600 .7rem var(--f-mono);color:var(--dim);text-align:right}.twseas li.tsp small.up{color:var(--s-green)}.twseas .tsgain{cursor:pointer;text-decoration:underline dotted;text-underline-offset:2px}
 .twseas .tsnote{font-size:.74rem;color:var(--muted);margin:4px 0 6px}.twseas .tsg{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px 16px}@media(max-width:700px){.twseas .tsg{grid-template-columns:1fr}}
 .twseas .lvchip{font:700 .64rem var(--f-mono);padding:1px 6px;border-radius:4px;color:#10131a;background:var(--tc);text-align:center}.twseas h4{margin:0 0 3px;font:800 .7rem var(--f-display);letter-spacing:.1em;text-transform:uppercase;color:var(--pc)}.twseas ul{list-style:none;margin:0;padding:0}.twseas li{display:grid;grid-template-columns:44px minmax(0,1fr) auto;align-items:center;gap:6px;font-size:.84rem;padding:2px 0}.twseas .tsl{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.twseas li b{font-family:var(--f-display);color:var(--s-green)}
 .sqctl{display:flex;gap:8px;flex-wrap:wrap}.sqctl #sq{flex:1 1 220px}.sqctl select{background:var(--panel2);color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:6px 8px;font:inherit}.sqtbl td small{display:block;color:var(--muted);font-size:.78rem}.sqtbl .sqt{font:600 .74rem var(--f-mono);color:var(--muted);white-space:nowrap}.sqtbl .sqp{font-weight:800;white-space:nowrap}.sqtbl td.r small{display:block}.sqhint{margin:6px 0 0}
@@ -3390,17 +3390,26 @@ const CEL_SPRIG=(()=>{let s="";
 function twSeason(w,live){eloBuild(); const id=seasonOf(w); if(!id)return ""; const [a,b]=seasonRange(id), n=w-a+1, len=b-a+1, upto=Math.min(w,ELO_DONE);
   const head=`<div class="tsh"><span class="tsn">🏁 Season ${seasonNum(id)}</span><span>week ${n} of ${len}</span><span class="golink">Season standings ›</span></div>`;
   if(upto<a)return `<div class="twseasin" data-goseason role="button" tabindex="0" title="Open the Season tab">${head}<p class="dim">The season starts this week: everyone's on zero points.</p></div>`;
+  // where this week's points came from: their place on the week's main challenge in that class
+  const wkWhy=(pi,c,nm)=>{const out=[]; (SB.weeks[after]||[]).forEach(cd=>{if(cd[0]!==pi||cd[7]||cardLv(cd[2])!==c||/bonus/i.test(cd[2]))return;
+      const el=cd[6].filter(e=>e[1]!=null&&canWin(e)), i=el.findIndex(e=>pvName(e)===nm); if(i>=0&&i<10)out.push(`${["1st","2nd","3rd"][i]||(i+1)+"th"} on ${cd[3]} (${e2p(el[i][1])}) = ${F1_PTS[i]} points`)});
+    return out};
+  const e2p=x=>`${+(+x).toFixed(2)}%`;
   // every player's season points after this week, with what this week adds (for the week still running: if it ended now)
   const proj=live&&w>ELO_DONE, after=proj?w:upto, before=after-1;
   const cols=[0,1,2].map(pi=>{const T=seasonF1(pi,id,after,proj), B=before>=a?seasonF1(pi,id,before):{};
     const rows=["M","A","I","B"].filter(c=>T[c]&&T[c].length).map(c=>{const L=T[c], P={}; (B[c]||[]).forEach(x=>P[x.n]=x.p); let rk=0;
       const ps=L.map((x,i)=>{if(i===0||f1Cmp(L[i-1],x)!==0)rk=i+1; const g=x.p-(P[x.n]||0);
-        return `<li class="tsp${rk===1?" tsp1":""}"><span class="tsr">${rk}</span><span class="tsn2">${twName(x.n)}</span><b>${x.p}</b><small class="${g>0?"up":""}">${g>0?"+"+g:""}</small></li>`}).join("");
+        return `<li class="tsp${rk===1?" tsp1":""}"><span class="tsr">${rk}</span><span class="tsn2">${twName(x.n)}</span><b>${x.p}</b>${g>0?`<small class="up tsgain" role="button" tabindex="0" data-tip="${esc(`${proj?`Week ${n} so far`:`Week ${after-a+1} of the season`} · ${PATHS[pi]} ${TIER_NAME[c]}\n`+wkWhy(pi,c,x.n).join("\n")+(proj?"\n(if the week ended now)":""))}">+${g}</small>`:"<small></small>"}</li>`}).join("");
       return `<li class="tscl"><span class="lvchip" style="--tc:${TIER_C[c]}">${TIER_NAME[c].slice(0,3)}</span></li>${ps}`}).join("");
     return rows?`<div class="tsc" style="--pc:${PATH_C[pi]}"><h4>${PATHS[pi]}</h4><ul>${rows}</ul></div>`:""}).join("");
   const note=proj?`Projected season points if week ${n} ended now (+ points from this week so far)`:`Season points after week ${after-a+1} (+ points that week)`;
   return `<div class="twseasin" data-goseason role="button" tabindex="0" title="Open the Season tab">${head}<div class="tsnote">${note}</div><div class="tsg">${cols}</div></div>`}
-document.addEventListener("click",e=>{if(!e.target.closest("[data-goseason]")||e.target.closest("[data-profile],[data-player]"))return; showView("season"); scrollTo({top:0})});
+document.addEventListener("click",e=>{if(!e.target.closest("[data-goseason]")||e.target.closest("[data-profile],[data-player],.tsgain"))return; showView("season"); scrollTo({top:0})});
+// clicking (or tapping) a "+ points" in the Season box shows where they came from, until the next click
+var twTipPin=null;
+document.addEventListener("click",e=>{const g=e.target.closest(".tsgain"); if(!g){if(twTipPin){twTipPin=null; tip.hidden=true} return}
+  e.stopPropagation(); twTipPin=g; tip.textContent=g.dataset.tip; tip.hidden=false; const r=g.getBoundingClientRect(); placeTip(Math.min(r.left,innerWidth-260),r.bottom-4)},true);
 // New medals order: gold God winners first, then silver, then bronze God diamond winners, then everyone else
 // then most new regular gold medals, then silver, then bronze (all paths), then most new medals overall
 function podNew(m,i){return m.reduce((t,h)=>{if(!/medal-m wm pod/.test(h)||!new RegExp(`data-tip="${POD_NAME[i]} medal`).test(h))return t; const k=/data-k="(\d+)"/.exec(h); return t+(k?+k[1]:1)},0)}
@@ -5330,8 +5339,8 @@ $("twcal").addEventListener("change",e=>{if(!e.target.matches("[data-twcaly]"))r
 $("twprev").addEventListener("click",()=>{if(twWeek>TW_MIN){twWeek--;renderThisWeek()}});
 $("twnext").addEventListener("click",()=>{if(twWeek<TW_MAX){twWeek++;renderThisWeek()}else if(TW_NEXT&&twWeek===TW_MAX){twWeek=TW_NEXT;renderThisWeek()}});
 $("twnow").addEventListener("click",()=>{twWeek=TW_MAX;renderThisWeek()});
-$("view-thisweek").addEventListener("mousemove",e=>{const p=e.target.closest("[data-tip]");if(!p){tip.hidden=true;return}tip.textContent=p.dataset.tip;tip.hidden=false;placeTip(e.clientX,e.clientY)});
-$("view-thisweek").addEventListener("mouseleave",()=>tip.hidden=true);
+$("view-thisweek").addEventListener("mousemove",e=>{if(window.twTipPin)return; const p=e.target.closest("[data-tip]");if(!p){tip.hidden=true;return}tip.textContent=p.dataset.tip;tip.hidden=false;placeTip(e.clientX,e.clientY)});
+$("view-thisweek").addEventListener("mouseleave",()=>{if(!window.twTipPin)tip.hidden=true});
 // click a new medal: ring it like in the lookups and show its hover text (handy on phones too)
 $("view-thisweek").addEventListener("click",e=>{
   const rb=e.target.closest("[data-rivlv]"); // a rival pair's level box: show only that level on that path; click again for all
