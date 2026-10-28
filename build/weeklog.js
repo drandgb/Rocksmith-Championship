@@ -9,7 +9,7 @@ let h = fs.readFileSync(page, "utf8");
 const m = h.match(/SB=(\{[\s\S]*?\});\s*\n/);
 if (!m || !h.includes("var WEEKLOG={}/*WEEKLOG*/")) { console.log("weeklog: page layout not found, skipped"); process.exit(0); }
 const SB = eval("(" + m[1] + ")");
-const canWin = e => e[4] === 0 || e[4] === 9;
+const canWin = e => (e[4] === 0 || e[4] === 9) && !/~$/.test(SB.names[e[0]]);   // FreeBirds can't win
 const nm = i => String(SB.names[i]).replace(/[*~]+$/, "");
 const file = path.join(cache, "weeklog.json");
 let log; try { log = JSON.parse(fs.readFileSync(file, "utf8")); } catch (e) { log = {}; }

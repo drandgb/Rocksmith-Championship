@@ -2085,15 +2085,14 @@ function upRow(i){
   const yr=w[1].slice(0,4)!==cur[1].slice(0,4)?`<span class="yy">${w[1].slice(0,4)}</span>`:"";
   return `<li class="${i===0?"cur":""}"><div class="wk"><b${i===0&&SB.weeks[w[0]]?` class="sblink" data-sbw="${w[0]}" title="Open Week ${w[0]} on the Scoreboard"`:""}>${w[0]}</b>${fmtShort(w[1])}${yr}</div><div>${who}${i===0?' <span class="sub">· now</span>':""}<div class="meta">${hol}</div></div></li>`;
 }
-// this week and the next ones; hosts can sign up for any week shown here (always at least the next HOST_AHEAD).
-// On a wide screen the list grows to match the Host leaderboard beside it.
-const HOST_AHEAD=9;
-let upCount=HOST_AHEAD+1;
+// the next HOST_AHEAD weeks (not this week); hosts can sign up for any week shown here.
+const HOST_AHEAD=10;
+let upCount=HOST_AHEAD;
 function hostAhead(){return HOST_AHEAD}
 function renderUpcoming(){
-  const ul=$("upcoming"); upCount=HOST_AHEAD+1;
-  ul.innerHTML=[...Array(upCount)].map((_,i)=>upRow(i)).join("");
-  $("upsub").textContent=`This week + next ${HOST_AHEAD}`;
+  const ul=$("upcoming"); upCount=HOST_AHEAD;
+  ul.innerHTML=[...Array(upCount)].map((_,i)=>upRow(i+1)).join("");
+  $("upsub").textContent=`Next ${HOST_AHEAD} weeks`;
   fitLog();
 }
 // side by side, the Week log is as tall as Coming up and scrolls inside
@@ -3157,7 +3156,9 @@ function podiumCounts(name,done,path=-1){
 // who can claim a win: only players in their own class for that path (e[4] 0), or with no class there yet (9).
 // Players playing down (-1) never count; players playing up (1, 2) can't claim it either unless they rank up
 // (the host then re-runs the winners script). A playing-up player who tops the board gets an Uncrowned medal instead.
-function canWin(e){return e[4]===0||e[4]===9}
+// FreeBirds (name ending in "~") play for fun and can't claim a place either
+function isFB(e){return /~$/.test(SB.names[e[0]]||"")}
+function canWin(e){return (e[4]===0||e[4]===9)&&!isFB(e)}
 // Uncrowned: finished challenges where the player, playing up, had the best score of everyone not playing down,
 // but stayed in their lower class, so the win went to the best player in that class (or was lost)
 // pos 0 = 1st (Uncrowned), 1 = 2nd, 2 = 3rd: the place the playing-up player reached among everyone not playing down
@@ -3658,7 +3659,7 @@ function sbRender(){
       const raw=SB.names[e[0]]; const base=raw.replace(/[*~]+$/,"");
       const MK={"-1":"Playing down, below their own class (not counted for wins)","1":"Playing up one class (can't claim the win unless they rank up)","2":"Playing up two or more classes (can't claim the win unless they rank up)","0":"Played outside their own class"};
       const marks=(raw.includes("*")?`<span class="mk" data-tip="${MK[e[4]||0]}">*</span>`:"")+(raw.includes("~")?`<span class="mk" data-tip="FreeBird">~</span>`:"");
-      const rk=elig&&place<=3?`<span class="rkb" style="--m:${["#f5c84a","#c9d0dc","#d8925a"][place-1]}" title="${["1st","2nd","3rd"][place-1]} among players who can claim the win (their own class)">${i+1}</span>`:(e[4]===1||e[4]===2)&&openPlace<=3?`<span class="rkb rko" style="--m:${["#f5c84a","#c9d0dc","#d8925a"][openPlace-1]}" title="${["1st","2nd","3rd"][openPlace-1]} counting players playing up, who can't claim the place from a lower class">${i+1}</span>`:`<span class="rkn">${i+1}</span>`;
+      const rk=elig&&place<=3?`<span class="rkb" style="--m:${["#f5c84a","#c9d0dc","#d8925a"][place-1]}" title="${["1st","2nd","3rd"][place-1]} among players who can claim the win (their own class)">${i+1}</span>`:(e[4]===1||e[4]===2||(e[4]>=0&&isFB(e)))&&openPlace<=3?`<span class="rkb rko" style="--m:${["#f5c84a","#c9d0dc","#d8925a"][openPlace-1]}" title="${["1st","2nd","3rd"][openPlace-1]} (uncrowned) ${isFB(e)?"as a FreeBird, who can't claim the place":"counting players playing up, who can't claim the place from a lower class"}">${i+1}</span>`:`<span class="rkn">${i+1}</span>`;
       const pct=e[1]==null?"":`<span class="${e[1]>=100?"pct100":""}">${e[1]}%</span>`;
       const me=findLc&&base.toLowerCase()===findLc?" me":"";
       const lvLetter=/master/i.test(lvl)?"M":/^adv/i.test(lvl)?"A":/^int/i.test(lvl)?"I":/begin/i.test(lvl)?"B":"";
@@ -5135,7 +5136,7 @@ const RK_CYC=["","B","I","A","M"]; let rkLv=["","",""]; // level shown per path 
 function rkCurrent(){const end=d=>{const m=String(d&&d.weeks||"").match(/(\d+)\D+(\d+)/); return m?+m[2]:0};
   try{const L=rkLiveData(); return end(RK_SHEET)>=end(L)?RK_SHEET:L}catch(e){return RK_SHEET}}
 // Year-end Rodman's Rankings: the leaderboard as it stood at the end of each year, from the year tabs in the championship sheet
-let yeYear=null;
+let yeYear="all";   // All time is shown first
 function renderYearEnd(){const el=$("rk-year"); if(!el)return; if(!YEAREND||!YEAREND.length){el.hidden=true;return}
   // "All time": every year's end-of-year points added up, per path and class
   const allTime=()=>{const paths=[0,1,2].map(pi=>["B","I","A","M"].map(c=>{const T={}; YEAREND.forEach(Y=>((Y.paths[pi]||[]).find(b=>b.cls===c)||{rows:[]}).rows.forEach(([rk,n,pt])=>{T[n]=(T[n]||0)+(+pt||0)}));
