@@ -154,6 +154,7 @@ button.pill.hostbtn:hover,.pill.hostbtn:hover{background:color-mix(in srgb,var(-
 .acctdlg .hostsec li{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--line);font-size:.85rem}
 .pill.on{cursor:help;background:color-mix(in srgb,var(--s-green) 16%,transparent);color:var(--s-green);border:1px solid color-mix(in srgb,var(--s-green) 45%,transparent)}
 .pill.hol{background:var(--panel2);color:var(--muted);border:1px solid var(--line);font-family:var(--f-body);letter-spacing:0}
+.pill.hol.holearly{border-style:dashed;background:transparent;opacity:.85;cursor:help}
 
 .grid2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.35fr);gap:20px}
 @media (max-width:860px){.grid2{grid-template-columns:minmax(0,1fr)}}
@@ -2079,7 +2080,8 @@ const holEmoji=h=>{const e=/Anniversary/.test(h)?"🎸":HOL_EMOJI[h];return e?`<
 const iso=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
 const nthDow=(y,m,dow,n)=>{const d=new Date(y,m,1);d.setDate(1+((dow-d.getDay()+7)%7)+7*(n-1));return d};
 function easter(y){const a=y%19,b=Math.floor(y/100),c=y%100,d=Math.floor(b/4),e=b%4,f=Math.floor((b+8)/25),g=Math.floor((b-f+1)/3),h=(19*a+b-d-g+15)%30,i=Math.floor(c/4),k=c%4,l=(32+2*e+2*i-h-k)%7,m=Math.floor((a+11*h+22*l)/451),mo=Math.floor((h+l-7*m+114)/31),da=((h+l-7*m+114)%31)+1;return new Date(y,mo-1,da)}
-function holidaysFor(startISO){
+function holidaysFor(startISO){return holidaysRaw(startISO).map(x=>x[1]).join(", ")}
+function holidaysRaw(startISO){
   const s=new Date(startISO+"T12:00:00");
   const days=[...Array(7)].map((_,i)=>{const d=new Date(s);d.setDate(s.getDate()+i);return d});
   const out=[];
@@ -2094,8 +2096,12 @@ function holidaysFor(startISO){
     if(same(nthDow(Y,10,4,4)))out.push([i,"Thanksgiving"]);
     if(d.getDate()===13&&d.getDay()===5)out.push([i,"Friday the 13th"]);
   });
-  return out.sort((a,b)=>a[0]-b[0]).map(x=>x[1]).join(", ");
+  return out.sort((a,b)=>a[0]-b[0]);
 }
+// holidays early in the next week (Saturday to Tuesday, before Wednesday): a host can choose to celebrate them this week instead
+function holidaysEarly(w){const d=new Date(w[1]+"T12:00:00"); d.setDate(d.getDate()+7);
+  return holidaysRaw(iso(d)).filter(x=>x[0]<4).map(([i,n])=>{const x=new Date(d); x.setDate(d.getDate()+i); return {n,day:x.toLocaleDateString(undefined,{weekday:"long",month:"short",day:"numeric"}),wk:w[0]+1}})}
+const holEarlyPills=w=>holidaysEarly(w).map(h=>`<span class="pill hol holearly" data-tip="${esc(`${holName(h.n)} is on ${h.day}, early in Week ${h.wk}. You can celebrate it a week early, in Week ${w[0]}, instead.`)}">↩ ${holEmoji(h.n)}${esc(holName(h.n))}?</span>`).join("");
 // replace the sheet's holiday column with calendar-correct holidays, keeping its anniversary markers
 WEEKS.forEach(w=>{
   const ann=w[3].split(/,\s*/).filter(h=>/Anniversary/.test(h));
@@ -2112,7 +2118,7 @@ function upRow(i){
   const hol=w[3]?w[3].split(/,\s*/).map(h=>`<span class="pill hol holf" data-hol="${esc(h)}" title="Show only weeks with ${esc(h)}">${holEmoji(h)}${esc(holName(h))}</span>`).join(""):"";
   const who=w[2]?(i>0&&w[2]!==LOST?hostBooked(w):`<span class="who" data-name="${esc(w[2])}">${esc(w[2])}</span>`):hostSlot(w,i);
   const yr=w[1].slice(0,4)!==cur[1].slice(0,4)?`<span class="yy">${w[1].slice(0,4)}</span>`:"";
-  return `<li class="${i===0?"cur":""}"><div class="wk"><b${i===0&&SB.weeks[w[0]]?` class="sblink" data-sbw="${w[0]}" title="Open Week ${w[0]} on the Scoreboard"`:""}>${w[0]}</b>${fmtShort(w[1])}${yr}</div><div>${who}${i===0?' <span class="sub">· now</span>':""}<div class="meta">${hol}</div></div></li>`;
+  return `<li class="${i===0?"cur":""}"><div class="wk"><b${i===0&&SB.weeks[w[0]]?` class="sblink" data-sbw="${w[0]}" title="Open Week ${w[0]} on the Scoreboard"`:""}>${w[0]}</b>${fmtShort(w[1])}${yr}</div><div>${who}${i===0?' <span class="sub">· now</span>':""}<div class="meta">${hol}${holEarlyPills(w)}</div></div></li>`;
 }
 // the next HOST_AHEAD weeks (not this week); hosts can sign up for any week shown here.
 const HOST_AHEAD=10;
@@ -5635,7 +5641,7 @@ document.addEventListener("click",e=>{
 document.addEventListener("change",e=>{const s=e.target.closest("select[data-hostpick]"); if(!s||!s.value)return; const v=s.value; s.value=""; hostAct(+s.dataset.hostpick,v)});
 // the Hosting section in Your account, and Host sign-ups in Admin
 // a week's holidays as small tags (same as on This Week and the week log)
-const hostHol=w=>w&&w[3]?`<span class="hhol">${w[3].split(/,\s*/).map(h=>`<span class="pill hol">${holEmoji(h)}${esc(holName(h))}</span>`).join("")}</span>`:"";
+const hostHol=w=>{if(!w)return ""; const a=w[3]?w[3].split(/,\s*/).map(h=>`<span class="pill hol">${holEmoji(h)}${esc(holName(h))}</span>`).join(""):"", b=holEarlyPills(w); return a||b?`<span class="hhol">${a}${b}</span>`:""};
 function hostSection(admin){
   const open=hostOpenWeeks();
   if(admin){
