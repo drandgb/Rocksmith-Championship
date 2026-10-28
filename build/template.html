@@ -3164,7 +3164,7 @@ function canWin(e){return (e[4]===0||e[4]===9)&&!isFB(e)}
 // pos 0 = 1st (Uncrowned), 1 = 2nd, 2 = 3rd: the place the playing-up player reached among everyone not playing down
 function uncrownedWins(name,done,path=-1,pos=0){const out=[], k=String(name).toLowerCase();
   done.forEach(w=>{if(w>DATA_WEEK)return; (SB.weeks[w]||[]).forEach(c=>{if(c[7]||(path>=0&&c[0]!==path))return;
-    const e=c[6].filter(x=>x[4]>=0)[pos]; if(e&&(e[4]===1||e[4]===2)&&SB.names[e[0]].replace(/[*~]+$/,"").toLowerCase()===k)out.push(w)})});
+    const e=c[6].filter(x=>x[4]>=0)[pos]; if(e&&(e[4]===1||e[4]===2||isFB(e))&&SB.names[e[0]].replace(/[*~]+$/,"").toLowerCase()===k)out.push(w)})});
   return out}
 const UNC_NAME=["Uncrowned","Uncrowned silver","Uncrowned bronze"], UNC_COL=["#c99a1e","#8e98aa","#b0703f"], UNC_GLOW=["#f5c84a","#c9d0dc","#d8925a"];
 function uncrownSvg(col){return `<svg viewBox="0 0 28 30" aria-hidden="true"><circle cx="14" cy="15" r="12" fill="${col}"/><path d="M6 11a9 9 0 0 1 5-5.5" stroke="rgba(255,255,255,.5)" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M7.5 19.5l-1.2-8 4.3 3.4L14 8.6l3.4 6.3 4.3-3.4-1.2 8z" fill="none" stroke="#f5f0ff" stroke-width="1.5" stroke-linejoin="round" stroke-dasharray="2.2 1.6"/><path d="M8.2 22.4h11.6" stroke="#f5f0ff" stroke-width="1.6" stroke-linecap="round"/><path d="M18.5 4.5l1.6 3.2" stroke="#f5f0ff" stroke-width="1.2" stroke-linecap="round" opacity=".8"/><circle cx="14" cy="8.2" r="1" fill="#f5f0ff"/></svg>`}
@@ -3396,9 +3396,9 @@ function winMedals(per,done,bestN,streak,total,trip,ties,pod,rivw,unc,sea){
   const xr=[]; // close wins and rivalry wins share their own row
   if(ties&&ties.length)xr.push(`<span class="medal-m wm" style="--ec:#f5c84a;cursor:pointer" data-all="${ties.join(",")}" data-hl="${[...new Set(ties)].sort((a,b)=>a-b).join(",")}" data-tip="Close win medal · won on the tiebreak with the same % as the runner-up · ${ties.length} time${ties.length===1?"":"s"} · click to highlight">${tieSvg("#f5c84a")}<b>${ties.length}</b></span>`);
   if(rivw&&rivw.length)xr.push(`<span class="medal-m wm" style="--ec:#ff6b6b;cursor:pointer" data-all="${rivw.join(",")}" data-hl="${[...new Set(rivw)].sort((a,b)=>a-b).join(",")}" data-tip="Rivalry win · beat their closest rival of the week (same rank, ranked challenges) · ${rivw.length} time${rivw.length===1?"":"s"} · click to highlight">${swordsSvg("#ff6b6b")}<b>${rivw.length}</b></span>`);
-  // Uncrowned (1st), then silver and bronze: places reached while playing up, which can't be claimed from a lower class
+  // Uncrowned (1st), then silver and bronze: places reached while playing up or as a FreeBird, which can't be claimed
   (unc||[]).forEach((ws,i)=>{if(!ws||!ws.length)return; const what=["had the best score","finished 2nd","finished 3rd"][i];
-    xr.push(`<span class="medal-m wm" style="--ec:${UNC_GLOW[i]};cursor:pointer" data-all="${ws.join(",")}" data-hl="${[...new Set(ws)].sort((a,b)=>a-b).join(",")}" data-tip="${UNC_NAME[i]} · ${what} on a board, counting everyone not playing down, while playing up from a lower class (only players in that class can claim the place) · ${ws.length} time${ws.length===1?"":"s"} · click to highlight">${uncrownSvg(UNC_COL[i])}<b>${ws.length}</b></span>`)});
+    xr.push(`<span class="medal-m wm" style="--ec:${UNC_GLOW[i]};cursor:pointer" data-all="${ws.join(",")}" data-hl="${[...new Set(ws)].sort((a,b)=>a-b).join(",")}" data-tip="${UNC_NAME[i]} · ${what} on a board, counting everyone not playing down, while playing up from a lower class or as a FreeBird (only players in that class can claim the place) · ${ws.length} time${ws.length===1?"":"s"} · click to highlight">${uncrownSvg(UNC_COL[i])}<b>${ws.length}</b></span>`)});
   // season champion trophies first, then God diamonds, then the gold, silver and bronze medals
   if(sea&&sea.length)rows.push(sea);
   if(P.god.length)rows.push(P.god);
@@ -4810,7 +4810,7 @@ function twMedals(n,w,live){
     else if(/-win week trophy/.test(t))from=fin.filter(x=>x.place===0);
     else if(/^Uncrowned/.test(t)){const key=String(n).toLowerCase(), pos=/^Uncrowned silver/.test(t)?1:/^Uncrowned bronze/.test(t)?2:0;
       (SB.weeks[w]||[]).forEach(c=>{if(c[7])return; const e=c[6].filter(x=>x[4]>=0)[pos];
-        if(e&&(e[4]===1||e[4]===2)&&SB.names[e[0]].replace(/[*~]+$/,"").toLowerCase()===key)from.push({c,god:/^god|tribute/i.test(c[2])})})}
+        if(e&&(e[4]===1||e[4]===2||isFB(e))&&SB.names[e[0]].replace(/[*~]+$/,"").toLowerCase()===key)from.push({c,god:/^god|tribute/i.test(c[2])})})}
     else{const mm=/^Perfect God medal/.test(t)?[0,"God"]:/^(.+) perfectionist/.exec(t), mc=mm&&MAST_CLASSES.find(x=>x[1]===mm[1]);
       if(mc){const key=String(n).toLowerCase(); (SB.weeks[w]||[]).forEach(c=>{if(c[7]||masteryClassOf(c[2])!==mc[0])return;
         if(c[6].some(e=>e[1]!=null&&e[1]>=100&&SB.names[e[0]].replace(/[*~]+$/,"").toLowerCase()===key))from.push({c,god:mc[0]==="G"})})}}
