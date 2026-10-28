@@ -3083,6 +3083,9 @@ const lvSay=x=>{const r=x/10, b=lvBand(x); return `like 100% on songs rated ${(M
 // Same idea as the sheet: each week, the player's best card on the path (song rating × accuracy, not playing down), then the
 // year's average without its lowest and highest week, for players with 5+ weeks that year. Close to Rodman's numbers, not exact.
 let LV_EST=null;
+let lvLive=null;   // Rodman's levels or the site's latest (see lvLiveData); null: start on the newer of the two, everywhere on the site
+// the level data the whole site shows: Rodman's, or the site's own when his tab is behind (or the viewer picked it on the Level tab)
+function lvCur(){lvEnsure(); if(lvLive===null)lvLive=(LEVEL.last||0)<DATA_WEEK; return lvLive?lvLiveData():LEVEL}
 function lvYearOf(w){const W=weekAt(w-WEEKS[0][0]); if(!W)return 0; const d=new Date(W[1]+"T12:00:00"); d.setDate(d.getDate()+3); return d.getFullYear()}
 const lvKey=n=>{let b=String(n).replace(/[*~]+$/,"").trim(); b=TW_ALIAS[b]||b; return b.toLowerCase()};
 function lvEnsure(){if(LV_EST||typeof LEVEL==="undefined"||!LEVEL||!LEVEL.paths)return; LV_EST=[];
@@ -3108,13 +3111,13 @@ const lvIsEst=y=>!!LV_EST&&LV_EST.includes(+y);
 const lvYl=y=>`${y}${lvIsEst(y)?" (est.)":""}`;
 const LV_EST_NOTE="Estimated by this site from the scoreboard (each week's best card: song rating × accuracy, the year's average without its lowest and highest week, 5+ weeks needed). Rodman's sheet doesn't have this year yet, so it can differ by a few points.";
 // a player's level on each path: {pi: entry}
-function lvOf(n){lvEnsure(); const k=lvKey(n); return [0,1,2].map(pi=>(LEVEL.paths[pi]||[]).find(p=>lvKey(p.n)===k)||null)}
+function lvOf(n){const D=lvCur(), k=lvKey(n); return [0,1,2].map(pi=>(D.paths[pi]||[]).find(p=>lvKey(p.n)===k)||null)}
 // small level chip next to a name (Scoreboard, Rodman's Rankings): the player's XP now on that path
 let LV_NOW=null;
 function lvChip(n,pi,q){if(typeof LEVEL==="undefined"||!LEVEL||!LEVEL.paths)return ""; lvEnsure();
-  if(!LV_NOW){LV_NOW=[0,1,2].map(i=>{const m={}; (LEVEL.paths[i]||[]).forEach(p=>{if(p.xp)m[lvKey(p.n)]=p.xp}); return m})}
+  if(!LV_NOW){const D=lvCur(); LV_NOW=[0,1,2].map(i=>{const m={}; (D.paths[i]||[]).forEach(p=>{if(p.xp)m[lvKey(p.n)]=p.xp}); return m})}
   const v=LV_NOW[pi]&&LV_NOW[pi][lvKey(n)]; if(!v)return q?lvQChip(n,pi):""; const b=lvBand(v);
-  return `<span class="lvc" style="--tc:${TIER_C[b[1]]}" data-tip="Rodman’s Player Level on ${PATHS[pi]}: ${v.toFixed(1)} (${b[2]})">${Math.floor(v)}</span>`}
+  return `<span class="lvc" style="--tc:${TIER_C[b[1]]}" data-tip="${lvLive?"Player level":"Rodman’s Player Level"} on ${PATHS[pi]}: ${v.toFixed(1)} (${b[2]})${lvLive?`\nWorked out by the site from the scoreboards up to Week ${DATA_WEEK}${(LEVEL.last||0)<DATA_WEEK?", as Rodman’s sheet is behind":" (the Latest view on the Level tab)"}`:""}">${Math.floor(v)}</span>`}
 // "?" chip on the Scoreboard for a player with no level on the path yet: how many scores they have and how many they need
 function lvQChip(n,pi){const k=lvKey(n), W=Math.max(DATA_WEEK,cur[0]);   // (the This Week constant isn't set yet when the Scoreboard first draws)
   // the site counts their scores itself, this week included
@@ -3163,7 +3166,6 @@ document.addEventListener("change",e=>{const b=e.target.closest("select[data-lvc
 // Like Rodman's Rankings: when his PlayerLevel tab is behind the latest finished week, the site can show its own "Now" and
 // "Last 6 months" levels worked out from the scoreboards (each week's best card on the path, rating × accuracy, the average
 // without the lowest and highest week; 3+ scores needed in the last 12 or 26 finished weeks). The years stay the same.
-let lvLive=null;   // null: start on the newer of the two
 function lvLiveData(){if(lvLiveData.d)return lvLiveData.d; lvEnsure(); const end=DATA_WEEK;
   const paths=LEVEL.paths.map((L,pi)=>{const by={}, n12={}, n26={}, disp={};
     for(let w=end-25;w<=end;w++)(SB.weeks[w]||[]).forEach(c=>{if(c[0]!==pi||c[7])return; c[6].forEach(e=>{if(e[1]==null)return; const raw=SB.names[e[0]], k=lvKey(raw); if(!k||k==="#ref!"||k==="player name")return;
@@ -3174,12 +3176,11 @@ function lvLiveData(){if(lvLiveData.d)return lvLiveData.d; lvEnsure(); const end
     Object.keys(by).forEach(k=>{let q=idx[k]; if(!q){q=idx[k]={n:disp[k],xp:null,m6:null,y:{}}; out.push(q)} if((n12[k]||0)>=3)q.xp=tm(by[k],end-11); if((n26[k]||0)>=3)q.m6=tm(by[k],end-25)});
     return out});
   return lvLiveData.d={...LEVEL,paths,last:end,weeks:12}}
-document.addEventListener("click",e=>{if(!e.target.closest("[data-lvlive]"))return; lvLive=!lvLive; tip.hidden=true; renderLevel()});
-document.addEventListener("keydown",e=>{if((e.key==="Enter"||e.key===" ")&&e.target.closest("[data-lvlive]")){e.preventDefault(); lvLive=!lvLive; renderLevel(); const b=document.querySelector("[data-lvlive]"); if(b)b.focus()}});
+document.addEventListener("click",e=>{if(!e.target.closest("[data-lvlive]"))return; lvLive=!lvLive; LV_NOW=null; tip.hidden=true; renderLevel()});
+document.addEventListener("keydown",e=>{if((e.key==="Enter"||e.key===" ")&&e.target.closest("[data-lvlive]")){e.preventDefault(); lvLive=!lvLive; LV_NOW=null; renderLevel(); const b=document.querySelector("[data-lvlive]"); if(b)b.focus()}});
 function renderLevel(){
   if(!LEVEL||!LEVEL.paths){$("lv-body").innerHTML=`<div class="empty">The PlayerLevel tab wasn't found in the sheet.</div>`; return}
-  lvEnsure(); if(lvLive===null)lvLive=(LEVEL.last||0)<DATA_WEEK;
-  const D=lvLive?lvLiveData():LEVEL, years=D.years||[], sheetEnd=LEVEL.last||0, newer=sheetEnd<DATA_WEEK;
+  const D=lvCur(), years=D.years||[], sheetEnd=LEVEL.last||0, newer=sheetEnd<DATA_WEEK;
   const wk=`<span class="rkweeks${lvLive?" live":""}" role="button" tabindex="0" data-lvlive="1" data-tip="${lvLive?`“Now” and “Last 6 months” worked out by the site from the scoreboards up to Week ${DATA_WEEK} (each week's best card: song rating × accuracy, the average without the lowest and highest week, 3+ scores needed). Rodman’s own levels may differ a little. Click for Rodman’s levels (to Week ${sheetEnd})`:`Rodman’s levels from his PlayerLevel tab (to Week ${sheetEnd}). Click for levels the site works out up to Week ${DATA_WEEK}`}"><small>Weeks</small><b>${D.last-11}</b><i>–</i><b>${D.last}</b><em>${lvLive?"Latest":"Rodman's"}</em></span> <span class="dim">${lvLive?"worked out by the site · may differ from Rodman’s · tap for his":newer?`tap to see the latest weeks (to Week ${DATA_WEEK}), newer than Rodman’s`:"tap to see the site’s own numbers (the same weeks right now)"}</span><br>`;
   $("lv-sub").innerHTML=wk+`${lvLive?"Player levels worked out by the site the way Rodman’s are":"Rodman’s XP levels from the championship sheet"}: a number for how hard the songs you play are and how well you play them.<br>Roughly <b>song rating × accuracy</b>: an XP of <b>70</b> is like scoring 100% on songs rated 7, or 93% on 7.5s. <span class="dim">“Now” needs 3+ score entries over the last ${D.weeks||12} weeks (to Week ${D.last||"?"}); each year needs 5+ entries that year.</span>`;
   $("lv-bands").innerHTML=LV_BANDS.slice().reverse().map(([min,k,name],i,a)=>`<span class="lvband" style="--tc:${TIER_C[k]}"><b>${name}</b> ${i===a.length-1?`${min}+`:`${min}–${a[i+1][0]-1}`}</span>`).join("");
@@ -6186,8 +6187,8 @@ var BN_SITE="https://drandgb.github.io/Rocksmith-Championship/";
 function bnSlug(n){return String(n).toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"")||"player"}
 const BN_STRIPE=`<div class="bn-stripe">${["#e5484d","#f5c84a","#3f8cff","#ff9a2e","#3fcf7a","#a46bff"].map(c=>`<i style="background:${c}"></i>`).join("")}</div>`;
 // banner: Rodman's player level (XP now) on each path, and its place among everyone with a level now
-function bnLevel(n,pi){if(typeof LEVEL==="undefined"||!LEVEL||!LEVEL.paths)return null; try{lvEnsure()}catch(e){} const k=String(n).toLowerCase(), L=(LEVEL.paths[pi]||[]).filter(p=>p.xp);
-  const me=L.find(p=>p.n.toLowerCase()===k); if(!me)return null; return {v:me.xp,r:1+L.filter(p=>p.xp>me.xp).length}}
+function bnLevel(n,pi){if(typeof LEVEL==="undefined"||!LEVEL||!LEVEL.paths)return null; let D=LEVEL; try{D=lvCur()}catch(e){} const k=lvKey(n), L=(D.paths[pi]||[]).filter(p=>p.xp);
+  const me=L.find(p=>lvKey(p.n)===k); if(!me)return null; return {v:me.xp,r:1+L.filter(p=>p.xp>me.xp).length}}
 function bannerHtml(n){
   const p=byName[n]; if(!p)return ""; const T=String(p[8]||"").split(""), v=wv(n,-1)||[0,0,0];
   const tier=t=>t&&t!=="?"?t:"–", tc=t=>TIER_C[t]||"#8b93a7";
