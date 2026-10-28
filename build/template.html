@@ -30,6 +30,8 @@ if(SUPA_URL&&SUPA_KEY&&/(^|\.)github\.io$|^localhost$|^127\.0\.0\.1$/.test(locat
   --fg:#e7eaf2; --muted:#8c94a8; --dim:#5d6578;
   --accent:#ff9a2e; --accent-ink:#1a0f02;
   --s-red:#ef4a55; --s-yellow:#f5c84a; --s-blue:#3fa0ff; --s-orange:#ff9a2e; --s-green:#45d17a; --s-purple:#b277ff;
+  /* class colours: Rocksmith string colours that aren't path colours (yellow, purple, red), plus cyan and white */
+  --t-beg:#f5c84a; --t-int:#3fd6e0; --t-adv:#b277ff; --t-mas:#ef4a55; --t-god:#f4f6fb; --t-free:#9aa3b5;
   --open:#ff9a2e; --lost:#2b2f3a;
   --f-display:"Oxanium","Segoe UI",system-ui,sans-serif;
   --f-body:"IBM Plex Sans",system-ui,-apple-system,sans-serif;
@@ -1894,7 +1896,7 @@ footer{color:var(--dim);font-size:.78rem}
   <section class="panel faq" id="faq-rules">
     <div class="panel-head"><h2>📜 Rules</h2><span class="sub"><a href="https://customsforge.com/index.php?/topic/6569-rocksmith-2014-championship-rules-read-this-first-updated-31082015/" target="_blank" rel="noopener">Full rules on the forum ↗</a></span></div>
     <details><summary>What are the classes?</summary><p>Each path (Lead, Rhythm, Bass) has its own class, so you can be in different classes on different paths. Songs are rated in steps of 0.5, and classes go by song difficulty:</p>
-      <ul class="faqcls"><li><b style="color:var(--s-yellow)">Beginner</b> 1–3.5</li><li><b style="color:var(--s-green)">Intermediate</b> 4–5.5</li><li><b style="color:var(--s-blue)">Advanced</b> 6–7.5</li><li><b style="color:var(--s-purple)">Masterclass</b> 8–9.5</li><li><b style="color:var(--s-red)">God</b> 10 (bonus)</li></ul>
+      <ul class="faqcls"><li><b style="color:var(--t-beg)">Beginner</b> 1–3.5</li><li><b style="color:var(--t-int)">Intermediate</b> 4–5.5</li><li><b style="color:var(--t-adv)">Advanced</b> 6–7.5</li><li><b style="color:var(--t-mas)">Masterclass</b> 8–9.5</li><li><b style="color:var(--t-god)">God</b> 10 (bonus)</li></ul>
       <p>You choose your class on each path you play when you start, and can add other paths later. Masterclass is the highest class.</p></details>
     <details><summary>How do I move up or down a class?</summary><ul>
       <li><b>Up automatically:</b> score 99%+ (Bass: 99.5%+) on a song rated 3 or higher as a Beginner, 5 or higher as an Intermediate, or 7 or higher as an Advanced player.</li>
@@ -2382,7 +2384,7 @@ function renderParts(){
 // the weeks of a run of `len` weeks ending at `end`, for highlighting streak medals
 const weekRange=(end,len)=>end==null?"":Array.from({length:len},(_,i)=>end-len+1+i).join(",");
 const presOf=p=>{const bits=[...p[7]].map(h=>parseInt(h,16).toString(2).padStart(4,"0")).join("");return bits.slice(0,PARTS.length)};
-const TIER_C={M:"var(--s-purple)",A:"var(--s-blue)",I:"var(--s-green)",B:"var(--s-yellow)",F:"var(--s-red)"};
+const TIER_C={M:"var(--t-mas)",A:"var(--t-adv)",I:"var(--t-int)",B:"var(--t-beg)",G:"var(--t-god)",F:"var(--t-free)"};
 
 // milestone medals: years in the championship (since first week) and longest play streak
 const MEDAL_STEPS=[[10,"#f5c84a","10"],[5,"#c9d0dc","5"],[1,"#d8925a","1"]];
@@ -3782,7 +3784,7 @@ const SB_HOME=sbWeek; // "this week" on the Scoreboard (a later week on the shee
 const SB_CYC=["","B","I","A","M","G"]; let sbLv=["","",""]; // level shown per path; "" = all cards
 const cardLv=l=>/god/i.test(l)?"G":/master/i.test(l)?"M":/^adv/i.test(l)?"A":/^int/i.test(l)?"I":/begin/i.test(l)?"B":"";
 const LV_NAME={...TIER_NAME,G:"God of…"};
-const tierColor=l=>/god/i.test(l)?"var(--s-red)":/master/i.test(l)?"var(--s-purple)":/adv/i.test(l)?"var(--s-blue)":/inter|int\//i.test(l)?"var(--s-green)":/begin/i.test(l)?"var(--s-yellow)":"var(--s-orange)";
+const tierColor=l=>/god/i.test(l)?"var(--t-god)":/master/i.test(l)?"var(--t-mas)":/adv/i.test(l)?"var(--t-adv)":/inter|int\//i.test(l)?"var(--t-int)":/begin/i.test(l)?"var(--t-beg)":"var(--s-orange)";
 const fmtNum=v=>v==null?"":v.toLocaleString("en-US");
 function sbRender(){
   const ch=SB.weeks[sbWeek]||[], wk=WEEKS[sbWeek-1];
@@ -3927,7 +3929,7 @@ sbRender();
 // ---------- songs ----------
 const TIER_ORDER=["B","I","A","M","G"], TIER_LABEL={B:"Beginner",I:"Intermediate",A:"Advanced",M:"Masterclass",G:"God of…"};
 const TIER_SHORT={B:"Beg",I:"Int",A:"Adv",M:"Mas",G:"God"};   // level pills on the Songs tab, like This Week's
-const TIER_COL={B:"var(--s-yellow)",I:"var(--s-green)",A:"var(--s-blue)",M:"var(--s-purple)",G:"var(--s-red)"};
+const TIER_COL={B:"var(--t-beg)",I:"var(--t-int)",A:"var(--t-adv)",M:"var(--t-mas)",G:"var(--t-god)"};
 const tierOf=l=>/^god/i.test(l)?"G":/master/i.test(l)?"M":/^adv/i.test(l)?"A":/^int/i.test(l)?"I":/begin/i.test(l)?"B":null;
 // level from the difficulty rating when there is one: under 4 Beginner, 4–5.5 Intermediate, 6–7.5 Advanced, 8–9.5 Masterclass, 10+ God tier
 const tierByRating=(t,d)=>d==null||d<=0?t:d<4?"B":d<6?"I":d<8?"A":d<10?"M":"G";
@@ -5072,7 +5074,7 @@ function renderNextPreview(){
   $("tw-stats").innerHTML=`<span><b>${players.size}</b> player${players.size===1?"":"s"} posted so far</span><span><b>${ents.length}</b> entr${ents.length===1?"y":"ies"}</span>`;
   const cols=[0,1,2].map(p=>{const cs=ch.filter(c=>c[0]===p&&c[3]&&!/^n\/a$/i.test(c[3])).sort((a,b)=>a[1]-b[1]); if(!cs.length)return "";
     return `<div class="twnp" style="--pc:${PATH_C[p]}"><h3>${PATHS[p]}</h3><ul>${cs.map(c=>{const L=cardLv(c[2]), id=SB.links&&SB.links[nw]&&SB.links[nw][c[0]*9+c[1]];
-      return `<li><span class="lvchip" style="--tc:${L==="G"?"var(--s-red)":TIER_C[L]||"var(--muted)"}">${L==="G"?esc(c[2]):TIER_NAME[L]||esc(c[2])}</span><span class="npsong" data-sbw="${nw}" data-sbp="${p}" title="Open on the Scoreboard">${esc(c[3])}${c[6].length?`<small class="npn">${c[6].length} posted so far</small>`:""}</span><span class="nprate" title="Initial host rating">${c[4]!=null?c[4]:"–"}</span>${arrTag(nw,c[0],c[1])}${songPill(c[3],id)}</li>`}).join("")}</ul></div>`}).join("");
+      return `<li><span class="lvchip" style="--tc:${L==="G"?"var(--t-god)":TIER_C[L]||"var(--muted)"}">${L==="G"?esc(c[2]):TIER_NAME[L]||esc(c[2])}</span><span class="npsong" data-sbw="${nw}" data-sbp="${p}" title="Open on the Scoreboard">${esc(c[3])}${c[6].length?`<small class="npn">${c[6].length} posted so far</small>`:""}</span><span class="nprate" title="Initial host rating">${c[4]!=null?c[4]:"–"}</span>${arrTag(nw,c[0],c[1])}${songPill(c[3],id)}</li>`}).join("")}</ul></div>`}).join("");
   el.hidden=false;
   el.innerHTML=`<div class="panel-head"><h2>Week ${nw}'s songs</h2><span class="sub">Scores can be posted already</span></div>
     <p class="sub" style="margin:0 0 12px">Week ${nw} becomes the current week, and Week ${TW_MAX}'s winners are decided, at 9 pm CET (Central European time) on ${W?fmt(W[1]):"its start Saturday"}. Scores posted before then already count for Week ${nw}.</p><div class="twnpcols">${cols}</div>`;
@@ -5138,7 +5140,7 @@ function renderDownloads(){
   const lvI=c=>{const i="BIAMG".indexOf(cardLv(c[2])||"G");return i<0?4:i}, lvCmp=(x,y)=>{for(let i=0;i<Math.min(x.length,y.length);i++)if(x[i]!==y[i])return x[i]-y[i];return x.length-y.length};
   const list=[...m.values()].map(s=>({...s,my:s.ch.some(mine),lv:s.ch.map(lvI).sort((a,b)=>a-b),o:Math.min(...s.ch.map(c=>c[1]*3+c[0]))})).sort((a,b)=>(b.my-a.my)||lvCmp(a.lv,b.lv)||a.o-b.o);
   const box=(p,cs)=>{if(!cs.length)return `<span class="dlbx">${"LRB"[p]}<b style="color:#8b93a7">–</b></span>`;
-    const me=cs.find(mine), col=c=>{const lv=cardLv(c[2]); return lv==="G"?"var(--s-red)":TIER_C[lv]||"var(--muted)"};
+    const me=cs.find(mine), col=c=>{const lv=cardLv(c[2]); return lv==="G"?"var(--t-god)":TIER_C[lv]||"var(--muted)"};
     const tip=cs.map(c=>`${PATHS[p]} ${c[2]}`).join(", ")+(tuneOf(cs[0][3],p)?` · tuning: ${tuneOf(cs[0][3],p)}`:"");
     return `<span class="dlbx${me?" me":""}"${me?` style="--mc:${col(me)}"`:""} data-tip="${esc(tip)}${me?" · your class":""}">${"LRB"[p]}<b>${cs.map(c=>`<span style="color:${col(c)}">${cardLv(c[2])||"?"}${/bonus/i.test(c[2])?"<sup>+</sup>":""}</span>`).join("·")}</b></span>`};
   const fold=lsGet(DL_FOLD)===String(w);
@@ -5175,7 +5177,7 @@ document.addEventListener("click",e=>{if(e.target.closest("[data-gorank]")&&!e.t
 function renderTwLead(){const el=$("twlead"); if(!el)return; const w=twWeek, cards=(SB.weeks[w]||[]).filter(c=>c[3]&&!/^n\/a$/i.test(c[3])&&c[6].length);
   if(!cards.length){el.hidden=true; return}
   const live=w===TW_LIVE, cols=[0,1,2].map(pi=>{const rows=cards.filter(c=>c[0]===pi).map(c=>{const L=cardLv(c[2]), e=c[6].find(x=>x[1]!=null&&canWin(x));
-      const chip=`<span class="lvchip" style="--tc:${TIER_C[L]||"var(--s-red)"}" data-tip="${esc(c[2])}">${L==="G"?"God":(TIER_NAME[L]||c[2]).slice(0,3)}${/bonus/i.test(c[2])?"+":""}</span>`;
+      const chip=`<span class="lvchip" style="--tc:${TIER_C[L]||"var(--t-god)"}" data-tip="${esc(c[2])}">${L==="G"?"God":(TIER_NAME[L]||c[2]).slice(0,3)}${/bonus/i.test(c[2])?"+":""}</span>`;
       const cont=c[7]&&!live;   // a God challenge that carries on: its winner is decided in the final week
       return `<li data-tip="${esc(`${c[2]} · ${c[3]}`)}">${chip}${cont?`<span class="dim" data-tip="This God challenge continues next week, which decides the winner">Continues</span><b></b>`:e?`<span class="tsl">${twName(twCanon(SB.names[e[0]]))}</span><b>${e[1]}%</b>`:(c[7]?`<span class="dim" data-tip="This God challenge continues next week, which decides the winner">Continues</span><b></b>`:live||w>DATA_WEEK?`<span class="dim">Nobody yet</span><b></b>`:`<span class="wlost" data-tip="Nobody in this class posted a score that can win it">LOST TROPHY</span><b></b>`)}</li>`}).join("");
     return rows?`<div class="tsc" style="--pc:${PATH_C[pi]}"><h4>${PATHS[pi]}</h4><ul>${rows}</ul></div>`:""}).join("");
@@ -5893,7 +5895,7 @@ function adminRateSection(){
     rows=cards.map(c=>{const L=cardLv(c[2]), rp=arrP(wk,c[0],c[1]), cur=songVotes(rp,c[3]).find(v=>v.p===pl);
       const ent=c[6].find(e=>SB.names[e[0]].replace(/[*~]+$/,"").toLowerCase()===key);
       const opts=[];for(let r=1;r<=10;r+=.5)opts.push(`<option value="${r}"${cur&&cur.r===r?" selected":""}>${r}</option>`);
-      return `<li class="${ent?"aplayed":""}" style="--pc:${PATH_C[c[0]]}"${ent?` data-tip="${esc(pl)} posted a score on this one"`:""}><span class="apath">${PATHS[c[0]]}</span><span class="lvchip" style="--tc:${L==="G"?"var(--s-red)":TIER_C[L]||"var(--muted)"}">${L==="G"?esc(c[2]):TIER_NAME[L]||esc(c[2])}</span><span class="asong">${esc(c[3])}</span>${arrTag(wk,c[0],c[1])}${ent?`<span class="playedtag">PLAYED${ent[1]!=null?` · ${ent[1]}%`:""}</span>`:""}<span class="dim">host ${c[4]!=null?c[4]:"–"}</span>${ownRating(pl,cur)?`<span class="admown" data-tip="${esc(pl)} rated this themselves, so only they can change it">their own: <b>${cur.r}</b></span>`:`<select class="admrate" data-rate="${rp}" data-song="${esc(c[3])}" data-as="${esc(pl)}" aria-label="${esc(pl)}'s rating"><option value=""${cur?"":" selected"}>${cur?"Remove rating":"No rating"}</option>${opts.join("")}</select>`}</li>`}).join("")}
+      return `<li class="${ent?"aplayed":""}" style="--pc:${PATH_C[c[0]]}"${ent?` data-tip="${esc(pl)} posted a score on this one"`:""}><span class="apath">${PATHS[c[0]]}</span><span class="lvchip" style="--tc:${L==="G"?"var(--t-god)":TIER_C[L]||"var(--muted)"}">${L==="G"?esc(c[2]):TIER_NAME[L]||esc(c[2])}</span><span class="asong">${esc(c[3])}</span>${arrTag(wk,c[0],c[1])}${ent?`<span class="playedtag">PLAYED${ent[1]!=null?` · ${ent[1]}%`:""}</span>`:""}<span class="dim">host ${c[4]!=null?c[4]:"–"}</span>${ownRating(pl,cur)?`<span class="admown" data-tip="${esc(pl)} rated this themselves, so only they can change it">their own: <b>${cur.r}</b></span>`:`<select class="admrate" data-rate="${rp}" data-song="${esc(c[3])}" data-as="${esc(pl)}" aria-label="${esc(pl)}'s rating"><option value=""${cur?"":" selected"}>${cur?"Remove rating":"No rating"}</option>${opts.join("")}</select>`}</li>`}).join("")}
   return `<div class="adm acctsec" id="admrate"><h3>Ratings for a player</h3><p class="dim">Hosts can give or change a player's ratings for them, for example for a player who sent their ratings by message. They count exactly like the player's own (one per song per path), and every change goes in the Ratings log below. A player's own rating always wins: once they rate a song themselves, it can't be changed here.</p>
     <div class="row admrow"><select data-admrate="p" aria-label="Player"><option value="">Choose a player…</option>${groups.map(([w,ns])=>`<optgroup label="Last played Week ${w}">${ns.map(n=>`<option${n===pl?" selected":""}>${esc(n)}</option>`).join("")}</optgroup>`).join("")}</select>
     <select data-admrate="w" aria-label="Week">${weeks.map(w=>`<option value="${w}"${w===wk?" selected":""}>Week ${w}</option>`).join("")}</select></div>
@@ -6124,7 +6126,7 @@ function acctThisWeek(n,part){ part=part||ACCT.twPart||"me";
     const L=cardLv(c[2]), id=SB.links&&SB.links[w]&&SB.links[w][c[0]*9+c[1]];
     const pl=me&&me.place&&me.place<=3?["🥇","🥈","🥉"][me.place-1]:"";
     const ranked=L&&L!=="G"&&L===rankOf(c[0]);
-    sb.push(`<li class="${me?"":"unpl"}${ranked?" myrank":""}" style="--pc:${PATH_C[c[0]]};--rc:${TIER_C[L]||"var(--fg)"}"${ranked?` data-tip="Your ranked challenge: you're ${TIER_NAME[L]} on ${PATHS[c[0]]}, so this one counts for Rodman's Rankings"`:""}><span class="ar1"><span class="apath">${PATHS[c[0]]}</span>${ranked?`<span class="rankedtag">RANKED</span>`:""}${L?`<span class="lvchip" style="--tc:${L==="G"?"var(--s-red)":TIER_C[L]}">${L==="G"?esc(c[2]):TIER_NAME[L]}</span>`:`<span class="lvchip">${esc(c[2])}</span>`}</span><span class="asong" data-sbw="${w}" data-sbp="${c[0]}"${me?` data-sbn="${esc(n)}"`:""} title="Open this challenge on the Scoreboard">${esc(c[3])}</span><span class="ar3">${arrTag(w,c[0],c[1])}${cardRateBox(arrP(w,c[0],c[1]),c[3],c[4])}${songPill(c[3],id)}${me?`<span class="aplace">${pl}#${me.i+1}<small> of ${c[6].length}</small></span><span class="apct">${me.e[1]!=null?me.e[1]+"%":"–"}</span>`:`<span class="aplace"><small>Not played yet<i class="npsep"> · </i><span class="npn">${c[6].length} played</span></small></span>`}</span></li>`)});
+    sb.push(`<li class="${me?"":"unpl"}${ranked?" myrank":""}" style="--pc:${PATH_C[c[0]]};--rc:${TIER_C[L]||"var(--fg)"}"${ranked?` data-tip="Your ranked challenge: you're ${TIER_NAME[L]} on ${PATHS[c[0]]}, so this one counts for Rodman's Rankings"`:""}><span class="ar1"><span class="apath">${PATHS[c[0]]}</span>${ranked?`<span class="rankedtag">RANKED</span>`:""}${L?`<span class="lvchip" style="--tc:${L==="G"?"var(--t-god)":TIER_C[L]}">${L==="G"?esc(c[2]):TIER_NAME[L]}</span>`:`<span class="lvchip">${esc(c[2])}</span>`}</span><span class="asong" data-sbw="${w}" data-sbp="${c[0]}"${me?` data-sbn="${esc(n)}"`:""} title="Open this challenge on the Scoreboard">${esc(c[3])}</span><span class="ar3">${arrTag(w,c[0],c[1])}${cardRateBox(arrP(w,c[0],c[1]),c[3],c[4])}${songPill(c[3],id)}${me?`<span class="aplace">${pl}#${me.i+1}<small> of ${c[6].length}</small></span><span class="apct">${me.e[1]!=null?me.e[1]+"%":"–"}</span>`:`<span class="aplace"><small>Not played yet<i class="npsep"> · </i><span class="npn">${c[6].length} played</span></small></span>`}</span></li>`)});
   // rivals: the This Week page's rival boxes that include them (all levels), copied over
   let riv="";
   if(part==="week"&&cards.length){const saveW=twWeek, saveLv=twRivLv.slice(); twWeek=w; twRivLv.fill(""); renderThisWeek();
