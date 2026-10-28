@@ -2710,8 +2710,8 @@ function renderSeason(){setTimeout(()=>{try{seasHl()}catch(e){}},0); const el=$(
   {const w=document.querySelector("#season-titles .seasch-wrap"), tr=w&&w.querySelectorAll("tbody tr"); const k=innerWidth<=700?3:10; if(tr&&tr.length>k){w.style.maxHeight=(tr[k].offsetTop)+"px"; w.classList.add("lpscroll")}}}   // 10 seasons (3 on a phone, where they stack), then scroll
 document.addEventListener("click",e=>{const x=e.target.closest(".swb[data-sw]"); if(!x)return; twWeek=+x.dataset.sw; showView("thisweek"); renderThisWeek(); scrollTo({top:0})});
 document.addEventListener("change",e=>{if(e.target.id!=="season-pick")return; SEASON_SEL=e.target.value; renderSeason()});
-$("view-season").addEventListener("mousemove",e=>{const p=e.target.closest("[data-tip]");if(!p){tip.hidden=true;return}tip.textContent=p.dataset.tip;tip.hidden=false;placeTip(e.clientX,e.clientY)});
-$("view-season").addEventListener("mouseleave",()=>tip.hidden=true);
+$("view-season").addEventListener("mousemove",e=>{if(typeof plTipPin!=="undefined"&&plTipPin)return; const p=e.target.closest("[data-tip]");if(!p){tip.hidden=true;return}tip.textContent=p.dataset.tip;tip.hidden=false;placeTip(e.clientX,e.clientY)});
+$("view-season").addEventListener("mouseleave",()=>{if(!(typeof plTipPin!=="undefined"&&plTipPin))tip.hidden=true});
 // Season tab: clicking a row (around a name, not the name itself) highlights that player everywhere on the tab, like the
 // Scoreboard; click the same row again to clear it. Clicking the name opens their profile as before.
 // (the Season tab's row highlight is the shared player highlight below, PL_HL)
@@ -3227,8 +3227,8 @@ function lvHl(){try{plHl()}catch(e){}}
 $("lvmode").addEventListener("click",e=>{const b=e.target.closest("[data-lvm]"); if(!b)return; lvMode=b.dataset.lvm; renderLevel()});
 $("lvyear").addEventListener("change",e=>{lvYear=e.target.value; renderLevel()});
 // hover text on the Level tab (player rows, the weeks pill, the * on estimated years)
-$("view-level").addEventListener("mousemove",e=>{const p=e.target.closest("[data-tip]"); if(!p){tip.hidden=true;return} tip.textContent=p.dataset.tip; tip.hidden=false; placeTip(e.clientX,e.clientY)});
-$("view-level").addEventListener("mouseleave",()=>tip.hidden=true);
+$("view-level").addEventListener("mousemove",e=>{if(typeof plTipPin!=="undefined"&&plTipPin)return; const p=e.target.closest("[data-tip]"); if(!p){tip.hidden=true;return} tip.textContent=p.dataset.tip; tip.hidden=false; placeTip(e.clientX,e.clientY)});
+$("view-level").addEventListener("mouseleave",()=>{if(!(typeof plTipPin!=="undefined"&&plTipPin))tip.hidden=true});
 // ---------- shared by Winner lookup and This Week: canonical names, God carry-overs and rivals ----------
 const TW_ALIAS={AndreCardoso:"ALSRC",BetterCallJamie:"FlatCap Jay",jasmith85:"FlatCap Jay",aand14:"drand",mattimatti:"mattibassi",Tinman86:"TinMan86"};
 const TW_CANON={}; PLAYERS.forEach(p=>TW_CANON[p[0].toLowerCase()]=p[0]);
@@ -4911,6 +4911,13 @@ function plClick(e){const view=e.target.closest("#view-season,#view-level,#view-
   e.preventDefault(); e.stopPropagation(); tip.hidden=true;
   sbFind=same?"":n; try{$("sbfind").value=sbFind}catch(err){} plHl(); if(typeof updateBubble==="function")updateBubble()};
 window.addEventListener("click",plClick,true);
+// phones: on Season, Level and Rankings a tap shows that spot's hover text and keeps it up until the next tap (a tap that
+// highlights a player used to hide it straight away)
+let plTipPin=null, plPtr="mouse";
+window.addEventListener("pointerdown",e=>{plPtr=e.pointerType||"mouse"; if(plTipPin&&!plTipPin.contains(e.target)){plTipPin=null; tip.hidden=true}},true);
+window.addEventListener("click",e=>{if(plPtr==="mouse")return; const t=e.target.closest("#view-season [data-tip],#view-level [data-tip],#view-rankings [data-tip]"); if(!t)return;
+  plTipPin=t; tip.textContent=t.dataset.tip; tip.hidden=false; const r=t.getBoundingClientRect(); placeTip(Math.max(8,Math.min(r.left,innerWidth-40)),r.bottom-4)},true);
+addEventListener("scroll",()=>{if(plTipPin){plTipPin=null; tip.hidden=true}},{passive:true});
 // ---------- level pills in Most played / Most replayed songs filter that list ----------
 ["sl-f","rl-f","songlist","replaylist"].forEach(id=>$(id).addEventListener("click",e=>{
   const b=e.target.closest("[data-lvp],[data-lvr]"); if(!b)return; e.stopPropagation(); tip.hidden=true;
@@ -5403,8 +5410,8 @@ $("rkpath").addEventListener("click",e=>{const b=e.target.closest("button[data-r
 $("rkall").addEventListener("click",()=>{rkLv=["","",""];renderRankings()});
 $("rk-sub").addEventListener("click",e=>{if(!e.target.closest(".rkweeks"))return; rkLive=!rkLive; tip.hidden=true; renderRankings()});
 $("rk-sub").addEventListener("keydown",e=>{if((e.key==="Enter"||e.key===" ")&&e.target.closest(".rkweeks")){e.preventDefault(); rkLive=!rkLive; renderRankings(); const b=$("rk-sub").querySelector(".rkweeks"); if(b)b.focus()}});
-$("view-rankings").addEventListener("mousemove",e=>{const p=e.target.closest("[data-tip]");if(!p){tip.hidden=true;return}tip.textContent=p.dataset.tip;tip.hidden=false;placeTip(e.clientX,e.clientY)});
-$("view-rankings").addEventListener("mouseleave",()=>tip.hidden=true);
+$("view-rankings").addEventListener("mousemove",e=>{if(typeof plTipPin!=="undefined"&&plTipPin)return; const p=e.target.closest("[data-tip]");if(!p){tip.hidden=true;return}tip.textContent=p.dataset.tip;tip.hidden=false;placeTip(e.clientX,e.clientY)});
+$("view-rankings").addEventListener("mouseleave",()=>{if(!(typeof plTipPin!=="undefined"&&plTipPin))tip.hidden=true});
 renderRankings();
 window.__twReady=true;
 if(curView()==="thisweek")renderThisWeek();
