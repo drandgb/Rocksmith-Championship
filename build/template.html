@@ -759,6 +759,7 @@ a.dl svg,.offpill svg{width:11px;height:11px}
 .lvclp h4{color:var(--pc);font-size:.8rem;text-transform:uppercase;letter-spacing:.06em;margin:0 0 6px}
 .lvclp ol{list-style:none;margin:0;padding:0}.lvclp li{display:grid;grid-template-columns:minmax(0,1fr) auto;column-gap:6px;padding:5px 0;border-top:1px solid var(--line);font-size:.86rem;cursor:pointer}.lvclp li:first-child{border-top:0}
 .lvclp .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}.lvclp b.up{color:var(--s-green);font:700 .8rem var(--f-mono)}.lvclp small{grid-column:1/-1;color:var(--dim);font:.72rem var(--f-mono)}
+.lvast{color:var(--s-yellow);font-weight:800;cursor:help;margin-left:4px}
 .lvestn{grid-column:1/-1;margin:0 0 4px;color:var(--dim);font-size:.8rem}
 .lvchart svg{width:100%;height:auto;display:block}.lvlg{display:inline-flex;align-items:center;gap:5px;font-size:.78rem;margin-left:10px;color:var(--fg)}.lvlg::before{content:"";width:14px;height:3px;border-radius:2px;background:var(--pc)}
 @media (max-width:620px){.lvclg{grid-template-columns:minmax(0,1fr)}.lvclsel{margin-left:0}}
@@ -3080,7 +3081,7 @@ function lvSpark(p,years){const pts=years.slice().reverse().map(y=>p.y[y]||null)
   let d="", pen=false; pts.forEach((x,i)=>{if(x==null)return; const X=(i/(n-1)*W).toFixed(1), Y=(H-(x-lo)/(hi-lo)*H).toFixed(1); d+=(pen?"L":"M")+X+","+Y; pen=true});
   return `<svg class="lvsp" viewBox="-1 -1 ${W+2} ${H+2}" aria-hidden="true"><path d="${d}" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`}
 function lvTip(p,years){const L=[`${p.n}`]; if(p.xp)L.push(`Now: ${p.xp.toFixed(1)} · ${lvSay(p.xp)}`); if(p.m6)L.push(`Last 6 months: ${p.m6.toFixed(1)}`);
-  const ys=years.filter(y=>p.y[y]); if(ys.length)L.push("",...ys.map(y=>`${y}: ${p.y[y].toFixed(1)}${lvIsEst(y)?" (est.)":""}`)); return L.join("\n")}
+  const ys=years.filter(y=>p.y[y]); if(ys.length)L.push("",...ys.map(y=>`${y}: ${p.y[y].toFixed(1)}${lvIsEst(y)?"*":""}`),...(ys.some(lvIsEst)?["","* "+LV_EST_SHORT]:[])); return L.join("\n")}
 const lvSay=x=>{const r=x/10, b=lvBand(x); return `like 100% on songs rated ${(Math.round(r*2)/2).toFixed(1)} (${b[2]})`};
 // ---------- our own estimates for the years the sheet doesn't have yet (2025 on) ----------
 // Same idea as the sheet: each week, the player's best card on the path (song rating × accuracy, not playing down), then the
@@ -3111,7 +3112,9 @@ function lvEnsure(){if(LV_EST||typeof LEVEL==="undefined"||!LEVEL||!LEVEL.paths)
     LV_EST=[...ys].sort((a,b)=>b-a); LEVEL.years=[...LV_EST,...LEVEL.years.filter(y=>!ys.has(y))];
   }catch(e){console.error(e)}}
 const lvIsEst=y=>!!LV_EST&&LV_EST.includes(+y);
-const lvYl=y=>`${y}${lvIsEst(y)?" (est.)":""}`;
+const lvYl=y=>`${y}${lvIsEst(y)?"*":""}`;
+const LV_EST_SHORT="Estimated by this site, as Rodman's sheet doesn't have this year yet";
+const lvAst=()=>`<span class="lvast" data-tip="${esc("* "+LV_EST_NOTE)}">*</span>`;   // the * after an estimated year, with the explanation on hover
 const LV_EST_NOTE="Estimated by this site from the scoreboard (each week's best card: song rating × accuracy, the year's average without its lowest and highest week, 5+ weeks needed). Rodman's sheet doesn't have this year yet, so it can differ by a few points.";
 // a player's level on each path: {pi: entry}
 function lvOf(n){const D=lvCur(), k=lvKey(n); return [0,1,2].map(pi=>(D.paths[pi]||[]).find(p=>lvKey(p.n)===k)||null)}
@@ -3161,10 +3164,9 @@ function lvExtra(val,what,years,D){const el=$("lv-extra"); if(!el)return; D=D||L
   if(lvClimb!=="m6"&&!pairs.includes(+lvClimb))lvClimb=pairs[0]!=null?String(pairs[0]):"m6";
   const yr=lvClimb!=="m6", y1=+lvClimb, y0=y1-1;
   const cl=D.paths.map(L=>L.map(p=>{const a=yr?p.y[y0]:p.m6, b=yr?p.y[y1]:p.xp; return a&&b?{n:p.n,a,b,d:b-a}:null}).filter(x=>x&&x.d>0).sort((x,y)=>y.d-x.d).slice(0,5));
-  const ctitle=yr?`${lvYl(y0)} → ${lvYl(y1)}`:"Last 6 months → now";
-  el.innerHTML=`<section class="panel lvcl"><div class="panel-head"><h2>📈 Biggest climbers</h2><span class="sub">${ctitle}</span><label class="shostpick lvclsel"><span>Compare</span><select data-lvcl aria-label="Compare">${pairs.map(y=>`<option value="${y}"${yr&&y===y1?" selected":""}>${y-1}–${y}${lvIsEst(y)||lvIsEst(y-1)?" (est.)":""}</option>`).join("")}<option value="m6"${yr?"":" selected"}>Last 6 months → now</option></select></label></div>
+  el.innerHTML=`<section class="panel lvcl"><div class="panel-head"><h2>📈 Biggest climbers</h2><label class="shostpick lvclsel"><span>Compare</span><select data-lvcl aria-label="Compare">${pairs.map(y=>`<option value="${y}"${yr&&y===y1?" selected":""}>${lvYl(y-1)} → ${lvYl(y)}</option>`).join("")}<option value="m6"${yr?"":" selected"}>Last 6 months → now</option></select>${yr&&(lvIsEst(y0)||lvIsEst(y1))?lvAst():""}</label></div>
       <div class="lvclg">${cl.map((L,pi)=>`<div class="lvclp" style="--pc:${ELO_C[pi]}"><h4>${PATHS[pi]}</h4>${L.length?`<ol>${L.map((x,i)=>`<li data-tip="${esc(x.n)} · ${PATHS[pi]}\n${yr?lvYl(y0):"Last 6 months"}: ${x.a.toFixed(1)}\n${yr?lvYl(y1):"Now"}: ${x.b.toFixed(1)}"><span class="nm" data-player="${esc(x.n)}">${esc(x.n)}</span><b class="up">+${x.d.toFixed(1)}</b><small>${x.a.toFixed(1)} → ${x.b.toFixed(1)}</small></li>`).join("")}</ol>`:`<p class="dim">Nobody climbed</p>`}</div>`).join("")}</div>
-      ${yr&&(lvIsEst(y0)||lvIsEst(y1))?`<p class="echnote">${esc(LV_EST_NOTE)}</p>`:""}</section>`}
+</section>`}
 document.addEventListener("change",e=>{const b=e.target.closest("select[data-lvcl]"); if(!b||!b.closest("#lv-extra"))return; lvClimb=b.value; renderLevel()});
 // Like Rodman's Rankings: when his PlayerLevel tab is behind the latest finished week, the site can show its own "Now" and
 // "Last 6 months" levels worked out from the scoreboards (each week's best card on the path, rating × accuracy, the average
@@ -3192,18 +3194,21 @@ function renderLevel(){
   $("lvyrl").hidden=lvMode!=="year";
   document.querySelectorAll("#lvmode button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.lvm===lvMode));
   const val=p=>lvMode==="now"?p.xp:lvMode==="m6"?p.m6:p.y[lvYear];
-  const what=lvMode==="now"?"now":lvMode==="m6"?"over the last 6 months":`in ${lvYear}${lvIsEst(lvYear)?" (estimated)":""}`;
+  const what=lvMode==="now"?"now":lvMode==="m6"?"over the last 6 months":`in ${lvYl(lvYear)}`;
   try{lvExtra(val,what,years,D)}catch(e){console.error(e)}
   $("lv-body").innerHTML=D.paths.map((L,pi)=>{const rows=L.filter(p=>val(p)).sort((a,b)=>val(b)-val(a)); const max=Math.max(90,...rows.map(val));
     let rk=0; const body=rows.map((p,i)=>{const v=val(p); if(i===0||v<val(rows[i-1]))rk=i+1; const b=lvBand(v), tr=lvMode==="now"&&p.m6?v-p.m6:null;
       return `<li class="${rk<=3?"p"+rk:""}" data-tip="${esc(lvTip(p,years))}"><span class="rr">${rk}</span><span class="nm" data-player="${esc(p.n)}">${esc(p.n)}</span><span class="lvbar" style="--tc:${TIER_C[b[1]]}"><i style="width:${(v/max*100).toFixed(1)}%"></i></span><b class="lvv" style="color:${TIER_C[b[1]]}">${v.toFixed(1)}</b><span class="lvtr ${tr==null||Math.abs(tr)<.5?"":tr>0?"up":"down"}">${tr==null||Math.abs(tr)<.5?"":tr>0?"▲":"▼"}</span><span class="lvspw" style="color:${TIER_C[b[1]]}">${lvSpark(p,years)}</span></li>`}).join("");
     return `<section class="panel rkpath" style="--pc:${PATH_C[pi]}"><div class="panel-head"><h2>${PATHS[pi]}</h2><span class="sub">${rows.length} player${rows.length===1?"":"s"} ${what}</span></div>${rows.length?`<ol class="lvlist">${body}</ol>`:`<div class="empty">Nobody ${what}</div>`}</section>`}).join("");
-  if(lvMode==="year"&&lvIsEst(lvYear))$("lv-body").insertAdjacentHTML("afterbegin",`<p class="lvestn">📐 ${esc(LV_EST_NOTE)}</p>`);
+  if(lvMode==="year"&&lvIsEst(lvYear))$("lv-body").insertAdjacentHTML("afterbegin",`<p class="lvestn">${lvAst()} <span data-tip="${esc("* "+LV_EST_NOTE)}">${esc(LV_EST_SHORT)}</span></p>`);
   lvHl();
 }
 function lvHl(){try{plHl()}catch(e){}}
 $("lvmode").addEventListener("click",e=>{const b=e.target.closest("[data-lvm]"); if(!b)return; lvMode=b.dataset.lvm; renderLevel()});
 $("lvyear").addEventListener("change",e=>{lvYear=e.target.value; renderLevel()});
+// hover text on the Level tab (player rows, the weeks pill, the * on estimated years)
+$("view-level").addEventListener("mousemove",e=>{const p=e.target.closest("[data-tip]"); if(!p){tip.hidden=true;return} tip.textContent=p.dataset.tip; tip.hidden=false; placeTip(e.clientX,e.clientY)});
+$("view-level").addEventListener("mouseleave",()=>tip.hidden=true);
 // ---------- shared by Winner lookup and This Week: canonical names, God carry-overs and rivals ----------
 const TW_ALIAS={AndreCardoso:"ALSRC",BetterCallJamie:"FlatCap Jay",jasmith85:"FlatCap Jay",aand14:"drand",mattimatti:"mattibassi",Tinman86:"TinMan86"};
 const TW_CANON={}; PLAYERS.forEach(p=>TW_CANON[p[0].toLowerCase()]=p[0]);
