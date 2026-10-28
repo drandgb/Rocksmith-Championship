@@ -750,6 +750,7 @@ a.dl svg,.offpill svg{width:11px;height:11px}
 .lvv{font:700 .9rem var(--f-mono);text-align:right}.lvtr{font-size:.7rem;text-align:center}.lvtr.up{color:var(--s-green)}.lvtr.down{color:var(--s-red)}
 .lvsp{width:60px;height:18px;display:block;opacity:.85}
 .lvc{display:inline-block;margin-left:5px;padding:0 5px;border-radius:6px;font:700 .68rem/1.45 var(--f-mono);color:var(--tc);border:1px solid color-mix(in srgb,var(--tc) 55%,transparent);background:color-mix(in srgb,var(--tc) 12%,transparent);vertical-align:1px;cursor:help;flex:none}
+.lvc.lvq{--tc:var(--dim);border-style:dashed}
 .rklv li .nmw{display:flex;align-items:center;min-width:0}.rklv li .nmw .nm{min-width:0}
 .lvextra{margin-bottom:20px}
 .lvcl .panel-head{flex-wrap:wrap;gap:8px}.lvclsel{margin-left:auto}
@@ -3066,7 +3067,7 @@ const lvSay=x=>{const r=x/10, b=lvBand(x); return `like 100% on songs rated ${(M
 // ---------- our own estimates for the years the sheet doesn't have yet (2025 on) ----------
 // Same idea as the sheet: each week, the player's best card on the path (song rating × accuracy, not playing down), then the
 // year's average without its lowest and highest week, for players with 5+ weeks that year. Close to Rodman's numbers, not exact.
-let LV_EST=null;
+let LV_EST=null, LV_N12=null, LV_END=0;   // scores per path in the sheet's last 12 weeks (for the "?" chip)
 function lvYearOf(w){const W=weekAt(w-WEEKS[0][0]); if(!W)return 0; const d=new Date(W[1]+"T12:00:00"); d.setDate(d.getDate()+3); return d.getFullYear()}
 const lvKey=n=>{let b=String(n).replace(/[*~]+$/,"").trim(); b=TW_ALIAS[b]||b; return b.toLowerCase()};
 function lvEnsure(){if(LV_EST||typeof LEVEL==="undefined"||!LEVEL||!LEVEL.paths)return; LV_EST=[];
@@ -3075,6 +3076,7 @@ function lvEnsure(){if(LV_EST||typeof LEVEL==="undefined"||!LEVEL||!LEVEL.paths)
   try{const end=LEVEL.last||DATA_WEEK, n12=[{},{},{}], n26=[{},{},{}];
     for(let w=end-25;w<=end;w++)(SB.weeks[w]||[]).forEach(c=>{if(c[7])return; c[6].forEach(e=>{if(e[1]==null)return; const k=lvKey(SB.names[e[0]]); n26[c[0]][k]=(n26[c[0]][k]||0)+1; if(w>end-12)n12[c[0]][k]=(n12[c[0]][k]||0)+1})});
     LEVEL.paths.forEach((L,pi)=>L.forEach(p=>{const k=lvKey(p.n); if(p.xp&&(n12[pi][k]||0)<3)p.xp=null; if(p.m6&&(n26[pi][k]||0)<3)p.m6=null}));
+    LV_N12=n12; LV_END=end;
   }catch(e){console.error(e)}
   try{const last=Math.max(...LEVEL.years), best=[{},{},{}], disp={};
     Object.keys(SB.weeks).map(Number).filter(w=>w<=DATA_WEEK).forEach(w=>{const y=lvYearOf(w); if(y<=last)return;
@@ -3095,10 +3097,17 @@ const LV_EST_NOTE="Estimated by this site from the scoreboard (each week's best 
 function lvOf(n){lvEnsure(); const k=lvKey(n); return [0,1,2].map(pi=>(LEVEL.paths[pi]||[]).find(p=>lvKey(p.n)===k)||null)}
 // small level chip next to a name (Scoreboard, Rodman's Rankings): the player's XP now on that path
 let LV_NOW=null;
-function lvChip(n,pi){if(typeof LEVEL==="undefined"||!LEVEL||!LEVEL.paths)return ""; lvEnsure();
+function lvChip(n,pi,q){if(typeof LEVEL==="undefined"||!LEVEL||!LEVEL.paths)return ""; lvEnsure();
   if(!LV_NOW){LV_NOW=[0,1,2].map(i=>{const m={}; (LEVEL.paths[i]||[]).forEach(p=>{if(p.xp)m[lvKey(p.n)]=p.xp}); return m})}
-  const v=LV_NOW[pi]&&LV_NOW[pi][lvKey(n)]; if(!v)return ""; const b=lvBand(v);
+  const v=LV_NOW[pi]&&LV_NOW[pi][lvKey(n)]; if(!v)return q?lvQChip(n,pi):""; const b=lvBand(v);
   return `<span class="lvc" style="--tc:${TIER_C[b[1]]}" data-tip="Rodman’s Player Level on ${PATHS[pi]}: ${v.toFixed(1)} (${b[2]})">${Math.floor(v)}</span>`}
+// "?" chip on the Scoreboard for a player with no level on the path yet: how many scores they have and how many they need
+function lvQChip(n,pi){const k=lvKey(n), have=(LV_N12&&LV_N12[pi][k])||0, need=Math.max(0,3-have);
+  const TW_MAX=Math.max(DATA_WEEK,cur[0]);   // (the This Week constant isn't set yet when the Scoreboard first draws)
+  let pend=0; for(let w=LV_END+1;w<=TW_MAX;w++)(SB.weeks[w]||[]).forEach(c=>{if(c[0]!==pi||c[7])return; c[6].forEach(e=>{if(e[1]!=null&&lvKey(SB.names[e[0]])===k)pend++})});
+  const t=[`No ${PATHS[pi]} player level yet`, `${have} ${PATHS[pi]} score${have===1?"":"s"} in the last 12 weeks (up to Week ${LV_END}), 3 needed`+(need?` · ${need} more to get a level`:" · the level shows once Rodman’s sheet updates")];
+  if(pend)t.push(`+${pend} score${pend===1?"":"s"} from Week ${LV_END+1}${TW_MAX>LV_END+1?`–${TW_MAX}`:""}, which count${pend===1?"s":""} once Rodman’s sheet has ${TW_MAX>LV_END+1?"those weeks":"that week"}`);
+  return `<span class="lvc lvq" data-tip="${esc(t.join("\n"))}">?</span>`}
 // profile chart: the player's level by year on each path, then now (dashed: this site's estimates)
 function lvChart(n){if(typeof LEVEL==="undefined"||!LEVEL||!LEVEL.paths)return ""; const P=lvOf(n); lvEnsure();
   const ys=LEVEL.years.slice().sort((a,b)=>a-b), cols=[...ys.map(String),"now"];
@@ -3767,7 +3776,7 @@ function sbRender(){
       const me=findLc&&base.toLowerCase()===findLc?" me":"";
       const lvLetter=/master/i.test(lvl)?"M":/^adv/i.test(lvl)?"A":/^int/i.test(lvl)?"I":/begin/i.test(lvl)?"B":"";
       const up=!raw.includes("*")&&lvLetter&&RU_KEY.has(`${sbWeek}|${base}|${p}|${lvLetter}`)?`<span class="rkup" data-tip="First week in ${TIER_NAME[lvLetter]} ${PATHS[p]} after ranking up">RANKED UP</span>`:"";
-      return `<tr class="${me}${e[4]<0?" down":""}" data-tip="${me?`Click the row to clear the highlight`:`Click the row to highlight ${esc(base)} on every card · click the name to open their profile`}"><td>${rk}</td><td class="n"><span data-player="${esc(base)}">${esc(base)}</span>${marks}${lvChip(base,p)}${up}${SB.aka&&SB.aka[e[0]]?`<span class="aka">as ${esc(SB.aka[e[0]])}</span>`:""}</td><td>${pct}</td><td>${fmtNum(e[2])}</td><td>${fmtNum(e[3])}</td></tr>`;
+      return `<tr class="${me}${e[4]<0?" down":""}" data-tip="${me?`Click the row to clear the highlight`:`Click the row to highlight ${esc(base)} on every card · click the name to open their profile`}"><td>${rk}</td><td class="n"><span data-player="${esc(base)}">${esc(base)}</span>${marks}${lvChip(base,p,1)}${up}${SB.aka&&SB.aka[e[0]]?`<span class="aka">as ${esc(SB.aka[e[0]])}</span>`:""}</td><td>${pct}</td><td>${fmtNum(e[2])}</td><td>${fmtNum(e[3])}</td></tr>`;
     }).join("");
     return `<article class="card" data-slot="${slot}" data-p="${p}" style="--tc:${tc}"><div class="ch"><div class="lv"><span>${esc(lvl)}</span><div class="lvr">${(()=>{const id=SB.links&&SB.links[sbWeek]&&SB.links[sbWeek][p*9+slot];return songPill(song,id)})()}${rateBadge(sbWeek,p,slot,diff,ents)}</div></div><div class="song">${(()=>{const t=tuneOf(song,p); if(!t)return songHtml; const pill=`<span class="tunpill" data-tip="${PATHS[p]} tuning (Song Selection List)">${esc(t)}</span>`;
       // the tuning goes on the band's line (under the title), right-aligned, so the title keeps the full width
