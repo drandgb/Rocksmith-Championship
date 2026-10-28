@@ -3037,6 +3037,8 @@ const SB=__SCORES__;
 // a real-looking score over 5 million: possible, but higher than almost every score (the top ones are about 3.4 million), so
 // worth a check. It still counts everywhere (players' highest scores included) until someone corrects it
 const HIGH_SCORE=5e6, highScore=v=>+v>HIGH_SCORE&&!fakeScore(v);
+// a score that looks like a year (1950 to next year): a score app sometimes records the song's release year as the score
+const yearScore=v=>{const n=+v; return Number.isInteger(n)&&n>=1950&&n<=new Date().getFullYear()+1};
 const fakeScore=v=>{const t=String(v); if(!/^[1-9]{9}$/.test(t))return false; for(let i=1;i<9;i++)if(+t[i]!==+t[i-1]%9+1)return false; return true};
 const SONGS_OLD=__SONGS_OLD__; // weeks before the scoreboards: [week, path, tier, bonus, song, difficulty]
 // ---------- win rates & rank-ups (from scoreboards, weeks 440+) ----------
@@ -3842,7 +3844,7 @@ function sbRender(){
       const me=findLc&&base.toLowerCase()===findLc?" me":"";
       const lvLetter=/master/i.test(lvl)?"M":/^adv/i.test(lvl)?"A":/^int/i.test(lvl)?"I":/begin/i.test(lvl)?"B":"";
       const up=!raw.includes("*")&&lvLetter&&RU_KEY.has(`${sbWeek}|${base}|${p}|${lvLetter}`)?`<span class="rkup" data-tip="First week in ${TIER_NAME[lvLetter]} ${PATHS[p]} after ranking up">RANKED UP</span>`:"";
-      return `<tr class="${me}${e[4]<0?" down":""}" data-tip="${me?`Click the row to clear the highlight`:`Click the row to highlight ${esc(base)} on every card · click the name to open their profile`}"><td>${rk}</td><td class="n"><span data-player="${esc(base)}">${esc(base)}</span>${marks}${lvChip(base,p,1)}${up}${SB.aka&&SB.aka[e[0]]?`<span class="aka">as ${esc(SB.aka[e[0]])}</span>`:""}</td><td>${pct}</td><td>${fmtNum(e[2])}</td><td>${fakeScore(e[3])?`<span class="sbbad" data-tip="${esc(`This score looks like a placeholder in the scoreboard sheet: ${(+e[3]).toLocaleString("en-US")} is the digits 1 to 9 in a row, not a real score. It needs correcting in the sheet.`)}">⚠️ ${fmtNum(e[3])}</span>`:highScore(e[3])?`<span class="sbchk" data-tip="${esc(`${(+e[3]).toLocaleString("en-US")} is over 5 million, higher than almost every score (the top ones are about 3.4 million). Worth checking it's right in the sheet.`)}">${fmtNum(e[3])} ⚠</span>`:fmtNum(e[3])}</td></tr>`;
+      return `<tr class="${me}${e[4]<0?" down":""}" data-tip="${me?`Click the row to clear the highlight`:`Click the row to highlight ${esc(base)} on every card · click the name to open their profile`}"><td>${rk}</td><td class="n"><span data-player="${esc(base)}">${esc(base)}</span>${marks}${lvChip(base,p,1)}${up}${SB.aka&&SB.aka[e[0]]?`<span class="aka">as ${esc(SB.aka[e[0]])}</span>`:""}</td><td>${pct}</td><td>${fmtNum(e[2])}</td><td>${fakeScore(e[3])?`<span class="sbbad" data-tip="${esc(`This score looks like a placeholder in the scoreboard sheet: ${(+e[3]).toLocaleString("en-US")} is the digits 1 to 9 in a row, not a real score. It needs correcting in the sheet.`)}">⚠️ ${fmtNum(e[3])}</span>`:yearScore(e[3])?`<span class="sbbad" data-tip="${esc(`A score of ${e[3]} looks like a year, probably the song's release year recorded as the score by mistake. It needs correcting in the sheet.`)}">⚠️ ${e[3]}</span>`:highScore(e[3])?`<span class="sbchk" data-tip="${esc(`${(+e[3]).toLocaleString("en-US")} is over 5 million, higher than almost every score (the top ones are about 3.4 million). Worth checking it's right in the sheet.`)}">${fmtNum(e[3])} ⚠</span>`:fmtNum(e[3])}</td></tr>`;
     }).join("");
     return `<article class="card" data-slot="${slot}" data-p="${p}" style="--tc:${tc}"><div class="ch"><div class="lv"><span>${esc(lvl)}</span><div class="lvr">${(()=>{const id=SB.links&&SB.links[sbWeek]&&SB.links[sbWeek][p*9+slot];return songPill(song,id)})()}${rateBadge(sbWeek,p,slot,diff,ents)}</div></div><div class="song">${(()=>{const t=tuneOf(song,p); if(!t)return songHtml; const pill=`<span class="tunpill" data-tip="${PATHS[p]} tuning (Song Selection List)">${esc(t)}</span>`;
       // the tuning goes on the band's line (under the title), right-aligned, so the title keeps the full width
@@ -5759,7 +5761,7 @@ const ZERO_FROM=650;
 function typoScan(){
   if(TYPO_CACHE)return TYPO_CACHE;
   const nm=i=>SB.names[i].replace(/[*~]+$/,""), weeks=Object.keys(SB.weeks).map(Number).sort((a,b)=>a-b), NEW=weeks[weeks.length-1];
-  const out={big:[],high:[],zero:[],noscore:[],nopct:[],dup:[],order:[],band:[],song:[],player:[],ssl:[]};
+  const out={big:[],year:[],high:[],zero:[],noscore:[],nopct:[],dup:[],order:[],band:[],song:[],player:[],ssl:[]};
   // a 0 score is probably a typo, unless the player puts 0 on most of their entries (some always do)
   const sc={}; weeks.forEach(w=>SB.weeks[w].forEach(c=>c[6].forEach(e=>{const n=nm(e[0]).toLowerCase(), x=sc[n]=sc[n]||[0,0]; x[1]++; if(e[3]===0)x[0]++})));
   const usual=n=>{const x=sc[n.toLowerCase()]; return !(x&&x[0]/x[1]>=.5)};
@@ -5772,6 +5774,7 @@ function typoScan(){
     c[6].forEach(e=>{const n=nm(e[0]), k=n.toLowerCase(), it={...at,n};
       if(e[3]===0&&w>=ZERO_FROM&&usual(n))out.zero.push(it);
       if(fakeScore(e[3]))out.big.push({...it,note:`score ${(+e[3]).toLocaleString("en-US")}`});
+      if(yearScore(e[3]))out.year.push({...it,note:`score ${e[3]}`});
       if(highScore(e[3]))out.high.push({...it,note:`score ${(+e[3]).toLocaleString("en-US")}`});
       if(e[1]==null)out.nopct.push(it);
       // a % with two decimals (like 96.66) comes from the game's results screen, which also shows the score
@@ -5799,6 +5802,7 @@ function typoSection(){
   const row=(x,body)=>`<li class="${isNew(x)?"tynew":""}">${isNew(x)?'<span class="tytag">new</span>':""}${body}</li>`;
   const forms=x=>x.forms.map(f=>`“${esc(f.t)}”${f.n?` <small>${f.n}×, last Week ${f.last}</small>`:""}`).join(" vs ");
   const G=[["big","Placeholder score","Nine digits counting 1 to 9 (like 912,345,678), not a real score",x=>`${card(x)} · <b>${esc(x.n)}</b> · ${esc(x.note)} · ${esc(x.song)}`],
+    ["year","Score looks like a year","A score from 1950 to next year is probably the song's release year recorded by mistake",x=>`${card(x)} · <b>${esc(x.n)}</b> · ${esc(x.note)} · ${esc(x.song)}`],
     ["high","Score over 5 million","Could be real, but higher than almost every score (the top ones are about 3.4 million), so worth checking. It still counts until it's corrected",x=>`${card(x)} · <b>${esc(x.n)}</b> · ${esc(x.note)} · ${esc(x.song)}`],
     ["zero","Score of 0","Since week 650 (before that, 0 was often used for a blank score)",x=>`${card(x)} · <b>${esc(x.n)}</b> · ${esc(x.song)}`],
     ["noscore","Missing score","A % with two decimals (like 96.66%) comes from the results screen, which shows the score too, so it was probably left out",x=>`${card(x)} · <b>${esc(x.n)}</b> · ${esc(x.note)} · ${esc(x.song)}`],
