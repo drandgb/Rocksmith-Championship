@@ -3117,7 +3117,7 @@ let LV_NOW=null;
 function lvChip(n,pi,q){if(typeof LEVEL==="undefined"||!LEVEL||!LEVEL.paths)return ""; lvEnsure();
   if(!LV_NOW){const D=lvCur(); LV_NOW=[0,1,2].map(i=>{const m={}; (D.paths[i]||[]).forEach(p=>{if(p.xp)m[lvKey(p.n)]=p.xp}); return m})}
   const v=LV_NOW[pi]&&LV_NOW[pi][lvKey(n)]; if(!v)return q?lvQChip(n,pi):""; const b=lvBand(v);
-  return `<span class="lvc" style="--tc:${TIER_C[b[1]]}" data-tip="${lvLive?"Player level":"Rodman’s Player Level"} on ${PATHS[pi]}: ${v.toFixed(1)} (${b[2]})${lvLive?`\nWorked out by the site from the scoreboards up to Week ${DATA_WEEK}${(LEVEL.last||0)<DATA_WEEK?", as Rodman’s sheet is behind":" (the Latest view on the Level tab)"}`:""}">${Math.floor(v)}</span>`}
+  return `<span class="lvc" style="--tc:${TIER_C[b[1]]}" data-tip="${lvLive?"Player level":"Rodman’s Player Level"} on ${PATHS[pi]}: ${v.toFixed(1)} (${b[2]})${lvLive?`\nWorked out by the site from the scoreboards up to Week ${DATA_WEEK}`:""}">${Math.floor(v)}</span>`}
 // "?" chip on the Scoreboard for a player with no level on the path yet: how many scores they have and how many they need
 function lvQChip(n,pi){const k=lvKey(n), W=Math.max(DATA_WEEK,cur[0]);   // (the This Week constant isn't set yet when the Scoreboard first draws)
   // the site counts their scores itself, this week included
