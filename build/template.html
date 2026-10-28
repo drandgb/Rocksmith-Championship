@@ -2744,6 +2744,12 @@ function hlText(w){eloBuild(); const I=sbIx(), L=[], played=Object.keys(I.wk).fi
    if(fm.length)L.push(`Congratulations on your first of these medals:${fm.map(x=>"\n    "+x).join("")}`)}
   const nw=played.filter(k=>{const W=I.wk[k]; return W.length===2&&W[1]===w}).map(nm); if(nw.length)L.push(`One more time (back for a second week): ${nw.join(", ")}`);
   const ht=played.filter(k=>{const W=I.wk[k], i=W.indexOf(w); if(i<2||W[i-1]!==w-1||W[i-2]!==w-2)return false; return !(i>=3&&W[i-3]===w-3)&&W.length<=FW_MAX}).map(nm); if(ht.length)L.push(`Hat trick (first three weeks in a row): ${ht.join(", ")}`);
+  // no play streak (2+ weeks in a row) ended this week: everyone on a streak kept it going
+  {const on=Object.keys(I.wk).filter(k=>{const W=I.wk[k]; return W.includes(w-1)&&W.includes(w-2)}), kept=on.filter(k=>I.wk[k].includes(w));
+   if(on.length&&kept.length===on.length)L.push(`🔥 No streaks ended this week: all ${on.length} players on a play streak kept it going!`)}
+  // no lost trophies: every challenge decided this week has a winner (God challenges that carry on don't count yet)
+  {const ch=(SB.weeks[w]||[]).filter(c=>c[3]&&!/^n\/a$/i.test(c[3])&&!c[7]);
+   if(w<=DATA_WEEK&&ch.length&&ch.every(c=>c[6].some(x=>canWin(x))))L.push(`🏆 No lost trophies this week: all ${ch.length} challenges have a winner!`)}
   // the last week of a season: announce the new one, with the champions of the one just finished
   let head=""; const sNow=seasonOf(w), sNext=seasonOf(w+1);
   const sLine=(pi,up)=>{const T=seasonF1(pi,sNow,up), M=seasonImproved(pi,sNow,up);
