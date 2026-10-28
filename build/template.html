@@ -1011,6 +1011,7 @@ footer .updated{display:block;margin-top:4px}
 @keyframes twglow{50%{box-shadow:0 0 0 1px var(--s-blue),0 0 4px color-mix(in srgb,var(--s-blue) 30%,transparent)}}
 @media (prefers-reduced-motion:reduce){.twarrow.glow{animation:none}}
 .twpv-hide{display:none!important}
+.twcalrow{display:flex;align-items:flex-start;gap:16px;flex-wrap:wrap;margin:12px 0 4px}.twcalrow .twcal{margin:0;flex:1 1 300px}.twcalside{padding-top:2px}.twcalside .clear{white-space:nowrap}@media (max-width:520px){.twcalside{flex:1 1 100%}.twcalside .clear{width:100%}}
 .twcal{margin:12px 0 4px;max-width:440px}
 .twcal .tch{display:flex;align-items:center;gap:8px;margin-bottom:8px}.twcal .tch b{flex:1;text-align:center;font-size:1rem}
 .twcal .tch select{background:var(--panel2);color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:4px 6px}
@@ -1665,10 +1666,9 @@ footer{color:var(--dim);font-size:.78rem}
       <button type="button" class="twarrow" id="twprev" aria-label="Previous week">‹</button>
       <div class="twtitle"><h2 id="tw-title"></h2><div class="sub" id="tw-meta"></div></div>
       <button type="button" class="twarrow" id="twnext" aria-label="Next week">›</button>
-      <button type="button" class="clear" id="twsb">Open scoreboard ›</button>
       <button type="button" class="clear sblatest" id="twnow" hidden></button>
     </div>
-    <div class="twcal" id="twcal"></div>
+    <div class="twcalrow"><div class="twcal" id="twcal"></div><div class="twcalside"><button type="button" class="clear" id="twsb">Open scoreboard ›</button></div></div>
     <div class="twstats" id="tw-stats"></div>
   </section>
   <section class="panel dlsec pvsec" id="twpast" hidden></section>
