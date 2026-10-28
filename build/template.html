@@ -3149,7 +3149,7 @@ function lvChart(n){if(typeof LEVEL==="undefined"||!LEVEL||!LEVEL.paths)return "
     <p class="echnote">Rodman’s Player Level (song rating × accuracy) for each year and now · dotted lines: class bands${LV_EST&&LV_EST.length?` · * hollow points and dashed lines: this site’s own estimate for ${LV_EST.slice().sort().join(" and ")}, which Rodman’s sheet doesn’t have yet`:""}</p></div>`}
 // Level tab extra: the biggest climbers on each path
 let lvClimb=null;   // "m6", or the later year of a pair (2026 = 2025 → 2026)
-function lvExtra(val,what,years){const el=$("lv-extra"); if(!el)return; const D=LEVEL;
+function lvExtra(val,what,years,D){const el=$("lv-extra"); if(!el)return; D=D||LEVEL;
   // climbers: this year vs last year (by year), or now vs the last 6 months
   const ey=years.slice().sort((a,b)=>b-a), has=y=>D.paths.some(L=>L.some(p=>p.y[y])), pairs=ey.filter(y=>has(y)&&has(y-1));
   if(lvClimb!=="m6"&&!pairs.includes(+lvClimb))lvClimb=pairs[0]!=null?String(pairs[0]):"m6";
@@ -3160,10 +3160,28 @@ function lvExtra(val,what,years){const el=$("lv-extra"); if(!el)return; const D=
       <div class="lvclg">${cl.map((L,pi)=>`<div class="lvclp" style="--pc:${ELO_C[pi]}"><h4>${PATHS[pi]}</h4>${L.length?`<ol>${L.map((x,i)=>`<li data-tip="${esc(x.n)} · ${PATHS[pi]}\n${yr?lvYl(y0):"Last 6 months"}: ${x.a.toFixed(1)}\n${yr?lvYl(y1):"Now"}: ${x.b.toFixed(1)}"><span class="nm" data-player="${esc(x.n)}">${esc(x.n)}</span><b class="up">+${x.d.toFixed(1)}</b><small>${x.a.toFixed(1)} → ${x.b.toFixed(1)}</small></li>`).join("")}</ol>`:`<p class="dim">Nobody climbed</p>`}</div>`).join("")}</div>
       ${yr&&(lvIsEst(y0)||lvIsEst(y1))?`<p class="echnote">${esc(LV_EST_NOTE)}</p>`:""}</section>`}
 document.addEventListener("change",e=>{const b=e.target.closest("select[data-lvcl]"); if(!b||!b.closest("#lv-extra"))return; lvClimb=b.value; renderLevel()});
+// Like Rodman's Rankings: when his PlayerLevel tab is behind the latest finished week, the site can show its own "Now" and
+// "Last 6 months" levels worked out from the scoreboards (each week's best card on the path, rating × accuracy, the average
+// without the lowest and highest week; 3+ scores needed in the last 12 or 26 finished weeks). The years stay the same.
+let lvLive=null;   // null: start on the newer of the two
+function lvLiveData(){if(lvLiveData.d)return lvLiveData.d; lvEnsure(); const end=DATA_WEEK;
+  const paths=LEVEL.paths.map((L,pi)=>{const by={}, n12={}, n26={}, disp={};
+    for(let w=end-25;w<=end;w++)(SB.weeks[w]||[]).forEach(c=>{if(c[0]!==pi||c[7])return; c[6].forEach(e=>{if(e[1]==null)return; const raw=SB.names[e[0]], k=lvKey(raw); if(!k||k==="#ref!"||k==="player name")return;
+      disp[k]=disp[k]||twCanon(raw); n26[k]=(n26[k]||0)+1; if(w>end-12)n12[k]=(n12[k]||0)+1;
+      if(c[4]!=null&&e[4]>=0&&c[3]&&!/^n\/a$/i.test(c[3])){const o=by[k]=by[k]||{}; o[w]=Math.max(o[w]||0,c[4]*e[1]/10)}})});
+    const tm=(o,from)=>{const v=Object.entries(o).filter(([w])=>+w>=from).map(x=>x[1]).sort((a,b)=>a-b); if(!v.length)return null; const t=v.length>=3?v.slice(1,-1):v; return Math.round(t.reduce((a,b)=>a+b,0)/t.length*100)/100};
+    const idx={}, out=L.map(p=>{const q={...p,xp:null,m6:null}, k=lvKey(p.n); if(!idx[k]||p.n.toLowerCase()===k)idx[k]=q; return q});
+    Object.keys(by).forEach(k=>{let q=idx[k]; if(!q){q=idx[k]={n:disp[k],xp:null,m6:null,y:{}}; out.push(q)} if((n12[k]||0)>=3)q.xp=tm(by[k],end-11); if((n26[k]||0)>=3)q.m6=tm(by[k],end-25)});
+    return out});
+  return lvLiveData.d={...LEVEL,paths,last:end,weeks:12}}
+document.addEventListener("click",e=>{if(!e.target.closest("[data-lvlive]"))return; lvLive=!lvLive; tip.hidden=true; renderLevel()});
+document.addEventListener("keydown",e=>{if((e.key==="Enter"||e.key===" ")&&e.target.closest("[data-lvlive]")){e.preventDefault(); lvLive=!lvLive; renderLevel(); const b=document.querySelector("[data-lvlive]"); if(b)b.focus()}});
 function renderLevel(){
-  const D=LEVEL; if(!D||!D.paths){$("lv-body").innerHTML=`<div class="empty">The PlayerLevel tab wasn't found in the sheet.</div>`; return}
-  lvEnsure(); const years=D.years||[];
-  $("lv-sub").innerHTML=`Rodman’s XP levels from the championship sheet: a number for how hard the songs you play are and how well you play them.<br>Roughly <b>song rating × accuracy</b>: an XP of <b>70</b> is like scoring 100% on songs rated 7, or 93% on 7.5s. <span class="dim">“Now” needs 3+ score entries over the last ${D.weeks||12} weeks scored (to Week ${D.last||"?"}); each year needs 5+ entries that year.</span>`;
+  if(!LEVEL||!LEVEL.paths){$("lv-body").innerHTML=`<div class="empty">The PlayerLevel tab wasn't found in the sheet.</div>`; return}
+  lvEnsure(); if(lvLive===null)lvLive=(LEVEL.last||0)<DATA_WEEK;
+  const D=lvLive?lvLiveData():LEVEL, years=D.years||[], sheetEnd=LEVEL.last||0, newer=sheetEnd<DATA_WEEK;
+  const wk=`<span class="rkweeks${lvLive?" live":""}" role="button" tabindex="0" data-lvlive="1" data-tip="${lvLive?`“Now” and “Last 6 months” worked out by the site from the scoreboards up to Week ${DATA_WEEK} (each week's best card: song rating × accuracy, the average without the lowest and highest week, 3+ scores needed). Rodman’s own levels may differ a little. Click for Rodman’s levels (to Week ${sheetEnd})`:`Rodman’s levels from his PlayerLevel tab (to Week ${sheetEnd}). Click for levels the site works out up to Week ${DATA_WEEK}`}"><small>Weeks</small><b>${D.last-11}</b><i>–</i><b>${D.last}</b><em>${lvLive?"Latest":"Rodman's"}</em></span> <span class="dim">${lvLive?"worked out by the site · may differ from Rodman’s · tap for his":newer?`tap to see the latest weeks (to Week ${DATA_WEEK}), newer than Rodman’s`:"tap to see the site’s own numbers (the same weeks right now)"}</span><br>`;
+  $("lv-sub").innerHTML=wk+`${lvLive?"Player levels worked out by the site the way Rodman’s are":"Rodman’s XP levels from the championship sheet"}: a number for how hard the songs you play are and how well you play them.<br>Roughly <b>song rating × accuracy</b>: an XP of <b>70</b> is like scoring 100% on songs rated 7, or 93% on 7.5s. <span class="dim">“Now” needs 3+ score entries over the last ${D.weeks||12} weeks (to Week ${D.last||"?"}); each year needs 5+ entries that year.</span>`;
   $("lv-bands").innerHTML=LV_BANDS.slice().reverse().map(([min,k,name],i,a)=>`<span class="lvband" style="--tc:${TIER_C[k]}"><b>${name}</b> ${i===a.length-1?`${min}+`:`${min}–${a[i+1][0]-1}`}</span>`).join("");
   if(!lvYear||!years.includes(+lvYear))lvYear=String(years[0]);
   $("lvyear").innerHTML=years.map(y=>`<option value="${y}"${String(y)===lvYear?" selected":""}>${lvYl(y)}</option>`).join("");
@@ -3171,7 +3189,7 @@ function renderLevel(){
   document.querySelectorAll("#lvmode button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.lvm===lvMode));
   const val=p=>lvMode==="now"?p.xp:lvMode==="m6"?p.m6:p.y[lvYear];
   const what=lvMode==="now"?"now":lvMode==="m6"?"over the last 6 months":`in ${lvYear}${lvIsEst(lvYear)?" (estimated)":""}`;
-  try{lvExtra(val,what,years)}catch(e){console.error(e)}
+  try{lvExtra(val,what,years,D)}catch(e){console.error(e)}
   $("lv-body").innerHTML=D.paths.map((L,pi)=>{const rows=L.filter(p=>val(p)).sort((a,b)=>val(b)-val(a)); const max=Math.max(90,...rows.map(val));
     let rk=0; const body=rows.map((p,i)=>{const v=val(p); if(i===0||v<val(rows[i-1]))rk=i+1; const b=lvBand(v), tr=lvMode==="now"&&p.m6?v-p.m6:null;
       return `<li class="${rk<=3?"p"+rk:""}" data-tip="${esc(lvTip(p,years))}"><span class="rr">${rk}</span><span class="nm" data-player="${esc(p.n)}">${esc(p.n)}</span><span class="lvbar" style="--tc:${TIER_C[b[1]]}"><i style="width:${(v/max*100).toFixed(1)}%"></i></span><b class="lvv" style="color:${TIER_C[b[1]]}">${v.toFixed(1)}</b><span class="lvtr ${tr==null||Math.abs(tr)<.5?"":tr>0?"up":"down"}">${tr==null||Math.abs(tr)<.5?"":tr>0?"▲":"▼"}</span><span class="lvspw" style="color:${TIER_C[b[1]]}">${lvSpark(p,years)}</span></li>`}).join("");
