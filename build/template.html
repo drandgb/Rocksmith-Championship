@@ -3854,8 +3854,19 @@ $("view-scores").addEventListener("click",e=>{
   const n=el.dataset.player; if(!byName[n])return;
   showView("players"); showPlayer(n); $("pcard").closest("section").scrollIntoView({block:"start"});
 });
-$("view-scores").addEventListener("mousemove",e=>{const p=e.target.closest("[data-tip]");if(!p){tip.hidden=true;return}tip.textContent=p.dataset.tip;tip.hidden=false;placeTip(e.clientX,e.clientY)});
-$("view-scores").addEventListener("mouseleave",()=>tip.hidden=true);
+let sbTipPin=null;   // a hover text a phone tap opened (stays until the next tap)
+$("view-scores").addEventListener("mousemove",e=>{if(sbTipPin)return; const p=e.target.closest("[data-tip]");if(!p){tip.hidden=true;return}tip.textContent=p.dataset.tip;tip.hidden=false;placeTip(e.clientX,e.clientY)});
+$("view-scores").addEventListener("mouseleave",()=>{if(!sbTipPin)tip.hidden=true});
+// phones: tapping something with hover text (a level box, a mark, a badge) keeps the text up until the next tap, instead of the
+// tap also counting as a click on the row (which redraws the cards and hides it)
+{let touch=false;
+ $("view-scores").addEventListener("pointerdown",e=>{touch=e.pointerType!=="mouse"},true);
+ document.addEventListener("pointerdown",e=>{if(sbTipPin&&!sbTipPin.contains(e.target)){sbTipPin=null; tip.hidden=true}},true);
+ $("view-scores").addEventListener("click",e=>{if(!touch)return; const p=e.target.closest("[data-tip]");
+   if(!p||p.tagName==="TR"||p.closest("button,a,select,.golink,[data-pvw],[data-pvgo],[data-player]"))return;
+   e.preventDefault(); e.stopPropagation(); sbTipPin=p; tip.textContent=p.dataset.tip; tip.hidden=false;
+   const r=p.getBoundingClientRect(); placeTip(Math.max(8,r.left-12),r.bottom-4)},true);
+ addEventListener("scroll",()=>{if(sbTipPin){sbTipPin=null; tip.hidden=true}},{passive:true});}
 try{const st=JSON.parse(localStorage.getItem("rsc-sb")||"null");if(st){if(SB.weeks[st.w])sbWeek=st.w;if([0,1,2].includes(st.p))sbPath=st.p}}catch(e){}
 sbRender();
 
