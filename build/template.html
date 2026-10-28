@@ -3471,8 +3471,12 @@ function showWinner(name){
         <div${ties.length?` data-hl="${tieWeeks.join(",")}" data-tip="Won on the tiebreak, same % as the runner-up · click to highlight"`:""}><small>Close wins${where}</small><b>${ties.length}</b><span class="sub"> won on the tiebreak</span></div>
         ${[0,1,2].map(pi=>{const rc=rivalCounts(twCanon(name),wYear?doneAll.filter(w=>yearOfWeek(w)===wYear):doneAll,pi), lab=`${PATHS[pi]} rival`;
           if(!rc.length)return `<div class="rivbox" style="--pc:${PATH_C[pi]}" data-tip="Rival = the player's closest ${PATHS[pi]} match within their own rank in a week (smallest average % gap on the ranked ${PATHS[pi]} challenges both played)"><small>${lab}</small><b>–</b></div>`;
-          const [rn,rw]=rc[0];
-          return `<div class="rivbox" style="--pc:${PATH_C[pi]}" data-hl="${rw.join(",")}" data-tip="Their closest ${PATHS[pi]} match within the same rank most often · click to highlight the weeks with ${rn}"><small>${lab}</small><b class="rivnm" data-gowin="${esc(rn)}" data-name="${esc(rn)}" title="Open ${esc(rn)}'s winner profile">${esc(rn)}</b><span class="sub"> · ${rw.length} week${rw.length===1?"":"s"}</span></div>`}).join("")}
+          const [rn,rw]=rc[0], me=twCanon(name);
+          // each week they were rivals, newest first, with who won the rivalry that week (more of the challenges both played)
+          const wk=rw.slice().sort((a,b)=>b-a).map(w=>{const r=(rivalsOfWeek(w,pi)||{})[me]; if(!r)return null; return {w,res:r.w>r.l?"won":r.w<r.l?"lost":"tied",sc:`${r.w}–${r.l}`}}).filter(Boolean);
+          const tot=k=>wk.filter(x=>x.res===k).length, lines=wk.slice(0,20).map(x=>`Week ${x.w} ${x.res} ${x.sc}`).join("\n")+(wk.length>20?`\n… and ${wk.length-20} more`:"");
+          const rtip=`Their closest ${PATHS[pi]} match within the same rank most often: ${rn}, ${rw.length} week${rw.length===1?"":"s"} · won ${tot("won")}, lost ${tot("lost")}, tied ${tot("tied")}\n\n${lines}\n\nClick to highlight these weeks`;
+          return `<div class="rivbox" style="--pc:${PATH_C[pi]}" data-hl="${rw.join(",")}" data-tip="${esc(rtip)}"><small>${lab}</small><b class="rivnm" data-gowin="${esc(rn)}" data-name="${esc(rn)}" title="Open ${esc(rn)}'s winner profile">${esc(rn)}</b><span class="sub"> · ${rw.length} week${rw.length===1?"":"s"}</span></div>`}).join("")}
       </div>
       <div class="golinks"><button type="button" class="clear" data-profile="${esc(name)}">Open player profile ›</button>${hosts[name]?`<button type="button" class="clear" data-gohost="${esc(name)}">Open host profile ›</button>`:""}</div>
     </div>
