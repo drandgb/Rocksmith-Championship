@@ -1044,6 +1044,7 @@ footer .updated{display:block;margin-top:4px}
 #view-season li,#view-season .sc,#view-level .lvlist li,#view-rankings li{cursor:pointer}
 .twseas .tsl .chg{font-size:.7rem;text-shadow:none}.twseas .tsl .chg.up{color:var(--s-green)}.twseas .tsl .chg.new{color:var(--s-yellow)}.twseas .tsl{color:#ffd86b;font-weight:800;text-shadow:0 0 10px rgba(255,216,107,.3)}.panel.twseas{padding:12px}.panel.twseas .twseasin{border:0;background:none;padding:2px 4px}.twseasin{border:1px solid color-mix(in srgb,var(--s-yellow) 35%,var(--line));border-radius:10px;padding:10px 12px;background:color-mix(in srgb,var(--s-yellow) 4%,var(--panel2));cursor:pointer}.twseasin:hover{border-color:var(--s-yellow)}
 .twseas .tsh{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 12px;font-size:.9rem;color:var(--muted)}.twseas .tsn{font:900 1rem var(--f-display);letter-spacing:.06em;text-transform:uppercase;color:#f5c84a}.twseas .golink{margin-left:auto;color:var(--s-yellow);font-weight:600}
+.twseas li.tscl{display:block;padding:6px 0 2px}.twseas li.tsp{grid-template-columns:18px minmax(0,1fr) auto 2.4em;gap:4px;font-size:.8rem;padding:1px 0}.twseas .tsr{color:var(--muted);font:600 .7rem var(--f-mono);text-align:right}.twseas .tsn2{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.twseas li.tsp1 .tsn2{color:#ffd86b;font-weight:800}.twseas li.tsp b{color:var(--fg)!important;font-size:.8rem}.twseas li.tsp small{font:600 .7rem var(--f-mono);color:var(--dim);text-align:right}.twseas li.tsp small.up{color:var(--s-green)}
 .twseas .tsnote{font-size:.74rem;color:var(--muted);margin:4px 0 6px}.twseas .tsg{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px 16px}@media(max-width:700px){.twseas .tsg{grid-template-columns:1fr}}
 .twseas .lvchip{font:700 .64rem var(--f-mono);padding:1px 6px;border-radius:4px;color:#10131a;background:var(--tc);text-align:center}.twseas h4{margin:0 0 3px;font:800 .7rem var(--f-display);letter-spacing:.1em;text-transform:uppercase;color:var(--pc)}.twseas ul{list-style:none;margin:0;padding:0}.twseas li{display:grid;grid-template-columns:44px minmax(0,1fr) auto;align-items:center;gap:6px;font-size:.84rem;padding:2px 0}.twseas .tsl{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.twseas li b{font-family:var(--f-display);color:var(--s-green)}
 .sqctl{display:flex;gap:8px;flex-wrap:wrap}.sqctl #sq{flex:1 1 220px}.sqctl select{background:var(--panel2);color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:6px 8px;font:inherit}.sqtbl td small{display:block;color:var(--muted);font-size:.78rem}.sqtbl .sqt{font:600 .74rem var(--f-mono);color:var(--muted);white-space:nowrap}.sqtbl .sqp{font-weight:800;white-space:nowrap}.sqtbl td.r small{display:block}.sqhint{margin:6px 0 0}
@@ -2652,7 +2653,8 @@ const MI_PREVIEW=4;   // Most improved preview from week 4 of a running season
 const impWeeks=id=>{const [a,b]=seasonRange(id); return Math.ceil((b-a+1)/2)};   // Most improved: games in at least half the season's weeks (7 of 13)
 const f1Avg=x=>x.r?x.s/x.r:0;   // average score % over the season's counted results
 const f1Cmp=(x,y)=>{if(y.p!==x.p)return y.p-x.p; for(let i=0;i<10;i++)if(y.pl[i]!==x.pl[i])return y.pl[i]-x.pl[i]; const d=f1Avg(y)-f1Avg(x); return Math.abs(d)>1e-9?d:0};   // points, then countback, then higher average score; 0 = a shared place
-function seasonF1(pi,id,upto){const ck="f1|"+pi+"|"+id+"|"+(upto||""); if(SEAS_TAB[ck])return SEAS_TAB[ck]; const [a,b]=seasonRange(id), end=Math.min(b,ELO_DONE,upto||1e9), T={};
+// live: also count the week still running (for a projection of where things would stand if it ended now)
+function seasonF1(pi,id,upto,live){const ck="f1|"+pi+"|"+id+"|"+(upto||"")+(live?"|live":""); if(SEAS_TAB[ck])return SEAS_TAB[ck]; const [a,b]=seasonRange(id), end=Math.min(b,live?1e9:ELO_DONE,upto||1e9), T={};
   for(let w=a;w<=end;w++)(SB.weeks[w]||[]).forEach(c=>{if(c[0]!==pi||c[7])return; const L=cardLv(c[2]); if(!L||L==="G"||/bonus/i.test(c[2]))return;
     c[6].filter(e=>e[1]!=null&&canWin(e)).forEach((e,i)=>{const n=pvName(e), t=T[L]=T[L]||{}, x=t[n]=t[n]||{n,p:0,r:0,s:0,ws:new Set(),pl:Array(10).fill(0)}; x.r++; x.s+=+e[1]||0; x.ws.add(w); if(i<10){x.p+=F1_PTS[i]; x.pl[i]++}})});
   const out={}; Object.entries(T).forEach(([L,t])=>out[L]=Object.values(t).filter(x=>x.p>0).sort(f1Cmp));
@@ -3388,10 +3390,15 @@ const CEL_SPRIG=(()=>{let s="";
 function twSeason(w,live){eloBuild(); const id=seasonOf(w); if(!id)return ""; const [a,b]=seasonRange(id), n=w-a+1, len=b-a+1, upto=Math.min(w,ELO_DONE);
   const head=`<div class="tsh"><span class="tsn">🏁 Season ${seasonNum(id)}</span><span>week ${n} of ${len}</span><span class="golink">Season standings ›</span></div>`;
   if(upto<a)return `<div class="twseasin" data-goseason role="button" tabindex="0" title="Open the Season tab">${head}<p class="dim">The season starts this week: everyone's on zero points.</p></div>`;
-  const cols=[0,1,2].map(pi=>{const T=seasonF1(pi,id,upto); const rows=["M","A","I","B"].filter(c=>T[c]&&T[c].length).map(c=>{const L=T[c], top=L.filter(x=>f1Cmp(x,L[0])===0);
-      return `<li><span class="lvchip" style="--tc:${TIER_C[c]}">${TIER_NAME[c].slice(0,3)}</span><span class="tsl">${top.map(x=>"🥇 "+twName(x.n)).join(" = ")}</span><b>${L[0].p}</b></li>`}).join("");
+  // every player's season points after this week, with what this week adds (for the week still running: if it ended now)
+  const proj=live&&w>ELO_DONE, after=proj?w:upto, before=after-1;
+  const cols=[0,1,2].map(pi=>{const T=seasonF1(pi,id,after,proj), B=before>=a?seasonF1(pi,id,before):{};
+    const rows=["M","A","I","B"].filter(c=>T[c]&&T[c].length).map(c=>{const L=T[c], P={}; (B[c]||[]).forEach(x=>P[x.n]=x.p); let rk=0;
+      const ps=L.map((x,i)=>{if(i===0||f1Cmp(L[i-1],x)!==0)rk=i+1; const g=x.p-(P[x.n]||0);
+        return `<li class="tsp${rk===1?" tsp1":""}"><span class="tsr">${rk}</span><span class="tsn2">${twName(x.n)}</span><b>${x.p}</b><small class="${g>0?"up":""}">${g>0?"+"+g:""}</small></li>`}).join("");
+      return `<li class="tscl"><span class="lvchip" style="--tc:${TIER_C[c]}">${TIER_NAME[c].slice(0,3)}</span></li>${ps}`}).join("");
     return rows?`<div class="tsc" style="--pc:${PATH_C[pi]}"><h4>${PATHS[pi]}</h4><ul>${rows}</ul></div>`:""}).join("");
-  const note=upto<w?`Leaders after week ${upto-a+1}`:`Leaders after week ${n}`;
+  const note=proj?`Projected season points if week ${n} ended now (+ points from this week so far)`:`Season points after week ${after-a+1} (+ points that week)`;
   return `<div class="twseasin" data-goseason role="button" tabindex="0" title="Open the Season tab">${head}<div class="tsnote">${note}</div><div class="tsg">${cols}</div></div>`}
 document.addEventListener("click",e=>{if(!e.target.closest("[data-goseason]")||e.target.closest("[data-profile],[data-player]"))return; showView("season"); scrollTo({top:0})});
 // New medals order: gold God winners first, then silver, then bronze God diamond winners, then everyone else
