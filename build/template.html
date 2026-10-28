@@ -30,6 +30,8 @@ if(SUPA_URL&&SUPA_KEY&&/(^|\.)github\.io$|^localhost$|^127\.0\.0\.1$/.test(locat
   --fg:#e7eaf2; --muted:#8c94a8; --dim:#5d6578;
   --accent:#ff9a2e; --accent-ink:#1a0f02;
   --s-red:#ef4a55; --s-yellow:#f5c84a; --s-blue:#3fa0ff; --s-orange:#ff9a2e; --s-green:#45d17a; --s-purple:#b277ff;
+  /* class colours, like martial-arts belts: white, yellow, brown, black (shown as black with a gold edge; gold where it's text) */
+  --t-beg:#ece4d0; --t-int:#e9dc52; --t-adv:#bd8550; --t-mas:#dba63e;
   --open:#ff9a2e; --lost:#2b2f3a;
   --f-display:"Oxanium","Segoe UI",system-ui,sans-serif;
   --f-body:"IBM Plex Sans",system-ui,-apple-system,sans-serif;
@@ -988,6 +990,8 @@ button.clear.sblatest:hover{background:var(--accent);color:var(--accent-ink)}
 .lvbtn:focus-visible{outline:2px solid var(--fg);outline-offset:1px}
 .bchips:has(.lvbtn.sel) .lvbtn:not(.sel){opacity:.4}
 .lvbtn.sel{box-shadow:0 0 0 2px var(--fg)}
+[style*="--tc:var(--t-mas)"].lvchip,[style*="--tc:var(--t-mas)"] .lvchip,.lvbox[style*="--tc:var(--t-mas)"]{background:#0b0b0e!important;color:var(--t-mas)!important;box-shadow:inset 0 0 0 1px var(--t-mas)}
+.tierbar span[style*="--tc:var(--t-mas)"],.mixrow[style*="--tc:var(--t-mas)"] .fill{background:linear-gradient(180deg,#1a1a1f,#0b0b0e)!important;box-shadow:inset 0 0 0 1px var(--t-mas)}
 .lvchip{font:700 .6rem var(--f-display);letter-spacing:.06em;padding:1px 5px;border-radius:4px;color:var(--bg);background:var(--tc)}
 .bandtbl{width:100%;border-collapse:collapse;font-size:.85rem}
 .bandtbl th{font-weight:500;color:var(--muted);font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;text-align:left;padding:6px 10px 6px 0;border-bottom:1px solid var(--line);white-space:nowrap}
@@ -1894,7 +1898,7 @@ footer{color:var(--dim);font-size:.78rem}
   <section class="panel faq" id="faq-rules">
     <div class="panel-head"><h2>📜 Rules</h2><span class="sub"><a href="https://customsforge.com/index.php?/topic/6569-rocksmith-2014-championship-rules-read-this-first-updated-31082015/" target="_blank" rel="noopener">Full rules on the forum ↗</a></span></div>
     <details><summary>What are the classes?</summary><p>Each path (Lead, Rhythm, Bass) has its own class, so you can be in different classes on different paths. Songs are rated in steps of 0.5, and classes go by song difficulty:</p>
-      <ul class="faqcls"><li><b style="color:var(--s-yellow)">Beginner</b> 1–3.5</li><li><b style="color:var(--s-green)">Intermediate</b> 4–5.5</li><li><b style="color:var(--s-blue)">Advanced</b> 6–7.5</li><li><b style="color:var(--s-purple)">Masterclass</b> 8–9.5</li><li><b style="color:var(--s-red)">God</b> 10 (bonus)</li></ul>
+      <ul class="faqcls"><li><b style="color:var(--t-beg)">Beginner</b> 1–3.5</li><li><b style="color:var(--t-int)">Intermediate</b> 4–5.5</li><li><b style="color:var(--t-adv)">Advanced</b> 6–7.5</li><li><b style="color:var(--t-mas)">Masterclass</b> 8–9.5</li><li><b style="color:var(--s-red)">God</b> 10 (bonus)</li></ul>
       <p>You choose your class on each path you play when you start, and can add other paths later. Masterclass is the highest class.</p></details>
     <details><summary>How do I move up or down a class?</summary><ul>
       <li><b>Up automatically:</b> score 99%+ (Bass: 99.5%+) on a song rated 3 or higher as a Beginner, 5 or higher as an Intermediate, or 7 or higher as an Advanced player.</li>
@@ -2382,7 +2386,7 @@ function renderParts(){
 // the weeks of a run of `len` weeks ending at `end`, for highlighting streak medals
 const weekRange=(end,len)=>end==null?"":Array.from({length:len},(_,i)=>end-len+1+i).join(",");
 const presOf=p=>{const bits=[...p[7]].map(h=>parseInt(h,16).toString(2).padStart(4,"0")).join("");return bits.slice(0,PARTS.length)};
-const TIER_C={M:"var(--s-purple)",A:"var(--s-blue)",I:"var(--s-green)",B:"var(--s-yellow)",F:"var(--s-red)"};
+const TIER_C={M:"var(--t-mas)",A:"var(--t-adv)",I:"var(--t-int)",B:"var(--t-beg)",F:"var(--s-red)"};
 
 // milestone medals: years in the championship (since first week) and longest play streak
 const MEDAL_STEPS=[[10,"#f5c84a","10"],[5,"#c9d0dc","5"],[1,"#d8925a","1"]];
@@ -3780,7 +3784,7 @@ const SB_HOME=sbWeek; // "this week" on the Scoreboard (a later week on the shee
 const SB_CYC=["","B","I","A","M","G"]; let sbLv=["","",""]; // level shown per path; "" = all cards
 const cardLv=l=>/god/i.test(l)?"G":/master/i.test(l)?"M":/^adv/i.test(l)?"A":/^int/i.test(l)?"I":/begin/i.test(l)?"B":"";
 const LV_NAME={...TIER_NAME,G:"God of…"};
-const tierColor=l=>/god/i.test(l)?"var(--s-red)":/master/i.test(l)?"var(--s-purple)":/adv/i.test(l)?"var(--s-blue)":/inter|int\//i.test(l)?"var(--s-green)":/begin/i.test(l)?"var(--s-yellow)":"var(--s-orange)";
+const tierColor=l=>/god/i.test(l)?"var(--s-red)":/master/i.test(l)?"var(--t-mas)":/adv/i.test(l)?"var(--t-adv)":/inter|int\//i.test(l)?"var(--t-int)":/begin/i.test(l)?"var(--t-beg)":"var(--s-orange)";
 const fmtNum=v=>v==null?"":v.toLocaleString("en-US");
 function sbRender(){
   const ch=SB.weeks[sbWeek]||[], wk=WEEKS[sbWeek-1];
@@ -3925,7 +3929,7 @@ sbRender();
 // ---------- songs ----------
 const TIER_ORDER=["B","I","A","M","G"], TIER_LABEL={B:"Beginner",I:"Intermediate",A:"Advanced",M:"Masterclass",G:"God of…"};
 const TIER_SHORT={B:"Beg",I:"Int",A:"Adv",M:"Mas",G:"God"};   // level pills on the Songs tab, like This Week's
-const TIER_COL={B:"var(--s-yellow)",I:"var(--s-green)",A:"var(--s-blue)",M:"var(--s-purple)",G:"var(--s-red)"};
+const TIER_COL={B:"var(--t-beg)",I:"var(--t-int)",A:"var(--t-adv)",M:"var(--t-mas)",G:"var(--s-red)"};
 const tierOf=l=>/^god/i.test(l)?"G":/master/i.test(l)?"M":/^adv/i.test(l)?"A":/^int/i.test(l)?"I":/begin/i.test(l)?"B":null;
 // level from the difficulty rating when there is one: under 4 Beginner, 4–5.5 Intermediate, 6–7.5 Advanced, 8–9.5 Masterclass, 10+ God tier
 const tierByRating=(t,d)=>d==null||d<=0?t:d<4?"B":d<6?"I":d<8?"A":d<10?"M":"G";
