@@ -747,7 +747,7 @@ a.dl svg,.offpill svg{width:11px;height:11px}
 @media (max-width:400px){#annmode button{padding:4px 7px;font-size:.62rem;letter-spacing:.04em}.panel-head:has(#annmode){column-gap:8px}.panel-head:has(#annmode) h2{font-size:.92rem;letter-spacing:.05em;white-space:nowrap}}
 .tabs{align-items:center;flex-wrap:wrap}
 /* Level tab */
-.lvhead .lvtitle{margin:0;font:900 clamp(2rem,7vw,3.4rem)/1.05 var(--f-display);letter-spacing:.02em;text-transform:uppercase;background:linear-gradient(90deg,#f5c84a,#45d17a,#3fa0ff,#b277ff);-webkit-background-clip:text;background-clip:text;color:transparent}.lvhead #lv-sub{display:block;max-width:760px;margin:6px auto 0;line-height:1.6}.lvhead #lv-sub .dim{display:block;font-size:.8rem;color:var(--muted);margin-top:4px}
+.lvhead .lvtitle{margin:0;font:900 clamp(2rem,7vw,3.4rem)/1.05 var(--f-display);letter-spacing:.02em;text-transform:uppercase;background:linear-gradient(90deg,#f5c84a,#3fd6e0,#b277ff,#ef4a55);-webkit-background-clip:text;background-clip:text;color:transparent}.lvhead #lv-sub{display:block;max-width:760px;margin:6px auto 0;line-height:1.6}.lvhead #lv-sub .dim{display:block;font-size:.8rem;color:var(--muted);margin-top:4px}
 .lvbands{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin:12px 0 2px}.lvband{border:1px solid color-mix(in srgb,var(--tc) 55%,transparent);border-radius:999px;padding:3px 10px;font-size:.8rem;color:var(--muted)}.lvband b{color:var(--tc);margin-right:4px}
 .lvlist{list-style:none;margin:0;padding:0}.lvlist li{display:grid;grid-template-columns:28px minmax(0,8.5em) minmax(40px,1fr) 3.2em 14px 62px;gap:8px;align-items:center;padding:4px 0;border-top:1px solid var(--line);font-size:.9rem;cursor:default}
 .lvlist li:first-child{border-top:0}.lvlist .rr{color:var(--muted);font:600 .8rem var(--f-mono);text-align:center}.lvlist li.p1 .rr{color:#f5c84a}.lvlist li.p2 .rr{color:#c9d0dc}.lvlist li.p3 .rr{color:#d8925a}
@@ -2412,7 +2412,7 @@ function gemSvg(col,label){
 // class gems: one for every class up to the highest the player has reached on any path (player list or rank history).
 // Reaching Advanced also gives the Beginner and Intermediate gems. Each is dated by the first rank-up into that class.
 // class gems are celestial emerald-cut stones (like the God diamonds): a rectangular step cut, starlit and twinkling
-const CG_TINT={B:"#fff2b8",I:"#c8ffd9",A:"#cfe6ff",M:"#ead9ff"}, CG_DEEP={B:"#f2b92c",I:"#2fc46c",A:"#3f8cff",M:"#9a5cff"};
+const CG_TINT={B:"#fff2b8",I:"#c8fbff",A:"#ead9ff",M:"#ffd2d6"}, CG_DEEP={B:"#f2b92c",I:"#1fb6c2",A:"#9a5cff",M:"#d4202c"};   // the class colours: yellow, cyan, purple, red
 let cgN=0; // unique gradient ids, so a gem never borrows a gradient from a hidden copy
 function classGemSvg(tc){const g="cg"+tc+(cgN++), tint=CG_TINT[tc], deep=CG_DEEP[tc];
   return `<svg viewBox="0 0 30 30" aria-hidden="true"><defs><linearGradient id="${g}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff"/><stop offset=".3" stop-color="${tint}"/><stop offset=".72" stop-color="${deep}"/><stop offset="1" stop-color="#7a4dff"/></linearGradient></defs>`
@@ -3541,7 +3541,7 @@ function completionistSvg(path){const P=path==null?null:COMP_PATH[path]; let t=`
   if(P){t=t.replace(/stroke="#(ff9a2e|45d17a|3fa0ff)" stroke-width="3"/g,`stroke="${P[1]}" stroke-width="3"`); let k=0; t=t.replace(/fill="#(ff9a2e|45d17a|3fa0ff)"/g,()=>`fill="${P[k++]}"`)}
   return t}
 // 100% scores by the class of the challenge (its level on the scoreboard card)
-const MAST_CLASSES=[["B","Beginner","#e9a91c","#f5c84a"],["I","Intermediate","#22b862","#45d17a"],["A","Advanced","#2f7fef","#3fa0ff"],["M","Masterclass","#8a4cf0","#b277ff"],["G","God","#d4202c","#ff3b3b"]];
+const MAST_CLASSES=[["B","Beginner","#e9a91c","#f5c84a"],["I","Intermediate","#18aeb9","#3fd6e0"],["A","Advanced","#8a4cf0","#b277ff"],["M","Masterclass","#d4202c","#ef4a55"],["G","God","#b9c0cc","#f4f6fb"]];
 function masteryClassOf(l){l=String(l||"");return /^god/i.test(l)?"G":/master/i.test(l)?"M":/^adv/i.test(l)?"A":/^int/i.test(l)?"I":/begin/i.test(l)?"B":null}
 function masteryByClass(name,done){
   const out={B:[],I:[],A:[],M:[],G:[]};
