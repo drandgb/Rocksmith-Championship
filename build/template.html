@@ -2889,7 +2889,7 @@ function showPlayer(name){
   const PB=(()=>{const sc=[null,null,null],st=[null,null,null];
     Object.keys(SB.weeks).forEach(wk=>{const w=+wk, d=WEEKS[w-1]; if(pYear&&!(d&&String(d[1]).startsWith(pYear)))return;
       SB.weeks[w].forEach(card=>{if(card[7])return; const pi=card[0]; card[6].forEach(e=>{if(SB.names[e[0]].replace(/[*~]+$/,"")!==n)return;
-        if(e[3]!=null&&+e[3]<=SCORE_MAX&&(!sc[pi]||e[3]>sc[pi].v))sc[pi]={v:e[3],w,c:card};
+        if(e[3]!=null&&!fakeScore(e[3])&&(!sc[pi]||e[3]>sc[pi].v))sc[pi]={v:e[3],w,c:card};
         if(e[2]!=null&&(!st[pi]||e[2]>st[pi].v))st[pi]={v:e[2],w,c:card};})})});
     return {sc,st,any:sc.some(Boolean)||st.some(Boolean)}})();
   const pbCell=(r,what)=>{if(!r)return `<td class="dim">–</td>`;
@@ -3032,8 +3032,8 @@ document.querySelector(".tabs").addEventListener("click",e=>{const b=e.target.cl
  // some tabs (Hosts) need data set up further down: if opening one this early fails, start on This Week and open it once the page is ready
  try{showView(v)}catch(e){window.__pendingView=v; try{showView("thisweek")}catch(e2){}}}
 const SB=__SCORES__;
-// no real Rocksmith score gets near 5 million (the highest real ones are around 3.4 million), so a bigger one is a typo
-const SCORE_MAX=5e6;
+// a placeholder score typed into the sheet: nine digits counting up 1 to 9, wrapping round (123456789, 912345678, 891234567…)
+const fakeScore=v=>{const t=String(v); if(!/^[1-9]{9}$/.test(t))return false; for(let i=1;i<9;i++)if(+t[i]!==+t[i-1]%9+1)return false; return true};
 const SONGS_OLD=__SONGS_OLD__; // weeks before the scoreboards: [week, path, tier, bonus, song, difficulty]
 // ---------- win rates & rank-ups (from scoreboards, weeks 440+) ----------
 const WR=__WINS__;
@@ -3838,7 +3838,7 @@ function sbRender(){
       const me=findLc&&base.toLowerCase()===findLc?" me":"";
       const lvLetter=/master/i.test(lvl)?"M":/^adv/i.test(lvl)?"A":/^int/i.test(lvl)?"I":/begin/i.test(lvl)?"B":"";
       const up=!raw.includes("*")&&lvLetter&&RU_KEY.has(`${sbWeek}|${base}|${p}|${lvLetter}`)?`<span class="rkup" data-tip="First week in ${TIER_NAME[lvLetter]} ${PATHS[p]} after ranking up">RANKED UP</span>`:"";
-      return `<tr class="${me}${e[4]<0?" down":""}" data-tip="${me?`Click the row to clear the highlight`:`Click the row to highlight ${esc(base)} on every card · click the name to open their profile`}"><td>${rk}</td><td class="n"><span data-player="${esc(base)}">${esc(base)}</span>${marks}${lvChip(base,p,1)}${up}${SB.aka&&SB.aka[e[0]]?`<span class="aka">as ${esc(SB.aka[e[0]])}</span>`:""}</td><td>${pct}</td><td>${fmtNum(e[2])}</td><td>${+e[3]>SCORE_MAX?`<span class="sbbad" data-tip="${esc(`This score looks like a typo in the scoreboard sheet: ${(+e[3]).toLocaleString("en-US")} is more than any real Rocksmith score (the highest are about 3.4 million). It needs correcting in the sheet.`)}">⚠️ ${fmtNum(e[3])}</span>`:fmtNum(e[3])}</td></tr>`;
+      return `<tr class="${me}${e[4]<0?" down":""}" data-tip="${me?`Click the row to clear the highlight`:`Click the row to highlight ${esc(base)} on every card · click the name to open their profile`}"><td>${rk}</td><td class="n"><span data-player="${esc(base)}">${esc(base)}</span>${marks}${lvChip(base,p,1)}${up}${SB.aka&&SB.aka[e[0]]?`<span class="aka">as ${esc(SB.aka[e[0]])}</span>`:""}</td><td>${pct}</td><td>${fmtNum(e[2])}</td><td>${fakeScore(e[3])?`<span class="sbbad" data-tip="${esc(`This score looks like a placeholder in the scoreboard sheet: ${(+e[3]).toLocaleString("en-US")} is the digits 1 to 9 in a row, not a real score. It needs correcting in the sheet.`)}">⚠️ ${fmtNum(e[3])}</span>`:fmtNum(e[3])}</td></tr>`;
     }).join("");
     return `<article class="card" data-slot="${slot}" data-p="${p}" style="--tc:${tc}"><div class="ch"><div class="lv"><span>${esc(lvl)}</span><div class="lvr">${(()=>{const id=SB.links&&SB.links[sbWeek]&&SB.links[sbWeek][p*9+slot];return songPill(song,id)})()}${rateBadge(sbWeek,p,slot,diff,ents)}</div></div><div class="song">${(()=>{const t=tuneOf(song,p); if(!t)return songHtml; const pill=`<span class="tunpill" data-tip="${PATHS[p]} tuning (Song Selection List)">${esc(t)}</span>`;
       // the tuning goes on the band's line (under the title), right-aligned, so the title keeps the full width
@@ -5760,7 +5760,7 @@ function typoScan(){
     const seen={}; let prev=null;
     c[6].forEach(e=>{const n=nm(e[0]), k=n.toLowerCase(), it={...at,n};
       if(e[3]===0&&w>=ZERO_FROM&&usual(n))out.zero.push(it);
-      if(+e[3]>SCORE_MAX)out.big.push({...it,note:`score ${(+e[3]).toLocaleString("en-US")}`});
+      if(fakeScore(e[3]))out.big.push({...it,note:`score ${(+e[3]).toLocaleString("en-US")}`});
       if(e[1]==null)out.nopct.push(it);
       // a % with two decimals (like 96.66) comes from the game's results screen, which also shows the score
       if(e[1]!=null&&/\.\d\d$/.test(String(e[1]))&&(e[3]==null||e[3]===""))out.noscore.push({...it,note:`${e[1]}% · no score`});
@@ -5786,7 +5786,7 @@ function typoSection(){
   const card=x=>`<span class="tylink" data-sbw="${x.w}" data-sbp="${x.p}" data-sbn="${esc(x.n||"")}" title="Open on the Scoreboard">Week ${x.w} · ${PATHS[x.p]} ${esc(x.lv)}</span>`;
   const row=(x,body)=>`<li class="${isNew(x)?"tynew":""}">${isNew(x)?'<span class="tytag">new</span>':""}${body}</li>`;
   const forms=x=>x.forms.map(f=>`“${esc(f.t)}”${f.n?` <small>${f.n}×, last Week ${f.last}</small>`:""}`).join(" vs ");
-  const G=[["big","Score too big",`More than ${(SCORE_MAX/1e6).toFixed(0)} million, which no real score reaches (the highest are about 3.4 million)`,x=>`${card(x)} · <b>${esc(x.n)}</b> · ${esc(x.note)} · ${esc(x.song)}`],
+  const G=[["big","Placeholder score","Nine digits counting 1 to 9 (like 912,345,678), not a real score",x=>`${card(x)} · <b>${esc(x.n)}</b> · ${esc(x.note)} · ${esc(x.song)}`],
     ["zero","Score of 0","Since week 650 (before that, 0 was often used for a blank score)",x=>`${card(x)} · <b>${esc(x.n)}</b> · ${esc(x.song)}`],
     ["noscore","Missing score","A % with two decimals (like 96.66%) comes from the results screen, which shows the score too, so it was probably left out",x=>`${card(x)} · <b>${esc(x.n)}</b> · ${esc(x.note)} · ${esc(x.song)}`],
     ["nopct","Missing %","An entry with no percentage",x=>`${card(x)} · <b>${esc(x.n)}</b> · ${esc(x.song)}`],
