@@ -998,6 +998,21 @@ footer .updated{display:block;margin-top:4px}
 @keyframes twglow{50%{box-shadow:0 0 0 1px var(--s-blue),0 0 4px color-mix(in srgb,var(--s-blue) 30%,transparent)}}
 @media (prefers-reduced-motion:reduce){.twarrow.glow{animation:none}}
 .twpv-hide{display:none!important}
+.twcalbtn{font-size:1.05rem}.twcalbtn[aria-expanded="true"]{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.twcal{margin:12px 0 4px;max-width:440px}
+.twcal .tch{display:flex;align-items:center;gap:8px;margin-bottom:8px}.twcal .tch b{flex:1;text-align:center;font-size:1rem}
+.twcal .tch select{background:var(--panel2);color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:4px 6px}
+.twcal .tch .twarrow{width:30px;height:30px;font-size:1.1rem}
+.twcal table{width:100%;border-collapse:separate;border-spacing:0 3px;font-size:.85rem}
+.twcal th{font-weight:600;color:var(--dim);font-size:.72rem;text-transform:uppercase;padding:2px 0}
+.twcal td{text-align:center;padding:5px 0;font-variant-numeric:tabular-nums}
+.twcal td.wk{text-align:left;padding-left:8px;font-weight:700;color:var(--dim);white-space:nowrap}
+.twcal tr.r td:first-child{border-radius:8px 0 0 8px}.twcal tr.r td:last-child{border-radius:0 8px 8px 0}
+.twcal tr.r{cursor:pointer}.twcal tr.r:hover td{background:var(--panel2)}
+.twcal tr.r.off{cursor:default;opacity:.35}.twcal tr.r.off:hover td{background:none}
+.twcal tr.r.sel td{background:color-mix(in srgb,var(--accent) 22%,transparent)}.twcal tr.r.sel td.wk{color:var(--accent)}
+.twcal tr.r.live td.wk::after{content:" •";color:#45d17a}
+.twcal td.om{color:var(--dim);opacity:.5}.twcal td.today{font-weight:800;color:var(--accent)}
 .twnp .npn{display:block;font-size:.72rem;font-weight:400;color:var(--s-green)}
 .twseas{margin-top:14px}
 #view-season li,#view-season .sc{cursor:pointer}
@@ -1638,9 +1653,11 @@ footer{color:var(--dim);font-size:.78rem}
       <button type="button" class="twarrow" id="twprev" aria-label="Previous week">‹</button>
       <div class="twtitle"><h2 id="tw-title"></h2><div class="sub" id="tw-meta"></div></div>
       <button type="button" class="twarrow" id="twnext" aria-label="Next week">›</button>
+      <button type="button" class="twarrow twcalbtn" id="twcalbtn" aria-label="Pick a week from the calendar" aria-expanded="false" title="Pick a week from the calendar">📅</button>
       <button type="button" class="clear" id="twsb">Open scoreboard ›</button>
       <button type="button" class="clear sblatest" id="twnow" hidden></button>
     </div>
+    <div class="twcal" id="twcal" hidden></div>
     <div class="twstats" id="tw-stats"></div>
   </section>
   <section class="panel dlsec pvsec" id="twpast" hidden></section>
@@ -4975,6 +4992,7 @@ function renderTwRk(){const w=twWeek, last=w===TW_LIVE?w-1:w, sec=$("tw-rksec");
   sec.hidden=false}
 document.addEventListener("click",e=>{if(e.target.closest("[data-gorank]")&&!e.target.closest("[data-player],[data-goplayer],[data-name]")){showView("rankings"); scrollTo({top:0,behavior:"smooth"})}});
 function renderThisWeek(){
+  if(!$("twcal").hidden){const d=twWkStart(twWeek); twCalM=new Date(d.getFullYear(),d.getMonth(),1,12); renderTwCal()}
   setTimeout(()=>{renderNewWeekNote();renderTwPast();renderDownloads();try{renderTwElo()}catch(e){}try{renderTwRk()}catch(e){}},0);
   renderHostWarn(); if(renderNextPreview())return;
   const w=twWeek, W=WEEKS[w-1], live=w===TW_LIVE, names=twNames(w), set=new Set(names);
@@ -5088,6 +5106,28 @@ function renderThisWeek(){
       const ast=side=>tie&&((side>0&&s.beat>0)||(side<0&&s.beat<0)||(!s.beat&&side>0))?`<span class="rtie" data-tip="${tie}">*</span>`:"";
       return `<b class="${s.beat>0?"up":""}">${s.a}%${ast(1)}</b> vs <b class="${s.beat<0?"up":""}">${s.b}%${ast(-1)}</b>`})()}</span></span>`).join("")}</span>${verdict}</li>`}).join(""):twEmpty(twRivLv[pi]?`No ${TIER_NAME[twRivLv[pi]]} ${PATHS[pi].toLowerCase()} rivals this week.`:`No ${PATHS[pi].toLowerCase()} rivals yet.`)}</ul></div>`}).join("");
 }
+// 📅 calendar: one row per championship week (rows start on the week's first day), click a row to open that week
+let twCalM=null;   // first day of the month shown
+function twWkOf(d){const s0=new Date(WEEKS[0][1]+"T12:00:00"); return WEEKS[0][0]+Math.floor((d-s0)/(7*864e5))}
+function twWkStart(w){return new Date(weekAt(w-WEEKS[0][0])[1]+"T12:00:00")}
+function renderTwCal(){const el=$("twcal"); if(!el||el.hidden)return;
+  const hi=TW_NEXT||TW_MAX, minD=twWkStart(TW_MIN), maxD=new Date(twWkStart(hi).getTime()+6*864e5);
+  if(!twCalM){const d=twWkStart(twWeek); twCalM=new Date(d.getFullYear(),d.getMonth(),1,12)}
+  const y=twCalM.getFullYear(), m=twCalM.getMonth(), first=new Date(y,m,1,12), last=new Date(y,m+1,0,12);
+  const s0=new Date(WEEKS[0][1]+"T12:00:00"), dow=s0.getDay(), today=iso(new Date());
+  const DN=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+  let w=twWkOf(first); const rows=[];
+  for(;;){const st=twWkStart(w); if(st>last)break; const days=[...Array(7)].map((_,i)=>new Date(st.getTime()+i*864e5));
+    const ok=w>=TW_MIN&&w<=hi, W=weekAt(w-WEEKS[0][0]), host=W[2]&&W[2]!==LOST?W[2]:"";
+    rows.push(`<tr class="r${ok?"":" off"}${w===twWeek?" sel":""}${w===TW_LIVE?" live":""}"${ok?` data-twcal="${w}" title="Week ${w}${host?` · hosted by ${esc(host)}`:""}${w===TW_LIVE?" · in progress":""}"`:""}><td class="wk">Wk ${w}</td>${days.map(d=>`<td class="${d.getMonth()!==m?"om":""}${iso(d)===today?" today":""}">${d.getDate()}</td>`).join("")}</tr>`); w++}
+  const ys=[]; for(let k=maxD.getFullYear();k>=minD.getFullYear();k--)ys.push(k);
+  const canPrev=first>minD, canNext=last<maxD;
+  el.innerHTML=`<div class="tch"><button type="button" class="twarrow" data-twcalm="-1" aria-label="Previous month"${canPrev?"":" disabled"}>‹</button><b>${first.toLocaleString(undefined,{month:"long"})}</b><select data-twcaly aria-label="Year">${ys.map(k=>`<option${k===y?" selected":""}>${k}</option>`).join("")}</select><button type="button" class="twarrow" data-twcalm="1" aria-label="Next month"${canNext?"":" disabled"}>›</button></div>
+    <table><thead><tr><th></th>${[...Array(7)].map((_,i)=>`<th>${DN[(dow+i)%7]}</th>`).join("")}</tr></thead><tbody>${rows.join("")}</tbody></table>`}
+$("twcalbtn").addEventListener("click",()=>{const el=$("twcal"); el.hidden=!el.hidden; $("twcalbtn").setAttribute("aria-expanded",!el.hidden); twCalM=null; renderTwCal()});
+$("twcal").addEventListener("click",e=>{const mb=e.target.closest("[data-twcalm]"); if(mb){twCalM=new Date(twCalM.getFullYear(),twCalM.getMonth()+ +mb.dataset.twcalm,1,12); renderTwCal(); return}
+  const r=e.target.closest("[data-twcal]"); if(!r)return; twWeek=+r.dataset.twcal; renderThisWeek()});
+$("twcal").addEventListener("change",e=>{if(!e.target.matches("[data-twcaly]"))return; twCalM=new Date(+e.target.value,twCalM.getMonth(),1,12); renderTwCal()});
 $("twprev").addEventListener("click",()=>{if(twWeek>TW_MIN){twWeek--;renderThisWeek()}});
 $("twnext").addEventListener("click",()=>{if(twWeek<TW_MAX){twWeek++;renderThisWeek()}else if(TW_NEXT&&twWeek===TW_MAX){twWeek=TW_NEXT;renderThisWeek()}});
 $("twnow").addEventListener("click",()=>{twWeek=TW_MAX;renderThisWeek()});
