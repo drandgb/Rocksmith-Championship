@@ -751,6 +751,7 @@ a.dl svg,.offpill svg{width:11px;height:11px}
 .lvv{font:700 .9rem var(--f-mono);text-align:right}.lvtr{font-size:.7rem;text-align:center}.lvtr.up{color:var(--s-green)}.lvtr.down{color:var(--s-red)}
 .lvsp{width:60px;height:18px;display:block;opacity:.85}
 .lvc{display:inline-block;margin-left:5px;padding:0 5px;border-radius:6px;font:700 .68rem/1.45 var(--f-mono);color:var(--tc);border:1px solid color-mix(in srgb,var(--tc) 55%,transparent);background:color-mix(in srgb,var(--tc) 12%,transparent);vertical-align:1px;cursor:help;flex:none}
+.sbbad{color:var(--s-red);font-weight:700;cursor:help;white-space:nowrap}
 .lvc.lvq{--tc:var(--dim);border-style:dashed}.lvc.lve{border-style:dashed}
 .rklv li .nmw{display:flex;align-items:center;min-width:0}.rklv li .nmw .nm{min-width:0}
 .lvextra{margin-bottom:20px}
@@ -3026,6 +3027,8 @@ document.querySelector(".tabs").addEventListener("click",e=>{const b=e.target.cl
  // some tabs (Hosts) need data set up further down: if opening one this early fails, start on This Week and open it once the page is ready
  try{showView(v)}catch(e){window.__pendingView=v; try{showView("thisweek")}catch(e2){}}}
 const SB=__SCORES__;
+// no real Rocksmith score gets near 5 million (the highest real ones are around 3.4 million), so a bigger one is a typo
+const SCORE_MAX=5e6;
 const SONGS_OLD=__SONGS_OLD__; // weeks before the scoreboards: [week, path, tier, bonus, song, difficulty]
 // ---------- win rates & rank-ups (from scoreboards, weeks 440+) ----------
 const WR=__WINS__;
@@ -3829,7 +3832,7 @@ function sbRender(){
       const me=findLc&&base.toLowerCase()===findLc?" me":"";
       const lvLetter=/master/i.test(lvl)?"M":/^adv/i.test(lvl)?"A":/^int/i.test(lvl)?"I":/begin/i.test(lvl)?"B":"";
       const up=!raw.includes("*")&&lvLetter&&RU_KEY.has(`${sbWeek}|${base}|${p}|${lvLetter}`)?`<span class="rkup" data-tip="First week in ${TIER_NAME[lvLetter]} ${PATHS[p]} after ranking up">RANKED UP</span>`:"";
-      return `<tr class="${me}${e[4]<0?" down":""}" data-tip="${me?`Click the row to clear the highlight`:`Click the row to highlight ${esc(base)} on every card · click the name to open their profile`}"><td>${rk}</td><td class="n"><span data-player="${esc(base)}">${esc(base)}</span>${marks}${lvChip(base,p,1)}${up}${SB.aka&&SB.aka[e[0]]?`<span class="aka">as ${esc(SB.aka[e[0]])}</span>`:""}</td><td>${pct}</td><td>${fmtNum(e[2])}</td><td>${fmtNum(e[3])}</td></tr>`;
+      return `<tr class="${me}${e[4]<0?" down":""}" data-tip="${me?`Click the row to clear the highlight`:`Click the row to highlight ${esc(base)} on every card · click the name to open their profile`}"><td>${rk}</td><td class="n"><span data-player="${esc(base)}">${esc(base)}</span>${marks}${lvChip(base,p,1)}${up}${SB.aka&&SB.aka[e[0]]?`<span class="aka">as ${esc(SB.aka[e[0]])}</span>`:""}</td><td>${pct}</td><td>${fmtNum(e[2])}</td><td>${+e[3]>SCORE_MAX?`<span class="sbbad" data-tip="${esc(`This score looks like a typo in the scoreboard sheet: ${(+e[3]).toLocaleString("en-US")} is more than any real Rocksmith score (the highest are about 3.4 million). It needs correcting in the sheet.`)}">⚠️ ${fmtNum(e[3])}</span>`:fmtNum(e[3])}</td></tr>`;
     }).join("");
     return `<article class="card" data-slot="${slot}" data-p="${p}" style="--tc:${tc}"><div class="ch"><div class="lv"><span>${esc(lvl)}</span><div class="lvr">${(()=>{const id=SB.links&&SB.links[sbWeek]&&SB.links[sbWeek][p*9+slot];return songPill(song,id)})()}${rateBadge(sbWeek,p,slot,diff,ents)}</div></div><div class="song">${(()=>{const t=tuneOf(song,p); if(!t)return songHtml; const pill=`<span class="tunpill" data-tip="${PATHS[p]} tuning (Song Selection List)">${esc(t)}</span>`;
       // the tuning goes on the band's line (under the title), right-aligned, so the title keeps the full width
@@ -5735,10 +5738,11 @@ function ratingLogSection(){
 var TYPO_CACHE=null;
 // weeks 560-649 used 0 as the usual way to leave a score blank, so 0 scores are only checked from week 650 on
 const ZERO_FROM=650;
+
 function typoScan(){
   if(TYPO_CACHE)return TYPO_CACHE;
   const nm=i=>SB.names[i].replace(/[*~]+$/,""), weeks=Object.keys(SB.weeks).map(Number).sort((a,b)=>a-b), NEW=weeks[weeks.length-1];
-  const out={zero:[],noscore:[],nopct:[],dup:[],order:[],band:[],song:[],player:[],ssl:[]};
+  const out={big:[],zero:[],noscore:[],nopct:[],dup:[],order:[],band:[],song:[],player:[],ssl:[]};
   // a 0 score is probably a typo, unless the player puts 0 on most of their entries (some always do)
   const sc={}; weeks.forEach(w=>SB.weeks[w].forEach(c=>c[6].forEach(e=>{const n=nm(e[0]).toLowerCase(), x=sc[n]=sc[n]||[0,0]; x[1]++; if(e[3]===0)x[0]++})));
   const usual=n=>{const x=sc[n.toLowerCase()]; return !(x&&x[0]/x[1]>=.5)};
@@ -5750,6 +5754,7 @@ function typoScan(){
     const seen={}; let prev=null;
     c[6].forEach(e=>{const n=nm(e[0]), k=n.toLowerCase(), it={...at,n};
       if(e[3]===0&&w>=ZERO_FROM&&usual(n))out.zero.push(it);
+      if(+e[3]>SCORE_MAX)out.big.push({...it,note:`score ${(+e[3]).toLocaleString("en-US")}`});
       if(e[1]==null)out.nopct.push(it);
       // a % with two decimals (like 96.66) comes from the game's results screen, which also shows the score
       if(e[1]!=null&&/\.\d\d$/.test(String(e[1]))&&(e[3]==null||e[3]===""))out.noscore.push({...it,note:`${e[1]}% · no score`});
@@ -5775,7 +5780,8 @@ function typoSection(){
   const card=x=>`<span class="tylink" data-sbw="${x.w}" data-sbp="${x.p}" data-sbn="${esc(x.n||"")}" title="Open on the Scoreboard">Week ${x.w} · ${PATHS[x.p]} ${esc(x.lv)}</span>`;
   const row=(x,body)=>`<li class="${isNew(x)?"tynew":""}">${isNew(x)?'<span class="tytag">new</span>':""}${body}</li>`;
   const forms=x=>x.forms.map(f=>`“${esc(f.t)}”${f.n?` <small>${f.n}×, last Week ${f.last}</small>`:""}`).join(" vs ");
-  const G=[["zero","Score of 0","Since week 650 (before that, 0 was often used for a blank score)",x=>`${card(x)} · <b>${esc(x.n)}</b> · ${esc(x.song)}`],
+  const G=[["big","Score too big",`More than ${(SCORE_MAX/1e6).toFixed(0)} million, which no real score reaches (the highest are about 3.4 million)`,x=>`${card(x)} · <b>${esc(x.n)}</b> · ${esc(x.note)} · ${esc(x.song)}`],
+    ["zero","Score of 0","Since week 650 (before that, 0 was often used for a blank score)",x=>`${card(x)} · <b>${esc(x.n)}</b> · ${esc(x.song)}`],
     ["noscore","Missing score","A % with two decimals (like 96.66%) comes from the results screen, which shows the score too, so it was probably left out",x=>`${card(x)} · <b>${esc(x.n)}</b> · ${esc(x.note)} · ${esc(x.song)}`],
     ["nopct","Missing %","An entry with no percentage",x=>`${card(x)} · <b>${esc(x.n)}</b> · ${esc(x.song)}`],
     ["dup","Same player twice on a card","",x=>`${card(x)} · <b>${esc(x.n)}</b> · ${esc(x.song)}`],
