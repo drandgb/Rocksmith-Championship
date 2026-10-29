@@ -370,6 +370,17 @@ button.clear:hover{border-color:var(--accent)}
 .tier small{font-size:.66rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
 .tier b{font:800 1.2rem var(--f-display);color:var(--tc)}
 .brgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}.brcol h3{margin:0 0 4px;color:var(--pc);font:800 .8rem var(--f-display);letter-spacing:.08em;text-transform:uppercase}.brcol svg{width:100%;height:auto;display:block}.acctdlg .bracketsec .brcol h3{font:800 .8rem var(--f-display);letter-spacing:.08em;margin:0 0 4px;color:var(--pc)}.brnowrow{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:.8rem;margin-bottom:4px}.brnow{display:inline-flex;align-items:center;gap:5px;color:var(--muted);cursor:help}.brnow i{width:10px;height:3px;border-radius:2px;background:var(--tc)}.brnow b{color:var(--fg)}.brnote{grid-column:1/-1;margin:0;font-size:.78rem}
+.lvscale .lspath{margin:10px 0 14px}.lvscale h4{margin:0 0 6px;color:var(--pc);font:800 .78rem var(--f-display);letter-spacing:.08em;text-transform:uppercase}
+.lvscale .lsrow,.lvscale .lsaxis{display:grid;grid-template-columns:40px minmax(0,1fr) 54px;gap:8px;align-items:center;margin:4px 0}
+.lvscale .lstrack{position:relative;height:30px;border-radius:6px;background:var(--panel2);overflow:visible}
+.lvscale .lsband{position:absolute;top:0;bottom:0;background:color-mix(in srgb,var(--tc) 7%,transparent)}
+.lvscale .lsown{position:absolute;top:0;bottom:0;background:color-mix(in srgb,var(--tc) 22%,transparent);border-left:1px solid color-mix(in srgb,var(--tc) 60%,transparent);border-right:1px solid color-mix(in srgb,var(--tc) 60%,transparent)}
+.lvscale .lsmed{position:absolute;top:-2px;bottom:-2px;width:2px;margin-left:-1px;background:var(--fg);opacity:.7;cursor:help}
+.lvscale .lsd{position:absolute;top:calc(5px + var(--ln) * 7px);width:10px;height:10px;margin-left:-5px;border-radius:50%;background:var(--tc);box-shadow:0 0 0 1.5px var(--panel);cursor:help}
+.lvscale .lsd.est{background:var(--panel);border:2px solid var(--tc);box-sizing:border-box}
+.lvscale .lsd:hover{transform:scale(1.5);z-index:2}
+.lvscale .lscount{font:700 .8rem var(--f-mono);color:var(--fg);cursor:help;white-space:nowrap}.lvscale .lscount small{color:var(--muted);font-weight:600}
+.lvscale .lsaxis div{position:relative;height:14px}.lvscale .lsaxis b{position:absolute;transform:translateX(-50%);font:600 .66rem var(--f-mono);color:var(--muted)}
 .lvnolin{display:inline-block;margin-top:6px;font:700 .95rem var(--f-display);color:var(--s-green);letter-spacing:.02em}
 .pc .pclv{grid-column:1/-1}.pc .pclv svg{max-height:240px}
 .pc .pnolin{grid-column:1/-1;margin:14px 0 -6px;font:700 .95rem var(--f-display);color:var(--s-green);letter-spacing:.02em}
@@ -2167,6 +2178,24 @@ const hostsShown=()=>activeOnly?hostList.filter(hostActive):hostList;
 let BRACKET_HTML=null;
 function bracketSection(){if(BRACKET_HTML==null){try{BRACKET_HTML=bracketCharts()}catch(e){console.error(e); BRACKET_HTML=""}} if(!BRACKET_HTML)return "";
   return `<div class="acctsec bracketsec"><h3>Ranked players per class</h3><p class="dim">How many players each week play in their own class, on each path (10-week average).</p><div class="brgrid">${BRACKET_HTML}</div></div>`}
+// Host tab: every player's level on a 0-100 scale, grouped by the class they're in on each path (PlayersList), so you
+// can see who sits above or below their class. Rodman's level (or the site's, when his sheet is behind); a hollow dot
+// is a level the site worked out because he has none for them yet. Shaded: the level bands for each class.
+function levelScaleSection(){let D; try{D=lvCur()}catch(e){return ""} if(!D||!D.paths)return "";
+  const CL=["B","I","A","M"], X=v=>Math.max(0,Math.min(100,v));
+  const band=(c)=>{const i=LV_BANDS.findIndex(b=>b[1]===c); const lo=LV_BANDS[i][0], hi=i>0?LV_BANDS[i-1][0]:100; return [lo,hi]};
+  const paths=[0,1,2].map(pi=>{const idx={}; (D.paths[pi]||[]).forEach(p=>{if(p.xp)idx[lvKey(p.n)]=p.xp});
+    const rows=CL.map(c=>{const pts=[];
+      PLAYERS.forEach(P=>{const t=String(P[8]||"").charAt(pi).toUpperCase(); if(t!==c)return; const k=lvKey(P[0]); let v=idx[k], est=false;
+        if(!v){v=lvAt(pi,k,DATA_WEEK); est=true} if(v)pts.push({n:P[0],v,est})});
+      pts.sort((a,b)=>a.v-b.v); const [lo,hi]=band(c), med=pts.length?pts[Math.floor((pts.length-1)/2)].v:null;
+      const under=pts.filter(x=>x.v<lo).length, over=pts.filter(x=>x.v>=hi&&c!=="M").length;
+      // dots side by side when they're close, so none hide behind another
+      let last=-9, lane=0; const dots=pts.map(x=>{const pos=X(x.v); lane=pos-last<2.2?(lane+1)%3:0; last=pos; const b=lvBand(x.v);
+        return `<i class="lsd${x.est?" est":""}" style="left:${pos}%;--tc:${TIER_C[b[1]]};--ln:${lane}" data-tip="${esc(`${x.n} · ${TIER_NAME[c]} ${PATHS[pi]}\nLevel ${x.v.toFixed(1)} (${b[2]} band)${x.est?"\nWorked out by the site from their last 12 weeks":""}`)}"></i>`}).join("");
+      return `<div class="lsrow"><span class="lvchip" style="--tc:${TIER_C[c]}">${TIER_NAME[c].slice(0,3)}</span><div class="lstrack">${LV_BANDS.map(([m,k])=>{const [a,z]=band(k); return `<span class="lsband" style="left:${a}%;width:${z-a}%;--tc:${TIER_C[k]}"></span>`}).join("")}<span class="lsown" style="left:${lo}%;width:${hi-lo}%;--tc:${TIER_C[c]}"></span>${med!=null?`<span class="lsmed" style="left:${X(med)}%" data-tip="Middle player in ${TIER_NAME[c]}: ${med.toFixed(1)}"></span>`:""}${dots}</div><span class="lscount" data-tip="${esc(`${pts.length} ${TIER_NAME[c]} ${PATHS[pi]} player${pts.length===1?"":"s"} with a level${under?`\n${under} below the ${TIER_NAME[c]} band (under ${lo})`:""}${over?`\n${over} above it (${hi}+)`:""}`)}">${pts.length}${under||over?` <small>${under?`↓${under}`:""}${over?` ↑${over}`:""}</small>`:""}</span></div>`}).join("");
+    return `<div class="lspath" style="--pc:${PATH_C[pi]}"><h4>${PATHS[pi]}</h4>${rows}<div class="lsaxis"><span></span><div>${[0,20,40,60,80,100].map(v=>`<b style="left:${v}%">${v}</b>`).join("")}</div><span></span></div></div>`}).join("");
+  return `<div class="acctsec lvscale"><h3>Player levels in each class</h3><p class="dim">Each dot is a player in that class (from PlayersList), placed by their player level. The colored strip is the class's level band; the line marks the middle player; ↓/↑ count players below or above it. Hollow dots: levels worked out by the site.</p>${paths}</div>`}
 function bracketCharts(){
   const ws=Object.keys(SB.weeks).map(Number).filter(w=>w<=DATA_WEEK&&(SB.weeks[w]||[]).length).sort((a,b)=>a-b), CL=["B","I","A","M"], AVG=10;
   const cnt=[0,1,2].map(()=>CL.map(()=>[]));   // [path][class][week index] = players
@@ -6459,7 +6488,7 @@ function acctDraw(msg,err){
   const tabs=`<div class="accttabs" role="tablist">${tb("me","Your profile")}${appr?tb("week",`Your week${ywN?`<span class="nbadge" title="Passed ${ywN} time${ywN===1?"":"s"} · the ✕ on the alert dismisses itt">${ywN}</span>`:""}`):""}${appr?tb("wrapped",`🎸 ${WRAP_OPEN()-1} Restringed`):""}${ACCT.claim&&ACCT.claim.status==="approved"?tb("banner","Forum banner"):""}${tb("manage","Manage account")}${canRateFor()?tb("host","Host"):""}${ACCT.admin?tb("admin",`Admin${(()=>{const t=typoScan().nNew; return t?`<span class="nbadge tybadge" title="${t} likely typo${t===1?"":"s"} in this week's scoreboard">${t}</span>`:""})()}${pendN?`<span class="nbadge" title="${pendN} claim${pendN===1?"":"s"} waiting for approval">${pendN}</span>`:""}`):""}</div>`;
   let h=tabs;
   if(ACCT.tab==="admin"){}
-  else if(ACCT.tab==="host")h+=`${hostSection(false).replace('class="acctsec hostsec"','class="acctsec hostsec hosttop"')}${(()=>{try{return closeSection()}catch(e){return ""}})()}${(()=>{try{return unusedSection()}catch(e){console.error(e); return ""}})()}${(()=>{try{return hlSection()}catch(e){return ""}})()}${(()=>{try{return fwHostSection()}catch(e){return ""}})()}${(()=>{try{return lapsedSection()}catch(e){return ""}})()}${(()=>{try{return bracketSection()}catch(e){return ""}})()}${adminRateSection()}${ratingLogSection()}`;
+  else if(ACCT.tab==="host")h+=`${hostSection(false).replace('class="acctsec hostsec"','class="acctsec hostsec hosttop"')}${(()=>{try{return closeSection()}catch(e){return ""}})()}${(()=>{try{return unusedSection()}catch(e){console.error(e); return ""}})()}${(()=>{try{return hlSection()}catch(e){return ""}})()}${(()=>{try{return fwHostSection()}catch(e){return ""}})()}${(()=>{try{return lapsedSection()}catch(e){return ""}})()}${(()=>{try{return bracketSection()}catch(e){return ""}})()}${(()=>{try{return levelScaleSection()}catch(e){console.error(e); return ""}})()}${adminRateSection()}${ratingLogSection()}`;
   else if(ACCT.tab==="banner")h+=bnTab(ACCT.claim.player);
   else if(ACCT.tab==="wrapped")h+=(()=>{try{return wrapSection(ACCT.claim.player)}catch(e){console.error(e); return ""}})();
   else if(ACCT.tab==="week"){const n=ACCT.claim.player; ACCT.twPart="week";
