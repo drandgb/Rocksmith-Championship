@@ -2199,7 +2199,7 @@ function lsClassAt(pi,k,W){if(!LS_CLS){LS_CLS=[{},{},{}]; Object.keys(SB.weeks).
   const a=LS_CLS[pi][k]; if(!a)return null; let r=null; for(const x of a){if(x[0]>W)break; r=x} return r&&W-r[0]<=26?r[1]:null}
 const LS_MIN=()=>Math.min(...Object.keys(SB.weeks).map(Number))+11;
 // the rows for week W (now: PlayersList classes and the current levels; an earlier week: the classes and levels then)
-function lsPaths(W){const now=W==null||W>=DATA_WEEK; let D=null; if(now){try{D=lvCur()}catch(e){}}
+function lsPaths(W){const pred=W!=null&&W>DATA_WEEK, now=W==null||W>=DATA_WEEK; let D=null; if(now){try{D=lvCur()}catch(e){}}
   const CL=["B","I","A","M"], X=v=>Math.max(0,Math.min(100,v));
   const band=(c)=>{const i=LV_BANDS.findIndex(b=>b[1]===c); const lo=LV_BANDS[i][0], hi=i>0?LV_BANDS[i-1][0]:100; return [lo,hi]};
   return [0,1,2].map(pi=>{const idx={}; if(D)(D.paths[pi]||[]).forEach(p=>{if(p.xp)idx[lvKey(p.n)]=p.xp});
@@ -2209,11 +2209,12 @@ function lsPaths(W){const now=W==null||W>=DATA_WEEK; let D=null; if(now){try{D=l
       people.forEach(P=>{if(P.c!==c)return; const k=P.k||lvKey(P.n); let v=now?idx[k]:null, est=!now;
         if(!v&&now){v=lvAt(pi,k,DATA_WEEK); est=true; if(v==null){const o=lvLast(pi,k,DATA_WEEK); if(o&&DATA_WEEK-Math.max(...Object.keys(LV_ROLL[pi][k]||{}).map(Number))<12)v=o.v}}
         if(!now)v=lvAt(pi,k,W);
+        if(pred){const p=lvAt(pi,k,W); if(p!=null){v=p; est=true}}
         if(v)pts.push({n:P.n,v,est})});
       pts.sort((a,b)=>a.v-b.v); const [lo,hi]=band(c), med=pts.length?pts[Math.floor((pts.length-1)/2)].v:null;
       const under=pts.filter(x=>x.v<lo).length, over=pts.filter(x=>x.v>=hi&&c!=="M").length;
       let last=-9, lane=0; const dots=pts.map(x=>{const pos=X(x.v); lane=pos-last<2.2?(lane+1)%3:0; last=pos; const b=lvBand(x.v);
-        return `<i class="lsd${x.est&&now?" est":""}" style="left:${pos}%;--tc:${TIER_C[c]};--ln:${lane}" data-tip="${esc(`${x.n} · ${TIER_NAME[c]} ${PATHS[pi]}${now?"":` (Week ${W})`}\nLevel ${x.v.toFixed(1)} (${b[2]} band)${x.est&&now?"\nWorked out by the site":""}`)}"></i>`}).join("");
+        return `<i class="lsd${x.est&&now?" est":""}" style="left:${pos}%;--tc:${TIER_C[c]};--ln:${lane}" data-tip="${esc(`${x.n} · ${TIER_NAME[c]} ${PATHS[pi]}${pred?" (now, predicted)":now?" (last week)":` (Week ${W})`}\nLevel ${x.v.toFixed(1)} (${b[2]} band)${x.est&&now?"\nWorked out by the site":""}`)}"></i>`}).join("");
       return `<div class="lsrow"><span class="lvchip" style="--tc:${TIER_C[c]}">${TIER_NAME[c].slice(0,3)}</span><div class="lstrack">${LV_BANDS.map(([m,k])=>{const [a,z]=band(k); return `<span class="lsband" style="left:${a}%;width:${z-a}%;--tc:${TIER_C[k]}"></span>`}).join("")}<span class="lsown" style="left:${lo}%;width:${hi-lo}%;--tc:${TIER_C[c]}"></span>${med!=null?`<span class="lsmed" style="left:${X(med)}%" data-tip="Middle player in ${TIER_NAME[c]}: ${med.toFixed(1)}"></span>`:""}${dots}</div><span class="lscount" data-tip="${esc(`${pts.length} ${TIER_NAME[c]} ${PATHS[pi]} player${pts.length===1?"":"s"} with a level${under?`\n${under} below the ${TIER_NAME[c]} band (under ${lo})`:""}${over?`\n${over} above it (${hi}+)`:""}`)}">${pts.length}${under||over?` <small>${under?`↓${under}`:""}${over?` ↑${over}`:""}</small>`:""}</span></div>`}).join("");
     return `<div class="lspath" style="--pc:${PATH_C[pi]}"><h4>${PATHS[pi]}</h4>${rows}<div class="lsaxis"><span></span><div>${[0,20,40,60,80,100].map(v=>`<b style="left:${v}%">${v}</b>`).join("")}</div><span></span></div></div>`})}
 // One row per player (the same rows whatever week is picked), so each player's dot can be followed as it moves along
@@ -2234,16 +2235,16 @@ document.addEventListener("click",e=>{const b=e.target.closest("[data-lstrk]"); 
 function lsTrackMove(box,W){const now=W>=DATA_WEEK; box.querySelectorAll(".lstr[data-k]").forEach(r=>{const pi=+r.dataset.pi, k=r.dataset.k, d=r.querySelector(".lsd"), v=lvAt(pi,k,W);
     let c=lsClassAt(pi,k,W); if(!c&&now){const P=byName[twCanon(k)]; c=P?String(P[8]||"").charAt(pi).toUpperCase():null}
     r.classList.toggle("off",v==null); if(v==null)return; d.style.left=Math.max(0,Math.min(100,v))+"%"; d.style.setProperty("--tc","BIAM".includes(c||"-")?TIER_C[c]:"var(--muted)");
-    d.dataset.tip=`${twCanon(k)} · ${PATHS[pi]}${now?"":` · Week ${W}`}\nLevel ${v.toFixed(1)} (${lvBand(v)[2]} band)${c&&"BIAM".includes(c)?`\nPlaying in ${TIER_NAME[c]}`:""}`});
+    d.dataset.tip=`${twCanon(k)} · ${PATHS[pi]}${W>DATA_WEEK?" · now (predicted)":now?" · last week":` · Week ${W}`}\nLevel ${v.toFixed(1)} (${lvBand(v)[2]} band)${c&&"BIAM".includes(c)?`\nPlaying in ${TIER_NAME[c]}`:""}`});
   lsTrackCount(box)}
 // the number by each path: rows shown for the chosen group (fixed while sliding)
 function lsTrackCount(box){const t=box.querySelector(".lstrk"); if(!t)return; const m=["reg","act"].find(x=>t.classList.contains("m-"+x));
   t.querySelectorAll(".lstp").forEach(pp=>{const n=[...pp.querySelectorAll(".lstr[data-k]")].filter(r=>!m||r.classList.contains(m)).length; const c=pp.querySelector(".lstc"); if(c)c.textContent=n})}
-const lsWeekTxt=W=>W>=DATA_WEEK?`Now (Week ${DATA_WEEK})`:`Week ${W}${WEEKS[W-1]?" · "+fmt(WEEKS[W-1][1]):""}`;
+const lsWeekTxt=W=>W>DATA_WEEK?`Now (Week ${W}, predicted)`:W===DATA_WEEK?`Last week (Week ${W})`:`Week ${W}${WEEKS[W-1]?" · "+fmt(WEEKS[W-1][1]):""}`;
 function levelScaleSection(track=true){try{lvCur()}catch(e){return ""}   // track: also "Each player over time" (Level tab only)
   return `<div class="panel-head"><h2>Player levels in each class</h2></div><p class="dim lsnote">Each dot is a player in that class (from PlayersList), placed by their player level and colored by that class. The bright strip is the class's level band; the line marks the middle player; ↓/↑ count players below or above it. Hollow dots: levels worked out by the site. Slide back in time to see how the classes looked then.</p>
     <div class="lsbody">${lsPaths(DATA_WEEK).map((h,pi)=>`<div class="lspb" data-pi="${pi}">${h}</div>${lsSlider(DATA_WEEK)}`).join("")}</div>
-    <p class="dim lsnote2">Earlier weeks use the classes players were playing in then and the site's own levels for that time (from the 12 weeks up to it).</p>${lsMcNote()}${track?lsTrackHtml(DATA_WEEK):""}`}
+    <p class="dim lsnote2">Earlier weeks use the classes players were playing in then and the site's own levels for that time (from the 12 weeks up to it).${TW_MAX>DATA_WEEK?` Now (the far right) predicts this week's levels from this week's scores so far and the 11 weeks before.`:""}</p>${lsMcNote()}${track?lsTrackHtml(DATA_WEEK):""}`}
 // why many Masterclass players sit in the Advanced band: the Masterclass cards of the last 26 weeks, players in their own class
 function lsMcNote(){const r=[0,1,2].map(()=>({rt:[],pc:[],lv:[]}));
   Object.keys(SB.weeks).map(Number).filter(w=>w>DATA_WEEK-26).forEach(w=>SB.weeks[w].forEach(c=>{if(c[2]!=="Masterclass"||!c[4]||!c[6])return; const R=r[c[0]]; if(!R)return; R.rt.push(+c[4]);
@@ -2252,7 +2253,7 @@ function lsMcNote(){const r=[0,1,2].map(()=>({rt:[],pc:[],lv:[]}));
   const pc=r.map(R=>avg(R.pc)), lv=r.map(R=>avg(R.lv)), f=(a,d=0)=>`${Math.min(...a).toFixed(d)}–${Math.max(...a).toFixed(d)}`;
   return `<p class="dim lsnote2"><b>Why are many Masterclass players in the Advanced band?</b> A player level is roughly the song's rating × your accuracy (an 8.0 song at 95% is worth 76), and the bands assume perfect accuracy on songs rated like the class. Over the last 26 weeks, Masterclass songs averaged a rating of ${r.map((R,pi)=>`${avg(R.rt).toFixed(1)} on ${PATHS[pi]}`).join(", ").replace(/, ([^,]*)$/," and $1")}, played at about ${f(pc)}% accuracy, which works out to around ${f(lv)}. So a player doing well in Masterclass can still land in the Advanced band; it doesn't mean they're in the wrong class.</p>`}
 // a week slider; there's one under each graph and they all move together
-const lsSlider=(W,mini)=>`<div class="lsslide${mini?" mini":""}"><input type="range" min="${LS_MIN()}" max="${DATA_WEEK}" step="1" value="${W}" data-lsslide aria-label="Week"><span class="lswk">${lsWeekTxt(W)}</span></div>`;
+const lsSlider=(W,mini)=>`<div class="lsslide${mini?" mini":""}"><input type="range" min="${LS_MIN()}" max="${Math.max(DATA_WEEK,TW_MAX)}" step="1" value="${W}" data-lsslide aria-label="Week"><span class="lswk">${lsWeekTxt(W)}</span></div>`;
 // the sliders: keep them all on the same week and redraw the graphs for it (at most once a frame)
 document.addEventListener("input",e=>{const r=e.target.closest("[data-lsslide]"); if(!r)return; const box=r.closest(".lvscale"); if(!box)return;
   const W=+r.value; box.querySelectorAll("[data-lsslide]").forEach(x=>{if(x!==r)x.value=W}); box.querySelectorAll(".lswk").forEach(x=>x.textContent=lsWeekTxt(W));
@@ -2786,8 +2787,13 @@ function seasonF1(pi,id,upto,live){const ck="f1|"+pi+"|"+id+"|"+(upto||"")+(live
 let LV_ROLL=null;
 function lvAt(pi,k,W){if(!LV_ROLL){LV_ROLL=[{},{},{}]; Object.keys(SB.weeks).map(Number).filter(w=>w<=DATA_WEEK).forEach(w=>SB.weeks[w].forEach(c=>{if(c[7]||c[4]==null||!c[3]||/^n\/a$/i.test(c[3]))return;
     c[6].forEach(e=>{if(e[1]==null||e[4]<0)return; const kk=lvKey(SB.names[e[0]]), o=LV_ROLL[c[0]][kk]=LV_ROLL[c[0]][kk]||{}, v=c[4]*e[1]/10; o[w]=Math.max(o[w]||0,v)})}))}
-  const o=LV_ROLL[pi][k]; if(!o)return null; const v=[]; for(let w=W-11;w<=W;w++)if(o[w]!=null)v.push(o[w]); if(v.length<3)return null;
+  const o=LV_ROLL[pi][k], L=W>DATA_WEEK?lvLiveWeek(W)[pi][k]:null; if(!o&&L==null)return null; const v=[]; for(let w=W-11;w<=W;w++){const x=w>DATA_WEEK?(w===W?L:null):o&&o[w]; if(x!=null)v.push(x)} if(v.length<3)return null;
   v.sort((a,b)=>a-b); const t=v.slice(1,-1); return t.reduce((a,b)=>a+b,0)/t.length}
+// best level points per player in a week after DATA_WEEK (the week still being played), from its scores so far
+const LV_LIVEWK={};
+function lvLiveWeek(w){if(LV_LIVEWK[w])return LV_LIVEWK[w]; const r=LV_LIVEWK[w]=[{},{},{}];
+  (SB.weeks[w]||[]).forEach(c=>{if(c[7]||c[4]==null||!c[3]||/^n\/a$/i.test(c[3]))return;
+    c[6].forEach(e=>{if(e[1]==null||e[4]<0)return; const kk=lvKey(SB.names[e[0]]), v=c[4]*e[1]/10; r[c[0]][kk]=Math.max(r[c[0]][kk]||0,v)})}); return r}
 // a player's last level before week W (the most recent week they had enough scores for one): {v, w} or null
 function lvLast(pi,k,W){lvAt(pi,k,W); const o=LV_ROLL[pi][k]; if(!o)return null;
   const ws=Object.keys(o).map(Number).filter(w=>w<=W).sort((a,b)=>b-a);
