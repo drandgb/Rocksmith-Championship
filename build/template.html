@@ -4306,7 +4306,9 @@ function crowdFav(){if(CROWD_FAV)return CROWD_FAV; const feat={}, play={}, low=a
 const isCrowdFav=a=>{try{return crowdFav().has(String(a||"").toLowerCase().replace(/\s+/g," ").trim())}catch(e){return false}};
 // mark band names and songs by crowd favourites inside a box (any [data-band] / [data-goband] name, and song rows)
 function markCrowdFav(box){if(!box)return; box.querySelectorAll("[data-band],[data-goband]").forEach(el0=>{const a=el0.dataset.band||el0.dataset.goband; if(!isCrowdFav(a))return;
-  const el=el0.matches("li,.brow")?(el0.querySelector(".nm,span")||el0):el0; el.classList.add("cfav"); if(!el.title&&!el.dataset.tip)el.title="Crowd favourite: one of the most played bands"});
+  const el=el0.matches("li,.brow")?(el0.querySelector(".nm,span")||el0):el0; el.classList.add("cfav");
+  const why=`Crowd favourite (shown in pink): ${a} is one of the 20 most played bands, but not one of the 20 most featured as challenges (see Most played and Most featured bands on the Songs tab).`;
+  if(el.closest("#sbcards")){el.removeAttribute("title"); el.dataset.tip=why} else if(!el.title&&!el.dataset.tip)el.title=why});
   box.querySelectorAll(".songlist li").forEach(li=>{const b=li.querySelector("[data-band]"); li.classList.toggle("cfavrow",!!b&&isCrowdFav(b.dataset.band))})}
 function bandDiff(avg){
   const F=$("b-featured"), P=$("b-playedbands"); if(!F||!P)return;
