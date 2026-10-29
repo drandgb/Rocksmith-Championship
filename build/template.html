@@ -3187,10 +3187,12 @@ function lvExtra(val,what,years,D){const el=$("lv-extra"); if(!el)return; D=D||L
   const ey=years.slice().sort((a,b)=>b-a), yNow=new Date().getFullYear(), prevY=ey.find(y=>y<yNow)||ey[1];
   const yh=y=>`${y}${lvIsEst(y)?lvAst():""}`;   // a year in the heading, with the hoverable * when it's estimated
   let A,B,la,lb,ha,hb,none="";
-  if(lvMode==="now"){A=p=>p.m6; B=p=>p.xp; la=ha="Last 6 months"; lb=hb="Now"}
-  else if(lvMode==="m6"){A=p=>p.y[prevY]; B=p=>p.m6; la=lvYl(prevY); ha=yh(prevY); lb=hb="Last 6 months"}
+  // Now: this year against last year; Last 6 months: the level 6 months ago against the level now (both worked out by the site
+  // the same way, from the 12 weeks up to each point)
+  if(lvMode==="now"){const y1=ey[0], y0=y1-1; A=p=>p.y[y0]; B=p=>p.y[y1]; la=lvYl(y0); lb=lvYl(y1); ha=yh(y0); hb=yh(y1)}
+  else if(lvMode==="m6"){const W1=DATA_WEEK, W0=W1-26; A=(p,pi)=>lvAt(pi,lvKey(p.n),W0); B=(p,pi)=>lvAt(pi,lvKey(p.n),W1); la=ha=`6 months ago (Week ${W0})`; lb=hb=`now (Week ${W1})`}
   else{const y1=+lvYear, y0=y1-1; A=p=>p.y[y0]; B=p=>p.y[y1]; la=lvYl(y0); lb=lvYl(y1); ha=yh(y0); hb=yh(y1); if(!years.includes(y0))none=`No year before ${y1} to compare with`}
-  const cl=D.paths.map(L=>L.map(p=>{const a=A(p), b=B(p); return a&&b?{n:p.n,a,b,d:b-a}:null}).filter(x=>x&&x.d>0).sort((x,y)=>y.d-x.d).slice(0,5));
+  const cl=D.paths.map((L,pi)=>L.map(p=>{const a=A(p,pi), b=B(p,pi); return a&&b?{n:p.n,a,b,d:b-a}:null}).filter(x=>x&&x.d>0).sort((x,y)=>y.d-x.d).slice(0,5));
   el.innerHTML=`<section class="panel lvcl"><div class="panel-head"><h2>📈 Biggest climbers</h2><span class="sub">${none?"":`${ha} → ${hb}`}</span></div>${none?`<p class="dim">${none}</p>`:`
       <div class="lvclg">${cl.map((L,pi)=>`<div class="lvclp" style="--pc:${ELO_C[pi]}"><h4>${PATHS[pi]}</h4>${L.length?`<ol>${L.map((x,i)=>`<li data-tip="${esc(x.n)} · ${PATHS[pi]}\n${la}: ${x.a.toFixed(1)}\n${lb}: ${x.b.toFixed(1)}"><span class="nm" data-player="${esc(x.n)}">${esc(x.n)}</span><b class="up">+${x.d.toFixed(1)}</b><small>${x.a.toFixed(1)} → ${x.b.toFixed(1)}</small></li>`).join("")}</ol>`:`<p class="dim">Nobody climbed</p>`}</div>`).join("")}</div>`}
 </section>`}
