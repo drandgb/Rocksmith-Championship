@@ -370,7 +370,15 @@ button.clear:hover{border-color:var(--accent)}
 .tier small{font-size:.66rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
 .tier b{font:800 1.2rem var(--f-display);color:var(--tc)}
 .brgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}.brcol h3{margin:0 0 4px;color:var(--pc);font:800 .8rem var(--f-display);letter-spacing:.08em;text-transform:uppercase}.brcol svg{width:100%;height:auto;display:block}.acctdlg .bracketsec .brcol h3{font:800 .8rem var(--f-display);letter-spacing:.08em;margin:0 0 4px;color:var(--pc)}.brnowrow{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:.8rem;margin-bottom:4px}.brnow{display:inline-flex;align-items:center;gap:5px;color:var(--muted);cursor:help}.brnow i{width:10px;height:3px;border-radius:2px;background:var(--tc)}.brnow b{color:var(--fg)}.brnote{grid-column:1/-1;margin:0;font-size:.78rem}
-#lv-scale{margin-top:20px}.lvscale .lsslide{display:grid;grid-template-columns:minmax(0,1fr) 13.5em;gap:12px;align-items:center;margin:10px 0 4px}.lvscale .lsslide input{width:100%;accent-color:var(--accent)}.lvscale .lswk{font:700 .85rem var(--f-display);white-space:nowrap;font-variant-numeric:tabular-nums;text-align:right;overflow:hidden}@media(max-width:520px){.lvscale .lsslide{grid-template-columns:minmax(0,1fr)}.lvscale .lswk{grid-row:1;text-align:left}}.lvscale .lsnote2{font-size:.76rem;margin:2px 0 0}.lvscale .lsnote{margin:0 0 4px;font-size:.84rem}.lvscale .lspath{margin:10px 0 14px}.acctdlg .lvscale h4{font-size:.78rem}.lvscale h4{margin:0 0 6px;color:var(--pc);font:800 .78rem var(--f-display);letter-spacing:.08em;text-transform:uppercase}
+#lv-scale{margin-top:20px}.lvscale .lstrk{margin-top:16px;border-top:1px solid var(--line);padding-top:12px}.lvscale .lstrkh{margin:0 0 4px;font:800 .95rem var(--f-display);letter-spacing:.06em;text-transform:uppercase}
+.lvscale .lstrkg{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px}
+.lvscale .lstr{display:grid;grid-template-columns:7.5em minmax(0,1fr);gap:6px;align-items:center;height:13px}
+.lvscale .lstr.off .lstn{opacity:.3}.lvscale .lstr.off .lsd{opacity:0}
+.lvscale .lstn{font-size:.68rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:right}
+.lvscale .lstt{position:relative;height:100%;border-top:1px solid color-mix(in srgb,var(--line) 50%,transparent)}
+.lvscale .lstt .lsband,.lvscale .lstax .lsband{opacity:.6}
+.lvscale .lstr .lsd{top:1px;width:9px;height:9px;margin-left:-4.5px;transition:left .3s ease,background .3s}
+.lvscale .lstax{height:16px;margin-bottom:2px}.lvscale .lstax>div{position:relative;height:100%}.lvscale .lstax b{position:absolute;transform:translateX(-50%);font:600 .62rem var(--f-mono);color:var(--muted);top:1px}.lvscale .lsslide{display:grid;grid-template-columns:minmax(0,1fr) 13.5em;gap:12px;align-items:center;margin:10px 0 4px}.lvscale .lsslide input{width:100%;accent-color:var(--accent)}.lvscale .lswk{font:700 .85rem var(--f-display);white-space:nowrap;font-variant-numeric:tabular-nums;text-align:right;overflow:hidden}@media(max-width:520px){.lvscale .lsslide{grid-template-columns:minmax(0,1fr)}.lvscale .lswk{grid-row:1;text-align:left}}.lvscale .lsnote2{font-size:.76rem;margin:2px 0 0}.lvscale .lsnote{margin:0 0 4px;font-size:.84rem}.lvscale .lspath{margin:10px 0 14px}.acctdlg .lvscale h4{font-size:.78rem}.lvscale h4{margin:0 0 6px;color:var(--pc);font:800 .78rem var(--f-display);letter-spacing:.08em;text-transform:uppercase}
 .lvscale .lsrow,.lvscale .lsaxis{display:grid;grid-template-columns:40px minmax(0,1fr) 54px;gap:8px;align-items:center;margin:4px 0}
 .lvscale .lstrack{position:relative;height:30px;border-radius:6px;background:var(--panel2);overflow:visible}
 .lvscale .lsband{position:absolute;top:0;bottom:0;background:color-mix(in srgb,var(--tc) 7%,transparent)}
@@ -2207,15 +2215,33 @@ function lsPaths(W){const now=W==null||W>=DATA_WEEK; let D=null; if(now){try{D=l
         return `<i class="lsd${x.est&&now?" est":""}" style="left:${pos}%;--tc:${TIER_C[c]};--ln:${lane}" data-tip="${esc(`${x.n} · ${TIER_NAME[c]} ${PATHS[pi]}${now?"":` (Week ${W})`}\nLevel ${x.v.toFixed(1)} (${b[2]} band)${x.est&&now?"\nWorked out by the site":""}`)}"></i>`}).join("");
       return `<div class="lsrow"><span class="lvchip" style="--tc:${TIER_C[c]}">${TIER_NAME[c].slice(0,3)}</span><div class="lstrack">${LV_BANDS.map(([m,k])=>{const [a,z]=band(k); return `<span class="lsband" style="left:${a}%;width:${z-a}%;--tc:${TIER_C[k]}"></span>`}).join("")}<span class="lsown" style="left:${lo}%;width:${hi-lo}%;--tc:${TIER_C[c]}"></span>${med!=null?`<span class="lsmed" style="left:${X(med)}%" data-tip="Middle player in ${TIER_NAME[c]}: ${med.toFixed(1)}"></span>`:""}${dots}</div><span class="lscount" data-tip="${esc(`${pts.length} ${TIER_NAME[c]} ${PATHS[pi]} player${pts.length===1?"":"s"} with a level${under?`\n${under} below the ${TIER_NAME[c]} band (under ${lo})`:""}${over?`\n${over} above it (${hi}+)`:""}`)}">${pts.length}${under||over?` <small>${under?`↓${under}`:""}${over?` ↑${over}`:""}</small>`:""}</span></div>`}).join("");
     return `<div class="lspath" style="--pc:${PATH_C[pi]}"><h4>${PATHS[pi]}</h4>${rows}<div class="lsaxis"><span></span><div>${[0,20,40,60,80,100].map(v=>`<b style="left:${v}%">${v}</b>`).join("")}</div><span></span></div></div>`}).join("")}
+// One row per player (the same rows whatever week is picked), so each player's dot can be followed as it moves along
+// the level axis with the slider. Players who had a level at some point; sorted by their latest level, highest first.
+let LS_TRK=null;
+function lsTrackPlayers(){if(LS_TRK)return LS_TRK; lvAt(0,"",DATA_WEEK); const mn=LS_MIN();
+  LS_TRK=[0,1,2].map(pi=>Object.keys(LV_ROLL[pi]).map(k=>{let lastV=null; const ws=Object.keys(LV_ROLL[pi][k]).map(Number).filter(w=>w>=mn&&w<=DATA_WEEK).sort((a,b)=>b-a);
+      for(const w of ws){const v=lvAt(pi,k,w); if(v!=null){lastV=v; break}} return lastV==null?null:{k,n:twCanon(k),last:lastV}}).filter(Boolean).sort((a,b)=>b.last-a.last));
+  return LS_TRK}
+function lsTrackHtml(W){const T=lsTrackPlayers();
+  return `<div class="lstrk"><h3 class="lstrkh">Each player over time</h3><p class="dim lsnote">One row per player who has had a level; drag the slider to watch each dot move. Dots take the color of the class the player was in that week; a faint row means no level that week.</p><div class="lstrkg">${T.map((L,pi)=>`<div class="lstp" style="--pc:${PATH_C[pi]}"><h4>${PATHS[pi]} <small>${L.length}</small></h4>
+    <div class="lstr lstax"><span></span><div>${LV_BANDS.slice().reverse().map(([m,k],i,a)=>`<span class="lsband" style="left:${m}%;width:${(i<a.length-1?a[i+1][0]:100)-m}%;--tc:${TIER_C[k]}"></span>`).join("")}${[0,20,40,60,80,100].map(v=>`<b style="left:${v}%">${v}</b>`).join("")}</div></div>
+    ${L.map(x=>`<div class="lstr" data-k="${esc(x.k)}" data-pi="${pi}"><span class="lstn" title="${esc(x.n)}">${esc(x.n)}</span><div class="lstt">${LV_BANDS.slice().reverse().map(([m,k],i,a)=>`<span class="lsband" style="left:${m}%;width:${(i<a.length-1?a[i+1][0]:100)-m}%;--tc:${TIER_C[k]}"></span>`).join("")}<i class="lsd"></i></div></div>`).join("")}</div>`).join("")}</div></div>`}
+// move every player's dot to week W
+function lsTrackMove(box,W){const now=W>=DATA_WEEK; box.querySelectorAll(".lstr[data-k]").forEach(r=>{const pi=+r.dataset.pi, k=r.dataset.k, d=r.querySelector(".lsd"), v=lvAt(pi,k,W);
+    let c=lsClassAt(pi,k,W); if(!c&&now){const P=byName[twCanon(k)]; c=P?String(P[8]||"").charAt(pi).toUpperCase():null}
+    r.classList.toggle("off",v==null); if(v==null)return; d.style.left=Math.max(0,Math.min(100,v))+"%"; d.style.setProperty("--tc","BIAM".includes(c||"-")?TIER_C[c]:"var(--muted)");
+    d.dataset.tip=`${twCanon(k)} · ${PATHS[pi]}${now?"":` · Week ${W}`}\nLevel ${v.toFixed(1)} (${lvBand(v)[2]} band)${c&&"BIAM".includes(c)?`\nPlaying in ${TIER_NAME[c]}`:""}`})}
 const lsWeekTxt=W=>W>=DATA_WEEK?`Now (Week ${DATA_WEEK})`:`Week ${W}${WEEKS[W-1]?" · "+fmt(WEEKS[W-1][1]):""}`;
 function levelScaleSection(){try{lvCur()}catch(e){return ""}
   return `<div class="panel-head"><h2>Player levels in each class</h2></div><p class="dim lsnote">Each dot is a player in that class (from PlayersList), placed by their player level and colored by that class. The bright strip is the class's level band; the line marks the middle player; ↓/↑ count players below or above it. Hollow dots: levels worked out by the site. Slide back in time to see how the classes looked then.</p>
     <div class="lsbody">${lsPaths(DATA_WEEK)}</div>
     <div class="lsslide"><input type="range" min="${LS_MIN()}" max="${DATA_WEEK}" step="1" value="${DATA_WEEK}" data-lsslide aria-label="Week"><span class="lswk">${lsWeekTxt(DATA_WEEK)}</span></div>
-    <p class="dim lsnote2">Earlier weeks use the classes players were playing in then and the site's own levels for that time (from the 12 weeks up to it).</p>`}
+    <p class="dim lsnote2">Earlier weeks use the classes players were playing in then and the site's own levels for that time (from the 12 weeks up to it).</p>${lsTrackHtml(DATA_WEEK)}`}
 // the slider: redraw the rows for the picked week (at most once a frame)
 document.addEventListener("input",e=>{const r=e.target.closest("[data-lsslide]"); if(!r)return; const box=r.closest(".lvscale"); if(!box)return;
-  cancelAnimationFrame(box._raf); box._raf=requestAnimationFrame(()=>{const W=+r.value; box.querySelector(".lsbody").innerHTML=lsPaths(W); box.querySelector(".lswk").textContent=lsWeekTxt(W)})});
+  cancelAnimationFrame(box._raf); box._raf=requestAnimationFrame(()=>{const W=+r.value; box.querySelector(".lsbody").innerHTML=lsPaths(W); box.querySelector(".lswk").textContent=lsWeekTxt(W); lsTrackMove(box,W)})});
+// place the dots once a scale section is on the page
+new MutationObserver(()=>document.querySelectorAll(".lvscale").forEach(b=>{if(b.querySelector(".lstr[data-k]")&&!b.querySelector(".lstr[data-k] .lsd[style]")){const r=b.querySelector("[data-lsslide]"); lsTrackMove(b,r?+r.value:DATA_WEEK)}})).observe(document.body,{childList:true,subtree:true});
 function bracketCharts(){
   const ws=Object.keys(SB.weeks).map(Number).filter(w=>w<=DATA_WEEK&&(SB.weeks[w]||[]).length).sort((a,b)=>a-b), CL=["B","I","A","M"], AVG=10;
   const cnt=[0,1,2].map(()=>CL.map(()=>[]));   // [path][class][week index] = players
