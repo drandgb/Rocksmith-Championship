@@ -369,6 +369,7 @@ button.clear:hover{border-color:var(--accent)}
 .tier{display:flex;flex-direction:column;align-items:center;min-width:0;padding:6px 8px;border-radius:8px;background:var(--panel2);border:1px solid var(--line)}
 .tier small{font-size:.66rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
 .tier b{font:800 1.2rem var(--f-display);color:var(--tc)}
+.brgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}@media(max-width:900px){.brgrid{grid-template-columns:minmax(0,1fr)}}.brcol h3{margin:0 0 4px;color:var(--pc);font:800 .8rem var(--f-display);letter-spacing:.08em;text-transform:uppercase}.brcol svg{width:100%;height:auto;display:block}.brnowrow{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:.8rem;margin-bottom:4px}.brnow{display:inline-flex;align-items:center;gap:5px;color:var(--muted);cursor:help}.brnow i{width:10px;height:3px;border-radius:2px;background:var(--tc)}.brnow b{color:var(--fg)}.brnote{grid-column:1/-1;margin:0;font-size:.78rem}
 .lvnolin{display:inline-block;margin-top:6px;font:700 .95rem var(--f-display);color:var(--s-green);letter-spacing:.02em}
 .pc .pclv{grid-column:1/-1}.pc .pclv svg{max-height:240px}
 .pc .pnolin{grid-column:1/-1;margin:14px 0 -6px;font:700 .95rem var(--f-display);color:var(--s-green);letter-spacing:.02em}
@@ -1577,6 +1578,11 @@ footer{color:var(--dim);font-size:.78rem}
     <div class="legend" id="legend"></div>
   </section>
 
+  <section class="panel" id="bracketsec">
+    <div class="panel-head"><h2>Ranked players per class</h2><span class="sub">How many players each week play in their own class, on each path (10-week average)</span></div>
+    <div class="brgrid" id="bracketavg"><p class="dimtxt">Counting…</p></div>
+  </section>
+
 
   <section class="panel profile">
     <div class="panel-head"><h2>Host lookup</h2><span class="sub">Click a host in the leaderboard, or search</span></div>
@@ -2161,6 +2167,29 @@ document.fonts&&document.fonts.ready.then(()=>renderUpcoming());
 
 const hostActive=h=>cur[0]-h.last<=ACTIVE_WINDOW;
 const hostsShown=()=>activeOnly?hostList.filter(hostActive):hostList;
+// Hosts: the average number of ranked players in each class (players scoring in their own class that week, on any of
+// its challenges) over time, a line per class on each path, as a 10-week rolling average
+function renderBracketAvg(){const el=$("bracketavg"); if(!el||el.dataset.done)return; el.dataset.done=1;
+  const ws=Object.keys(SB.weeks).map(Number).filter(w=>w<=DATA_WEEK&&(SB.weeks[w]||[]).length).sort((a,b)=>a-b), CL=["B","I","A","M"], AVG=10;
+  const cnt=[0,1,2].map(()=>CL.map(()=>[]));   // [path][class][week index] = players
+  ws.forEach((w,i)=>{const S=[0,1,2].map(()=>CL.map(()=>new Set()));
+    SB.weeks[w].forEach(c=>{const L=CL.indexOf(cardLv(c[2])); if(L<0)return; c[6].forEach(e=>{if(e[1]!=null&&canWin(e))S[c[0]][L].add(lvKey(SB.names[e[0]]))})});
+    S.forEach((P,pi)=>P.forEach((set,li)=>cnt[pi][li][i]=set.size))});
+  const roll=a=>a.map((_,i)=>{const s=a.slice(Math.max(0,i-AVG+1),i+1); return s.reduce((x,y)=>x+y,0)/s.length});
+  const yr=w=>lvYearOf(w), years=[...new Set(ws.map(yr))];
+  el.innerHTML=[0,1,2].map(pi=>{const R=CL.map((_,li)=>roll(cnt[pi][li])), mx=Math.max(4,...R.flat()), hi=Math.ceil(mx/2)*2;
+    const W=360,H=190,L=22,Rt=6,T=10,B=22, X=i=>L+(ws.length<2?0:i/(ws.length-1)*(W-L-Rt)), Y=v=>T+(1-v/hi)*(H-T-B);
+    let g=""; for(let v=0;v<=hi;v+=hi>8?4:2)g+=`<line x1="${L}" x2="${W-Rt}" y1="${Y(v).toFixed(1)}" y2="${Y(v).toFixed(1)}" stroke="var(--line)"/><text x="${L-5}" y="${(Y(v)+3.5).toFixed(1)}" text-anchor="end" font-size="10" fill="#8b93a7">${v}</text>`;
+    // a band per year with that year's averages on hover
+    let bands=""; years.forEach(y=>{const idx=ws.map((w,i)=>yr(w)===y?i:-1).filter(i=>i>=0); if(!idx.length)return; const a=idx[0], b=idx[idx.length-1];
+      const av=CL.map((c,li)=>idx.reduce((s,i)=>s+cnt[pi][li][i],0)/idx.length);
+      bands+=`<rect x="${X(a).toFixed(1)}" y="${T}" width="${Math.max(2,X(b)-X(a)).toFixed(1)}" height="${H-T-B}" fill="transparent" data-tip="${esc(`${PATHS[pi]} · ${y} (weeks ${ws[a]}–${ws[b]})\nAverage ranked players per week:\n`+CL.map((c,li)=>`${TIER_NAME[c]}: ${av[li].toFixed(1)}`).join("\n"))}"/>`+
+        `<text x="${X(a).toFixed(1)}" y="${H-7}" font-size="10" fill="#8b93a7">’${String(y).slice(2)}</text>`});
+    const lines=R.map((r,li)=>`<path d="${r.map((v,i)=>(i?"L":"M")+X(i).toFixed(1)+","+Y(v).toFixed(1)).join("")}" fill="none" stroke="${TIER_C[CL[li]]}" stroke-width="2" stroke-linejoin="round"/>`).join("");
+    const now=CL.map((c,li)=>`<span class="brnow" style="--tc:${TIER_C[c]}" data-tip="${esc(`${TIER_NAME[c]} ${PATHS[pi]}: ${R[li][R[li].length-1].toFixed(1)} ranked players a week over the last ${AVG} weeks (all-time average ${(cnt[pi][li].reduce((x,y)=>x+y,0)/cnt[pi][li].length).toFixed(1)})`)}"><i></i>${TIER_NAME[c].slice(0,3)} <b>${R[li][R[li].length-1].toFixed(1)}</b></span>`).join("");
+    return `<div class="brcol" style="--pc:${PATH_C[pi]}"><h3>${PATHS[pi]}</h3><div class="brnowrow">${now}</div><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Ranked players per class on ${PATHS[pi]}">${g}${lines}${bands}</svg></div>`}).join("")+
+    `<p class="dimtxt brnote">Numbers on top: the last ${AVG} weeks. Hover a year on a chart for that year's averages.</p>`}
+document.addEventListener("mousemove",e=>{const v=$("bracketsec"); if(!v||!v.contains(e.target))return; const p=e.target.closest("[data-tip]"); if(!p){tip.hidden=true;return} tip.textContent=p.dataset.tip; tip.hidden=false; placeTip(e.clientX,e.clientY)});
 function renderHostPodium(){
   const M=["#f5c84a","#c9d0dc","#d8925a"], top=hostsShown().slice(0,3), max=top[0].n;
   $("hpodium").innerHTML=[1,0,2].map(i=>{const h=top[i], ht=Math.round(70+130*h.n/max);
@@ -3027,6 +3056,7 @@ function showView(v){
   $("pfilter").hidden=v==="scores"||v==="songs"||v==="thisweek"||v==="rankings"||v==="season"||v==="faq"||v==="level";
   if(v==="season")setTimeout(()=>{try{renderSeason()}catch(e){}},0);
   if(v==="level")setTimeout(()=>{try{renderLevel()}catch(e){console.error(e)}},0);
+  if(v==="hosting")setTimeout(()=>{try{renderBracketAvg()}catch(e){console.error(e)}},0);
   if(v==="season"||v==="level"||v==="rankings")setTimeout(()=>{try{plHl()}catch(e){}},30);   // (after the page has finished loading: opening the site on #season runs this first)
   if(v==="thisweek"&&window.__twReady)renderThisWeek();
   if(v==="winners"||v==="players"||v==="hosting")setTimeout(()=>mlEnsure(v==="winners"?"win":v==="players"?"player":"host"),50);
