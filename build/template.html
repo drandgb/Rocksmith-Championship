@@ -369,6 +369,7 @@ button.clear:hover{border-color:var(--accent)}
 .tier{display:flex;flex-direction:column;align-items:center;min-width:0;padding:6px 8px;border-radius:8px;background:var(--panel2);border:1px solid var(--line)}
 .tier small{font-size:.66rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
 .tier b{font:800 1.2rem var(--f-display);color:var(--tc)}
+.lvnolin{display:inline-block;margin-top:6px;font:700 .95rem var(--f-display);color:var(--s-green);letter-spacing:.02em}
 .pc .pclv{grid-column:1/-1}.pc .pclv svg{max-height:240px}
 .pc .pnolin{grid-column:1/-1;margin:14px 0 -6px;font:700 .95rem var(--f-display);color:var(--s-green);letter-spacing:.02em}
 .pbt{width:100%;margin-top:10px;border-collapse:collapse;font-size:.86rem;table-layout:fixed}.pbt th,.pbt td{padding:6px 8px;border-top:1px solid var(--line);text-align:left;vertical-align:top}.pbt thead th{border-top:0;font:700 .68rem var(--f-display);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}.pbt tbody th{width:4.8em;font:800 .74rem var(--f-display);letter-spacing:.06em;text-transform:uppercase}.pbt td.pbx{cursor:pointer}.pbt td.pbx:hover b{color:var(--accent)}.pbt td b{font-family:var(--f-display);font-variant-numeric:tabular-nums}.pbt .sub{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:.74rem}
@@ -758,7 +759,7 @@ a.dl svg,.offpill svg{width:11px;height:11px}
 .lvc{display:inline-block;margin-left:5px;padding:0 5px;border-radius:6px;font:700 .68rem/1.45 var(--f-mono);color:var(--tc);border:1px solid color-mix(in srgb,var(--tc) 55%,transparent);background:color-mix(in srgb,var(--tc) 12%,transparent);vertical-align:1px;cursor:help;flex:none}
 .sbchk{color:var(--s-yellow);cursor:help;white-space:nowrap}
 .freshbar{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:9999;background:var(--accent);color:#14110a;border:0;border-radius:999px;padding:10px 18px;font:800 .9rem var(--f-display);letter-spacing:.02em;box-shadow:0 6px 24px rgba(0,0,0,.45);cursor:pointer;animation:freshin .4s ease-out}@keyframes freshin{from{transform:translate(-50%,30px);opacity:0}}
-.card td.n{width:100%}@media (max-width:520px){.card td{padding-right:6px;font-size:.74rem}.card td.n{font-size:.82rem}.sbtags .lvc{margin-left:3px;padding:0 3px;font-size:.6rem}.sbtags .mk{margin-left:1px}.sbnew{margin-left:3px}}.card td.n .sbnm{display:flex;align-items:center;width:0;min-width:100%}.card td.n .sbnm>[data-player]{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.sbtags{white-space:nowrap;flex:none;display:inline-flex;align-items:center}.sbnew{display:inline-grid;place-items:center;width:15px;height:15px;margin-left:4px;border-radius:5px;border:1px solid color-mix(in srgb,var(--s-green) 60%,transparent);color:var(--s-green);font:800 .58rem/1 var(--f-display);vertical-align:1px;cursor:help;box-sizing:border-box}.sbnew i{width:7px;height:7px;border-radius:50%;background:var(--s-green)}.sbnew.up{padding:0}
+.card tbody td:not(.n):not(:first-child){cursor:pointer}.card td.n{width:100%}@media (max-width:520px){.card td{padding-right:6px;font-size:.74rem}.card td.n{font-size:.82rem}.sbtags .lvc{margin-left:3px;padding:0 3px;font-size:.6rem}.sbtags .mk{margin-left:1px}.sbnew{margin-left:3px}}.card td.n .sbnm{display:flex;align-items:center;width:0;min-width:100%}.card td.n .sbnm>[data-player]{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.sbtags{white-space:nowrap;flex:none;display:inline-flex;align-items:center}.sbnew{display:inline-grid;place-items:center;width:15px;height:15px;margin-left:4px;border-radius:5px;border:1px solid color-mix(in srgb,var(--s-green) 60%,transparent);color:var(--s-green);font:800 .58rem/1 var(--f-display);vertical-align:1px;cursor:help;box-sizing:border-box}.sbnew i{width:7px;height:7px;border-radius:50%;background:var(--s-green)}.sbnew.up{padding:0}
 .reactrow{margin:0 0 10px}
 .sbbad{color:var(--s-red);font-weight:700;cursor:help;white-space:nowrap}
 .lvc.lvq{--tc:var(--dim);border-style:dashed}.lvc.lve{border-style:dashed}
@@ -3218,7 +3219,7 @@ function renderLevel(){
   if(!LEVEL||!LEVEL.paths){$("lv-body").innerHTML=`<div class="empty">The PlayerLevel tab wasn't found in the sheet.</div>`; return}
   const D=lvCur(), years=D.years||[], sheetEnd=LEVEL.last||0, newer=sheetEnd<DATA_WEEK;
   const wk=`<span class="rkweeks${lvLive?" live":""}" role="button" tabindex="0" data-lvlive="1" data-tip="${lvLive?`“Now” and “Last 6 months” worked out by the site from the scoreboards up to Week ${DATA_WEEK} (each week's best card: song rating × accuracy, the average without the lowest and highest week, 3+ scores needed). Rodman’s own levels may differ a little. Click for Rodman’s levels (to Week ${sheetEnd})`:`Rodman’s levels from his PlayerLevel tab (to Week ${sheetEnd}). Click for levels the site works out up to Week ${DATA_WEEK}`}"><small>Weeks</small><b>${D.last-11}</b><i>–</i><b>${D.last}</b><em>${lvLive?"Latest":"Rodman's"}</em></span> <span class="dim">${lvLive?"worked out by the site · may differ from Rodman’s · tap for his":newer?`tap to see the latest weeks (to Week ${DATA_WEEK}), newer than Rodman’s`:"tap to see the site’s own numbers (the same weeks right now)"}</span><br>`;
-  $("lv-sub").innerHTML=wk+`${lvLive?"Player levels worked out by the site the way Rodman’s are":"Rodman’s XP levels from the championship sheet"}: a number for how hard the songs you play are and how well you play them.<br>Roughly <b>song rating × accuracy</b>: an XP of <b>70</b> is like scoring 100% on songs rated 7, or 93% on 7.5s. <span class="dim">“Now” needs 3+ score entries over the last ${D.weeks||12} weeks (to Week ${D.last||"?"}); each year needs 5+ entries that year.</span>`;
+  $("lv-sub").innerHTML=wk+`${lvLive?"Player levels worked out by the site the way Rodman’s are":"Rodman’s XP levels from the championship sheet"}: a number for how hard the songs you play are and how well you play them.<br>Roughly <b>song rating × accuracy</b>: an XP of <b>70</b> is like scoring 100% on songs rated 7, or 93% on 7.5s. <span class="dim">“Last 6 months” needs 3+ score entries in those 26 weeks (to Week ${D.last||"?"}); each year needs 5+ entries that year.</span><br><span class="lvnolin">Remember, progress isn’t linear! 🌱</span>`;
   $("lv-bands").innerHTML=LV_BANDS.slice().reverse().map(([min,k,name],i,a)=>`<span class="lvband" style="--tc:${TIER_C[k]}"><b>${name}</b> ${i===a.length-1?`${min}+`:`${min}–${a[i+1][0]-1}`}</span>`).join("");
   if(!lvYear||!years.includes(+lvYear))lvYear=String(years[0]);
   $("lvyear").innerHTML=years.map(y=>`<option value="${y}"${String(y)===lvYear?" selected":""}>${lvYl(y)}</option>`).join("");
@@ -3577,7 +3578,9 @@ var SEASON_MI=null;
 function seasonMIChamps(){if(SEASON_MI)return SEASON_MI; eloBuild(); const out=[];
   seasonList().forEach(id=>{const b=seasonRange(id)[1]; if(b>ELO_DONE)return; [0,1,2].forEach(pi=>{const M=seasonImproved(pi,id); Object.entries(M).forEach(([c,z])=>{const x=z[0]; out.push({n:x.n,k:x.n.toLowerCase(),s:id,pi,c,end:b,d:x.d,l0:x.l0,l1:x.l1})})})});
   return SEASON_MI=out}
-function seasonMISvg(){return trophySvg("#45d17a").replace("</svg>",'<path d="M14 13.2V5.4M10.8 8.4 14 5.2l3.2 3.2" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity=".92"/></svg>')}
+// in the same colours as the "Rodman's Player Level" title (yellow, cyan, purple, red), each with its own gradient id
+var MIG_N=0;
+function seasonMISvg(){const id="mig"+(MIG_N++); return trophySvg(`url(#${id})`).replace("<svg viewBox=\"0 0 28 30\" aria-hidden=\"true\">",`<svg viewBox="0 0 28 30" aria-hidden="true"><defs><linearGradient id="${id}" gradientUnits="userSpaceOnUse" x1="3" y1="0" x2="25" y2="0"><stop offset="0" stop-color="#f5c84a"/><stop offset=".35" stop-color="#3fd6e0"/><stop offset=".7" stop-color="#b277ff"/><stop offset="1" stop-color="#ef4a55"/></linearGradient></defs>`).replace("</svg>",'<path d="M14 13.2V5.4M10.8 8.4 14 5.2l3.2 3.2" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity=".92"/></svg>')}
 function seasonCupSvg(col){return trophySvg(col).replace("</svg>",'<path d="M14 4.4l1.1 2.3 2.5.3-1.8 1.7.5 2.5-2.3-1.2-2.3 1.2.5-2.5-1.8-1.7 2.5-.3z" fill="#fff" opacity=".92"/></svg>')}
 function seasonTrophies(name,done,path){const ds=new Set(done), k=String(name).toLowerCase();
   const T=seasonChamps().filter(x=>x.k===k&&ds.has(x.end)&&(path==null||path<0||x.pi===path));
@@ -3813,6 +3816,18 @@ var SB_SEEN=(()=>{let prev=null; try{prev=localStorage.getItem("rsc-seen")}catch
   try{localStorage.setItem("rsc-seen",String(now))}catch(e){}
   const t=prev&&+prev<now?+prev:now-864e5; return {t,first:!prev}})();
 function sbAgo(ms){const m=Math.round((Date.now()-ms)/6e4); return m<60?`${Math.max(1,m)} min ago`:m<1440?`${Math.round(m/60)} h ago`:`${Math.round(m/1440)} day${Math.round(m/1440)===1?"":"s"} ago`}
+// Click a score: the player's earlier tries at this challenge. This week: their first score if they've since improved
+// (from the site's update log); earlier weeks: every time the same song and arrangement was played, newest first.
+function sbAttempts(w,p,slot,n){const card=(SB.weeks[w]||[]).find(c=>c[0]===p&&c[1]===slot); if(!card)return "";
+  const k=n.toLowerCase(), L=[`${n} · ${PATHS[p]} ${card[2]}`, card[3]||""];
+  const r=typeof WEEKLOG!=="undefined"&&WEEKLOG[w]&&WEEKLOG[w].rec&&WEEKLOG[w].rec[`${p}|${slot}|${n}`];
+  const cur=card[6].find(e=>pvName(e).toLowerCase()===k);
+  L.push("", `This week: ${cur?`${cur[1]}% · streak ${cur[2]??"–"}${cur[3]!=null&&cur[3]!==""?` · ${fmtNum(cur[3])}`:""}`:"–"}`);
+  if(r&&(r[0][0]!==r[1][0]||r[0][1]!==r[1][1]))L.push(`  first posted: ${r[0][0]}% · streak ${r[0][1]} (${sbAgo(Date.parse(r[0][3]))})`);
+  const past=pastPlays(w,p,slot,card[3]).map(x=>{const e=x.c[6].find(e=>pvName(e).toLowerCase()===k); return e?{w:x.w,c:x.c,e}:null}).filter(Boolean);
+  if(past.length){L.push("","Earlier weeks:"); past.slice(0,12).forEach(x=>L.push(`  Week ${x.w} (${x.c[2]}): ${x.e[1]}% · streak ${x.e[2]??"–"}${x.e[3]!=null&&x.e[3]!==""?` · ${fmtNum(x.e[3])}`:""}`)); if(past.length>12)L.push(`  … and ${past.length-12} more`)}
+  else L.push("","No earlier weeks with this song" + (card[3]?"":"") );
+  return L.join("\n")}
 function sbNewMark(w,p,slot,n){const W=typeof WEEKLOG!=="undefined"&&WEEKLOG[w]; if(!W||!W.rec)return ""; const r=W.rec[`${p}|${slot}|${n}`]; if(!r)return "";
   const t1=Date.parse(r[1][3]), t0=Date.parse(r[0][3]), since=SB_SEEN.first?"in the last 24 hours":"since your last visit";
   if(t0>SB_SEEN.t)return `<span class="sbnew" data-tip="New on the board ${since} (${sbAgo(t1)})" aria-label="New"><i></i></span>`;
@@ -3947,6 +3962,12 @@ $("view-scores").addEventListener("click",e=>{
 let sbTipPin=null;   // a hover text a phone tap opened (stays until the next tap)
 $("view-scores").addEventListener("mousemove",e=>{if(sbTipPin)return; const p=e.target.closest("[data-tip]");if(!p){tip.hidden=true;return}tip.textContent=p.dataset.tip;tip.hidden=false;placeTip(e.clientX,e.clientY)});
 $("view-scores").addEventListener("mouseleave",()=>{if(!sbTipPin)tip.hidden=true});
+// clicking a score (%, streak or score) shows the player's earlier tries at that challenge, until the next click
+$("sbcards").addEventListener("click",e=>{const td=e.target.closest("#sbcards tbody td"); if(!td||td.classList.contains("n")||!td.previousElementSibling)return;
+  const tr=td.closest("tr"), nm=tr&&tr.querySelector("[data-player]"), art=td.closest("article.card"); if(!nm||!art)return;
+  const t=sbAttempts(sbWeek,+art.dataset.p,+art.dataset.slot,nm.dataset.player); if(!t)return;
+  e.stopPropagation(); sbTipPin=td; tip.textContent=t; tip.hidden=false; const r=td.getBoundingClientRect(); placeTip(Math.max(8,Math.min(r.left-120,innerWidth-300)),r.bottom-4)},true);
+document.addEventListener("pointerdown",e=>{if(sbTipPin&&!sbTipPin.contains(e.target)&&!e.target.closest("#sbcards tbody td:not(.n)")){sbTipPin=null; tip.hidden=true}},true);
 // phones: tapping something with hover text (a level box, a mark, a badge) keeps the text up until the next tap, instead of the
 // tap also counting as a click on the row (which redraws the cards and hides it)
 {let touch=false;
@@ -5378,9 +5399,9 @@ const RK=__RANKINGS__, RK_SHEET=RK;
 // two or more classes up, or marked as a new player / no class on the sheet don't count)
 // get 10, 5, 3, 1 points; players with the same points share a rank; arrows compare with the 10 weeks before.
 let rkLive=null; // null: start on whichever is newer, Rodman's or the site's latest 10 weeks
-function rkCompute(last){
+function rkCompute(last,one){   // one: just that week (for adding up a whole year)
   const PTS=[10,5,3,1], LV={B:"Beginner",I:"Intermediate",A:"Advanced",M:"Masterclass"}, tot={};
-  for(let w=last-9;w<=last;w++)(SB.weeks[w]||[]).forEach(c=>{const lv=cardLv(c[2]); if(!LV[lv]||/bonus/i.test(c[2])||c[7])return;
+  for(let w=one?last:last-9;w<=last;w++)(SB.weeks[w]||[]).forEach(c=>{const lv=cardLv(c[2]); if(!LV[lv]||/bonus/i.test(c[2])||c[7])return;
     c[6].filter(e=>e[4]===0||e[4]===1).slice(0,4).forEach((e,i)=>{const n=SB.names[e[0]].replace(/[*~]+$/,""), k=c[0]+"|"+lv; (tot[k]=tot[k]||{})[n]=(tot[k][n]||0)+PTS[i]})});
   return tot}
 function rkLiveData(){
@@ -5404,7 +5425,21 @@ function rkCurrent(){const end=d=>{const m=String(d&&d.weeks||"").match(/(\d+)\D
   try{const L=rkLiveData(); return end(RK_SHEET)>=end(L)?RK_SHEET:L}catch(e){return RK_SHEET}}
 // Year-end Rodman's Rankings: the leaderboard as it stood at the end of each year, from the year tabs in the championship sheet
 let yeYear="all";   // All time is shown first
-function renderYearEnd(){const el=$("rk-year"); if(!el)return; if(!YEAREND||!YEAREND.length){el.hidden=true;return}
+// Years the sheet doesn't have year-end standings for yet (2025 on): worked out by the site the same way as Rodman's
+// Rankings (each week's main challenge in each class, the top 4 of players in that class or playing one class up get
+// 10/5/3/1 points), added up over the year. Marked * in the year menu. The current year counts the weeks so far.
+let YE_EST=null;
+function yeEnsure(){if(YE_EST||!Array.isArray(YEAREND))return; YE_EST=[];
+  // the sheet's years are 52-week blocks (2024 = weeks 532-583), so the next ones follow on: 2025 = 584-635, 2026 = 636-687
+  try{const lastY=YEAREND.reduce((m,x)=>x.year>m.year?x:m), lastEnd=+String(lastY.weeks||"").split("-")[1]; if(!lastEnd)return;
+    for(let y=lastY.year+1;;y++){const a=lastEnd+1+52*(y-lastY.year-1), full=a+51; if(a>DATA_WEEK)break; const b=Math.min(full,DATA_WEEK), T={}; const ws=[]; for(let w=a;w<=b;w++)ws.push(w);
+      ws.forEach(w=>{const t=rkCompute(w,true); Object.entries(t).forEach(([k,o])=>Object.entries(o).forEach(([n,p])=>{(T[k]=T[k]||{})[n]=(T[k][n]||0)+p}))});
+      const paths=[0,1,2].map(pi=>["B","I","A","M"].map(c=>{const r=Object.entries(T[pi+"|"+c]||{}).sort((x,z)=>z[1]-x[1]||x[0].localeCompare(z[0],undefined,{sensitivity:"base"})); let k=0;
+        return {cls:c,rows:r.map(([n,p],i)=>{if(i===0||p<r[i-1][1])k=i+1; return [k,twCanon(n),p]})}}));
+      YEAREND.push({year:y,weeks:`${a}-${b}`,est:true,partial:b<full,paths}); YE_EST.push(y)}
+    YEAREND.sort((x,z)=>z.year-x.year)}catch(e){console.error(e)}}
+const YE_NOTE="Estimated by this site: Rodman's sheet doesn't have this year's standings yet. Worked out the same way as his rankings (each week's main challenge in each class: the top 4 of players in that class or playing one class up get 10, 5, 3 and 1 points), added up over the year, so it can differ a little from his.";
+function renderYearEnd(){const el=$("rk-year"); if(!el)return; if(!YEAREND||!YEAREND.length){el.hidden=true;return} yeEnsure();
   // "All time": every year's end-of-year points added up, per path and class
   const allTime=()=>{const paths=[0,1,2].map(pi=>["B","I","A","M"].map(c=>{const T={}; YEAREND.forEach(Y=>((Y.paths[pi]||[]).find(b=>b.cls===c)||{rows:[]}).rows.forEach(([rk,n,pt])=>{T[n]=(T[n]||0)+(+pt||0)}));
       const r=Object.entries(T).sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0])); let k=0; return {cls:c,rows:r.map(([n,p],i)=>{if(i===0||p<r[i-1][1])k=i+1; return [k,n,p]})}}));
@@ -5416,8 +5451,8 @@ function renderYearEnd(){const el=$("rk-year"); if(!el)return; if(!YEAREND||!YEA
   const cols=Y.paths.map((blocks0,pi)=>{const blocks=ORDER.map(c=>blocks0.find(b=>b.cls===c)||{cls:c,rows:[]}); const boxes=blocks.map(b=>{if(!b.rows.length)return `<div class="yecls yenone" style="--tc:${TIER_C[b.cls]}"><h4>${TIER_NAME[b.cls]}</h4><p class="dim">Nobody ranked</p></div>`;const top=b.rows.slice(0,5), rest=b.rows.slice(5);
       return `<div class="yecls" style="--tc:${TIER_C[b.cls]}"><h4>${TIER_NAME[b.cls]}</h4><ol>${top.map(([rk,n,pt])=>`<li><span class="yer">${MED[rk-1]||rk}</span><span class="nm" data-profile="${esc(n)}" style="cursor:pointer">${esc(n)}</span><b>${pt}</b></li>`).join("")}${rest.length?`<li class="dim yemore" data-tip="${esc(rest.map(([rk,n,pt])=>`${rk}. ${n} · ${pt} pts`).join("\n"))}" style="cursor:help"><span></span><span>… and ${rest.length} more</span></li>`:""}</ol></div>`}).join("");
     return boxes?`<div class="yecol" style="--pc:${PATH_C[pi]}"><h3>${PATHS[pi]}</h3>${boxes}</div>`:""}).join("");
-  el.innerHTML=`<div class="panel-head"><h2>📅 Year-end standings <select class="hlsel" id="yesel" aria-label="Year"><option value="all"${Y.year==="all"?" selected":""}>All time</option>${YEAREND.map(x=>`<option value="${x.year}"${x.year===Y.year?" selected":""}>${x.year}</option>`).join("")}</select></h2>
-    <span class="sub">${Y.year==="all"?`Every year's end-of-year points added up (${Y.label}, the years in the sheet)`:`Rodman's Rankings as they stood at the end of ${Y.year}${Y.weeks?` · weeks ${esc(Y.weeks.replace("-","–"))}`:""}${Y.rules?` · ${esc(Y.rules.replace(/^Rules:\s*/,"").replace(/\s+scored\s*$/,""))}`:""}`}</span></div><div class="yegrid">${cols}</div>`;
+  el.innerHTML=`<div class="panel-head"><h2>📅 Year-end standings <select class="hlsel" id="yesel" aria-label="Year"><option value="all"${Y.year==="all"?" selected":""}>All time</option>${YEAREND.map(x=>`<option value="${x.year}"${x.year===Y.year?" selected":""}>${x.year}${x.est?"*":""}</option>`).join("")}</select>${Y.est||Y.year==="all"&&YE_EST&&YE_EST.length?`<span class="lvast" data-tip="${esc("* "+YE_NOTE)}">*</span>`:""}</h2>
+    <span class="sub">${Y.year==="all"?`Every year's end-of-year points added up (${Y.label}${YE_EST&&YE_EST.length?`, with ${YE_EST.slice().sort().map(y=>y+"*").join(" and ")} estimated`:""})`:Y.est?`Estimated standings for ${Y.year}${Y.partial?" so far":""} · weeks ${Y.weeks.replace("-","–")} · places 1–4 score 10/5/3/1 points`:`Rodman's Rankings as they stood at the end of ${Y.year}${Y.weeks?` · weeks ${esc(Y.weeks.replace("-","–"))}`:""}${Y.rules?` · ${esc(Y.rules.replace(/^Rules:\s*/,"").replace(/\s+scored\s*$/,""))}`:""}`}</span></div><div class="yegrid">${cols}</div>`;
   el.hidden=false}
 document.addEventListener("change",e=>{if(e.target.id!=="yesel")return; yeYear=e.target.value==="all"?"all":+e.target.value; renderYearEnd(); try{plHl()}catch(err){}});
 function renderRankings(){
