@@ -370,7 +370,7 @@ button.clear:hover{border-color:var(--accent)}
 .tier small{font-size:.66rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
 .tier b{font:800 1.2rem var(--f-display);color:var(--tc)}
 .brgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}.brcol h3{margin:0 0 4px;color:var(--pc);font:800 .8rem var(--f-display);letter-spacing:.08em;text-transform:uppercase}.brcol svg{width:100%;height:auto;display:block}.acctdlg .bracketsec .brcol h3{font:800 .8rem var(--f-display);letter-spacing:.08em;margin:0 0 4px;color:var(--pc)}.brnowrow{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:.8rem;margin-bottom:4px}.brnow{display:inline-flex;align-items:center;gap:5px;color:var(--muted);cursor:help}.brnow i{width:10px;height:3px;border-radius:2px;background:var(--tc)}.brnow b{color:var(--fg)}.brnote{grid-column:1/-1;margin:0;font-size:.78rem}
-#lv-scale{margin-top:20px}.lvscale .lsnote{margin:0 0 4px;font-size:.84rem}.lvscale .lspath{margin:10px 0 14px}.acctdlg .lvscale h4{font-size:.78rem}.lvscale h4{margin:0 0 6px;color:var(--pc);font:800 .78rem var(--f-display);letter-spacing:.08em;text-transform:uppercase}
+#lv-scale{margin-top:20px}.lvscale .lsslide{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center;margin:10px 0 4px}.lvscale .lsslide input{width:100%;accent-color:var(--accent)}.lvscale .lswk{font:700 .85rem var(--f-display);white-space:nowrap}.lvscale .lsnote2{font-size:.76rem;margin:2px 0 0}.lvscale .lsnote{margin:0 0 4px;font-size:.84rem}.lvscale .lspath{margin:10px 0 14px}.acctdlg .lvscale h4{font-size:.78rem}.lvscale h4{margin:0 0 6px;color:var(--pc);font:800 .78rem var(--f-display);letter-spacing:.08em;text-transform:uppercase}
 .lvscale .lsrow,.lvscale .lsaxis{display:grid;grid-template-columns:40px minmax(0,1fr) 54px;gap:8px;align-items:center;margin:4px 0}
 .lvscale .lstrack{position:relative;height:30px;border-radius:6px;background:var(--panel2);overflow:visible}
 .lvscale .lsband{position:absolute;top:0;bottom:0;background:color-mix(in srgb,var(--tc) 7%,transparent)}
@@ -2183,21 +2183,39 @@ function bracketSection(){if(BRACKET_HTML==null){try{BRACKET_HTML=bracketCharts(
 // Host tab: every player's level on a 0-100 scale, grouped by the class they're in on each path (PlayersList), so you
 // can see who sits above or below their class. Rodman's level (or the site's, when his sheet is behind); a hollow dot
 // is a level the site worked out because he has none for them yet. Shaded: the level bands for each class.
-function levelScaleSection(){let D; try{D=lvCur()}catch(e){return ""} if(!D||!D.paths)return "";
+// each player's class on each path at week W, from the classes they played in without a * (their own class)
+let LS_CLS=null;
+function lsClassAt(pi,k,W){if(!LS_CLS){LS_CLS=[{},{},{}]; Object.keys(SB.weeks).map(Number).sort((a,b)=>a-b).forEach(w=>SB.weeks[w].forEach(c=>{const L=cardLv(c[2]); if(!"BIAM".includes(L)||!L)return;
+    c[6].forEach(e=>{if(e[4]!==0||/[*~]$/.test(SB.names[e[0]]))return; const kk=lvKey(SB.names[e[0]]), a=LS_CLS[c[0]][kk]=LS_CLS[c[0]][kk]||[]; if(!a.length||a[a.length-1][1]!==L||a[a.length-1][0]!==w)a.push([w,L])})}))}
+  const a=LS_CLS[pi][k]; if(!a)return null; let r=null; for(const x of a){if(x[0]>W)break; r=x} return r&&W-r[0]<=26?r[1]:null}
+const LS_MIN=()=>Math.min(...Object.keys(SB.weeks).map(Number))+11;
+// the rows for week W (now: PlayersList classes and the current levels; an earlier week: the classes and levels then)
+function lsPaths(W){const now=W==null||W>=DATA_WEEK; let D=null; if(now){try{D=lvCur()}catch(e){}}
   const CL=["B","I","A","M"], X=v=>Math.max(0,Math.min(100,v));
   const band=(c)=>{const i=LV_BANDS.findIndex(b=>b[1]===c); const lo=LV_BANDS[i][0], hi=i>0?LV_BANDS[i-1][0]:100; return [lo,hi]};
-  const paths=[0,1,2].map(pi=>{const idx={}; (D.paths[pi]||[]).forEach(p=>{if(p.xp)idx[lvKey(p.n)]=p.xp});
+  return [0,1,2].map(pi=>{const idx={}; if(D)(D.paths[pi]||[]).forEach(p=>{if(p.xp)idx[lvKey(p.n)]=p.xp});
+    const people=now?PLAYERS.map(P=>({n:P[0],c:String(P[8]||"").charAt(pi).toUpperCase()}))
+      :Object.keys((lvAt(pi,"",W),LV_ROLL[pi])).map(k=>({k,n:twCanon(k),c:lsClassAt(pi,k,W)}));
     const rows=CL.map(c=>{const pts=[];
-      PLAYERS.forEach(P=>{const t=String(P[8]||"").charAt(pi).toUpperCase(); if(t!==c)return; const k=lvKey(P[0]); let v=idx[k], est=false;
-        if(!v){v=lvAt(pi,k,DATA_WEEK); est=true} if(v)pts.push({n:P[0],v,est})});
+      people.forEach(P=>{if(P.c!==c)return; const k=P.k||lvKey(P.n); let v=now?idx[k]:null, est=!now;
+        if(!v&&now){v=lvAt(pi,k,DATA_WEEK); est=true; if(v==null){const o=lvLast(pi,k,DATA_WEEK); if(o&&DATA_WEEK-Math.max(...Object.keys(LV_ROLL[pi][k]||{}).map(Number))<12)v=o.v}}
+        if(!now)v=lvAt(pi,k,W);
+        if(v)pts.push({n:P.n,v,est})});
       pts.sort((a,b)=>a.v-b.v); const [lo,hi]=band(c), med=pts.length?pts[Math.floor((pts.length-1)/2)].v:null;
       const under=pts.filter(x=>x.v<lo).length, over=pts.filter(x=>x.v>=hi&&c!=="M").length;
-      // dots side by side when they're close, so none hide behind another
       let last=-9, lane=0; const dots=pts.map(x=>{const pos=X(x.v); lane=pos-last<2.2?(lane+1)%3:0; last=pos; const b=lvBand(x.v);
-        return `<i class="lsd${x.est?" est":""}" style="left:${pos}%;--tc:${TIER_C[c]};--ln:${lane}" data-tip="${esc(`${x.n} · ${TIER_NAME[c]} ${PATHS[pi]}\nLevel ${x.v.toFixed(1)} (${b[2]} band)${x.est?"\nWorked out by the site from their last 12 weeks":""}`)}"></i>`}).join("");
+        return `<i class="lsd${x.est&&now?" est":""}" style="left:${pos}%;--tc:${TIER_C[c]};--ln:${lane}" data-tip="${esc(`${x.n} · ${TIER_NAME[c]} ${PATHS[pi]}${now?"":` (Week ${W})`}\nLevel ${x.v.toFixed(1)} (${b[2]} band)${x.est&&now?"\nWorked out by the site":""}`)}"></i>`}).join("");
       return `<div class="lsrow"><span class="lvchip" style="--tc:${TIER_C[c]}">${TIER_NAME[c].slice(0,3)}</span><div class="lstrack">${LV_BANDS.map(([m,k])=>{const [a,z]=band(k); return `<span class="lsband" style="left:${a}%;width:${z-a}%;--tc:${TIER_C[k]}"></span>`}).join("")}<span class="lsown" style="left:${lo}%;width:${hi-lo}%;--tc:${TIER_C[c]}"></span>${med!=null?`<span class="lsmed" style="left:${X(med)}%" data-tip="Middle player in ${TIER_NAME[c]}: ${med.toFixed(1)}"></span>`:""}${dots}</div><span class="lscount" data-tip="${esc(`${pts.length} ${TIER_NAME[c]} ${PATHS[pi]} player${pts.length===1?"":"s"} with a level${under?`\n${under} below the ${TIER_NAME[c]} band (under ${lo})`:""}${over?`\n${over} above it (${hi}+)`:""}`)}">${pts.length}${under||over?` <small>${under?`↓${under}`:""}${over?` ↑${over}`:""}</small>`:""}</span></div>`}).join("");
-    return `<div class="lspath" style="--pc:${PATH_C[pi]}"><h4>${PATHS[pi]}</h4>${rows}<div class="lsaxis"><span></span><div>${[0,20,40,60,80,100].map(v=>`<b style="left:${v}%">${v}</b>`).join("")}</div><span></span></div></div>`}).join("");
-  return `<div class="panel-head"><h2>Player levels in each class</h2></div><p class="dim lsnote">Each dot is a player in that class (from PlayersList), placed by their player level and colored by that class. The bright strip is the class's level band; the line marks the middle player; ↓/↑ count players below or above it. Hollow dots: levels worked out by the site.</p>${paths}`}
+    return `<div class="lspath" style="--pc:${PATH_C[pi]}"><h4>${PATHS[pi]}</h4>${rows}<div class="lsaxis"><span></span><div>${[0,20,40,60,80,100].map(v=>`<b style="left:${v}%">${v}</b>`).join("")}</div><span></span></div></div>`}).join("")}
+const lsWeekTxt=W=>W>=DATA_WEEK?`Now (Week ${DATA_WEEK})`:`Week ${W}${WEEKS[W-1]?" · "+fmt(WEEKS[W-1][1]):""}`;
+function levelScaleSection(){try{lvCur()}catch(e){return ""}
+  return `<div class="panel-head"><h2>Player levels in each class</h2></div><p class="dim lsnote">Each dot is a player in that class (from PlayersList), placed by their player level and colored by that class. The bright strip is the class's level band; the line marks the middle player; ↓/↑ count players below or above it. Hollow dots: levels worked out by the site. Slide back in time to see how the classes looked then.</p>
+    <div class="lsbody">${lsPaths(DATA_WEEK)}</div>
+    <div class="lsslide"><input type="range" min="${LS_MIN()}" max="${DATA_WEEK}" step="1" value="${DATA_WEEK}" data-lsslide aria-label="Week"><span class="lswk">${lsWeekTxt(DATA_WEEK)}</span></div>
+    <p class="dim lsnote2">Earlier weeks use the classes players were playing in then and the site's own levels for that time (from the 12 weeks up to it).</p>`}
+// the slider: redraw the rows for the picked week (at most once a frame)
+document.addEventListener("input",e=>{const r=e.target.closest("[data-lsslide]"); if(!r)return; const box=r.closest(".lvscale"); if(!box)return;
+  cancelAnimationFrame(box._raf); box._raf=requestAnimationFrame(()=>{const W=+r.value; box.querySelector(".lsbody").innerHTML=lsPaths(W); box.querySelector(".lswk").textContent=lsWeekTxt(W)})});
 function bracketCharts(){
   const ws=Object.keys(SB.weeks).map(Number).filter(w=>w<=DATA_WEEK&&(SB.weeks[w]||[]).length).sort((a,b)=>a-b), CL=["B","I","A","M"], AVG=10;
   const cnt=[0,1,2].map(()=>CL.map(()=>[]));   // [path][class][week index] = players
@@ -2727,6 +2745,10 @@ function lvAt(pi,k,W){if(!LV_ROLL){LV_ROLL=[{},{},{}]; Object.keys(SB.weeks).map
     c[6].forEach(e=>{if(e[1]==null||e[4]<0)return; const kk=lvKey(SB.names[e[0]]), o=LV_ROLL[c[0]][kk]=LV_ROLL[c[0]][kk]||{}, v=c[4]*e[1]/10; o[w]=Math.max(o[w]||0,v)})}))}
   const o=LV_ROLL[pi][k]; if(!o)return null; const v=[]; for(let w=W-11;w<=W;w++)if(o[w]!=null)v.push(o[w]); if(v.length<3)return null;
   v.sort((a,b)=>a-b); const t=v.slice(1,-1); return t.reduce((a,b)=>a+b,0)/t.length}
+// a player's last level before week W (the most recent week they had enough scores for one): {v, w} or null
+function lvLast(pi,k,W){lvAt(pi,k,W); const o=LV_ROLL[pi][k]; if(!o)return null;
+  const ws=Object.keys(o).map(Number).filter(w=>w<=W).sort((a,b)=>b-a);
+  for(const w of ws){const v=lvAt(pi,k,w); if(v!=null)return {v,w}} return null}
 const lvGain=d=>`${d>=0?"+":"−"}${Math.abs(d).toFixed(1)}`;
 const miTxt=x=>`${lvGain(x.d)} level (${x.l0.toFixed(1)} → ${x.l1.toFixed(1)})`;
 // Most improved: the biggest player level gain in each class on a path over the season (the level from the 12 weeks before
@@ -2790,7 +2812,7 @@ function lapsedSection(){const tw=TW_MAX, far=52, I=sbIx(), rows=[];
     const info=paths.map(pi=>{let e=null; try{const x=eloAt(pi,eloKey(n),last); e=x&&x[2]>=ELO_MIN?Math.round(x[1]):null}catch(err){} const h=hrAt(hrSeries(n,pi),last);
       return `<b style="color:${PATH_C[pi]}">${PATHS[pi]}</b>${e!=null?` Elo ${e}`:""}${h!=null?` · skill rating ${h.toFixed(1)}`:""}`}).join(" &nbsp; ");
     // their level when they left: worked out from the 12 weeks up to their last week (they've no recent scores for a level now)
-    const lv=paths.map(pi=>{let v=null; try{v=lvAt(pi,lvKey(n),last)}catch(err){}
+    const lv=paths.map(pi=>{let v=null; try{v=lvAt(pi,lvKey(n),last); if(v==null){const o=lvLast(pi,lvKey(n),last); if(o)v=o.v}}catch(err){}
       const c=v!=null?`<span class="lvc lve" style="--tc:${TIER_C[lvBand(v)[1]]}" data-tip="${esc(`${PATHS[pi]} player level when they left: ${v.toFixed(1)} (${lvBand(v)[2]})\nWorked out by the site from their 12 weeks up to Week ${last}`)}">${Math.floor(v)}</span>`
         :`<span class="lvc lvq" data-tip="${esc(`No ${PATHS[pi]} level when they left: fewer than 3 weeks with a score in their last 12 weeks`)}">?</span>`;
       return `<span class="fwlvp" style="--pc:${PATH_C[pi]}">${"LRB"[pi]}${c}</span>`}).join("");
@@ -3224,6 +3246,9 @@ function lvQChip(n,pi){const k=lvKey(n), W=Math.max(DATA_WEEK,cur[0]);   // (the
   if(have>=3&&v.length){const t=v.length>=3?v.slice(1,-1):v, x=t.reduce((a,b)=>a+b,0)/t.length, bd=lvBand(x);
     return `<span class="lvc lve" style="--tc:${TIER_C[bd[1]]}" data-tip="${esc(`${PATHS[pi]} player level: ${x.toFixed(1)} (${bd[2]})\nWorked out by the site from ${have} ${PATHS[pi]} scores in the last 12 weeks, as Rodman’s sheet doesn’t have a level for them yet`)}">${Math.floor(x)}</span>`}
   const need=3-have;
+  // back after a break with only a score or two: keep showing the level they had before
+  const old=lvLast(pi,k,W); if(old){const bd=lvBand(old.v);
+    return `<span class="lvc lve" style="--tc:${TIER_C[bd[1]]}" data-tip="${esc(`${PATHS[pi]} player level: ${old.v.toFixed(1)} (${bd[2]}), their last one\nFrom their 12 weeks up to Week ${old.w}. ${have} ${PATHS[pi]} score${have===1?"":"s"} in the last 12 weeks: ${need} more for a new one`)}">${Math.floor(old.v)}</span>`}
   return `<span class="lvc lvq" data-tip="${esc(`No ${PATHS[pi]} player level yet\n${have} ${PATHS[pi]} score${have===1?"":"s"} in the last 12 weeks, 3 needed · ${need} more to get a level`)}">?</span>`}
 // profile chart: the player's level by year on each path, then now (dashed: this site's estimates)
 function lvChart(n){if(typeof LEVEL==="undefined"||!LEVEL||!LEVEL.paths)return ""; const P=lvOf(n); lvEnsure();
