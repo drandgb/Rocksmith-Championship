@@ -2243,7 +2243,14 @@ const lsWeekTxt=W=>W>=DATA_WEEK?`Now (Week ${DATA_WEEK})`:`Week ${W}${WEEKS[W-1]
 function levelScaleSection(track=true){try{lvCur()}catch(e){return ""}   // track: also "Each player over time" (Level tab only)
   return `<div class="panel-head"><h2>Player levels in each class</h2></div><p class="dim lsnote">Each dot is a player in that class (from PlayersList), placed by their player level and colored by that class. The bright strip is the class's level band; the line marks the middle player; ↓/↑ count players below or above it. Hollow dots: levels worked out by the site. Slide back in time to see how the classes looked then.</p>
     <div class="lsbody">${lsPaths(DATA_WEEK).map((h,pi)=>`<div class="lspb" data-pi="${pi}">${h}</div>${lsSlider(DATA_WEEK)}`).join("")}</div>
-    <p class="dim lsnote2">Earlier weeks use the classes players were playing in then and the site's own levels for that time (from the 12 weeks up to it).</p>${track?lsTrackHtml(DATA_WEEK):""}`}
+    <p class="dim lsnote2">Earlier weeks use the classes players were playing in then and the site's own levels for that time (from the 12 weeks up to it).</p>${lsMcNote()}${track?lsTrackHtml(DATA_WEEK):""}`}
+// why many Masterclass players sit in the Advanced band: the Masterclass cards of the last 26 weeks, players in their own class
+function lsMcNote(){const r=[0,1,2].map(()=>({rt:[],pc:[],lv:[]}));
+  Object.keys(SB.weeks).map(Number).filter(w=>w>DATA_WEEK-26).forEach(w=>SB.weeks[w].forEach(c=>{if(c[2]!=="Masterclass"||!c[4]||!c[6])return; const R=r[c[0]]; if(!R)return; R.rt.push(+c[4]);
+    c[6].forEach(e=>{if((e[4]===0||e[4]===9)&&!isFB(e)&&e[1]>0){R.pc.push(+e[1]); R.lv.push(c[4]*e[1]/10)}})}));
+  const avg=a=>a.reduce((x,y)=>x+y,0)/a.length; if(r.some(R=>!R.rt.length||!R.pc.length))return "";
+  const pc=r.map(R=>avg(R.pc)), lv=r.map(R=>avg(R.lv)), f=(a,d=0)=>`${Math.min(...a).toFixed(d)}–${Math.max(...a).toFixed(d)}`;
+  return `<p class="dim lsnote2"><b>Why are many Masterclass players in the Advanced band?</b> A player level is roughly the song's rating × your accuracy (an 8.0 song at 95% is worth 76), and the bands assume perfect accuracy on songs rated like the class. Over the last 26 weeks, Masterclass songs averaged a rating of ${r.map((R,pi)=>`${avg(R.rt).toFixed(1)} on ${PATHS[pi]}`).join(", ").replace(/, ([^,]*)$/," and $1")}, played at about ${f(pc)}% accuracy, which works out to around ${f(lv)}. So a player doing well in Masterclass can still land in the Advanced band; it doesn't mean they're in the wrong class.</p>`}
 // a week slider; there's one under each graph and they all move together
 const lsSlider=(W,mini)=>`<div class="lsslide${mini?" mini":""}"><input type="range" min="${LS_MIN()}" max="${DATA_WEEK}" step="1" value="${W}" data-lsslide aria-label="Week"><span class="lswk">${lsWeekTxt(W)}</span></div>`;
 // the sliders: keep them all on the same week and redraw the graphs for it (at most once a frame)
