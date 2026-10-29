@@ -1,13 +1,16 @@
 # Fill the page template with the built data and write ../index.html
-import json, datetime, os
+import json, datetime, os, hashlib
 d = datetime.date.fromisoformat(os.environ["BUILD_DATE"]) if os.environ.get("BUILD_DATE") else datetime.date.today()
 sb = json.load(open("scores.json"))
 t = open("template.html").read()
+h = lambda b: hashlib.md5(b).hexdigest()[:10]   # fingerprints the refresh bar uses to say "new scores" or "site update"
+cv = h(t.encode() + open("render.py", "rb").read()); sc = h(open("scores.json", "rb").read())
 for key, f in [("__WEEKS__", "weeks.json"), ("__PLAYERS__", "players.json"), ("__PARTS__", "parts.json"),
                ("__SCORES__", "scores.json"), ("__WINS__", "wins.json"), ("__SONGS_OLD__", "songs_old.json"), ("__RANKINGS__", "rankings.json"), ("__OFFICIAL__", "official.json")]:
     assert key in t, key
     t = t.replace(key, open(f).read())
 t = (t.replace("__BUILT__", f"{d:%B} {d.day}, {d.year}")
+      .replace("__SCHASH__", sc).replace("__CODEHASH__", cv)
       .replace("__BUILT_ISO__", datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds"))
       .replace("__SHEET_EDITED__", (json.load(open("cache/sheet_edited.json")) if os.path.exists("cache/sheet_edited.json") else ""))
       .replace("__TUNINGS__", open("tunings.json").read() if os.path.exists("tunings.json") else "{}")

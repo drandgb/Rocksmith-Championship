@@ -2002,7 +2002,7 @@ footer{color:var(--dim);font-size:.78rem}
   <footer>Data: Rodman’s Rocksmith 2014 Championship Google Sheets (older attendance also from the Championship Metrics workbook). Player stats run through week __DATAWEEK__; scoreboards cover weeks 440–__SBMAX__. Weeks 1–16 have no recorded host in the source.
   <span class="updated disclaimer">Unofficial fan project. Not affiliated with CustomsForge, Ubisoft or Rocksmith.</span>
   <span class="updated" id="sheetedit-row" hidden>Sheet last edited: <span id="sheetedit" data-iso="__SHEET_EDITED__"></span></span>
-  <span class="updated">Last updated: <span id="builtat" data-iso="__BUILT_ISO__">__BUILT__</span></span>
+  <span class="updated">Last updated: <span id="builtat" data-iso="__BUILT_ISO__" data-sc="__SCHASH__" data-cv="__CODEHASH__">__BUILT__</span></span>
   </footer>
 </div>
 <dialog id="acct" class="acctdlg" aria-label="Your profile"><div id="acctbody"></div><button type="button" class="clear acctclose" id="acctclose">Close</button></dialog>
@@ -6109,8 +6109,11 @@ var WEEKLOG={}/*WEEKLOG*/;
 // version.txt (a tiny file each site update writes) and offer a refresh. Browsers can keep showing a cached page for up to 10 minutes.
 {const mine=(document.getElementById("builtat")||{}).dataset||{}, have=mine.iso||""; let shown=false;
  const check=()=>{if(shown||document.hidden||!/^https?:/.test(location.protocol))return;
-   fetch("version.txt?t="+Date.now(),{cache:"no-store"}).then(r=>r.ok?r.text():"").then(t=>{t=t.trim(); if(!t||!have||Date.parse(t)<=Date.parse(have))return;
-     shown=true; const b=document.createElement("button"); b.type="button"; b.className="freshbar"; b.textContent="🎸 New scores are in · tap to refresh";
+   fetch("version.txt?t="+Date.now(),{cache:"no-store"}).then(r=>r.ok?r.text():"").then(t=>{const [iso,fp=""]=t.trim().split("\n"), [sc,cv]=fp.trim().split(" ");
+     if(!iso||!have||Date.parse(iso)<=Date.parse(have))return;
+     // the score data changed: new scores; otherwise the page itself or its other data changed: a site update
+     const scores=!sc||!mine.sc||sc!==mine.sc;
+     shown=true; const b=document.createElement("button"); b.type="button"; b.className="freshbar"; b.textContent=scores?"🎸 New scores are in · tap to refresh":"✨ Site update · tap to refresh";
      b.addEventListener("click",()=>location.reload()); document.body.appendChild(b)}).catch(()=>{})};
  setInterval(check,60000); document.addEventListener("visibilitychange",()=>{if(!document.hidden)check()});}
 try{sbRender()}catch(e){}   // draw the Scoreboard again now the week log is here, for the NEW tags
