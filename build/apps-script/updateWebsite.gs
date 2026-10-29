@@ -2,9 +2,10 @@
  * Rocksmith Championship stats site: start the website's quick update when the scoreboard sheet changes.
  *
  * How it works
- *  - Any edit to the sheet marks it as "changed".
- *  - Every 5 minutes a timer checks that mark. If the sheet changed, it asks GitHub to run the
- *    "Quick update (current week)" Action once, so a burst of edits only causes one update.
+ *  - An edit to the sheet starts the "Quick update (current week)" Action straight away, unless one
+ *    started in the last 2 minutes; then it just marks the sheet as "changed".
+ *  - Every minute a timer checks that mark and starts one more update for those later edits, so a burst
+ *    of edits only causes an update or two.
  *  - The site is usually live 2-3 minutes after the Action starts.
  *  - "Update website now (drand)" and "Full rescan (drand)" live in the sheet's Rocksmith CS menu (see below).
  *
@@ -13,7 +14,8 @@
 
 const REPO = 'drandgb/Rocksmith-Championship';
 const WORKFLOW = 'quick-update.yml';
-const CHECK_EVERY_MINUTES = 5;
+const CHECK_EVERY_MINUTES = 1;
+const MIN_GAP_MS = 2 * 60 * 1000;   // at most one update every 2 minutes (a burst of edits waits for the timer)
 let LAST_ERROR = '';
 function tryMessage_(s) { try { return JSON.parse(s).message; } catch (e) { return s.slice(0, 120); } }
 const TOKEN_PROPERTY = 'drandWebsiteToken';   // name of the script property that holds the GitHub token
@@ -23,15 +25,18 @@ const TOKEN_PROPERTY = 'drandWebsiteToken';   // name of the script property tha
 //   .addItem('Full rescan (drand)', 'fullRescanNow')
 
 // Installable trigger "On change": remember that the sheet changed.
+// The first edit after a quiet spell starts an update straight away.
 function markChanged() {
-  const now = String(Date.now());
-  PropertiesService.getScriptProperties().setProperties({ CHANGED: now, LAST_EDIT: now });
+  const props = PropertiesService.getScriptProperties(), now = Date.now();
+  props.setProperties({ CHANGED: String(now), LAST_EDIT: String(now) });
+  if (now - Number(props.getProperty('LAST_START') || 0) >= MIN_GAP_MS && startQuickUpdate_()) props.deleteProperty('CHANGED');
 }
 
 // Time-driven trigger: if the sheet changed since the last update, start one.
 function updateIfChanged() {
   const props = PropertiesService.getScriptProperties();
   if (!props.getProperty('CHANGED')) return;
+  if (Date.now() - Number(props.getProperty('LAST_START') || 0) < MIN_GAP_MS) return;   // one just started: next minute
   if (startQuickUpdate_()) props.deleteProperty('CHANGED');
 }
 
@@ -73,6 +78,7 @@ function startWorkflow_(workflow) {
     muteHttpExceptions: true,
   });
   const ok = res.getResponseCode() === 204;
+  if (ok) PropertiesService.getScriptProperties().setProperty('LAST_START', String(Date.now()));
   if (!ok) { LAST_ERROR = 'GitHub said ' + res.getResponseCode() + ': ' + (tryMessage_(res.getContentText()) || 'no details');
              console.error(LAST_ERROR); }
   return ok;

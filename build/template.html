@@ -757,6 +757,7 @@ a.dl svg,.offpill svg{width:11px;height:11px}
 .lvsp{width:60px;height:18px;display:block;opacity:.85}
 .lvc{display:inline-block;margin-left:5px;padding:0 5px;border-radius:6px;font:700 .68rem/1.45 var(--f-mono);color:var(--tc);border:1px solid color-mix(in srgb,var(--tc) 55%,transparent);background:color-mix(in srgb,var(--tc) 12%,transparent);vertical-align:1px;cursor:help;flex:none}
 .sbchk{color:var(--s-yellow);cursor:help;white-space:nowrap}
+.freshbar{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:9999;background:var(--accent);color:#14110a;border:0;border-radius:999px;padding:10px 18px;font:800 .9rem var(--f-display);letter-spacing:.02em;box-shadow:0 6px 24px rgba(0,0,0,.45);cursor:pointer;animation:freshin .4s ease-out}@keyframes freshin{from{transform:translate(-50%,30px);opacity:0}}
 .sbnew{display:inline-block;margin-left:5px;padding:0 5px;border-radius:6px;font:800 .6rem/1.5 var(--f-display);letter-spacing:.06em;color:#0d0f14;background:var(--s-green);vertical-align:1px;cursor:help}.sbnew.up{background:none;color:var(--s-green);border:1px solid color-mix(in srgb,var(--s-green) 60%,transparent);padding:0 4px}
 .sbbad{color:var(--s-red);font-weight:700;cursor:help;white-space:nowrap}
 .lvc.lvq{--tc:var(--dim);border-style:dashed}.lvc.lve{border-style:dashed}
@@ -5940,6 +5941,14 @@ function admRateRedraw(){const el=$("admrate"); if(!el){acctDraw();return}
   const dlg=$("acct"), top=dlg.scrollTop; el.outerHTML=adminRateSection(); dlg.scrollTop=top; requestAnimationFrame(()=>{dlg.scrollTop=top})}
 // ---------- Your week: first score -> best score this week, and who passed you (weeklog.js, built at each update) ----------
 var WEEKLOG={}/*WEEKLOG*/;
+// A newer version of the site is live (the sheet changed since this page loaded): every minute while the page is open, check
+// version.txt (a tiny file each site update writes) and offer a refresh. Browsers can keep showing a cached page for up to 10 minutes.
+{const mine=(document.getElementById("builtat")||{}).dataset||{}, have=mine.iso||""; let shown=false;
+ const check=()=>{if(shown||document.hidden||!/^https?:/.test(location.protocol))return;
+   fetch("version.txt?t="+Date.now(),{cache:"no-store"}).then(r=>r.ok?r.text():"").then(t=>{t=t.trim(); if(!t||!have||Date.parse(t)<=Date.parse(have))return;
+     shown=true; const b=document.createElement("button"); b.type="button"; b.className="freshbar"; b.textContent="🎸 New scores are in · tap to refresh";
+     b.addEventListener("click",()=>location.reload()); document.body.appendChild(b)}).catch(()=>{})};
+ setInterval(check,60000); document.addEventListener("visibilitychange",()=>{if(!document.hidden)check()});}
 try{sbRender()}catch(e){}   // draw the Scoreboard again now the week log is here, for the NEW tags
 const ywKey=n=>"rsc-passed-seen-"+n.toLowerCase();
 function ywSeen(n){try{return +localStorage.getItem(ywKey(n))||0}catch(e){return 0}}
