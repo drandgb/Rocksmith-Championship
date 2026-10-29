@@ -2954,7 +2954,7 @@ document.addEventListener("change",e=>{const s=e.target.closest("[data-siid]"); 
 document.addEventListener("click",e=>{const b=e.target.closest("[data-sicopy]"); if(!b)return; const t=$("sitext").textContent; try{navigator.clipboard.writeText(t).then(()=>{b.textContent="Copied ✓"; setTimeout(()=>b.textContent="Copy",1500)})}catch(err){}});
 // first-visit explainer: shown until closed (remembered on this device)
 (function(){const el=$("newhere"); if(!el)return; let seen=false; try{seen=localStorage.getItem("rsc-newhere")==="1"}catch(e){} if(!seen)el.hidden=false;
-  $("newherex").addEventListener("click",()=>{el.hidden=true; try{localStorage.setItem("rsc-newhere","1")}catch(e){}})})();
+  $("newherex").addEventListener("click",()=>{el.hidden=true; lsSet("rsc-newhere","1")})})();
 document.addEventListener("change",e=>{const s=e.target.closest("[data-hlweek]"); if(!s)return; ACCT.hlWeek=+s.value; const el=document.querySelector(".acctdlg .hlbox"); if(el)el.outerHTML=hlSection()});
 document.addEventListener("click",e=>{const b=e.target.closest("[data-hlcopy]"); if(!b)return; const t=$("hltext").textContent; try{navigator.clipboard.writeText(t).then(()=>{b.textContent="Copied ✓"; setTimeout(()=>b.textContent="Copy",1500)})}catch(err){}});
 // medals and glowing panels only animate while they're on screen: a profile can show hundreds of medals, and every glow, shine and sparkle costs a repaint
@@ -5276,7 +5276,23 @@ function renderNextPreview(){
 // and their songs come first. The section can be collapsed; that's remembered until the next week's songs arrive.
 const NW_SEEN="rsc-newweek-seen", DL_FOLD="rsc-dl-fold";
 function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
-function lsSet(k,v){try{if(v==null)localStorage.removeItem(k);else localStorage.setItem(k,v)}catch(e){}}
+function lsSet(k,v){try{if(v==null)localStorage.removeItem(k);else localStorage.setItem(k,v)}catch(e){} if(prefSynced(k))prefPush()}
+// Popups and folds you close follow your login: saved with your account (Supabase user metadata, "closed") as well as on this device,
+// and brought onto any device you log in on. Logged out, they're only kept on this device.
+function prefSynced(k){return k==="rsc-newhere"||k==="rsc-newweek-seen"||k==="rsc-dl-fold"||k==="rsc-pv-fold"||k.startsWith("rsc-passed-seen-")}
+function prefLocal(){const o={}; try{for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i); if(prefSynced(k))o[k]=localStorage.getItem(k)}}catch(e){} return o}
+let prefT=null;
+function prefPush(){clearTimeout(prefT); prefT=setTimeout(()=>{try{if(window.ACCT&&ACCT.user&&ACCT.sb)ACCT.sb.auth.updateUser({data:{closed:prefLocal()}}).catch(()=>{})}catch(e){}},800)}
+async function prefPull(){try{const {data}=await ACCT.sb.auth.getUser(); const u=data&&data.user; if(!u)return;
+  const R=(u.user_metadata&&u.user_metadata.closed)||{}, L=prefLocal(); let changed=false, more=false;
+  Object.entries(R).forEach(([k,v])=>{if(!prefSynced(k)||v==null)return; const l=L[k];
+    // seen-up-to values (a week, a time, "1"): keep the later one; folds: take the account's if this device has none
+    const later=k.endsWith("-fold")?l==null:(l==null||+v>+l);
+    if(later){try{localStorage.setItem(k,String(v))}catch(e){} changed=true}});
+  Object.keys(L).forEach(k=>{if(!(k in R)||(!k.endsWith("-fold")&&+L[k]>+R[k]))more=true});
+  if(more)prefPush();
+  if(changed){if(lsGet("rsc-newhere")==="1"){const el=$("newhere"); if(el)el.hidden=true}
+    [()=>renderNewWeekNote(),()=>renderDownloads(),()=>renderTwPast(),()=>acctBtn()].forEach(f=>{try{f()}catch(e){}})}}catch(e){}}
 function myPlayer(){return typeof ACCT!=="undefined"&&ACCT&&ACCT.claim&&ACCT.claim.status==="approved"?ACCT.claim.player:null}
 function myTiers(){const n=myPlayer(), p=n&&byName[n]; return p?String(p[8]||"").split(""):null}
 function renderNewWeekNote(){
@@ -6439,7 +6455,7 @@ function lookupsToMe(){try{if(LOOKUP_DEF.me||!ACCT.claim||ACCT.claim.status!=="a
     if(typeof hosts!=="undefined"&&hosts[n]&&LOOKUP_DEF.h&&hName===LOOKUP_DEF.h)showHost(n)};
   window.navQuiet?navQuiet(go):go()}catch(e){}}
 async function acctRefresh(){
-  const {data:{session}}=await ACCT.sb.auth.getSession(); ACCT.user=session?session.user:null;
+  const {data:{session}}=await ACCT.sb.auth.getSession(); ACCT.user=session?session.user:null; if(ACCT.user)prefPull();
   const {data:cl}=await ACCT.sb.from("claims").select("user_id,player,status,created_at"); ACCT.claims=cl||[];
   ACCT.claim=ACCT.user?ACCT.claims.find(c=>c.user_id===ACCT.user.id)||null:null;
   lookupsToMe();
@@ -6650,7 +6666,7 @@ $("acctclose").addEventListener("click",()=>$("acct").close());
 // hover text inside the dialog (the tip moves into the dialog while it's open, so it shows above it)
 // ✕ on "You've been passed": mark everything up to the newest pass as seen, then hide the alert and clear the badges
 document.addEventListener("click",e=>{const b=e.target.closest("[data-ywdismiss]"); if(!b)return; e.stopPropagation(); const n=b.dataset.ywdismiss, last=ywPasses(n)[0];
-  if(last){try{localStorage.setItem(ywKey(n),String(Date.parse(last.t)))}catch(e){}} ACCT.ywShown=[]; const a=b.closest(".ywalert"); if(a)a.remove(); try{acctBtn()}catch(e){}
+  if(last)lsSet(ywKey(n),String(Date.parse(last.t))); ACCT.ywShown=[]; const a=b.closest(".ywalert"); if(a)a.remove(); try{acctBtn()}catch(e){}
   document.querySelectorAll('.accttabs .nbadge[title^="Passed"]').forEach(x=>x.remove())},true);
 $("acct").addEventListener("close",()=>{tip.hidden=true;document.body.appendChild(tip);acctUnmount();ACCT.ywShown=null});
 // links inside the moved lookup cards go to other pages: close the dialog so the page shows
