@@ -1741,7 +1741,7 @@ footer{color:var(--dim);font-size:.78rem}
     <div class="panel-head rkhero"><div class="sh-eye">📈 Rocksmith Championship</div><h2 class="lvtitle">Rodman’s Player Level</h2><span class="sub" id="lv-sub"></span></div>
     <div class="lvbands" id="lv-bands"></div>
   </section>
-  <div class="wpathbar"><div class="seg" role="radiogroup" aria-label="Show" id="lvmode"><button type="button" data-lvm="now" class="s-all" aria-pressed="true">Now</button><button type="button" data-lvm="m6" aria-pressed="false">Last 6 months</button><button type="button" data-lvm="year" aria-pressed="false">By year</button></div><label class="shostpick" id="lvyrl" hidden><span>Year</span><select id="lvyear" aria-label="Year"></select></label></div>
+  <div class="wpathbar"><div class="seg" role="radiogroup" aria-label="Show" id="lvmode"><button type="button" data-lvm="m6" class="s-all" aria-pressed="true">Last 6 months</button><button type="button" data-lvm="year" class="s-all" aria-pressed="false">By year</button></div><label class="shostpick" id="lvyrl" hidden><span>Year</span><select id="lvyear" aria-label="Year"></select></label></div>
   <div class="lvextra" id="lv-extra"></div>
   <div id="lv-body" class="rkbody"></div>
   </div>
@@ -1920,7 +1920,7 @@ footer{color:var(--dim);font-size:.78rem}
       <dt><a href="#thisweek" data-faqgo="thisweek">This Week</a></dt><dd>The current week: this week's songs to download, the week's winners, new medals, rivals, Elo changes, who's new or back, anniversaries and play streaks at stake. Use the arrows to look at earlier weeks.</dd>
       <dt><a href="#scoreboard" data-faqgo="scores">Scoreboard</a></dt><dd>Every challenge card for any week, with everyone's accuracy, streak and score in order. Pick a path and class, highlight a player, or open <b>Your cards</b> to see all your ranked cards at once.</dd>
       <dt><a href="#season" data-faqgo="season">Season</a></dt><dd>The 13-week season standings for each class on each path, the projected most improved, and past season champions.</dd>
-      <dt><a href="#level" data-faqgo="level">Level</a></dt><dd>Player levels for each path: now, over the last 6 months and year by year, plus the biggest climbers. Roughly song rating × accuracy.</dd>
+      <dt><a href="#level" data-faqgo="level">Level</a></dt><dd>Player levels for each path over the last 6 months and year by year, plus the biggest climbers. Roughly song rating × accuracy.</dd>
       <dt><a href="#rankings" data-faqgo="rankings">Rankings</a></dt><dd>Rodman's Rankings for each path and class, and the year-end standings.</dd>
       <dt><a href="#winners" data-faqgo="winners">Winners</a></dt><dd>Hall of fame, hot streaks, Elo ratings, most wins and win rates, by path and by year, plus the Winner lookup.</dd>
       <dt><a href="#players" data-faqgo="players">Players</a></dt><dd>Attendance: players per week, play streaks, perfect attendance, play rates, newcomers and rank changes, all time or by year, plus the Player lookup with each player's medals and history.</dd>
@@ -3099,7 +3099,7 @@ const SB_W=Object.keys(SB.weeks).map(Number).sort((a,b)=>a-b);
 // taken from a player's recent scores; the sheet doesn't spell out its formula, so this is the site's reading of it.
 const LV_BANDS=[[80,"M","Masterclass"],[60,"A","Advanced"],[40,"I","Intermediate"],[0,"B","Beginner"]];
 const lvBand=x=>LV_BANDS.find(b=>x>=b[0]);
-let lvMode="now", lvYear=null;
+let lvMode="m6", lvYear=null;   // Last 6 months first, then By year
 function lvSpark(p,years){const pts=years.slice().reverse().map(y=>p.y[y]||null); if(p.m6)pts.push(p.m6); if(p.xp)pts.push(p.xp);
   const v=pts.filter(x=>x!=null); if(v.length<2)return ""; const W=60,H=18, n=pts.length, lo=Math.min(...v)-2, hi=Math.max(...v)+2;
   let d="", pen=false; pts.forEach((x,i)=>{if(x==null)return; const X=(i/(n-1)*W).toFixed(1), Y=(H-(x-lo)/(hi-lo)*H).toFixed(1); d+=(pen?"L":"M")+X+","+Y; pen=true});
