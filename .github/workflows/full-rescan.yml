@@ -49,7 +49,8 @@ jobs:
           else
             git config user.name  "github-actions[bot]"
             git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
-            git add index.html build/data/cache; [ -f ratings.json ] && git add ratings.json || true; [ -f weekposts.json ] && git add weekposts.json || true
+            grep -o 'id="builtat" data-iso="[^"]*"' index.html | head -1 | sed 's/.*data-iso="//;s/"$//' > version.txt   # the page checks this to offer a refresh
+            git add index.html version.txt build/data/cache; [ -f ratings.json ] && git add ratings.json || true; [ -f weekposts.json ] && git add weekposts.json || true
             git commit -m "Full rescan of the scoreboard sheet (week $(cat build/work/data_week.txt))"
             git pull --rebase -X theirs origin main
             git push
