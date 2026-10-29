@@ -758,7 +758,7 @@ a.dl svg,.offpill svg{width:11px;height:11px}
 .lvc{display:inline-block;margin-left:5px;padding:0 5px;border-radius:6px;font:700 .68rem/1.45 var(--f-mono);color:var(--tc);border:1px solid color-mix(in srgb,var(--tc) 55%,transparent);background:color-mix(in srgb,var(--tc) 12%,transparent);vertical-align:1px;cursor:help;flex:none}
 .sbchk{color:var(--s-yellow);cursor:help;white-space:nowrap}
 .sbnew{display:inline-block;margin-left:5px;padding:0 5px;border-radius:6px;font:800 .6rem/1.5 var(--f-display);letter-spacing:.06em;color:#0d0f14;background:var(--s-green);vertical-align:1px;cursor:help}.sbnew.up{background:none;color:var(--s-green);border:1px solid color-mix(in srgb,var(--s-green) 60%,transparent);padding:0 4px}
-.reactrow{margin:0 0 10px}.sbreact{text-decoration:none}
+.reactrow{margin:0 0 10px}
 .sbbad{color:var(--s-red);font-weight:700;cursor:help;white-space:nowrap}
 .lvc.lvq{--tc:var(--dim);border-style:dashed}.lvc.lve{border-style:dashed}
 .rklv li .nmw{display:flex;align-items:center;min-width:0}.rklv li .nmw .nm{min-width:0}
@@ -1960,7 +1960,7 @@ footer{color:var(--dim);font-size:.78rem}
     <section class="panel sbhead">
       <div class="sbnav">
         <button type="button" class="navbtn" id="sbprev" aria-label="Previous week">‹</button>
-        <div class="sbtitle"><select id="sbweek" aria-label="Week"></select><div class="sub" id="sbmeta"></div><div class="sbtwrow"><button type="button" class="clear sbtw" id="sbtw" hidden>Open This Week ›</button><button type="button" class="clear sblatest sbtw" id="sblatest" hidden>Back to latest week ›</button><a class="clear sbtw sbreact" id="sbreact" target="_blank" rel="noopener" hidden>Open React App ↗</a></div></div>
+        <div class="sbtitle"><select id="sbweek" aria-label="Week"></select><div class="sub" id="sbmeta"></div><div class="sbtwrow"><button type="button" class="clear sbtw" id="sbtw" hidden>Open This Week ›</button><button type="button" class="clear sblatest sbtw" id="sblatest" hidden>Back to latest week ›</button></div></div>
         <button type="button" class="navbtn" id="sbnext" aria-label="Next week">›</button>
       </div>
       <div class="sbtools">
@@ -3892,7 +3892,6 @@ function sbRender(){
     const cols=box.querySelectorAll(".sbcolc"); arts.forEach(x=>cols[+x.dataset.p].appendChild(x));
     cols.forEach((c,pi)=>{const n=c.children.length; c.previousElementSibling.querySelector(".sub").textContent=n?`${n} card${n===1?"":"s"}`:""; if(!n)c.innerHTML=`<div class="empty">No ranked ${PATHS[pi]} cards this week</div>`})}
   try{markCrowdFav($("sbcards"))}catch(e){}
-  try{reactShow()}catch(e){}
   try{localStorage.setItem("rsc-sb",JSON.stringify({w:sbWeek,p:sbPath}))}catch(e){}
 }
 
@@ -5610,7 +5609,6 @@ function hostVerified(){if(!acctOn()||!ACCT.claim||ACCT.claim.status!=="approved
 const reactUrl=()=>`https://rocksmith-cf-champ-assistant.web.app/scores/${Math.max(DATA_WEEK,cur[0])}`;
 const reactOk=()=>{try{return acctOn()&&(ACCT.admin||hostVerified())}catch(e){return false}};
 function reactBtn(){return reactOk()?`<p class="reactrow"><a class="btn" href="${reactUrl()}" target="_blank" rel="noopener">Open React App ↗</a> <span class="dim">Week ${Math.max(DATA_WEEK,cur[0])} in the Score Assistant</span></p>`:""}
-function reactShow(){const a=$("sbreact"); if(!a)return; const ok=reactOk(); a.hidden=!ok; if(ok){a.href=reactUrl(); a.title=`Open week ${Math.max(DATA_WEEK,cur[0])} in the Score Assistant (hosts only)`}}
 function hostOpenWeeks(){const out=[];for(let i=0;i<=hostAhead();i++){const w=weekAt(curIdx+i);if(!w[2])out.push([w,i])}return out}
 async function hostLoad(){if(!ACCT.sb)return;
   const {data,error}=await ACCT.sb.from("host_signups").select("week,player,user_id,created_at").gte("week",WEEKS[curIdx][0]);
@@ -5763,7 +5761,7 @@ function hostSection(admin){
         const by=ACCT.claims.find(c=>c.user_id===s.user_id);return `<b>${esc(s.player)}</b> ${by&&by.player!==s.player?`<small>signed up by ${esc(by.player)}</small>`:""}`})()}</span><button type="button" class="btn ghost" ${s.sheet?"data-hostsheet":"data-hostdrop"}="${s.week}">Remove</button></li>`}).join("")}</ul>
       <p>Open weeks:</p><ul>${open.map(([w,i])=>`<li><span>Week ${w[0]} · ${fmtShort(w[1])}${hostHol(w)}</span><span class="hslot">${hostSlot(w,i,null,true).replace("HOST NEEDED · SIGN UP","SIGN UP")}</span></li>`).join("")||`<li>Every week in the next ${hostAhead()} has a host.</li>`}</ul></div>`}
   if(!hostVerified())return "";
-  return `<div class="acctsec hostsec"><h3>Hosting</h3><p>Open weeks coming up. Sign up to host one here.</p><ul>${open.map(([w,i])=>`<li><span>Week ${w[0]} · ${fmtShort(w[1])}${hostHol(w)}</span><span class="hslot">${hostSlot(w,i).replace("HOST NEEDED · SIGN UP","SIGN UP")}</span></li>`).join("")||`<li>Every week in the next ${hostAhead()} has a host.</li>`}</ul></div>`;
+  return `<div class="acctsec hostsec"><h3>Hosting</h3>${reactBtn()}<p>Open weeks coming up. Sign up to host one here.</p><ul>${open.map(([w,i])=>`<li><span>Week ${w[0]} · ${fmtShort(w[1])}${hostHol(w)}</span><span class="hslot">${hostSlot(w,i).replace("HOST NEEDED · SIGN UP","SIGN UP")}</span></li>`).join("")||`<li>Every week in the next ${hostAhead()} has a host.</li>`}</ul></div>`;
 }
 // verification animals: one per player, seen only by the player and admins (see animals.sql)
 const VERIFY_EMOJI={"Aardvark": "🐜", "Alpaca": "🦙", "Armadillo": "🦔", "Axolotl": "🦎", "Badger": "🦡", "Bat": "🦇", "Bear": "🐻", "Beaver": "🦫", "Bee": "🐝", "Bison": "🦬", "Boar": "🐗", "Butterfly": "🦋", "Camel": "🐫", "Cat": "🐈", "Chameleon": "🦎", "Cheetah": "🐆", "Chicken": "🐔", "Chipmunk": "🐿️", "Cow": "🐄", "Crab": "🦀", "Crocodile": "🐊", "Deer": "🦌", "Dodo": "🦤", "Dog": "🐕", "Dolphin": "🐬", "Donkey": "🫏", "Dove": "🕊️", "Dragon": "🐉", "Duck": "🦆", "Eagle": "🦅", "Elephant": "🐘", "Flamingo": "🦩", "Fox": "🦊", "Frog": "🐸", "Giraffe": "🦒", "Goat": "🐐", "Gorilla": "🦍", "Hamster": "🐹", "Hedgehog": "🦔", "Hippo": "🦛", "Horse": "🐎", "Hummingbird": "🐦", "Jellyfish": "🪼", "Kangaroo": "🦘", "Koala": "🐨", "Ladybug": "🐞", "Leopard": "🐆", "Lion": "🦁", "Lizard": "🦎", "Llama": "🦙", "Lobster": "🦞", "Mammoth": "🦣", "Monkey": "🐒", "Moose": "🫎", "Mouse": "🐁", "Octopus": "🐙", "Orangutan": "🦧", "Otter": "🦦", "Owl": "🦉", "Ox": "🐂", "Panda": "🐼", "Parrot": "🦜", "Peacock": "🦚", "Penguin": "🐧", "Pig": "🐖", "Poodle": "🐩", "Rabbit": "🐇", "Raccoon": "🦝", "Ram": "🐏", "Rhino": "🦏", "Rooster": "🐓", "Scorpion": "🦂", "Seal": "🦭", "Shark": "🦈", "Sheep": "🐑", "Shrimp": "🦐", "Skunk": "🦨", "Sloth": "🦥", "Snail": "🐌", "Snake": "🐍", "Spider": "🕷️", "Squid": "🦑", "Swan": "🦢", "Tiger": "🐅", "Turkey": "🦃", "Turtle": "🐢", "T-Rex": "🦖", "Unicorn": "🦄", "Whale": "🐋", "Wolf": "🐺", "Zebra": "🦓"};
@@ -6369,7 +6367,7 @@ function bnMount(n){
   img.onerror=()=>{if(st){st.className="bnstat wait";st.textContent="Your banner image is being made. It's usually ready within 10 to 20 minutes of your claim being approved. You can add the link now; the picture appears as soon as it's ready."}};
   img.src=`cards/${bnSlug(n)}.png?t=${Date.now()}`;
 }
-function acctDraw(msg,err){try{reactShow()}catch(e){}
+function acctDraw(msg,err){
   acctUnmount();
   if(!ACCT.ready){$("acctbody").innerHTML=`<h3>Your profile</h3><p class="dim">Loading…</p>`;return}
   const b=$("acctbody"), note=(msg?`<p class="msg">${esc(msg)}</p>`:"")+(err?`<p class="err">${esc(err)}</p>`:"");
@@ -6389,7 +6387,7 @@ function acctDraw(msg,err){try{reactShow()}catch(e){}
   const tabs=`<div class="accttabs" role="tablist">${tb("me","Your profile")}${appr?tb("week",`Your week${ywN?`<span class="nbadge" title="Passed ${ywN} time${ywN===1?"":"s"} · the ✕ on the alert dismisses itt">${ywN}</span>`:""}`):""}${appr?tb("wrapped",`🎸 ${WRAP_OPEN()-1} Restringed`):""}${ACCT.claim&&ACCT.claim.status==="approved"?tb("banner","Forum banner"):""}${tb("manage","Manage account")}${canRateFor()?tb("host","Host"):""}${ACCT.admin?tb("admin",`Admin${(()=>{const t=typoScan().nNew; return t?`<span class="nbadge tybadge" title="${t} likely typo${t===1?"":"s"} in this week's scoreboard">${t}</span>`:""})()}${pendN?`<span class="nbadge" title="${pendN} claim${pendN===1?"":"s"} waiting for approval">${pendN}</span>`:""}`):""}</div>`;
   let h=tabs;
   if(ACCT.tab==="admin"){}
-  else if(ACCT.tab==="host")h+=`${reactBtn()}${hostSection(false).replace('class="acctsec hostsec"','class="acctsec hostsec hosttop"')}${(()=>{try{return closeSection()}catch(e){return ""}})()}${(()=>{try{return unusedSection()}catch(e){console.error(e); return ""}})()}${(()=>{try{return hlSection()}catch(e){return ""}})()}${(()=>{try{return fwHostSection()}catch(e){return ""}})()}${(()=>{try{return lapsedSection()}catch(e){return ""}})()}${adminRateSection()}${ratingLogSection()}`;
+  else if(ACCT.tab==="host")h+=`${hostSection(false).replace('class="acctsec hostsec"','class="acctsec hostsec hosttop"')}${(()=>{try{return closeSection()}catch(e){return ""}})()}${(()=>{try{return unusedSection()}catch(e){console.error(e); return ""}})()}${(()=>{try{return hlSection()}catch(e){return ""}})()}${(()=>{try{return fwHostSection()}catch(e){return ""}})()}${(()=>{try{return lapsedSection()}catch(e){return ""}})()}${adminRateSection()}${ratingLogSection()}`;
   else if(ACCT.tab==="banner")h+=bnTab(ACCT.claim.player);
   else if(ACCT.tab==="wrapped")h+=(()=>{try{return wrapSection(ACCT.claim.player)}catch(e){console.error(e); return ""}})();
   else if(ACCT.tab==="week"){const n=ACCT.claim.player; ACCT.twPart="week";
