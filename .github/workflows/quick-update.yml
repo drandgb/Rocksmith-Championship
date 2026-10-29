@@ -53,6 +53,7 @@ jobs:
             git config user.name  "github-actions[bot]"
             git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
             grep -o 'id="builtat" data-iso="[^"]*"' index.html | head -1 | sed 's/.*data-iso="//;s/"$//' > version.txt   # the page checks this to offer a refresh
+            grep -o 'data-sc="[^"]*" data-cv="[^"]*"' index.html | head -1 | sed 's/data-sc="//;s/" data-cv="/ /;s/"$//' >> version.txt   # score and page fingerprints: "new scores" or "site update"
             git add index.html version.txt build/data/cache cards; [ -f ratings.json ] && git add ratings.json || true; [ -f weekposts.json ] && git add weekposts.json || true
             git commit -m "Quick update from the scoreboard sheet (week $(cat build/work/data_week.txt))"
             git pull --rebase -X theirs origin main
