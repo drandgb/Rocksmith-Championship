@@ -18,6 +18,13 @@ var SUPA_URL="https://yeyzdxjqwdkswulrnver.supabase.co", SUPA_KEY="sb_publishabl
 // host sign-ups made on the site, fetched straight away (and remembered from the last visit) so the
 // "Host still needed" banner on This Week appears with the rest of the page instead of after the login loads
 var HS_PRE=null, HS_EARLY=null;
+// logged in last time (a saved login on this device): keep the page hidden until the login has loaded, so things that depend on
+// who you are (Your cards, your own profile in the lookups...) are right from the start instead of changing a moment later.
+// Never longer than 4 seconds; logged-out visitors don't wait at all.
+var ACCT_WAIT=null;
+function acctShow(){clearTimeout(ACCT_WAIT); document.documentElement.classList.remove("acctwait")}
+try{if(SUPA_URL&&SUPA_KEY&&/(^|\.)github\.io$|^localhost$|^127\.0\.0\.1$/.test(location.hostname)&&Object.keys(localStorage).some(k=>/^sb-.*-auth-token$/.test(k))){
+  document.documentElement.classList.add("acctwait"); ACCT_WAIT=setTimeout(acctShow,4000)}}catch(e){}
 try{HS_PRE=JSON.parse(localStorage.getItem("rsc-hostsign")||"null")}catch(e){}
 if(SUPA_URL&&SUPA_KEY&&/(^|\.)github\.io$|^localhost$|^127\.0\.0\.1$/.test(location.hostname))
   HS_EARLY=fetch(SUPA_URL+"/rest/v1/host_signups?select=week,player&order=week.desc&limit=60",{headers:{apikey:SUPA_KEY,Authorization:"Bearer "+SUPA_KEY}}).then(r=>r.ok?r.json():null).catch(()=>null);
@@ -780,7 +787,7 @@ a.dl svg,.offpill svg{width:11px;height:11px}
 .lvsp{width:60px;height:18px;display:block;opacity:.85}
 .lvc{display:inline-block;margin-left:5px;padding:0 5px;border-radius:6px;font:700 .68rem/1.45 var(--f-mono);color:var(--tc);border:1px solid color-mix(in srgb,var(--tc) 55%,transparent);background:color-mix(in srgb,var(--tc) 12%,transparent);vertical-align:1px;cursor:help;flex:none}
 .sbchk{color:var(--s-yellow);cursor:help;white-space:nowrap}
-.twwelcome{cursor:help}.freshbar{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:9999;background:var(--accent);color:#14110a;border:0;border-radius:999px;padding:10px 18px;font:800 .9rem var(--f-display);letter-spacing:.02em;box-shadow:0 6px 24px rgba(0,0,0,.45);cursor:pointer;animation:freshin .4s ease-out}@keyframes freshin{from{transform:translate(-50%,30px);opacity:0}}
+html.acctwait body{visibility:hidden}html.acctwait{background:var(--bg)}html.acctwait::after{content:"🎸 Loading…";position:fixed;inset:0;display:grid;place-items:center;color:var(--muted);font:600 1rem system-ui,sans-serif}.twwelcome{cursor:help}.freshbar{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:9999;background:var(--accent);color:#14110a;border:0;border-radius:999px;padding:10px 18px;font:800 .9rem var(--f-display);letter-spacing:.02em;box-shadow:0 6px 24px rgba(0,0,0,.45);cursor:pointer;animation:freshin .4s ease-out}@keyframes freshin{from{transform:translate(-50%,30px);opacity:0}}
 .card tbody td:not(.n):not(:first-child){cursor:pointer}.card td.n{width:100%}@media (max-width:520px){.card td{padding-right:6px;font-size:.74rem}.card td.n{font-size:.82rem}.sbtags .lvc{margin-left:3px;padding:0 3px;font-size:.6rem}.sbtags .mk{margin-left:1px}.sbnew{margin-left:3px}}.card td.n .sbnm{display:flex;align-items:center;width:0;min-width:100%}.card td.n .sbnm>[data-player]{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.sbtags{white-space:nowrap;flex:none;display:inline-flex;align-items:center}.sbnew{display:inline-grid;place-items:center;width:15px;height:15px;margin-left:4px;border-radius:5px;border:1px solid color-mix(in srgb,var(--s-green) 60%,transparent);color:var(--s-green);font:800 .58rem/1 var(--f-display);vertical-align:1px;cursor:help;box-sizing:border-box}.sbnew i{width:7px;height:7px;border-radius:50%;background:var(--s-green)}.sbnew.up{padding:0}
 .reactrow{margin:0 0 10px}
 .sbbad{color:var(--s-red);font-weight:700;cursor:help;white-space:nowrap}
@@ -6470,6 +6477,7 @@ async function acctRefresh(){
   const {data:cl}=await ACCT.sb.from("claims").select("user_id,player,status,created_at"); ACCT.claims=cl||[];
   ACCT.claim=ACCT.user?ACCT.claims.find(c=>c.user_id===ACCT.user.id)||null:null;
   lookupsToMe();
+  if(document.documentElement.classList.contains("acctwait")){try{sbRender()}catch(e){} acctShow()}   // who you are is known: show the page
   ACCT.admin=false; if(ACCT.user){const {data:ad}=await ACCT.sb.from("admins").select("user_id").eq("user_id",ACCT.user.id); ACCT.admin=!!(ad&&ad.length)}
   ACCT.animal=null; ACCT.animals={};
   if(ACCT.user){const {data:an}=await ACCT.sb.from("player_animals").select("user_id,animal"); (an||[]).forEach(r=>{ACCT.animals[r.user_id]=r.animal; if(r.user_id===ACCT.user.id)ACCT.animal=r.animal})}
@@ -6688,7 +6696,7 @@ $("acct").addEventListener("mousemove",e=>{const p=e.target.closest("[data-tip]"
 $("acct").addEventListener("click",e=>{if(e.target===$("acct"))$("acct").close()});
 // only on the real site (copies of the page elsewhere, like a preview, can't reach the login server)
 if(SUPA_URL&&SUPA_KEY&&/(^|\.)github\.io$|^localhost$|^127\.0\.0\.1$/.test(location.hostname)){
-  const s=document.createElement("script"); s.src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.min.js"; s.onerror=()=>{hostReady=true;renderHostWarn();$("acctbtn").hidden=true};
+  const s=document.createElement("script"); s.src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.min.js"; s.onerror=()=>{acctShow();hostReady=true;renderHostWarn();$("acctbtn").hidden=true};
   // show the button right away with what it said last visit, so it doesn't flash "Log in" before the login loads
   {const b=$("acctbtn"); let last=null; try{last=localStorage.getItem("rsc-acctbtn")}catch(e){} if(last)b.innerHTML=last; b.hidden=false;}
   s.onload=()=>{ACCT.sb=window.supabase.createClient(SUPA_URL,SUPA_KEY); ACCT.on=true; acctRefresh();
