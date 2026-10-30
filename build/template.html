@@ -2903,6 +2903,8 @@ function hlText(w){eloBuild(); const I=sbIx(), L=[], played=Object.keys(I.wk).fi
   // no lost trophies: every challenge decided this week has a winner (God challenges that carry on don't count yet)
   {const ch=(SB.weeks[w]||[]).filter(c=>c[3]&&!/^n\/a$/i.test(c[3])&&!c[7]);
    if(w<=DATA_WEEK&&ch.length&&ch.every(c=>c[6].some(x=>canWin(x))))L.push(`🏆 No lost trophies this week: all ${ch.length} challenges have a winner!`)}
+  // thank everyone who rated the week's songs
+  {const V=ACCT.voters&&ACCT.voters[w]; if(V&&V.size)L.push(`🙏 Thank you to everyone who rated Week ${w}'s songs: ${[...V].sort((a,b)=>a.localeCompare(b,undefined,{sensitivity:"base"})).map(n=>"@"+n).join(", ")}`)}
   // the last week of a season: announce the new one, with the champions of the one just finished
   let head=""; const sNow=seasonOf(w), sNext=seasonOf(w+1);
   const sLine=(pi,up)=>{const T=seasonF1(pi,sNow,up), M=seasonImproved(pi,sNow,up);
@@ -5733,9 +5735,10 @@ async function acctLoadWeek(){
   if(ACCT.loading.all||!ACCT.sb)return; ACCT.loading.all=true;
   const {data,error}=await ACCT.sb.from("votes").select("*"); // hidden ratings (removed claims) only reach admins, and never count
   ACCT.loading.all=false; if(error)return;
-  const best={}, mine={}, rows={}, me=ACCT.claim&&ACCT.claim.player;
+  const best={}, mine={}, rows={}, me=ACCT.claim&&ACCT.claim.player, voters={};
   (data||[]).forEach(v=>{
     if(v.hidden)return;
+    (voters[v.week]=voters[v.week]||new Set()).add(v.player);   // who rated each week's songs (ratings a host put in for a player count as theirs)
     const song=v.song||songAt(v.week,v.path,v.slot); if(!song)return;
     const k=arrP(v.week,v.path,v.slot)+"|"+acctSongKey(song), id=k+"|"+v.player;
     (rows[k+"|"+v.player]=rows[k+"|"+v.player]||[]).push({week:v.week,path:v.path,slot:v.slot});
@@ -5743,7 +5746,8 @@ async function acctLoadWeek(){
     if(!best[id]||String(v.updated_at)>String(best[id].t))best[id]={k,p:v.player,r:+v.rating,t:v.updated_at,u:v.user_id};
   });
   const S={}; Object.values(best).forEach(x=>(S[x.k]=S[x.k]||[]).push({p:x.p,r:x.r,u:x.u}));
-  ACCT.songs=S; ACCT.mine=mine; ACCT.rows=rows; sbRender();
+  ACCT.songs=S; ACCT.mine=mine; ACCT.rows=rows; ACCT.voters=voters; sbRender();
+  {const h=document.querySelector(".acctdlg .hlbox"); if(h&&!h.matches(".unusedbox,.rpbox,.sibox"))h.outerHTML=hlSection()}   // the highlights thank the voters
   if($("acct").open&&ACCT.tab==="host")admRateRedraw();
   if($("acct").open&&ACCT.tab==="week"&&!ACCT.rateDrawn){ACCT.rateDrawn=true; try{acctDraw()}catch(e){}}
   {const tw=document.getElementById("acct-tw"); if(tw&&$("acct").open&&ACCT.claim)tw.innerHTML=acctThisWeek(ACCT.claim.player);} if(typeof renderSongs==="function"){if(!$("view-songs").hidden)renderSongs(); else window.__songsStale=true}
