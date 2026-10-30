@@ -631,7 +631,7 @@ a.dl svg,.offpill svg{width:11px;height:11px}
 .rs-who{margin-left:auto;text-align:right}.rs-who .wr-title{margin:0}.rs-name{font:700 1.05rem var(--f-display);color:var(--fg);margin-top:2px}
 .rs-foot{margin-top:14px;font:600 .72rem var(--f-mono);color:var(--muted)}
 @media (max-width:620px){.rs-top{flex-wrap:wrap}.rs-logo{width:48px;height:48px}.rs-who{margin-left:0;text-align:left;flex:1 1 100%}}.wr-grid>.wr-t{order:var(--o4);grid-column:span var(--s4)}@media (max-width:620px){.wr-grid .wr-t .wr-v{font-size:1.2rem;word-break:normal;overflow-wrap:normal}.wr-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.wr-grid>.wr-t{order:var(--o2);grid-column:span var(--s2)}}.wrap .wr-head select{flex:none;width:auto;margin:0}.wr-t{border-radius:14px;padding:12px 14px;color:#fff;position:relative;overflow:hidden;min-height:96px;display:flex;flex-direction:column;gap:2px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.08)}.wr-t::after{content:"";position:absolute;width:120px;height:120px;border-radius:50%;right:-40px;top:-50px;background:rgba(255,255,255,.12)}.wr-l{font:700 .68rem var(--f-display);letter-spacing:.12em;text-transform:uppercase;opacity:.85}.wr-v{font:800 1.8rem/1.1 var(--f-display);letter-spacing:.01em;word-break:break-word}.wr-s{font-size:.8rem;opacity:.92;line-height:1.35}.wr-s small{display:block;opacity:.8;font-size:.72rem}.wr-t .ywgo,.wr-t .nm{color:inherit;cursor:pointer;text-decoration:underline dotted}.wr-a{background:linear-gradient(135deg,#1db954,#0f6b34)}.wr-t.wr-b{background:linear-gradient(135deg,#f5b52e,#c4521c)}.wr-c{background:linear-gradient(135deg,#8a4cf0,#d64fb8)}.wr-d{background:linear-gradient(135deg,#2f7fef,#1a3f9c)}.wr-e{background:linear-gradient(135deg,#ff6a4a,#a3243a)}.wr-f{background:linear-gradient(135deg,#17b5c4,#156b8a)}.wr-g{background:linear-gradient(135deg,#e9406b,#7a1f6b)}.wr-h{background:linear-gradient(135deg,#6b5cf0,#2b2a7a)}.wr-i{background:linear-gradient(135deg,#45d17a,#1c7a7a)}.wr-j{background:linear-gradient(135deg,#ff9a2e,#9c3d12)}.wr-k{background:linear-gradient(135deg,#3a4256,#1d2433)}.wr-k .wr-v{font-size:1.15rem;display:flex;gap:10px;flex-wrap:wrap}.ywx{position:absolute;top:6px;right:8px;background:none;border:0;color:var(--muted);font-size:1rem;line-height:1;padding:4px 6px;border-radius:6px;cursor:pointer}.ywx:hover{color:var(--text,#e9edf5);background:color-mix(in srgb,var(--s-red) 18%,transparent)}.ywalert h4{padding-right:26px}
-.ywalert ul{margin:0;padding:0}.ywalert li{list-style:none;padding:4px 0;font-size:.86rem}.ywalert .dn{color:var(--s-red);font-weight:800}.ywalert small{color:var(--muted)}
+.ywseas{border-color:color-mix(in srgb,var(--s-yellow) 60%,transparent);background:color-mix(in srgb,var(--s-yellow) 8%,transparent)}.ywseas h4{color:var(--s-yellow)}.ywseas p{margin:0 0 4px;font-size:.84rem;color:var(--muted)}.ywalert ul{margin:0;padding:0}.ywalert li{list-style:none;padding:4px 0;font-size:.86rem}.ywalert .dn{color:var(--s-red);font-weight:800}.ywalert small{color:var(--muted)}
 .pvbar{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:8px 10px 10px;padding:7px 10px;border-radius:8px;background:color-mix(in srgb,var(--tc) 8%,transparent);border:1px dashed color-mix(in srgb,var(--tc) 40%,transparent);font-size:.8rem;color:var(--muted)}
 .pvwrap{margin-top:auto}.pvbar .pvlab{margin-right:auto}a.pvw{text-decoration:none}.pvold .pvsub{display:block;font-size:.72rem;color:var(--muted);margin-top:2px}.pvold .pvlab{flex:1 1 0;min-width:0}.pvbar+.pvbar,.pvbody+.pvbar{margin-top:-4px}.pvbar .pvlab b{color:var(--fg)}
 .pvw{font:inherit;font-weight:700;color:var(--tc);background:none;border:1px solid color-mix(in srgb,var(--tc) 55%,transparent);border-radius:999px;padding:2px 10px;cursor:pointer}
@@ -6194,6 +6194,20 @@ function rivAlert(n){let out=[]; try{const w=TW_MAX, live=w>DATA_WEEK, sf=live?"
     const ch=prev&&prev!==r.them?` · a new rival <small>(before: ${nm(prev)})</small>`:"";
     out.push(`<li class="${r.l>r.w?"rlost":r.w>r.l?"rwon":""}">${P} · ${res}${ch}</li>`)})}catch(e){return ""}
   return out.length?`<div class="ywalert ywriv"><h4>⚔️ Your rivals this week · ${out.length}</h4><ul>${out.join("")}</ul></div>`:""}
+// Season ranking in danger: in the week still being played, the season standings if it ended now put you lower than you
+// were after last week (in your own class on that path), and who would pass you
+function seasonRanks(L){const m={}; let rk=0; L.forEach((x,i)=>{if(i===0||f1Cmp(L[i-1],x)!==0)rk=i+1; m[x.n.toLowerCase()]=rk}); return m}
+function seasDanger(n){const w=TW_MAX; if(!(w>ELO_DONE))return []; const id=seasonOf(w), [a]=id?seasonRange(id):[]; if(!id||w-1<a||seasonOf(w-1)!==id)return [];
+  const k=twCanon(n).toLowerCase(), out=[]; eloBuild();
+  [0,1,2].forEach(pi=>{const B=seasonF1(pi,id,w-1), T=seasonF1(pi,id,w,true);
+    Object.keys(T).forEach(c=>{const rb=seasonRanks(B[c]||[]), rt=seasonRanks(T[c]), was=rb[k], now=rt[k]; if(!was||!now||now<=was)return;
+      const by=T[c].filter(x=>x.n.toLowerCase()!==k&&rt[x.n.toLowerCase()]<now&&!(rb[x.n.toLowerCase()]<was)).map(x=>x.n);
+      out.push({pi,c,was,now,by})})});
+  return out}
+function seasAlert(n){let L=[]; try{L=seasDanger(n)}catch(e){return ""} if(!L.length)return "";
+  const nm=x=>`<span class="nm" data-player="${esc(x)}">${esc(x)}</span>`;
+  return `<div class="ywalert ywseas"><h4>🏁 Your season ranking is in danger · ${L.length}</h4><p>If the week ended now, you'd drop in the season standings:</p><ul>${L.map(d=>
+    `<li><span class="nwp" style="color:${PATH_C[d.pi]}">${PATHS[d.pi]} ${TIER_NAME[d.c]}</span> · <span class="dn">${ywMed(d.was)} → ${ywMed(d.now)}</span>${d.by.length?` <small>passed by ${d.by.map(nm).join(", ")}</small>`:""}</li>`).join("")}</ul></div>`}
 // ---------- Restringed: a claimed player's year in review (from the scoreboards and attendance) ----------
 // a year's Restringed opens on January 1 of the next year, once the year is over (so 2026's arrives on 1 January 2027)
 const WRAP_OPEN=()=>new Date().getFullYear();
@@ -6610,7 +6624,7 @@ function acctDraw(msg,err){
   else if(ACCT.tab==="banner")h+=bnTab(ACCT.claim.player);
   else if(ACCT.tab==="wrapped")h+=(()=>{try{return wrapSection(ACCT.claim.player)}catch(e){console.error(e); return ""}})();
   else if(ACCT.tab==="week"){const n=ACCT.claim.player; ACCT.twPart="week";
-    h+=`${ywAlert(n)}${rivAlert(n)}${(()=>{try{return rateAlert(n)}catch(e){return ""}})()}${(()=>{try{return fwNudge(n)}catch(e){return ""}})()}${(()=>{try{const x=hrNextHtml(n); return x?`<div class="acctsec">${x}</div>`:""}catch(e){return ""}})()}${ywList(n)}<div id="acct-tw">${acctThisWeek(n,"week")}</div>`}   // alert, how the week is going, rivals, Played before, then the scoreboard
+    h+=`${ywAlert(n)}${seasAlert(n)}${rivAlert(n)}${(()=>{try{return rateAlert(n)}catch(e){return ""}})()}${(()=>{try{return fwNudge(n)}catch(e){return ""}})()}${(()=>{try{const x=hrNextHtml(n); return x?`<div class="acctsec">${x}</div>`:""}catch(e){return ""}})()}${ywList(n)}<div id="acct-tw">${acctThisWeek(n,"week")}</div>`}   // alert, how the week is going, rivals, Played before, then the scoreboard
   else if(ACCT.tab==="manage"){
     h+=`<div class="adm acctsec"><h3>Verification animal</h3>${animalNote()||`<p class="dim">You'll get a verification animal once you claim your player profile.</p>`}</div>
       <div class="acctsec"><h3>Log out</h3><p class="dim">Log out of the site on this device.</p><div class="row"><button type="button" class="btn ghost" data-acct="logout">Log out</button></div></div>
