@@ -5295,7 +5295,7 @@ function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
 function lsSet(k,v){try{if(v==null)localStorage.removeItem(k);else localStorage.setItem(k,v)}catch(e){} if(prefSynced(k))prefPush()}
 // Popups and folds you close follow your login: saved with your account (Supabase user metadata, "closed") as well as on this device,
 // and brought onto any device you log in on. Logged out, they're only kept on this device.
-function prefSynced(k){return k==="rsc-newhere"||k==="rsc-newweek-seen"||k==="rsc-dl-fold"||k==="rsc-pv-fold"||k.startsWith("rsc-passed-seen-")}
+function prefSynced(k){return k.startsWith("rsc-seas-seen-")||k==="rsc-newhere"||k==="rsc-newweek-seen"||k==="rsc-dl-fold"||k==="rsc-pv-fold"||k.startsWith("rsc-passed-seen-")}
 function prefLocal(){const o={}; try{for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i); if(prefSynced(k))o[k]=localStorage.getItem(k)}}catch(e){} return o}
 let prefT=null;
 function prefPush(){clearTimeout(prefT); prefT=setTimeout(()=>{try{if(window.ACCT&&ACCT.user&&ACCT.sb)ACCT.sb.auth.updateUser({data:{closed:prefLocal()}}).catch(()=>{})}catch(e){}},800)}
@@ -5303,9 +5303,9 @@ async function prefPull(){try{const {data}=await ACCT.sb.auth.getUser(); const u
   const R=(u.user_metadata&&u.user_metadata.closed)||{}, L=prefLocal(); let changed=false, more=false;
   Object.entries(R).forEach(([k,v])=>{if(!prefSynced(k)||v==null)return; const l=L[k];
     // seen-up-to values (a week, a time, "1"): keep the later one; folds: take the account's if this device has none
-    const later=k.endsWith("-fold")?l==null:(l==null||+v>+l);
+    const later=k.endsWith("-fold")?l==null:(l==null||parseFloat(v)>parseFloat(l));
     if(later){try{localStorage.setItem(k,String(v))}catch(e){} changed=true}});
-  Object.keys(L).forEach(k=>{if(!(k in R)||(!k.endsWith("-fold")&&+L[k]>+R[k]))more=true});
+  Object.keys(L).forEach(k=>{if(!(k in R)||(!k.endsWith("-fold")&&parseFloat(L[k])>parseFloat(R[k])))more=true});
   if(more)prefPush();
   if(changed){if(lsGet("rsc-newhere")==="1"){const el=$("newhere"); if(el)el.hidden=true}
     [()=>renderNewWeekNote(),()=>renderDownloads(),()=>renderTwPast(),()=>acctBtn()].forEach(f=>{try{f()}catch(e){}})}}catch(e){}}
@@ -6204,9 +6204,12 @@ function seasDanger(n){const w=TW_MAX; if(!(w>ELO_DONE))return []; const id=seas
       const by=T[c].filter(x=>x.n.toLowerCase()!==k&&rt[x.n.toLowerCase()]<now&&!(rb[x.n.toLowerCase()]<was)).map(x=>x.n);
       out.push({pi,c,was,now,by})})});
   return out}
-function seasAlert(n){let L=[]; try{L=seasDanger(n)}catch(e){return ""} if(!L.length)return "";
+// dismissed: hidden until it changes (a new week, or a drop to a different place)
+const seasKey=n=>"rsc-seas-seen-"+n.toLowerCase(), seasSig=L=>TW_MAX+":"+L.map(d=>d.pi+d.c+d.now).join(",");
+function seasUnseen(n){let L=[]; try{L=seasDanger(n)}catch(e){return []} return L.length&&lsGet(seasKey(n))!==seasSig(L)?L:[]}
+function seasAlert(n){const L=seasUnseen(n); if(!L.length)return "";
   const nm=x=>`<span class="nm" data-player="${esc(x)}">${esc(x)}</span>`;
-  return `<div class="ywalert ywseas"><h4>🏁 Your season ranking is in danger · ${L.length}</h4><p>If the week ended now, you'd drop in the season standings:</p><ul>${L.map(d=>
+  return `<div class="ywalert ywseas"><button type="button" class="ywx" data-seasdismiss="${esc(n)}" title="Dismiss until it changes" aria-label="Dismiss">✕</button><h4>🏁 Your season ranking is in danger · ${L.length}</h4><p>If the week ended now, you'd drop in the season standings:</p><ul>${L.map(d=>
     `<li><span class="nwp" style="color:${PATH_C[d.pi]}">${PATHS[d.pi]} ${TIER_NAME[d.c]}</span> · <span class="dn">${ywMed(d.was)} → ${ywMed(d.now)}</span>${d.by.length?` <small>passed by ${d.by.map(nm).join(", ")}</small>`:""}</li>`).join("")}</ul></div>`}
 // ---------- Restringed: a claimed player's year in review (from the scoreboards and attendance) ----------
 // a year's Restringed opens on January 1 of the next year, once the year is over (so 2026's arrives on 1 January 2027)
@@ -6480,6 +6483,8 @@ function acctBtn(){const b=$("acctbtn"); b.hidden=!ACCT.on;
   // players: how many times they've been passed on this week's scoreboard since their last visit (Your week tab)
   const yn=ACCT.claim&&ACCT.claim.status==="approved"?ywUnseen(ACCT.claim.player).length:0;
   if(yn)b.insertAdjacentHTML("beforeend",`<span class="nbadge" title="Passed ${yn} time${yn===1?"":"s"} on this week's scoreboard · dismiss it in Your week">${yn}</span>`);
+  const sd=ACCT.claim&&ACCT.claim.status==="approved"?seasUnseen(ACCT.claim.player).length:0;
+  if(sd)b.insertAdjacentHTML("beforeend",`<span class="nbadge" title="Your season ranking is in danger on ${sd} path${sd===1?"":"s"} · dismiss it in Your week">🏁${sd}</span>`);
   try{localStorage.setItem("rsc-acctbtn",b.innerHTML)}catch(e){} // shown straight away on the next visit while the login loads
   if(typeof renderDownloads==="function"){try{renderNewWeekNote();renderTwPast();renderDownloads()}catch(e){}}
 }
@@ -6702,6 +6707,8 @@ $("acctbtn").addEventListener("click",()=>{acctDraw();$("acct").showModal();$("a
 $("acctclose").addEventListener("click",()=>$("acct").close());
 // hover text inside the dialog (the tip moves into the dialog while it's open, so it shows above it)
 // ✕ on "You've been passed": mark everything up to the newest pass as seen, then hide the alert and clear the badges
+document.addEventListener("click",e=>{const b=e.target.closest("[data-seasdismiss]"); if(!b)return; e.stopPropagation(); const n=b.dataset.seasdismiss;
+  lsSet(seasKey(n),seasSig(seasDanger(n))); const a=b.closest(".ywalert"); if(a)a.remove(); try{acctBtn()}catch(e){}});
 document.addEventListener("click",e=>{const b=e.target.closest("[data-ywdismiss]"); if(!b)return; e.stopPropagation(); const n=b.dataset.ywdismiss, last=ywPasses(n)[0];
   if(last)lsSet(ywKey(n),String(Date.parse(last.t))); ACCT.ywShown=[]; const a=b.closest(".ywalert"); if(a)a.remove(); try{acctBtn()}catch(e){}
   document.querySelectorAll('.accttabs .nbadge[title^="Passed"]').forEach(x=>x.remove())},true);
