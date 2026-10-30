@@ -6527,7 +6527,10 @@ function bnSlug(n){return String(n).toLowerCase().replace(/[^a-z0-9]+/g,"-").rep
 const BN_STRIPE=`<div class="bn-stripe">${["#e5484d","#f5c84a","#3f8cff","#ff9a2e","#3fcf7a","#a46bff"].map(c=>`<i style="background:${c}"></i>`).join("")}</div>`;
 // banner: Rodman's player level (XP now) on each path, and its place among everyone with a level now
 function bnLevel(n,pi){if(typeof LEVEL==="undefined"||!LEVEL||!LEVEL.paths)return null; let D=LEVEL; try{D=lvCur()}catch(e){} const k=lvKey(n), L=(D.paths[pi]||[]).filter(p=>p.xp);
-  const me=L.find(p=>lvKey(p.n)===k); if(!me)return null; return {v:me.xp,r:1+L.filter(p=>p.xp>me.xp).length}}
+  const me=L.find(p=>lvKey(p.n)===k); if(me)return {v:me.xp,r:1+L.filter(p=>p.xp>me.xp).length};
+  // back after a break (played this path in the last 12 weeks) without a level now: the site's own level, or else the last one they had
+  lvAt(pi,k,DATA_WEEK); const ws=Object.keys((LV_ROLL[pi]||{})[k]||{}).map(Number); if(!ws.some(w=>w>DATA_WEEK-12)&&lvLiveWeek(TW_MAX)[pi][k]==null)return null;
+  const v=lvAt(pi,k,DATA_WEEK); if(v!=null)return {v,r:null}; const o=lvLast(pi,k,DATA_WEEK); return o?{v:o.v,r:null}:null}
 function bannerHtml(n){
   const p=byName[n]; if(!p)return ""; const T=String(p[8]||"").split(""), v=wv(n,-1)||[0,0,0];
   const tier=t=>t&&t!=="?"?t:"–", tc=t=>TIER_C[t]||"#8b93a7";
