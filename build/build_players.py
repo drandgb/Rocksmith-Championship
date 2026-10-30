@@ -90,6 +90,9 @@ for n, b in pres.items():
     players.append([n, first, ws[-1], len(ws), round(len(ws) / (data_week - first + 1), 4), act, best, hx, t])
 
 json.dump(players, open("players.json", "w"), separators=(",", ":"))
+# PlayersList classes for names not in the player list yet (new this week: they first appear once their week is finished)
+listed = {p[0].lower() for p in players}
+json.dump({n: t for n, t in tiers.items() if n.lower() not in listed}, open("plist_new.json", "w"), separators=(",", ":"))
 json.dump(parts, open("parts.json", "w"))
 print(f"players {len(players)}, weeks 2-{data_week}")
 if unknown:   # worth a glance in the build log, in case one of these is a typo of an existing name
