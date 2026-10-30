@@ -5490,12 +5490,22 @@ function renderThisWeek(){
   // starting rank per path: the level they played at their own class (no * mark); playing up or down doesn't count
   // a FreeBird's scores carry the ~ mark: they show as F
   // PlayersList's class first (new players aren't in the player list until their first week is finished: PL_NEW has theirs),
-  // then the class of the cards they played in their own class this week
+  // then a prediction from how their scores compare with the players in each class (their place on each card they played,
+  // among that class's own players): the highest class where they'd finish in the top half, or else the lowest one they tried
+  const rsWhy={};
+  const rsPredict=(n,pi)=>{const k=n.toLowerCase(), mine=ents.filter(x=>x.n.toLowerCase()===k&&x.c[0]===pi&&x.e[1]!=null);
+    if(mine.length&&mine.every(x=>/~/.test(SB.names[x.e[0]])))return "F";
+    const rows=mine.map(x=>{const L=tierOf(x.c[2]); if(!"BIAM".includes(L||"-"))return null;
+      const others=x.c[6].filter(e=>e!==x.e&&e[1]!=null&&canWin(e)&&SB.names[e[0]].replace(/[*~]+$/,"").toLowerCase()!==k);
+      const place=1+others.filter(e=>+e[1]>+x.e[1]).length, N=others.length+1; return {L,c:x.c,pct:+x.e[1],place,N,ok:place<=Math.ceil(N/2)}}).filter(Boolean);
+    if(!rows.length)return null;
+    const ord="BIAM", ok=rows.filter(r=>r.ok).sort((a,b)=>ord.indexOf(b.L)-ord.indexOf(a.L)), pick=ok.length?ok[0].L:rows.sort((a,b)=>ord.indexOf(a.L)-ord.indexOf(b.L))[0].L;
+    rsWhy[n+"|"+pi]=rows.sort((a,b)=>ord.indexOf(a.L)-ord.indexOf(b.L)).map(r=>`${r.c[2]}: ${+r.pct.toFixed(2)}% would be ${r.place}${["th","st","nd","rd"][(r.place%100-20)%10]||["th","st","nd","rd"][r.place%100]||"th"} of ${r.N}`).join("\n");
+    return pick+"*"};
   const startRanks=n=>[0,1,2].map(pi=>{const pl=String(((byName[n]||[])[8])||PL_NEW[n]||PL_NEW[Object.keys(PL_NEW).find(k=>k.toLowerCase()===n.toLowerCase())]||"").charAt(pi).toUpperCase(); if("BIAM".includes(pl||"-"))return pl;
-    const own=ents.filter(x=>x.n===n&&x.c[0]===pi&&!/[*]/.test(SB.names[x.e[0]])).map(x=>/~/.test(SB.names[x.e[0]])?"F":tierOf(x.c[2])).filter(l=>"FBIAM".includes(l||"-"));
-    if(own.length){const t=own.sort((a,b)=>"FBIAM".indexOf(b)-"FBIAM".indexOf(a))[0]; return t==="F"?t:t+"*"}   // * = worked out from the cards, not PlayersList
+    const pr=rsPredict(n,pi); if(pr)return pr;   // * = predicted, not from PlayersList
     const p=byName[n]; const t=p&&p[8]?p[8][pi].toUpperCase():"?"; return "FBIAM".includes(t)?t:"?"});
-  $("tw-new").innerHTML=fresh.length?fresh.map(n=>{const r=startRanks(n); return `<li>${twName(n).replace('<span class="nm"',`<span class="nm twwelcome" data-tip="${esc(`Welcome to the championship, ${n}! 🎉`)}"`)}<span class="pill new" style="width:auto">NEW</span><div class="twtiers">${["Lead","Rhythm","Bass"].map((k,i)=>(()=>{const t=r[i].charAt(0), g=r[i].endsWith("*"); return `<div class="tier" style="--tc:${TIER_C[t]||"var(--muted)"}" data-tip="${esc(t==="?"?`No ${k} rank yet`:t==="F"?`Playing ${k} as a FreeBird for now`:g?`Started ${k} as ${TIER_NAME[t]}*\n* Predicted: not in PlayersList yet, so this is the highest class of the ${k} cards they played in their own class this week`:`Started ${k} as ${TIER_NAME[t]}`)}"><small>${k}</small><b>${t==="?"?"–":t}${g?"<sup>*</sup>":""}</b></div>`})()).join("")}</div></li>`}).join(""):twEmpty(live?"No new players yet this week.":"No new players this week.");
+  $("tw-new").innerHTML=fresh.length?fresh.map(n=>{const r=startRanks(n); return `<li>${twName(n).replace('<span class="nm"',`<span class="nm twwelcome" data-tip="${esc(`Welcome to the championship, ${n}! 🎉`)}"`)}<span class="pill new" style="width:auto">NEW</span><div class="twtiers">${["Lead","Rhythm","Bass"].map((k,i)=>(()=>{const t=r[i].charAt(0), g=r[i].endsWith("*"); return `<div class="tier" style="--tc:${TIER_C[t]||"var(--muted)"}" data-tip="${esc(t==="?"?`No ${k} rank yet`:t==="F"?`Playing ${k} as a FreeBird for now`:g?`Predicted ${k} class: ${TIER_NAME[t]}*\n* Not in PlayersList yet: predicted from how their scores compare with the players in each class (the highest class where they'd finish in the top half)\n${rsWhy[n+"|"+i]||""}`:`Started ${k} as ${TIER_NAME[t]}`)}"><small>${k}</small><b>${t==="?"?"–":t}${g?"<sup>*</sup>":""}</b></div>`})()).join("")}</div></li>`}).join(""):twEmpty(live?"No new players yet this week.":"No new players this week.");
   // Played this year (default): only players who played in the past year; All: everyone whose first week was this week
   document.querySelectorAll("#annmode button").forEach(b=>b.setAttribute("aria-pressed",String((b.dataset.ann==="1")===twAnnAll)));
   $("tw-ann-sub").textContent=twAnnAll?"First played this week in an earlier year":"First played this week in an earlier year and last played within the past year";
