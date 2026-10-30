@@ -3940,7 +3940,7 @@ try{const s=localStorage.getItem("rsc-host"); if(s&&(hosts[s]||CATS[s])){selHost
 renderLB(); renderTL(); renderLog(); renderUpcoming();
 // ---------- scoreboard ----------
 const SB_WEEKS=Object.keys(SB.weeks).map(Number).sort((a,b)=>b-a);
-let sbWeek=SB.weeks[cur[0]]?cur[0]:SB_WEEKS.find(w=>w<=cur[0])||SB_WEEKS[0], sbPath=0, sbFind="";
+let sbWeek=SB.weeks[cur[0]]?cur[0]:SB_WEEKS.find(w=>w<=cur[0])||SB_WEEKS[0], sbPath=0, sbFind="", sbWant3=false;
 const SB_HOME=sbWeek; // "this week" on the Scoreboard (a later week on the sheet is a preview of next week)
 const SB_CYC=["","B","I","A","M","G"]; let sbLv=["","",""]; // level shown per path; "" = all cards
 const cardLv=l=>/god/i.test(l)?"G":/master/i.test(l)?"M":/^adv/i.test(l)?"A":/^int/i.test(l)?"I":/begin/i.test(l)?"B":"";
@@ -3986,7 +3986,8 @@ function sbRender(){
     return `<button type="button" class="tier" data-path="${i}" aria-pressed="${on}" style="--pc:${PATH_C[i]};--tc:${t?(TIER_C[t]||"var(--s-red)"):"var(--fg)"}" title="${on?`${k}: showing ${t?LV_NAME[t]:"all levels"} · click for ${nx?LV_NAME[nx]:"all levels"}`:`Show ${k}`}"><small>${k}</small><b>${t||"All"}</b><i>${t?LV_NAME[t]:"all levels"}</i></button>`}).join("");
   // "Your cards": every card where the highlighted player (or you, when logged in) is ranked in their own class, Lead, Rhythm and Bass together
   const mineWho=(sbFind||myPlayer()||"").toLowerCase();
-  if(sbPath===3&&!mineWho)sbPath=0;
+  // Your cards was open last time but the login hasn't loaded yet: show Lead for now and go back to Your cards once it has
+  if(sbPath===3&&!mineWho){sbPath=0; sbWant3=true} else if(sbWant3&&mineWho){sbPath=3; sbWant3=false}
   $("sbseg").insertAdjacentHTML("afterbegin",mineWho?`<button type="button" class="tier mine" data-path="3" aria-pressed="${sbPath===3}" style="--pc:var(--s-yellow);--tc:var(--fg)" title="All of ${esc(sbFind||myPlayer())}'s ranked cards this week (their own class on Lead, Rhythm and Bass) in one place"><small>Your cards</small><b>★</b><i>L · R · B</i></button>`:"");
   const all=ch.flatMap(c=>c[6]), players=new Set(all.map(e=>SB.names[e[0]].replace(/[*~]+$/,"")));
   const pathEnts=ch.filter(c=>c[0]===sbPath).flatMap(c=>c[6]);
@@ -4045,7 +4046,7 @@ function sbRender(){
     const cols=box.querySelectorAll(".sbcolc"); arts.forEach(x=>cols[+x.dataset.p].appendChild(x));
     cols.forEach((c,pi)=>{const n=c.children.length; c.previousElementSibling.querySelector(".sub").textContent=n?`${n} card${n===1?"":"s"}`:""; if(!n)c.innerHTML=`<div class="empty">No ranked ${PATHS[pi]} cards this week</div>`})}
   try{markCrowdFav($("sbcards"))}catch(e){}
-  try{localStorage.setItem("rsc-sb",JSON.stringify({w:sbWeek,p:sbPath}))}catch(e){}
+  try{localStorage.setItem("rsc-sb",JSON.stringify({w:sbWeek,p:sbWant3?3:sbPath,lv:sbLv}))}catch(e){}
 }
 
 // "Played before" strip under a scoreboard card: one pill per earlier week (newest first); a pill opens that week's results
@@ -4079,7 +4080,7 @@ $("sbweek").addEventListener("change",e=>{sbWeek=+e.target.value;sbPv={};sbRende
 $("sbprev").addEventListener("click",()=>{const i=SB_WEEKS.indexOf(sbWeek);if(i<SB_WEEKS.length-1){sbWeek=SB_WEEKS[i+1];sbRender()}});
 $("sbnext").addEventListener("click",()=>{const i=SB_WEEKS.indexOf(sbWeek);if(i>0){sbWeek=SB_WEEKS[i-1];sbRender()}});
 // click a path to show it; click the shown path again to cycle its level: All → B → I → A → M → God → All
-$("sbseg").addEventListener("click",e=>{const b=e.target.closest("button[data-path]");if(!b)return;const i=+b.dataset.path;
+$("sbseg").addEventListener("click",e=>{const b=e.target.closest("button[data-path]");if(!b)return;const i=+b.dataset.path; sbWant3=false;
   if(i===3){sbPath=3; tip.hidden=true; sbRender(); return}
   if(i===sbPath)sbLv[i]=SB_CYC[(SB_CYC.indexOf(sbLv[i])+1)%SB_CYC.length]; else sbPath=i;
   tip.hidden=true;sbRender();$("sbseg").querySelector(`[data-path="${i}"]`).focus()});
@@ -4115,7 +4116,7 @@ document.addEventListener("pointerdown",e=>{if(sbTipPin&&!sbTipPin.contains(e.ta
    e.preventDefault(); e.stopPropagation(); sbTipPin=p; tip.textContent=p.dataset.tip; tip.hidden=false;
    const r=p.getBoundingClientRect(); placeTip(Math.max(8,r.left-12),r.bottom-4)},true);
  addEventListener("scroll",()=>{if(sbTipPin){sbTipPin=null; tip.hidden=true}},{passive:true});}
-try{const st=JSON.parse(localStorage.getItem("rsc-sb")||"null");if(st){if(SB.weeks[st.w])sbWeek=st.w;if([0,1,2].includes(st.p))sbPath=st.p}}catch(e){}
+try{const st=JSON.parse(localStorage.getItem("rsc-sb")||"null");if(st){if(SB.weeks[st.w])sbWeek=st.w;if([0,1,2,3].includes(st.p))sbPath=st.p; if(Array.isArray(st.lv)&&st.lv.length===3&&st.lv.every(x=>SB_CYC.includes(x)))sbLv=st.lv}}catch(e){}
 sbRender();
 
 // ---------- songs ----------
@@ -6145,7 +6146,11 @@ var WEEKLOG={}/*WEEKLOG*/;
      // the score data changed: new scores; otherwise the page itself or its other data changed: a site update
      const scores=!sc||!mine.sc||sc!==mine.sc;
      shown=true; const b=document.createElement("button"); b.type="button"; b.className="freshbar"; b.textContent=scores?"🎸 New scores are in · tap to refresh":"✨ Site update · tap to refresh";
-     b.addEventListener("click",()=>location.reload()); document.body.appendChild(b)}).catch(()=>{})};
+     b.addEventListener("click",()=>{try{sessionStorage.setItem("rsc-refresh-y",JSON.stringify({h:location.hash,y:scrollY}))}catch(e){} location.reload()}); document.body.appendChild(b)}).catch(()=>{})};
+ // after a tap to refresh: scroll back to where you were once the page has drawn
+ try{const st=JSON.parse(sessionStorage.getItem("rsc-refresh-y")||"null"); sessionStorage.removeItem("rsc-refresh-y");
+   if(st&&st.h===location.hash&&st.y>0){if("scrollRestoration" in history)history.scrollRestoration="manual"; let moved=false; ["wheel","touchstart","keydown"].forEach(ev=>addEventListener(ev,()=>moved=true,{once:true,passive:true}));
+     [300,1200,2500].forEach(t=>setTimeout(()=>{if(!moved&&Math.abs(scrollY-st.y)>40)scrollTo(0,st.y)},t))}}catch(e){}
  setInterval(check,60000); document.addEventListener("visibilitychange",()=>{if(!document.hidden)check()});}
 try{sbRender()}catch(e){}   // draw the Scoreboard again now the week log is here, for the NEW tags
 const ywKey=n=>"rsc-passed-seen-"+n.toLowerCase();
