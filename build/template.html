@@ -6487,7 +6487,7 @@ function acctBtn(){const b=$("acctbtn"); b.hidden=!ACCT.on;
   if(n)b.insertAdjacentHTML("beforeend",`<span class="nbadge" title="${n} claim${n===1?"":"s"} waiting for approval">${n}</span>`);
   // players: how many times they've been passed on this week's scoreboard since their last visit (Your week tab)
   const yn=ACCT.claim&&ACCT.claim.status==="approved"?ywUnseen(ACCT.claim.player).length:0;
-  if(yn)b.insertAdjacentHTML("beforeend",`<span class="nbadge" title="Passed ${yn} time${yn===1?"":"s"} on this week's scoreboard · dismiss it in Your week">${yn}</span>`);
+  if(yn)b.insertAdjacentHTML("beforeend",`<span class="nbadge" title="Passed ${yn} time${yn===1?"":"s"} on this week's scoreboard · dismiss it in Your week">⚠️${yn}</span>`);
   const sd=ACCT.claim&&ACCT.claim.status==="approved"?seasUnseen(ACCT.claim.player).length:0;
   if(sd)b.insertAdjacentHTML("beforeend",`<span class="nbadge" title="Your season ranking is in danger on ${sd} path${sd===1?"":"s"} · dismiss it in Your week">🏁${sd}</span>`);
   try{localStorage.setItem("rsc-acctbtn",b.innerHTML)}catch(e){} // shown straight away on the next visit while the login loads
