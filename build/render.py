@@ -4,7 +4,7 @@ d = datetime.date.fromisoformat(os.environ["BUILD_DATE"]) if os.environ.get("BUI
 sb = json.load(open("scores.json"))
 t = open("template.html").read()
 h = lambda b: hashlib.md5(b).hexdigest()[:10]   # fingerprints the refresh bar uses to say "new scores" or "site update"
-cv = h(t.encode() + open("render.py", "rb").read()); sc = h(open("scores.json", "rb").read())
+cv = h(t.encode() + open("render.py", "rb").read()); sc = h(json.dumps([sb["names"], sb["weeks"]], sort_keys=True).encode())   # only the scores (the rest of scores.json, like the score-check times, changes every run)
 for key, f in [("__WEEKS__", "weeks.json"), ("__PLAYERS__", "players.json"), ("__PARTS__", "parts.json"),
                ("__SCORES__", "scores.json"), ("__WINS__", "wins.json"), ("__SONGS_OLD__", "songs_old.json"), ("__RANKINGS__", "rankings.json"), ("__OFFICIAL__", "official.json")]:
     assert key in t, key
