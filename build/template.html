@@ -533,6 +533,17 @@ a.dl svg,.offpill svg{width:11px;height:11px}
 .acctdlg .adm small{color:var(--muted)}
 .acctclose{margin-top:12px}
 .acctdlg{width:min(980px,calc(100vw - 24px))}
+.tagdlg{width:min(760px,calc(100vw - 24px))}.taghead{margin:0;font:800 1.05rem var(--f-display);letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}.tagsong{margin:2px 0 12px;font-weight:700}.tagpaths{margin-bottom:14px}.tagpaths button[aria-pressed="true"]{background:var(--pc);color:#10131a}
+.taggrid{display:grid;grid-template-columns:1fr 1fr;gap:18px}@media(max-width:620px){.taggrid{grid-template-columns:1fr}}.taggrid>div{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.taggrid h4{margin:0 0 8px;font:800 .72rem var(--f-display);letter-spacing:.1em;text-transform:uppercase;color:var(--pc)}
+.tagl{list-style:none;margin:0 0 4px;padding:0;display:flex;flex-wrap:wrap;gap:6px}.tagl li{display:inline-flex;align-items:center;gap:4px;padding:0;background:none}
+.tagchip{display:inline-flex;align-items:center;padding:3px 10px;border-radius:999px;background:color-mix(in srgb,var(--pc,var(--accent)) 14%,transparent);border:1px solid color-mix(in srgb,var(--pc,var(--accent)) 45%,transparent);color:var(--fg);font:600 .8rem var(--f-body);cursor:pointer;line-height:1.3}
+.tagl li.mine .tagchip{background:color-mix(in srgb,var(--pc,var(--accent)) 30%,transparent);border-color:var(--pc,var(--accent))}
+.tagn{font:700 .66rem var(--f-mono);color:var(--muted);margin-left:-2px}
+.tagtog{width:20px;height:20px;border-radius:50%;display:inline-grid;place-items:center;background:var(--panel);border:1px solid var(--line);color:var(--muted);font:800 .72rem var(--f-body);cursor:pointer;padding:0}.tagtog.on{background:var(--pc,var(--accent));border-color:var(--pc,var(--accent));color:#10131a}.tagtog:hover{border-color:var(--pc,var(--accent));color:var(--fg)}
+.tagdlg .taglab{margin:12px 0 6px;font:800 .66rem var(--f-display);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}.tagadd{display:flex;gap:6px}.tagadd input{flex:1;min-width:0;background:var(--panel);color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:7px 10px;font:inherit}.tagadd input:focus{outline:none;border-color:var(--pc,var(--accent))}
+.tagused{display:flex;flex-wrap:wrap;gap:5px}.tagplus{background:transparent;border-style:dashed;color:var(--muted);font-size:.74rem;padding:2px 9px}.tagplus:hover{color:var(--fg);border-style:solid;background:color-mix(in srgb,var(--pc,var(--accent)) 14%,transparent)}.tagnote{margin-top:12px;font-size:.78rem}
+.tagrow{display:flex;flex-wrap:wrap;gap:4px;margin-top:5px}.tagrow .tagchip{--pc:var(--accent);font-size:.68rem;padding:1px 8px}.tagbtn{background:none;border:1px dashed color-mix(in srgb,var(--accent) 45%,transparent);border-radius:999px;color:var(--accent);font:700 .68rem var(--f-body);padding:1px 9px;cursor:pointer}.tagbtn:hover{background:color-mix(in srgb,var(--accent) 14%,transparent);border-style:solid}
 .acctdlg .acctsec{margin-top:16px;border-top:1px solid var(--line);padding-top:12px}
 .mlgrid{display:block}
 /* medal leaders: one tile per medal, all the same shape; contested medals (a shared lead) in their own row below */
@@ -1895,7 +1906,7 @@ footer{color:var(--dim);font-size:.78rem}
 
   <section class="panel" id="sqsec">
     <div class="panel-head"><h2>Song lookup</h2><span class="sub">Search song titles, or find songs in a tuning</span></div>
-    <div class="controls sqctl"><input id="sq" type="search" placeholder="Type a song title" aria-label="Find a song" autocomplete="off"><select id="stun" aria-label="Tuning"><option value="">Any tuning</option></select></div>
+    <div class="controls sqctl"><input id="sq" type="search" placeholder="Type a song title or a tag" aria-label="Find a song" autocomplete="off"><select id="stun" aria-label="Tuning"><option value="">Any tuning</option></select></div>
     <div id="sqres"></div>
   </section>
 
@@ -2016,6 +2027,7 @@ footer{color:var(--dim);font-size:.78rem}
   <span class="updated">Last updated: <span id="builtat" data-iso="__BUILT_ISO__" data-sc="__SCHASH__" data-cv="__CODEHASH__">__BUILT__</span></span>
   </footer>
 </div>
+<dialog id="tagdlg" class="acctdlg tagdlg" aria-label="Song tags"><div id="tagbody"></div><button type="button" class="clear acctclose" data-tagclose>Close</button></dialog>
 <dialog id="acct" class="acctdlg" aria-label="Your profile"><div id="acctbody"></div><button type="button" class="clear acctclose" id="acctclose">Close</button></dialog>
 <div class="tip" id="tip" hidden></div>
 
@@ -4628,19 +4640,66 @@ function renderSongLookup(){const el=$("sqres"); if(!el)return;
   const G=Object.values(groups), tunes=new Set();
   G.forEach(g=>[0,1,2].forEach(p=>{const t=tuneOf(g.song,p); if(t)tunes.add(t)}));
   const sel=$("stun"); sel.innerHTML=`<option value="">Any tuning</option>`+[...tunes].sort((a,b)=>a.localeCompare(b)).map(t=>`<option${t===sqTun?" selected":""}>${esc(t)}</option>`).join(""); sel.hidden=!tunes.size;
-  if(!sqQ&&!sqTun){el.innerHTML=`<p class="dim sqhint">Type part of a song title${tunes.size?", or pick a tuning,":""} to find it. ${G.length} different songs played${sPath>=0?` on ${PATHS[sPath]}`:""}.</p>`;return}
+  tagsLoad();
+  if(!sqQ&&!sqTun){el.innerHTML=`<p class="dim sqhint">Type part of a song title or a tag${tunes.size?", or pick a tuning,":""} to find it. ${G.length} different songs played${sPath>=0?` on ${PATHS[sPath]}`:""}.</p>`;return}
   const q=sqQ.toLowerCase(), paths=g=>[...new Set(g.cs.map(c=>c.p))].sort();
-  const hits=G.filter(g=>(!q||g.title.toLowerCase().includes(q))&&(!sqTun||paths(g).some(p=>tuneOf(g.song,p)===sqTun)))
+  const hits=G.filter(g=>(!q||g.title.toLowerCase().includes(q)||tagsOf(g.song).some(t=>t.tag.includes(q)))&&(!sqTun||paths(g).some(p=>tuneOf(g.song,p)===sqTun)))
     .sort((a,b)=>Math.max(...b.cs.map(c=>c.w))-Math.max(...a.cs.map(c=>c.w)));
   if(!hits.length){el.innerHTML=`<div class="empty">No songs found${q?` with “${esc(sqQ)}” in the title`:""}${sqTun?` in ${esc(sqTun)}`:""}.</div>`;return}
   const rows=hits.slice(0,40).map(g=>{const ps=paths(g), last=Math.max(...g.cs.map(c=>c.w)), lv=[...new Set(g.cs.map(c=>c.t))].sort((a,b)=>TIER_ORDER.indexOf(a)-TIER_ORDER.indexOf(b));
     const tn=ps.map(p=>[p,tuneOf(g.song,p)]).filter(x=>x[1]), same=tn.length&&tn.every(x=>x[1]===tn[0][1]);
-    return `<tr><td><b class="golink" data-goband="${esc(g.artist)}" data-gosong="${esc(g.title)}" title="Show this song in Band lookup">${esc(g.title)}</b>${songRateBox(g.cs)}${songPill(g.song,IG_LATEST(g.song))}<small class="golink" data-goband="${esc(g.artist)}" title="Show this band in Band lookup">${esc(g.artist)}</small></td>
+    return `<tr><td><b class="golink" data-goband="${esc(g.artist)}" data-gosong="${esc(g.title)}" title="Show this song in Band lookup">${esc(g.title)}</b>${songRateBox(g.cs)}${songPill(g.song,IG_LATEST(g.song))}<small class="golink" data-goband="${esc(g.artist)}" title="Show this band in Band lookup">${esc(g.artist)}</small>${tagChips(g.song,ps)}</td>
       <td><div class="chips">${lv.map(t=>`<span class="lvchip" style="--tc:${TIER_COL[t]}" title="${TIER_LABEL[t]||t}">${TIER_SHORT[t]||t}</span>`).join("")}</div></td>
       <td class="sqp">${ps.map(p=>`<span style="color:${PATH_C[p]}">${"LRB"[p]}</span>`).join(" ")}</td>
       <td class="sqt">${same?esc(tn[0][1]):tn.map(([p,t])=>`${"LRB"[p]}: ${esc(t)}`).join("<br>")||`<span class="dim" title="Not in the Song Selection List's tuning columns">?</span>`}</td>
       <td class="r"><span${SB.weeks[last]?` class="golink" data-sbw="${last}" title="Open Week ${last} on the Scoreboard"`:""}>Wk ${last}</span><small>${g.cs.length}×</small></td></tr>`}).join("");
   el.innerHTML=`<div class="bandscroll"><table class="bandtbl sqtbl"><thead><tr><th>Song</th><th>Levels</th><th>Paths</th><th>Tuning</th><th class="r">Last played</th></tr></thead><tbody>${rows}</tbody></table></div>${hits.length>40?`<p class="dim">Showing the 40 most recent of ${hits.length} songs. Type more to narrow it down.</p>`:""}`}
+// ---------- Song tags: players tag each path of a song with short words (song_tags) ----------
+let SONG_TAGS=null, tagsLoading=false;
+const tagNorm=t=>String(t||"").replace(/\s+/g," ").trim().toLowerCase().slice(0,24), tagShow=t=>t.charAt(0).toUpperCase()+t.slice(1);
+async function tagsLoad(force){if(tagsLoading||(SONG_TAGS&&!force)||!ACCT.sb)return; tagsLoading=true;
+  try{const {data,error}=await ACCT.sb.from("song_tags").select("id,song,path,tag,player,user_id").limit(20000); if(!error){SONG_TAGS=data||[]; if(!$("view-songs").hidden)renderSongLookup(); tagRedraw()}}finally{tagsLoading=false}}
+// the tags on a song (one path, or all of them): [{tag, n, mine}] most used first
+function tagsOf(song,path){const k=acctSongKey(song), me=ACCT.user&&ACCT.user.id, m={};
+  (SONG_TAGS||[]).forEach(r=>{if(r.song!==k||(path!=null&&r.path!==path))return; const x=m[r.tag]=m[r.tag]||{tag:r.tag,n:0,mine:false,who:new Set()}; if(!x.who.has(r.player+"|"+r.path)){x.who.add(r.player+"|"+r.path); x.n++} if(me&&r.user_id===me&&(path==null||r.path===path))x.mine=true});
+  return Object.values(m).sort((a,b)=>b.n-a.n||a.tag.localeCompare(b.tag))}
+function tagChips(song,ps){const T=tagsOf(song).slice(0,4);
+  return `<span class="tagrow">${T.map(t=>`<span class="tagchip" data-tagsong="${esc(song)}" data-tagps="${ps.join(",")}">${esc(tagShow(t.tag))}</span>`).join("")}<button type="button" class="tagbtn" data-tagsong="${esc(song)}" data-tagps="${ps.join(",")}" title="See and add tags for this song">🏷 ${T.length?"Tags":"Add tags"}</button></span>`}
+let TAGDLG=null;   // {song, ps, path}
+// techniques to pick from (any other tag can still be typed in): guitar for Lead and Rhythm, and bass
+const TAG_TECH={g:["Bends","Pre-bends","Slides","Hammer-ons","Pull-offs","Legato","Tapping","Harmonics","Pinch harmonics","Palm mutes","Fret-hand mutes","Vibrato","Tremolo picking","Whammy bar","Power chords","Open chords","Barre chords","Double stops","Arpeggios","Fingerpicking","Strumming","Alternate picking","Sweep picking","String skipping","Fast runs","Syncopation","Odd time","Sustains"],
+  b:["Fingerstyle","Picking","Slap","Pop","Octaves","Walking bass","Slides","Hammer-ons","Pull-offs","Harmonics","Palm mutes","Ghost notes","Vibrato","Bends","Tapping","Double stops","Chords","Fast runs","String skipping","Syncopation","Odd time","Sustains"]};
+function tagCanEdit(){return !!(ACCT.user&&ACCT.claim&&ACCT.claim.status==="approved")}
+function tagRedraw(){const d=$("tagdlg"); if(!TAGDLG||!d||!d.open)return; const {song,ps,path}=TAGDLG, k=acctSongKey(song), me=ACCT.user&&ACCT.user.id;
+  const pop=tagsOf(song,path), mine=pop.filter(t=>t.mine), edit=tagCanEdit();
+  const used={}; (SONG_TAGS||[]).forEach(r=>{if(me&&r.user_id===me&&!(r.song===k&&r.path===path))used[r.tag]=(used[r.tag]||0)+1});
+  const other=Object.entries(used).filter(([t])=>!mine.some(m=>m.tag===t)).sort((a,b)=>b[1]-a[1]).slice(0,16).map(x=>x[0]);
+  const row=(t,act)=>`<li class="${t.mine?"mine":""}"><span class="tagchip">${esc(tagShow(t.tag))}</span>${t.n>1||act==="pop"?`<small class="tagn" title="${t.n} player${t.n===1?"":"s"}">${t.n}</small>`:""}${edit?`<button type="button" class="tagtog${t.mine?" on":""}" data-tagtoggle="${esc(t.tag)}" title="${t.mine?"Remove your tag":"Add this tag too"}">${t.mine?"✔":"+"}</button>`:t.mine?"<span class=\"tagtog on\">✔</span>":""}</li>`;
+  $("tagbody").style.setProperty("--pc",PATH_C[path]);
+  $("tagbody").innerHTML=`<h3 class="taghead">🏷 Song tags</h3><p class="tagsong">${esc(song)}</p>
+    <div class="seg tagpaths" role="radiogroup" aria-label="Path">${ps.map(p=>`<button type="button" data-tagpath="${p}" aria-pressed="${p===path}" style="--pc:${PATH_C[p]}">${PATHS[p]}</button>`).join("")}</div>
+    <div class="taggrid"><div><h4>Everyone's ${PATHS[path]} tags</h4>${pop.length?`<ul class="tagl">${pop.map(t=>row(t,"pop")).join("")}</ul>`:`<p class="dim">No tags yet${edit?": be the first.":"."}</p>`}</div>
+    <div><h4>Your ${PATHS[path]} tags</h4>${!edit?`<p class="dim">${ACCT.user?"Once your player claim is approved you can tag songs.":"Log in and claim your player to tag songs."}</p>`
+      :`${mine.length?`<ul class="tagl">${mine.map(t=>row(t,"mine")).join("")}</ul>`:`<p class="dim">You haven't tagged it yet.</p>`}
+      <p class="taglab">Enter a new tag:</p><div class="tagadd"><input type="text" maxlength="24" placeholder="Enter a tag" data-tagnew><button type="button" class="btn" data-tagaddbtn>Add</button></div>
+      <p class="taglab">Techniques:</p><div class="tagused">${TAG_TECH[path===2?"b":"g"].filter(t=>!mine.some(m=>m.tag===tagNorm(t))).map(t=>`<button type="button" class="tagchip tagplus" data-tagtoggle="${esc(t)}">+ ${esc(t)}</button>`).join("")}</div>
+      ${other.length?`<p class="taglab">Apply a tag you've used on other songs:</p><div class="tagused">${other.map(t=>`<button type="button" class="tagchip tagplus" data-tagtoggle="${esc(t)}">+ ${esc(tagShow(t))}</button>`).join("")}</div>`:""}`}</div></div>
+    <p class="dim tagnote">Tags are for each path: a song can have slap on Bass and pinch harmonics on Lead. ${SONG_TAGS===null?"Loading…":""}</p>`}
+function tagOpen(song,ps,path){const d=$("tagdlg"); if(!d)return; const P=ps.length?ps:[0,1,2]; TAGDLG={song,ps:P,path:P.includes(path)?path:(P.includes(sPath)?sPath:P[0])}; if(!d.open)d.showModal(); tagRedraw(); tagsLoad(true)}
+async function tagToggle(tag){if(!tagCanEdit()||!TAGDLG)return; tag=tagNorm(tag); if(!tag)return; const {song,path}=TAGDLG, k=acctSongKey(song), me=ACCT.user.id;
+  const have=(SONG_TAGS||[]).find(r=>r.song===k&&r.path===path&&r.tag===tag&&r.user_id===me);
+  const {error}=have?await ACCT.sb.from("song_tags").delete().eq("id",have.id)
+    :await ACCT.sb.from("song_tags").insert({song:k,path,tag,player:ACCT.claim.player,user_id:me});
+  if(error){alert(/relation|does not exist|schema cache/i.test(error.message)?"Song tags aren't set up yet: run build/supabase/song_tags.sql once in Supabase.":"Couldn't save the tag: "+error.message);return}
+  await tagsLoad(true)}
+document.addEventListener("click",e=>{const o=e.target.closest("[data-tagsong]"); if(o){e.preventDefault(); tagOpen(o.dataset.tagsong,(o.dataset.tagps||"").split(",").filter(Boolean).map(Number),sPath); return}
+  if(e.target.closest("[data-tagclose]")){$("tagdlg").close(); return}
+  const tp=e.target.closest("[data-tagpath]"); if(tp&&TAGDLG){TAGDLG.path=+tp.dataset.tagpath; tagRedraw(); return}
+  const tg=e.target.closest("[data-tagtoggle]"); if(tg){tagToggle(tg.dataset.tagtoggle); return}
+  const ab=e.target.closest("[data-tagaddbtn]"); if(ab){const i=$("tagbody").querySelector("[data-tagnew]"); if(i&&i.value.trim())tagToggleNew(i.value)}});
+async function tagToggleNew(v){const t=tagNorm(v), k=TAGDLG&&acctSongKey(TAGDLG.song), me=ACCT.user&&ACCT.user.id;
+  if((SONG_TAGS||[]).some(r=>r.song===k&&r.path===TAGDLG.path&&r.tag===t&&r.user_id===me))return; await tagToggle(t)}
+document.addEventListener("keydown",e=>{if(e.key==="Enter"&&e.target.matches&&e.target.matches("[data-tagnew]")&&e.target.value.trim()){e.preventDefault(); tagToggleNew(e.target.value)}});
 document.addEventListener("input",e=>{if(e.target.id!=="sq")return; sqQ=e.target.value.trim(); renderSongLookup(); try{markCrowdFav($("sqres"))}catch(err){}});
 document.addEventListener("change",e=>{if(e.target.id!=="stun")return; sqTun=e.target.value; renderSongLookup()});
 function showBand(name){songsReady();
