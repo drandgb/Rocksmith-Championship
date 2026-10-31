@@ -1102,6 +1102,10 @@ footer .updated{display:block;margin-top:4px}
 .yecol h3{margin:0 0 8px;padding-top:6px;border-top:3px solid var(--pc);color:var(--pc);font:800 .8rem var(--f-display);letter-spacing:.12em;text-transform:uppercase}
 .yecls{border:1px solid var(--line);border-top:3px solid var(--tc);border-radius:8px;padding:8px 10px 6px;margin-bottom:8px;background:color-mix(in srgb,var(--tc) 5%,var(--panel))}.yecls h4{margin:0 0 4px;font:800 .66rem var(--f-display);letter-spacing:.1em;text-transform:uppercase;color:var(--tc)}
 .yecls ol{list-style:none;margin:0;padding:0}.yecls li{display:grid;grid-template-columns:26px minmax(0,1fr) auto;gap:6px;align-items:center;padding:3px 0;border-top:1px solid var(--line);font-size:.88rem}.yecls li:first-child{border-top:0}.yecls .yer{text-align:center;color:var(--muted);font-size:.8rem}.yecls li b{font-family:var(--f-display);color:var(--s-green)}.yecls .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cdbanner{display:flex;align-items:center;gap:14px;margin:14px 0 4px;padding:14px 18px;border-radius:14px;border:1px solid color-mix(in srgb,var(--s-orange) 60%,var(--line));background:linear-gradient(90deg,color-mix(in srgb,var(--s-orange) 18%,var(--panel)),var(--panel));box-shadow:0 0 18px color-mix(in srgb,var(--s-orange) 22%,transparent)}.cdbanner[hidden]{display:none}
+.cdbi{font-size:2rem;line-height:1}.cdbl{font:800 .72rem var(--f-display);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}.cdbt{font:800 1.9rem/1.1 var(--f-display);color:var(--s-orange);font-variant-numeric:tabular-nums}
+.cdbw{margin-left:auto;text-align:right;font-weight:700;font-size:.9rem}.cdbw small{display:block;color:var(--muted);font-weight:500;font-size:.78rem}
+@media(max-width:560px){.cdbanner{flex-wrap:wrap;gap:8px 12px;padding:12px 14px}.cdbt{font-size:1.6rem}.cdbw{margin-left:0;text-align:left;flex:1 1 100%}}
 .cdown{display:inline-block;padding:1px 8px;border-radius:999px;border:1px solid color-mix(in srgb,var(--s-orange) 55%,var(--line));color:var(--s-orange);font-weight:700;white-space:nowrap}.cdsec input[type=datetime-local]{background:var(--panel2);color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:6px 8px;font:inherit}
 .hmsec h4{margin:12px 0 4px;font-size:.9rem}.hml{list-style:none;margin:0;padding:0}.hml li{display:flex;gap:10px;align-items:flex-start;justify-content:space-between;padding:8px 0;border-top:1px solid var(--line)}.hml li:first-child{border-top:0}.hmt{font-size:.88rem;line-height:1.45}.hmk{display:block;font-size:.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}.hmcp{flex:none}
 .twstats{display:flex;flex-wrap:wrap;gap:8px 18px;margin-top:12px;color:var(--muted);font-size:.9rem}
@@ -1717,6 +1721,7 @@ footer{color:var(--dim);font-size:.78rem}
 
   <div class="view" id="view-thisweek" role="tabpanel" aria-labelledby="tab-thisweek" hidden>
   <div class="twwarn" id="twwarn" role="alert" hidden></div>
+  <div class="cdbanner" id="cdbanner" hidden></div>
   <section class="panel nwnote" id="twnote" hidden></section>
   <section class="panel twhead">
     <div class="twnav">
@@ -5529,6 +5534,9 @@ function renderThisWeek(){
   renderHostWarn(); if(renderNextPreview())return;
   const w=twWeek, W=WEEKS[w-1], live=w===TW_LIVE, names=twNames(w), set=new Set(names);
   try{renderTwTheme(w)}catch(e){console.error(e)}
+  // the week's close countdown, set by the host: a big banner at the top of This Week
+  {const b=$("cdbanner"), r=live&&closeFor(w); b.hidden=!r;
+   if(r){const t=new Date(r.ends_at); b.innerHTML=`<span class="cdbi" aria-hidden="true">⏱️</span><div><div class="cdbl">Week ${w} countdown</div><div class="cdbt" data-cd="${esc(r.ends_at)}"><span class="cdt">${cdText(t-Date.now())}</span></div></div><div class="cdbw">${esc(t.toLocaleString(undefined,{weekday:"short",month:"short",day:"numeric",hour:"numeric",minute:"2-digit"}))} your time<small>${esc(cetTxt(t))}${r.set_by?` · set by ${esc(r.set_by)}`:""}</small></div>`}}
   $("twprev").disabled=w<=TW_MIN; $("twnext").disabled=w>=TW_MAX&&!TW_NEXT;
   // the › arrow glows when next week's songs are up to preview
   $("twnext").classList.toggle("glow",w===TW_MAX&&!!TW_NEXT); $("twnext").title=w===TW_MAX&&TW_NEXT?`Preview next week (Week ${TW_NEXT})`:"Next week";
@@ -5536,7 +5544,7 @@ function renderThisWeek(){
   const start=W?new Date(W[1]+"T12:00:00"):null, end=start?new Date(start.getTime()+6*864e5):null;
   const left=end?Math.ceil((new Date(W[1]+"T00:00:00").getTime()+7*864e5-Date.now())/864e5):0;
   $("tw-title").innerHTML=`${SB.weeks[w]?`<span class="golink" data-sbw="${w}" title="Open this week on the Scoreboard">Week ${w}</span>`:`Week ${w}`}${live?' <span class="pill new" style="width:auto">IN PROGRESS</span>':' <span class="pill done" style="width:auto">CONCLUDED</span>'}`;
-  $("tw-meta").innerHTML=W?`${fmtShort(W[1])} – ${fmt(iso(end))}${W[2]&&W[2]!==LOST?` · hosted by <span class="nm" data-name="${esc(W[2])}" data-gohost="${esc(W[2])}" style="cursor:pointer;font-weight:700;color:var(--fg)">${esc(W[2])}</span>`:""}${live&&closeFor(w)?` · ${cdChip(w)}`:live&&left>0?` · ${twPl(left,"day")} left`:""}`:"";
+  $("tw-meta").innerHTML=W?`${fmtShort(W[1])} – ${fmt(iso(end))}${W[2]&&W[2]!==LOST?` · hosted by <span class="nm" data-name="${esc(W[2])}" data-gohost="${esc(W[2])}" style="cursor:pointer;font-weight:700;color:var(--fg)">${esc(W[2])}</span>`:""}${live&&closeFor(w)?"":live&&left>0?` · ${twPl(left,"day")} left`:""}`:"";
   const ents=SB.weeks[w]?twEntries(w):[];
   // back from a break
   const back=names.map(n=>{const prev=twPlayed(n,w-1)?null:twLastBefore(n,w); return prev?{n,prev,gap:w-prev-1}:null}).filter(Boolean).sort((a,b)=>b.gap-a.gap||a.n.localeCompare(b.n));
