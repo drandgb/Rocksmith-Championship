@@ -4246,6 +4246,9 @@ function eloBuild(){if(ELO)return ELO; const ws=Object.keys(SB.weeks).map(Number
   ELO=[0,1,2].map(pi=>{const r={}, g={}, hist={}, start={}, lc={}, last={}, cls={}, CS={B:0,I:0,A:0,M:0}, cs={};
     ws.forEach(w=>{const touched=new Set();
       (SB.weeks[w]||[]).forEach(c=>{if(c[0]!==pi||(c[7]&&w!==ELO_LIVE))return;
+        // a God challenge that runs several weeks counts once, in its final week: skip its earlier weeks, including the week
+        // being played when the card says so ("Week 2/4")
+        {const gw=/Week\s*(\d+)\s*\/\s*(\d+)/i.exec(c[5]||""); if(gw&&+gw[1]<+gw[2])return}
         const li=Math.min(3,"BIAMG".indexOf(cardLv(c[2])));
         const es=c[6].filter(e=>e[1]!=null).map(e=>({n:pvName(e),p:e[1],s:e[2],c:e[3],up:e[4]===1||e[4]===2,dn:e[4]===-1,own:eloOwn(e,c,w,pi,li)}));
         const dv=Math.sqrt(Math.max(1,new Set(es.map(e=>e.n)).size-1));   // a card with more players is more games: each one counts K ÷ √(opponents), so a big card doesn't swing ratings much more than a small one
