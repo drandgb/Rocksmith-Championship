@@ -17,7 +17,9 @@
 var SUPA_URL="https://yeyzdxjqwdkswulrnver.supabase.co", SUPA_KEY="sb_publishable_pxGhrlKyONzLc1fomC2vsw_EoNlhCeG";
 // host sign-ups made on the site, fetched straight away (and remembered from the last visit) so the
 // "Host still needed" banner on This Week appears with the rest of the page instead of after the login loads
-var HS_PRE=null, HS_EARLY=null;
+var HS_PRE=null, HS_EARLY=null, THEMES_DB=null, THEMES_EARLY=null;
+// the admins' theme schedule (site_themes): remembered from the last visit so the title's theme shows straight away, then refreshed
+try{THEMES_DB=JSON.parse(localStorage.getItem("rsc-themes")||"null")}catch(e){}
 // logged in last time (a saved login on this device): keep the page hidden until the login has loaded, so things that depend on
 // who you are (Your cards, your own profile in the lookups...) are right from the start instead of changing a moment later.
 // Never longer than 4 seconds; logged-out visitors don't wait at all.
@@ -27,7 +29,8 @@ try{if(SUPA_URL&&SUPA_KEY&&/(^|\.)github\.io$|^localhost$|^127\.0\.0\.1$/.test(l
   document.documentElement.classList.add("acctwait"); ACCT_WAIT=setTimeout(acctShow,4000)}}catch(e){}
 try{HS_PRE=JSON.parse(localStorage.getItem("rsc-hostsign")||"null")}catch(e){}
 if(SUPA_URL&&SUPA_KEY&&/(^|\.)github\.io$|^localhost$|^127\.0\.0\.1$/.test(location.hostname))
-  HS_EARLY=fetch(SUPA_URL+"/rest/v1/host_signups?select=week,player&order=week.desc&limit=60",{headers:{apikey:SUPA_KEY,Authorization:"Bearer "+SUPA_KEY}}).then(r=>r.ok?r.json():null).catch(()=>null);
+  {HS_EARLY=fetch(SUPA_URL+"/rest/v1/host_signups?select=week,player&order=week.desc&limit=60",{headers:{apikey:SUPA_KEY,Authorization:"Bearer "+SUPA_KEY}}).then(r=>r.ok?r.json():null).catch(()=>null);
+   THEMES_EARLY=fetch(SUPA_URL+"/rest/v1/site_themes?select=id,theme,starts,ends,set_by,created_at&order=id",{headers:{apikey:SUPA_KEY,Authorization:"Bearer "+SUPA_KEY}}).then(r=>r.ok?r.json():null).catch(()=>null);}
 </script>
 <style>
 /* Layout: a stage-dark console. Status strip, then two-column (upcoming + leaderboard), then a full-width note-highway timeline and a searchable log. Single dark look by choice, like the game's own UI. */
@@ -518,7 +521,7 @@ a.dl svg,.offpill svg{width:11px;height:11px}
 .acctdlg .btn{background:var(--accent);color:var(--accent-ink);border:0;border-radius:6px;padding:8px 14px;font:700 .85rem var(--f-display);cursor:pointer}
 .acctdlg .btn.ghost{background:none;color:var(--accent);border:1px solid var(--line)}
 .acctdlg .msg{color:#7dffb0}.acctdlg .err{color:#ff8a9e}
-.acctdlg .adm{margin-top:4px}
+.acctdlg .adm{margin-top:4px}.thform{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:6px 0}.thform label{display:inline-flex;gap:6px;align-items:center;font-size:.84rem;color:var(--muted)}.thform select{width:auto;max-width:100%}.thform input,.thform select{background:var(--panel2);color:var(--fg);border:1px solid var(--line);border-radius:6px;padding:4px 6px;font:inherit}.thl{list-style:none;margin:4px 0 10px;padding:0}.thl li{display:flex;justify-content:space-between;gap:10px;padding:4px 0;border-top:1px solid var(--line);font-size:.86rem}.thl li:first-child{border-top:0}.thl a{color:var(--accent)}
 .accttabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin:-4px 0 12px}@media (max-width:640px){.accttabs{flex-wrap:wrap;row-gap:2px}.accttabs button{flex:0 0 auto}}
 .accttabs button{background:none;border:0;border-bottom:2px solid transparent;color:var(--muted);font:700 .78rem var(--f-display);letter-spacing:.08em;text-transform:uppercase;padding:8px 10px;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
 .accttabs button[aria-selected="true"]{color:var(--fg);border-bottom-color:var(--accent)}
@@ -2984,11 +2987,19 @@ document.addEventListener("click",e=>{const b=e.target.closest("[data-hlcopy]");
   const scan=n=>{if(n.nodeType!==1)return; if(n.matches(SEL))add(n); n.querySelectorAll(SEL).forEach(add)};
   scan(document.body); new MutationObserver(ms=>ms.forEach(m=>m.addedNodes.forEach(scan))).observe(document.body,{childList:true,subtree:true})})();
 // ---------- title decorations: the championship's anniversary week gets balloons; the rest of October, a ghost ----------
-(function titleDeco(){const h=$("sitetitle"); if(!h)return;
-  // which one: the championship's anniversary week first, then every 100th week, then the holidays (?deco=name previews one)
-  const force=(/[?&]deco=(\w+)/.exec(location.search)||[])[1], md=todayISO.slice(5), y=+todayISO.slice(0,4), td=new Date(todayISO+"T12:00:00");
+const THEME_NAMES={halloween:"👻 Halloween",fri13:"🐈‍⬛ Friday the 13th",xmas:"🎄 Christmas",newyear:"🎆 New Year",valentine:"💘 Valentine's Day",stpat:"🍀 St Patrick's Day",easter:"🐣 Easter",fools:"🤡 April Fools",ann:"🎈 Championship anniversary",mile:"💯 Milestone week (every 100th)",none:"No theme"};
+// the week a date falls in (from the sheet's weeks, stepping on past its end)
+function weekOfDate(iso){const d=new Date(iso+"T12:00:00"), c=new Date(cur[1]+"T12:00:00"); let i=curIdx+Math.floor((d-c)/(7*864e5)); while(i>0&&weekAt(i)[1]>iso)i--; while(weekAt(i+1)[1]<=iso)i++; return weekAt(i)}
+// the automatic theme for a date: the championship's anniversary week first, then every 100th week, then the holidays
+function autoTheme(iso){const wk=weekOfDate(iso), md=iso.slice(5), y=+iso.slice(0,4), td=new Date(iso+"T12:00:00");
   const inR=(a,b)=>md>=a&&md<=b, e=easter(y), dE=Math.round((td-new Date(e.getFullYear(),e.getMonth(),e.getDate(),12))/864e5);
-  const pick=force||(/Champ.*Anniversary/i.test(cur[3]||"")?"ann":cur[0]%100===0?"mile":md==="04-01"?"fools":(/Friday the 13th/.test(cur[3]||"")||(td.getDate()===13&&td.getDay()===5))?"fri13":(md==="12-31"||inR("01-01","01-06"))?"newyear":inR("12-01","12-26")?"xmas":inR("02-11","02-17")?"valentine":inR("03-14","03-20")?"stpat":(dE>=-6&&dE<=1)?"easter":md.slice(0,2)==="10"?"halloween":"");
+  return /Champ.*Anniversary/i.test(wk[3]||"")?"ann":wk[0]%100===0?"mile":md==="04-01"?"fools":(/Friday the 13th/.test(wk[3]||"")||(td.getDate()===13&&td.getDay()===5))?"fri13":(md==="12-31"||inR("01-01","01-06"))?"newyear":inR("12-01","12-26")?"xmas":inR("02-11","02-17")?"valentine":inR("03-14","03-20")?"stpat":(dE>=-6&&dE<=1)?"easter":md.slice(0,2)==="10"?"halloween":""}
+// an admin's choice for the date wins (the newest one, if they overlap); "none" switches the theme off
+function themeSet(iso){return (THEMES_DB||[]).filter(t=>t.starts<=iso&&t.ends>=iso).sort((a,b)=>b.id-a.id)[0]||null}
+function themeFor(iso){const o=themeSet(iso); return o?(o.theme==="none"?"":o.theme):autoTheme(iso)}
+function titleDeco(){const h=$("sitetitle"); if(!h)return;
+  const force=(/[?&]deco=(\w+)/.exec(location.search)||[])[1], pick=force||themeFor(todayISO);
+  if(h.dataset.deco===pick)return; h.dataset.deco=pick; h.className=h.className.replace(/\bdeco-\w+/g,"").trim(); h.innerHTML="Rocksmith Championship"; h.title="";
   if(!pick)return;
   const T="Rocksmith Championship", css=v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim();
   const balloon=c=>`<svg viewBox="0 0 20 44" aria-hidden="true"><path d="M10 26c1 6-3 9 0 17" stroke="#c9ced8" stroke-width=".8" fill="none"/><ellipse cx="10" cy="12" rx="8.4" ry="10.6" fill="${c}"/><path d="M8.6 22.4h2.8l-1.4 2.6z" fill="${c}"/><ellipse cx="7" cy="8" rx="2.2" ry="3.4" fill="#fff" opacity=".35"/></svg>`;
@@ -3005,7 +3016,33 @@ document.addEventListener("click",e=>{const b=e.target.closest("[data-hlcopy]");
     easter:()=>[T+`<span class="deco chick" aria-hidden="true">🐣</span>`,"Happy Easter!"],
     halloween:()=>[T+`<span class="deco boo" aria-hidden="true">👻</span>`,"Happy Halloween!"]};
   if(!D[pick])return; const [html,tt]=D[pick](); h.innerHTML=html; h.title=tt; h.classList.add("deco-"+pick);
-  if(pick==="fools")setTimeout(()=>{const u=h.querySelector(".afl"); if(u){u.classList.add("fix"); setTimeout(()=>{u.textContent="a"; u.classList.remove("fix"); u.style.color="inherit"; h.insertAdjacentHTML("beforeend",`<span class="deco clown" title="April Fools!">🤡</span>`)},260)}},2600)})();   // (the title corrects itself)
+  if(pick==="fools")setTimeout(()=>{const u=h.querySelector(".afl"); if(u){u.classList.add("fix"); setTimeout(()=>{u.textContent="a"; u.classList.remove("fix"); u.style.color="inherit"; h.insertAdjacentHTML("beforeend",`<span class="deco clown" title="April Fools!">🤡</span>`)},260)}},2600)}   // (the title corrects itself)
+titleDeco();
+function themesGot(d){if(!Array.isArray(d))return; THEMES_DB=d; try{localStorage.setItem("rsc-themes",JSON.stringify(d))}catch(e){} titleDeco();
+  const el=document.querySelector(".acctdlg .thsec"); if(el)el.outerHTML=themeSection()}
+if(THEMES_EARLY)THEMES_EARLY.then(themesGot);
+// ---------- Admin: the website theme schedule ----------
+function themeSection(){const today=todayISO, ymd=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`, add=(x,n)=>{const d=new Date(x+"T12:00:00"); d.setDate(d.getDate()+n); return ymd(d)};
+  const nm=t=>THEME_NAMES[t]||t||"No theme", fd=x=>new Date(x+"T12:00:00").toLocaleDateString(undefined,{month:"short",day:"numeric",year:"numeric"});
+  // the next 12 months, day by day, grouped into runs of the same theme
+  const runs=[]; for(let i=0;i<366;i++){const dIso=add(today,i), o=themeSet(dIso), t=o?(o.theme==="none"?"":o.theme):autoTheme(dIso), src=o?"set":"auto", L=runs[runs.length-1];
+    if(L&&L.t===t&&L.src===src&&L.o===o)L.b=dIso; else runs.push({t,src,o,a:dIso,b:dIso})}
+  const sched=runs.filter(r=>r.t||r.src==="set");
+  const mine=(THEMES_DB||[]).filter(t=>t.ends>=today).sort((a,b)=>a.starts.localeCompare(b.starts));
+  const now=themeFor(today), opts=Object.keys(THEME_NAMES).map(k=>`<option value="${k}">${esc(THEME_NAMES[k])}</option>`).join("");
+  return `<div class="adm acctsec thsec"><h3>Website theme</h3>
+    <p>Showing now: <b>${esc(nm(now))}</b>${themeSet(today)?" <small class=\"dim\">(set by an admin)</small>":" <small class=\"dim\">(automatic)</small>"}</p>
+    <div class="thform"><select data-thpick>${opts}</select><label>From <input type="date" data-thfrom value="${today}"></label><label>To <input type="date" data-thto value="${add(today,7)}"></label><button type="button" class="btn" data-thadd>Add</button></div>
+    <p class="dim">Your dates win over the automatic holiday themes. Pick “No theme” to switch the automatic one off for those dates.${THEMES_DB===null?" (The schedule couldn't be read: run build/supabase/site_themes.sql once in Supabase.)":""}</p>
+    ${mine.length?`<h4>Set by admins</h4><ul class="thl">${mine.map(t=>`<li><span>${esc(nm(t.theme))} · ${fd(t.starts)} – ${fd(t.ends)}${t.set_by?` <small class="dim">by ${esc(t.set_by)}</small>`:""}</span><button type="button" class="btn ghost small" data-thdel="${t.id}">Remove</button></li>`).join("")}</ul>`:""}
+    <h4>Schedule for the next 12 months</h4><ul class="thl">${sched.map(r=>`<li><span>${fd(r.a)}${r.b!==r.a?` – ${fd(r.b)}`:""}</span><span>${esc(nm(r.t))} <small class="dim">${r.src==="set"?"set by an admin":"automatic"}</small>${r.t?` <a href="?deco=${r.t}" target="_blank" rel="noopener">preview ↗</a>`:""}</span></li>`).join("")}</ul></div>`}
+async function themesReload(){const {data}=await ACCT.sb.from("site_themes").select("id,theme,starts,ends,set_by,created_at").order("id"); themesGot(data||[])}
+document.addEventListener("click",async e=>{const a=e.target.closest("[data-thadd]"), d=e.target.closest("[data-thdel]"); if(!a&&!d)return; if(!ACCT.sb||!ACCT.admin)return;
+  if(a){const box=a.closest(".thsec"), theme=box.querySelector("[data-thpick]").value, starts=box.querySelector("[data-thfrom]").value, ends=box.querySelector("[data-thto]").value;
+    if(!starts||!ends||ends<starts){alert("Pick a From date on or before the To date.");return}
+    const {error}=await ACCT.sb.from("site_themes").insert({theme,starts,ends,set_by:ACCT.claim&&ACCT.claim.player||null}); if(error){alert("Couldn't save: "+error.message);return}}
+  else{const {error}=await ACCT.sb.from("site_themes").delete().eq("id",+d.dataset.thdel); if(error){alert("Couldn't remove: "+error.message);return}}
+  await themesReload()});
 function showPlayer(name){
   const p=byName[name];
   if(!p){$("pcard").innerHTML=`<div class="empty">No player named “${esc(name)}”. Pick a name from the list as you type.</div>`;return}
@@ -6679,7 +6716,7 @@ function acctDraw(msg,err){
   else if(ACCT.claim.status==="pending")h+=`<p>You've claimed <b>${esc(ACCT.claim.player)}</b>. It's waiting for approval: an admin will message you to confirm it's really you, then approve it. Your verification animal is under Manage account.</p><div class="row"><button type="button" class="btn ghost" data-acct="unclaim">Withdraw claim</button></div>`;
   else h+=`<p>Hi <b>${esc(ACCT.claim.player)}</b>! This is your personal stats page. You can submit your own ratings for any song by clicking its rating number anywhere it appears. You can get your forum signature banner from the <span class="ywlink" role="button" tabindex="0" data-accttab="banner">Forum banner</span> tab.</p><div id="acct-tw">${(ACCT.twPart="me",acctThisWeek(ACCT.claim.player,"me"))}</div>${rankupSection(ACCT.claim.player)}${acctProfile(ACCT.claim.player)}`;
   if(ACCT.admin&&ACCT.tab==="admin"){const pend=ACCT.claims.filter(c=>c.status==="pending"), appr=ACCT.claims.filter(c=>c.status==="approved").sort((a,c)=>a.player.localeCompare(c.player));
-    h+=`<div class="adm acctsec"><h3>Claims</h3>${pend.length?`<p class="claimtip">Before approving, message the player on the CustomsForge forum to confirm the claim is really theirs: you can ask them for the verification animal shown next to their claim (they can see it under Manage account).</p>`:""}<p>${pend.length?"Waiting for approval:":"No claims waiting."}</p><ul>${pend.map(c=>`<li><span>${esc(c.player)} ${animalTag(ACCT.animals[c.user_id])} <small>${new Date(c.created_at).toLocaleDateString()}</small></span><span><button type="button" class="btn" data-acct="approve" data-uid="${c.user_id}">Approve</button> <button type="button" class="btn ghost" data-acct="reject" data-uid="${c.user_id}">Reject</button></span></li>`).join("")}</ul>${appr.length?`<p class="apprhead"><span>Approved (${appr.length}):</span><button type="button" class="btn ghost small" data-acct="editclaims">${ACCT.editClaims?"Done":"Edit"}</button></p><ul>${appr.map(c=>`<li><span>${esc(c.player)} ${animalTag(ACCT.animals[c.user_id])}</span>${ACCT.editClaims?`<button type="button" class="btn ghost" data-acct="removeask" data-player="${esc(c.player)}">Remove</button>`:""}</li>`).join("")}</ul>`:""}</div>${removePanel()}${(()=>{try{return siSection()}catch(e){return ""}})()}${(()=>{try{return rpSection()}catch(e){return ""}})()}${(()=>{try{return hmSection()}catch(e){return ""}})()}${(()=>{try{return hostMsgSection()}catch(e){return ""}})()}${(()=>{try{return bnaSection()}catch(e){return ""}})()}${claimLogSection()}${removedSection()}${adminsSection()}${hostSection(true)}${typoSection()}${fixLogSection()}`}
+    h+=`<div class="adm acctsec"><h3>Claims</h3>${pend.length?`<p class="claimtip">Before approving, message the player on the CustomsForge forum to confirm the claim is really theirs: you can ask them for the verification animal shown next to their claim (they can see it under Manage account).</p>`:""}<p>${pend.length?"Waiting for approval:":"No claims waiting."}</p><ul>${pend.map(c=>`<li><span>${esc(c.player)} ${animalTag(ACCT.animals[c.user_id])} <small>${new Date(c.created_at).toLocaleDateString()}</small></span><span><button type="button" class="btn" data-acct="approve" data-uid="${c.user_id}">Approve</button> <button type="button" class="btn ghost" data-acct="reject" data-uid="${c.user_id}">Reject</button></span></li>`).join("")}</ul>${appr.length?`<p class="apprhead"><span>Approved (${appr.length}):</span><button type="button" class="btn ghost small" data-acct="editclaims">${ACCT.editClaims?"Done":"Edit"}</button></p><ul>${appr.map(c=>`<li><span>${esc(c.player)} ${animalTag(ACCT.animals[c.user_id])}</span>${ACCT.editClaims?`<button type="button" class="btn ghost" data-acct="removeask" data-player="${esc(c.player)}">Remove</button>`:""}</li>`).join("")}</ul>`:""}</div>${removePanel()}${(()=>{try{return themeSection()}catch(e){console.error(e); return ""}})()}${(()=>{try{return siSection()}catch(e){return ""}})()}${(()=>{try{return rpSection()}catch(e){return ""}})()}${(()=>{try{return hmSection()}catch(e){return ""}})()}${(()=>{try{return hostMsgSection()}catch(e){return ""}})()}${(()=>{try{return bnaSection()}catch(e){return ""}})()}${claimLogSection()}${removedSection()}${adminsSection()}${hostSection(true)}${typoSection()}${fixLogSection()}`}
   // redrawing keeps the popup where it was scrolled to (e.g. after changing a rating in the Admin tab)
   const dlg=$("acct"), keep=[dlg.scrollTop,b.scrollTop];
   b.innerHTML=h+note;
