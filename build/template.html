@@ -1394,7 +1394,7 @@ footer .updated{display:block;margin-top:4px}
 .medals>.medal-m.diamond:not(.classgem){margin:0 -2px 0 -4px}
 @keyframes sparkle{0%,60%,100%{opacity:0;transform:scale(.3) rotate(0)}75%{opacity:1;transform:scale(1.2) rotate(45deg)}}
 @keyframes dglow{0%,100%{opacity:1}50%{opacity:.8}}   /* (opacity, not the glow itself: animating drop-shadows repaints every frame) */
-.medal-m.wm svg{width:28px;height:30px;filter:drop-shadow(0 0 3px var(--ec)) drop-shadow(0 0 8px color-mix(in srgb,var(--ec) 55%,transparent))}
+.medal-m.wm svg{width:28px;height:30px;filter:drop-shadow(0 0 3px var(--ec)) drop-shadow(0 0 8px color-mix(in srgb,var(--ec) 55%,transparent))}.podhalo{display:none}.medal-m.wm.pod svg{filter:drop-shadow(0 1px 2px rgba(0,0,0,.4))}.medal-m.wm.pod .podhalo{display:inline}
 /* (no shine sweep on medals: the glow and sparkles are enough, and a sweep on every medal kept the page repainting) */
 
 .medal-m.wm b{position:absolute;right:-5px;bottom:-3px;min-width:14px;height:14px;padding:0 3px;border-radius:7px;background:#e7eaf2;color:#10131a;font:800 9px/14px var(--f-display);text-align:center;box-shadow:0 0 0 1.5px var(--panel)}
@@ -3518,9 +3518,12 @@ function pathGem(cx,cy,r,p){const [lt,md,dk]=GEM_PAL[p], o=[], t=[];
     f+=`<polygon points="${P([o[k],o[k2],t[k2],t[k]])}" fill="${k<3?lt:dk}" fill-opacity="${sh}"/>`}
   return `<g><polygon points="${P(o)}" fill="${md}" stroke="${dk}" stroke-width="${(r*.14).toFixed(2)}" stroke-linejoin="round"/>${f}<polygon points="${P(t)}" fill="${md}"/><polygon points="${P(t)}" fill="${lt}" fill-opacity=".35"/><path d="M${(cx-r*.38).toFixed(2)} ${(cy-r*.12).toFixed(2)}l${(r*.22).toFixed(2)} ${(-r*.26).toFixed(2)}" stroke="#fff" stroke-width="${(r*.16).toFixed(2)}" stroke-linecap="round" opacity=".85"/><circle cx="${(cx+r*.3).toFixed(2)}" cy="${(cy+r*.3).toFixed(2)}" r="${(r*.09).toFixed(2)}" fill="#fff" opacity=".6"/></g>`}
 // a gold/silver/bronze medal; with a path (0 Lead, 1 Rhythm, 2 Bass) the ribbon takes the path's color
+var podGN=0;
 function podSvg(col,p){const rib=p==null?`fill="#4f7dff"`:`style="fill:${PATH_C[p]}"`;
   const letter=""; // the ribbon color alone tells the path apart
-  return `<svg viewBox="0 0 28 30" aria-hidden="true"><path d="M8 0h5l2 8-4 2zM20 0h-5l-2 8 4 2z" ${rib}/><path d="M8 0h5l2 8-4 2z" fill="rgba(0,0,0,.18)"/><circle cx="14" cy="19" r="10" fill="${col}"/><circle cx="14" cy="19" r="7.4" fill="none" stroke="rgba(0,0,0,.22)" stroke-width="1.2"/><path d="M10 14a7 7 0 0 1 6-2" stroke="rgba(255,255,255,.6)" stroke-width="1.6" fill="none" stroke-linecap="round"/>${letter}</svg>`}
+  // the glow comes from the medal itself, not the ribbon (a soft halo behind the disc, shown where medals glow)
+  const gid="podg"+(++podGN);   // its own id each time (a gradient whose first copy sits in a hidden box doesn't paint)
+  return `<svg viewBox="0 0 28 30" aria-hidden="true" style="overflow:visible"><defs><radialGradient id="${gid}"><stop offset=".55" stop-color="${col}" stop-opacity=".6"/><stop offset="1" stop-color="${col}" stop-opacity="0"/></radialGradient></defs><circle class="podhalo" cx="14" cy="19" r="16" fill="url(#${gid})"/><path d="M8 0h5l2 8-4 2zM20 0h-5l-2 8 4 2z" ${rib}/><path d="M8 0h5l2 8-4 2z" fill="rgba(0,0,0,.18)"/><circle cx="14" cy="19" r="10" fill="${col}"/><circle cx="14" cy="19" r="7.4" fill="none" stroke="rgba(0,0,0,.22)" stroke-width="1.2"/><path d="M10 14a7 7 0 0 1 6-2" stroke="rgba(255,255,255,.6)" stroke-width="1.6" fill="none" stroke-linecap="round"/>${letter}</svg>`}
 // a Roman laurel wreath (two leafy branches meeting under the gem, open at the top) in gold, silver or bronze
 const LAUREL_PAL=[["#fff2b0","#f5c84a","#b8862a","#9a6b18","#e0a83a"],["#ffffff","#d3d9e3","#8a94a4","#5f6878","#b9c1cd"],["#d99a6c","#a35f2c","#6b3814","#45230d","#8a4e22"]] // bronze darker, so it doesn't read as gold;
 function laurelOf(i){const [a,b,c,ln,bow]=LAUREL_PAL[i]; return LAUREL.replace(/laurelg/g,"laurelg"+i).replace('stop-color="#fff2b0"','stop-color="'+a+'"').replace('stop-color="#f5c84a"','stop-color="'+b+'"').replace('stop-color="#b8862a"','stop-color="'+c+'"')
