@@ -15,3 +15,5 @@ create policy wc_read   on public.week_close for select using (true);
 create policy wc_insert on public.week_close for insert to authenticated with check (public.is_host() or public.is_admin());
 create policy wc_update on public.week_close for update to authenticated using (public.is_host() or public.is_admin()) with check (public.is_host() or public.is_admin());
 create policy wc_delete on public.week_close for delete to authenticated using (public.is_host() or public.is_admin());
+grant select on public.week_close to anon, authenticated;
+grant insert, update, delete on public.week_close to authenticated;
