@@ -1055,7 +1055,7 @@ footer .updated{display:block;margin-top:4px}
 @keyframes twglow{50%{box-shadow:0 0 0 1px var(--s-blue),0 0 4px color-mix(in srgb,var(--s-blue) 30%,transparent)}}
 @media (prefers-reduced-motion:reduce){.twarrow.glow{animation:none}}
 .twpv-hide{display:none!important}
-.twcalrow{display:flex;align-items:stretch;gap:20px;flex-wrap:wrap;margin:12px 0 4px}.twcalrow .twcal{margin:0;flex:0 1 400px}.twcalside{padding-top:2px;flex:1 1 320px;display:flex;flex-direction:column;gap:12px;min-width:0}.twcalside #twsb{margin-top:auto;align-self:flex-start}
+.twcalrow{display:flex;align-items:stretch;gap:20px;flex-wrap:wrap;margin:12px 0 4px}.twcalrow .twcal{margin:0;flex:0 1 400px}.twcalside{padding-top:2px;flex:1 1 320px;display:flex;flex-direction:column;gap:12px;min-width:0}.twstatrow{display:flex;align-items:center;justify-content:space-between;gap:10px 16px;flex-wrap:wrap;margin-top:12px}.twstatrow .twstats{margin-top:0}.twstatrow #twsb{margin-left:auto;white-space:nowrap}
 .twlead{margin:0}.twlead .tsg{grid-template-columns:repeat(3,minmax(0,1fr))}@media(max-width:1000px){.twlead .tsg{grid-template-columns:1fr}}.twlead .twseasin{cursor:default}.twlead li{grid-template-columns:40px minmax(0,1fr) auto;gap:4px;font-size:.8rem}.twlead li b{font-size:.74rem}.twlead .lvchip{padding:1px 3px;font-size:.6rem}.twlead .tsg{gap:6px 12px}.twlead .dim{color:var(--dim)}.twlead .wlost{color:var(--muted);font-size:.74rem;font-weight:700;letter-spacing:.02em}.twcalside .clear{white-space:nowrap}@media (max-width:520px){.twcalside{flex:1 1 100%}.twcalside .clear{width:100%}}
 .twcal{margin:12px 0 4px;max-width:440px}
 .twcal .tch{display:flex;align-items:center;gap:8px;margin-bottom:8px}.twcal .tch b{flex:1;text-align:center;font-size:1rem}
@@ -1714,8 +1714,8 @@ footer{color:var(--dim);font-size:.78rem}
       <button type="button" class="twarrow" id="twnext" aria-label="Next week">›</button>
       <button type="button" class="clear sblatest" id="twnow" hidden></button>
     </div>
-    <div class="twcalrow"><div class="twcal" id="twcal"></div><div class="twcalside"><div class="twseas twlead" id="twlead" hidden></div><button type="button" class="clear" id="twsb">Open scoreboard ›</button></div></div>
-    <div class="twstats" id="tw-stats"></div>
+    <div class="twcalrow"><div class="twcal" id="twcal"></div><div class="twcalside"><div class="twseas twlead" id="twlead" hidden></div></div></div>
+    <div class="twstatrow"><div class="twstats" id="tw-stats"></div><button type="button" class="clear" id="twsb">Open scoreboard ›</button></div>
   </section>
   <section class="panel dlsec pvsec" id="twpast" hidden></section>
   <section class="panel dlsec" id="twdl" hidden></section>
