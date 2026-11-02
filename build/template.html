@@ -3685,7 +3685,10 @@ function rivalryWins(name,done,path=-1){
     if(r.w>r.l)out.push(w)})}); // a rivalry level on challenges is a tie, not a win
   return out;
 }
-function swordsSvg(col){return `<svg viewBox="0 0 28 30" aria-hidden="true"><circle cx="14" cy="15" r="12" fill="${col}"/><path d="M6 11a9 9 0 0 1 5-5.5" stroke="rgba(255,255,255,.55)" stroke-width="1.6" fill="none" stroke-linecap="round"/><g stroke="#1a1406" stroke-opacity=".55" stroke-width=".7"><path d="M20.6 6.2h2.6v2.6l-9.6 9.6-2.6-2.6z" fill="#f4f7fb"/><path d="M7.4 6.2H4.8v2.6l9.6 9.6 2.6-2.6z" fill="#e2e8f0"/></g><path d="M9.4 18.4l2.4 2.4M18.6 18.4l-2.4 2.4" stroke="#d9a441" stroke-width="2.2" stroke-linecap="round"/><path d="M10 20.4l-2.8 2.8M18 20.4l2.8 2.8" stroke="#8a5a2b" stroke-width="2.2" stroke-linecap="round"/></svg>`}
+// rivalry win: two crossed swords, each a two-tone blade (a lit side and a shaded side, meeting along the ridge) that runs
+// into a gold crossguard, a leather grip and a gold pommel
+function swordsSvg(col){const sw=`<g stroke="#1a1406" stroke-opacity=".5" stroke-width=".45" stroke-linejoin="round"><path d="M0-11.2 1.6-8.6V3.2H-1.6V-8.6z" fill="#f4f7fb"/><path d="M0-11.2 1.6-8.6V3.2H0z" fill="#a9b6c8" stroke="none"/><path d="M0-10V3.2" stroke="#ffffff" stroke-opacity=".7" stroke-width=".35"/><rect x="-4.2" y="3.1" width="8.4" height="1.9" rx=".95" fill="#e0b04a"/><rect x="-.95" y="5" width="1.9" height="4.4" rx=".5" fill="#7a4a24"/><path d="M-.95 6.2h1.9M-.95 7.6h1.9" stroke="#4a2a12" stroke-opacity=".7" stroke-width=".4"/><circle cy="10.2" r="1.35" fill="#e0b04a"/></g>`;
+  return `<svg viewBox="0 0 28 30" aria-hidden="true"><circle cx="14" cy="15" r="12" fill="${col}"/><path d="M6 11a9 9 0 0 1 5-5.5" stroke="rgba(255,255,255,.55)" stroke-width="1.6" fill="none" stroke-linecap="round"/><g transform="translate(14 15.2) scale(.92)"><g transform="rotate(-45)">${sw}</g><g transform="rotate(45)">${sw}</g></g></svg>`}
 // Perfectionist (100% mastery): every time the player scored 100% on a challenge, whatever their place or class (God challenges count once, in their final week)
 // Completionist: weeks where the player posted a score on every challenge (every song and path) of the week.
 // A multi-week God challenge they already played in an earlier week of the run counts; one never attempted doesn't.
