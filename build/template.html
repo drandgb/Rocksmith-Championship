@@ -2863,7 +2863,9 @@ function renderSeason(){setTimeout(()=>{try{seasHl()}catch(e){}},0); const el=$(
   $("season-num").textContent=`Season ${seasonNum(id)}`;
   $("season-sub").innerHTML=`Weeks ${a}–${b} · ${fmt(weekAt(a-1)[1])} to ${fmt(weekAt(b)[1])} · ${at?`<b>after week ${done} of ${len}</b> (Week ${at}) · <button type="button" class="clear swnow" data-sat="">Show ${live?"now":"final"}</button>`:live?`week ${Math.min(len,done+1)} of ${len}`:"final standings"} · season points in each class, plus the most improved in each class <span class="elohelp" data-tip="${esc(SEASON_TIP)}">ⓘ</span>`;
   $("season-bar").innerHTML=`<div class="swk">${Array.from({length:len},(_,i)=>{const w=a+i, fin=w<=ELO_DONE, now=!fin&&w===TW_MAX, go=w<=TW_MAX||w===TW_NEXT, dt=WEEKS[w-1]?" · "+fmt(WEEKS[w-1][1]):"";
-    return `<${fin?"button":"span"} class="swb${fin?" fin":now?" cur":""}${w===at?" sel":""}"${fin?` data-sat="${w===at?"":w}"`:""} data-tip="${esc(`Week ${w}${dt} · ${fin?"finished":now?"this week":w===TW_NEXT?"next week":"to go"}${fin?(w===at?"\nClick to show the standings now":"\nClick to see the season points as they were at the end of this week"):""}`)}"><small>${i+1}</small></${fin?"button":"span"}>`}).join("")}</div>`;
+    // finished weeks: the standings after that week; the week being played: the standings now
+    const btn=fin||now;
+    return `<${btn?"button":"span"} class="swb${fin?" fin":now?" cur":""}${w===at?" sel":""}"${btn?` data-sat="${fin&&w!==at?w:""}"`:""} data-tip="${esc(`Week ${w}${dt} · ${fin?"finished":now?"this week":w===TW_NEXT?"next week":"to go"}${now?"\nClick to show the standings now":fin?(w===at?"\nClick to show the standings now":"\nClick to see the season points as they were at the end of this week"):""}`)}"><small>${i+1}</small></${btn?"button":"span"}>`}).join("")}</div>`;
   const up=at||undefined;
   const SCLS=["M","A","I","B"].filter(c=>[0,1,2].some(pi=>{const T=seasonF1(pi,id,up), M=seasonImproved(pi,id,up); return (T[c]&&T[c].length)||M[c]}));
   el.style.setProperty("--srows",SCLS.length+1);
