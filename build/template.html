@@ -2920,7 +2920,7 @@ function hlText(w){eloBuild(); const I=sbIx(), L=[], played=Object.keys(I.wk).fi
   {const fm=[]; played.forEach(k=>{const n=I.disp[k]; let ms=[]; try{ms=twMedals(n,w,w>DATA_WEEK)}catch(e){}
      const got=[]; ms.forEach(h=>{const tip=((/data-tip="([^"]*)"/.exec(h)||[])[1]||"").replace(/&#39;/g,"'").replace(/&quot;/g,'"').replace(/&amp;/g,"&");
        const all=+((/\((\d+) all time\)/.exec(tip)||[])[1]||0), plus=+((/\+(\d+) this week/.exec(tip)||[])[1]||0), name=tip.split(" · ")[0];
-       if(!(all>0&&all===plus)||!name||/^(Joined|Played guitar|Played bass)/.test(name))return; let covered=""; try{covered=hmMsg(n,tip)}catch(e){} if(covered||got.some(g=>g.name===name))return;
+       if(!(all>0&&all===plus)||!name||/^(Joined|Played guitar|Played bass|Rivalry win)/.test(name))return; let covered=""; try{covered=hmMsg(n,tip)}catch(e){} if(covered||got.some(g=>g.name===name))return;
        // what the medal is for: the hover text's first line without the name and the counts
        const what=tip.split("\n")[0].split(" · ").slice(1).filter(x=>!/this week|all time|^\d+ (weeks?|times?)\b|click to|scoreboards since/.test(x)).join(" · ");
        got.push({name,what})});
