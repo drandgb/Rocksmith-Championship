@@ -2936,7 +2936,7 @@ function hlText(w){eloBuild(); const I=sbIx(), L=[], played=Object.keys(I.wk).fi
   {const ch=(SB.weeks[w]||[]).filter(c=>c[3]&&!/^n\/a$/i.test(c[3])&&!c[7]);
    if(w<=DATA_WEEK&&ch.length&&ch.every(c=>c[6].some(x=>canWin(x))))L.push(`🏆 No lost trophies this week: all ${ch.length} challenges have a winner!`)}
   // thank everyone who rated the week's songs
-  {const V=ACCT.voters&&ACCT.voters[w]; if(V&&V.size)L.push(`🙏 Thank you to everyone who rated Week ${w}'s songs: ${[...V].sort((a,b)=>a.localeCompare(b,undefined,{sensitivity:"base"})).map(n=>"@"+n).join(", ")}`)}
+  {const V=ACCT.voters&&ACCT.voters[w]; if(V&&V.size)L.push(`🙏 Thank you to everyone who submitted their vote for the difficulty ratings of Week ${w}'s songs: ${[...V].sort((a,b)=>a.localeCompare(b,undefined,{sensitivity:"base"})).map(n=>"@"+n).join(", ")}`)}
   // the last week of a season: announce the new one, with the champions of the one just finished
   let head=""; const sNow=seasonOf(w), sNext=seasonOf(w+1);
   const sLine=(pi,up)=>{const T=seasonF1(pi,sNow,up), M=seasonImproved(pi,sNow,up);
