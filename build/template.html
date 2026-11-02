@@ -2924,7 +2924,7 @@ function hlText(w){eloBuild(); const I=sbIx(), L=[], played=Object.keys(I.wk).fi
        // what the medal is for: the hover text's first line without the name and the counts
        const what=tip.split("\n")[0].split(" · ").slice(1).filter(x=>!/this week|all time|^\d+ (weeks?|times?)\b|click to|scoreboards since/.test(x)).join(" · ");
        got.push({name,what})});
-     got.forEach(g=>{const what=g.what.replace(/, counting everyone.*$/,"");   // Uncrowned: no FreeBird / playing-up explanation in the post
+     got.forEach(g=>{const what=g.what.replace(/ or as a FreeBird/,"");   // Uncrowned: no FreeBird explanation in the post
        fm.push(`@${n} · ${g.name}${what?`: ${what}`:""}`)})});
    if(fm.length)L.push(`Congratulations on your first of these medals:${fm.map(x=>"\n    "+x).join("")}`)}
   const nw=played.filter(k=>{const W=I.wk[k]; return W.length===2&&W[1]===w}).map(nm); if(nw.length)L.push(`One more time (back for a second week): ${nw.join(", ")}`);
