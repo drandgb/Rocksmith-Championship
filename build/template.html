@@ -1521,7 +1521,7 @@ footer{color:var(--dim);font-size:.78rem}
 .bnsteps{margin:6px 0 0;padding-left:1.3em;font-size:.88rem;line-height:1.45}.bnsteps li{margin:0 0 12px}
 .bnurl{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:6px}.bnurl code{font:500 .74rem var(--f-mono);background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:6px 8px;word-break:break-all;flex:1 1 220px;min-width:0}
 .acctdlg .bnarow{gap:6px;align-items:center;flex-wrap:nowrap}.acctdlg .bnarow select{flex:1;min-width:0}.bnaimg{display:block;margin:8px 0 4px}.bnaimg img{max-width:100%;height:auto;display:block;border-radius:8px}
-.bnstat{font-size:.84rem}.bnstat.ok{color:var(--s-green)}.bnstat.wait{color:var(--s-yellow)}
+.bnstat{font-size:.84rem}.bnwhat{margin:8px 0 4px;font-size:.86rem}.bnwhat summary{cursor:pointer;font-weight:700;color:var(--accent)}.bnwhat ul{margin:8px 0 0;padding-left:18px}.bnwhat li{margin:4px 0;line-height:1.45}.bnstat.ok{color:var(--s-green)}.bnstat.wait{color:var(--s-yellow)}
 </style>
 
 <div class="wrap">
@@ -6724,6 +6724,14 @@ function bnTab(n){
     <p>Put this banner in your CustomsForge forum signature. It updates by itself every week with your latest stats, so you only set it up once. Clicking it opens this website.</p>
     <div class="bnprev" id="bnprev"><div>${bannerHtml(n)}</div></div>
     <p class="bnstat" id="bnstat">Checking your banner image…</p>
+    <details class="bnwhat"><summary>What's on your banner</summary><ul>
+      <li><b>L · R · B under your name:</b> your class on Lead, Rhythm and Bass (Beginner, Intermediate, Advanced, Masterclass), from the player list.</li>
+      <li><b>Weeks:</b> how many weeks you've played. The blue flame badge is your play streak: weeks in a row you've played (shown from 2).</li>
+      <li><b>Wins:</b> how many challenges you've won. The orange flame badge is your win streak: weeks in a row with at least one win (shown from 2).</li>
+      <li><b>Lead, Rhy and Bass LVL:</b> your player level on each path. The green <b>+N.N</b> next to it is how much it has gone up this season.</li>
+      <li><b>Medals:</b> gold God diamonds, gold medals (the ribbon's color is the path: orange Lead, green Rhythm, blue Bass), Uncrowned medals (the top score on a board while playing up or as a FreeBird, so it couldn't win) and close win medals (won on the tiebreak). The number is how many you have; a <b>1st</b>, <b>2nd</b> or <b>3rd</b> tag means you're in the top 3 for that medal among active players.</li>
+      <li><b>Season box:</b> the season and week, then your place, class and season points on each path you've scored on this season.</li>
+    </ul></details>
     <h3 style="margin-top:14px">Add it to your signature</h3>
     <ol class="bnsteps">
       <li>On the forum, open your <b>Account Settings</b> and select <b>Signature</b>.</li>
