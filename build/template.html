@@ -526,7 +526,7 @@ a.dl svg,.offpill svg{width:11px;height:11px}
 .acctdlg .btn.ghost{background:none;color:var(--accent);border:1px solid var(--line)}
 .acctdlg .msg{color:#7dffb0}.acctdlg .err{color:#ff8a9e}
 .acctdlg .adm{margin-top:4px}.thform{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:6px 0}.thform label{display:inline-flex;gap:6px;align-items:center;font-size:.84rem;color:var(--muted)}.thform select{width:auto;max-width:100%}.thform input,.thform select{background:var(--panel2);color:var(--fg);border:1px solid var(--line);border-radius:6px;padding:4px 6px;font:inherit}.thl{list-style:none;margin:4px 0 10px;padding:0}.thl li{display:flex;justify-content:space-between;gap:10px;padding:4px 0;border-top:1px solid var(--line);font-size:.86rem}.thl li:first-child{border-top:0}.thl a{color:var(--accent)}
-.accttabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin:-4px 0 12px}@media (max-width:640px){.accttabs{flex-wrap:wrap;row-gap:2px}.accttabs button{flex:0 0 auto}}
+.accttabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin:-4px 0 12px;flex-wrap:wrap;row-gap:2px}.accttabs button{flex:0 0 auto;white-space:nowrap}.nbadge{flex:none;white-space:nowrap}
 .accttabs button{background:none;border:0;border-bottom:2px solid transparent;color:var(--muted);font:700 .78rem var(--f-display);letter-spacing:.08em;text-transform:uppercase;padding:8px 10px;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
 .accttabs button[aria-selected="true"]{color:var(--fg);border-bottom-color:var(--accent)}
 .nbadge{display:inline-flex;align-items:center;justify-content:center;min-width:17px;height:17px;padding:0 5px;border-radius:9px;background:#ff4d6d;color:#fff;font:800 .66rem/1 var(--f-display);letter-spacing:0;box-shadow:0 0 8px rgba(255,77,109,.6)}
@@ -1312,7 +1312,8 @@ footer .updated{display:block;margin-top:4px}
 .rktiers .tier i{font-style:normal;font-size:.62rem;color:var(--muted);margin-top:1px}
 /* Scoreboard: pick a path, click it again to cycle its level */
 .sbtiers .tier{min-width:78px;padding:5px 8px}
-@media (max-width:640px){.sbtiers{width:100%;justify-content:center}#sbfind{flex:1 1 100%}}
+@media (max-width:640px){.sbtiers{width:100%;justify-content:center}#sbfind{flex:1 1 100%}
+  .sbtiers,#seaspath{gap:5px}.sbtiers .tier,#seaspath .tier{flex:1 1 0;min-width:0;padding:5px 2px}.sbtiers .tier small,#seaspath .tier small{font-size:.56rem;letter-spacing:.04em;text-align:center;line-height:1.2}.sbtiers .tier i,#seaspath .tier i{font-size:.56rem;white-space:nowrap}#seaspath{width:100%}}
 @media (max-width:640px){.sbtools:has(#sbme:not([hidden])) #sbfind{flex:1 1 0;min-width:0}}
 .sbtiers .tier[aria-pressed="false"]{opacity:.5}
 .sbtiers .tier[aria-pressed="false"]:hover{opacity:.85}
