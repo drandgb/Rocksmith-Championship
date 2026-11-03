@@ -607,7 +607,7 @@ a.dl svg,.offpill svg{width:11px;height:11px}
 .acctdlg .rmopt{display:flex;gap:8px;align-items:flex-start;margin:8px 0;font-size:.86rem;line-height:1.4;cursor:pointer}.acctdlg .rmopt input{width:auto;margin:3px 0 0;flex:none}
 .acctdlg .btn.danger{background:var(--s-red);color:#fff}
 .acctdlg .rmtg{display:flex;gap:12px;flex-wrap:wrap;font-size:.8rem;color:var(--muted)}.acctdlg .rmtg label{display:inline-flex;gap:5px;align-items:center;cursor:pointer}.acctdlg .rmtg input{width:auto;margin:0}
-.pphead{flex-wrap:wrap;align-items:center;justify-content:flex-start}.pphead .pptbtn{margin:0}.pphead #parts-sub{flex:1 1 100%;margin:2px 0 0}.ppdlg{max-width:420px}.pptwrap{max-height:min(60vh,520px);overflow:auto;margin-top:8px}.ppt{width:100%;border-collapse:collapse;font-size:.86rem}.ppt th{position:sticky;top:0;background:var(--panel);text-align:left;font:700 .7rem var(--f-body);color:var(--muted);text-transform:uppercase;letter-spacing:.06em;padding:6px 8px;border-bottom:1px solid var(--line)}.ppt td{padding:5px 8px;border-bottom:1px solid var(--line);white-space:nowrap}.ppt .r{text-align:right}.ppt td.r b{font-variant-numeric:tabular-nums}.ppt tr.so td{color:var(--accent)}.ppt small{color:var(--muted)}
+.pphead{flex-wrap:wrap;align-items:center;justify-content:flex-start}.pphead .pptbtn{margin:0}.pphead #parts-sub{flex:1 1 100%;margin:2px 0 0}.ppdlg{max-width:420px}.pptwrap{max-height:min(60vh,520px);overflow:auto;margin-top:8px}.ppt{width:100%;border-collapse:collapse;font-size:.86rem}.ppt th{position:sticky;top:0;background:var(--panel);text-align:left;font:700 .7rem var(--f-body);color:var(--muted);text-transform:uppercase;letter-spacing:.06em;padding:6px 8px;border-bottom:1px solid var(--line)}.ppt td{padding:5px 8px;border-bottom:1px solid var(--line);white-space:nowrap}.ppt .r{text-align:right}.ppt td.r b{font-variant-numeric:tabular-nums}.ppt tr.so td{color:var(--accent)}.ppt td.r{cursor:pointer}.ppt tr.pphl td{background:color-mix(in srgb,var(--accent) 16%,transparent)}.ppt tr.pphl td.r b{color:var(--accent)}.ppt small{color:var(--muted)}
 .acctdlg .hosttop{border-top:0;margin-top:0;padding-top:2px}.acctdlg .hostfix{border-top:0;margin-top:0;padding-top:2px}.acctdlg .hostfix+.hosttop{border-top:1px solid var(--line);margin-top:16px;padding-top:12px}.acctdlg .hosttop+.adm.acctsec{margin-top:16px;border-top:1px solid var(--line);padding-top:12px}
 .acctdlg .rurow{border:1px solid var(--line);border-left:3px solid var(--pc);border-radius:8px;padding:10px 12px;margin-top:8px;background:var(--panel2)}
 .acctdlg .ruhd{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
@@ -2564,9 +2564,12 @@ function ppTable(){const live=WEEKS[curIdx]?WEEKS[curIdx][0]:0, last=PRES_START+
   if(live>last&&SB.weeks[live]){const n=new Set(SB.weeks[live].flatMap(c=>c[6].map(e=>SB.names[e[0]].replace(/[*~]+$/,"").toLowerCase()))).size; rows.push([live,n,true])}
   for(let i=PARTS.length-1;i>=0;i--)rows.push([PRES_START+i,PARTS[i],false]);
   return `<h3>Players per week</h3><p class="dim">Every week from Week ${PRES_START} to ${rows[0][0]}, newest first.</p><div class="pptwrap"><table class="ppt"><thead><tr><th>Week</th><th>Date</th><th class="r">Players</th></tr></thead><tbody>${rows.map(([w,n,so])=>{const d=WEEKS[w-1];
-    return `<tr${so?' class="so"':""}><td>Week ${w}</td><td>${d?esc(fmtShort(d[1])+", "+d[1].slice(0,4)):""}</td><td class="r"><b>${n}</b>${so?" <small>so far</small>":""}</td></tr>`}).join("")}</tbody></table></div>`}
+    return `<tr${so?' class="so"':""} data-ppn="${n}"><td>Week ${w}</td><td>${d?esc(fmtShort(d[1])+", "+d[1].slice(0,4)):""}</td><td class="r" title="Click to highlight every week with ${n} players"><b>${n}</b>${so?" <small>so far</small>":""}</td></tr>`}).join("")}</tbody></table></div>`}
 $("ppopen").addEventListener("click",()=>{$("ppbody").innerHTML=ppTable(); const d=$("ppdlg"); d.showModal?d.showModal():d.setAttribute("open",""); const w=d.querySelector(".pptwrap"); if(w)w.scrollTop=0});
-$("ppdlg").addEventListener("click",e=>{if(e.target.closest("[data-ppclose]")||e.target===e.currentTarget)e.currentTarget.close()});
+$("ppdlg").addEventListener("click",e=>{if(e.target.closest("[data-ppclose]")||e.target===e.currentTarget){e.currentTarget.close();return}
+  // a week's player count: highlight every week with the same number (click it again to clear)
+  const c=e.target.closest(".ppt td.r"); if(!c)return; const n=c.parentNode.dataset.ppn, on=c.parentNode.classList.contains("pphl");
+  e.currentTarget.querySelectorAll(".ppt tr").forEach(r=>r.classList.toggle("pphl",!on&&r.dataset.ppn===n))});
 // players-per-week chart
 function renderParts(){
   // with a year picked in the Players tab, only that year's weeks
