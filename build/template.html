@@ -3570,6 +3570,14 @@ function rivalCounts(name,weeks,path=-1){
   const m={}; weeks.forEach(w=>{const r=rivalsOfWeek(w,path)[name]; if(r)(m[r.them]=m[r.them]||[]).push(w)});
   return Object.entries(m).sort((a,b)=>b[1].length-a[1].length||Math.max(...b[1])-Math.max(...a[1]));
 }
+// a week's wins for a player: the highest difficulty rating among them, and the widest margin (% ahead of the next
+// player who could win, then notes of streak ahead as a small extra when the % is level)
+function bestWkEdge(name,w,p){let d=-1,m=-1;
+  (SB.weeks[w]||[]).forEach(c=>{if(c[7]||(p>=0&&c[0]!==p))return; const el=c[6].filter(x=>canWin(x)), e=el[0];
+    if(!e||SB.names[e[0]].replace(/[*~]+$/,"")!==name)return;
+    let r=null; try{r=songRating(c[0],c[3]).avg}catch(x){} const dv=+(r!=null?r:c[4]); if(isFinite(dv)&&dv>d)d=dv;
+    const n2=el[1], mg=n2?((+e[1]||0)-(+n2[1]||0))+((+e[2]||0)-(+n2[2]||0))/1e6:100; if(mg>m)m=mg});
+  return {d,m}}
 function playerWeekWins(name,p){
   const out={};
   SB_W.forEach(w=>{
@@ -3940,7 +3948,9 @@ function showWinner(name){
   // all the lookup stats for a set of weeks (all time for the medals, or one year when a year is picked)
   const statsFor=done=>{
     const weeksWon=done.filter(w=>per[w][1]>0), weeksPlayed=done.filter(w=>per[w][0]);
-    let best=null; weeksWon.forEach(w=>{if(!best||per[w][1]>per[best][1])best=w});
+    // weeks tied on wins: the one with the hardest win (difficulty rating), then the widest winning margin
+    let best=null; weeksWon.forEach(w=>{if(!best||per[w][1]>per[best][1]){best=w;return} if(per[w][1]<per[best][1])return;
+      const a=bestWkEdge(name,w,wPath), b=bestWkEdge(name,best,wPath); if(a.d>b.d+1e-9||(Math.abs(a.d-b.d)<1e-9&&a.m>b.m+1e-9))best=w});
     // longest run of consecutive weeks with a win
     let run=0,bestRun=0,runEnd=null; done.slice().sort((a,b)=>a-b).forEach(w=>{run=per[w][1]>0?run+1:0; if(run>bestRun){bestRun=run;runEnd=w}});
     const runStart=runEnd!=null?runEnd-bestRun+1:null;
