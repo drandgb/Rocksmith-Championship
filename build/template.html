@@ -2066,7 +2066,7 @@ document.addEventListener("click",async e=>{const b=e.target.closest("[data-tunf
   if(e.target.closest("[data-tuncancel]")){sbRender();return}
   const song=ed.dataset.song, p=+ed.dataset.p, k=tuneKey(song);
   if(!ACCT.sb||!ACCT.admin)return;
-  const done=async q=>{const {error}=await q; if(error){alert(/relation|does not exist|schema cache/i.test(error.message)?"Tuning fixes aren't set up yet: run build/supabase/song_tunings.sql once in Supabase.":/capo/i.test(error.message)?"Capos aren't set up yet: run build/supabase/song_tunings.sql again in Supabase.":"Couldn't save: "+error.message);return}
+  const done=async q=>{const {error}=await q; if(error){alert(/capo/i.test(error.message)?"Capos aren't set up yet: run build/supabase/song_tunings.sql again in Supabase, then: notify pgrst, 'reload schema';\n\n("+error.message+")":/relation|does not exist|schema cache/i.test(error.message)?"Tuning fixes aren't set up yet: run build/supabase/song_tunings.sql once in Supabase.\n\n("+error.message+")":"Couldn't save: "+error.message);return}
     const {data}=await ACCT.sb.from("song_tunings").select("*"); tuneFixGot(data||[])};
   if(e.target.closest("[data-tunreset]"))return done(ACCT.sb.from("song_tunings").delete().match({song:k,path:p}));
   if(e.target.closest("[data-tunsave]")){const v=ed.querySelector("input").value.replace(/\s+/g," ").trim(); if(!v){alert("Type a tuning first (or Reset).");return}

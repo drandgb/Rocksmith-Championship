@@ -21,3 +21,5 @@ create policy stn_update on public.song_tunings for update to authenticated usin
 create policy stn_delete on public.song_tunings for delete to authenticated using (public.is_admin());
 grant select on public.song_tunings to anon, authenticated;
 grant insert, update, delete on public.song_tunings to authenticated;
+-- make the site see the new column right away
+notify pgrst, 'reload schema';
