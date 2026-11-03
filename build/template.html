@@ -607,8 +607,9 @@ a.dl svg,.offpill svg{width:11px;height:11px}
 .acctdlg .rmopt{display:flex;gap:8px;align-items:flex-start;margin:8px 0;font-size:.86rem;line-height:1.4;cursor:pointer}.acctdlg .rmopt input{width:auto;margin:3px 0 0;flex:none}
 .acctdlg .btn.danger{background:var(--s-red);color:#fff}
 .acctdlg .rmtg{display:flex;gap:12px;flex-wrap:wrap;font-size:.8rem;color:var(--muted)}.acctdlg .rmtg label{display:inline-flex;gap:5px;align-items:center;cursor:pointer}.acctdlg .rmtg input{width:auto;margin:0}
-.pphead{flex-wrap:wrap;align-items:center;justify-content:flex-start}.pphead .pptbtn{margin:0 0 0 auto}.pphead #parts-sub{flex:1 1 100%;margin:2px 0 0}.ppdlg{max-width:420px}.pptwrap{max-height:min(60vh,520px);overflow:auto;margin-top:8px}.ppt{width:100%;border-collapse:collapse;font-size:.86rem}.ppt th{position:sticky;top:0;background:var(--panel);text-align:left;font:700 .7rem var(--f-body);color:var(--muted);text-transform:uppercase;letter-spacing:.06em;padding:6px 8px;border-bottom:1px solid var(--line)}.ppt td{padding:5px 8px;border-bottom:1px solid var(--line);white-space:nowrap}.ppt .r{text-align:right}.ppt td.r b{font-variant-numeric:tabular-nums}.ppt tr.so td{color:var(--accent)}.ppt td.r{cursor:pointer}.ppt tr.pphl td{background:color-mix(in srgb,var(--accent) 16%,transparent)}.ppt tr.pphl td.r b{color:var(--accent)}.ppt small{color:var(--muted)}
+.pphead{flex-wrap:wrap;align-items:center;justify-content:flex-start}.pphead .pptbtn{margin:0 0 0 auto}.pphead #parts-sub{flex:1 1 100%;margin:2px 0 0}.ppdlg{max-width:420px}.pptwrap{max-height:min(60vh,520px);overflow:auto;margin-top:8px}.ppt{width:100%;border-collapse:collapse;font-size:.86rem}.ppt th{position:sticky;top:0;background:var(--panel);text-align:left;font:700 .7rem var(--f-body);color:var(--muted);text-transform:uppercase;letter-spacing:.06em;padding:6px 8px;border-bottom:1px solid var(--line)}.ppt td{padding:5px 8px;border-bottom:1px solid var(--line);white-space:nowrap}.ppt .r{text-align:right}.ppt td.r b{font-variant-numeric:tabular-nums}.ppt tr.so td{color:var(--accent)}.ppt td.r{cursor:pointer}.ppt tr.pphl td{background:color-mix(in srgb,var(--accent) 16%,transparent)}.ppt tr.pphl td.r b{color:var(--accent)}.ppt tr.pphi td{background:color-mix(in srgb,var(--s-green) 9%,transparent)}.ppt tr.pphi td.r b{color:var(--s-green)}.ppt tr.pplo td{background:color-mix(in srgb,var(--s-red) 8%,transparent)}.ppt tr.pplo td.r b{color:var(--s-red)}.ppt small{color:var(--muted)}
 .bnaredraw{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:10px}.bnaredraw .dim{font-size:.82rem}
+.twmlchg{margin:0 0 12px;padding:8px 12px;border:1px solid color-mix(in srgb,#f5c84a 40%,var(--line));border-radius:8px;background:color-mix(in srgb,#f5c84a 6%,var(--panel2));font-size:.88rem}.twmlchg .twmlh{font-weight:800;margin-bottom:4px}.twmlchg ul{margin:0;padding-left:18px}.twmlchg .nm{cursor:pointer}
 .acctdlg .hosttop{border-top:0;margin-top:0;padding-top:2px}.acctdlg .hostfix{border-top:0;margin-top:0;padding-top:2px}.acctdlg .hostfix+.hosttop{border-top:1px solid var(--line);margin-top:16px;padding-top:12px}.acctdlg .hosttop+.adm.acctsec{margin-top:16px;border-top:1px solid var(--line);padding-top:12px}
 .acctdlg .rurow{border:1px solid var(--line);border-left:3px solid var(--pc);border-radius:8px;padding:10px 12px;margin-top:8px;background:var(--panel2)}
 .acctdlg .ruhd{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
@@ -1752,6 +1753,7 @@ footer{color:var(--dim);font-size:.78rem}
   <section class="panel glowrim twtheme" style="--rc:#b48cff" id="tw-theme" hidden></section>
   <section class="panel glowrim" style="--rc:#f5c84a">
     <div class="panel-head"><h2>🏅 New medals</h2><span class="sub" id="tw-med-sub"></span></div>
+    <div class="twmlchg" id="tw-mlchg" hidden></div>
     <ul class="twl cols" id="tw-med"></ul>
   </section>
   <section class="panel twseas" id="tw-seas" hidden></section>
@@ -2501,7 +2503,7 @@ function renderRecordsYear(y){const ys=yearPlayerStats(y), ws=yearWeeks(y), M=["
   $("rings").innerHTML=rates.map(([n,p,x],i)=>{const col=rateColor(p);
     return `<div class="ring${p>=100?" full":""}" style="--gc:${col}" data-tip="${esc(`${x.c} of ${x.since} weeks in ${y} since their first week of the year`)}"><svg viewBox="0 0 84 84" role="img" aria-label="${esc(n)} ${p}%"><circle class="rt" cx="42" cy="42" r="${R}"/><circle class="rv" cx="42" cy="42" r="${R}" stroke="${col}" stroke-dasharray="${C.toFixed(1)}" stroke-dashoffset="${(C*(1-p/100)).toFixed(1)}"/><text x="42" y="42">${p%1===0?p:p.toFixed(1)}%</text></svg><span class="nmrow"><span class="nm" data-player="${esc(n)}">${esc(n)}</span>${RING_PILL_SPACE}</span></div>`}).join("");
   const perf=ys.filter(x=>x.all&&x.c>=Math.min(4,ws.length)).sort((a,b)=>b.c-a.c||a.n.localeCompare(b.n)), pmax=Math.max(1,...perf.map(x=>x.c));
-  $("perfect").innerHTML=perf.length?perf.map((x,i)=>`<div class="badge pbar" style="--h:${Math.round(52+120*x.c/pmax)}px">${shinyStar(i)}<div class="pnm"><div class="nmrow"><span class="nm" data-player="${esc(x.n)}">${esc(x.n)}</span></div></div><div class="wk">${x.c}<small>weeks, every one played</small></div></div>`).join(""):`<p class="dimtxt">Nobody played every week of ${y} from their first week that year.</p>`;
+  $("perfect").innerHTML=perf.length?perf.map((x,i)=>`<div class="badge pbar" style="--h:${Math.round(52+120*x.c/pmax)}px">${shinyStar(i)}<div class="pnm"><div class="nmrow"><span class="nm" data-player="${esc(x.n)}">${esc(x.n)}</span></div></div><div class="wk">${x.c}<small>${x.c===1?"week":"weeks"}</small></div></div>`).join(""):`<p class="dimtxt">Nobody played every week of ${y} from their first week that year.</p>`;
   const nw=ys.filter(x=>x.joined).sort((a,b)=>b.first-a.first||a.n.localeCompare(b.n));
   $("new-h").textContent=`New in ${y}`;
   $("new-sub").textContent=`${nw.length} player${nw.length===1?"":"s"} joined in ${y} · newest first`;
@@ -2555,7 +2557,7 @@ function renderRecords(){
      return `<div class="nrow"><div><span class="nm" data-player="${esc(n)}" title="${esc(n)}">${esc(n)}</span><span class="j">Joined wk ${first}${w?" · "+fmtShort(w[1]):""}</span></div><span class="track"><span class="fill" style="width:${Math.max(3,played/since*100)}%"></span></span><span class="val" title="${played} of ${since} weeks since joining">${played}/${since} wks<span class="j">Last played wk ${last}</span></span></div>`}).join("")||`<div class="empty">No new players yet this year.</div>`;}
   // one column, highest first; each box's height grows with the number of weeks
   const pmax=Math.max(...PERFECT.map(p=>p[1]),1);
-  $("perfect").innerHTML=PERFECT.slice().sort((a,b)=>b[1]-a[1]).map(([n,v],i)=>`<div class="badge pbar" style="--h:${Math.round(52+120*v/pmax)}px">${shinyStar(i)}<div class="pnm"><div class="nmrow"><span class="nm" data-player="${esc(n)}">${esc(n)}</span>${newPill(n)}</div></div><div class="wk">${v}<small>weeks, every one played</small></div></div>`).join("");
+  $("perfect").innerHTML=PERFECT.slice().sort((a,b)=>b[1]-a[1]).map(([n,v],i)=>`<div class="badge pbar" style="--h:${Math.round(52+120*v/pmax)}px">${shinyStar(i)}<div class="pnm"><div class="nmrow"><span class="nm" data-player="${esc(n)}">${esc(n)}</span>${newPill(n)}</div></div><div class="wk">${v}<small>${v===1?"week":"weeks"}</small></div></div>`).join("");
   renderParts();
   $("plist").innerHTML=PLAYERS.slice().sort((a,b)=>b[3]-a[3]).map(p=>`<option value="${esc(p[0])}"></option>`).join("");
 }
@@ -2565,12 +2567,13 @@ function ppTable(){const live=WEEKS[curIdx]?WEEKS[curIdx][0]:0, last=PRES_START+
   if(live>last&&SB.weeks[live]){const n=new Set(SB.weeks[live].flatMap(c=>c[6].map(e=>SB.names[e[0]].replace(/[*~]+$/,"").toLowerCase()))).size; rows.push([live,n,true])}
   for(let i=PARTS.length-1;i>=0;i--)rows.push([PRES_START+i,PARTS[i],false]);
   return `<h3>Players per week</h3><p class="dim">Every week from Week ${PRES_START} to ${rows[0][0]}, newest first.</p><div class="pptwrap"><table class="ppt"><thead><tr><th>Week</th><th>Date</th><th class="r">Players</th></tr></thead><tbody>${rows.map(([w,n,so])=>{const d=WEEKS[w-1];
-    return `<tr${so?' class="so"':""} data-ppn="${n}"><td>Week ${w}</td><td>${d?esc(fmtShort(d[1])+", "+d[1].slice(0,4)):""}</td><td class="r" title="Click to highlight every week with ${n} players"><b>${n}</b>${so?" <small>so far</small>":""}</td></tr>`}).join("")}</tbody></table></div>`}
+    return `<tr${so?' class="so"':""} data-ppn="${n}"><td>Week ${w}</td><td>${d?esc(fmtShort(d[1])+", "+d[1].slice(0,4)):""}</td><td class="r" title="Click to highlight every week with ${n} players, and the weeks with more (green) and fewer (red)"><b>${n}</b>${so?" <small>so far</small>":""}</td></tr>`}).join("")}</tbody></table></div>`}
 $("ppopen").addEventListener("click",()=>{$("ppbody").innerHTML=ppTable(); const d=$("ppdlg"); d.showModal?d.showModal():d.setAttribute("open",""); const w=d.querySelector(".pptwrap"); if(w)w.scrollTop=0});
 $("ppdlg").addEventListener("click",e=>{if(e.target.closest("[data-ppclose]")||e.target===e.currentTarget){e.currentTarget.close();return}
-  // a week's player count: highlight every week with the same number (click it again to clear)
-  const c=e.target.closest(".ppt td.r"); if(!c)return; const n=c.parentNode.dataset.ppn, on=c.parentNode.classList.contains("pphl");
-  e.currentTarget.querySelectorAll(".ppt tr").forEach(r=>r.classList.toggle("pphl",!on&&r.dataset.ppn===n))});
+  // a week's player count: highlight every week with the same number, and the weeks with more and with fewer
+  // players in two other colors (click it again to clear)
+  const c=e.target.closest(".ppt td.r"); if(!c)return; const n=+c.parentNode.dataset.ppn, on=c.parentNode.classList.contains("pphl");
+  e.currentTarget.querySelectorAll(".ppt tbody tr").forEach(r=>{const v=+r.dataset.ppn; r.classList.toggle("pphl",!on&&v===n); r.classList.toggle("pphi",!on&&v>n); r.classList.toggle("pplo",!on&&v<n)})});
 // players-per-week chart
 function renderParts(){
   // with a year picked in the Players tab, only that year's weeks
@@ -3023,6 +3026,11 @@ function hlText(w){eloBuild(); const I=sbIx(), L=[], played=Object.keys(I.wk).fi
   {const ch=(SB.weeks[w]||[]).filter(c=>c[3]&&!/^n\/a$/i.test(c[3])&&!c[7]);
    if(w<=DATA_WEEK&&ch.length&&ch.every(c=>c[6].some(x=>canWin(x))))L.push(`🏆 No lost trophies this week: all ${ch.length} challenges have a winner!`)}
   // thank everyone who rated the week's songs
+  // this week's number of players, when it's the most since a week over a year ago (or the most ever)
+  {const cnt=x=>{const i=x-PRES_START; return i>=0&&i<PARTS.length?PARTS[i]:x===w?played.length:null}, n=cnt(w);
+   if(n){let v=null; for(let x=w-1;x>=PRES_START;x--){const c=cnt(x); if(c!=null&&c>=n){v=x;break}}
+     if(v==null&&w-PRES_START>52)L.push(`📈 ${n} players this week, the most ever!`);
+     else if(v!=null&&w-v>52){const yrs=Math.floor((w-v)/52), d=WEEKS[v-1]; L.push(`📈 ${n} players this week, the most since Week ${v}${d?` (${fmtShort(d[1])}, ${d[1].slice(0,4)})`:""}, over ${yrs===1?"a year":yrs+" years"} ago!`)}}}
   {const V=ACCT.voters&&ACCT.voters[w]; if(V&&V.size)L.push(`🙏 Thank you to everyone who submitted their vote for the difficulty ratings of Week ${w}'s songs: ${[...V].sort((a,b)=>a.localeCompare(b,undefined,{sensitivity:"base"})).map(n=>"@"+n).join(", ")}`)}
   // the last week of a season: announce the new one, with the champions of the one just finished
   let head=""; const sNow=seasonOf(w), sNext=seasonOf(w+1);
@@ -5433,6 +5441,24 @@ function twFinishes(n,w){const k=String(n).toLowerCase(), out=[];
 var svgIdN=0;
 function svgFreshIds(h){const ids=[...new Set([...h.matchAll(/\bid="([^"]+)"/g)].map(m=>m[1]))]; if(!ids.length)return h; const u="_"+(++svgIdN);
   ids.forEach(id=>{h=h.split(`id="${id}"`).join(`id="${id}${u}"`).split(`url(#${id})`).join(`url(#${id}${u})`).split(`href="#${id}"`).join(`href="#${id}${u}"`)}); return h}
+// This Week: medal leaders (Players and Winners tabs) that changed this week, or would change with this week's scores so far.
+// Each new medal's hover says "+k this week (N all time)": N is the count after this week, N-k before it. Only for the
+// latest finished week and the week being played.
+function twMlChanges(w,live,med0){if(!(w===DATA_WEEK||(live&&w===DATA_WEEK+1)))return "";
+  const gain={}; med0.forEach(x=>x.m.forEach(h=>{const tip=((/data-tip="([^"]*)"/.exec(h)||[])[1]||"").replace(/&#39;/g,"'").replace(/&quot;/g,'"').replace(/&amp;/g,"&"), parts=tip.split(" · "), m=/\+(\d+) this week \((\d+) all time\)/.exec(tip); if(!m||!parts[0])return;
+    const key=parts[0]+(PATHS.includes(parts[1])?" · "+parts[1]:""); ((gain[key]=gain[key]||{})[x.n.toLowerCase()]={k:+m[1],N:+m[2]})}));
+  const out=[];
+  ["player","win"].forEach(kind=>{mlEnsure(kind,true); const M=ML[kind]; if(!M||!M.done)return;
+    Object.entries(M.acc).forEach(([key,k])=>{const g=gain[key]; if(!g||!k.rows.length||k.unit!=="×"&&!/ wk$/.test(k.unit||""))return;
+      const cur=new Map(k.rows.map(r=>[r.n,r.v])), bef=new Map(), aft=new Map();
+      cur.forEach((v,n)=>{const x=g[n.toLowerCase()]; if(live){bef.set(n,v); aft.set(n,x?x.N:v)} else {aft.set(n,v); bef.set(n,x?v-x.k:v)}});
+      Object.keys(g).forEach(lc=>{if([...cur.keys()].some(n=>n.toLowerCase()===lc))return; const n=(med0.find(x=>x.n.toLowerCase()===lc)||{}).n||lc; bef.set(n,live?0:g[lc].N-g[lc].k); aft.set(n,g[lc].N)});
+      const top=m=>{const mx=Math.max(0,...m.values()); return mx>0?[...m].filter(([,v])=>v===mx).map(([n])=>n):[]}, b=top(bef), a=top(aft);
+      const nw=a.filter(n=>!b.includes(n)); if(!nw.length)return;
+      const v=aft.get(a[0]), lab=k.label, val=`${v}${k.unit==="×"?"×":k.unit}`;
+      const who=nw.map(n=>`<b class="nm" data-goplayer="${esc(n)}">${esc(n)}</b>`).join(" and ");
+      out.push(`<li>${who} ${live?(a.length>1?"would tie for the lead":"would take the lead"):(a.length>1?"tied for the lead":"took the lead")} in <b>${esc(lab)}</b> (${val})${b.length&&a.length===nw.length?` <small class="dim">from ${esc(b.join(", "))}</small>`:""}</li>`)})});
+  return out.length?`<div class="twmlh">🏅 Medal leaders ${live?"(if this week ended now)":"this week"}</div><ul>${out.join("")}</ul>`:""}
 function twMedals(n,w,live){return twMedals0(n,w,live).map(svgFreshIds)}
 function twMedals0(n,w,live){
   const k=n+"|"+w; if(twMedalCache[k])return twMedalCache[k];
@@ -5769,6 +5795,7 @@ function renderThisWeek(){
     const cls=[g?"celestial":"",hb?"hostbox":""].filter(Boolean).join(" "), tipL=[hb?`Host of Week ${w}`:"",g?"Gold God winner this week":""].filter(Boolean).join(" · ");
     return `<li${cls?` class="${cls}" data-tip="${tipL}"`:""}>${g?celCorners():""}${hb?`<span class="hosttag">YOUR HOST</span>`:""}${twName(x.n)}<span class="dt">${twPl(medalTotal(x.m),"new medal")}</span><div class="medals">${x.m.join("")}</div></li>`}).join(""):twEmpty("No new medals this week.");
   uniqBoxIds($("tw-med"));
+  try{const h=twMlChanges(w,live,med0); $("tw-mlchg").innerHTML=h; $("tw-mlchg").hidden=!h}catch(e){console.error(e); $("tw-mlchg").hidden=true}
   const lit=(id,on)=>$(id).closest("section").classList.toggle("lit",!!on);
   lit("tw-med",med.length); lit("tw-back",back.length);
   {const s=$("tw-dng").closest("section"); s.classList.toggle("amber",live); s.classList.toggle("fangs",live&&dng.length>0); s.classList.toggle("gloom",!live&&dng.length>0)} lit("tw-new",fresh.length); lit("tw-ann",(twAnnAll?annAll:ann).length); lit("tw-riv",SB.weeks[w]&&[0,1,2].some(pi=>Object.keys(rivalsOfWeek(w,pi)).length));
