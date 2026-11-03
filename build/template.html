@@ -607,7 +607,7 @@ a.dl svg,.offpill svg{width:11px;height:11px}
 .acctdlg .rmopt{display:flex;gap:8px;align-items:flex-start;margin:8px 0;font-size:.86rem;line-height:1.4;cursor:pointer}.acctdlg .rmopt input{width:auto;margin:3px 0 0;flex:none}
 .acctdlg .btn.danger{background:var(--s-red);color:#fff}
 .acctdlg .rmtg{display:flex;gap:12px;flex-wrap:wrap;font-size:.8rem;color:var(--muted)}.acctdlg .rmtg label{display:inline-flex;gap:5px;align-items:center;cursor:pointer}.acctdlg .rmtg input{width:auto;margin:0}
-.acctdlg .hosttop{border-top:0;margin-top:0;padding-top:2px}.acctdlg .hosttop+.adm.acctsec{margin-top:16px;border-top:1px solid var(--line);padding-top:12px}
+.acctdlg .hosttop{border-top:0;margin-top:0;padding-top:2px}.acctdlg .hostfix{border-top:0;margin-top:0;padding-top:2px}.acctdlg .hostfix+.hosttop{border-top:1px solid var(--line);margin-top:16px;padding-top:12px}.acctdlg .hosttop+.adm.acctsec{margin-top:16px;border-top:1px solid var(--line);padding-top:12px}
 .acctdlg .rurow{border:1px solid var(--line);border-left:3px solid var(--pc);border-radius:8px;padding:10px 12px;margin-top:8px;background:var(--panel2)}
 .acctdlg .ruhd{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .acctdlg .rupath{font:800 .72rem var(--f-display);letter-spacing:.08em;color:var(--pc);text-transform:uppercase;width:62px}
@@ -6267,8 +6267,13 @@ function typoScan(){
   return TYPO_CACHE={out,NEW,nNew,isNew};
 }
 function sslNote(){const i=SB.ssl||{}; return `The song names in the scoreboard and the Song Selection List's Songs Played sheet don't match`+(i.live?"":i.from?` (Songs Played as read on ${new Date(i.from).toLocaleDateString()})`:` (Songs Played copy up to week ${i.last||"?"}; the site couldn't read the live sheet)`)}
-function typoSection(){
-  const {out,NEW,isNew}=typoScan();
+// this week's host: the scoreboard issues of the week before (e.g. Week 680's host sees Week 679's), in the Host tab with a 🔧 badge
+function hostIssueWeek(){try{if(!acctOn()||!ACCT.claim||ACCT.claim.status!=="approved")return 0; const w=WEEKS[curIdx], h=w[2]||(ACCT.hostSign&&ACCT.hostSign[w[0]]&&ACCT.hostSign[w[0]].player)||"";
+  return h&&String(h).toLowerCase()===ACCT.claim.player.toLowerCase()?w[0]-1:0}catch(e){return 0}}
+function hostIssues(){const w=hostIssueWeek(); if(!w)return null; const {out}=typoScan(), inW=x=>x.w===w||!!(x.forms&&x.forms.some(f=>f.last===w)), o={}; let n=0;
+  for(const k in out){o[k]=out[k].filter(inW); n+=o[k].length} return {w,out:o,n}}
+function typoSection(H){
+  const S=typoScan(), out=H?H.out:S.out, NEW=S.NEW, isNew=H?(()=>false):S.isNew;
   const card=x=>`<span class="tylink" data-sbw="${x.w}" data-sbp="${x.p}" data-sbn="${esc(x.n||"")}" title="Open on the Scoreboard">Week ${x.w} · ${PATHS[x.p]} ${esc(x.lv)}</span>`;
   const row=(x,body)=>`<li class="${isNew(x)?"tynew":""}">${isNew(x)?'<span class="tytag">new</span>':""}${body}</li>`;
   const forms=x=>x.forms.map(f=>`“${esc(f.t)}”${f.n?` <small>${f.n}×, last Week ${f.last}</small>`:""}`).join(" vs ");
@@ -6285,6 +6290,9 @@ function typoSection(){
     ["player","Player name capitalization","The same player written differently",x=>forms(x)],
     ["ssl","Differs from Songs Played",sslNote(),x=>`<span class="tylink" data-sbw="${x.w}" title="Open on the Scoreboard">Week ${x.w}</span> · scoreboard “${esc(x.sb)}” · ${x.ssl?`Songs Played “${esc(x.ssl)}”`:"not in Songs Played for that week"}${x.why==="typo"?' <small class="dim">(different spelling)</small>':x.why==="space"?' <small class="dim">(extra spaces or a line break in Songs Played)</small>':""}`]];
   const total=G.reduce((s,g)=>s+out[g[0]].length,0);
+  if(H)return `<div class="acctsec typos hostfix"><h3>🔧 Scoreboard issues in Week ${H.w}</h3><p class="dim">Likely typos in last week's scoreboard. Click a week to open it on the Scoreboard; fix it in the sheet and it disappears after the next site update.</p>
+    ${total?G.map(([k,t,d,f])=>{const L=out[k]; if(!L.length)return "";
+      return `<details open><summary>${t} <span class="tycount">${L.length}</span>${d?` <small class="dim">${d}</small>`:""}</summary><ul class="tylist">${L.map(x=>row(x,f(x))).join("")}</ul></details>`}).join(""):`<p>No likely typos found. 👍</p>`}</div>`;
   return `<div class="adm acctsec typos"><h3>Scoreboard checks</h3><p class="dim">Likely typos in the scoreboard sheet, every week since 440. Click a week to open it on the Scoreboard; fix it in the sheet and it disappears after the next site update. <b>New</b> marks issues in the newest week (${NEW}).</p>
     ${total?G.map(([k,t,d,f])=>{const L=out[k].slice().sort((a,b)=>(isNew(b)-isNew(a))||b.w-a.w), nn=L.filter(isNew).length; if(!L.length)return "";
       return `<details${nn?" open":""}><summary>${t} <span class="tycount">${L.length}</span>${nn?`<span class="nbadge tybadge">${nn} new</span>`:""}${d?` <small class="dim">${d}</small>`:""}</summary><ul class="tylist">${L.map(x=>row(x,f(x))).join("")}</ul></details>`}).join(""):`<p>No likely typos found.</p>`}</div>`;
@@ -6735,6 +6743,8 @@ function acctBtn(){const b=$("acctbtn"); b.hidden=!ACCT.on;
   if(yn)b.insertAdjacentHTML("beforeend",`<span class="nbadge nbyel" title="Passed ${yn} time${yn===1?"":"s"} on this week's scoreboard · dismiss it in Your week">⬇️${yn}</span>`);
   const sd=ACCT.claim&&ACCT.claim.status==="approved"?seasUnseen(ACCT.claim.player).length:0;
   if(sd)b.insertAdjacentHTML("beforeend",`<span class="nbadge nbyel" title="Your season ranking is in danger on ${sd} path${sd===1?"":"s"} · dismiss it in Your week">🏁${sd}</span>`);
+  // this week's host: likely issues in last week's scoreboard (Host tab)
+  try{const H=hostIssues(); if(H&&H.n)b.insertAdjacentHTML("beforeend",`<span class="nbadge" title="${H.n} likely scoreboard issue${H.n===1?"":"s"} in Week ${H.w} · see the Host tab">🔧${H.n}</span>`)}catch(e){}
   try{localStorage.setItem("rsc-acctbtn",b.innerHTML)}catch(e){} // shown straight away on the next visit while the login loads
   if(typeof renderDownloads==="function"){try{renderNewWeekNote();renderTwPast();renderDownloads()}catch(e){}}
 }
@@ -6887,10 +6897,10 @@ function acctDraw(msg,err){
   // the passes stay (alert and badges) until you dismiss the alert with its ✕
   if(ACCT.tab==="week"){const n=ACCT.claim.player; ACCT.ywShown=ywUnseen(n)}
   const ywN=appr?ywUnseen(ACCT.claim.player).length:0, sdN=appr?seasUnseen(ACCT.claim.player).length:0;
-  const tabs=`<div class="accttabs" role="tablist">${tb("me","Your profile")}${appr?tb("week",`Your week${ywN?`<span class="nbadge nbyel" title="Passed ${ywN} time${ywN===1?"":"s"} · the ✕ on the alert dismisses it">⬇️${ywN}</span>`:""}${sdN?`<span class="nbadge nbyel" title="Your season ranking is in danger on ${sdN} path${sdN===1?"":"s"} · the ✕ on the alert dismisses it">🏁${sdN}</span>`:""}`):""}${appr?tb("wrapped",`🎸 ${WRAP_OPEN()-1} Restringed`):""}${ACCT.claim&&ACCT.claim.status==="approved"?tb("banner","Forum banner"):""}${tb("manage","Manage account")}${canRateFor()?tb("host","Host"):""}${ACCT.admin?tb("admin",`Admin${(()=>{const t=typoScan().nNew; return t?`<span class="nbadge tybadge" title="${t} likely typo${t===1?"":"s"} in this week's scoreboard">${t}</span>`:""})()}${pendN?`<span class="nbadge" title="${pendN} claim${pendN===1?"":"s"} waiting for approval">👤${pendN}</span>`:""}`):""}</div>`;
+  const tabs=`<div class="accttabs" role="tablist">${tb("me","Your profile")}${appr?tb("week",`Your week${ywN?`<span class="nbadge nbyel" title="Passed ${ywN} time${ywN===1?"":"s"} · the ✕ on the alert dismisses it">⬇️${ywN}</span>`:""}${sdN?`<span class="nbadge nbyel" title="Your season ranking is in danger on ${sdN} path${sdN===1?"":"s"} · the ✕ on the alert dismisses it">🏁${sdN}</span>`:""}`):""}${appr?tb("wrapped",`🎸 ${WRAP_OPEN()-1} Restringed`):""}${ACCT.claim&&ACCT.claim.status==="approved"?tb("banner","Forum banner"):""}${tb("manage","Manage account")}${canRateFor()||hostIssueWeek()?tb("host",`Host${(()=>{const H=hostIssues(); return H&&H.n?`<span class="nbadge" title="${H.n} likely scoreboard issue${H.n===1?"":"s"} in Week ${H.w}">🔧${H.n}</span>`:""})()}`):""}${ACCT.admin?tb("admin",`Admin${(()=>{const t=typoScan().nNew; return t?`<span class="nbadge tybadge" title="${t} likely typo${t===1?"":"s"} in this week's scoreboard">${t}</span>`:""})()}${pendN?`<span class="nbadge" title="${pendN} claim${pendN===1?"":"s"} waiting for approval">👤${pendN}</span>`:""}`):""}</div>`;
   let h=tabs;
   if(ACCT.tab==="admin"){}
-  else if(ACCT.tab==="host")h+=`${hostSection(false).replace('class="acctsec hostsec"','class="acctsec hostsec hosttop"')}${(()=>{try{return closeSection()}catch(e){return ""}})()}${(()=>{try{return hlSection()}catch(e){return ""}})()}${(()=>{try{return unusedSection()}catch(e){console.error(e); return ""}})()}${(()=>{try{return fwHostSection()}catch(e){return ""}})()}${(()=>{try{const h=levelScaleSection(false); return h?`<div class="acctsec lvscale">${h.replace('<div class="panel-head"><h2>Player levels in each class</h2></div>','<h3>Player levels in each class</h3>')}</div>`:""}catch(e){return ""}})()}${(()=>{try{return lapsedSection()}catch(e){return ""}})()}${(()=>{try{return bracketSection()}catch(e){return ""}})()}${adminRateSection()}${ratingLogSection()}`;
+  else if(ACCT.tab==="host")h+=`${(()=>{try{const H=hostIssues(); return H?typoSection(H):""}catch(e){console.error(e); return ""}})()}${hostSection(false).replace('class="acctsec hostsec"','class="acctsec hostsec hosttop"')}${(()=>{try{return closeSection()}catch(e){return ""}})()}${(()=>{try{return hlSection()}catch(e){return ""}})()}${(()=>{try{return unusedSection()}catch(e){console.error(e); return ""}})()}${(()=>{try{return fwHostSection()}catch(e){return ""}})()}${(()=>{try{const h=levelScaleSection(false); return h?`<div class="acctsec lvscale">${h.replace('<div class="panel-head"><h2>Player levels in each class</h2></div>','<h3>Player levels in each class</h3>')}</div>`:""}catch(e){return ""}})()}${(()=>{try{return lapsedSection()}catch(e){return ""}})()}${(()=>{try{return bracketSection()}catch(e){return ""}})()}${adminRateSection()}${ratingLogSection()}`;
   else if(ACCT.tab==="banner")h+=bnTab(ACCT.claim.player);
   else if(ACCT.tab==="wrapped")h+=(()=>{try{return wrapSection(ACCT.claim.player)}catch(e){console.error(e); return ""}})();
   else if(ACCT.tab==="week"){const n=ACCT.claim.player; ACCT.twPart="week";
