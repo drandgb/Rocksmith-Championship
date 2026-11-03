@@ -666,7 +666,8 @@ a.dl svg,.offpill svg{width:11px;height:11px}
 .elogrid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}@media(max-width:700px){.elogrid{grid-template-columns:1fr}}
 .elocol{border:1px solid var(--line);border-top:3px solid var(--pc);border-radius:10px;padding:10px 12px;background:var(--panel2);min-width:0}.elocol h3{margin:0 0 6px;font:800 .78rem var(--f-display);letter-spacing:.1em;text-transform:uppercase;color:var(--pc)}
 .elocol ol{list-style:none;margin:0;padding:0}.elocol li{display:grid;grid-template-columns:22px minmax(0,1fr) auto 48px;gap:6px;align-items:center;padding:5px 0;border-top:1px solid var(--line);font-size:.88rem}.elocol li:first-child{border-top:0}
-#tw-elo small.slip,.nwelo small.slip,span.slip{color:var(--s-orange)}   /* (a rank that slipped while the rating still went up: orange, not red) */
+span.hrdn{color:var(--s-red)!important}   /* a skill rating drop: red */
+#tw-elo small.slip,.nwelo small.slip,span.slip{color:var(--s-red)}   /* an Elo rank drop: red */
 #tw-elo .elocol li{grid-template-columns:minmax(0,1fr) auto 48px 46px}
 .elocol .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer}.elocol .er{color:var(--muted);font-family:var(--f-mono);font-size:.78rem}.elocol .ev{text-align:right;font:800 1rem var(--f-display)}
 .elocol li.top .nm{font-weight:800}.elocol li.top .ev{color:#ffd95e}.elocol li.inactive{opacity:.6}
@@ -1382,8 +1383,8 @@ footer .updated{display:block;margin-top:4px}
 .medal-m.flm{position:relative;width:28px;height:32px}
 .medal-m.flm.ember{width:22px;height:25px;margin-right:7px}
 .medal-m.flm.wflame{margin-right:6px}
-.medal-m.flm.ybolt{margin:0 6px 0 8px}
-.medal-m.flm.ybolt .ani{top:-3px;left:-9px;right:auto;font-size:12px;filter:drop-shadow(0 0 1px #10131a)}
+.medal-m.flm.ybolt{margin:0 6px 0 2px}
+.medal-m.flm.ybolt .ani{position:absolute;top:50%;left:50%;right:auto;bottom:auto;transform:translate(-50%,-50%);font-size:11px;line-height:1;z-index:1;pointer-events:none;filter:drop-shadow(0 0 1.5px #10131a) drop-shadow(0 0 1px #10131a)}
 .medal-m.flm.ybolt svg{animation:none!important}
 .medal-m.flm.ember svg{width:22px;height:25px}
 .medal-m.flm.ember b{right:-6px;bottom:-3px}
@@ -4530,7 +4531,7 @@ function hrAt(s,w){let v=null; for(const e of s){if(e[0]>w)break; if(e[1]!=null)
 // profile rows: the rating now (6-month window), the change over a year and the typical player on that path
 function hrProfile(n){const H=hrBuild(), w1=H.w1;
   const rows=[0,1,2].map(pi=>{const s=hrSeries(n,pi,26); if(!s.length)return ""; const last=s.filter(e=>e[1]!=null).pop(), now=last[1], old=last[0]>w1-52?hrAt(s,last[0]-52):null, d=old==null?null:now-old, typ=hrAt(hrPool(pi,26),last[0]);
-    const dd=d==null?`<small data-tip="Less than a year of scores on this path">new</small>`:Math.abs(d)<.05?"–":`<span class="${d>0?"up":"slip"}">${d>0?"▲":"▼"}${Math.abs(d).toFixed(1)}</span>`;
+    const dd=d==null?`<small data-tip="Less than a year of scores on this path">new</small>`:Math.abs(d)<.05?"–":`<span class="${d>0?"up":"dn hrdn"}">${d>0?"▲":"▼"}${Math.abs(d).toFixed(1)}</span>`;
     return `<li style="--pc:${PATH_C[pi]}"><span class="nwp">${PATHS[pi]}</span><b class="nwv">${now.toFixed(1)}</b><span class="nwd" data-tip="Change over the last year">${dd}</span><span class="nwr"><small data-tip="The typical ${PATHS[pi]} player${last[0]<w1?` in Week ${last[0]}, your last week with enough scores`:""}">${last[0]<w1?`Week ${last[0]} · `:""}typical ${typ!=null?typ.toFixed(1):"–"}</small></span></li>`}).join("");
   // just the year-by-year table now (the current-rating rows were dropped: its last column says the same)
   const yrs=rows?hrYears(n):""; return yrs?`<div class="pcwide nwelo pelo hrrows">${yrs}</div>`:""}
@@ -4538,7 +4539,7 @@ function hrProfile(n){const H=hrBuild(), w1=H.w1;
 function hrYears(n){const H=hrBuild(), first=[], by=[0,1,2].map(pi=>{const m={}; hrSeries(n,pi).forEach(e=>{if(e[1]==null)return; if(!first[pi])first[pi]=e; m[yearOfWeek(e[0])]=e[1]}); return m});
   const Y=[...new Set(by.flatMap(m=>Object.keys(m)))].sort(); if(!Y.length)return "";
   const nowY=String(yearOfWeek(H.w1)), paths=[0,1,2].filter(pi=>first[pi]);
-  const chg=(d,from)=>d==null?`<span class="hry-eq"></span>`:Math.abs(d)<.05?`<span class="hry-eq">±0</span>`:`<span class="${d>0?"up":"slip"}">${d>0?"▲":"▼"}${Math.abs(d).toFixed(1)}</span>`;
+  const chg=(d,from)=>d==null?`<span class="hry-eq"></span>`:Math.abs(d)<.05?`<span class="hry-eq">±0</span>`:`<span class="${d>0?"up":"dn hrdn"}">${d>0?"▲":"▼"}${Math.abs(d).toFixed(1)}</span>`;
   const cell=(pi,y,i)=>{const v=by[pi][y]; if(v==null)return `<td><b class="hry-eq">–</b><span class="hry-eq"></span></td>`;
     let pv=null, from=null; for(let k=i-1;k>=0;k--)if(by[pi][Y[k]]!=null){pv=by[pi][Y[k]]; from=Y[k]; break} const d=pv==null?null:v-pv, tipT=`${PATHS[pi]} ${y===nowY?"now":"at the end of "+y}: ${v.toFixed(1)}`+(d==null?"":Math.abs(d)<.05?` (same as ${from})`:` (${d>0?"up":"down"} ${Math.abs(d).toFixed(1)} from ${from})`);
     return `<td data-tip="${esc(tipT)}"><b>${v.toFixed(1)}</b>${chg(d)}</td>`};
@@ -5168,13 +5169,14 @@ function mlRender(kind){const acc=ML[kind].acc, link=kind==="win"?"data-gowin":k
     const top=rows[0].icon?rows[0]:{icon:k.icon}; // precomputed data keeps one icon per medal (its overall leader's)
     const holder=document.createElement("div"); holder.innerHTML=typeof top.icon==="string"?top.icon:top.icon.outerHTML; const ic=holder.firstElementChild;
     const fullTip=ic.dataset.tip||k.tip||"";
+    const miL=/most improved/i.test(k.label)?miSeasons(fullTip):"";   // the leader's seasons, with path and class
     ic.querySelector("b")&&ic.querySelector("b").remove(); ic.removeAttribute("data-hl"); ic.removeAttribute("data-all"); ic.removeAttribute("data-tip"); ic.style.cursor="";
     if(key==="bestweek"){const sv=ic.querySelector("svg"); if(sv)sv.outerHTML=trophiesSvg("#f5c84a",rows[0].v)}
     const what=(fullTip).split(" · ").slice(1).filter(x=>!PATHS.includes(x)&&!/click to highlight|\d+ (times?|weeks?)\b|collected Week/.test(x)).join(" · "); // (the path is already in the label)
     // first place on the card (everyone tied for it); second and third in the hover text
     const first=out.filter(r=>r.place===1), rest=out.filter(r=>r.place>1);
     const desc=ML_DESC[key]||ML_DESC[k.label]||what;
-    const tipT=k.label+(desc?" · "+desc:"")+(mlFromSb(kind,key)?"\n"+mlSbNote():"")+(rest.length?"\n\n"+rest.map(r=>`${r.place}. ${r.n} · ${mlVal(r,k)}`).join("\n"):"");
+    const tipT=k.label+(desc?" · "+desc:"")+(mlFromSb(kind,key)?"\n"+mlSbNote():"")+(miL&&first.length===1?`\n\n${first[0].n}:\n${miL}`:"")+(rest.length?"\n\n"+rest.map(r=>`${r.place}. ${r.n} · ${mlVal(r,k)}`).join("\n"):"");
     // a tile: the medal, its name, the leader (or everyone tied for the lead) and the count; runners-up in the hover text
     const v=String(mlVal(first[0],k)), vm=v.match(/^([\d,.]+)\s*(.*)$/), vh=vm?`${vm[1]}<small>${vm[2]}</small>`:v;
     return {con:first.length>1, h:`<div class="mlt${first.length>1?" con":""}" data-tip="${esc(tipT)}">${reIds(ic.outerHTML)}<div class="mlt-lab">${esc(k.label)}</div><div class="mlt-who">${first.map(r=>`<span class="nm" ${link}="${esc(r.n)}">${esc(r.n)}</span>`).join("")}</div><div class="mlt-v">${vh}</div></div>`}}).filter(Boolean);
@@ -5184,6 +5186,8 @@ function mlRender(kind){const acc=ML[kind].acc, link=kind==="win"?"data-gowin":k
   document.querySelectorAll(".plead[data-n]").forEach(el=>{el.innerHTML=plLeads(el.dataset.n)}); // profiles waiting on the count
   const ap=document.getElementById("acct-lead"); if(ap){ap.innerHTML=plLeads(ap.dataset.n); ap.closest(".acctlead").hidden=!ap.innerHTML}}
 // a player's profile: every kind of medal (player, win or host) where nobody has more
+// the "• season · path class (gain)" lines of a season most improved medal's hover text
+const miSeasons=t=>String(t).split("\n").filter(x=>/^• /.test(x)).join("\n");
 function plLeads(n){try{
   const out=[];
   ["player","win","host"].forEach(kind=>{if(!ML_PRECOMPUTING)mlEnsure(kind); const M=ML[kind]; if(!M||!M.done)return;
@@ -5191,10 +5195,11 @@ function plLeads(n){try{
       const me=k.rows.find(r=>r.n===n); if(!me||!mlSame(me,best))return;
       const others=k.rows.filter(r=>mlSame(r,best)&&r.n!==n).map(r=>r.n);
       const src=me.icon||k.icon, h=document.createElement("div"); h.innerHTML=typeof src==="string"?src:src.outerHTML; const ic=h.firstElementChild; if(!ic)return;
+      const miL=/most improved/i.test(k.label)?miSeasons(ic.dataset.tip||""):"";
       ic.querySelector("b")&&ic.querySelector("b").remove(); ["data-hl","data-all","data-tip"].forEach(a=>ic.removeAttribute(a)); ic.style.cursor="";
       if(key==="bestweek"){const sv=ic.querySelector("svg"); if(sv)sv.outerHTML=trophiesSvg("#f5c84a",top)}
       const desc=ML_DESC[key]||ML_DESC[k.label]||"";
-      const tipT=`Most of anyone · ${k.label} · ${mlVal(me,k)}${desc?"\n"+desc:""}${others.length?`\nTied with ${others.join(", ")}`:""}${mlFromSb(kind,key)?"\n"+mlSbNote():""}`;
+      const tipT=`Most of anyone · ${k.label} · ${mlVal(me,k)}${desc?"\n"+desc:""}${others.length?`\nTied for first with ${others.join(", ")}`:""}${mlFromSb(kind,key)?"\n"+mlSbNote():""}${miL?"\n\n"+miL:""}`;
       out.push({o:["player","win","host"].indexOf(kind)*1000+k.pos,h:`<span class="plchip" data-tip="${esc(tipT)}">${reIds(ic.outerHTML)}<span>${esc(k.label)}</span><b>${esc(mlVal(me,k))}</b>${others.length?`<small>tied</small>`:""}</span>`})})});
   if(!out.length)return "";
   out.sort((a,b)=>a.o-b.o);
