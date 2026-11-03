@@ -4125,7 +4125,9 @@ function sbRender(){
   const allTip=all.length?`Entries per player, all paths:\n${perList(all)}`:"";
   const pathTip=pathEnts.length?`${pathName} entries per player:\n${perList(pathEnts)}`:"";
   $("sbstats").innerHTML=(carried>0?`<span data-tip="${esc(compTipL)}"><b>${players.size}</b> players competing</span><span data-tip="${esc(postTipL)}"><b>${posted.size}</b> players this week</span>`:`<span data-tip="${esc(plainTip)}"><b>${players.size}</b> players this week</span>`)+`<span data-tip="${esc(allTip)}"><b>${all.length}</b> entries in all paths</span>${sbPath<3?`<span data-tip="${esc(pathTip)}"><b>${pathEnts.length}</b> ${["lead","rhythm","bass"][sbPath]} entries</span>`:""}`;
-  const cards=sbPath===3?ch.filter(c=>cardLv(c[2])!=="G"&&c[6].some(e=>{const r=SB.names[e[0]]; return r.replace(/[*~]+$/,"").toLowerCase()===mineWho&&!r.includes("*")})).sort((a,b)=>a[0]-b[0]||a[1]-b[1])
+  // Your cards: the cards you're ranked on, plus every card in your own class on each path (from the player list), played or not yet
+  const myTiers=sbPath===3?String(((PLAYERS.find(P=>P[0].toLowerCase()===mineWho)||[])[8])||PL_NEW[Object.keys(PL_NEW).find(k=>k.toLowerCase()===mineWho)]||"").toUpperCase():"";
+  const cards=sbPath===3?ch.filter(c=>cardLv(c[2])!=="G"&&(cardLv(c[2])===myTiers.charAt(c[0])||c[6].some(e=>{const r=SB.names[e[0]]; return r.replace(/[*~]+$/,"").toLowerCase()===mineWho&&!r.includes("*")}))).sort((a,b)=>a[0]-b[0]||a[1]-b[1])
     :ch.filter(c=>c[0]===sbPath&&(!sbLv[sbPath]||cardLv(c[2])===sbLv[sbPath]));
   const findLc=sbPath===3&&!sbFind?mineWho:sbFind.toLowerCase();
   // "Highlight a player" only suggests players on the cards being shown (this week, path and level)
