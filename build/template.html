@@ -4194,7 +4194,7 @@ function sbRender(){
   const mineWho=(sbFind||myPlayer()||"").toLowerCase();
   // Your cards was open last time but the login hasn't loaded yet: show Lead for now and go back to Your cards once it has
   if(sbPath===3&&!mineWho){sbPath=0; sbWant3=true} else if(sbWant3&&mineWho){sbPath=3; sbWant3=false}
-  $("sbseg").insertAdjacentHTML("afterbegin",mineWho?`<button type="button" class="tier mine" data-path="3" aria-pressed="${sbPath===3}" style="--pc:var(--s-yellow);--tc:var(--fg)" title="All of ${esc(sbFind||myPlayer())}'s ranked cards this week (their own class on Lead, Rhythm and Bass) in one place"><small>Your cards</small><b aria-hidden="true">&nbsp;</b><i>L · R · B</i></button>`:"");
+  $("sbseg").insertAdjacentHTML("afterbegin",mineWho?`<button type="button" class="tier mine" data-path="3" aria-pressed="${sbPath===3}" style="--pc:var(--s-yellow);--tc:var(--fg)" title="All of ${esc(sbFind||myPlayer())}'s ranked cards this week (their own class on Lead, Rhythm and Bass) in one place"><small>Your cards</small><b aria-hidden="true">👤</b><i>L · R · B</i></button>`:"");
   // "All cards": every card this week, Lead, Rhythm and Bass side by side
   $("sbseg").insertAdjacentHTML("beforeend",`<button type="button" class="tier allc" data-path="4" aria-pressed="${sbPath===4}" style="--pc:var(--accent);--tc:var(--fg)" title="Every card this week, Lead, Rhythm and Bass side by side"><small>All cards</small><b>All</b><i>L · R · B</i></button>`);
   const all=ch.flatMap(c=>c[6]), players=new Set(all.map(e=>SB.names[e[0]].replace(/[*~]+$/,"")));
