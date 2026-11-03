@@ -2057,11 +2057,16 @@ function tuneShow(song,p){const t=tuneOf(song,p), c=capoOf(song,p); return c?`${
 // Admin: fix a tuning on a Scoreboard card (an input with the tunings in use as suggestions; Reset goes back to the Song Selection List)
 document.addEventListener("click",async e=>{const b=e.target.closest("[data-tunfix]");
   if(b){e.stopPropagation(); const song=b.dataset.tunfix, p=+b.dataset.tunp, cur=tuneOf(song,p), fx=TUNE_FIX[tuneKey(song)+"|"+p];
-    const all=[...new Set([...Object.values(TUNINGS).flatMap(x=>x.filter(Boolean)),...Object.values(TUNE_FIX).map(x=>x.t)])].sort();
+    // spellings that only differ in capitals ("E standard") count as one, written the way it's used most
+    const cnt={}; [...Object.values(TUNINGS).flatMap(x=>x.filter(Boolean)),...Object.values(TUNE_FIX).map(x=>x.t)].forEach(t=>{const k=t.toLowerCase(); (cnt[k]=cnt[k]||{})[t]=(cnt[k][t]||0)+1});
+    const all=Object.values(cnt).map(o=>Object.keys(o).sort((a,b)=>o[b]-o[a])[0]).sort((a,b)=>a.localeCompare(b,undefined,{sensitivity:"base"}));
+    if(cur&&!all.includes(cur)){const i=all.findIndex(t=>t.toLowerCase()===cur.toLowerCase()); i>=0?all.splice(i,1,cur):all.push(cur)}
     const ed=document.createElement("span"); ed.className="tunedit"; ed.dataset.song=song; ed.dataset.p=p;
     const cp=capoOf(song,p);
-    ed.innerHTML=`<input list="tunlist" value="${esc(cur)}" placeholder="e.g. Drop D" maxlength="40"><datalist id="tunlist">${all.map(t=>`<option value="${esc(t)}">`).join("")}</datalist><select data-tuncapo title="Capo">${[...Array(13).keys()].map(n=>`<option value="${n}"${n===cp?" selected":""}>${n?"Capo "+n:"No capo"}</option>`).join("")}</select><button type="button" class="btn" data-tunsave>Save</button>${fx?`<button type="button" class="btn ghost" data-tunreset title="Use the Song Selection List's tuning again">Reset</button>`:""}<button type="button" class="btn ghost" data-tuncancel>Cancel</button>`;
-    const row=b.closest(".artrow")||b.parentNode; [...row.querySelectorAll(".tunpill")].forEach(x=>x.remove()); row.appendChild(ed); ed.querySelector("input").focus(); return}
+    // a dropdown of every tuning used so far (A–Z), with "Other" to type one that hasn't been used yet
+    ed.innerHTML=`<select data-tunsel title="Tuning">${cur?"":`<option value="" selected disabled>Choose a tuning…</option>`}${all.map(t=>`<option value="${esc(t)}"${t===cur?" selected":""}>${esc(t)}</option>`).join("")}<option value="__new">Other (type it)…</option></select><input data-tunnew placeholder="e.g. Drop D" maxlength="40" hidden><select data-tuncapo title="Capo">${[...Array(13).keys()].map(n=>`<option value="${n}"${n===cp?" selected":""}>${n?"Capo "+n:"No capo"}</option>`).join("")}</select><button type="button" class="btn" data-tunsave>Save</button>${fx?`<button type="button" class="btn ghost" data-tunreset title="Use the Song Selection List's tuning again">Reset</button>`:""}<button type="button" class="btn ghost" data-tuncancel>Cancel</button>`;
+    const row=b.closest(".artrow")||b.parentNode; [...row.querySelectorAll(".tunpill")].forEach(x=>x.remove()); row.appendChild(ed); ed.querySelector("select").focus();
+    ed.querySelector("[data-tunsel]").addEventListener("change",ev=>{const i=ed.querySelector("[data-tunnew]"); i.hidden=ev.target.value!=="__new"; if(!i.hidden)i.focus()}); return}
   const ed=e.target.closest(".tunedit"); if(!ed)return; e.stopPropagation();
   if(e.target.closest("[data-tuncancel]")){sbRender();return}
   const song=ed.dataset.song, p=+ed.dataset.p, k=tuneKey(song);
@@ -2069,7 +2074,7 @@ document.addEventListener("click",async e=>{const b=e.target.closest("[data-tunf
   const done=async q=>{const {error}=await q; if(error){alert(/capo/i.test(error.message)?"Capos aren't set up yet: run build/supabase/song_tunings.sql again in Supabase, then: notify pgrst, 'reload schema';\n\n("+error.message+")":/relation|does not exist|schema cache/i.test(error.message)?"Tuning fixes aren't set up yet: run build/supabase/song_tunings.sql once in Supabase.\n\n("+error.message+")":"Couldn't save: "+error.message);return}
     const {data}=await ACCT.sb.from("song_tunings").select("*"); tuneFixGot(data||[])};
   if(e.target.closest("[data-tunreset]"))return done(ACCT.sb.from("song_tunings").delete().match({song:k,path:p}));
-  if(e.target.closest("[data-tunsave]")){const v=ed.querySelector("input").value.replace(/\s+/g," ").trim(); if(!v){alert("Type a tuning first (or Reset).");return}
+  if(e.target.closest("[data-tunsave]")){const sel=ed.querySelector("[data-tunsel]").value, v=(sel==="__new"?ed.querySelector("[data-tunnew]").value:sel).replace(/\s+/g," ").trim(); if(!v){alert(sel==="__new"?"Type the tuning first (or Reset).":"Choose a tuning first (or Reset).");return}
     const c=+ed.querySelector("[data-tuncapo]").value||0, row={song:k,path:p,tuning:v,set_by:ACCT.claim&&ACCT.claim.player||null,updated_at:new Date().toISOString()};
     if(c||capoOf(song,p))row.capo=c||null;   // only send the capo when one is set (or being cleared), so it saves before the capo column exists
     return done(ACCT.sb.from("song_tunings").upsert(row,{onConflict:"song,path"}))}},true);
