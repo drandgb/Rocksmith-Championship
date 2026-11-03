@@ -608,6 +608,7 @@ a.dl svg,.offpill svg{width:11px;height:11px}
 .acctdlg .btn.danger{background:var(--s-red);color:#fff}
 .acctdlg .rmtg{display:flex;gap:12px;flex-wrap:wrap;font-size:.8rem;color:var(--muted)}.acctdlg .rmtg label{display:inline-flex;gap:5px;align-items:center;cursor:pointer}.acctdlg .rmtg input{width:auto;margin:0}
 .pphead{flex-wrap:wrap;align-items:center;justify-content:flex-start}.pphead .pptbtn{margin:0 0 0 auto}.pphead #parts-sub{flex:1 1 100%;margin:2px 0 0}.ppdlg{max-width:420px}.pptwrap{max-height:min(60vh,520px);overflow:auto;margin-top:8px}.ppt{width:100%;border-collapse:collapse;font-size:.86rem}.ppt th{position:sticky;top:0;background:var(--panel);text-align:left;font:700 .7rem var(--f-body);color:var(--muted);text-transform:uppercase;letter-spacing:.06em;padding:6px 8px;border-bottom:1px solid var(--line)}.ppt td{padding:5px 8px;border-bottom:1px solid var(--line);white-space:nowrap}.ppt .r{text-align:right}.ppt td.r b{font-variant-numeric:tabular-nums}.ppt tr.so td{color:var(--accent)}.ppt td.r{cursor:pointer}.ppt tr.pphl td{background:color-mix(in srgb,var(--accent) 16%,transparent)}.ppt tr.pphl td.r b{color:var(--accent)}.ppt small{color:var(--muted)}
+.bnaredraw{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:10px}.bnaredraw .dim{font-size:.82rem}
 .acctdlg .hosttop{border-top:0;margin-top:0;padding-top:2px}.acctdlg .hostfix{border-top:0;margin-top:0;padding-top:2px}.acctdlg .hostfix+.hosttop{border-top:1px solid var(--line);margin-top:16px;padding-top:12px}.acctdlg .hosttop+.adm.acctsec{margin-top:16px;border-top:1px solid var(--line);padding-top:12px}
 .acctdlg .rurow{border:1px solid var(--line);border-left:3px solid var(--pc);border-radius:8px;padding:10px 12px;margin-top:8px;background:var(--panel2)}
 .acctdlg .ruhd{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
@@ -6907,9 +6908,9 @@ function bnTab(n){
     </ol></div>`;
 }
 // Admin: browse every player's banner image (the list comes from cards/stamp.json, which the banner job writes)
-let BNA=null, bnaI=0;
+let BNA=null, bnaI=0, BNA_REQ=null, BNA_ASK=undefined;
 function bnaSection(){if(!ACCT.admin)return "";
-  if(!BNA){BNA=[]; fetch(`cards/stamp.json?t=${Date.now()}`).then(r=>r.ok?r.json():null).catch(()=>null).then(j=>{
+  if(!BNA){BNA=[]; fetch(`cards/stamp.json?t=${Date.now()}`).then(r=>r.ok?r.json():null).catch(()=>null).then(j=>{BNA_REQ=j&&j.req||null;
       const ns=j&&j.names?Object.values(j.names):(ACCT.claims||[]).filter(c=>c.status==="approved").map(c=>c.player);
       BNA=[...new Set(ns)].sort((a,b)=>a.localeCompare(b,undefined,{sensitivity:"base"})); bnaDraw()});}
   else setTimeout(bnaDraw,0);
@@ -6920,7 +6921,15 @@ function bnaDraw(){const el=$("bnadm"); if(!el)return;
   el.innerHTML=`<h3>Player banners <small class="dim">${BNA.length}</small></h3>
     <div class="row bnarow"><button type="button" class="btn ghost" data-bna="-1" aria-label="Previous banner">‹</button><select data-bnapick aria-label="Player banner">${BNA.map((x,i)=>`<option value="${i}"${i===bnaI?" selected":""}>${esc(x)}</option>`).join("")}</select><button type="button" class="btn ghost" data-bna="1" aria-label="Next banner">›</button></div>
     <a class="bnaimg" href="${src}" target="_blank" rel="noopener"><img src="${src}?t=${Date.now()}" alt="${esc(n)}'s banner" onerror="this.replaceWith(Object.assign(document.createElement('p'),{className:'dim',textContent:'No banner image for this player yet.'}))"></a>
-    <div class="bnurl"><code>${esc(BN_SITE)}${src}</code></div>`}
+    <div class="bnurl"><code>${esc(BN_SITE)}${src}</code></div>${bnaRedrawRow()}`}
+// Redraw all banners: asks the banner job (every 10 minutes) to redraw every banner on its next run (banner_redraw.sql)
+function bnaRedrawRow(){if(BNA_ASK===undefined){BNA_ASK=null; ACCT.sb.from("banner_redraw").select("at,by_player").order("at",{ascending:false}).limit(1).then(({data,error})=>{BNA_ASK=error?false:(data&&data[0])||0; bnaDraw()})}
+  const a=BNA_ASK, waiting=a&&(!BNA_REQ||new Date(a.at)>new Date(BNA_REQ)), when=t=>new Date(t).toLocaleString("en-US",{month:"short",day:"numeric",hour:"numeric",minute:"2-digit"});
+  return `<div class="row bnaredraw"><button type="button" class="btn" data-bnaredraw${waiting||a===false?" disabled":""}>Redraw all banners</button><span class="dim">${a===false?"Not set up yet: run build/supabase/banner_redraw.sql in Supabase.":waiting?`Asked ${esc(when(a.at))}${a.by_player?` by ${esc(a.by_player)}`:""} · redrawing within about 10 minutes`:BNA_REQ?`Last redrawn on request ${esc(when(BNA_REQ))}`:"Every banner is redrawn after a new week's results anyway"}</span></div>`}
+document.addEventListener("click",async e=>{if(!e.target.closest("[data-bnaredraw]")||!ACCT.admin)return;
+  const {error}=await ACCT.sb.from("banner_redraw").insert({by_player:ACCT.claim&&ACCT.claim.player||null});
+  if(error){alert(/relation|does not exist|schema cache/i.test(error.message)?"Not set up yet: run build/supabase/banner_redraw.sql in Supabase.":"Couldn't ask for it: "+error.message);return}
+  BNA_ASK=undefined; bnaDraw()});
 document.addEventListener("click",e=>{const b=e.target.closest("[data-bna]"); if(!b)return; bnaI+=+b.dataset.bna; bnaDraw()});
 document.addEventListener("change",e=>{const s=e.target.closest("[data-bnapick]"); if(!s)return; bnaI=+s.value; bnaDraw()});
 function bnMount(n){

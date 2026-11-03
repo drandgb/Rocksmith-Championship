@@ -3,7 +3,8 @@
 # Reads the approved claims from the site's database (the same public read the site itself does), then screenshots
 # each player's banner from the built page in headless Chrome (bannerHtml() in the page, opened with ?banner=) into
 # cards/<slug>.png (700x150).
-#   - every banner is redrawn when a new week's results arrive (or when BANNER_VERSION changes)
+#   - every banner is redrawn when a new week's results arrive (or when BANNER_VERSION changes, or an admin presses
+#     Redraw all banners on the site: a row in banner_redraw, banner_redraw.sql)
 #   - otherwise only newly approved players get one, so this is cheap to run every few minutes
 #   - when a claim is removed, the admin chooses whether the banner stays (and keeps updating) or is deleted
 # If the claims can't be read, nothing is changed.
@@ -45,7 +46,17 @@ try:
     stamp = json.load(open(stamp_path))
 except Exception:
     stamp = {}
-redraw_all = stamp.get("week") != week or stamp.get("v") != BANNER_VERSION
+# an admin asked for every banner to be redrawn (Admin → Player banners → Redraw all banners)
+req = stamp.get("req")
+try:
+    if not os.environ.get("BANNER_TEST_PLAYERS"):
+        q = urllib.request.Request(f"{url}/rest/v1/banner_redraw?select=at&order=at.desc&limit=1",
+                                   headers={"apikey": key, "Authorization": f"Bearer {key}"})
+        r = json.load(urllib.request.urlopen(q, timeout=30))
+        if r: req = r[0]["at"]
+except Exception:
+    pass  # not set up yet
+redraw_all = stamp.get("week") != week or stamp.get("v") != BANNER_VERSION or req != stamp.get("req")
 want = {slug(n): n for n in players}
 # players whose claim was removed but who keep their banner (an admin's choice when removing the claim)
 try:
@@ -73,7 +84,7 @@ todo = [(s, n) for s, n in names.items()
         if redraw_all or not os.path.exists(os.path.join(out, s + ".png"))]
 if not todo:
     print(f"banners: {len(names)} up to date" + (f", removed {removed}" if removed else ""))
-    if stamp.get("names") != names or removed: json.dump({**stamp, "players": sorted(names), "names": names}, open(stamp_path, "w"))
+    if stamp.get("names") != names or removed or req != stamp.get("req"): json.dump({**stamp, "players": sorted(names), "names": names, "req": req}, open(stamp_path, "w"))
     sys.exit(0)
 
 chrome = os.environ.get("CHROME") or next((shutil.which(c) for c in ("google-chrome", "google-chrome-stable", "chromium", "chromium-browser") if shutil.which(c)), None)
@@ -99,5 +110,5 @@ with sync_playwright() as pw:
         made += 1
     br.close()
 
-json.dump({"week": week, "v": BANNER_VERSION, "players": sorted(names), "names": names}, open(stamp_path, "w"))
-print(f"banners: made {made} images for {len(todo)} players" + (" (new week, redrew all)" if redraw_all else "") + (f", removed {removed}" if removed else ""))
+json.dump({"week": week, "v": BANNER_VERSION, "players": sorted(names), "names": names, "req": req}, open(stamp_path, "w"))
+print(f"banners: made {made} images for {len(todo)} players" + (" (redrew all)" if redraw_all else "") + (f", removed {removed}" if removed else ""))
