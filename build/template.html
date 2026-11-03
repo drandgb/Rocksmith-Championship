@@ -607,6 +607,7 @@ a.dl svg,.offpill svg{width:11px;height:11px}
 .acctdlg .rmopt{display:flex;gap:8px;align-items:flex-start;margin:8px 0;font-size:.86rem;line-height:1.4;cursor:pointer}.acctdlg .rmopt input{width:auto;margin:3px 0 0;flex:none}
 .acctdlg .btn.danger{background:var(--s-red);color:#fff}
 .acctdlg .rmtg{display:flex;gap:12px;flex-wrap:wrap;font-size:.8rem;color:var(--muted)}.acctdlg .rmtg label{display:inline-flex;gap:5px;align-items:center;cursor:pointer}.acctdlg .rmtg input{width:auto;margin:0}
+.pptbtn{margin-left:auto}.ppdlg{max-width:420px}.pptwrap{max-height:min(60vh,520px);overflow:auto;margin-top:8px}.ppt{width:100%;border-collapse:collapse;font-size:.86rem}.ppt th{position:sticky;top:0;background:var(--panel);text-align:left;font:700 .7rem var(--f-body);color:var(--muted);text-transform:uppercase;letter-spacing:.06em;padding:6px 8px;border-bottom:1px solid var(--line)}.ppt td{padding:5px 8px;border-bottom:1px solid var(--line);white-space:nowrap}.ppt .r{text-align:right}.ppt td.r b{font-variant-numeric:tabular-nums}.ppt tr.so td{color:var(--accent)}.ppt small{color:var(--muted)}
 .acctdlg .hosttop{border-top:0;margin-top:0;padding-top:2px}.acctdlg .hostfix{border-top:0;margin-top:0;padding-top:2px}.acctdlg .hostfix+.hosttop{border-top:1px solid var(--line);margin-top:16px;padding-top:12px}.acctdlg .hosttop+.adm.acctsec{margin-top:16px;border-top:1px solid var(--line);padding-top:12px}
 .acctdlg .rurow{border:1px solid var(--line);border-left:3px solid var(--pc);border-radius:8px;padding:10px 12px;margin-top:8px;background:var(--panel2)}
 .acctdlg .ruhd{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
@@ -1647,7 +1648,7 @@ footer{color:var(--dim);font-size:.78rem}
   <div class="view" id="view-players" role="tabpanel" aria-labelledby="tab-players" hidden>
   <div class="wpathbar"><label class="shostpick"><span>Year</span><select id="plyear" aria-label="Calendar year"></select></label></div>
   <section class="panel">
-    <div class="panel-head"><h2>Players per week</h2><span class="sub" id="parts-sub"></span></div>
+    <div class="panel-head"><h2>Players per week</h2><span class="sub" id="parts-sub"></span><button type="button" class="clear pptbtn" id="ppopen">See table</button></div>
     <div class="chartbox" id="parts"></div>
   </section>
 
@@ -2040,6 +2041,7 @@ footer{color:var(--dim);font-size:.78rem}
   <span class="updated">Last updated: <span id="builtat" data-iso="__BUILT_ISO__" data-sc="__SCHASH__" data-cv="__CODEHASH__">__BUILT__</span></span>
   </footer>
 </div>
+<dialog id="ppdlg" class="acctdlg ppdlg" aria-label="Players per week"><div id="ppbody"></div><button type="button" class="clear acctclose" data-ppclose>Close</button></dialog>
 <dialog id="tagdlg" class="acctdlg tagdlg" aria-label="Song tags"><div id="tagbody"></div><button type="button" class="clear acctclose" data-tagclose>Close</button></dialog>
 <dialog id="acct" class="acctdlg" aria-label="Your profile"><div id="acctbody"></div><button type="button" class="clear acctclose" id="acctclose">Close</button></dialog>
 <div class="tip" id="tip" hidden></div>
@@ -2557,6 +2559,14 @@ function renderRecords(){
   $("plist").innerHTML=PLAYERS.slice().sort((a,b)=>b[3]-a[3]).map(p=>`<option value="${esc(p[0])}"></option>`).join("");
 }
 
+// players-per-week table (See table): every week from the first one to this week, newest first; this week so far from its scoreboard
+function ppTable(){const live=WEEKS[curIdx]?WEEKS[curIdx][0]:0, last=PRES_START+PARTS.length-1, rows=[];
+  if(live>last&&SB.weeks[live]){const n=new Set(SB.weeks[live].flatMap(c=>c[6].map(e=>SB.names[e[0]].replace(/[*~]+$/,"").toLowerCase()))).size; rows.push([live,n,true])}
+  for(let i=PARTS.length-1;i>=0;i--)rows.push([PRES_START+i,PARTS[i],false]);
+  return `<h3>Players per week</h3><p class="dim">Every week from Week ${PRES_START} to ${rows[0][0]}, newest first.</p><div class="pptwrap"><table class="ppt"><thead><tr><th>Week</th><th>Date</th><th class="r">Players</th></tr></thead><tbody>${rows.map(([w,n,so])=>{const d=WEEKS[w-1];
+    return `<tr${so?' class="so"':""}><td>Week ${w}</td><td>${d?esc(fmtShort(d[1])+", "+d[1].slice(0,4)):""}</td><td class="r"><b>${n}</b>${so?" <small>so far</small>":""}</td></tr>`}).join("")}</tbody></table></div>`}
+$("ppopen").addEventListener("click",()=>{$("ppbody").innerHTML=ppTable(); const d=$("ppdlg"); d.showModal?d.showModal():d.setAttribute("open",""); const w=d.querySelector(".pptwrap"); if(w)w.scrollTop=0});
+$("ppdlg").addEventListener("click",e=>{if(e.target.closest("[data-ppclose]")||e.target===e.currentTarget)e.currentTarget.close()});
 // players-per-week chart
 function renderParts(){
   // with a year picked in the Players tab, only that year's weeks
