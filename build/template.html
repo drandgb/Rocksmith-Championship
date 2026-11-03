@@ -607,7 +607,7 @@ a.dl svg,.offpill svg{width:11px;height:11px}
 .acctdlg .rmopt{display:flex;gap:8px;align-items:flex-start;margin:8px 0;font-size:.86rem;line-height:1.4;cursor:pointer}.acctdlg .rmopt input{width:auto;margin:3px 0 0;flex:none}
 .acctdlg .btn.danger{background:var(--s-red);color:#fff}
 .acctdlg .rmtg{display:flex;gap:12px;flex-wrap:wrap;font-size:.8rem;color:var(--muted)}.acctdlg .rmtg label{display:inline-flex;gap:5px;align-items:center;cursor:pointer}.acctdlg .rmtg input{width:auto;margin:0}
-.pptbtn{margin-left:auto}.ppdlg{max-width:420px}.pptwrap{max-height:min(60vh,520px);overflow:auto;margin-top:8px}.ppt{width:100%;border-collapse:collapse;font-size:.86rem}.ppt th{position:sticky;top:0;background:var(--panel);text-align:left;font:700 .7rem var(--f-body);color:var(--muted);text-transform:uppercase;letter-spacing:.06em;padding:6px 8px;border-bottom:1px solid var(--line)}.ppt td{padding:5px 8px;border-bottom:1px solid var(--line);white-space:nowrap}.ppt .r{text-align:right}.ppt td.r b{font-variant-numeric:tabular-nums}.ppt tr.so td{color:var(--accent)}.ppt small{color:var(--muted)}
+.pphead{flex-wrap:wrap;align-items:center;justify-content:flex-start}.pphead .pptbtn{margin:0}.pphead #parts-sub{flex:1 1 100%;margin:2px 0 0}.ppdlg{max-width:420px}.pptwrap{max-height:min(60vh,520px);overflow:auto;margin-top:8px}.ppt{width:100%;border-collapse:collapse;font-size:.86rem}.ppt th{position:sticky;top:0;background:var(--panel);text-align:left;font:700 .7rem var(--f-body);color:var(--muted);text-transform:uppercase;letter-spacing:.06em;padding:6px 8px;border-bottom:1px solid var(--line)}.ppt td{padding:5px 8px;border-bottom:1px solid var(--line);white-space:nowrap}.ppt .r{text-align:right}.ppt td.r b{font-variant-numeric:tabular-nums}.ppt tr.so td{color:var(--accent)}.ppt small{color:var(--muted)}
 .acctdlg .hosttop{border-top:0;margin-top:0;padding-top:2px}.acctdlg .hostfix{border-top:0;margin-top:0;padding-top:2px}.acctdlg .hostfix+.hosttop{border-top:1px solid var(--line);margin-top:16px;padding-top:12px}.acctdlg .hosttop+.adm.acctsec{margin-top:16px;border-top:1px solid var(--line);padding-top:12px}
 .acctdlg .rurow{border:1px solid var(--line);border-left:3px solid var(--pc);border-radius:8px;padding:10px 12px;margin-top:8px;background:var(--panel2)}
 .acctdlg .ruhd{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
@@ -1648,7 +1648,7 @@ footer{color:var(--dim);font-size:.78rem}
   <div class="view" id="view-players" role="tabpanel" aria-labelledby="tab-players" hidden>
   <div class="wpathbar"><label class="shostpick"><span>Year</span><select id="plyear" aria-label="Calendar year"></select></label></div>
   <section class="panel">
-    <div class="panel-head"><h2>Players per week</h2><span class="sub" id="parts-sub"></span><button type="button" class="clear pptbtn" id="ppopen">See table</button></div>
+    <div class="panel-head pphead"><h2>Players per week</h2><button type="button" class="clear pptbtn" id="ppopen">See table</button><span class="sub" id="parts-sub"></span></div>
     <div class="chartbox" id="parts"></div>
   </section>
 
