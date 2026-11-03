@@ -3986,7 +3986,7 @@ function showWinner(name){
       ${wPath>=0?`<div class="yrtag"><span class="pth" style="--pc:${PATH_C[wPath]}">${PATHS[wPath]} only</span><button type="button" class="clear" data-wallpaths="1">Show all paths</button></div>`:""}
       ${wYear?`<div class="yrtag"><b>${wYear} only</b><button type="button" class="clear" data-wyear="${wYear}">Show all years</button></div>`:""}
       <div class="stats" style="margin-top:12px">
-        <div><small>Weeks with a win${where}</small><b>${weeksWon.length}</b><span class="sub"> of ${weeksPlayed.length} played</span></div>
+        <div${weeksWon.length?` data-hl="${weeksWon.join(",")}" title="Click to highlight these weeks"`:""}><small>Weeks with a win${where}</small><b>${weeksWon.length}</b><span class="sub"> of ${weeksPlayed.length} played</span></div>
         <div><small>Total wins${where}</small><b>${totWins}</b><span class="sub"> of ${totEntries} entries</span></div>
         <div${best?` data-hl="${best}" title="Click to highlight this week"`:""}><small>Best week</small><b>${best?per[best][1]+" win"+(per[best][1]===1?"":"s"):"–"}</b>${best?`<span class="sub"> · wk ${best}</span>`:""}</div>
         <div${bestRun?` data-tip="${bestRun===1?`(Week ${runEnd})`:`(Week ${runStart}–${runEnd})`}" data-hl="${Array.from({length:bestRun},(_,i)=>runStart+i).join(",")}"`:""}><small>Longest win streak</small><b>${bestRun} wk${bestRun===1?"":"s"}</b></div>
