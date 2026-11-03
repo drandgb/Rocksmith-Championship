@@ -5375,7 +5375,13 @@ function twFinishes(n,w){const k=String(n).toLowerCase(), out=[];
     el.slice(0,3).forEach((e,i)=>{if(SB.names[e[0]].replace(/[*~]+$/,"").toLowerCase()!==k)return;
       out.push({c,place:i,god:/^god|tribute/i.test(c[2]),tie:i===0&&el.length>1&&Math.round((el[0][1]-el[1][1])*100)===0})})});
   return out}
-function twMedals(n,w,live){
+// every copy of a player's new medals gets its own gradient/filter ids: the list is cached, and an id whose first
+// copy sits in a hidden page (This Week, the Scoreboard) doesn't paint, which left medals gray in Last week's haul
+var svgIdN=0;
+function svgFreshIds(h){const ids=[...new Set([...h.matchAll(/\bid="([^"]+)"/g)].map(m=>m[1]))]; if(!ids.length)return h; const u="_"+(++svgIdN);
+  ids.forEach(id=>{h=h.split(`id="${id}"`).join(`id="${id}${u}"`).split(`url(#${id})`).join(`url(#${id}${u})`).split(`href="#${id}"`).join(`href="#${id}${u}"`)}); return h}
+function twMedals(n,w,live){return twMedals0(n,w,live).map(svgFreshIds)}
+function twMedals0(n,w,live){
   const k=n+"|"+w; if(twMedalCache[k])return twMedalCache[k];
   const box=document.createElement("div"), out=[];
   // a medal is new this week if it was collected this week, or (for medals counted every time, like gold medals,
