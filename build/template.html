@@ -3203,6 +3203,14 @@ function showPlayer(name){
   $("pq").value=n;
 }
 $("pq").addEventListener("change",e=>showPlayer(e.target.value.trim()));
+// phones and tablets (no hover): the first tap on a highest score / note streak shows its details, the second opens the Scoreboard
+var pbArmed=null;
+document.addEventListener("click",e=>{if(!matchMedia("(hover: none)").matches)return; const pb=e.target.closest("[data-pbest]");
+  if(!pb){pbArmed=null; return}
+  if(pbArmed===pb)return;   // second tap: carry on to the Scoreboard
+  e.preventDefault(); e.stopPropagation(); pbArmed=pb;
+  const r=pb.getBoundingClientRect(); tip.textContent=pb.dataset.tip.replace(/ · click to open it on the Scoreboard$/,"\nTap again to open it on the Scoreboard"); tip.hidden=false; placeTip(r.left,r.bottom-8)},true);
+addEventListener("scroll",()=>{if(pbArmed&&matchMedia("(hover: none)").matches){tip.hidden=true; pbArmed=null}},{passive:true});
 $("pcard").addEventListener("click",e=>{
   const yb=e.target.closest("[data-pyear]");
   if(yb){pYear=pYear===yb.dataset.pyear?null:yb.dataset.pyear;showPlayer($("pq").value.trim());return}
@@ -3271,7 +3279,7 @@ $("view-players").addEventListener("mousemove",e=>{
   const p=e.target.closest("[data-tip]"); if(!p){tip.hidden=true;return}
   tip.textContent=p.dataset.tip; tip.hidden=false; placeTip(e.clientX,e.clientY);
 });
-$("view-players").addEventListener("mouseleave",()=>tip.hidden=true);
+$("view-players").addEventListener("mouseleave",()=>{if(!pbArmed)tip.hidden=true});   // a phone's tap can fire mouseleave: keep a tapped best's details open
 $("tl").addEventListener("click",e=>{
   const c=e.target.closest("[data-w]"); if(!c)return;
   const w=WEEKS[+c.dataset.w];
