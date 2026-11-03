@@ -32,7 +32,7 @@ try{if(SUPA_URL&&SUPA_KEY&&/(^|\.)github\.io$|^localhost$|^127\.0\.0\.1$/.test(l
 try{HS_PRE=JSON.parse(localStorage.getItem("rsc-hostsign")||"null")}catch(e){}
 if(SUPA_URL&&SUPA_KEY&&/(^|\.)github\.io$|^localhost$|^127\.0\.0\.1$/.test(location.hostname))
   {HS_EARLY=fetch(SUPA_URL+"/rest/v1/host_signups?select=week,player&order=week.desc&limit=60",{headers:{apikey:SUPA_KEY,Authorization:"Bearer "+SUPA_KEY}}).then(r=>r.ok?r.json():null).catch(()=>null);
-   TUNE_EARLY=fetch(SUPA_URL+"/rest/v1/song_tunings?select=song,path,tuning,set_by",{headers:{apikey:SUPA_KEY,Authorization:"Bearer "+SUPA_KEY}}).then(r=>r.ok?r.json():null).catch(()=>null);
+   TUNE_EARLY=fetch(SUPA_URL+"/rest/v1/song_tunings?select=*",{headers:{apikey:SUPA_KEY,Authorization:"Bearer "+SUPA_KEY}}).then(r=>r.ok?r.json():null).catch(()=>null);
    THEMES_EARLY=fetch(SUPA_URL+"/rest/v1/site_themes?select=id,theme,starts,ends,set_by,created_at&order=id",{headers:{apikey:SUPA_KEY,Authorization:"Bearer "+SUPA_KEY}}).then(r=>r.ok?r.json():null).catch(()=>null);}
 </script>
 <style>
@@ -435,7 +435,7 @@ button.clear:hover{border-color:var(--accent)}
 .sbtitle select option{background:var(--panel);font-size:1rem}
 .sbtools{display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:center}
 .sbtools #sbseg{grid-column:2;grid-row:1}.sbtiers .tier.mine b{color:var(--s-yellow)}#twdl .dltun{display:block;margin-top:6px}.card .artrow{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:2px}.card .artrow .tunpill{flex:none}.tunpill.tunadm{cursor:pointer}.tunpill.tunadm:hover{filter:brightness(1.25)}.tunpill.tunnone{border-style:dashed;color:var(--muted)}
-.tunedit{display:inline-flex;gap:4px;align-items:center;flex-wrap:wrap}.tunedit input{width:9.5em;background:var(--panel2);color:var(--fg);border:1px solid var(--line);border-radius:6px;padding:3px 6px;font:inherit;font-size:.8rem}.tunedit button{font-size:.72rem;padding:3px 8px}/* tuning: a pill like the Ignition one, in a quiet gray */
+.tunedit{display:inline-flex;gap:4px;align-items:center;flex-wrap:wrap}.tunedit select{background:var(--panel2);color:var(--fg);border:1px solid var(--line);border-radius:6px;padding:3px 4px;font:inherit;font-size:.8rem}.tunedit input{width:9.5em;background:var(--panel2);color:var(--fg);border:1px solid var(--line);border-radius:6px;padding:3px 6px;font:inherit;font-size:.8rem}.tunedit button{font-size:.72rem;padding:3px 8px}/* tuning: a pill like the Ignition one, in a quiet gray */
 .tunpill{--tc:#aab3c5;display:inline-flex;align-items:center;font:700 .72rem var(--f-display);letter-spacing:.02em;color:var(--tc);padding:3px 9px;border-radius:999px;border:1px solid color-mix(in srgb,var(--tc) 45%,transparent);background:color-mix(in srgb,var(--tc) 10%,transparent);white-space:nowrap;cursor:help}.card .sbpath{font-style:normal;font-weight:800}
 .sbtools #sbme{grid-column:1;grid-row:1;justify-self:start}
 .sbme{background:var(--panel2);color:var(--fg);border:1px solid var(--line);border-radius:6px;padding:7px 12px;font:inherit;font-size:.88rem;cursor:pointer;white-space:nowrap}
@@ -2051,24 +2051,30 @@ var TUNINGS=__TUNINGS__;
 const tuneKey=song=>String(song||"").toLowerCase().replace(/[^a-z0-9]+/g," ").trim();
 // the tuning of a song on a path: an admin's fix first, then the Song Selection List
 function tuneOf(song,p){if(!song)return ""; const k=tuneKey(song), f=TUNE_FIX[k+"|"+p]; if(f)return f.t; const t=TUNINGS[k]; return t&&t[p]?t[p]:""}
+// the capo fret an admin set for a song on a path (0 = none), and the tuning as shown, with the capo
+const capoOf=(song,p)=>{const f=song&&TUNE_FIX[tuneKey(song)+"|"+p]; return f&&f.c>0?f.c:0};
+function tuneShow(song,p){const t=tuneOf(song,p), c=capoOf(song,p); return c?`${t||"?"} · Capo ${c}`:t}
 // Admin: fix a tuning on a Scoreboard card (an input with the tunings in use as suggestions; Reset goes back to the Song Selection List)
 document.addEventListener("click",async e=>{const b=e.target.closest("[data-tunfix]");
   if(b){e.stopPropagation(); const song=b.dataset.tunfix, p=+b.dataset.tunp, cur=tuneOf(song,p), fx=TUNE_FIX[tuneKey(song)+"|"+p];
     const all=[...new Set([...Object.values(TUNINGS).flatMap(x=>x.filter(Boolean)),...Object.values(TUNE_FIX).map(x=>x.t)])].sort();
     const ed=document.createElement("span"); ed.className="tunedit"; ed.dataset.song=song; ed.dataset.p=p;
-    ed.innerHTML=`<input list="tunlist" value="${esc(cur)}" placeholder="e.g. Drop D" maxlength="40"><datalist id="tunlist">${all.map(t=>`<option value="${esc(t)}">`).join("")}</datalist><button type="button" class="btn" data-tunsave>Save</button>${fx?`<button type="button" class="btn ghost" data-tunreset title="Use the Song Selection List's tuning again">Reset</button>`:""}<button type="button" class="btn ghost" data-tuncancel>Cancel</button>`;
+    const cp=capoOf(song,p);
+    ed.innerHTML=`<input list="tunlist" value="${esc(cur)}" placeholder="e.g. Drop D" maxlength="40"><datalist id="tunlist">${all.map(t=>`<option value="${esc(t)}">`).join("")}</datalist><select data-tuncapo title="Capo">${[...Array(13).keys()].map(n=>`<option value="${n}"${n===cp?" selected":""}>${n?"Capo "+n:"No capo"}</option>`).join("")}</select><button type="button" class="btn" data-tunsave>Save</button>${fx?`<button type="button" class="btn ghost" data-tunreset title="Use the Song Selection List's tuning again">Reset</button>`:""}<button type="button" class="btn ghost" data-tuncancel>Cancel</button>`;
     const row=b.closest(".artrow")||b.parentNode; [...row.querySelectorAll(".tunpill")].forEach(x=>x.remove()); row.appendChild(ed); ed.querySelector("input").focus(); return}
   const ed=e.target.closest(".tunedit"); if(!ed)return; e.stopPropagation();
   if(e.target.closest("[data-tuncancel]")){sbRender();return}
   const song=ed.dataset.song, p=+ed.dataset.p, k=tuneKey(song);
   if(!ACCT.sb||!ACCT.admin)return;
-  const done=async q=>{const {error}=await q; if(error){alert(/relation|does not exist|schema cache/i.test(error.message)?"Tuning fixes aren't set up yet: run build/supabase/song_tunings.sql once in Supabase.":"Couldn't save: "+error.message);return}
-    const {data}=await ACCT.sb.from("song_tunings").select("song,path,tuning,set_by"); tuneFixGot(data||[])};
+  const done=async q=>{const {error}=await q; if(error){alert(/relation|does not exist|schema cache/i.test(error.message)?"Tuning fixes aren't set up yet: run build/supabase/song_tunings.sql once in Supabase.":/capo/i.test(error.message)?"Capos aren't set up yet: run build/supabase/song_tunings.sql again in Supabase.":"Couldn't save: "+error.message);return}
+    const {data}=await ACCT.sb.from("song_tunings").select("*"); tuneFixGot(data||[])};
   if(e.target.closest("[data-tunreset]"))return done(ACCT.sb.from("song_tunings").delete().match({song:k,path:p}));
   if(e.target.closest("[data-tunsave]")){const v=ed.querySelector("input").value.replace(/\s+/g," ").trim(); if(!v){alert("Type a tuning first (or Reset).");return}
-    return done(ACCT.sb.from("song_tunings").upsert({song:k,path:p,tuning:v,set_by:ACCT.claim&&ACCT.claim.player||null,updated_at:new Date().toISOString()},{onConflict:"song,path"}))}},true);
+    const c=+ed.querySelector("[data-tuncapo]").value||0, row={song:k,path:p,tuning:v,set_by:ACCT.claim&&ACCT.claim.player||null,updated_at:new Date().toISOString()};
+    if(c||capoOf(song,p))row.capo=c||null;   // only send the capo when one is set (or being cleared), so it saves before the capo column exists
+    return done(ACCT.sb.from("song_tunings").upsert(row,{onConflict:"song,path"}))}},true);
 document.addEventListener("keydown",e=>{if(e.key==="Enter"&&e.target.closest&&e.target.closest(".tunedit input")){e.preventDefault(); e.target.closest(".tunedit").querySelector("[data-tunsave]").click()}});
-function tuneFixGot(rows){if(!Array.isArray(rows))return; const m={}; rows.forEach(r=>m[r.song+"|"+r.path]={t:r.tuning,by:r.set_by}); TUNE_FIX=m; try{localStorage.setItem("rsc-tunefix",JSON.stringify(m))}catch(e){}
+function tuneFixGot(rows){if(!Array.isArray(rows))return; const m={}; rows.forEach(r=>m[r.song+"|"+r.path]={t:r.tuning,by:r.set_by,c:r.capo||0}); TUNE_FIX=m; try{localStorage.setItem("rsc-tunefix",JSON.stringify(m))}catch(e){}
   try{sbRender()}catch(e){} try{if(!$("view-songs").hidden)renderSongLookup()}catch(e){}}
 if(TUNE_EARLY)TUNE_EARLY.then(tuneFixGot);
 var LEVEL=__LEVEL__;   // Rodman's PlayerLevel tab (build_level.py)
@@ -4154,10 +4160,10 @@ function sbRender(){
       const up=!raw.includes("*")&&lvLetter&&RU_KEY.has(`${sbWeek}|${base}|${p}|${lvLetter}`)?`<span class="rkup" data-tip="First week in ${TIER_NAME[lvLetter]} ${PATHS[p]} after ranking up">RANKED UP</span>`:"";
       return `<tr class="${me}${e[4]<0?" down":""}" data-tip="${me?`Click the row to clear the highlight`:`Click the row to highlight ${esc(base)} on every card · click the name to open their profile`}"><td>${rk}</td><td class="n"><div class="sbnm"><span data-player="${esc(base)}">${esc(base)}</span><span class="sbtags">${marks}${lvChip(base,p,1)}${nw}</span></div>${up}${SB.aka&&SB.aka[e[0]]?`<span class="aka">as ${esc(SB.aka[e[0]])}</span>`:""}</td><td>${pct}</td><td>${fmtNum(e[2])}</td><td>${fakeScore(e[3])?`<span class="sbbad" data-tip="${esc(`This score looks like a placeholder in the scoreboard sheet: ${(+e[3]).toLocaleString("en-US")} is the digits 1 to 9 in a row, not a real score. It needs correcting in the sheet.`)}">⚠️ ${fmtNum(e[3])}</span>`:yearScore(e[3])?`<span class="sbbad" data-tip="${esc(`A score of ${e[3]} looks like a year, probably the song's release year recorded as the score by mistake. It needs correcting in the sheet.`)}">⚠️ ${e[3]}</span>`:highScore(e[3])?`<span class="sbchk" data-tip="${esc(`${(+e[3]).toLocaleString("en-US")} is over 5 million, higher than almost every score (the top ones are about 3.4 million). Worth checking it's right in the sheet.`)}">${fmtNum(e[3])} ⚠</span>`:fmtNum(e[3])}</td></tr>`;
     }).join("");
-    return `<article class="card" data-slot="${slot}" data-p="${p}" style="--tc:${tc}"><div class="ch"><div class="lv"><span>${esc(lvl)}</span><div class="lvr">${(()=>{const id=SB.links&&SB.links[sbWeek]&&SB.links[sbWeek][p*9+slot];return songPill(song,id)})()}${rateBadge(sbWeek,p,slot,diff,ents)}</div></div><div class="song">${(()=>{const t=tuneOf(song,p), fx=TUNE_FIX[tuneKey(song)+"|"+p], adm=typeof ACCT!=="undefined"&&ACCT.admin; if(!t&&!adm)return songHtml;
+    return `<article class="card" data-slot="${slot}" data-p="${p}" style="--tc:${tc}"><div class="ch"><div class="lv"><span>${esc(lvl)}</span><div class="lvr">${(()=>{const id=SB.links&&SB.links[sbWeek]&&SB.links[sbWeek][p*9+slot];return songPill(song,id)})()}${rateBadge(sbWeek,p,slot,diff,ents)}</div></div><div class="song">${(()=>{const t=tuneShow(song,p), fx=TUNE_FIX[tuneKey(song)+"|"+p], adm=typeof ACCT!=="undefined"&&ACCT.admin; if(!t&&!adm)return songHtml;
       // admins: the tuning itself is clickable to fix it (a "+ tuning" pill when there's none)
-      const tip=adm?`${PATHS[p]} tuning (${fx?`fixed by ${esc(fx.by||"an admin")}`:"Song Selection List"})\nClick to fix it`:`${PATHS[p]} tuning`;   // who fixed it: admins only
-      const pill=t?`<span class="tunpill${adm?" tunadm":""}" data-tip="${tip}"${adm?` data-tunfix="${esc(song)}" data-tunp="${p}" role="button" tabindex="0"`:""}>${esc(t)}</span>`:`<span class="tunpill tunadm tunnone" data-tunfix="${esc(song)}" data-tunp="${p}" role="button" tabindex="0" data-tip="No tuning in the Song Selection List · click to add it">+ tuning</span>`;
+      const tip=adm?`${PATHS[p]} tuning (${fx?`fixed by ${esc(fx.by||"an admin")}`:"Song Selection List"})\nClick to fix it or set a capo`:`${PATHS[p]} tuning`;   // who fixed it: admins only
+      const pill=t?`<span class="tunpill${adm?" tunadm":""}" data-tip="${tip}"${adm?` data-tunfix="${esc(song)}" data-tunp="${p}" role="button" tabindex="0"`:""}>${esc(t)}</span>`:`<span class="tunpill tunadm tunnone" data-tunfix="${esc(song)}" data-tunp="${p}" role="button" tabindex="0" data-tip="No tuning in the Song Selection List · click to add it or set a capo">+ tuning</span>`;
       // the tuning goes on the band's line (under the title), right-aligned, so the title keeps the full width
       const withArt=songHtml.replace(/(<small class="golink" data-goband[^>]*>[^<]*<\/small>)/,`<span class="artrow">$1${pill}</span>`); return withArt!==songHtml?withArt:songHtml+`<span class="artrow"><span></span>${pill}</span>`})()}</div>${(()=>{const t=arrTag(sbWeek,p,slot); return t?`<div class="arrrow">${t}</div>`:""})()}${extra?`<div class="note">${esc(extra)}</div>`:""}${cont?`<div class="note">⏳ Continues next week · the winner is decided in its final week</div>`:""}${acctCard(sbWeek,p,slot,ents,sbLive)}</div>${ents.length?`<table><thead><tr><th>#</th><th>Player</th><th>%</th><th>Streak</th><th>Score</th></tr></thead><tbody>${rows}</tbody></table>`:`<div class="empty">No entries yet</div>`}${pvStrip(sbWeek,p,slot,song,ents)}</article>`;
   }).join("")||(sbPath===3?`<div class="empty">No ranked cards for ${esc(sbFind||myPlayer())} this week yet</div>`:sbLv[sbPath]?`<div class="empty">No ${LV_NAME[sbLv[sbPath]]} ${PATHS[sbPath]} challenge this week</div>`:"");
@@ -4697,7 +4703,7 @@ function renderSongLookup(){const el=$("sqres"); if(!el)return;
     .sort((a,b)=>Math.max(...b.cs.map(c=>c.w))-Math.max(...a.cs.map(c=>c.w)));
   if(!hits.length){el.innerHTML=`<div class="empty">No songs found${q?` with “${esc(sqQ)}” in the title`:""}${sqTun?` in ${esc(sqTun)}`:""}.</div>`;return}
   const rows=hits.slice(0,40).map(g=>{const ps=paths(g), last=Math.max(...g.cs.map(c=>c.w)), lv=[...new Set(g.cs.map(c=>c.t))].sort((a,b)=>TIER_ORDER.indexOf(a)-TIER_ORDER.indexOf(b));
-    const tn=ps.map(p=>[p,tuneOf(g.song,p)]).filter(x=>x[1]), same=tn.length&&tn.every(x=>x[1]===tn[0][1]);
+    const tn=ps.map(p=>[p,tuneShow(g.song,p)]).filter(x=>x[1]), same=tn.length&&tn.every(x=>x[1]===tn[0][1]);
     return `<tr><td><b class="golink" data-goband="${esc(g.artist)}" data-gosong="${esc(g.title)}" title="Show this song in Band lookup">${esc(g.title)}</b>${songRateBox(g.cs)}${songPill(g.song,IG_LATEST(g.song))}<small class="golink" data-goband="${esc(g.artist)}" title="Show this band in Band lookup">${esc(g.artist)}</small>${tagChips(g.song,ps)}</td>
       <td><div class="chips">${lv.map(t=>`<span class="lvchip" style="--tc:${TIER_COL[t]}" title="${TIER_LABEL[t]||t}">${TIER_SHORT[t]||t}</span>`).join("")}</div></td>
       <td class="sqp">${ps.map(p=>`<span style="color:${PATH_C[p]}">${"LRB"[p]}</span>`).join(" ")}</td>
@@ -5511,7 +5517,7 @@ function nwElo(n,w){eloBuild(); const k=eloKey(n), kp=eloKeep(k);
     return `<li class="${t.trim()}" style="--pc:${PATH_C[pi]}"><span class="nwp">${PATHS[pi]}</span><b class="nwv">${Math.round(x[1])}</b><span class="nwd" data-tip="${esc(eloWhy(pi,k,w,w))}">${d?eloD(d):"–"}</span><span class="nwr">${eloBandTag(x[1])}${mv}</span></li>`}).join("");
   return rows?`<div class="nwelo"><div class="nwelo-h">Elo after Week ${w} <span class="elohelp" data-tip="${esc(ELO_TIP)}">ⓘ</span></div><div class="nwelo-s">Your Elo rating · ▲ gained in Week ${w} · your rank</div><ul>${rows}</ul></div>`:""}
 // the song's tunings on the paths it's played on: one line if they're all the same, else per path
-function dlTune(s){const ps=[...new Set(s.ch.map(c=>c[0]))].sort(), t=ps.map(p=>[p,tuneOf(s.song,p)]).filter(x=>x[1]); if(!t.length)return "";
+function dlTune(s){const ps=[...new Set(s.ch.map(c=>c[0]))].sort(), t=ps.map(p=>[p,tuneShow(s.song,p)]).filter(x=>x[1]); if(!t.length)return "";
   const same=t.every(x=>x[1]===t[0][1]); return `<small class="dltun"><span class="tunpill" data-tip="Tuning (Song Selection List)">${same?esc(t[0][1]):t.map(([p,v])=>`${"LRB"[p]}: ${esc(v)}`).join(" · ")}</span></small>`}
 function renderDownloads(){
   const el=$("twdl"); if(!el)return; const w=TW_MAX;
@@ -5524,7 +5530,7 @@ function renderDownloads(){
   const list=[...m.values()].map(s=>({...s,my:s.ch.some(mine),lv:s.ch.map(lvI).sort((a,b)=>a-b),o:Math.min(...s.ch.map(c=>c[1]*3+c[0]))})).sort((a,b)=>(b.my-a.my)||lvCmp(a.lv,b.lv)||a.o-b.o);
   const box=(p,cs)=>{if(!cs.length)return `<span class="dlbx">${"LRB"[p]}<b style="color:#8b93a7">–</b></span>`;
     const me=cs.find(mine), col=c=>{const lv=cardLv(c[2]); return lv==="G"?"var(--t-god)":TIER_C[lv]||"var(--muted)"};
-    const tip=cs.map(c=>`${PATHS[p]} ${c[2]}`).join(", ")+(tuneOf(cs[0][3],p)?` · tuning: ${tuneOf(cs[0][3],p)}`:"");
+    const tip=cs.map(c=>`${PATHS[p]} ${c[2]}`).join(", ")+(tuneShow(cs[0][3],p)?` · tuning: ${tuneShow(cs[0][3],p)}`:"");
     return `<span class="dlbx${me?" me":""}"${me?` style="--mc:${col(me)}"`:""} data-tip="${esc(tip)}${me?" · your class":""}">${"LRB"[p]}<b>${cs.map(c=>`<span style="color:${col(c)}">${cardLv(c[2])||"?"}${/bonus/i.test(c[2])?"<sup>+</sup>":""}</span>`).join("·")}</b></span>`};
   const fold=lsGet(DL_FOLD)===String(w);
   el.innerHTML=`<div class="panel-head dlhead" data-dl="fold" title="${fold?"Show":"Hide"} the download list"><h2>⬇ Download Week ${w}'s songs<span class="dlarw">${fold?"▸":"▾"}</span></h2>

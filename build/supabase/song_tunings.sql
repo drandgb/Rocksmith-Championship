@@ -1,5 +1,5 @@
 -- Tuning fixes: an admin corrects a song's tuning on a path when the Song Selection List has it wrong or missing.
--- The site shows the fix instead of the list's tuning, everywhere. Run once in the Supabase SQL editor.
+-- An admin can also set a capo fret. The site shows the fix instead of the list's tuning, everywhere. Run once in the Supabase SQL editor.
 create table if not exists public.song_tunings (
   song text not null,                 -- the song's key: "artist - title", lowercased, punctuation as spaces
   path smallint not null check (path between 0 and 2),
@@ -8,6 +8,8 @@ create table if not exists public.song_tunings (
   updated_at timestamptz not null default now(),
   primary key (song, path)
 );
+-- the capo fret, when the song needs one (safe to run again on an existing table)
+alter table public.song_tunings add column if not exists capo smallint check (capo between 1 and 12);
 alter table public.song_tunings enable row level security;
 drop policy if exists stn_read on public.song_tunings;
 drop policy if exists stn_insert on public.song_tunings;
