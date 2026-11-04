@@ -6916,22 +6916,16 @@ function bannerHtml(n){
   const places=!isActivePlayer(n)?[]:((typeof ML_PRE!=="undefined"&&ML_PRE&&ML_PRE.win)||[]).map(k=>{const act=k.rows.filter(r=>isActivePlayer(r[0])), me=act.find(r=>String(r[0]).toLowerCase()===key); if(!me)return null;
     const pl=1+act.filter(r=>r[1]>me[1]||(r[1]===me[1]&&(r[2]||0)>(me[2]||0))).length; return pl<=3?{label:k.label,pl}:null}).filter(Boolean);
   const box=document.createElement("div"); box.innerHTML=allMedalsHtml(n);
-  // order: gold God diamonds, gold medals, Uncrowned (next to the gold medals), then close wins and rivalry wins
-  // (rivalry wins are left off the banner to make room for the season pills)
-  const ORD=[/^Gold God diamond/,/^Gold medal/,/^Uncrowned ·/,/^Close win/], ordOf=m=>ORD.findIndex(r=>r.test(m.getAttribute("data-tip")||""));
-  let gold=[...box.querySelectorAll(".medal-m")].map((m,i)=>({m,i,o:ordOf(m)})).filter(x=>x.o>=0).sort((a,b)=>a.o-b.o||a.i-b.i).map(x=>x.m);
-  // whenever there's room, after the gold medals and before Uncrowned, in this order: season champion trophies (Masterclass
-  // first), triple crown, season most improved, then the silver medals and the bronze ones. Each kind goes on whole or not
-  // at all (bronze only after the silvers), and a kind that doesn't fit leaves room for the next.
+  // one order of priority for every player: each kind goes on whole or not at all, in this order, until the row's 8 spots
+  // are used; a kind that doesn't fit leaves its spots for the next one (bronze only after the silvers). They show in the same
+  // order. Rivalry wins are left off the banner.
+  let gold=[];
   {const tipOf=m=>m.getAttribute("data-tip")||"", all=[...box.querySelectorAll(".medal-m")], of=re=>all.filter(m=>re.test(tipOf(m)));
-   const fits=L=>L.length<=BN_MED_MAX, at=gold.filter(m=>/^Gold (God diamond|medal)/.test(tipOf(m))).length;
-   const kinds=[/^Masterclass season champion/,/^Advanced season champion/,/^Intermediate season champion/,/^Beginner season champion/,/^Triple crown/,/^Season most improved/,/^Silver medal/,/^Bronze medal/];
-   let add=[], silver=false;
-   kinds.forEach((re,i)=>{const k=of(re); if(!k.length)return; if(i===7&&!silver)return;
-     if(fits([...gold,...add,...k])){add=add.concat(k); if(i===6)silver=true}});
-   // the season trophies (champions and most improved) go between the gold God diamonds and the gold medals; the rest after the gold medals
-   const isSeas=m=>/season (champion|most improved)/i.test(tipOf(m)), mid=add.filter(isSeas), back=add.filter(m=>!isSeas(m)), dia=gold.filter(m=>/^Gold God diamond/.test(tipOf(m))).length;
-   gold=[...gold.slice(0,dia),...mid,...gold.slice(dia,at),...back,...gold.slice(at)]}
+   const kinds=[/^Gold God diamond/,/^Masterclass season champion/,/^Advanced season champion/,/^Intermediate season champion/,/^Beginner season champion/,/^Season most improved/,
+     /^Gold medal/,/^Triple crown/,/^Uncrowned ·/,/^Close win/,/^Silver medal/,/^Bronze medal/];
+   let silver=false;
+   kinds.forEach(re=>{const k=of(re); if(!k.length)return; if(re.source==="^Bronze medal"&&!silver)return;
+     if(gold.length+k.length<=BN_MED_MAX){gold=gold.concat(k); if(re.source==="^Silver medal")silver=true}})}
   const meds=gold.map(m=>{
     const tip=m.getAttribute("data-tip")||"", L=places.find(k=>tip===k.label||tip.startsWith(k.label+" ·")||tip.startsWith(k.label+" medal"));
     ["data-tip","data-hl","data-all","data-path"].forEach(a=>m.removeAttribute(a)); m.style.cursor="";
@@ -6966,7 +6960,7 @@ function bnTab(n){
       <li><b>Weeks:</b> how many weeks you've played. The blue flame badge is your play streak: weeks in a row you've played (it appears once the streak reaches 2 weeks).</li>
       <li><b>Wins:</b> how many challenges you've won. The orange flame badge is your win streak: weeks in a row with at least one win (it appears once the streak reaches 2 weeks).</li>
       <li><b>Lead, Rhy and Bass LVL:</b> your player level on each path. The green <b>+N.N</b> next to it is how much it has gone up this season.</li>
-      <li><b>Medals:</b> gold God diamonds, gold medals (the ribbon's color is the path: orange Lead, green Rhythm, blue Bass; then season champion trophies, triple crown, season most improved, silver and bronze, as many as fit), Uncrowned medals (the top score on a board while playing up or as a FreeBird, so it couldn't win) and close win medals (won on the tiebreak). The number is how many you have; a <b>1st</b>, <b>2nd</b> or <b>3rd</b> tag means you're in the top 3 for that medal among active players.</li>
+      <li><b>Medals:</b> gold God diamonds, gold medals (the ribbon's color is the path: orange Lead, green Rhythm, blue Bass; in order of priority: gold God diamonds, season champion and most improved trophies, gold medals, triple crown, Uncrowned, close win, silver, bronze, up to 8), Uncrowned medals (the top score on a board while playing up or as a FreeBird, so it couldn't win) and close win medals (won on the tiebreak). The number is how many you have; a <b>1st</b>, <b>2nd</b> or <b>3rd</b> tag means you're in the top 3 for that medal among active players.</li>
       <li><b>Season box:</b> the season and week, then your place, class and season points on each path you've scored on this season.</li>
     </ul></details>
     <h3 style="margin-top:14px">Add it to your signature</h3>
