@@ -6924,7 +6924,9 @@ function bannerHtml(n){
    let add=[], silver=false;
    kinds.forEach((re,i)=>{const k=of(re); if(!k.length)return; if(i===7&&!silver)return;
      if(fits([...gold,...add,...k])){add=add.concat(k); if(i===6)silver=true}});
-   gold=[...gold.slice(0,at),...add,...gold.slice(at)]}
+   // the season trophies (champions and most improved) lead the row, in front of the gold God diamonds; the rest go after the gold medals
+   const isSeas=m=>/season (champion|most improved)/i.test(tipOf(m)), front=add.filter(isSeas), back=add.filter(m=>!isSeas(m));
+   gold=[...front,...gold.slice(0,at),...back,...gold.slice(at)]}
   const meds=gold.map(m=>{
     const tip=m.getAttribute("data-tip")||"", L=places.find(k=>tip===k.label||tip.startsWith(k.label+" ·")||tip.startsWith(k.label+" medal"));
     ["data-tip","data-hl","data-all","data-path"].forEach(a=>m.removeAttribute(a)); m.style.cursor="";
