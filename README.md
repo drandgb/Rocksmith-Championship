@@ -104,6 +104,9 @@ The whole app is one self-contained `index.html`, with no server. It loads Googl
 - Click a song or band name to open it in Band lookup.
 - **Back to latest week** appears when you're on an older week.
 
+### ❓ FAQ
+- How to join and post a score, how classes, rankings, seasons, player levels and Elo work, and how to claim a player profile, with links to the tab each answer is about.
+
 ---
 
 ## Getting around
