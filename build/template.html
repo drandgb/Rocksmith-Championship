@@ -6932,7 +6932,7 @@ function bannerHtml(n){
   const meds=gold.map(m=>{
     const tip=m.getAttribute("data-tip")||"", L=places.find(k=>tip===k.label||tip.startsWith(k.label+" ·")||tip.startsWith(k.label+" medal"));
     ["data-tip","data-hl","data-all","data-path"].forEach(a=>m.removeAttribute(a)); m.style.cursor="";
-    if(L)m.insertAdjacentHTML("beforeend",`<span class="bn-first bn-pl${L.pl}">${L.pl}</span>`); return m.outerHTML});
+    if(L)m.insertAdjacentHTML("beforeend",`<span class="bn-first bn-pl${L.pl}">#${L.pl}</span>`); return m.outerHTML});
   // one medal size for everyone, set so a player with every type (3 gold God diamonds, 3 gold medals, close win, rivalry
   // win, Uncrowned) fills the row exactly: 3 x 44px + 6 x 32px at 1.4x plus 8 gaps of 27px, ending in line with the stat boxes. Left-aligned.
   const st=(l,b,cls)=>`<div class="bn-st${cls?" "+cls:""}">${/bn-num/.test(cls||"")?`<div class="bn-in"><small>${l}</small><b>${b}</b></div>`:`<small>${l}</small><b>${b}</b>`}</div>`;   // weeks/wins: label and number in one block, centered in the box
