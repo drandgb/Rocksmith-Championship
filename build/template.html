@@ -6915,11 +6915,16 @@ function bannerHtml(n){
   // (rivalry wins are left off the banner to make room for the season pills)
   const ORD=[/^Gold God diamond/,/^Gold medal/,/^Uncrowned ·/,/^Close win/], ordOf=m=>ORD.findIndex(r=>r.test(m.getAttribute("data-tip")||""));
   let gold=[...box.querySelectorAll(".medal-m")].map((m,i)=>({m,i,o:ordOf(m)})).filter(x=>x.o>=0).sort((a,b)=>a.o-b.o||a.i-b.i).map(x=>x.m);
-  // whenever there's room: add the silver medals, and the bronze ones too if they fit, after the gold medals and before Uncrowned
-  {const tipOf=m=>m.getAttribute("data-tip")||"";
-   {const all=[...box.querySelectorAll(".medal-m")], of=re=>all.filter(m=>re.test(tipOf(m))), sil=of(/^Silver medal/), brz=of(/^Bronze medal/);
-     const fits=L=>bnMedW(L)<=BN_MED_W, at=gold.filter(m=>/^Gold (God diamond|medal)/.test(tipOf(m))).length;
-     const add=[[...sil,...brz],sil].find(x=>x.length&&fits([...gold,...x]))||[]; gold=[...gold.slice(0,at),...add,...gold.slice(at)]}}
+  // whenever there's room, after the gold medals and before Uncrowned, in this order: season champion trophies (Masterclass
+  // first), triple crown, season most improved, then the silver medals and the bronze ones. Each kind goes on whole or not
+  // at all (bronze only after the silvers), and a kind that doesn't fit leaves room for the next.
+  {const tipOf=m=>m.getAttribute("data-tip")||"", all=[...box.querySelectorAll(".medal-m")], of=re=>all.filter(m=>re.test(tipOf(m)));
+   const fits=L=>bnMedW(L)<=BN_MED_W, at=gold.filter(m=>/^Gold (God diamond|medal)/.test(tipOf(m))).length;
+   const kinds=[/^Masterclass season champion/,/^Advanced season champion/,/^Intermediate season champion/,/^Beginner season champion/,/^Triple crown/,/^Season most improved/,/^Silver medal/,/^Bronze medal/];
+   let add=[], silver=false;
+   kinds.forEach((re,i)=>{const k=of(re); if(!k.length)return; if(i===7&&!silver)return;
+     if(fits([...gold,...add,...k])){add=add.concat(k); if(i===6)silver=true}});
+   gold=[...gold.slice(0,at),...add,...gold.slice(at)]}
   const meds=gold.map(m=>{
     const tip=m.getAttribute("data-tip")||"", L=places.find(k=>tip===k.label||tip.startsWith(k.label+" ·")||tip.startsWith(k.label+" medal"));
     ["data-tip","data-hl","data-all","data-path"].forEach(a=>m.removeAttribute(a)); m.style.cursor="";
@@ -6954,7 +6959,7 @@ function bnTab(n){
       <li><b>Weeks:</b> how many weeks you've played. The blue flame badge is your play streak: weeks in a row you've played (it appears once the streak reaches 2 weeks).</li>
       <li><b>Wins:</b> how many challenges you've won. The orange flame badge is your win streak: weeks in a row with at least one win (it appears once the streak reaches 2 weeks).</li>
       <li><b>Lead, Rhy and Bass LVL:</b> your player level on each path. The green <b>+N.N</b> next to it is how much it has gone up this season.</li>
-      <li><b>Medals:</b> gold God diamonds, gold medals (the ribbon's color is the path: orange Lead, green Rhythm, blue Bass; then silver, and bronze, when there's room), Uncrowned medals (the top score on a board while playing up or as a FreeBird, so it couldn't win) and close win medals (won on the tiebreak). The number is how many you have; a <b>1st</b>, <b>2nd</b> or <b>3rd</b> tag means you're in the top 3 for that medal among active players.</li>
+      <li><b>Medals:</b> gold God diamonds, gold medals (the ribbon's color is the path: orange Lead, green Rhythm, blue Bass; then season champion trophies, triple crown, season most improved, silver and bronze, as many as fit), Uncrowned medals (the top score on a board while playing up or as a FreeBird, so it couldn't win) and close win medals (won on the tiebreak). The number is how many you have; a <b>1st</b>, <b>2nd</b> or <b>3rd</b> tag means you're in the top 3 for that medal among active players.</li>
       <li><b>Season box:</b> the season and week, then your place, class and season points on each path you've scored on this season.</li>
     </ul></details>
     <h3 style="margin-top:14px">Add it to your signature</h3>
