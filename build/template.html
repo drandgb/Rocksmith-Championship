@@ -454,7 +454,9 @@ button.clear:hover{border-color:var(--accent)}
 .sbstats{display:flex;flex-wrap:wrap;gap:8px 22px;font-size:.85rem;color:var(--muted)}
 .sbstats b{color:var(--fg);font-family:var(--f-display);font-size:1.05rem}
 .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr));gap:14px}
-.cards.sbmine{grid-template-columns:repeat(3,minmax(0,1fr));align-items:stretch}.cards.sbmine>.sbcol{display:flex;flex-direction:column}.cards.sbmine .sbcolc{flex:1}@media (max-width:900px){.cards.sbmine{grid-template-columns:minmax(0,1fr)}}
+.cards.sbmine{grid-template-columns:repeat(3,minmax(0,1fr));align-items:stretch}.sbgrp{display:flex;flex-direction:column;gap:12px;min-width:0}
+@supports (grid-template-rows:subgrid){@media(min-width:901px){.cards.sball{align-items:start}.cards.sball>.sbcol{display:grid!important;grid-row:span var(--sbrows,5);grid-template-rows:subgrid;row-gap:12px;align-content:start}.cards.sball>.sbcol>.panel-head{margin-bottom:0}.cards.sball .sbcolc{display:contents}}}
+@media(max-width:900px){.cards.sball .sbgrp+.sbgrp:not(:empty){margin-top:12px}}.cards.sbmine>.sbcol{display:flex;flex-direction:column}.cards.sbmine .sbcolc{flex:1}@media (max-width:900px){.cards.sbmine{grid-template-columns:minmax(0,1fr)}}
 .sbcol{margin:0;padding:12px}.sbcolc{display:flex;flex-direction:column;gap:12px}.sbcol .empty{color:var(--muted);font-size:.85rem;padding:6px 0}
 .card{background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:hidden;display:flex;flex-direction:column;min-width:0}
 .card .ch{padding:12px 14px 10px;border-top:3px solid var(--tc);background:linear-gradient(180deg,color-mix(in srgb,var(--tc) 12%,transparent),transparent)}
@@ -4255,10 +4257,14 @@ function sbRender(){
       const withArt=songHtml.replace(/(<small class="golink" data-goband[^>]*>[^<]*<\/small>)/,`<span class="artrow">$1${pill}</span>`); return withArt!==songHtml?withArt:songHtml+`<span class="artrow"><span></span>${pill}</span>`})()}</div>${(()=>{const t=arrTag(sbWeek,p,slot); return t?`<div class="arrrow">${t}</div>`:""})()}${extra?`<div class="note">${esc(extra)}</div>`:""}${cont?`<div class="note">⏳ Continues next week · the winner is decided in its final week</div>`:""}${acctCard(sbWeek,p,slot,ents,sbLive)}</div>${ents.length?`<table><thead><tr><th>#</th><th>Player</th><th>%</th><th>Streak</th><th>Score</th></tr></thead><tbody>${rows}</tbody></table>`:`<div class="empty">No entries yet</div>`}${pvStrip(sbWeek,p,slot,song,ents)}</article>`;
   }).join("")||(sbPath===3?`<div class="empty">No ranked cards for ${esc(sbFind||myPlayer())} this week yet</div>`:sbPath===4?`<div class="empty">No cards this week yet</div>`:sbLv[sbPath]?`<div class="empty">No ${LV_NAME[sbLv[sbPath]]} ${PATHS[sbPath]} challenge this week</div>`:"");
   // Your cards: Lead, Rhythm and Bass side by side in their own columns, like Rodman's Rankings
-  $("sbcards").classList.toggle("sbmine",sbPath>=3);
+  $("sbcards").classList.toggle("sbmine",sbPath>=3); $("sbcards").classList.toggle("sball",sbPath===4);
   if(sbPath>=3&&cards.length){const box=$("sbcards"), arts=[...box.querySelectorAll("article.card")];
     box.innerHTML=[0,1,2].map(pi=>`<section class="panel rkpath sbcol" style="--pc:${PATH_C[pi]}"><div class="panel-head"><h2>${PATHS[pi]}</h2><span class="sub"></span></div><div class="sbcolc"></div></section>`).join("");
     const cols=box.querySelectorAll(".sbcolc"); arts.forEach(x=>cols[+x.dataset.p].appendChild(x));
+    // All cards: each class starts at the same height in all three columns (like the Season tab), Beginner first
+    if(sbPath===4){const lvOf={}, first={}; cards.forEach(c=>{const L=cardLv(c[2])||"?"; lvOf[c[0]+"|"+c[1]]=L; first[L]=Math.min(first[L]??99,c[1])});
+      const G=Object.keys(first).sort((a,b)=>first[a]-first[b]); box.style.setProperty("--sbrows",G.length+1);
+      cols.forEach((c,pi)=>{const a=[...c.children]; c.innerHTML=G.map(L=>`<div class="sbgrp" data-lv="${L}"></div>`).join(""); a.forEach(x=>{const g=c.querySelector(`.sbgrp[data-lv="${lvOf[pi+"|"+x.dataset.slot]||"?"}"]`); if(g)g.appendChild(x)})})}
     cols.forEach((c,pi)=>{const n=c.children.length; c.previousElementSibling.querySelector(".sub").textContent=n?`${n} card${n===1?"":"s"}`:""; if(!n)c.innerHTML=`<div class="empty">No ${sbPath===3?"ranked ":""}${PATHS[pi]} cards this week</div>`})}
   try{markCrowdFav($("sbcards"))}catch(e){}
   try{localStorage.setItem("rsc-sb",JSON.stringify({w:sbWeek,p:sbWant3?3:sbPath,lv:sbLv}))}catch(e){}
