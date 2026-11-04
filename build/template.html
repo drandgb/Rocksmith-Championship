@@ -671,7 +671,7 @@ a.dl svg,.offpill svg{width:11px;height:11px}
 .elogrid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}@media(max-width:700px){.elogrid{grid-template-columns:1fr}}
 .elocol{border:1px solid var(--line);border-top:3px solid var(--pc);border-radius:10px;padding:10px 12px;background:var(--panel2);min-width:0}.elocol h3{margin:0 0 6px;font:800 .78rem var(--f-display);letter-spacing:.1em;text-transform:uppercase;color:var(--pc)}
 .elocol ol{list-style:none;margin:0;padding:0}.elocol li{display:grid;grid-template-columns:22px minmax(0,1fr) auto 48px;gap:6px;align-items:center;padding:5px 0;border-top:1px solid var(--line);font-size:.88rem}.elocol li:first-child{border-top:0}
-span.hrdn{color:var(--s-red)!important}   /* a skill rating drop: red */
+span.hrdn{color:var(--s-red)!important}small.eloin{color:var(--s-green)!important}   /* a skill rating drop: red */
 #tw-elo small.slip,.nwelo small.slip,span.slip{color:var(--s-red)}   /* an Elo rank drop: red */
 #tw-elo .elocol li{grid-template-columns:minmax(0,1fr) auto 48px 46px}
 .elocol .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer}.elocol .er{color:var(--muted);font-family:var(--f-mono);font-size:.78rem}.elocol .ev{text-align:right;font:800 1rem var(--f-display)}
@@ -4491,7 +4491,7 @@ function renderTwElo(){const el=$("tw-elo"); if(!el)return; eloBuild(); const w=
     const rows=Object.keys(ELO[pi].hist).map(n=>{const x=eloAt(pi,n,w); if(!x||x[0]!==w)return null; const b=eloAt(pi,n,w-1); return {n,now:x[1],g:x[2],d:Math.round(x[1]-(b?b[1]:eloStart(pi,n)))}}).filter(x=>x&&x.d>0).sort((a,b)=>b.d-a.d||b.now-a.now);   // gains only
     if(!rows.length)return "";
     return `<div class="elocol" style="--pc:${PATH_C[pi]}"><h3>${PATHS[pi]}</h3><ol>${rows.map((x,i)=>{const a=r0[x.n], b=r1[x.n];
-      const mv=x.g<ELO_MIN?`<small class="elonew" data-tip="Provisional: ${x.g} of ${ELO_MIN} games">new</small>`:a&&b&&a!==b?`<small class="${b<a?"up":"slip"}" data-tip="${esc(eloAround(pi,x.n,w,isActivePlayer))}">#${a}→#${b}</small>`:b?`<small data-tip="${esc(eloAround(pi,x.n,w,isActivePlayer))}">#${b}</small>`:`<small class="elonew" data-tip="Not in the ranking yet (new to the site's player list, or not active)">new</small>`;   // (a placeholder keeps the columns lined up)
+      const mv=x.g<ELO_MIN?`<small class="elonew" data-tip="Provisional: ${x.g} of ${ELO_MIN} games">new</small>`:eloMove(pi,x.n,w,isActivePlayer,"→")||`<small class="elonew" data-tip="Not in the ranking yet (new to the site's player list, or not active)">new</small>`;   // (a placeholder keeps the columns lined up)
       return `<li class="${i===0&&x.d>0?"top":""}">${twName(x.n)}${mv}<span class="ed" data-tip="${esc(eloWhy(pi,x.n,w,w))}">${x.d?eloD(x.d):"–"}</span><b class="ev" style="color:${eloBand(x.now)[2]}" data-tip="${esc(eloBandTip(x.now))}">${Math.round(x.now)}</b></li>`}).join("")}</ol></div>`}).join("")||`<p class="dim">No Elo gains yet this week.</p>`}
 // Elo over time: one line per path (in its color), from the week they first played it to the latest finished week.
 // Range buttons (all / last year / last 6 months), tap a path in the legend to hide it, hover or tap for the week's numbers.
@@ -4580,6 +4580,16 @@ function eloWhy(pi,n,w0,w1){eloBuild(); const L=ELO_LOG&&ELO_LOG[pi][n]; if(!L)r
   if(adj>=.1)out.push(`Class adjustment: ${f(adj)}`);
   return `${out.join("\n")}\n\nBiggest gains:\n${big.map(x=>`\u00a0\u00a0\u00a0\u00a0• Week ${x.w}: ${res(x.res)} ${x.op} (${Math.round(x.ro)}) on ${x.song}: ${f(x.d)}`).join("\n")}\n\n${head}`}
 // hover text on a rank: the 10 players above and the 10 below in that list
+// players who entered the ranking in week w (ranked after it, not before): they reached the games needed, or came back
+function eloEntered(pi,w,keep){const r0=eloRanks(pi,w-1,keep), r1=eloRanks(pi,w,keep);
+  return Object.keys(r1).filter(n=>!r0[n]).map(n=>{const b=eloAt(pi,n,w-1); return {n,r:r1[n],why:!b||b[2]<ELO_MIN?`reached ${ELO_MIN} games`:"came back among the active players"}}).sort((a,b)=>a.r-b.r)}
+// a rank change: "entered #15" for a player new to the ranking, otherwise "#31→#32"; a drop caused by players entering
+// above them says so in the hover text
+function eloMove(pi,k,w,keep,sep){const a=eloRanks(pi,w-1,keep)[k], b=eloRanks(pi,w,keep)[k], ar=esc(eloAround(pi,k,w,keep)); if(!b)return null;
+  if(!a){const e=eloEntered(pi,w,keep).find(x=>x.n===k); return `<small class="eloin" data-tip="${esc(`New to the ranking this week: ${e?e.why:"entered"}, so ${k} comes in at #${b}`)}\n\n${ar}">entered #${b}</small>`}
+  if(a===b)return `<small data-tip="${ar}">#${b}</small>`;
+  const ins=b>a?eloEntered(pi,w,keep).filter(x=>x.r<b):[], why=ins.length?`Down ${b-a} because ${ins.map(x=>`${x.n} entered the ranking at #${x.r}`).join(" and ")}${ins.length<b-a?", and others passed":""}\n\n`:"";
+  return `<small class="${b<a?"up":"slip"}" data-tip="${esc(why)}${ar}">#${a}${sep}#${b}</small>`}
 function eloAround(pi,k,w,keep){const T=eloTable(pi,w,keep), R=eloRanks(pi,w,keep), i=T.findIndex(x=>x[0]===k); if(i<0)return "";
   return T.slice(Math.max(0,i-10),i+11).map(([n,v])=>`${n===k?"▶ ":"\u00a0\u00a0\u00a0\u00a0"}#${R[n]} ${n} · ${Math.round(v)}`).join("\n")}
 // profiles: rating, rank and the change over the last 10 weeks on each path they've played
@@ -5680,7 +5690,7 @@ function nwRodman(n,w){const now=rkCompute(w), prev=rkCompute(w-1), key=n.toLowe
 function nwElo(n,w){eloBuild(); const k=eloKey(n), kp=eloKeep(k);
   const rows=[0,1,2].map(pi=>{const x=eloAt(pi,k,w); if(!x||x[0]!==w)return ""; const b=eloAt(pi,k,w-1), d=Math.round(x[1]-(b?b[1]:eloStart(pi,k)));
     const r0=eloRanks(pi,w-1,kp)[k], r1=eloRanks(pi,w,kp)[k], t=x[2]>=ELO_MIN&&r1&&r1<=3?" elo-t"+r1:"";
-    const mv=x[2]<ELO_MIN?`<small data-tip="Provisional: ${x[2]} of ${ELO_MIN} games">new</small>`:r0&&r1&&r0!==r1?`<small class="${r1<r0?"up":"slip"}" data-tip="${esc(eloAround(pi,k,w,kp))}">#${r0} → #${r1}</small>`:r1?`<small data-tip="${esc(eloAround(pi,k,w,kp))}">#${r1}</small>`:"";
+    const mv=x[2]<ELO_MIN?`<small data-tip="Provisional: ${x[2]} of ${ELO_MIN} games">new</small>`:eloMove(pi,k,w,kp," → ")||"";
     return `<li class="${t.trim()}" style="--pc:${PATH_C[pi]}"><span class="nwp">${PATHS[pi]}</span><b class="nwv">${Math.round(x[1])}</b><span class="nwd" data-tip="${esc(eloWhy(pi,k,w,w))}">${d?eloD(d):"–"}</span><span class="nwr">${eloBandTag(x[1])}${mv}</span></li>`}).join("");
   return rows?`<div class="nwelo"><div class="nwelo-h">Elo after Week ${w} <span class="elohelp" data-tip="${esc(ELO_TIP)}">ⓘ</span></div><div class="nwelo-s">Your Elo rating · ▲ gained in Week ${w} · your rank</div><ul>${rows}</ul></div>`:""}
 // the song's tunings on the paths it's played on: one line if they're all the same, else per path
