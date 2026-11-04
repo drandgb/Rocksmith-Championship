@@ -6975,9 +6975,14 @@ function bannerHtml(n){
   {const tipOf=m=>m.getAttribute("data-tip")||"", all=[...box.querySelectorAll(".medal-m")], of=re=>all.filter(m=>re.test(tipOf(m)));
    const kinds=[/^Gold God diamond/,/^Masterclass season champion/,/^Advanced season champion/,/^Intermediate season champion/,/^Beginner season champion/,/^Season most improved/,
      /^Gold medal/,/^Triple crown/,/^Uncrowned ·/,/^Close win/,/^Silver medal/,/^Bronze medal/];
-   let silver=false;
-   kinds.forEach(re=>{const k=of(re); if(!k.length)return; if(re.source==="^Bronze medal"&&!silver)return;
-     if(gold.length+k.length<=BN_MED_MAX){gold=gold.concat(k); if(re.source==="^Silver medal")silver=true}})}
+   // gold, silver and bronze medals: the path won most often first. A kind that doesn't fit whole fills whatever spots
+   // are left with its most-won ones; bronze only once every silver is on.
+   const cnt=m=>{const b=m.querySelector(":scope > b"); return b?+b.textContent.replace(/\D/g,"")||0:0}, byMost=/^(Gold|Silver|Bronze) medal/;
+   let silverAll=true;
+   kinds.forEach(re=>{let k=of(re); if(!k.length)return; if(re.source==="^Bronze medal"&&!silverAll)return;
+     if(byMost.test(re.source.slice(1)))k=k.map((m,i)=>({m,i})).sort((a,b)=>cnt(b.m)-cnt(a.m)||a.i-b.i).map(x=>x.m);
+     const room=BN_MED_MAX-gold.length, take=k.slice(0,Math.max(0,room)); gold=gold.concat(take);
+     if(re.source==="^Silver medal"&&take.length<k.length)silverAll=false})}
   const meds=gold.map(m=>{
     const tip=m.getAttribute("data-tip")||"", L=places.find(k=>tip===k.label||tip.startsWith(k.label+" ·")||tip.startsWith(k.label+" medal"));
     ["data-tip","data-hl","data-all","data-path"].forEach(a=>m.removeAttribute(a)); m.style.cursor="";
