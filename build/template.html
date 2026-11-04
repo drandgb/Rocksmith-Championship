@@ -6896,6 +6896,7 @@ function bnLevel(n,pi){if(typeof LEVEL==="undefined"||!LEVEL||!LEVEL.paths)retur
 // level gained this season on a path (since the week before the season started), for the banner: null unless it went up
 function bnSeasonGain(n,pi){try{eloBuild(); const id=seasonOf(Math.min(TW_MAX,ELO_DONE)); if(!id)return null; const [a]=seasonRange(id), k=lvKey(n), l0=lvAt(pi,k,a-1), l1=lvAt(pi,k,ELO_DONE);
   return l0!=null&&l1!=null&&l1-l0>=.05?l1-l0:null}catch(e){return null}}
+const BN_MED_MAX=8;   // the most medals a banner row holds (3 gold God diamonds, 3 gold medals, Uncrowned and close win)
 function bannerHtml(n){
   const p=byName[n]; if(!p)return ""; const T=String(p[8]||"").split(""), v=wv(n,-1)||[0,0,0];
   const tier=t=>t&&t!=="?"?t:"–", tc=t=>TIER_C[t]||"#8b93a7";
@@ -6911,7 +6912,11 @@ function bannerHtml(n){
   // order: gold God diamonds, gold medals, Uncrowned (next to the gold medals), then close wins and rivalry wins
   // (rivalry wins are left off the banner to make room for the season pills)
   const ORD=[/^Gold God diamond/,/^Gold medal/,/^Uncrowned ·/,/^Close win/], ordOf=m=>ORD.findIndex(r=>r.test(m.getAttribute("data-tip")||""));
-  const gold=[...box.querySelectorAll(".medal-m")].map((m,i)=>({m,i,o:ordOf(m)})).filter(x=>x.o>=0).sort((a,b)=>a.o-b.o||a.i-b.i).map(x=>x.m);
+  let gold=[...box.querySelectorAll(".medal-m")].map((m,i)=>({m,i,o:ordOf(m)})).filter(x=>x.o>=0).sort((a,b)=>a.o-b.o||a.i-b.i).map(x=>x.m);
+  // no gold medals: show the silver medals, and the bronze ones too if they fit (after the gold God diamonds, before Uncrowned)
+  if(!gold.some(m=>/^Gold medal/.test(m.getAttribute("data-tip")||""))){const all=[...box.querySelectorAll(".medal-m")], of=re=>all.filter(m=>re.test(m.getAttribute("data-tip")||""));
+    const sil=of(/^Silver medal/), brz=of(/^Bronze medal/), cut=gold.findIndex(m=>!/^Gold God diamond/.test(m.getAttribute("data-tip")||"")), at=cut<0?gold.length:cut, room=BN_MED_MAX-gold.length;
+    const add=sil.length+brz.length<=room?[...sil,...brz]:sil.length<=room?sil:[]; gold=[...gold.slice(0,at),...add,...gold.slice(at)]}
   const meds=gold.map(m=>{
     const tip=m.getAttribute("data-tip")||"", L=places.find(k=>tip===k.label||tip.startsWith(k.label+" ·")||tip.startsWith(k.label+" medal"));
     ["data-tip","data-hl","data-all","data-path"].forEach(a=>m.removeAttribute(a)); m.style.cursor="";
@@ -6946,7 +6951,7 @@ function bnTab(n){
       <li><b>Weeks:</b> how many weeks you've played. The blue flame badge is your play streak: weeks in a row you've played (it appears once the streak reaches 2 weeks).</li>
       <li><b>Wins:</b> how many challenges you've won. The orange flame badge is your win streak: weeks in a row with at least one win (it appears once the streak reaches 2 weeks).</li>
       <li><b>Lead, Rhy and Bass LVL:</b> your player level on each path. The green <b>+N.N</b> next to it is how much it has gone up this season.</li>
-      <li><b>Medals:</b> gold God diamonds, gold medals (the ribbon's color is the path: orange Lead, green Rhythm, blue Bass), Uncrowned medals (the top score on a board while playing up or as a FreeBird, so it couldn't win) and close win medals (won on the tiebreak). The number is how many you have; a <b>1st</b>, <b>2nd</b> or <b>3rd</b> tag means you're in the top 3 for that medal among active players.</li>
+      <li><b>Medals:</b> gold God diamonds, gold medals (the ribbon's color is the path: orange Lead, green Rhythm, blue Bass; no gold medals yet: silver, and bronze if there's room), Uncrowned medals (the top score on a board while playing up or as a FreeBird, so it couldn't win) and close win medals (won on the tiebreak). The number is how many you have; a <b>1st</b>, <b>2nd</b> or <b>3rd</b> tag means you're in the top 3 for that medal among active players.</li>
       <li><b>Season box:</b> the season and week, then your place, class and season points on each path you've scored on this season.</li>
     </ul></details>
     <h3 style="margin-top:14px">Add it to your signature</h3>
