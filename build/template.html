@@ -1522,6 +1522,8 @@ footer{color:var(--dim);font-size:.78rem}
 .bn .bn-hot svg path{fill:#1a0d02}
 .bn .bn-meds{display:flex;align-items:center;gap:27px;flex:1;min-height:0;padding:0 0 4px 3px}.bn .bn-medrow{display:flex;align-items:flex-end;justify-content:flex-start;gap:19px;flex:none;min-width:0;margin-right:auto}.bn .bn-meds:has(.bn-medrow){gap:24px}.bn .bn-elos{flex-shrink:0}   /* (the same spacing on every banner, up to BN_MED_MAX medals, so nothing gets squeezed) */
 .bn .bn-meds .medal-m{zoom:1.4;flex:none;position:relative;margin-right:4px;cursor:default}
+/* bottoms in line with the God diamonds' (whose laurel sits lowest): medals down a little, the taller cups a little more */
+.bn .bn-medrow .medal-m{top:1.4px}.bn .bn-medrow .medal-m.cup{top:3.6px}.bn .bn-medrow .medal-m.diamond{top:0}
 /* God diamonds are wider than the other medals: pull them in by the difference so every medal's centre is evenly spaced */
 .bn .bn-meds .medal-m.diamond{margin-left:-6px;margin-right:-2px}.bn .bn-meds .medal-m.diamond .bn-first{left:-2px}.bn .bn-medrow{padding-left:6px}   /* the place badge sits the same distance from every medal's edge, and the first one clears the banner's rounded corner */
 .bn .bn-meds:has(> .medal-m.diamond:first-child){padding-left:11px}
