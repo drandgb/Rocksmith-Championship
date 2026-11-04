@@ -1428,6 +1428,7 @@ footer .updated{display:block;margin-top:4px}
 /* season trophies: the only glow comes from the flame, brighter the higher the class (Beginner softest, Masterclass strongest) */
 .medal-m.wm.cup svg{filter:none}
 .medal-m.wm.cup .cupfl{filter:drop-shadow(0 0 1.5px var(--ec))}
+.podhalo{display:none}/* close win and Uncrowned: a soft glow to match the gold, silver and bronze medals */.medal-m.wm.tiemed svg{filter:drop-shadow(0 1px 2px rgba(0,0,0,.4)) drop-shadow(0 0 3px color-mix(in srgb,var(--ec) 65%,transparent))}.medal-m.wm.pod svg{filter:drop-shadow(0 1px 2px rgba(0,0,0,.4))}.medal-m.wm.pod .podhalo{display:inline}
 /* (no shine sweep on medals: the glow and sparkles are enough, and a sweep on every medal kept the page repainting) */
 
 .medal-m.wm b{position:absolute;right:-5px;bottom:-3px;min-width:14px;height:14px;padding:0 3px;border-radius:7px;background:#e7eaf2;color:#10131a;font:800 9px/14px var(--f-display);text-align:center;box-shadow:0 0 0 1.5px var(--panel)}
