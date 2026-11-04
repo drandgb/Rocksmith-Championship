@@ -1526,6 +1526,8 @@ footer{color:var(--dim);font-size:.78rem}
 .bn .bn-medrow .medal-m{top:1.4px}.bn .bn-medrow .medal-m.cup{top:3.6px}.bn .bn-medrow .medal-m.diamond{top:0}
 /* the white count pills all at the same height across the row (the cups and diamonds are taller than the medals) */
 .bn .bn-medrow .medal-m.diamond>b{translate:0 1.4px}.bn .bn-medrow .medal-m.cup>b{translate:0 -2.2px}
+/* and the #1/#2/#3 place tags at one height too */
+.bn .bn-medrow .medal-m.diamond>.bn-first{translate:0 8.4px}.bn .bn-medrow .medal-m.cup>.bn-first{translate:0 -2.1px}
 /* God diamonds are wider than the other medals: pull them in by the difference so every medal's centre is evenly spaced */
 .bn .bn-meds .medal-m.diamond{margin-left:-6px;margin-right:-2px}.bn .bn-meds .medal-m.diamond .bn-first{left:-2px}.bn .bn-medrow{padding-left:6px}   /* the place badge sits the same distance from every medal's edge, and the first one clears the banner's rounded corner */
 .bn .bn-meds:has(> .medal-m.diamond:first-child){padding-left:11px}
