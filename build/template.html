@@ -1426,7 +1426,7 @@ footer .updated{display:block;margin-top:4px}
 @keyframes dglow{0%,100%{opacity:1}50%{opacity:.8}}   /* (opacity, not the glow itself: animating drop-shadows repaints every frame) */
 .medal-m.wm svg{width:28px;height:30px;filter:drop-shadow(0 0 3px var(--ec)) drop-shadow(0 0 8px color-mix(in srgb,var(--ec) 55%,transparent))}
 /* season trophies: a slight golden glow all round, plus the flame's own glow, brighter the higher the class (Beginner softest, Masterclass strongest) */
-.medal-m.wm.cup svg{filter:drop-shadow(0 0 2px rgba(245,200,74,.55)) drop-shadow(0 0 5px rgba(245,200,74,.22))}   /* a slight golden glow all round, like the gold medals */
+.medal-m.wm.crown svg,.medal-m.wm.cup svg{filter:drop-shadow(0 0 2px rgba(245,200,74,.55)) drop-shadow(0 0 5px rgba(245,200,74,.22))}   /* a slight golden glow all round, like the gold medals */
 .medal-m.wm.cup .cupfl{filter:drop-shadow(0 0 1.5px var(--ec))}
 .medal-m.wm.cupI .cupfl{filter:drop-shadow(0 0 2px var(--ec)) drop-shadow(0 0 5px color-mix(in srgb,var(--ec) 50%,transparent))}
 .medal-m.wm.cupA .cupfl{filter:drop-shadow(0 0 3px var(--ec)) drop-shadow(0 0 8px var(--ec)) drop-shadow(0 0 13px color-mix(in srgb,var(--ec) 55%,transparent))}
@@ -3981,7 +3981,7 @@ function winMedals(per,done,bestN,streak,total,trip,ties,pod,rivw,unc,sea){
   const P=pod?podiumMedals(pod):{reg:[],god:[]};
   // triple crowns and close wins: one medal each, the count is how many times; the weeks light up on the chart when clicked
   const tc=[];
-  if(trip&&trip.reg.length)tc.push(`<span class="medal-m wm" style="--ec:#ffc94f;cursor:pointer" data-hl="${trip.reg.join(",")}" data-tip="Triple crown · won a challenge on Lead, Rhythm and Bass in the same week · ${trip.reg.length} time${trip.reg.length===1?"":"s"} · click to highlight">${crownSvg("#ffc94f")}<b>${trip.reg.length}</b></span>`);
+  if(trip&&trip.reg.length)tc.push(`<span class="medal-m wm crown" style="--ec:#ffc94f;cursor:pointer" data-hl="${trip.reg.join(",")}" data-tip="Triple crown · won a challenge on Lead, Rhythm and Bass in the same week · ${trip.reg.length} time${trip.reg.length===1?"":"s"} · click to highlight">${crownSvg("#ffc94f")}<b>${trip.reg.length}</b></span>`);
   const xr=[]; // close wins and rivalry wins share their own row
   if(ties&&ties.length)xr.push(`<span class="medal-m wm pod" style="--ec:#f5c84a;cursor:pointer" data-all="${ties.join(",")}" data-hl="${[...new Set(ties)].sort((a,b)=>a-b).join(",")}" data-tip="Close win medal · won on the tiebreak with the same % as the runner-up · ${ties.length} time${ties.length===1?"":"s"} · click to highlight">${tieSvg("#f5c84a")}<b>${ties.length}</b></span>`);
   if(rivw&&rivw.length)xr.push(`<span class="medal-m wm" style="--ec:#ff6b6b;cursor:pointer" data-all="${rivw.join(",")}" data-hl="${[...new Set(rivw)].sort((a,b)=>a-b).join(",")}" data-tip="Rivalry win · beat their closest rival of the week (same rank, ranked challenges) · ${rivw.length} time${rivw.length===1?"":"s"} · click to highlight">${swordsSvg("#ff6b6b")}<b>${rivw.length}</b></span>`);
