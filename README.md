@@ -105,7 +105,7 @@ The whole app is one self-contained `index.html`, with no server. It loads Googl
 - **Back to latest week** appears when you're on an older week.
 
 ### ❓ FAQ
-- How to join and post a score, how classes, rankings, seasons, player levels and Elo work, and how to claim a player profile, with links to the tab each answer is about.
+- Answers in five groups: how to play (joining, posting a score, when the week ends), the rules (classes, moving up or down, winners, FreeBirds, how songs are picked), using the site, the stats (wins, rankings, seasons, Elo, skill rating, player level, rivals, medals) and your profile.
 
 ---
 
