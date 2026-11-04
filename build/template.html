@@ -6511,7 +6511,9 @@ var WEEKLOG={}/*WEEKLOG*/;
  const check=()=>{if(shown||document.hidden||!/^https?:/.test(location.protocol))return;
    fetch("version.txt?t="+Date.now(),{cache:"no-store"}).then(r=>r.ok?r.text():"").then(t=>{const [iso,fp=""]=t.trim().split("\n"), [sc,cv]=fp.trim().split(" ");
      if(!iso||!have||Date.parse(iso)<=Date.parse(have))return;
-     // the score data changed: new scores; otherwise the page itself or its other data changed: a site update
+     // only offer a refresh for something you'd notice: new scores, or a change to the site itself. Background data
+     // (score-check times, rating snapshots, a tuning tweak) changes almost every run and just loads next time.
+     if(sc&&cv&&mine.sc&&mine.cv&&sc===mine.sc&&cv===mine.cv)return;
      const scores=!sc||!mine.sc||sc!==mine.sc;
      shown=true; const b=document.createElement("button"); b.type="button"; b.className="freshbar"; b.textContent=scores?"🎸 New scores are in · tap to refresh":"✨ Site update · tap to refresh";
      b.addEventListener("click",()=>{try{sessionStorage.setItem("rsc-refresh-y",JSON.stringify({h:location.hash,y:scrollY}))}catch(e){} location.reload()}); document.body.appendChild(b)}).catch(()=>{})};
