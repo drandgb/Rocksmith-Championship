@@ -3093,18 +3093,21 @@ function rpPlayers(){eloBuild(); const P={}; [0,1,2].forEach(pi=>Object.entries(
   const v=Object.values(P).map(s=>s.size); return v.length?Math.max(5,Math.round(v.reduce((a,b)=>a+b,0)/v.length/5)*5):20}   // players a week over the last 13 weeks, to the nearest 5
 // this week's songs, each one once, as "Band - Song" in the scoreboard's order
 function rpSongs(){const seen=new Set(), out=[]; (SB.weeks[TW_MAX]||[]).slice().sort((a,b)=>a[0]-b[0]||a[1]-b[1]).forEach(c=>{const t=String(c[3]||"").trim(); if(!t||/^n\/a$/i.test(t))return; const k=t.toLowerCase().replace(/\s+/g," "); if(seen.has(k))return; seen.add(k); out.push(t)}); return out}
-const RP_TITLE="I went from Beginner to Advanced in 2 years with this weekly RS2014 challenge";
-function rpText(){return [`I started as a Beginner two years ago and can play Advanced songs now, all thanks to a weekly challenge on the CustomsForge forum. Every week about ${rpPlayers()} of us play the same new songs and compete on accuracy. It's friendly and laid back, and it really does help you improve! 🎸`,
+const RP_TITLE="Want a reason to pick up your guitar every week? Join our free weekly Rocksmith 2014 challenge (all levels welcome)";
+function rpText(){return [`Looking for a little motivation to practice? 🎸 We run a free weekly Rocksmith 2014 challenge on the CustomsForge forum. Every week there's a fresh set of songs for every level, from Beginner up to Masterclass, on Lead, Rhythm and Bass, and about ${rpPlayers()} of us play them and see how our accuracy stacks up on the scoreboard.`,
   "",
-  "We're especially looking for Beginner and Intermediate players right now, but anyone's welcome.",
+  "It's friendly and low-pressure, and having a new target each week is a great way to keep getting better. Beginner and Intermediate players are especially welcome right now, but there's a spot for every level.",
   "",
-  "To join: grab this week's songs from the forum thread, play them on Score Attack (Hard) or Learn a Song with every section maxed, then post a screenshot showing your accuracy % and streak as a new reply before Saturday. Post as many tries as you like; your best one counts.",
+  "How to join:",
+  "1. Grab this week's songs from the forum thread.",
+  "2. Play them on Score Attack (Hard), or in Learn a Song with every section maxed.",
+  "3. Post a screenshot showing your accuracy % and note streak as a new reply before Saturday. Play as often as you like: your best run counts.",
   "",
   ...(()=>{const L=rpSongs(); return L.length?[`This week's songs:`,...L.map(x=>"- "+x),""]:[]})(),
   "Forum thread: https://customsforge.com/forum/38-rocksmith-championship/",
-  `New to custom songs, or want the full guide? Everything's on the stats site: ${BN_SITE}`,
+  `New to custom songs? The stats site has a step-by-step setup guide, plus every week's results: ${BN_SITE}`,
   "",
-  "See you on the scoreboard!"].join("\n")}
+  "Hope to see you on the scoreboard!"].join("\n")}
 function rpSection(){const t=nyAt(weekAt(TW_MAX)[1]), when=new Date(t).toLocaleString(undefined,{weekday:"short",month:"short",day:"numeric",hour:"numeric",minute:"2-digit"});
   return `<div class="adm acctsec hlbox rpbox"><h3>Recruitment post</h3>
     <p class="dim">For the Steam discussion boards. Best posted right after a new week starts, Saturdays at ${WEEK_END_TXT} (next: <b>${esc(when)}</b> your time), so readers get a fresh set of songs and the whole week to play. Replying to comments keeps the thread near the top. The first line is drand's own story.</p>
