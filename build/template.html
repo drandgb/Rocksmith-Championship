@@ -1428,6 +1428,9 @@ footer .updated{display:block;margin-top:4px}
 /* season trophies: the only glow comes from the flame, brighter the higher the class (Beginner softest, Masterclass strongest) */
 .medal-m.wm.cup svg{filter:none}
 .medal-m.wm.cup .cupfl{filter:drop-shadow(0 0 1.5px var(--ec))}
+.medal-m.wm.cupI .cupfl{filter:drop-shadow(0 0 2px var(--ec)) drop-shadow(0 0 5px color-mix(in srgb,var(--ec) 50%,transparent))}
+.medal-m.wm.cupA .cupfl{filter:drop-shadow(0 0 3px var(--ec)) drop-shadow(0 0 9px color-mix(in srgb,var(--ec) 75%,transparent))}
+.medal-m.wm.cupM .cupfl{filter:drop-shadow(0 0 4px var(--ec)) drop-shadow(0 0 12px var(--ec)) drop-shadow(0 0 22px var(--ec)) drop-shadow(0 0 34px var(--ec))}
 .podhalo{display:none}/* close win and Uncrowned: a soft glow to match the gold, silver and bronze medals */.medal-m.wm.tiemed svg{filter:drop-shadow(0 1px 2px rgba(0,0,0,.4)) drop-shadow(0 0 3px color-mix(in srgb,var(--ec) 65%,transparent))}.medal-m.wm.pod svg{filter:drop-shadow(0 1px 2px rgba(0,0,0,.4))}.medal-m.wm.pod .podhalo{display:inline}
 /* (no shine sweep on medals: the glow and sparkles are enough, and a sweep on every medal kept the page repainting) */
 
@@ -3948,7 +3951,7 @@ function seasonMISvg(){return grandCupSvg(null,true)}
 // has its own gradient ids). Season champion: a gold cup with the flame and a gem in the class color. Season most
 // improved: the cup and flame in the four class colors (yellow, cyan, purple, red), with a white up arrow.
 var CUP_N=0;
-function grandCupSvg(col,multi,lv){const u="cup"+(++CUP_N), halo=[[1.3,.7]], glo={B:[4,.28],I:[6,.45],A:[8.5,.62],M:[11.5,.85]}[lv]||[7,.55], body=multi?`url(#${u}m)`:`url(#${u}g)`;
+function grandCupSvg(col,multi,lv){const u="cup"+(++CUP_N), halo=[[1.3,.7]], glo={B:[3.5,.22],I:[7,.42],A:[13,.6],M:[24,.85]}[lv]||[7,.55], body=multi?`url(#${u}m)`:`url(#${u}g)`;
   const wing=`<path d="M7.4 5.2C4.6 3.4 1.6 2.6-1.6 3.2c1 .6 1.6 1.2 1.9 1.9-1.1.1-2 .5-2.6 1.1 1.2.3 2 .8 2.4 1.5-.9.3-1.6.8-2 1.5 1.5.1 2.6.4 3.4 1 .8.6 2.6 1 5.3.6z" fill="url(#${u}g)" stroke="#7a5512" stroke-width=".35" stroke-linejoin="round"/><path d="M6.6 6.4C4.8 5.6 3 5.4 1 5.6M6.4 8C4.6 7.6 2.8 7.6.8 8.2M6.6 9.6C5 9.4 3.4 9.6 2 10.2" fill="none" stroke="#7a5512" stroke-opacity=".55" stroke-width=".35" stroke-linecap="round"/>`;
   const MC=["#f5c84a","#3fd6e0","#b277ff","#ef4a55"], flame=multi?`url(#${u}mf)`:col;
   return `<svg viewBox="0 0 28 30" aria-hidden="true" style="overflow:visible"><defs><linearGradient id="${u}g" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#9a6b18"/><stop offset=".3" stop-color="#ffe9a3"/><stop offset=".55" stop-color="#f5c84a"/><stop offset="1" stop-color="#a7741c"/></linearGradient>${multi?`<linearGradient id="${u}m" gradientUnits="userSpaceOnUse" x1="6.8" y1="0" x2="21.2" y2="0">${MC.map((c,k)=>`<stop offset="${k/3}" stop-color="${c}"/>`).join("")}</linearGradient><linearGradient id="${u}mf" gradientUnits="userSpaceOnUse" x1="9" y1="0" x2="19" y2="0">${MC.map((c,k)=>`<stop offset="${k/3}" stop-color="${c}"/>`).join("")}</linearGradient>`:`<radialGradient id="${u}j" cx=".38" cy=".32" r=".8"><stop offset="0" stop-color="#fff"/><stop offset=".35" stop-color="${col}"/><stop offset="1" stop-color="${col}" stop-opacity=".75"/></radialGradient>`}<linearGradient id="${u}fl" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#fff"/><stop offset=".35" stop-color="#fff" stop-opacity="0"/></linearGradient>${halo.map(([b],k)=>`<filter id="${u}f${k}" x="-300%" y="-300%" width="700%" height="700%"><feGaussianBlur stdDeviation="${b}"/></filter>`).join("")}</defs>
