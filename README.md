@@ -79,7 +79,7 @@ The whole app is one self-contained `index.html`, with no server. It loads Googl
 ### 🎵 Songs
 - Songs in Most popular, Most replayed and the Band lookup table have an **Ignition** pill with the song's most recent Ignition4 link from the scoreboard sheet.
 - Official Rocksmith songs (on-disc and DLC) get a grey **Official** pill instead (hover: not available on Ignition), on the Songs page and Scoreboard cards. The list of official songs is `build/data/official.json`.
-- Most featured and most popular bands (Total or Per challenge). Bands by difficulty, plus the easiest and toughest bands:
+- Most featured and most popular bands (different players in total, or players per challenge). Bands by difficulty, plus the easiest and toughest bands:
 
   | Level | Rating |
   |---|---|
