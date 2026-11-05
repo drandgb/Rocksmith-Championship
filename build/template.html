@@ -4211,9 +4211,12 @@ const tierColor=l=>/god/i.test(l)?"var(--t-god)":/master/i.test(l)?"var(--t-mas)
 const fmtNum=v=>v==null?"":v.toLocaleString("en-US");
 // New scores on the Scoreboard: a score that appeared (or improved) since your last visit, or in the last 24 hours on a first
 // visit, gets a NEW (or ▲) tag. The times come from the week log the site keeps from one update to the next.
-var SB_SEEN=(()=>{let prev=null; try{prev=localStorage.getItem("rsc-seen")}catch(e){} const now=Date.now();
-  try{localStorage.setItem("rsc-seen",String(now))}catch(e){}
-  const t=prev&&+prev<now?+prev:now-864e5; return {t,first:!prev}})();
+// "Your last visit" is when the page you last opened was built, not when you opened it: a browser can show a cached page
+// for a few minutes, and opening one mustn't count as having seen scores that weren't on it yet.
+var SB_SEEN=(()=>{let prev=null; try{prev=localStorage.getItem("rsc-seen")}catch(e){} const now=Date.now(), built=Date.parse("__BUILT_ISO__")||now;
+  const t=prev&&+prev<now?+prev:now-864e5;
+  try{localStorage.setItem("rsc-seen",String(Math.max(prev&&+prev<now?+prev:0,built)))}catch(e){}
+  return {t,first:!prev}})();
 function sbAgo(ms){const m=Math.round((Date.now()-ms)/6e4); return m<60?`${Math.max(1,m)} min ago`:m<1440?`${Math.round(m/60)} h ago`:`${Math.round(m/1440)} day${Math.round(m/1440)===1?"":"s"} ago`}
 // Click a score: the player's earlier tries at this challenge. This week: their first score if they've since improved
 // (from the site's update log); earlier weeks: every time the same song and arrangement was played, newest first.
