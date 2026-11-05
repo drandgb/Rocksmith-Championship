@@ -1898,7 +1898,7 @@ footer{color:var(--dim);font-size:.78rem}
     <button type="button" data-sp="0" class="s-lead" aria-pressed="false">Lead</button>
     <button type="button" data-sp="1" class="s-rhy" aria-pressed="false">Rhythm</button>
     <button type="button" data-sp="2" class="s-bass" aria-pressed="false">Bass</button>
-  </div><label class="shostpick"><span>Picked by</span><select id="shost" aria-label="Only songs picked by this host"><option value="">All hosts</option></select></label></div>
+  </div><label class="shostpick"><span>Selected by</span><select id="shost" aria-label="Only songs selected by this host"><option value="">All hosts</option></select></label></div>
   <section class="now" id="songstats" aria-label="Song totals"></section>
 
   <div class="grid2 even">
@@ -5003,7 +5003,7 @@ function activeFilters(){
     if(bandName&&bandSong)f.push([`Band lookup: ${bandSong}`,()=>{bandSong=null;showBand(bandName)}]);
     if(bandName&&bandPathF!=null)f.push([`Band lookup: ${PATHS[bandPathF]}`,()=>{bandPathF=null;showBand(bandName)}]);
   }
-  if(v==="songs"&&sHost)f.push([`Picked by: ${sHost}`,()=>{sHost=null;renderSongs()}]);
+  if(v==="songs"&&sHost)f.push([`Selected by: ${sHost}`,()=>{sHost=null;renderSongs()}]);
   if(v==="scores"&&sbFind)f.push([`Player: ${sbFind}`,()=>{sbFind="";$("sbfind").value="";sbRender()}]);
   if((v==="season"||v==="level"||v==="rankings")&&sbFind)f.push([`Player: ${sbFind}`,()=>{sbFind="";$("sbfind").value=""; plHl()}]);
   return f;

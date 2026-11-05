@@ -89,7 +89,7 @@ The whole app is one self-contained `index.html`, with no server. It loads Googl
   | Masterclass | 8–9.5 |
   | God tier | 10+ |
 
-- **Picked by**: pick a host to see only the songs from the weeks they hosted (their song picks). A multi-week God challenge counts for the host of its first week. Every list and Band lookup follow it. Host lookup has a **Song picks ›** button that opens this.
+- **Selected by**: pick a host to see only the songs from the weeks they hosted (their song picks). A multi-week God challenge counts for the host of its first week. Every list and Band lookup follow it. Host lookup has a **Song picks ›** button that opens this.
 - **Band lookup** with level, path and song filters.
 - **Song lookup**: search by title or tag, or filter by tuning. Songs can carry technique tags, and the tuning comes from the Song Selection List (with any fixes made on the site, including a capo).
 - **Most popular songs**: the songs the most players have posted a score on, or (Per challenge) the most players per challenge; hover to see who played each song, grouped by week.
