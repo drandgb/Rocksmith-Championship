@@ -291,6 +291,7 @@ button.clear:hover{border-color:var(--accent)}
 .bdiff .brow.hostfav{--tc:var(--s-yellow);background:linear-gradient(90deg,color-mix(in srgb,var(--tc) 13%,transparent),transparent 70%);box-shadow:inset 3px 0 var(--tc)}
 .cfav,.cfav *{}/* crowd favorites (bands played a lot for how often they're featured): pink wherever their name shows */.cfav{color:#ff8cc6!important;text-decoration-color:color-mix(in srgb,#ff6fb3 60%,transparent)}.songlist li.cfavrow{background:linear-gradient(90deg,color-mix(in srgb,#ff6fb3 14%,transparent),transparent 70%);box-shadow:inset 3px 0 #ff6fb3;border-radius:6px}.songlist li.cfavrow .songlink{color:#ffb3d9}.unusedbox .alist li{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr) auto;gap:4px 12px;align-items:center}.unusedbox .unmiss small{color:var(--muted);font-size:.74rem;margin-right:8px}@media(max-width:640px){.unusedbox .alist li{grid-template-columns:1fr}}.unp{display:inline-block;font:700 .7rem var(--f-display);text-transform:uppercase;letter-spacing:.06em;color:var(--pc);border:1px solid color-mix(in srgb,var(--pc) 55%,transparent);border-radius:999px;padding:1px 8px;margin-right:4px}
 .bdiff .brow.crowdfav{--tc:#ff6fb3;background:linear-gradient(90deg,color-mix(in srgb,var(--tc) 13%,transparent),transparent 70%);box-shadow:inset 3px 0 var(--tc)}
+.bdiff .brow.hostfav .rk{color:var(--s-yellow)}.bdiff .brow.crowdfav .rk{color:#ff8cc6}
 .bdiff .brow.bothfav{--tc:var(--s-green);background:linear-gradient(90deg,color-mix(in srgb,var(--tc) 13%,transparent),transparent 70%);box-shadow:inset 3px 0 var(--tc)}
 .bdiff .brow.xhl{background:color-mix(in srgb,var(--accent) 16%,transparent);box-shadow:0 0 0 1px var(--accent)}
 @media (max-width:640px){#view-songs .bdiff .brow.notag{grid-template-columns:1.6em minmax(60px,1fr) auto minmax(30px,4em) auto}#view-songs .bdiff .btag:not(:empty){font-size:0;padding:0;width:9px;height:9px;border-radius:50%;background:var(--tc)}}
@@ -4747,10 +4748,11 @@ function songLvToggle(t){setSongLv(t&&lvlPlayed!==t?t:null); renderSongs(); if(t
 // from every challenge (whatever filters the Songs page has on). Their songs and band names show in pink across the site.
 let CROWD_FAV=null;
 function crowdFav(){if(CROWD_FAV)return CROWD_FAV; const feat={}, play={}, low=a=>String(a).toLowerCase().replace(/\s+/g," ").trim();
-  Object.entries(SB.weeks).forEach(([w,ch])=>ch.forEach(c=>{if(+w>cur[0]||!c[3]||/^n\/a$/i.test(c[3])||!tierOf(c[2]))return; const a=low(splitSong(c[3])[0]); feat[a]=(feat[a]||0)+1; const s=play[a]=play[a]||new Set(); c[6].forEach(e=>s.add(SB.names[e[0]].replace(/[*~]+$/,"").toLowerCase()))}));
+  Object.entries(SB.weeks).forEach(([w,ch])=>ch.forEach(c=>{if(+w>cur[0]||!c[3]||/^n\/a$/i.test(c[3])||!tierOf(c[2]))return; const a=low(splitSong(c[3])[0]); feat[a]=(feat[a]||0)+1; const s=play[a]=play[a]||new Set(); s.sc=(s.sc||0)+c[6].length; c[6].forEach(e=>s.add(SB.names[e[0]].replace(/[*~]+$/,"").toLowerCase()))}));
   SONGS_OLD.forEach(r=>{const a=low(splitSong(r[4])[0]); feat[a]=(feat[a]||0)+1});
-  const top=o=>new Set(Object.entries(o).filter(x=>x[1]>0).sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0])).slice(0,20).map(x=>x[0]));
-  const F=top(feat), P=top(Object.fromEntries(Object.entries(play).map(([a,s])=>[a,s.size]))); return CROWD_FAV=new Set([...P].filter(a=>!F.has(a)))}
+  const top=(o,sc={})=>new Set(Object.entries(o).filter(x=>x[1]>0).sort((a,b)=>b[1]-a[1]||(sc[b[0]]||0)-(sc[a[0]]||0)||a[0].localeCompare(b[0])).slice(0,20).map(x=>x[0]));
+  // ties broken the same way as the Most popular bands list: different players, then scores posted, then name
+  const F=top(feat), P=top(Object.fromEntries(Object.entries(play).map(([a,s])=>[a,s.size])),Object.fromEntries(Object.entries(play).map(([a,s])=>[a,s.sc]))); return CROWD_FAV=new Set([...P].filter(a=>!F.has(a)))}
 const isCrowdFav=a=>{try{return crowdFav().has(String(a||"").toLowerCase().replace(/\s+/g," ").trim())}catch(e){return false}};
 // mark band names and songs by crowd favorites inside a box (any [data-band] / [data-goband] name, and song rows)
 function markCrowdFav(box){if(!box)return; box.querySelectorAll("[data-band],[data-goband]").forEach(el0=>{const a=el0.dataset.band||el0.dataset.goband; if(!isCrowdFav(a))return;
