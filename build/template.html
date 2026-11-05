@@ -1913,7 +1913,7 @@ footer{color:var(--dim);font-size:.78rem}
   </div>
 
   <section class="panel">
-    <div class="panel-head"><h2>Most played songs</h2><span class="sub">Top 20 · different players who posted a score on the song since week 440</span></div>
+    <div class="panel-head"><h2>Most played songs</h2><div class="seg bpmode" role="radiogroup" aria-label="Total or per challenge" id="spmode"><button type="button" data-sp="0" aria-pressed="true">Total</button><button type="button" data-sp="1" aria-pressed="false">Per challenge</button></div><span class="sub" id="spsub">Top 20 · different players who posted a score on the song since week 440</span></div>
     <div class="lvfilter" id="sl-f"></div>
     <ol class="songlist" id="songlist"></ol>
   </section>
@@ -4711,6 +4711,8 @@ const splitSong=t=>{const i=t.indexOf(" - ");return i>0?[t.slice(0,i).trim(),t.s
 let sHost=null; // Songs: only the weeks this host hosted (their song picks)
 let bandAvg=false; // Most played bands: false = total scores, true = average scores per challenge
 document.addEventListener("click",e=>{const b=e.target.closest("#bpmode button"); if(!b)return; bandAvg=b.dataset.bp==="1"; renderSongs()});
+let songAvg=false; // Most played songs: false = different players in total, true = average players per challenge
+document.addEventListener("click",e=>{const b=e.target.closest("#spmode button"); if(!b)return; songAvg=b.dataset.sp==="1"; renderSongs()});
 let bandTierAvg=false; // band lookup level filter by the songs' average rating (opened from Bands by difficulty)
 let bandSort={k:"weeks",d:-1}, tiers5Lv="";   // tiers5Lv: Bands by difficulty, one level only ("" = all)
 // (bandSort: the band lookup column the songs are sorted by, latest week first to start)
@@ -4827,13 +4829,16 @@ function renderSongs(){
   const lvPill=(t,attr,sel)=>`<span class="lvchip lvbtn${sel===t?" sel":""}" data-${attr}="${t}" style="--tc:${TIER_COL[t]}" title="${sel===t?"Show all levels":`Show only ${TIER_LABEL[t]} challenges`}">${TIER_SHORT[t]||TIER_LABEL[t]}</span>`;
   const lvNote=(id,lv,attr)=>{$(id).innerHTML=lv?`<span class="lvchip" style="--tc:${TIER_COL[lv]}">${TIER_LABEL[lv]} only</span><button type="button" class="clear" data-${attr}="" style="padding:1px 8px;font-size:.72rem">Show all levels</button>`:""};
   lvNote("sl-f",lvlPlayed,"lvp"); lvNote("rl-f",lvlReplay,"lvr");
-  const topSongs=byLvl(lvlPlayed).map(([sg,v])=>[sg,new Set(v.flatMap(c=>c.who||[])).size,v]).filter(x=>x[1]>0).sort((a,b)=>b[1]-a[1]||b[2].length-a[2].length).slice(0,20);
-  $("songlist").innerHTML=topSongs.map(([sg,n,v])=>{const [a,ti]=splitSong(sg); const tiers=[...new Set(v.map(c=>c.t))].sort((x,y)=>TIER_ORDER.indexOf(x)-TIER_ORDER.indexOf(y));
+  // total: different players who posted a score on the song; per challenge: the average number of players on each challenge it was used in
+  const topSongs=byLvl(lvlPlayed).map(([sg,v])=>{const tot=new Set(v.flatMap(c=>c.who||[])).size, avg=v.length?v.reduce((t,c)=>t+(c.who||[]).length,0)/v.length:0; return [sg,songAvg?avg:tot,v,tot]}).filter(x=>x[1]>0).sort((a,b)=>b[1]-a[1]||b[3]-a[3]||b[2].length-a[2].length).slice(0,20);
+  $("spsub").textContent=songAvg?"Top 20 · average players per challenge the song was used in, since week 440":"Top 20 · different players who posted a score on the song since week 440";
+  document.querySelectorAll("#spmode button").forEach(b=>b.setAttribute("aria-pressed",(+b.dataset.sp===1)===songAvg));
+  $("songlist").innerHTML=topSongs.map(([sg,n,v,tot])=>{const [a,ti]=splitSong(sg); const tiers=[...new Set(v.map(c=>c.t))].sort((x,y)=>TIER_ORDER.indexOf(x)-TIER_ORDER.indexOf(y));
     const who={}; v.forEach(c=>(c.who||[]).forEach(n=>{(who[n]=who[n]||new Set()).add(c.p)}));
     // players grouped by the week they played it, latest week first
     const byWk={}; v.forEach(c=>(c.who||[]).forEach(n=>{const m=(byWk[c.w]=byWk[c.w]||{});(m[n]=m[n]||new Set()).add(c.p)}));
     const tipTxt=`${ti} — ${Object.keys(who).length} players\n`+Object.keys(byWk).map(Number).sort((a,b)=>b-a).map(w=>`\nWeek ${w}\n`+Object.entries(byWk[w]).sort((a,b)=>b[1].size-a[1].size||a[0].localeCompare(b[0])).map(([n,ps])=>`• ${n} · ${[...ps].sort().map(p=>PATHS[p]).join(", ")}`).join("\n")).join("\n");
-    return `<li data-tip="${esc(tipTxt)}"><div><b class="songlink" data-band="${esc(a)}" data-song="${esc(ti)}">${esc(ti)}</b><small><span data-band="${esc(a)}" class="bandlink">${esc(a)}</span> · ${v.length} challenge${v.length===1?"":"s"}</small><div class="chips">${tiers.map(t=>lvPill(t,"lvp",lvlPlayed)).join("")}${songRateBox(v)}</div></div><span class="cnt">${songPill(sg,IG_LATEST(sg))}<b>${n}</b>players attempted</span></li>`}).join("");
+    return `<li data-tip="${esc(tipTxt)}"><div><b class="songlink" data-band="${esc(a)}" data-song="${esc(ti)}">${esc(ti)}</b><small><span data-band="${esc(a)}" class="bandlink">${esc(a)}</span> · ${v.length} challenge${v.length===1?"":"s"}</small><div class="chips">${tiers.map(t=>lvPill(t,"lvp",lvlPlayed)).join("")}${songRateBox(v)}</div></div><span class="cnt">${songPill(sg,IG_LATEST(sg))}<b>${songAvg?n.toFixed(1):n}</b>${songAvg?"players per challenge":"players attempted"}</span></li>`}).join("");
   // a multi-week God challenge (same song in back-to-back weeks as a God challenge) counts as one play
   const plays=(ws,v)=>{let n=0,prev=null;const god=w=>v.some(c=>c.w===w&&c.card==="G");ws.forEach(w=>{if(!(prev!=null&&w===prev+1&&god(w)&&god(prev)))n++;prev=w});return n};
   const replay=byLvl(lvlReplay).map(([sg,v])=>{const ws=[...new Set(v.map(c=>c.w))].sort((a,b)=>a-b);return [sg,ws,v,plays(ws,v)]}).filter(x=>x[3]>1).sort((a,b)=>b[3]-a[3]||b[1][b[1].length-1]-a[1][a[1].length-1]).slice(0,20);
