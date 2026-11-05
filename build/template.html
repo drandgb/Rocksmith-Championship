@@ -3117,7 +3117,7 @@ function friText(){const w=TW_LIVE; if(!SB.weeks[w])return ""; const names=twNam
   const L=["Happy Friday everyone!"];
   if(stake.length)L.push("","Streaks at stake:",...stake.map(x=>`${at(x.n)} (${x.k} week${x.k===1?"":"s"})`));
   L.push("","Have a great weekend if we don't see you!");
-  if(open.length){L.push("","These trophies are yet to be claimed:");
+  if(open.length){L.push("","For active players, these trophies are yet to be claimed:");
     open.forEach(c=>{const lv=cardLv(c[2]), on=new Set(c[6].map(e=>SB.names[e[0]].replace(/[*~]+$/,"").toLowerCase()));
       const could="BIAM".includes(lv)&&lv?names.filter(n=>tiersOf(n).charAt(c[0])===lv&&!on.has(n.toLowerCase())).sort((a,b)=>a.localeCompare(b,undefined,{sensitivity:"base"})):[];
       L.push(`${PATHS[c[0]]} ${c[2]}: ${c[3]}${could.length?` · ${could.map(at).join(", ")}`:""}`)})}
