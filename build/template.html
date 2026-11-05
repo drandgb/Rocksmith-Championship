@@ -4799,7 +4799,7 @@ function renderSongs(){
   const featured=Object.entries(bands).map(([a,v])=>[a,v.length]).sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0])).slice(0,20);
   $("b-featured").innerHTML=barRows(featured,(n,i)=>STR[i%6],"",false);
   // Most popular bands: total scores, or (toggle) the average scores per challenge for bands with at least BP_MIN challenges
-  const BP_MIN=sHost?1:5;
+  const BP_MIN=sHost?1:4;
   const played=bandAvg
     ? Object.entries(bands).map(([a,v])=>{const sc=v.filter(c=>c.n!=null); return [a,sc.length>=BP_MIN?sc.reduce((s,c)=>s+c.n,0)/sc.length:0]}).filter(x=>x[1]>0).sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0])).slice(0,20).map(([a,x])=>[a,x.toFixed(1)])
     : Object.entries(bands).map(([a,v])=>[a,v.reduce((s,c)=>s+(c.n||0),0)]).filter(x=>x[1]>0).sort((a,b)=>b[1]-a[1]).slice(0,20);
@@ -4829,9 +4829,10 @@ function renderSongs(){
   const lvPill=(t,attr,sel)=>`<span class="lvchip lvbtn${sel===t?" sel":""}" data-${attr}="${t}" style="--tc:${TIER_COL[t]}" title="${sel===t?"Show all levels":`Show only ${TIER_LABEL[t]} challenges`}">${TIER_SHORT[t]||TIER_LABEL[t]}</span>`;
   const lvNote=(id,lv,attr)=>{$(id).innerHTML=lv?`<span class="lvchip" style="--tc:${TIER_COL[lv]}">${TIER_LABEL[lv]} only</span><button type="button" class="clear" data-${attr}="" style="padding:1px 8px;font-size:.72rem">Show all levels</button>`:""};
   lvNote("sl-f",lvlPlayed,"lvp"); lvNote("rl-f",lvlReplay,"lvr");
+  const SP_MIN=sHost?1:4;   // per challenge: songs used in at least 4 challenges (any number for one host's picks)
   // total: different players who posted a score on the song; per challenge: the average number of players on each challenge it was used in
-  const topSongs=byLvl(lvlPlayed).map(([sg,v])=>{const tot=new Set(v.flatMap(c=>c.who||[])).size, avg=v.length?v.reduce((t,c)=>t+(c.who||[]).length,0)/v.length:0; return [sg,songAvg?avg:tot,v,tot]}).filter(x=>x[1]>0).sort((a,b)=>b[1]-a[1]||b[3]-a[3]||b[2].length-a[2].length).slice(0,20);
-  $("spsub").textContent=songAvg?"Top 20 · average players per challenge the song was used in, since week 440":"Top 20 · different players who posted a score on the song since week 440";
+  const topSongs=byLvl(lvlPlayed).map(([sg,v])=>{const tot=new Set(v.flatMap(c=>c.who||[])).size, avg=v.length?v.reduce((t,c)=>t+(c.who||[]).length,0)/v.length:0; return [sg,songAvg?(v.length>=SP_MIN?avg:0):tot,v,tot]}).filter(x=>x[1]>0).sort((a,b)=>b[1]-a[1]||b[3]-a[3]||b[2].length-a[2].length).slice(0,20);
+  $("spsub").textContent=songAvg?`Top 20 · average players per challenge the song was used in, since week 440 · songs with ${SP_MIN}+ challenge${SP_MIN===1?"":"s"}`:"Top 20 · different players who posted a score on the song since week 440";
   document.querySelectorAll("#spmode button").forEach(b=>b.setAttribute("aria-pressed",(+b.dataset.sp===1)===songAvg));
   $("songlist").innerHTML=topSongs.map(([sg,n,v,tot])=>{const [a,ti]=splitSong(sg); const tiers=[...new Set(v.map(c=>c.t))].sort((x,y)=>TIER_ORDER.indexOf(x)-TIER_ORDER.indexOf(y));
     const who={}; v.forEach(c=>(c.who||[]).forEach(n=>{(who[n]=who[n]||new Set()).add(c.p)}));
