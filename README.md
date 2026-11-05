@@ -77,9 +77,9 @@ The whole app is one self-contained `index.html`, with no server. It loads Googl
 - Hosting timeline and **Week log**. Click any holiday to see only the weeks with that holiday.
 
 ### 🎵 Songs
-- Songs in Most played, Most replayed and the Band lookup table have an **Ignition** pill with the song's most recent Ignition4 link from the scoreboard sheet.
+- Songs in Most popular, Most replayed and the Band lookup table have an **Ignition** pill with the song's most recent Ignition4 link from the scoreboard sheet.
 - Official Rocksmith songs (on-disc and DLC) get a grey **Official** pill instead (hover: not available on Ignition), on the Songs page and Scoreboard cards. The list of official songs is `build/data/official.json`.
-- Most featured and most played bands. Bands by difficulty, plus the easiest and toughest bands:
+- Most featured and most popular bands (Total or Per challenge). Bands by difficulty, plus the easiest and toughest bands:
 
   | Level | Rating |
   |---|---|
@@ -92,7 +92,7 @@ The whole app is one self-contained `index.html`, with no server. It loads Googl
 - **Picked by**: pick a host to see only the songs from the weeks they hosted (their song picks). A multi-week God challenge counts for the host of its first week. Every list and Band lookup follow it. Host lookup has a **Song picks ›** button that opens this.
 - **Band lookup** with level, path and song filters.
 - **Song lookup**: search by title or tag, or filter by tuning. Songs can carry technique tags, and the tuning comes from the Song Selection List (with any fixes made on the site, including a capo).
-- **Most played songs**: hover to see who played each song, grouped by week.
+- **Most popular songs**: the songs the most players have posted a score on, or (Per challenge) the most players per challenge; hover to see who played each song, grouped by week.
 - **Most replayed songs**.
 
 ### 📋 Scoreboard
@@ -194,7 +194,7 @@ To build by hand: `./build/build.sh` (downloads the sheet) or `./build/build.sh 
 
 ## Player accounts and song ratings (optional)
 
-Players can log in with an emailed link (no password) and claim their player profile. An approved player gives one rating per song per path: by clicking the difficulty number of a challenge on the Scoreboard, or a song's Lead/Rhythm/Bass rating box in Most played, Most replayed or Band lookup. A rating counts for that song on that path in every week it's used. Once a song has ratings, its badges show the players' average (with a stronger fill; your own rated ones get a green ✓); hovering shows the host's initial rating for every week and every player's rating. Verified hosts (approved players who have hosted before) can sign up for an open week shown under Coming up (at least the next 9 weeks), from the HOST NEEDED pills on the Hosts page or the This Week banner; admins can sign anyone up and see all sign-ups in the Admin tab. The schedule sheet stays the source of truth: once it names a host for a week, that's who the site shows. It's off until a Supabase project is connected:
+Players can log in with an emailed link (no password) and claim their player profile. An approved player gives one rating per song per path: by clicking the difficulty number of a challenge on the Scoreboard, or a song's Lead/Rhythm/Bass rating box in Most popular, Most replayed or Band lookup. A rating counts for that song on that path in every week it's used. Once a song has ratings, its badges show the players' average (with a stronger fill; your own rated ones get a green ✓); hovering shows the host's initial rating for every week and every player's rating. Verified hosts (approved players who have hosted before) can sign up for an open week shown under Coming up (at least the next 9 weeks), from the HOST NEEDED pills on the Hosts page or the This Week banner; admins can sign anyone up and see all sign-ups in the Admin tab. The schedule sheet stays the source of truth: once it names a host for a week, that's who the site shows. It's off until a Supabase project is connected:
 
 1. Create a free project at supabase.com.
 2. In **Authentication → URL Configuration**, set the Site URL (and a Redirect URL) to `https://drandgb.github.io/Rocksmith-Championship/`.

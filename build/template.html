@@ -1907,13 +1907,13 @@ footer{color:var(--dim);font-size:.78rem}
       <div class="bars" id="b-featured"></div>
     </section>
     <section class="panel">
-      <div class="panel-head"><h2>Most played bands</h2><div class="seg bpmode" role="radiogroup" aria-label="Total or per challenge" id="bpmode"><button type="button" data-bp="0" aria-pressed="true">Total</button><button type="button" data-bp="1" aria-pressed="false">Per challenge</button></div><span class="sub" id="bpsub">Top 20 · scores posted on their songs since week 440</span></div>
+      <div class="panel-head"><h2>Most popular bands</h2><div class="seg bpmode" role="radiogroup" aria-label="Total or per challenge" id="bpmode"><button type="button" data-bp="0" aria-pressed="true">Total</button><button type="button" data-bp="1" aria-pressed="false">Per challenge</button></div><span class="sub" id="bpsub">Top 20 · scores posted on their songs since week 440</span></div>
       <div class="bars" id="b-playedbands"></div>
     </section>
   </div>
 
   <section class="panel">
-    <div class="panel-head"><h2>Most played songs</h2><div class="seg bpmode" role="radiogroup" aria-label="Total or per challenge" id="spmode"><button type="button" data-sp="0" aria-pressed="true">Total</button><button type="button" data-sp="1" aria-pressed="false">Per challenge</button></div><span class="sub" id="spsub">Top 20 · different players who posted a score on the song since week 440</span></div>
+    <div class="panel-head"><h2>Most popular songs</h2><div class="seg bpmode" role="radiogroup" aria-label="Total or per challenge" id="spmode"><button type="button" data-sp="0" aria-pressed="true">Total</button><button type="button" data-sp="1" aria-pressed="false">Per challenge</button></div><span class="sub" id="spsub">Top 20 · different players who posted a score on the song since week 440</span></div>
     <div class="lvfilter" id="sl-f"></div>
     <ol class="songlist" id="songlist"></ol>
   </section>
@@ -4709,20 +4709,20 @@ const IG_LATEST=(()=>{const m={}, norm=s=>String(s).toLowerCase().replace(/\s+/g
   return s=>m[norm(s)]})();
 const splitSong=t=>{const i=t.indexOf(" - ");return i>0?[t.slice(0,i).trim(),t.slice(i+3).trim()]:["Unknown",t.trim()]};
 let sHost=null; // Songs: only the weeks this host hosted (their song picks)
-let bandAvg=false; // Most played bands: false = total scores, true = average scores per challenge
+let bandAvg=false; // Most popular bands: false = total scores, true = average scores per challenge
 document.addEventListener("click",e=>{const b=e.target.closest("#bpmode button"); if(!b)return; bandAvg=b.dataset.bp==="1"; renderSongs()});
-let songAvg=false; // Most played songs: false = different players in total, true = average players per challenge
+let songAvg=false; // Most popular songs: false = different players in total, true = average players per challenge
 document.addEventListener("click",e=>{const b=e.target.closest("#spmode button"); if(!b)return; songAvg=b.dataset.sp==="1"; renderSongs()});
 let bandTierAvg=false; // band lookup level filter by the songs' average rating (opened from Bands by difficulty)
 let bandSort={k:"weeks",d:-1}, tiers5Lv="";   // tiers5Lv: Bands by difficulty, one level only ("" = all)
 // (bandSort: the band lookup column the songs are sorted by, latest week first to start)
 let sPath=-1, songCards=[], bandName=null, bandTier=null, bandPathF=null, bandSong=null, lvlPlayed=null, lvlReplay=null;
-// one level filter for the whole Songs page: Most played, Most replayed and Band lookup always share it
+// one level filter for the whole Songs page: Most popular, Most replayed and Band lookup always share it
 function setSongLv(t){lvlPlayed=lvlReplay=bandTier=t||null; bandTierAvg=false}
 function songLvToggle(t){setSongLv(t&&lvlPlayed!==t?t:null); renderSongs(); if(typeof updateBubble==="function")updateBubble()}
-// Most featured vs Most played bands: bands in only one of the two top 20s get a tag (Host favorite: picked often,
+// Most featured vs Most popular bands: bands in only one of the two top 20s get a tag (Host favorite: picked often,
 // played less; Crowd favorite: played a lot for how often it's picked); hovering a band lights it up in the other list
-// Crowd favorites: bands in the top 20 most played (scores posted) but not in the top 20 most featured, worked out once
+// Crowd favorites: bands in the top 20 most popular (scores posted) but not in the top 20 most featured, worked out once
 // from every challenge (whatever filters the Songs page has on). Their songs and band names show in pink across the site.
 let CROWD_FAV=null;
 function crowdFav(){if(CROWD_FAV)return CROWD_FAV; const feat={}, play={}, low=a=>String(a).toLowerCase().replace(/\s+/g," ").trim();
@@ -4734,7 +4734,7 @@ const isCrowdFav=a=>{try{return crowdFav().has(String(a||"").toLowerCase().repla
 // mark band names and songs by crowd favorites inside a box (any [data-band] / [data-goband] name, and song rows)
 function markCrowdFav(box){if(!box)return; box.querySelectorAll("[data-band],[data-goband]").forEach(el0=>{const a=el0.dataset.band||el0.dataset.goband; if(!isCrowdFav(a))return;
   const el=el0.matches("li,.brow")?(el0.querySelector(".nm,span")||el0):el0; el.classList.add("cfav");
-  const why=`Crowd favorite (shown in pink): ${a} is one of the 20 most played bands, but not one of the 20 most featured as challenges (see Most played and Most featured bands on the Songs tab).`;
+  const why=`Crowd favorite (shown in pink): ${a} is one of the 20 most popular bands, but not one of the 20 most featured as challenges (see Most popular and Most featured bands on the Songs tab).`;
   if(el.closest("#sbcards")){const t0=el.getAttribute("title"); el.removeAttribute("title"); el.dataset.tip=why+(t0?`\n\nClick to ${t0.charAt(0).toLowerCase()+t0.slice(1)}`:"")} else if(!el.title&&!el.dataset.tip)el.title=why});
   box.querySelectorAll(".songlist li").forEach(li=>{const b=li.querySelector("[data-band]"); li.classList.toggle("cfavrow",!!b&&isCrowdFav(b.dataset.band))})}
 function bandDiff(avg){
@@ -4750,7 +4750,7 @@ function bandDiff(avg){
     mark(F,ps,"bothfav","Fans' pick","Featured often, and also in the top 20 for scores per challenge");
     mark(P,fs,"bothfav","Featured often","High scores per challenge, and also in the top 20 most featured bands");
   } else {
-    mark(F,ps,"hostfav","Host favorite","Featured often, but not in the top 20 most played bands");
+    mark(F,ps,"hostfav","Host favorite","Featured often, but not in the top 20 most popular bands");
     mark(P,fs,"crowdfav","Crowd favorite","Played a lot, but not in the top 20 most featured bands");
   }
 }
@@ -4798,7 +4798,7 @@ function renderSongs(){
     <div><div class="k">Scores posted</div><div class="v num">${entries.toLocaleString()}</div><div class="n">Since week ${Math.min(...scored.map(c=>c.w))} · ${(entries/scored.length).toFixed(1)} per challenge</div></div>`;
   const featured=Object.entries(bands).map(([a,v])=>[a,v.length]).sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0])).slice(0,20);
   $("b-featured").innerHTML=barRows(featured,(n,i)=>STR[i%6],"",false);
-  // Most played bands: total scores, or (toggle) the average scores per challenge for bands with at least BP_MIN challenges
+  // Most popular bands: total scores, or (toggle) the average scores per challenge for bands with at least BP_MIN challenges
   const BP_MIN=sHost?1:5;
   const played=bandAvg
     ? Object.entries(bands).map(([a,v])=>{const sc=v.filter(c=>c.n!=null); return [a,sc.length>=BP_MIN?sc.reduce((s,c)=>s+c.n,0)/sc.length:0]}).filter(x=>x[1]>0).sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0])).slice(0,20).map(([a,x])=>[a,x.toFixed(1)])
@@ -5460,7 +5460,7 @@ window.addEventListener("pointerdown",e=>{plPtr=e.pointerType||"mouse"; if(plTip
 window.addEventListener("click",e=>{if(plPtr==="mouse")return; const t=e.target.closest("#view-season [data-tip],#view-level [data-tip],#view-rankings [data-tip]"); if(!t)return;
   plTipPin=t; tip.textContent=t.dataset.tip; tip.hidden=false; const r=t.getBoundingClientRect(); placeTip(Math.max(8,Math.min(r.left,innerWidth-40)),r.bottom-4)},true);
 addEventListener("scroll",()=>{if(plTipPin){plTipPin=null; tip.hidden=true}},{passive:true});
-// ---------- level pills in Most played / Most replayed songs filter that list ----------
+// ---------- level pills in Most popular / Most replayed songs filter that list ----------
 ["sl-f","rl-f","songlist","replaylist"].forEach(id=>$(id).addEventListener("click",e=>{
   const b=e.target.closest("[data-lvp],[data-lvr]"); if(!b)return; e.stopPropagation(); tip.hidden=true;
   songLvToggle((b.dataset.lvp!=null?b.dataset.lvp:b.dataset.lvr)||null);
