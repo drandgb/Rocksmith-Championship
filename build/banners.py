@@ -7,8 +7,11 @@
 #     Redraw all banners on the site: a row in banner_redraw, banner_redraw.sql)
 #   - otherwise only newly approved players get one, so this is cheap to run every few minutes
 #   - when a claim is removed, the admin chooses whether the banner stays (and keeps updating) or is deleted
+# Each banner also gets a share page, cards/<slug>.html: a link that shows the banner as its preview in Discord,
+# Reddit and other apps, and opens the player's lookup on the site. The site's own link preview picture,
+# cards/og/site.png (1200x630), is drawn with the banners each week (ogCardHtml() in the page).
 # If the claims can't be read, nothing is changed.
-import json, os, re, shutil, sys, urllib.request
+import html as htmlmod, json, os, re, shutil, sys, urllib.parse, urllib.request
 
 BANNER_VERSION = 54  # bump to redraw every banner after a design change
 
@@ -76,13 +79,43 @@ names = {**kept, **want}
 removed = 0
 if can_delete:
     for f in os.listdir(out):
-        m = re.fullmatch(r"(.+)\.png", f)
+        m = re.fullmatch(r"(.+)\.(?:png|html)", f)
         if m and m.group(1) not in names:
             os.remove(os.path.join(out, f)); removed += 1
 
+# share pages (rewritten only when they change: the week in the picture's link makes apps fetch the new banner)
+SITE = "https://drandgb.github.io/Rocksmith-Championship/"
+def share_page(s, n):
+    e, img, go = htmlmod.escape(n), f"{SITE}cards/{s}.png?w={week}", "../#players/" + urllib.parse.quote(n, safe="")
+    title = f"{e} · Rocksmith 2014 Championship"
+    return f"""<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<title>{title}</title>
+<meta property="og:title" content="{title}">
+<meta property="og:description" content="{e}'s weekly Rocksmith 2014 challenge stats: weeks played, wins, levels and medals.">
+<meta property="og:type" content="profile">
+<meta property="og:site_name" content="Rocksmith 2014 Championship">
+<meta property="og:url" content="{SITE}cards/{s}.html">
+<meta property="og:image" content="{img}">
+<meta property="og:image:width" content="700">
+<meta property="og:image:height" content="150">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#0d0f14">
+<meta http-equiv="refresh" content="0; url={htmlmod.escape(go)}">
+<script>location.replace({json.dumps(go)})</script>
+<a href="{htmlmod.escape(go)}">{e} on the Rocksmith 2014 Championship site</a>
+"""
+for s, n in names.items():
+    f, txt = os.path.join(out, s + ".html"), share_page(s, n)
+    if not os.path.exists(f) or open(f, encoding="utf-8").read() != txt:
+        open(f, "w", encoding="utf-8").write(txt)
+site_png = os.path.join(out, "og", "site.png")
+need_site = redraw_all or not os.path.exists(site_png)
+
 todo = [(s, n) for s, n in names.items()
         if redraw_all or not os.path.exists(os.path.join(out, s + ".png"))]
-if not todo:
+if not todo and not need_site:
     print(f"banners: {len(names)} up to date" + (f", removed {removed}" if removed else ""))
     if stamp.get("names") != names or removed or redraw_at != stamp.get("req"): json.dump({**stamp, "players": sorted(names), "names": names, "req": redraw_at}, open(stamp_path, "w"))
     sys.exit(0)
@@ -108,6 +141,13 @@ with sync_playwright() as pw:
         pg.evaluate("document.fonts.load('800 22px Oxanium').catch(()=>0).then(()=>document.fonts.ready).then(()=>bnFit(document.getElementById('bnshot')))")
         pg.locator("#bnshot > div").screenshot(path=dest, omit_background=True)
         made += 1
+    if need_site:  # the site's link preview picture
+        os.makedirs(os.path.dirname(site_png), exist_ok=True)
+        pg.set_viewport_size({"width": 1200, "height": 630})
+        if pg.evaluate("()=>{if(typeof ogCardHtml!=='function')return false; const d=document.getElementById('bnshot'); d.innerHTML=ogCardHtml(); return !!d.firstElementChild}"):
+            pg.evaluate("document.fonts.ready")
+            pg.locator("#bnshot > div").screenshot(path=site_png)
+            print("banners: drew the site's link preview picture")
     br.close()
 
 json.dump({"week": week, "v": BANNER_VERSION, "players": sorted(names), "names": names, "req": redraw_at}, open(stamp_path, "w"))
