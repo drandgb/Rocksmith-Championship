@@ -284,6 +284,7 @@ button.clear:hover{border-color:var(--accent)}
 .brow{display:grid;grid-template-columns:1.6em minmax(70px,9em) 6em 1fr auto;align-items:center;gap:8px;font-size:.86rem;min-width:0}
 .brow .rk{font-family:var(--f-mono);color:var(--dim);font-size:.75rem}
 .brow .act{display:flex;align-items:center;gap:3px}
+.aonly .pill.on{display:none}   /* Active only: every name shown is active, so no ACTIVE tags (NEW and INACTIVE still show) */
 .pill.on,.pill.new,.pill.off{display:inline-flex;justify-content:center;width:6.8em;box-sizing:border-box}
 .pill.off{cursor:help;background:color-mix(in srgb,#8c94a8 12%,transparent);color:#8c94a8;border:1px solid color-mix(in srgb,#8c94a8 40%,transparent)}
 .pill.new{cursor:help;background:color-mix(in srgb,var(--s-purple) 20%,transparent);color:var(--s-purple);border:1px solid color-mix(in srgb,var(--s-purple) 50%,transparent)}
@@ -2185,6 +2186,7 @@ const byName={}; PLAYERS.forEach(p=>byName[p[0]]=p);
 const topBy=(f,n=20,filt=()=>true)=>PLAYERS.filter(filt).map(p=>[p,f(p)]).sort((a,b)=>b[1]-a[1]||b[0][3]-a[0][3]).slice(0,n);
 let activeOnly=true;
 try{activeOnly=localStorage.getItem("rsc-activeonly2")!=="0"}catch(e){}
+document.body.classList.toggle("aonly",activeOnly);
 const pAct=p=>DATA_WEEK-p[2]<52;
 let RECORDS,PERFECT,ACTIVE_STREAKS;
 function computeRecords(){
@@ -4378,7 +4380,7 @@ const RU_KEY=new Set(WR.ups.filter(isUp).map(([n,p,a,b,w])=>`${w}|${n}|${p}|${b}
 try{const r=localStorage.getItem("rsc-wpath");if(r!==null&&["0","1","2"].includes(r))wPath=+r}catch(e){}
 later(["winners","players"],()=>{renderWinners(); if(window.__twReady)try{renderEloBox()}catch(e){}}); setTimeout(()=>{try{renderEloBox()}catch(e){}},0);
 function setActiveOnly(v){
-  activeOnly=v; try{localStorage.setItem("rsc-activeonly2",v?"1":"0")}catch(e){}
+  activeOnly=v; try{localStorage.setItem("rsc-activeonly2",v?"1":"0")}catch(e){} document.body.classList.toggle("aonly",!!v);
   document.querySelectorAll("#pfilter button").forEach(b=>b.setAttribute("aria-pressed",(b.dataset.af==="1")===activeOnly));
   computeRecords(); renderRecords(); renderWinners(); renderHostPodium(); renderLB(); renderUpcoming();
   try{renderEloBox()}catch(e){}
