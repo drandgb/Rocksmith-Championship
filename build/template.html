@@ -3785,7 +3785,7 @@ function laurelOf(i){const [a,b,c,ln,bow]=LAUREL_PAL[i]; return LAUREL.replace(/
   .replace(/stroke="#b8862a"/g,`stroke="${c}"`).replace(/stroke="#9a6b18"/g,`stroke="${ln}"`).replace('fill="#e0a83a"',`fill="${bow}"`).replace('fill="#f5c84a" stroke','fill="'+b+'" stroke')}
 const LAUREL=(()=>{const r=17.2, cx=15, cy=15.5; let s="";
   [-1,1].forEach(side=>{
-    s+=`<path d="M${cx} ${cy+r+.8}A${r} ${r} 0 0 ${side>0?0:1} ${(cx+side*r*Math.sin(2.55)).toFixed(2)} ${(cy+r*Math.cos(2.55)).toFixed(2)}" fill="none" stroke="#b8862a" stroke-width=".9"/>`;
+    s+=`<path d="M${cx} ${cy+r+.8}V${cy+r}A${r} ${r} 0 0 ${side>0?0:1} ${(cx+side*r*Math.sin(2.55)).toFixed(2)} ${(cy+r*Math.cos(2.55)).toFixed(2)}" fill="none" stroke="#b8862a" stroke-width=".9"/>`;
     for(let k=0;k<7;k++){const th=(22+k*19)*Math.PI/180, x=cx+side*r*Math.sin(th), y=cy+r*Math.cos(th);
       const tang=Math.atan2(-Math.sin(th),side*Math.cos(th))*180/Math.PI, sz=1-k*.06;
       [-34,34].forEach((off,j)=>{const a=tang+off, ox=x+Math.cos(a*Math.PI/180)*2.2*sz, oy=y+Math.sin(a*Math.PI/180)*2.2*sz;
