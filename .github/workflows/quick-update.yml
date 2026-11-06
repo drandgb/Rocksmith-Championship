@@ -38,6 +38,18 @@ jobs:
           export BUILD_DATE=$(TZ=America/New_York date +%F)
           MODE=quick ./build/build.sh 2>&1 | tee build.log
 
+      - name: Check the new page (every tab, on a computer and a phone)
+        id: check
+        run: |
+          set +e
+          python3 build/check_page.py index.html > check.log 2>&1; code=$?
+          cat check.log; cat check.log >> build.log
+          if [ $code -ne 0 ]; then
+            echo "::error::The new page has problems (listed above), so the site keeps its last good page."
+            git checkout -- index.html
+            echo "bad=true" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Forum banners (all of them when a new week arrives, otherwise only newly approved players)
         run: python3 build/banners.py index.html cards 2>&1 | tee -a build.log || echo "Banners skipped."
 
@@ -66,6 +78,10 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: gh api -X POST "repos/${{ github.repository }}/pages/builds" || echo "Pages will pick up the commit on its own."
+
+      - name: Mark the run as failed if the new page had problems (GitHub emails you)
+        if: steps.check.outputs.bad == 'true'
+        run: exit 1
 
       - name: Save the build log
         if: always()
