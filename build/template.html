@@ -6286,13 +6286,23 @@ function hmImprove(w){const key=t=>String(t).toLowerCase().replace(/\s+/g," ").t
     if(!c||!ok(c))return; const f=v[0][0], b=v[1][0]; if(typeof f!=="number"||typeof b!=="number"||b-f<HM_IMPROVE)return; const d=Math.round((b-f)*10)/10, k=n.toLowerCase()+"|"+c[0]+"|"+key(c[3]);
     if(!out[k]||out[k].d<d)out[k]={k,n,pct:b,first:f,d,song:c[3],path:PATHS[c[0]]||""}});
   return Object.values(out).sort((a,b)=>b.d-a.d||a.n.localeCompare(b.n))}
-// one message per player. Copying it marks those songs as congratulated (kept in this browser), so if the player
-// improves on another song later in the week, their message is a fresh one with only the new songs.
-const HM_IMP_KEY="rsc-hm-improved";
-function hmImpPosted(){try{return JSON.parse(localStorage.getItem(HM_IMP_KEY)||"{}")}catch(e){return {}}}
-function hmImpMark(w,keys){const P=hmImpPosted(); P[w]=P[w]||{}; keys.forEach(k=>P[w][k]=1);
+// one message per player. Copying it marks those songs as congratulated (saved in the database, improve_posted.sql,
+// so every admin and host sees it), and if the player improves on another song later in the week, their message is a
+// fresh one with only the new songs. Until that table is set up, this browser remembers instead.
+const HM_IMP_KEY="rsc-hm-improved", HM_IMP={st:undefined,t:0};   // st: undefined not loaded · null loading · false no table · {week:{item:1}}
+function hmImpLocal(){try{return JSON.parse(localStorage.getItem(HM_IMP_KEY)||"{}")}catch(e){return {}}}
+function hmImpPosted(){return HM_IMP.st&&typeof HM_IMP.st==="object"?HM_IMP.st:hmImpLocal()}
+function hmRedraw(){const el=document.querySelector(".acctdlg .hmsec:not(.hmhost)"); if(el)el.outerHTML=hmSection()}
+function hmImpLoad(){if(!ACCT.sb||HM_IMP.st===null||(HM_IMP.st!==undefined&&Date.now()-HM_IMP.t<30000))return; HM_IMP.st=null;
+  ACCT.sb.from("improve_posted").select("week,item").gte("week",TW_MAX-2).then(({data,error})=>{HM_IMP.t=Date.now();
+    if(error){HM_IMP.st=false}else{const P={}; (data||[]).forEach(r=>(P[r.week]=P[r.week]||{})[r.item]=1); HM_IMP.st=P} hmRedraw()})}
+function hmImpMark(w,keys){
+  if(HM_IMP.st&&typeof HM_IMP.st==="object"){const P=HM_IMP.st; P[w]=P[w]||{}; keys.forEach(k=>P[w][k]=1);
+    ACCT.sb.from("improve_posted").upsert(keys.map(item=>({week:w,item,by_player:ACCT.claim&&ACCT.claim.player||null})),{onConflict:"week,item",ignoreDuplicates:true})
+      .then(({error})=>{if(error)alert("Couldn't save that it was copied: "+error.message)}); return}
+  const P=hmImpLocal(); P[w]=P[w]||{}; keys.forEach(k=>P[w][k]=1);
   Object.keys(P).forEach(x=>{if(+x<w-4)delete P[x]}); try{localStorage.setItem(HM_IMP_KEY,JSON.stringify(P))}catch(e){}}
-function hmImproveMsgs(w){const P=hmImpPosted()[w]||{}, by={};
+function hmImproveMsgs(w){try{hmImpLoad()}catch(e){} const P=hmImpPosted()[w]||{}, by={};
   hmImprove(w).forEach(x=>(by[x.n]=by[x.n]||[]).push(x));
   const on=x=>`${x.song}${x.path?` (${x.path})`:""}`;
   return Object.entries(by).map(([n,xs])=>{const fresh=xs.filter(x=>!P[x.k]), again=fresh.length>0&&fresh.length<xs.length, use=fresh.length?fresh:xs;
@@ -6337,11 +6347,11 @@ function hmSection(){const ws=hmWeeks(); if(!ws.length)return ""; const w=ACCT.h
     <h4>👋 Welcome new players</h4>${W.length?`<ul class="hml">${W.map(x=>row(x.t)).join("")}</ul>`:`<p class="dim">No new players in Week ${w}.</p>`}
     <h4>🔁 Welcome back</h4>${B.length?`<ul class="hml">${B.map(x=>row(x.t,`${x.away} weeks away`)).join("")}</ul>`:`<p class="dim">Nobody back from a break in Week ${w}.</p>`}
     <h4>🎉 Milestones</h4>${M.length?`<ul class="hml">${M.map(x=>row(x.t,x.what)).join("")}</ul>`:`<p class="dim">No milestone medals in Week ${w} yet.</p>`}
-    <h4>📈 Big improvements</h4>${U.length?`<ul class="hml">${U.map(x=>`<li${x.done?' class="hmdone"':""}><div class="hmt"><span class="hmk">${esc(x.done?"Copied · "+x.tag:x.tag)}</span>${esc(x.t)}</div><button type="button" class="btn ghost hmcp" data-hmcopy="${esc(x.t)}" data-hmimp="${w}|${esc(JSON.stringify(x.keys))}">Copy</button></li>`).join("")}</ul>`:`<p class="dim">No improvements of ${HM_IMPROVE}+ points in Week ${w} yet.</p>`}</div>`}
+    <h4>📈 Big improvements</h4>${U.length?`<ul class="hml">${U.map(x=>`<li${x.done?' class="hmdone"':""}><div class="hmt"><span class="hmk">${esc(x.done?"Copied · "+x.tag:x.tag)}</span>${esc(x.t)}</div><button type="button" class="btn ghost hmcp" data-hmcopy="${esc(x.t)}" data-hmimp="${w}|${esc(JSON.stringify(x.keys))}">Copy</button></li>`).join("")}</ul>`:`<p class="dim">No improvements of ${HM_IMPROVE}+ points in Week ${w} yet.</p>`}${HM_IMP.st===false?`<p class="dim">Copied messages are only remembered in this browser until build/supabase/improve_posted.sql is run in Supabase.</p>`:""}</div>`}
 document.addEventListener("change",e=>{const s=e.target.closest("[data-hmweek]"); if(!s)return; ACCT.hmWeek=+s.value; const el=document.querySelector(".acctdlg .hmsec:not(.hmhost)"); if(el)el.outerHTML=hmSection(); const eh=document.querySelector(".acctdlg .hmhost"); if(eh)eh.outerHTML=hostMsgSection()});
 document.addEventListener("click",e=>{const b=e.target.closest("[data-hmcopy]"); if(!b)return; try{navigator.clipboard.writeText(b.dataset.hmcopy).then(()=>{b.textContent="Copied ✓";
   const im=b.dataset.hmimp; if(im){const i=im.indexOf("|"); hmImpMark(+im.slice(0,i),JSON.parse(im.slice(i+1)))}   // a big improvement: remembered, so the next one is new
-  setTimeout(()=>{b.textContent="Copy"; if(im){const el=document.querySelector(".acctdlg .hmsec:not(.hmhost)"); if(el)el.outerHTML=hmSection()}},1500)})}catch(err){}});
+  setTimeout(()=>{b.textContent="Copy"; if(im)hmRedraw()},1500)})}catch(err){}});
 // Host tab: arrangements left unused recently. Songs played in the last 26 weeks whose latest week left out a path the
 // song has: one it was played on in an earlier week, or one with a tuning in the Song Selection List / NewWeek tab.
 const UNUSED_WEEKS=26;
