@@ -886,6 +886,7 @@ html.acctwait body{visibility:hidden}html.acctwait{background:var(--bg)}html.acc
 .fwtab td{cursor:default}.fwtab .fwof{font:600 .72rem var(--f-body);color:var(--muted)}.fwtab td .fwok{color:var(--s-green)}.fwtab td b.hry-eq{color:var(--muted)}
 .fwhost .alist li{display:flex;flex-wrap:wrap;gap:2px 10px;align-items:baseline;padding:6px 10px;border-left:3px solid var(--s-green);background:var(--panel2);border-radius:6px;font-size:.86rem}.fwhn{font-weight:800;cursor:pointer;text-decoration:underline dotted}.fwhs{flex-basis:100%;font-size:.82rem}
 .fwbass{display:block;margin-top:4px;font-size:.8rem;color:var(--muted)}
+.hml li.hmdone .hmt{opacity:.55}
 /* motivation: next rung, nearest rival, welcome back, seasons, lapsed players, host highlights */
 .nwelo li .nwriv{grid-column:1/-1;font-size:.76rem;color:var(--muted);margin-top:-3px}.nwriv b{color:var(--fg);font-weight:700}.nwriv .nm{cursor:pointer;text-decoration:underline dotted}
 .hrnext{margin-top:-6px;grid-column:1/-1}.pc>.hrnext{margin-top:-10px}.hrnext ul{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:20px}.hrnext li{grid-template-columns:62px minmax(0,1fr) auto}.hrnext li:nth-child(2){border-top:0}@media(max-width:700px){.hrnext ul{grid-template-columns:1fr}.hrnext li:nth-child(2){border-top:1px solid var(--line)}}.hrnext .hnsong{font-size:.84rem;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.hrnext .hnsong .fwgo{font-weight:600}.hrnext .nwr{font-size:.8rem;white-space:nowrap}.hrnext .nwr b{color:var(--s-green)}
@@ -6271,6 +6272,47 @@ function hmWelcome(w){const byName=Object.fromEntries(PLAYERS.map(p=>[p[0].toLow
 function hmBack(w){const I=sbIx();
   return Object.keys(I.wk).map(k=>{const W=I.wk[k], i=W.indexOf(w); if(i<1||w-W[i-1]<5)return null; const n=I.disp[k], away=w-W[i-1]-1;
     return {n,away,t:`Welcome back to the championship, @${n}! Great to see you again after ${away} week${away===1?"":"s"} away 🎸`}}).filter(Boolean).sort((a,b)=>a.n.localeCompare(b.n))}
+// big improvements in week w, at least HM_IMPROVE points: on a song played before on the same path, above the player's
+// best on it before; or within the week, from their first score on a card to their best (WEEKLOG). The bigger jump
+// per song and path is the one shown.
+const HM_IMPROVE=10;
+function hmImprove(w){const key=t=>String(t).toLowerCase().replace(/\s+/g," ").trim(), nm=i=>SB.names[i].replace(/[*~]+$/,""), ok=c=>!c[7]&&c[3]&&!/^n\/a$/i.test(c[3]), best={}, out={};
+  Object.keys(SB.weeks).map(Number).filter(x=>x<w).forEach(x=>SB.weeks[x].forEach(c=>{if(!ok(c))return;
+    c[6].forEach(e=>{if(typeof e[1]!=="number")return; const k=nm(e[0]).toLowerCase()+"|"+c[0]+"|"+key(c[3]); if(!(best[k]>=e[1]))best[k]=e[1]})}));
+  (SB.weeks[w]||[]).forEach(c=>{if(!ok(c))return; c[6].forEach(e=>{if(typeof e[1]!=="number")return; const n=nm(e[0]), k=n.toLowerCase()+"|"+c[0]+"|"+key(c[3]), b=best[k];
+    if(b==null||e[1]-b<HM_IMPROVE)return; const d=Math.round((e[1]-b)*10)/10; if(!out[k]||out[k].d<d)out[k]={k,n,pct:e[1],b,d,song:c[3],path:PATHS[c[0]]||""}})});
+  const L=(typeof WEEKLOG!=="undefined"&&WEEKLOG&&WEEKLOG[w]&&WEEKLOG[w].rec)||{};
+  Object.entries(L).forEach(([rk,v])=>{if(!v||!v[0]||!v[1])return; const [pi,slot,n]=[...rk.split("|").slice(0,2).map(Number),rk.split("|").slice(2).join("|")], c=(SB.weeks[w]||[]).find(c=>c[0]===pi&&c[1]===slot);
+    if(!c||!ok(c))return; const f=v[0][0], b=v[1][0]; if(typeof f!=="number"||typeof b!=="number"||b-f<HM_IMPROVE)return; const d=Math.round((b-f)*10)/10, k=n.toLowerCase()+"|"+c[0]+"|"+key(c[3]);
+    if(!out[k]||out[k].d<d)out[k]={k,n,pct:b,first:f,d,song:c[3],path:PATHS[c[0]]||""}});
+  return Object.values(out).sort((a,b)=>b.d-a.d||a.n.localeCompare(b.n))}
+// one message per player. Copying it marks those songs as congratulated (saved in the database, improve_posted.sql,
+// so every admin and host sees it), and if the player improves on another song later in the week, their message is a
+// fresh one with only the new songs. Until that table is set up, this browser remembers instead.
+const HM_IMP_KEY="rsc-hm-improved", HM_IMP={st:undefined,t:0};   // st: undefined not loaded · null loading · false no table · {week:{item:1}}
+function hmImpLocal(){try{return JSON.parse(localStorage.getItem(HM_IMP_KEY)||"{}")}catch(e){return {}}}
+function hmImpPosted(){return HM_IMP.st&&typeof HM_IMP.st==="object"?HM_IMP.st:hmImpLocal()}
+function hmRedraw(){const el=document.querySelector(".acctdlg .hmsec:not(.hmhost)"); if(el)el.outerHTML=hmSection()}
+function hmImpLoad(){if(!ACCT.sb||HM_IMP.st===null||(HM_IMP.st!==undefined&&Date.now()-HM_IMP.t<30000))return; HM_IMP.st=null;
+  ACCT.sb.from("improve_posted").select("week,item").gte("week",TW_MAX-2).then(({data,error})=>{HM_IMP.t=Date.now();
+    if(error){HM_IMP.st=false}else{const P={}; (data||[]).forEach(r=>(P[r.week]=P[r.week]||{})[r.item]=1); HM_IMP.st=P} hmRedraw()})}
+function hmImpMark(w,keys){
+  if(HM_IMP.st&&typeof HM_IMP.st==="object"){const P=HM_IMP.st; P[w]=P[w]||{}; keys.forEach(k=>P[w][k]=1);
+    ACCT.sb.from("improve_posted").upsert(keys.map(item=>({week:w,item,by_player:ACCT.claim&&ACCT.claim.player||null})),{onConflict:"week,item",ignoreDuplicates:true})
+      .then(({error})=>{if(error)alert("Couldn't save that it was copied: "+error.message)}); return}
+  const P=hmImpLocal(); P[w]=P[w]||{}; keys.forEach(k=>P[w][k]=1);
+  Object.keys(P).forEach(x=>{if(+x<w-4)delete P[x]}); try{localStorage.setItem(HM_IMP_KEY,JSON.stringify(P))}catch(e){}}
+function hmImproveMsgs(w){try{hmImpLoad()}catch(e){} const P=hmImpPosted()[w]||{}, by={};
+  hmImprove(w).forEach(x=>(by[x.n]=by[x.n]||[]).push(x));
+  const on=x=>`${x.song}${x.path?` (${x.path})`:""}`;
+  return Object.entries(by).map(([n,xs])=>{const fresh=xs.filter(x=>!P[x.k]), again=fresh.length>0&&fresh.length<xs.length, use=fresh.length?fresh:xs;
+    let t;
+    if(use.length===1){const x=use[0];
+      t=x.first!=null?`${again?"Another big improvement":"Big improvement"} @${n}! From ${x.first}% to ${x.pct}% on ${on(x)} this week, up ${x.d} points 📈`
+        :`${again?"Another big improvement":"Big improvement"} @${n}! ${x.pct}% on ${on(x)}, up ${x.d} points from your best of ${x.b}% before 📈`}
+    else t=`${again?"More big improvements":"Big improvements"} @${n}! ${andList(use.map(x=>x.first!=null?`${on(x)} from ${x.first}% to ${x.pct}%`:`${on(x)} at ${x.pct}%, up from your best of ${x.b}% before`))} this week 📈`;
+    return {n,t,keys:use.map(x=>x.k),done:!fresh.length,top:Math.max(...use.map(x=>x.d)),tag:use.map(x=>`+${x.d}`).join(", ")+" points"}})
+    .sort((a,b)=>a.done-b.done||b.top-a.top||a.n.localeCompare(b.n))}
 // milestone medals collected in week w, as encouraging messages: new play streaks and hosting milestones, round numbers
 // (every 50 weeks played, every 25 wins on a path), and firsts (the medal's all-time count is all from this week)
 function hmMsg(n,tip){const k=tip.split(" · ")[0], all=+((/\((\d+) all time\)/.exec(tip)||[])[1]||0), plus=+((/\+(\d+) this week/.exec(tip)||[])[1]||0), first=all>0&&all===plus;
@@ -6299,14 +6341,17 @@ function hostMsgSection(){const ws=hmWeeks(); if(!ws.length)return ""; const w=A
   return `<div class="adm acctsec hmsec hmhost"><h3>Host milestones <select class="hlsel" data-hmweek>${ws.map(x=>`<option value="${x}"${x===w?" selected":""}>Week ${x}</option>`).join("")}</select></h3>
     <p class="dim">Thank-you messages for hosts who reached a host medal, ready to copy.</p>${M.length?`<ul class="hml">${M.map(x=>row(x.t,x.what)).join("")}</ul>`:`<p class="dim">No host medal milestones in Week ${w}.</p>`}</div>`}
 function hmSection(){const ws=hmWeeks(); if(!ws.length)return ""; const w=ACCT.hmWeek&&ws.includes(ACCT.hmWeek)?ACCT.hmWeek:ws[0];
-  const W=hmWelcome(w), B=hmBack(w), M=hmMilestones(w).filter(x=>!hmIsHost(x)), row=(t,tag)=>`<li><div class="hmt">${tag?`<span class="hmk">${esc(tag)}</span>`:""}${esc(t)}</div><button type="button" class="btn ghost hmcp" data-hmcopy="${esc(t)}">Copy</button></li>`;
+  const W=hmWelcome(w), B=hmBack(w), M=hmMilestones(w).filter(x=>!hmIsHost(x)), U=hmImproveMsgs(w), row=(t,tag)=>`<li><div class="hmt">${tag?`<span class="hmk">${esc(tag)}</span>`:""}${esc(t)}</div><button type="button" class="btn ghost hmcp" data-hmcopy="${esc(t)}">Copy</button></li>`;
   return `<div class="acctsec hmsec"><h3>Messages for players <select class="hlsel" data-hmweek>${ws.map(x=>`<option value="${x}"${x===w?" selected":""}>Week ${x}</option>`).join("")}</select></h3>
     <p class="dim">Ready to copy into a forum reply or message.${w>DATA_WEEK?" This week is still running, so medals can still change.":""}</p>
     <h4>👋 Welcome new players</h4>${W.length?`<ul class="hml">${W.map(x=>row(x.t)).join("")}</ul>`:`<p class="dim">No new players in Week ${w}.</p>`}
     <h4>🔁 Welcome back</h4>${B.length?`<ul class="hml">${B.map(x=>row(x.t,`${x.away} weeks away`)).join("")}</ul>`:`<p class="dim">Nobody back from a break in Week ${w}.</p>`}
-    <h4>🎉 Milestones</h4>${M.length?`<ul class="hml">${M.map(x=>row(x.t,x.what)).join("")}</ul>`:`<p class="dim">No milestone medals in Week ${w} yet.</p>`}</div>`}
+    <h4>🎉 Milestones</h4>${M.length?`<ul class="hml">${M.map(x=>row(x.t,x.what)).join("")}</ul>`:`<p class="dim">No milestone medals in Week ${w} yet.</p>`}
+    <h4>📈 Big improvements</h4>${U.length?`<ul class="hml">${U.map(x=>`<li${x.done?' class="hmdone"':""}><div class="hmt"><span class="hmk">${esc(x.done?"Copied · "+x.tag:x.tag)}</span>${esc(x.t)}</div><button type="button" class="btn ghost hmcp" data-hmcopy="${esc(x.t)}" data-hmimp="${w}|${esc(JSON.stringify(x.keys))}">Copy</button></li>`).join("")}</ul>`:`<p class="dim">No improvements of ${HM_IMPROVE}+ points in Week ${w} yet.</p>`}${HM_IMP.st===false?`<p class="dim">Copied messages are only remembered in this browser until build/supabase/improve_posted.sql is run in Supabase.</p>`:""}</div>`}
 document.addEventListener("change",e=>{const s=e.target.closest("[data-hmweek]"); if(!s)return; ACCT.hmWeek=+s.value; const el=document.querySelector(".acctdlg .hmsec:not(.hmhost)"); if(el)el.outerHTML=hmSection(); const eh=document.querySelector(".acctdlg .hmhost"); if(eh)eh.outerHTML=hostMsgSection()});
-document.addEventListener("click",e=>{const b=e.target.closest("[data-hmcopy]"); if(!b)return; try{navigator.clipboard.writeText(b.dataset.hmcopy).then(()=>{b.textContent="Copied ✓"; setTimeout(()=>b.textContent="Copy",1500)})}catch(err){}});
+document.addEventListener("click",e=>{const b=e.target.closest("[data-hmcopy]"); if(!b)return; try{navigator.clipboard.writeText(b.dataset.hmcopy).then(()=>{b.textContent="Copied ✓";
+  const im=b.dataset.hmimp; if(im){const i=im.indexOf("|"); hmImpMark(+im.slice(0,i),JSON.parse(im.slice(i+1)))}   // a big improvement: remembered, so the next one is new
+  setTimeout(()=>{b.textContent="Copy"; if(im)hmRedraw()},1500)})}catch(err){}});
 // Host tab: arrangements left unused recently. Songs played in the last 26 weeks whose latest week left out a path the
 // song has: one it was played on in an earlier week, or one with a tuning in the Song Selection List / NewWeek tab.
 const UNUSED_WEEKS=26;
