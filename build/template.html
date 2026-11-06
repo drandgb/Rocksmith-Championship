@@ -3375,7 +3375,16 @@ $("tl").addEventListener("click",e=>{
 function tabEdges(){const r=$("tabrow"); if(!r)return; r.classList.toggle("more-l",r.scrollLeft>4); r.classList.toggle("more-r",r.scrollLeft+r.clientWidth<r.scrollWidth-4)}
 function tabReveal(v){const r=$("tabrow"), b=$("tab-"+v); if(!r||!b||r.scrollWidth<=r.clientWidth)return tabEdges();
   const L=b.getBoundingClientRect().left-r.getBoundingClientRect().left+r.scrollLeft, R=L+b.offsetWidth; if(L<r.scrollLeft+24||R>r.scrollLeft+r.clientWidth-24)r.scrollTo({left:Math.max(0,L-(r.clientWidth-b.offsetWidth)/2),behavior:"smooth"}); setTimeout(tabEdges,350)}
+// Tabs that aren't open are drawn just after the page first shows (or straight away when you open one), so the
+// page appears sooner, most of all on phones. later(tabs, fn): run fn now if one of those tabs is open, else queue it.
+var LATER=[];
+function later(vs,fn){vs=[].concat(vs); if(vs.includes(curView()))return fn(); LATER.push([vs,fn]); if(LATER.length===1)requestAnimationFrame(()=>setTimeout(laterStep,0))}
+// (drawn as at startup: not counted as you picking someone, so the back button and the link don't change)
+const laterRun=fn=>{try{(window.navSilent||(f=>f()))(fn)}catch(e){console.error(e)}};
+function laterStep(){const x=LATER.shift(); if(!x)return; laterRun(x[1]); if(LATER.length)setTimeout(laterStep,0)}
+function runLater(v){for(let i=0;i<LATER.length;){if(v==null||LATER[i][0].includes(v))laterRun(LATER.splice(i,1)[0][1]); else i++}}
 function showView(v){
+  if(LATER&&LATER.length)runLater(v);
   try{tabReveal(v)}catch(e){}
   ["thisweek","level","rankings","season","hosting","players","winners","scores","songs","faq"].forEach(k=>{const on=k===v;$("view-"+k).hidden=!on;$("tab-"+k).setAttribute("aria-selected",on)});
   tip.hidden=true;
@@ -4194,7 +4203,7 @@ const LVI="BIAM";
 const isUp=u=>LVI.indexOf(u[3])>LVI.indexOf(u[2]);
 const RU_KEY=new Set(WR.ups.filter(isUp).map(([n,p,a,b,w])=>`${w}|${n}|${p}|${b}`));
 try{const r=localStorage.getItem("rsc-wpath");if(r!==null&&["0","1","2"].includes(r))wPath=+r}catch(e){}
-renderWinners(); setTimeout(()=>{try{renderEloBox()}catch(e){}},0);
+later(["winners","players"],()=>{renderWinners(); if(window.__twReady)try{renderEloBox()}catch(e){}}); setTimeout(()=>{try{renderEloBox()}catch(e){}},0);
 function setActiveOnly(v){
   activeOnly=v; try{localStorage.setItem("rsc-activeonly2",v?"1":"0")}catch(e){}
   document.querySelectorAll("#pfilter button").forEach(b=>b.setAttribute("aria-pressed",(b.dataset.af==="1")===activeOnly));
@@ -4213,11 +4222,11 @@ $("view-winners").addEventListener("click",e=>{
 $("view-winners").addEventListener("mousemove",e=>{if(e.target.closest("#wcard"))return;const p=e.target.closest("[data-tip]");if(!p){tip.hidden=true;return}tip.textContent=p.dataset.tip;tip.hidden=false;placeTip(e.clientX,e.clientY)});
 $("view-winners").addEventListener("mouseleave",()=>tip.hidden=true);
 
-fillYears(); renderNow(); renderHostPodium(); renderUpcoming(); renderRecords();
+later("hosting",()=>{fillYears(); renderNow(); renderHostPodium(); renderUpcoming()}); later("players",renderRecords);
 var LOOKUP_DEF={p:RECORDS["Most weeks played"][0][0]};   // the lookups' starting picks (switched to your own once you're logged in)
-showPlayer(LOOKUP_DEF.p);
+later("players",()=>showPlayer(LOOKUP_DEF.p));
 try{const s=localStorage.getItem("rsc-host"); if(s&&(hosts[s]||CATS[s])){selHost=s;$("filterbar").hidden=false;$("fhost").textContent=CATS[s]||s}}catch(e){}
-renderLB(); renderTL(); renderLog(); renderUpcoming();
+later("hosting",()=>{renderLB(); renderTL(); renderLog(); renderUpcoming()});
 // ---------- scoreboard ----------
 const SB_WEEKS=Object.keys(SB.weeks).map(Number).sort((a,b)=>b-a);
 let sbWeek=SB.weeks[cur[0]]?cur[0]:SB_WEEKS.find(w=>w<=cur[0])||SB_WEEKS[0], sbPath=0, sbFind="", sbWant3=false;
@@ -4412,7 +4421,7 @@ document.addEventListener("pointerdown",e=>{if(sbTipPin&&!sbTipPin.contains(e.ta
    const r=p.getBoundingClientRect(); placeTip(Math.max(8,r.left-12),r.bottom-4)},true);
  addEventListener("scroll",()=>{if(sbTipPin){sbTipPin=null; tip.hidden=true}},{passive:true});}
 try{const st=JSON.parse(localStorage.getItem("rsc-sb")||"null");if(st){if(SB.weeks[st.w])sbWeek=st.w;if([0,1,2,3,4].includes(st.p))sbPath=st.p; if(Array.isArray(st.lv)&&st.lv.length===3&&st.lv.every(x=>SB_CYC.includes(x)))sbLv=st.lv}}catch(e){}
-sbRender();
+later("scores",()=>sbRender());
 
 // ---------- songs ----------
 const TIER_ORDER=["B","I","A","M","G"], TIER_LABEL={B:"Beginner",I:"Intermediate",A:"Advanced",M:"Masterclass",G:"God of…"};
@@ -5186,7 +5195,7 @@ $("hcard").addEventListener("click",e=>{
 $("hcard").addEventListener("mousemove",e=>{const p=e.target.closest("[data-tip]");if(!p){tip.hidden=true;return}tip.textContent=p.dataset.tip;tip.hidden=false;placeTip(e.clientX,e.clientY)});
 $("hcard").addEventListener("mouseleave",()=>tip.hidden=true);
 window.__hostReady=true;
-showHost(selHost&&hosts[selHost]?selHost:(cur[2]&&hosts[cur[2]]?cur[2]:hostList[0].name)); LOOKUP_DEF.h=hName;
+later("hosting",()=>{showHost(selHost&&hosts[selHost]?selHost:(cur[2]&&hosts[cur[2]]?cur[2]:hostList[0].name)); LOOKUP_DEF.h=hName});
 
 // ---------- hover any name, on any tab, to see all their medals: playing, winning and hosting ----------
 const NAME_SEL="[data-player],[data-name],[data-hpick],tr[data-host] .hostcell,#wcard h3,#pcard h3,#hcard h3";
@@ -6059,7 +6068,7 @@ $("rk-sub").addEventListener("click",e=>{if(!e.target.closest(".rkweeks"))return
 $("rk-sub").addEventListener("keydown",e=>{if((e.key==="Enter"||e.key===" ")&&e.target.closest(".rkweeks")){e.preventDefault(); rkLive=!rkLive; renderRankings(); const b=$("rk-sub").querySelector(".rkweeks"); if(b)b.focus()}});
 $("view-rankings").addEventListener("mousemove",e=>{if(typeof plTipPin!=="undefined"&&plTipPin)return; const p=e.target.closest("[data-tip]");if(!p){tip.hidden=true;return}tip.textContent=p.dataset.tip;tip.hidden=false;placeTip(e.clientX,e.clientY)});
 $("view-rankings").addEventListener("mouseleave",()=>{if(!(typeof plTipPin!=="undefined"&&plTipPin))tip.hidden=true});
-renderRankings();
+later("rankings",renderRankings);
 window.__twReady=true;
 if(curView()==="thisweek")renderThisWeek();
 
@@ -6949,6 +6958,7 @@ function acctBtn(){const b=$("acctbtn"); b.hidden=!ACCT.on;
 // logged in with an approved claim: the Player, Win and Host lookups open on your own profile (once per visit, and only
 // where you haven't already picked someone or opened a link to one)
 function lookupsToMe(){try{if(LOOKUP_DEF.me||!ACCT.claim||ACCT.claim.status!=="approved")return; const n=ACCT.claim.player; LOOKUP_DEF.me=true;
+  if(LATER.length){runLater("players"); runLater("winners"); runLater("hosting")}
   const go=()=>{if(byName[n]&&$("pq").value.trim()===LOOKUP_DEF.p)showPlayer(n);
     if(WR.wins[n]&&!wPicked){wPicked=true; showWinner(n); markHot()}
     if(typeof hosts!=="undefined"&&hosts[n]&&LOOKUP_DEF.h&&hName===LOOKUP_DEF.h)showHost(n)};
@@ -7256,6 +7266,7 @@ if(!/[?&](banner|mlpre)\b/.test(location.search)&&history.pushState){
   addEventListener("click",()=>{NAV.y=scrollY},true); addEventListener("change",()=>{NAV.y=scrollY},true);
   let sct=null; addEventListener("scroll",()=>{clearTimeout(sct); sct=setTimeout(()=>{NAV.y=scrollY},150)},{passive:true});
   // switch lookups without adding a back-button step (used when the lookups move to your own profile after logging in)
+  window.navSilent=f=>{NAV.restoring=true; try{f()}finally{NAV.restoring=false}};
   window.navQuiet=f=>{NAV.restoring=true; try{f()}finally{NAV.restoring=false}
     NAV.p=$("pq").value.trim()||NAV.p; NAV.w=wName||NAV.w; NAV.h=hName||NAV.h;
     try{const st=state(); history.replaceState({...(history.state||{}),...st},"",location.hash?hashOf(st):location.pathname+location.search)}catch(e){}};
@@ -7265,6 +7276,7 @@ if(!/[?&](banner|mlpre)\b/.test(location.search)&&history.pushState){
     try{history.replaceState({...old,y:NAV.y},""); history.pushState({...st,y:0},"",hashOf(st))}catch(e){} // some embedded previews don't allow it
   }
   function restore(st){
+    if(LATER.length)runLater();   // a link to a lookup or week: draw the tabs that were waiting first
     NAV.restoring=true;
     try{
       if(st.sb!=null&&SB.weeks[st.sb])sbWeek=st.sb;
