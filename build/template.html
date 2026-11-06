@@ -3196,8 +3196,9 @@ function friText(){const w=TW_LIVE; if(!SB.weeks[w])return ""; const names=twNam
   const tiersOf=n=>{const k=n.toLowerCase(), P=PLAYERS.find(x=>x[0].toLowerCase()===k); return String((P&&P[8])||PL_NEW[Object.keys(PL_NEW).find(x=>x.toLowerCase()===k)]||"").toUpperCase()};
   const stake=PLAYERS.map(p=>p[0]).filter(n=>!set.has(n)).map(n=>({n,k:twStreakTo(n,w-1)})).filter(x=>x.k>0).sort((a,b)=>b.k-a.k||a.n.localeCompare(b.n));
   const open=(SB.weeks[w]||[]).filter(c=>!c[7]&&c[3]&&!/^n\/a$/i.test(c[3])&&!c[6].some(e=>canWin(e))).sort((a,b)=>a[0]-b[0]||a[1]-b[1]);
-  const L=["Happy Friday everyone!"];
+  const L=["Happy Friday everyone! 1 day left!"];
   if(stake.length)L.push("","Streaks at stake:",...stake.map(x=>`${at(x.n)} (${x.k} week${x.k===1?"":"s"})`));
+  L.push("","Thank you to everyone that has submitted their votes for this week's difficulty ratings so far, votes will be averaged tomorrow once the week ends!");
   L.push("","Have a great weekend if we don't see you!");
   if(open.length){L.push("","For active players, these trophies are yet to be claimed:");
     open.forEach(c=>{const lv=cardLv(c[2]), on=new Set(c[6].map(e=>SB.names[e[0]].replace(/[*~]+$/,"").toLowerCase()));
