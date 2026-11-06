@@ -13,7 +13,7 @@
 # If the claims can't be read, nothing is changed.
 import html as htmlmod, json, os, re, shutil, sys, urllib.parse, urllib.request
 
-BANNER_VERSION = 55  # bump to redraw every banner after a design change
+BANNER_VERSION = 56  # bump to redraw every banner after a design change
 
 root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 page = os.path.abspath(sys.argv[1] if len(sys.argv) > 1 else os.path.join(root, "index.html"))
