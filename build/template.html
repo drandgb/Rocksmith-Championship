@@ -5303,7 +5303,7 @@ function hostMedals(name){
   // Host of the year (most weeks hosted that calendar year)
   const hoy=Object.keys(HOST_YEAR).filter(y=>HOST_YEAR[y].who.includes(name));
   if(hoy.length)rows.push(hoy.map(y=>{const H=HOST_YEAR[y], others=H.who.filter(x=>x!==name);
-    return mk(hostYearSvg(),"#f5c84a",y,`Host of the year ${y} · hosted the most weeks in ${y} (${H.n})${others.length?` · shared with ${others.join(", ")}`:""}${rec(H.w)}`).replace('class="medal-m wm"','class="medal-m wm hoy"')}));
+    return mk(hostYearSvg(),"#f5c84a","’"+y.slice(2),`Host of the year ${y} · hosted the most weeks in ${y} (${H.n})${others.length?` · shared with ${others.join(", ")}`:""}${rec(H.w)}`).replace('class="medal-m wm"','class="medal-m wm hoy"')}));
   // one medal for every calendar year hosted
   const yrs={}; ws.forEach(([w,d])=>{const y=d.slice(0,4);(yrs[y]=yrs[y]||[]).push(w)});
   const ys=Object.keys(yrs).sort();
