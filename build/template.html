@@ -5465,6 +5465,7 @@ function mlEnsure(kind,sync){if(ML[kind])return;
     if(i<names.length){if(sync)step(); else setTimeout(step,0)} else {ML[kind].done=true; mlRender(kind)}};
   step()}
 if(ML_PRECOMPUTING){ML_PRE=null; setTimeout(()=>{const out={}; ["win","player","host"].forEach(k=>{delete ML[k]; mlEnsure(k,true); out[k]=mlExport(k)});
+  out.twm={}; Object.keys(twMedalCache).forEach(k=>{if(+k.split("|").pop()===TW_MAX)out.twm[k]=twMedalCache[k]});   // This Week's new medals
   const el=document.createElement("script"); el.type="application/json"; el.id="mlpre-out"; el.textContent=JSON.stringify(out).replace(/</g,"\\u003c"); document.body.appendChild(el)},0)}
 // ---------- the website's rating for each recent challenge, worked out by the build (ratings_pre.py, ?rateout) ----------
 if(/[?&]rateout\b/.test(location.search))setTimeout(async()=>{
@@ -5642,7 +5643,8 @@ const twPl=(k,w)=>`${k} ${w}${k===1?"":"s"}`;
 // how many medals a list of new-medal badges adds up to (a "+4" badge counts as 4)
 const medalTotal=arr=>arr.reduce((s,h)=>{const m=/data-k="(\d+)"/.exec(h);return s+(m?+m[1]:1)},0);
 // medals collected in week w, grouped: [{kind:"player"|"win"|"host", html}]
-const twMedalCache={};
+// (worked out by the build for the week being played, ml_pre.py: This Week then shows without counting every medal again)
+const twMedalCache=(typeof ML_PRE!=="undefined"&&ML_PRE&&ML_PRE.twm)||{};
 // where a player finished on each challenge of week w (top 3 among eligible entries; God challenges only in the
 // final week of their run): [{c: card, place: 0-2, god, tie: won on the tiebreak with the same % as the runner-up}]
 function twFinishes(n,w){const k=String(n).toLowerCase(), out=[];
