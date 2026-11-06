@@ -847,7 +847,7 @@ html.acctwait body{visibility:hidden}html.acctwait{background:var(--bg)}html.acc
   .tabrow.more-r{-webkit-mask-image:linear-gradient(90deg,#000 82%,transparent);mask-image:linear-gradient(90deg,#000 82%,transparent)}
   .tabrow.more-l{-webkit-mask-image:linear-gradient(90deg,transparent,#000 18%);mask-image:linear-gradient(90deg,transparent,#000 18%)}
   .tabrow.more-l.more-r{-webkit-mask-image:linear-gradient(90deg,transparent,#000 18%,#000 82%,transparent);mask-image:linear-gradient(90deg,transparent,#000 18%,#000 82%,transparent)}
-  .actfilter{margin-top:6px}
+  .navopts{flex:1 1 100%;margin-top:6px}
 }
 /* FAQ tab */
 .faqhero{text-align:center;padding:22px 18px 18px}.faqhero .sh-eye{font:700 .72rem var(--f-display);letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
@@ -867,7 +867,10 @@ html.acctwait body{visibility:hidden}html.acctwait{background:var(--bg)}html.acc
 .faqtabs{display:grid;grid-template-columns:max-content 1fr;gap:6px 14px}.faqtabs dt{font-weight:700}.faqtabs dd{margin:0;color:var(--muted)}
 @media (max-width:560px){.faqtabs{grid-template-columns:1fr}.faqtabs dd{margin-bottom:6px}}
 
-.actfilter{margin-left:auto;margin-bottom:6px}
+.navopts{display:flex;align-items:center;gap:8px 16px;margin-left:auto;margin-bottom:6px}.navopts[hidden]{display:none}.navopts .actfilter{margin:0 0 0 auto}
+.navyear{display:flex;align-items:center}.navyear label[hidden]{display:none}
+/* computers: the page tabs share out the full width, and the Year picker (left) and All / Active only toggle (right) get a row of their own under them */
+@media (min-width:641px){.tabrow{flex:1 1 100%}.tabrow button{flex:1 1 auto;text-align:center}.navopts{flex:1 1 100%;margin-top:8px}}
 #pfilter .s-all[aria-pressed="true"],#wpath .s-all[aria-pressed="true"],#rufilter .s-all[aria-pressed="true"]{background:var(--accent)}
 .ruf{margin-bottom:12px}
 .rulist{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr));column-gap:28px}
@@ -1625,14 +1628,18 @@ footer{color:var(--dim);font-size:.78rem}
     <button type="button" role="tab" id="tab-songs" data-view="songs" aria-selected="false">Songs</button>
     <button type="button" role="tab" id="tab-faq" data-view="faq" aria-selected="false">FAQ</button>
     </div>
+    <div class="navopts" id="navopts"><div class="navyear" id="navyear">
+      <label class="shostpick" data-yv="players" hidden><span>Year</span><select id="plyear" aria-label="Calendar year"></select></label>
+      <label class="shostpick" data-yv="hosting" hidden><span>Year</span><select id="hostyear" aria-label="Calendar year"></select></label>
+      <label class="shostpick" data-yv="winners" hidden><span>Year</span><select id="wseason" aria-label="Calendar year"></select></label>
+      <label class="shostpick" data-yv="songs" hidden><span>Selected by</span><select id="shost" aria-label="Only songs selected by this host"><option value="">All hosts</option></select></label></div>
     <div class="seg actfilter" role="radiogroup" aria-label="Show everyone or active only" id="pfilter">
       <button type="button" data-af="0" class="s-all" aria-pressed="false">All</button>
       <button type="button" data-af="1" class="s-act" aria-pressed="true">Active only</button>
-    </div>
+    </div></div>
   </nav>
 
   <div class="view" id="view-hosting" role="tabpanel" aria-labelledby="tab-hosting" hidden>
-  <div class="wpathbar"><label class="shostpick"><span>Year</span><select id="hostyear" aria-label="Calendar year"></select></label></div>
   <section class="now" id="now" aria-label="This week"></section>
 
   <section class="panel hof">
@@ -1701,7 +1708,6 @@ footer{color:var(--dim);font-size:.78rem}
   </div>
 
   <div class="view" id="view-players" role="tabpanel" aria-labelledby="tab-players" hidden>
-  <div class="wpathbar"><label class="shostpick"><span>Year</span><select id="plyear" aria-label="Calendar year"></select></label></div>
   <section class="panel">
     <div class="panel-head pphead"><h2>Players per week</h2><button type="button" class="clear pptbtn" id="ppopen">See table</button><span class="sub" id="parts-sub"></span></div>
     <div class="chartbox" id="parts"></div>
@@ -1886,7 +1892,7 @@ footer{color:var(--dim);font-size:.78rem}
     <button type="button" data-rp="0" class="s-lead" aria-pressed="false">Lead</button>
     <button type="button" data-rp="1" class="s-rhy" aria-pressed="false">Rhythm</button>
     <button type="button" data-rp="2" class="s-bass" aria-pressed="false">Bass</button>
-  </div><label class="shostpick"><span>Year</span><select id="wseason" aria-label="Calendar year"></select></label></div>
+  </div></div>
   <section class="panel hof">
     <div class="panel-head"><h2>Hall of fame</h2><span class="sub" id="whof-sub"></span></div>
     <div class="podium" id="wpodium"></div>
@@ -1935,7 +1941,7 @@ footer{color:var(--dim);font-size:.78rem}
     <button type="button" data-sp="0" class="s-lead" aria-pressed="false">Lead</button>
     <button type="button" data-sp="1" class="s-rhy" aria-pressed="false">Rhythm</button>
     <button type="button" data-sp="2" class="s-bass" aria-pressed="false">Bass</button>
-  </div><label class="shostpick"><span>Selected by</span><select id="shost" aria-label="Only songs selected by this host"><option value="">All hosts</option></select></label></div>
+  </div></div>
   <section class="now" id="songstats" aria-label="Song totals"></section>
 
   <div class="grid2 even">
@@ -3542,6 +3548,8 @@ function showView(v){
   ["thisweek","level","rankings","season","hosting","players","winners","scores","songs","faq"].forEach(k=>{const on=k===v;$("view-"+k).hidden=!on;$("tab-"+k).setAttribute("aria-selected",on)});
   tip.hidden=true;
   $("pfilter").hidden=v==="scores"||v==="songs"||v==="thisweek"||v==="rankings"||v==="season"||v==="faq"||v==="level";
+  // the Year picker of the Players, Hosts and Winners tabs (and Songs' Selected by) sits on the same row as the All / Active only toggle
+  document.querySelectorAll("#navyear [data-yv]").forEach(l=>l.hidden=l.dataset.yv!==v); $("navopts").hidden=$("pfilter").hidden&&!document.querySelector(`#navyear [data-yv="${v}"]`);   // (Songs: its Selected by picker, no toggle)
   if(v==="season")setTimeout(()=>{try{renderSeason()}catch(e){}},0);
   if(v==="level")setTimeout(()=>{try{renderLevel()}catch(e){console.error(e)}},0);
   if(v==="season"||v==="level"||v==="rankings")setTimeout(()=>{try{plHl()}catch(e){}},30);   // (after the page has finished loading: opening the site on #season runs this first)
