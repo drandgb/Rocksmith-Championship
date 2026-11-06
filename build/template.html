@@ -887,6 +887,18 @@ html.acctwait body{visibility:hidden}html.acctwait{background:var(--bg)}html.acc
 .fwhost .alist li{display:flex;flex-wrap:wrap;gap:2px 10px;align-items:baseline;padding:6px 10px;border-left:3px solid var(--s-green);background:var(--panel2);border-radius:6px;font-size:.86rem}.fwhn{font-weight:800;cursor:pointer;text-decoration:underline dotted}.fwhs{flex-basis:100%;font-size:.82rem}
 .fwbass{display:block;margin-top:4px;font-size:.8rem;color:var(--muted)}
 .hml li.hmdone .hmt{opacity:.55}
+/* Players: head-to-head */
+.h2hctl{align-items:center}.h2hctl input{flex:1 1 140px}.h2hvs{color:var(--muted);font-weight:700;font-size:13px}
+.h2hrec{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:10px;margin:14px 0 8px}
+.h2hn{display:flex;flex-direction:column;align-items:flex-start;gap:4px;min-width:0}.h2hn.r{align-items:flex-end}.h2hn b{max-width:100%}
+.h2helo{display:block;font-size:11px;font-weight:400;color:var(--muted)}.h2hn b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer}
+.h2hn span{font:800 34px/1 var(--f-display);color:var(--muted)}.h2hn.h2hw span{color:var(--s-green)}
+.h2hmid{text-align:center;font-size:13px;color:var(--muted)}.h2hmid small{display:block;font-size:11px}
+.h2hbar{display:flex;height:8px;border-radius:4px;overflow:hidden;background:var(--s-red);opacity:.85}.h2hbar i{display:block;background:var(--s-green)}.h2hbar i.t{background:var(--muted)}.h2hbar i.b{flex:1;background:none}
+.h2hgap{margin:8px 0 4px;font-size:13px}
+.h2ht{width:100%;border-collapse:collapse;font-size:13px;margin:6px 0 4px}.h2ht th,.h2ht td{padding:5px 8px;border-bottom:1px solid var(--line);text-align:left}
+.h2ht thead th{font-size:12px;color:var(--muted);font-weight:600}.h2ht .num{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}.h2ht td.h2hw{color:var(--s-green);font-weight:700}
+.h2ht [data-sbw]{cursor:pointer;text-decoration:underline dotted}
 /* Admin: engagement before and since the stats sheet and the website */
 .engt{width:100%;border-collapse:collapse;font-size:13px;margin:8px 0 4px}.engt th,.engt td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
 .engt thead th{font-size:12px;color:var(--muted);font-weight:600}.engt thead th small{display:block;font-weight:400;font-size:11px;opacity:.8}
@@ -1766,6 +1778,11 @@ footer{color:var(--dim);font-size:.78rem}
     <div class="panel-head"><h2>Player lookup</h2><span class="sub">Click any name on this page, or search</span></div>
     <div class="controls"><input id="pq" list="plist" type="search" placeholder="Type a player name" aria-label="Find a player" autocomplete="off"><datalist id="plist"></datalist></div>
     <div id="pcard"></div>
+  </section>
+  <section class="panel" id="h2hsec">
+    <div class="panel-head"><h2>⚔️ Head-to-head</h2><span class="sub">Every challenge both players played: who finished higher</span></div>
+    <div class="controls h2hctl"><input id="h2a" list="plist" type="search" placeholder="Player" aria-label="First player" autocomplete="off"><span class="h2hvs">vs</span><input id="h2b" list="plist" type="search" placeholder="Player" aria-label="Second player" autocomplete="off"></div>
+    <div id="h2hbody"></div>
   </section>
 
   </div>
@@ -3285,10 +3302,50 @@ document.addEventListener("click",async e=>{const a=e.target.closest("[data-thad
     const {error}=await ACCT.sb.from("site_themes").insert({theme,starts,ends,set_by:ACCT.claim&&ACCT.claim.player||null}); if(error){alert("Couldn't save: "+error.message);return}}
   else{const {error}=await ACCT.sb.from("site_themes").delete().eq("id",+d.dataset.thdel); if(error){alert("Couldn't remove: "+error.message);return}}
   await themesReload()});
+// ---------- head-to-head (Players tab): every challenge two players both played, and who finished higher ----------
+// finishing order is the scoreboard's (accuracy, then streak, then score); identical results count as a tie
+const h2hNm=i=>SB.names[i].replace(/[*~]+$/,"").toLowerCase();
+function h2hName(q){const k=String(q||"").trim().toLowerCase(); const p=PLAYERS.find(p=>p[0].toLowerCase()===k); return p?p[0]:null}
+function h2hGames(a,b){const ka=a.toLowerCase(), kb=b.toLowerCase(), out=[];
+  Object.keys(SB.weeks).map(Number).sort((x,y)=>x-y).forEach(w=>SB.weeks[w].forEach(c=>{if(!c[3]||/^n\/a$/i.test(c[3]))return;
+    const ia=c[6].findIndex(e=>h2hNm(e[0])===ka), ib=c[6].findIndex(e=>h2hNm(e[0])===kb); if(ia<0||ib<0)return;
+    const ea=c[6][ia], eb=c[6][ib], same=ea[1]===eb[1]&&ea[2]===eb[2]&&ea[3]===eb[3];
+    out.push({w,c,ea,eb,r:same?0:ia<ib?1:-1})})); return out}
+// the opponent to start with: who they've shared the most challenges with over the last year
+function h2hRival(a){const ka=a.toLowerCase(), cnt={}; for(let w=TW_MAX-51;w<=TW_MAX;w++)(SB.weeks[w]||[]).forEach(c=>{if(!c[6].some(e=>h2hNm(e[0])===ka))return;
+    c[6].forEach(e=>{const k=h2hNm(e[0]); if(k!==ka)cnt[k]=(cnt[k]||0)+1})});
+  const k=Object.keys(cnt).sort((x,y)=>cnt[y]-cnt[x])[0]; return k?h2hName(k)||k:null}
+function h2hRender(){const a=h2hName($("h2a").value), b=h2hName($("h2b").value), el=$("h2hbody");
+  if(!a||!b){el.innerHTML=`<p class="dimtxt">${$("h2a").value&&!a||$("h2b").value&&!b?"Pick both names from the list as you type.":"Pick two players."}</p>`; return}
+  if(a===b){el.innerHTML=`<p class="dimtxt">Pick two different players.</p>`; return}
+  const G=h2hGames(a,b); if(!G.length){el.innerHTML=`<p class="dimtxt">${esc(a)} and ${esc(b)} haven't played the same challenge yet.</p>`; return}
+  const rec=gs=>({w:gs.filter(x=>x.r>0).length,l:gs.filter(x=>x.r<0).length,t:gs.filter(x=>!x.r).length});
+  const R=rec(G), tot=G.length, pa=Math.round(R.w/tot*100), pt=Math.round(R.t/tot*100);
+  const avg=gs=>{const xs=gs.filter(x=>typeof x.ea[1]==="number"&&typeof x.eb[1]==="number"); return xs.length?xs.reduce((s,x)=>s+x.ea[1]-x.eb[1],0)/xs.length:null};
+  const gap=avg(G);
+  const elo=n=>[0,1,2].map(pi=>{try{const x=eloAt(pi,eloKey(n),ELO_LIVE||ELO_DONE); return x&&x[2]>=ELO_MIN?Math.round(x[1]):null}catch(e){return null}});
+  const ea=elo(a), eb=elo(b);
+  const paths=[0,1,2].map(pi=>{const gs=G.filter(x=>x.c[0]===pi); if(!gs.length)return ""; const r=rec(gs);
+    return `<tr><th style="color:${["var(--s-orange)","var(--s-green)","var(--s-blue)"][pi]}">${PATHS[pi]}${ea[pi]!=null&&eb[pi]!=null?`<small class="h2helo" data-tip="Their Elo ratings now on ${PATHS[pi]} (20+ games)">Elo ${ea[pi]} · ${eb[pi]}</small>`:""}</th><td class="num${r.w>r.l?" h2hw":""}">${r.w}</td><td class="num dim">${r.t||""}</td><td class="num${r.l>r.w?" h2hw":""}">${r.l}</td></tr>`}).join("");
+  const pct=v=>typeof v==="number"?`${v}%`:"–";
+  const last=G.slice(-10).reverse().map(x=>`<tr><td class="num"><span data-sbw="${x.w}" title="Open Week ${x.w} on the Scoreboard">${x.w}</span></td><td>${esc(x.c[3])} <small class="dim">${PATHS[x.c[0]]||""} · ${esc(x.c[2])}</small></td><td class="num${x.r>0?" h2hw":""}">${pct(x.ea[1])}</td><td class="num${x.r<0?" h2hw":""}">${pct(x.eb[1])}</td></tr>`).join("");
+  el.innerHTML=`<div class="h2hrec"><div class="h2hn${R.w>R.l?" h2hw":""}"><b class="nm" data-goplayer="${esc(a)}">${esc(a)}</b><span>${R.w}</span></div>
+      <div class="h2hmid">${R.t?`${R.t} tied`:""}<small>${tot} challenge${tot===1?"":"s"} together</small></div>
+      <div class="h2hn r${R.l>R.w?" h2hw":""}"><b class="nm" data-goplayer="${esc(b)}">${esc(b)}</b><span>${R.l}</span></div></div>
+    <div class="h2hbar" role="img" aria-label="${esc(a)} ${R.w}, tied ${R.t}, ${esc(b)} ${R.l}"><i style="width:${pa}%"></i><i class="t" style="width:${pt}%"></i><i class="b"></i></div>
+    ${gap!=null?`<p class="dim h2hgap">${Math.abs(gap)<.05?`On those challenges they averaged the same accuracy.`:`On those challenges ${esc(gap>0?a:b)} averaged ${Math.abs(gap).toFixed(1)} points of accuracy higher.`}</p>`:""}
+    <table class="h2ht"><thead><tr><th>Path</th><th class="num">${esc(a)}</th><th class="num">Tied</th><th class="num">${esc(b)}</th></tr></thead><tbody>${paths}</tbody></table>
+    <h4>Latest challenges together</h4>
+    <table class="h2ht"><thead><tr><th class="num">Wk</th><th>Song</th><th class="num">${esc(a)}</th><th class="num">${esc(b)}</th></tr></thead><tbody>${last}</tbody></table>`}
+["h2a","h2b"].forEach(id=>$(id).addEventListener("input",()=>{const v=$(id).value; if(!v||h2hName(v))h2hRender()}));
+// follows the Player lookup: their usual opponent comes in until you pick someone else
+let h2hPicked=false; $("h2b").addEventListener("input",()=>{h2hPicked=!!$("h2b").value});
+function h2hFollow(n){if(!$("h2a"))return; $("h2a").value=n; if(!h2hPicked||$("h2b").value.toLowerCase()===n.toLowerCase()){$("h2b").value=h2hRival(n)||""; h2hPicked=false} h2hRender()}
 function showPlayer(name){
   const p=byName[name];
   if(!p){$("pcard").innerHTML=`<div class="empty">No player named “${esc(name)}”. Pick a name from the list as you type.</div>`;return}
   const [n,first,latest,played,rate,streak,longest,,tiers]=p;
+  try{h2hFollow(n)}catch(e){console.error(e)}
   const pres=presOf(p);
   const fw=WEEKS[first-1], lw=WEEKS[latest-1];
   const tierHtml=tiers?["Lead","Rhythm","Bass"].map((k,i)=>{const t=tiers[i].toUpperCase();return `<div class="tier" style="--tc:${TIER_C[t]||"var(--muted)"}"><small>${k}</small><b>${t==="?"?"–":t}</b></div>`}).join(""):`<span class="sub">No skill tiers on the player list</span>`;
