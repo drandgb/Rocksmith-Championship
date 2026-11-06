@@ -2929,6 +2929,23 @@ function eloRivals(pi,k,w,kp){const T=eloTable(pi,w,kp), i=T.findIndex(x=>x[0]==
   const a=up?`<b>${Math.max(1,Math.round(up[1]-me))}</b> behind ${nm(up[0])}`:"top of the list", b=dn?`<b>${Math.max(1,Math.round(me-dn[1]))}</b> ahead of ${nm(dn[0])}`:"";
   return `<span class="nwriv">${up?"▲ ":"★ "}${a}${b?` · ▼ ${b}`:""}</span>`}
 
+// Within reach (Player lookup): the next play streak, beating their longest streak, a weeks-played milestone, and
+// the season place just above them. Only for players who are playing now (this week or last).
+const GOAL_PLAYED=[10,25,50,75,100,150,200,250,300,350,400,450,500,600,700,800];
+function goalsPanel(n){const p=byName[n]; if(!p)return ""; const tw=TW_MAX, now=twPlayed(n,tw), s=twStreakTo(n,now?tw:tw-1), longest=Math.max(p[6]||0,s);
+  if(!now&&!twPlayed(n,tw-1))return "";
+  const wk=d=>`${d} more week${d===1?"":"s"}`, G=[], thisWk=now?"":" (this week counts)";
+  const k=STREAK_STEPS.filter(x=>x<52).find(x=>x>s)||52*(Math.floor(s/52)+1);   // then the year streaks: 52, 104, 156 ...
+  if(k)G.push([k%52?`${k}-week play streak`:`${k/52}-year play streak`,`${wk(k-s)} in a row${thisWk}${longest<k?" · a new medal":""}`]);
+  if(longest>s&&longest>=5&&longest+1-s<=12&&(!k||longest+1!==k))G.push([`Beat your longest streak (${longest} weeks)`,`${wk(longest+1-s)} in a row`]);
+  const played=(p[3]||0)+(now?1:0), m=GOAL_PLAYED.find(x=>x>played); if(m&&m-played<=10)G.push([`${m} weeks played`,`${wk(m-played)}${thisWk}`]);
+  try{eloBuild(); const id=seasonOf(ELO_DONE), [a,b]=seasonRange(id), left=b-Math.min(b,ELO_DONE), kk=String(n).toLowerCase(); let best=null;
+    [0,1,2].forEach(pi=>Object.entries(seasonF1(pi,id)).forEach(([c,L])=>{const i=L.findIndex(x=>x.n.toLowerCase()===kk); if(i<1)return; const gap=L[i-1].p-L[i].p;
+      if(!best||gap<best.gap)best={gap,pi,c,i,above:L[i-1].n}}));
+    if(best&&left>0)G.push([`Season: #${best.i+1} in ${PATHS[best.pi]} ${TIER_NAME[best.c]}`,`${best.gap===0?"level on points with":`${best.gap} point${best.gap===1?"":"s"} behind`} ${best.above} (#${best.i}) · ${left} week${left===1?"":"s"} left`])}catch(e){}
+  if(!G.length)return "";
+  return `<div class="pcwide nwelo pelo fwl wbl goals"><div class="nwelo-h">Within reach</div><ul>${G.map(([t,r])=>`<li><span class="fwt">${esc(t)}</span><span class="nwr">${esc(r)}</span></li>`).join("")}</ul></div>`}
+
 // Welcome back: a player back after 4+ weeks away, for their first 4 weeks back
 function wbInfo(n){const W=sbIx().wk[String(n).toLowerCase()]||[], tw=TW_MAX; if(W.length<2||W[W.length-1]<tw-8)return null;
   for(let i=W.length-1;i>0;i--)if(W[i]-W[i-1]>=5){const back=W.length-i; if(back>4)return null; return {left:W[i-1],ret:W[i],away:W[i]-W[i-1]-1,back,before:i}} return null}
@@ -3411,6 +3428,7 @@ function showPlayer(name){
     </div>
     ${(()=>{try{return fwPanel(n)}catch(e){return ""}})()}
     ${(()=>{try{return wbPanel(n)}catch(e){return ""}})()}
+    ${(()=>{try{return goalsPanel(n)}catch(e){return ""}})()}
     <div class="plead" data-n="${esc(n)}">${plLeads(n)}</div>
       ${(()=>{try{const c=hrChart(n); return `<p class="pcwide pnolin">Remember, progress isn’t linear! 🌱</p>`+(c?hrProfile(n)+`<div class="pcwide">${c}</div>`:hrNote(n))}catch(e){return ""}})()}
       ${(()=>{try{const c=lvChart(n); return c?`<div class="pcwide pclv">${c}</div>`:""}catch(e){return ""}})()}
