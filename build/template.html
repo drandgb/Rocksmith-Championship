@@ -1615,6 +1615,7 @@ footer{color:var(--dim);font-size:.78rem}
   </nav>
 
   <div class="view" id="view-hosting" role="tabpanel" aria-labelledby="tab-hosting" hidden>
+  <div class="wpathbar"><label class="shostpick"><span>Year</span><select id="hostyear" aria-label="Calendar year"></select></label></div>
   <section class="now" id="now" aria-label="This week"></section>
 
   <section class="panel hof">
@@ -1676,7 +1677,7 @@ footer{color:var(--dim);font-size:.78rem}
     <div id="hcard"></div>
   </section>
 
-  <section class="panel" id="ml-host">
+  <section class="panel" id="ml-host" data-allonly>
     <div class="panel-head"><h2>🏅 Host medal leaders</h2><span class="sub">Who leads each kind of host medal · hover for second and third · click a name to look them up</span></div>
     <div class="mlgrid" id="ml-host-g"><p class="dimtxt">Counting medals…</p></div>
   </section>
@@ -2311,8 +2312,22 @@ function fitLog(){
 let upTimer; addEventListener("resize",()=>{clearTimeout(upTimer);upTimer=setTimeout(renderUpcoming,150)});
 document.fonts&&document.fonts.ready.then(()=>renderUpcoming());
 
-const hostActive=h=>cur[0]-h.last<=ACTIVE_WINDOW;
-const hostsShown=()=>activeOnly?hostList.filter(hostActive):hostList;
+const hostActive=h=>cur[0]-(hosts[h.name]||h).last<=ACTIVE_WINDOW;   // (active: by their latest week overall, in a year view too)
+// the Hosts tab's Year filter: the leaderboards, Hall of fame, timeline, Week log and Host lookup count only that year
+let hostYearF=null;
+function hostsOfYear(y){const o={}; WEEKS.forEach(([w,d,h],i)=>{if(i>curIdx||!h||h===LOST||!d.startsWith(y))return; const s=o[h]||(o[h]={name:h,n:0,first:w,last:w,firstD:d,lastD:d}); s.n++; s.last=w; s.lastD=d});
+  return Object.values(o).sort((a,b)=>b.n-a.n||b.last-a.last)}
+const hostsShown=()=>{const base=hostYearF?hostsOfYear(hostYearF):hostList; return activeOnly?base.filter(hostActive):base};
+function hostYearHeads(y){const sub=(id,all,yr)=>{const el=$(id).closest("section").querySelector(".panel-head .sub"); if(el)el.textContent=y?yr:all},
+    h2=(id,all,yr)=>{const el=$(id).closest("section").querySelector(".panel-head h2"); if(el)el.textContent=y?yr:all};
+  h2("hpodium","Hall of fame",`Hall of fame · ${y}`); sub("hpodium","Most weeks hosted, all time",`Most weeks hosted in ${y}`);
+  h2("lb","Weeks hosted",`Weeks hosted in ${y}`); h2("lbspan","Longest career span",`Longest span in ${y}`);
+  document.querySelectorAll("#view-hosting [data-allonly]").forEach(el=>el.hidden=!!y);
+  $("hostyear").value=y||""; $("hostyear").closest("label").classList.toggle("on",!!y)}
+// nobody to show: a past year whose hosts aren't active any more, with Active players only on
+const hostNone=()=>`<p class="dimtxt">${activeOnly?`None of ${hostYearF||"these"}'s hosts are active now. Turn off Active players only to see them.`:"No hosts yet."}</p>`;
+function setHostYear(y){hostYearF=y||null; hostYearHeads(hostYearF); $("yr").value=hostYearF||""; hYear=hostYearF;
+  renderHostPodium(); renderLB(); renderTL(); renderLog(); if(hName)showHost(hName); if(typeof updateBubble==="function")updateBubble()}
 // Hosts: the average number of ranked players in each class (players scoring in their own class that week, on any of
 // its challenges) over time, a line per class on each path, as a 10-week rolling average
 let BRACKET_HTML=null;
@@ -2410,23 +2425,25 @@ function bracketCharts(){
     return `<div class="brcol" style="--pc:${PATH_C[pi]}"><h3>${PATHS[pi]}</h3><div class="brnowrow">${now}</div><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Ranked players per class on ${PATHS[pi]}">${g}${lines}${bands}</svg></div>`}).join("")+
     `<p class="dimtxt brnote">Numbers on top: the last ${AVG} weeks. Hover a year on a chart for that year's averages.</p>`}
 function renderHostPodium(){
-  const M=["#f5c84a","#c9d0dc","#d8925a"], top=hostsShown().slice(0,3), max=top[0].n;
-  $("hpodium").innerHTML=[1,0,2].map(i=>{const h=top[i], ht=Math.round(70+130*h.n/max);
+  const M=["#f5c84a","#c9d0dc","#d8925a"], top=hostsShown().slice(0,3), max=top.length?top[0].n:1;
+  if(!top.length){$("hpodium").innerHTML=hostNone(); return}
+  $("hpodium").innerHTML=[1,0,2].filter(i=>top[i]).map(i=>{const h=top[i], ht=Math.round(70+130*h.n/max);
     return `<div class="pod" style="--m:${M[i]}"><div class="medal">${i+1}</div><div class="pname" data-hpick="${esc(h.name)}" title="Highlight ${esc(h.name)}'s weeks">${esc(h.name)}</div><div class="block" style="height:${ht}px;animation-delay:${[150,0,300][i]}ms"><b>${h.n}</b><small>weeks</small><small>hosted</small></div></div>`}).join("");
 }
 $("hpodium").addEventListener("click",e=>{const el=e.target.closest("[data-hpick]");if(el)setHost(el.dataset.hpick)});
 function renderLB(){
   const wk=w=>`<span${SB.weeks[w]?` data-sbw="${w}" title="Open Week ${w} on the Scoreboard"`:""}>${w}</span>`;
-  const row=(h,val,max,extra,spanRow)=>{const active=cur[0]-h.last<=ACTIVE_WINDOW;
+  const row=(h,val,max,extra,spanRow)=>{const active=hostActive(h);
     return `<tr data-host="${esc(h.name)}" class="${selHost&&matches(h.name)?"sel":""}" tabindex="0">
       <td><div class="hostcell"><span class="sw" style="background:${hc(h.name)}"></span>${esc(h.name)} ${active?`<span class="pill on" data-tip="Hosted at least once in the last ${ACTIVE_WINDOW} weeks (around 1 year).">ACTIVE</span>`:`<span class="pill off" data-tip="Hasn't hosted in the last ${ACTIVE_WINDOW} weeks (around 1 year).">INACTIVE</span>`}</div></td>
       ${spanRow?`<td class="r num">${wk(h.first)}</td><td><div class="bar"><span style="width:${val/max*100}%;background:${hc(h.name)}"></span></div></td><td class="num">${wk(h.last)}</td><td class="r num">${val}</td>`
       :`<td class="r num">${val}</td><td><div class="bar"><span style="width:${val/max*100}%;background:${hc(h.name)}"></span></div></td>`}${extra}</tr>`};
-  const list=hostsShown(), maxN=list[0].n;
+  const list=hostsShown(), maxN=list.length?list[0].n:1;
+  if(!list.length){$("lb").innerHTML=$("lbspan").innerHTML=`<tbody><tr><td>${hostNone()}</td></tr></tbody>`; return}
   $("lb").innerHTML=`<thead><tr><th>Host</th><th class="r" data-tip="Weeks hosted, this week included">Weeks</th><th></th></tr></thead><tbody>`+
     list.map(h=>row(h,h.n,maxN,"")).join("")+"</tbody>";
   const span=h=>h.last-h.first+1, bySpan=list.slice().sort((a,b)=>span(b)-span(a)||b.n-a.n);
-  const maxS=span(bySpan[0]);
+  const maxS=bySpan.length?span(bySpan[0]):1;
   $("lbspan").innerHTML=`<thead><tr><th>Host</th><th class="r">First</th><th></th><th>Latest</th><th class="r" data-tip="Weeks from their first hosted week to their latest, including the weeks in between">Span</th></tr></thead><tbody>`+
     bySpan.map(h=>row(h,span(h),maxS,"",true)).join("")+"</tbody>";
 }
@@ -2435,7 +2452,7 @@ function renderTL(){
   // rows by season year (week 1 = Oct 2013); rows of 52 weeks aligned to the anniversary week
   const el=$("tl"); let html="";
   const byYear={};
-  WEEKS.forEach((w,i)=>{const y=w[1].slice(0,4);if(SHOW_YEARS.has(y))(byYear[y]=byYear[y]||[]).push(i)});
+  WEEKS.forEach((w,i)=>{const y=w[1].slice(0,4);if(SHOW_YEARS.has(y)&&(!hostYearF||y===hostYearF))(byYear[y]=byYear[y]||[]).push(i)});
   Object.keys(byYear).forEach(y=>{
     const idxs=byYear[y];
     const firstWeekOfYear=Math.floor((new Date(WEEKS[idxs[0]][1]+"T12:00:00")-new Date(y+"-01-01T12:00:00"))/604800000);
@@ -2465,7 +2482,10 @@ function renderTL(){
 function fillYears(){
   const ys=[...new Set(WEEKS.map(w=>w[1].slice(0,4)))].filter(y=>SHOW_YEARS.has(y)).reverse();
   $("yr").innerHTML=`<option value="">All years</option>`+ys.map(y=>`<option>${y}</option>`).join("");
+  const hy=[...new Set(WEEKS.filter((w,i)=>i<=curIdx&&w[2]&&w[2]!==LOST).map(w=>w[1].slice(0,4)))].reverse();
+  $("hostyear").innerHTML=`<option value="">All time</option>`+hy.map(y=>`<option value="${y}">${y}</option>`).join("");
 }
+$("hostyear").addEventListener("change",e=>setHostYear(e.target.value));
 
 // the Week log opens scrolled so this week is at the top (once, the first time the Hosts tab is shown)
 let logScrolled=false;
@@ -5056,7 +5076,8 @@ function activeFilters(){
   if(v==="players"&&pYear&&pYear!==plYearF)f.push([`Player lookup: ${pYear}`,()=>{pYear=null;showPlayer($("pq").value.trim())}]);
   if(v==="players"&&ruPath>=0)f.push([`Rank changes: ${PATHS[ruPath]}`,()=>document.querySelector('#rufilter [data-rp="-1"]').click()]);
   if(v==="hosting"&&holF)f.push([`Holiday: ${holF}`,()=>{holF=null;renderLog()}]);
-  if(v==="hosting"&&hYear)f.push([`Host lookup: ${hYear}`,()=>{hYear=null;showHost(hName)}]);
+  if(v==="hosting"&&hostYearF)f.push([`Year: ${hostYearF}`,()=>setHostYear(null)]);
+  if(v==="hosting"&&hYear&&hYear!==hostYearF)f.push([`Host lookup: ${hYear}`,()=>{hYear=null;showHost(hName)}]);
   if(v==="hosting"&&selHost)f.push([`Host: ${CATS[selHost]||selHost}`,()=>setHost(selHost)]);
   if(v==="winners"){
     if(wPath>=0)f.push([`Path: ${PATHS[wPath]}`,()=>document.querySelector('#wpath [data-rp="-1"]').click()]);
