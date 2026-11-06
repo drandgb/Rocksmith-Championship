@@ -75,7 +75,7 @@ The whole app is one self-contained `index.html`, with no server. It loads Googl
 - **Host leaderboard** with active and inactive tags.
 - **Host lookup**:
   - **Stats:** weeks hosted, share, most weeks in a row, years hosting and scheduled weeks.
-  - **Medals:** 🎙️ total weeks, 🔗 weeks in a row, and yearly lunar host medallions.
+  - **Medals:** 🎙️ total weeks, 🔗 weeks in a row, 👑 Host of the year (most weeks hosted in a calendar year, shared on a tie, awarded once the year is over), and yearly lunar host medallions.
   - **Year filter:** click a year label to see that year's stats only, including the host's rank among that year's hosts.
 - Hosting timeline and **Week log**. Click any holiday to see only the weeks with that holiday.
 

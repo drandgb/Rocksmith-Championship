@@ -1462,7 +1462,7 @@ footer .updated{display:block;margin-top:4px}
 .medal-m.wm.cupI .cupfl{filter:drop-shadow(0 0 2px var(--ec)) drop-shadow(0 0 5px color-mix(in srgb,var(--ec) 50%,transparent))}
 .medal-m.wm.cupA .cupfl{filter:drop-shadow(0 0 3px var(--ec)) drop-shadow(0 0 8px var(--ec)) drop-shadow(0 0 13px color-mix(in srgb,var(--ec) 55%,transparent))}
 .medal-m.wm.cupM .cupfl{filter:drop-shadow(0 0 4px var(--ec)) drop-shadow(0 0 10px var(--ec)) drop-shadow(0 0 18px color-mix(in srgb,var(--ec) 75%,transparent))}
-.podhalo{display:none}/* close win and Uncrowned: a soft glow to match the gold, silver and bronze medals */.medal-m.wm.tiemed svg{filter:drop-shadow(0 1px 2px rgba(0,0,0,.4)) drop-shadow(0 0 3px color-mix(in srgb,var(--ec) 65%,transparent))}.medal-m.wm.pod svg{filter:drop-shadow(0 1px 2px rgba(0,0,0,.4))}.medal-m.wm.pod .podhalo{display:inline}
+.podhalo{display:none}.medal-m.wm.hoy .podhalo{display:inline}.medal-m.wm.hoy svg{filter:drop-shadow(0 1px 2px rgba(0,0,0,.4))}/* close win and Uncrowned: a soft glow to match the gold, silver and bronze medals */.medal-m.wm.tiemed svg{filter:drop-shadow(0 1px 2px rgba(0,0,0,.4)) drop-shadow(0 0 3px color-mix(in srgb,var(--ec) 65%,transparent))}.medal-m.wm.pod svg{filter:drop-shadow(0 1px 2px rgba(0,0,0,.4))}.medal-m.wm.pod .podhalo{display:inline}
 /* (no shine sweep on medals: the glow and sparkles are enough, and a sweep on every medal kept the page repainting) */
 
 .medal-m.wm b{position:absolute;right:-5px;bottom:-3px;min-width:14px;height:14px;padding:0 3px;border-radius:7px;background:#e7eaf2;color:#10131a;font:800 9px/14px var(--f-display);text-align:center;box-shadow:0 0 0 1.5px var(--panel)}
@@ -5265,7 +5265,7 @@ function allMedalsHtml(name){
 }
 function placeCard(x,y){const w=mcard.offsetWidth,h=mcard.offsetHeight;mcard.style.left=Math.max(8,Math.min(x+14,innerWidth-w-8))+"px";mcard.style.top=Math.max(8,(y+16+h>innerHeight-8?y-h-12:y+16))+"px"}
 
-// ---------- hosting medals: total weeks hosted, weeks hosted in a row, and each calendar year hosted ----------
+// ---------- hosting medals: total weeks hosted, weeks hosted in a row, Host of the year, and each calendar year hosted ----------
 const HOST_TOTAL_STEPS=[1,5,10,25,50,75,100,150,200,250,300];
 const HOST_STREAK_STEPS=[2,3,4,5,10,15,20,25,30,40,50,75,100];
 const HOST_COL=["#ffd36e","#ffb347","#ff8c42","#ff6b6b","#f05ca8","#c86bfa","#8f7bff","#5b9dff","#3fd0e0","#4fe3a8"];
@@ -5273,6 +5273,21 @@ const hostCol=(i,n)=>HOST_COL[Math.min(HOST_COL.length-1,Math.round((n<=1?1:i/(n
 function micSvg(col){return `<svg viewBox="0 0 28 30" aria-hidden="true"><circle cx="14" cy="15" r="12" fill="${col}"/><rect x="11" y="6" width="6" height="11" rx="3" fill="#1a1406" opacity=".78"/><path d="M8.5 13.5a5.5 5.5 0 0 0 11 0M14 19v4M10.5 23h7" fill="none" stroke="#1a1406" stroke-width="1.8" stroke-linecap="round" opacity=".78"/><path d="M6 11a9 9 0 0 1 5-5.5" stroke="rgba(255,255,255,.5)" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg>`}
 function chainSvg(col){return `<svg viewBox="0 0 28 30" aria-hidden="true"><circle cx="14" cy="15" r="12" fill="${col}"/><rect x="5.5" y="11.5" width="10" height="7" rx="3.5" fill="none" stroke="#1a1406" stroke-width="2.2" opacity=".78"/><rect x="12.5" y="11.5" width="10" height="7" rx="3.5" fill="none" stroke="#1a1406" stroke-width="2.2" opacity=".78"/><path d="M6 11a9 9 0 0 1 5-5.5" stroke="rgba(255,255,255,.5)" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg>`}
 function calSvg(col){return `<svg viewBox="0 0 28 30" aria-hidden="true"><circle cx="14" cy="15" r="12" fill="${col}"/><rect x="7.5" y="9" width="13" height="12" rx="2" fill="none" stroke="#1a1406" stroke-width="1.9" opacity=".78"/><path d="M7.5 13h13M11 7v4M17 7v4" stroke="#1a1406" stroke-width="1.9" stroke-linecap="round" opacity=".78"/><path d="M6 11a9 9 0 0 1 5-5.5" stroke="rgba(255,255,255,.5)" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg>`}
+// Host of the year: whoever hosted the most weeks in a calendar year (shared on a tie), awarded once the year is over
+const HOST_YEAR=(()=>{const by={}, last={}; WEEKS.forEach(([w,d,h],i)=>{if(i>curIdx)return; const y=d.slice(0,4); last[y]=w; if(!h||h===LOST)return; const c=by[y]=by[y]||{}; c[h]=(c[h]||0)+1});
+  const out={}; Object.keys(last).sort().slice(0,-1).forEach(y=>{const c=by[y]; if(!c)return; const mx=Math.max(...Object.values(c)); out[y]={n:mx,who:Object.keys(c).filter(h=>c[h]===mx),w:last[y]}}); return out})();
+// a golden old-school microphone (grille head on a yoke, stem and base), glowing like the gold medals
+var hoyN=0;
+function hostYearSvg(){const u=++hoyN, g="hoyg"+u, h="hoyh"+u, d="#7a5512", slot="#3a2608";
+  const slots=[4.3,6.6,8.9,11.2].map(y=>`<rect x="9.9" y="${y}" width="8.2" height="1.15" rx=".57" fill="${slot}" opacity=".85"/>`).join("");
+  return `<svg viewBox="0 0 28 30" aria-hidden="true" style="overflow:visible"><defs><linearGradient id="${g}" x1="0" x2="1" y1="0" y2="0"><stop offset="0" stop-color="#b8862a"/><stop offset=".35" stop-color="#fff2b0"/><stop offset=".6" stop-color="#f5c84a"/><stop offset="1" stop-color="#9a6b18"/></linearGradient><filter id="${h}" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="3.3"/></filter></defs>
+<g class="podhalo" filter="url(#${h})"><rect x="7.5" y="1" width="13" height="15" rx="6" fill="#f5c84a" opacity=".9"/><rect x="7" y="22" width="14" height="6.5" rx="3" fill="#f5c84a" opacity=".8"/></g>
+<path d="M7.3 9.6c0 6 3 9.1 6.7 9.1s6.7-3.1 6.7-9.1" fill="none" stroke="${d}" stroke-width="2.4" stroke-linecap="round"/><path d="M7.3 9.6c0 6 3 9.1 6.7 9.1s6.7-3.1 6.7-9.1" fill="none" stroke="url(#${g})" stroke-width="1.4" stroke-linecap="round"/>
+<rect x="12.7" y="18.4" width="2.6" height="5.4" fill="url(#${g})" stroke="${d}" stroke-width=".7"/>
+<rect x="9.2" y="22.9" width="9.6" height="2.4" rx="1.1" fill="url(#${g})" stroke="${d}" stroke-width=".7"/><rect x="6.6" y="24.8" width="14.8" height="3.6" rx="1.8" fill="url(#${g})" stroke="${d}" stroke-width=".8"/>
+<rect x="8.6" y="1.2" width="10.8" height="14.6" rx="5.4" fill="url(#${g})" stroke="${d}" stroke-width=".9"/>${slots}<rect x="13.25" y="1.6" width="1.5" height="13.8" fill="#fff2b0" opacity=".55"/>
+<circle cx="7.3" cy="9.6" r="1.2" fill="url(#${g})" stroke="${d}" stroke-width=".6"/><circle cx="20.7" cy="9.6" r="1.2" fill="url(#${g})" stroke="${d}" stroke-width=".6"/>
+<path d="M10.2 3.2a4.6 4.6 0 0 1 2.6-1.4" stroke="#fff" stroke-width="1" fill="none" stroke-linecap="round" opacity=".75"/></svg>`.replace(/\n/g,"")}
 const hostMedalCache={};
 function hostMedals(name){
   if(hostMedalCache[name]!=null)return hostMedalCache[name];
@@ -5287,12 +5302,16 @@ function hostMedals(name){
   ws.forEach(([w])=>{run=prev===w-1?run+1:1;prev=w;if(run>best)best=run;HOST_STREAK_STEPS.forEach(x=>{if(run>=x&&reachAt[x]==null)reachAt[x]=w})});
   const st=HOST_STREAK_STEPS.filter(x=>best>=x);
   if(st.length)rows.push(st.map((x,i)=>{const c=hostCol(i,HOST_STREAK_STEPS.length);return mk(chainSvg(c),c,x,`${x}-week hosting streak medal · hosted ${x} weeks in a row${rec(reachAt[x])}`).replace('<span class="medal-m wm"',`<span class="medal-m wm" data-hl="${weekRange(reachAt[x],x)}" style="cursor:pointer"`)}));
+  // Host of the year (most weeks hosted that calendar year)
+  const hoy=Object.keys(HOST_YEAR).filter(y=>HOST_YEAR[y].who.includes(name));
+  if(hoy.length)rows.push(hoy.map(y=>{const H=HOST_YEAR[y], others=H.who.filter(x=>x!==name);
+    return mk(hostYearSvg(),"#f5c84a","’"+y.slice(2),`Host of the year ${y} · hosted the most weeks in ${y} (${H.n})${others.length?` · shared with ${others.join(", ")}`:""}${rec(H.w)}`).replace('class="medal-m wm"','class="medal-m wm hoy"')}));
   // one medal for every calendar year hosted
   const yrs={}; ws.forEach(([w,d])=>{const y=d.slice(0,4);(yrs[y]=yrs[y]||[]).push(w)});
   const ys=Object.keys(yrs).sort();
   // styled like the lunar year medallions: animal of the lunar year that starts in that calendar year, colored by its element
   rows.push(ys.map(y=>{const l=LNY.find(x=>x[0].startsWith(y)), ly=l?{animal:l[1],element:l[2]}:null, col=ly?ELEMENT_COL[ly.element]:"#ffb347";
-    return `<span class="medal-m zod" style="--ec:${col}" data-tip="${y} host medal · Hosted at least once in ${ly?`the Year of the ${ly.element} ${ly.animal}`:y}${rec(yrs[y][0])}"><span class="ani">${ly?ANIMAL_EMOJI[ly.animal]:"🎙️"}</span><b>${y}</b></span>`}));
+    return `<span class="medal-m zod" style="--ec:${col}" data-tip="${y} host medal · Hosted at least once in ${ly?`the Year of the ${ly.element} ${ly.animal}`:y}${rec(yrs[y][0])}"><span class="ani">${ly?ANIMAL_EMOJI[ly.animal]:"🎙️"}</span><b>’${y.slice(2)}</b></span>`}));
   return hostMedalCache[name]=rows.map((r,i)=>`<div class="medals${i===rows.length-1?" yrm":""}">${r.join("")}</div>`).join("");
 }
 $("filterbar").addEventListener("mousemove",e=>{const p=e.target.closest("[data-tip]");if(!p){tip.hidden=true;return}tip.textContent=p.dataset.tip;tip.hidden=false;placeTip(e.clientX,e.clientY)});
