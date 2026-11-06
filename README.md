@@ -24,8 +24,8 @@ The whole app is one self-contained `index.html`, with no server. It loads Googl
 - **New medals** collected this week. Click one to ring it and show what it is for. While a week is still running, player medals are provisional and win medals are added once it ends.
 - An **Open scoreboard** button opens the week shown on the Scoreboard.
 - Boxes with something in them get a glowing rim: gold for New medals, red for Rivals, green for New this week, a starry rim for Anniversaries, a tropical rim (with a swaying palm) for Back from a break, amber for Streaks at stake and a gloomy rainy blue for Streaks that ended.
-- **Countdown** to the week's close, in your own time zone and CET.
-- **♟ Elo gains**: who gained rating with the week's scores, with each player's rank among active players. A player new to the ranking (just reached 20 games) shows *entered #N*, and the hover on a rank drop says when it's because someone entered above.
+- **Countdown** to the week's close, in your own time zone and CET (CEST in summer). Only the next week's host, who closes the week, or an admin can set it, from the Host tab.
+- **♟ Elo gains**: who gained rating with the week's scores, with each player's rank among active players. A player new to the ranking (just reached 20 games) shows *entered #N*, and the hover on a rank says why it moved, or stayed put while others moved: who they passed, who passed them, and who entered or left the ranking above them.
 - **Medal leaders**: a note at the top of New medals when someone took (or, while the week runs, would take) the lead in a medal count.
 - **Rivals**, split into Lead, Rhythm and Bass (dead-even pairs get a glowing rim). While the week runs, a green ▲ shows who leads so far; once it is over, each pair gets a 🏆 winner: whoever beat the other on more of their shared challenges (level on challenges is a tie). Rivals are each player's closest match within their own rank on that path: the opponent with the smallest average % gap on the ranked challenges they both played. Playing up or down and God challenges don't count. Each pair lists every challenge they both played (main song and bonus) with both players' %, the higher one in green.
 
@@ -65,9 +65,12 @@ The whole app is one self-contained `index.html`, with no server. It loads Googl
   - **Highest score** and **highest note streak** on any scoreboard challenge, with the song and week; click either to open it on the Scoreboard (on phones, the first tap shows the details).
   - **Skill rating:** the second-best song rating they've scored 95% or better on in the last 6 months, on each path, with a year-by-year table. **Elo** ratings and ranks on each path too.
   - **Medals:** perfect-attendance gem, 🏺 kintsugi gem once the perfect run is broken (the number is how many weeks they played without missing after joining), 💯 perfectionist medals (100% scores; the God one is the Perfect God medal), one per class in that class's gem colour (Beginner yellow, Intermediate green, Advanced blue, Masterclass purple, God red), counting every 100% score whatever the place, 𝄞 played guitar and 𝄢 played bass medals (weeks with at least one Lead or Rhythm score, or at least one Bass score, any level), ✅ completionist medal (weeks with a score on every challenge, every song on every path; a multi-week God challenge already played earlier in its run counts) and Lead, Rhythm and Bass completionist medals (every challenge on that one path), class gems (one for every class up to the highest reached, so Advanced also gives Beginner and Intermediate; dated by the first rank-up into that class when there is a record; gems are always collected in order, so a date later than a higher class's date is left off as a missing record), lunar-year medallions (zodiac animal, colored by element) and ⚡ play-streak bolts (2, 3, 4, 5, 10 … 50 weeks in a row) and yearly streak bolts (with that year's zodiac animal).
+  - **Within reach:** for anyone who played this week or last, the next goals close by: the next play streak (and whether it's a new medal), beating their longest streak, a weeks-played milestone, and the season place just above them.
   - **Year filter:** click a year label to see that year's stats only.
+- **⚔️ Head-to-head:** pick any two players to see every challenge they both played and who finished higher (accuracy, then streak, then score): the overall record, who averaged higher accuracy, the record on each path with both Elo ratings, and their latest 10 challenges together. It starts with the player you looked up against the player they've shared the most challenges with in the past year.
 
 ### 🎙️ Hosts
+- **Year:** pick a year (or All time) at the top to see only that year in the Hall of fame, leaderboards, timeline, Week log and Host lookup.
 - Hall of fame and **Coming up** schedule, with holidays and a *HOST NEEDED* tag for open weeks.
 - **Host leaderboard** with active and inactive tags.
 - **Host lookup**:
@@ -142,11 +145,14 @@ Two GitHub Actions do this (two more keep the forum banners up to date and back 
 | **Quick update (current week)** ([`quick-update.yml`](.github/workflows/quick-update.yml)) | Every hour | The 2 newest week tabs, plus `Schedule` and `PlayersList`. Older weeks come from the saved results in `build/data/cache/`. |
 | **Full rescan (whole sheet)** ([`full-rescan.yml`](.github/workflows/full-rescan.yml)) | Sundays | Every week tab, so corrections to older weeks show up. |
 | **Scoreboard sheet backup** ([`sheet-backup.yml`](.github/workflows/sheet-backup.yml)) | Sundays | The whole sheet, saved as a file. Each weekly copy is kept for 90 days (about the last 13 weeks) under that run on the Actions tab; the first copy of each year is also kept for good under *Releases*. |
+| **Check a draft** ([`site-check.yml`](.github/workflows/site-check.yml)) | Every push to a draft branch | Builds the page with the draft's code from the current sheet and checks it (below). Nothing is committed. |
 | **Forum banners for new players** ([`banners.yml`](.github/workflows/banners.yml)) | Every 10 minutes | Nothing from the sheet: makes a forum banner for anyone whose profile claim was just approved. Commits nothing when nobody is new. |
 
 The page's *Last updated* time is the last time either Action checked the sheet (read from GitHub when the page loads), shown in the viewer's own time zone.
 
 Run either one by hand from **Actions → (pick one) → Run workflow**.
+
+Before an update goes live, `build/check_page.py` opens the new page in headless Chrome at computer and phone widths and opens every tab. If a tab is empty or the page's code hits an error, the site keeps its last good page and the run is marked as failed, so GitHub emails you.
 
 What it reads from the sheet (it must stay shared as *Anyone with the link can view*):
 
@@ -199,7 +205,7 @@ Players can log in with an emailed link (no password) and claim their player pro
 1. Create a free project at supabase.com.
 2. In **Authentication → URL Configuration**, set the Site URL (and a Redirect URL) to `https://drandgb.github.io/Rocksmith-Championship/`.
 3. In **Authentication → Emails → SMTP settings**, connect an email sender for the login emails.
-4. In **SQL Editor**, run `build/supabase/schema.sql`, then `admin_ratings.sql`, `rating_log.sql`, `claim_log.sql`, `claim_remove.sql` and `host_ratings.sql` from the same folder, in that order (ratings on a player's behalf, the Ratings log, the Claims log, the choices when removing a claim, and letting hosts rate for other players). The other files there each add one feature and can be run in any order after those: `admin_manage.sql` (adding admins, unlinking an email), `animals.sql`, `host_signups.sql`, `week_close.sql` (the week close countdown), `site_themes.sql` (the website theme schedule), `song_tags.sql`, `song_tunings.sql` (tuning fixes, capos and the Tuning log), `vote_log.sql` (the Difficulty ratings log), `banner_redraw.sql` (the Redraw all banners button) and `player_rating_wins.sql`.
+4. In **SQL Editor**, run `build/supabase/schema.sql`, then `admin_ratings.sql`, `rating_log.sql`, `claim_log.sql`, `claim_remove.sql` and `host_ratings.sql` from the same folder, in that order (ratings on a player's behalf, the Ratings log, the Claims log, the choices when removing a claim, and letting hosts rate for other players). The other files there each add one feature and can be run in any order after those: `admin_manage.sql` (adding admins, unlinking an email), `animals.sql`, `host_signups.sql`, `week_close.sql` (the week close countdown), `site_themes.sql` (the website theme schedule), `song_tags.sql`, `song_tunings.sql` (tuning fixes, capos and the Tuning log), `vote_log.sql` (the Difficulty ratings log), `banner_redraw.sql` (the Redraw all banners button), `improve_posted.sql` (which Big improvements messages were already copied) and `player_rating_wins.sql`.
 5. Put the project URL and the anon/publishable key into `SUPA_URL` and `SUPA_KEY` in `build/template.html` (both are public by design; never use the service_role key).
 6. Log in on the site once, then run the two lines at the bottom of `schema.sql` with your email to make yourself an admin. Admins approve or remove profile claims from the 👤 account dialog.
 
@@ -210,6 +216,8 @@ Rules (enforced by the database): one account per player name, one name per acco
 Every approved player gets a forum signature banner (700×150): their name and classes, weeks played, wins, their player level on each path (with the gain this season), this season's standing on each path, and up to 8 win medals in this order: gold God diamonds, season champion and most improved cups, gold medals, triple crown, Uncrowned and close win; then silver God diamonds, silver medals and Uncrowned silver; then the bronze ones, the longest win streak medal and rivalry wins (most-won first within each kind). A #1, #2 or #3 tag marks a medal they're in the top 3 for among active players. The **Forum banner** tab in the 👤 dialog shows it, with the image link and site link to paste into the forum signature. Admins can preview any player's banner, and use **Redraw all banners** after a design change.
 
 `build/banners.py` draws them with headless Chrome into `cards/<name>.png`. Every banner is redrawn when a new week's results arrive (as part of the quick update); newly approved players get theirs within about 10 minutes (the banner Action above), and banners of players who are no longer approved are deleted.
+
+Each banner also has a share link, `cards/<name>.html` (copied from the Forum banner tab): posted in Discord, Reddit or a message, it shows the banner as the link preview and opens the player's stats on the site. The site's own link preview picture, `cards/og/site.png` (the four season trophies with the weeks, players and scores covered), is drawn with the banners each week.
 
 ---
 
