@@ -887,6 +887,11 @@ html.acctwait body{visibility:hidden}html.acctwait{background:var(--bg)}html.acc
 .fwhost .alist li{display:flex;flex-wrap:wrap;gap:2px 10px;align-items:baseline;padding:6px 10px;border-left:3px solid var(--s-green);background:var(--panel2);border-radius:6px;font-size:.86rem}.fwhn{font-weight:800;cursor:pointer;text-decoration:underline dotted}.fwhs{flex-basis:100%;font-size:.82rem}
 .fwbass{display:block;margin-top:4px;font-size:.8rem;color:var(--muted)}
 .hml li.hmdone .hmt{opacity:.55}
+/* Admin: engagement before and since the stats sheet and the website */
+.engt{width:100%;border-collapse:collapse;font-size:13px;margin:8px 0 4px}.engt th,.engt td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+.engt thead th{font-size:12px;color:var(--muted);font-weight:600}.engt thead th small{display:block;font-weight:400;font-size:11px;opacity:.8}
+.engt td.num small{display:block}.engt td.num{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}.engt small.up{color:var(--s-green)}.engt small.slip{color:var(--s-red)}
+.engchart{width:100%;height:auto;display:block;margin:6px 0 4px}
 /* motivation: next rung, nearest rival, welcome back, seasons, lapsed players, host highlights */
 .nwelo li .nwriv{grid-column:1/-1;font-size:.76rem;color:var(--muted);margin-top:-3px}.nwriv b{color:var(--fg);font-weight:700}.nwriv .nm{cursor:pointer;text-decoration:underline dotted}
 .hrnext{margin-top:-6px;grid-column:1/-1}.pc>.hrnext{margin-top:-10px}.hrnext ul{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:20px}.hrnext li{grid-template-columns:62px minmax(0,1fr) auto}.hrnext li:nth-child(2){border-top:0}@media(max-width:700px){.hrnext ul{grid-template-columns:1fr}.hrnext li:nth-child(2){border-top:1px solid var(--line)}}.hrnext .hnsong{font-size:.84rem;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.hrnext .hnsong .fwgo{font-weight:600}.hrnext .nwr{font-size:.8rem;white-space:nowrap}.hrnext .nwr b{color:var(--s-green)}
@@ -3156,6 +3161,46 @@ function friText(){const w=TW_LIVE; if(!SB.weeks[w])return ""; const names=twNam
       const could="BIAM".includes(lv)&&lv?names.filter(n=>tiersOf(n).charAt(c[0])===lv&&!on.has(n.toLowerCase())).sort((a,b)=>a.localeCompare(b,undefined,{sensitivity:"base"})):[];
       L.push(`${PATHS[c[0]]} ${c[2]}: ${c[3]}${could.length?` · ${could.map(at).join(", ")}`:""}`)})}
   return L.join("\n")}
+// ---------- Admin: engagement before and since the stats sheet (Jul 11, 2026) and the website (Oct 5, 2026) ----------
+// complete weeks only (the week in progress isn't counted); the same weeks a year earlier show what the season alone does
+const ENG_SHEET="2026-07-11", ENG_SITE="2026-10-05";
+function engWeekOf(d){let w=null; WEEKS.forEach(x=>{if(x[1]<=d)w=x[0]}); return w}
+function engStats(){const nm=i=>SB.names[i].replace(/[*~]+$/,"").toLowerCase(), first={}, set={}, sc={};
+  PLAYERS.forEach(p=>{first[p[0].toLowerCase()]=p[1]});
+  Object.keys(SB.weeks).map(Number).sort((a,b)=>a-b).forEach(w=>{const st=new Set(); let n=0; SB.weeks[w].forEach(c=>c[6].forEach(e=>{st.add(nm(e[0])); n++})); set[w]=st; sc[w]=n;
+    st.forEach(k=>{if(first[k]==null||first[k]>w)first[k]=w})});
+  const av=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:null;
+  const win=(a,z)=>{const ws=[]; for(let w=a;w<=z;w++)if(set[w])ws.push(w); if(!ws.length)return null;
+    const pl=av(ws.map(w=>set[w].size)), scr=av(ws.map(w=>sc[w]));
+    return {a,z,n:ws.length,players:pl,scores:scr,per:scr/pl,newp:av(ws.map(w=>[...set[w]].filter(k=>first[k]===w).length)),
+      back:av(ws.filter(w=>set[w-1]).map(w=>[...set[w]].filter(k=>set[w-1].has(k)).length/set[w].size))}};
+  const sw=engWeekOf(ENG_SHEET), tw=engWeekOf(ENG_SITE), last=TW_MAX-1;
+  return {sw,tw,last,set,before:win(sw-(tw-sw),sw-1),sheet:win(sw,tw-1),site:win(tw,last),yrSheet:win(sw-52,tw-53),yrSite:win(tw-52,last-52)}}
+function engSection(){const E=engStats(); if(!E.sheet||!E.site)return "";
+  const d=w=>{const r=WEEKS.find(x=>x[0]===w); return r?new Date(r[1]+"T12:00:00").toLocaleDateString(undefined,{month:"short",day:"numeric",year:"numeric"}):""};
+  const span=x=>x?`Weeks ${x.a}–${x.z} · ${x.n} week${x.n===1?"":"s"}`:"";
+  const R=[["Players per week",x=>x.players,x=>x.toFixed(1)],["Scores posted per week",x=>x.scores,x=>x.toFixed(0)],["Scores per player",x=>x.per,x=>x.toFixed(1)],
+    ["New players per week",x=>x.newp,x=>x.toFixed(2)],["Came back from the week before",x=>x.back,x=>Math.round(x*100)+"%"]];
+  const ch=(v,v0,pct)=>{if(v0==null||!v0)return ""; const c=pct?Math.round((v-v0)*100):Math.round((v/v0-1)*100); return ` <small class="${c>0?"up":c<0?"slip":""}">${c>0?"+":""}${c}${pct?" pts":"%"}</small>`};
+  const cell=(x,f,g,prev,pct)=>x?`<td class="num">${g(f(x))}${prev?ch(f(x),f(prev),pct):""}</td>`:`<td class="num">–</td>`;
+  const tbl=(cols)=>`<table class="engt"><thead><tr><th></th>${cols.map(c=>`<th>${c.h}<small>${span(c.x)}</small></th>`).join("")}</tr></thead><tbody>${
+    R.map(([lab,f,g],ri)=>`<tr><th>${lab}</th>${cols.map((c,i)=>cell(c.x,f,g,i?cols[i-1].x:null,ri===4)).join("")}</tr>`).join("")}</tbody></table>`;
+  const yoy=cols=>`<table class="engt"><thead><tr><th></th>${cols.map(c=>`<th>${c.h}<small>${c.a&&c.b?`Weeks ${c.a.a}–${c.a.z} → ${c.b.a}–${c.b.z}`:""}</small></th>`).join("")}</tr></thead><tbody>${
+    R.map(([lab,f,g],ri)=>`<tr><th>${lab}</th>${cols.map(c=>c.a&&c.b?`<td class="num">${g(f(c.a))} → ${g(f(c.b))}${ch(f(c.b),f(c.a),ri===4)}</td>`:`<td class="num">–</td>`).join("")}</tr>`).join("")}</tbody></table>`;
+  // players per week over the last year, with the two start lines
+  const ws=[]; for(let w=TW_MAX-60;w<=TW_MAX;w++)if(E.set[w])ws.push(w);
+  const mx=Math.max(...ws.map(w=>E.set[w].size)), W=620, H=120, bw=W/ws.length, x=w=>ws.indexOf(w)*bw;
+  const mark=(w,lab)=>ws.includes(w)?`<line x1="${x(w)-1}" x2="${x(w)-1}" y1="4" y2="${H}" stroke="var(--accent)" stroke-dasharray="3 3"/><text x="${x(w)+3}" y="12" fill="var(--accent)" font-size="10">${lab}</text>`:"";
+  const svg=`<svg class="engchart" viewBox="0 0 ${W} ${H+16}" role="img" aria-label="Players per week over the last ${ws.length} weeks">${ws.map(w=>{const h=E.set[w].size/mx*(H-18);
+    return `<rect x="${x(w)+1}" y="${H-h}" width="${bw-2}" height="${h}" rx="1.5" fill="${w===TW_MAX?"var(--muted)":w>=E.tw?"var(--s-green)":w>=E.sw?"var(--s-blue)":"#3a4256"}"><title>Week ${w}${w===TW_MAX?" (so far)":""}: ${E.set[w].size} players</title></rect>`}).join("")}
+    ${mark(E.sw,"Stats sheet")}${mark(E.tw,"Website")}<text x="0" y="${H+13}" fill="var(--muted)" font-size="10">Week ${ws[0]}</text><text x="${W}" y="${H+13}" fill="var(--muted)" font-size="10" text-anchor="end">Week ${TW_MAX} (so far)</text></svg>`;
+  return `<div class="adm acctsec engsec"><h3>Engagement</h3>
+    <p class="dim">The stats sheet started on ${d(E.sw)} (Week ${E.sw}) and the website on Oct 5, 2026 (Week ${E.tw}). Complete weeks only: Week ${TW_MAX} isn't finished yet. Each change compares with the column to its left.</p>
+    ${tbl([{h:"Before the stats sheet",x:E.before},{h:"Stats sheet, before the website",x:E.sheet},{h:"Since the website",x:E.site}])}
+    <h4>Players per week</h4>${svg}
+    <h4>Compared with the same weeks a year earlier</h4><p class="dim">2025 → 2026 over the same stretch of weeks, so a seasonal rise isn't mistaken for the sheet's or website's doing.</p>
+    ${yoy([{h:"Stats sheet weeks",a:E.yrSheet,b:E.sheet},{h:"Website weeks",a:E.yrSite,b:E.site}])}
+    <p class="dim">These show what changed, not why: seasons, song picks and word of mouth play a part too.</p></div>`}
 function friSection(){const t=friText(); if(!t)return "";
   return `<div class="adm acctsec hlbox fribox"><h3>Friday post</h3><p class="dim">A reminder for the forum thread before the weekend: play streaks with no score yet this week, and this week's challenges nobody can win yet, each with the players in that class who've played other challenges this week but not that one.</p>
     <pre id="fritext">${esc(t)}</pre><div class="row"><button type="button" class="btn ghost" data-rpcopy="fritext">Copy post</button></div></div>`}
@@ -7258,7 +7303,7 @@ function acctDraw(msg,err){
   else if(ACCT.claim.status==="pending")h+=`<p>You've claimed <b>${esc(ACCT.claim.player)}</b>. It's waiting for approval: an admin will message you to confirm it's really you, then approve it. Your verification animal is under Manage account.</p><div class="row"><button type="button" class="btn ghost" data-acct="unclaim">Withdraw claim</button></div>`;
   else h+=`<p>Hi <b>${esc(ACCT.claim.player)}</b>! This is your personal stats page. You can submit your own ratings for any song by clicking its rating number anywhere it appears. You can get your forum signature banner from the <span class="ywlink" role="button" tabindex="0" data-accttab="banner">Forum banner</span> tab.</p><div id="acct-tw">${(ACCT.twPart="me",acctThisWeek(ACCT.claim.player,"me"))}</div>${rankupSection(ACCT.claim.player)}${acctProfile(ACCT.claim.player)}`;
   if(ACCT.admin&&ACCT.tab==="admin"){const pend=ACCT.claims.filter(c=>c.status==="pending"), appr=ACCT.claims.filter(c=>c.status==="approved").sort((a,c)=>a.player.localeCompare(c.player));
-    h+=`<div class="adm acctsec"><h3>Claims</h3>${pend.length?`<p class="claimtip">Before approving, message the player on the CustomsForge forum to confirm the claim is really theirs: you can ask them for the verification animal shown next to their claim (they can see it under Manage account).</p>`:""}<p>${pend.length?"Waiting for approval:":"No claims waiting."}</p><ul>${pend.map(c=>`<li><span>${esc(c.player)} ${animalTag(ACCT.animals[c.user_id])} <small>${new Date(c.created_at).toLocaleDateString()}</small></span><span><button type="button" class="btn" data-acct="approve" data-uid="${c.user_id}">Approve</button> <button type="button" class="btn ghost" data-acct="reject" data-uid="${c.user_id}">Reject</button></span></li>`).join("")}</ul>${appr.length?`<p class="apprhead"><span>Approved (${appr.length}):</span><button type="button" class="btn ghost small" data-acct="editclaims">${ACCT.editClaims?"Done":"Edit"}</button></p><ul>${appr.map(c=>`<li><span>${esc(c.player)} ${animalTag(ACCT.animals[c.user_id])}</span>${ACCT.editClaims?`<button type="button" class="btn ghost" data-acct="removeask" data-player="${esc(c.player)}">Remove</button>`:""}</li>`).join("")}</ul>`:""}</div>${removePanel()}${claimLogSection()}${(()=>{try{return themeSection()}catch(e){console.error(e); return ""}})()}${(()=>{try{return siSection()}catch(e){return ""}})()}${(()=>{try{return friSection()}catch(e){console.error(e); return ""}})()}${(()=>{try{return rpSection()}catch(e){return ""}})()}${(()=>{try{return hmSection()}catch(e){return ""}})()}${(()=>{try{return hostMsgSection()}catch(e){return ""}})()}${(()=>{try{return bnaSection()}catch(e){return ""}})()}${tuneLogSection()}${voteLogSection()}${removedSection()}${adminsSection()}${hostSection(true)}${typoSection()}${fixLogSection()}${hostTab()?"":`<div class="adm acctsec"><h3>Host tools</h3><p class="dim">The Host tab's tools, here because you haven't hosted a week yet.</p></div>${hostTools()}`}`}
+    h+=`<div class="adm acctsec"><h3>Claims</h3>${pend.length?`<p class="claimtip">Before approving, message the player on the CustomsForge forum to confirm the claim is really theirs: you can ask them for the verification animal shown next to their claim (they can see it under Manage account).</p>`:""}<p>${pend.length?"Waiting for approval:":"No claims waiting."}</p><ul>${pend.map(c=>`<li><span>${esc(c.player)} ${animalTag(ACCT.animals[c.user_id])} <small>${new Date(c.created_at).toLocaleDateString()}</small></span><span><button type="button" class="btn" data-acct="approve" data-uid="${c.user_id}">Approve</button> <button type="button" class="btn ghost" data-acct="reject" data-uid="${c.user_id}">Reject</button></span></li>`).join("")}</ul>${appr.length?`<p class="apprhead"><span>Approved (${appr.length}):</span><button type="button" class="btn ghost small" data-acct="editclaims">${ACCT.editClaims?"Done":"Edit"}</button></p><ul>${appr.map(c=>`<li><span>${esc(c.player)} ${animalTag(ACCT.animals[c.user_id])}</span>${ACCT.editClaims?`<button type="button" class="btn ghost" data-acct="removeask" data-player="${esc(c.player)}">Remove</button>`:""}</li>`).join("")}</ul>`:""}</div>${removePanel()}${claimLogSection()}${(()=>{try{return themeSection()}catch(e){console.error(e); return ""}})()}${(()=>{try{return siSection()}catch(e){return ""}})()}${(()=>{try{return friSection()}catch(e){console.error(e); return ""}})()}${(()=>{try{return engSection()}catch(e){console.error(e); return ""}})()}${(()=>{try{return rpSection()}catch(e){return ""}})()}${(()=>{try{return hmSection()}catch(e){return ""}})()}${(()=>{try{return hostMsgSection()}catch(e){return ""}})()}${(()=>{try{return bnaSection()}catch(e){return ""}})()}${tuneLogSection()}${voteLogSection()}${removedSection()}${adminsSection()}${hostSection(true)}${typoSection()}${fixLogSection()}${hostTab()?"":`<div class="adm acctsec"><h3>Host tools</h3><p class="dim">The Host tab's tools, here because you haven't hosted a week yet.</p></div>${hostTools()}`}`}
   // redrawing keeps the popup where it was scrolled to (e.g. after changing a rating in the Admin tab)
   const dlg=$("acct"), keep=[dlg.scrollTop,b.scrollTop];
   b.innerHTML=h+note;
