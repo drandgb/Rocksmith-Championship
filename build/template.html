@@ -1631,7 +1631,8 @@ footer{color:var(--dim);font-size:.78rem}
     <div class="navopts" id="navopts"><div class="navyear" id="navyear">
       <label class="shostpick" data-yv="players" hidden><span>Year</span><select id="plyear" aria-label="Calendar year"></select></label>
       <label class="shostpick" data-yv="hosting" hidden><span>Year</span><select id="hostyear" aria-label="Calendar year"></select></label>
-      <label class="shostpick" data-yv="winners" hidden><span>Year</span><select id="wseason" aria-label="Calendar year"></select></label></div>
+      <label class="shostpick" data-yv="winners" hidden><span>Year</span><select id="wseason" aria-label="Calendar year"></select></label>
+      <label class="shostpick" data-yv="songs" hidden><span>Selected by</span><select id="shost" aria-label="Only songs selected by this host"><option value="">All hosts</option></select></label></div>
     <div class="seg actfilter" role="radiogroup" aria-label="Show everyone or active only" id="pfilter">
       <button type="button" data-af="0" class="s-all" aria-pressed="false">All</button>
       <button type="button" data-af="1" class="s-act" aria-pressed="true">Active only</button>
@@ -1940,7 +1941,7 @@ footer{color:var(--dim);font-size:.78rem}
     <button type="button" data-sp="0" class="s-lead" aria-pressed="false">Lead</button>
     <button type="button" data-sp="1" class="s-rhy" aria-pressed="false">Rhythm</button>
     <button type="button" data-sp="2" class="s-bass" aria-pressed="false">Bass</button>
-  </div><label class="shostpick"><span>Selected by</span><select id="shost" aria-label="Only songs selected by this host"><option value="">All hosts</option></select></label></div>
+  </div></div>
   <section class="now" id="songstats" aria-label="Song totals"></section>
 
   <div class="grid2 even">
@@ -3547,8 +3548,8 @@ function showView(v){
   ["thisweek","level","rankings","season","hosting","players","winners","scores","songs","faq"].forEach(k=>{const on=k===v;$("view-"+k).hidden=!on;$("tab-"+k).setAttribute("aria-selected",on)});
   tip.hidden=true;
   $("pfilter").hidden=v==="scores"||v==="songs"||v==="thisweek"||v==="rankings"||v==="season"||v==="faq"||v==="level";
-  // the Year picker of the Players, Hosts and Winners tabs sits on the same row as the All / Active only toggle
-  document.querySelectorAll("#navyear [data-yv]").forEach(l=>l.hidden=l.dataset.yv!==v); $("navopts").hidden=$("pfilter").hidden;
+  // the Year picker of the Players, Hosts and Winners tabs (and Songs' Selected by) sits on the same row as the All / Active only toggle
+  document.querySelectorAll("#navyear [data-yv]").forEach(l=>l.hidden=l.dataset.yv!==v); $("navopts").hidden=$("pfilter").hidden&&!document.querySelector(`#navyear [data-yv="${v}"]`);   // (Songs: its Selected by picker, no toggle)
   if(v==="season")setTimeout(()=>{try{renderSeason()}catch(e){}},0);
   if(v==="level")setTimeout(()=>{try{renderLevel()}catch(e){console.error(e)}},0);
   if(v==="season"||v==="level"||v==="rankings")setTimeout(()=>{try{plHl()}catch(e){}},30);   // (after the page has finished loading: opening the site on #season runs this first)
