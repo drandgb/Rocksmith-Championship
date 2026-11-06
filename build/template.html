@@ -6271,6 +6271,16 @@ function hmWelcome(w){const byName=Object.fromEntries(PLAYERS.map(p=>[p[0].toLow
 function hmBack(w){const I=sbIx();
   return Object.keys(I.wk).map(k=>{const W=I.wk[k], i=W.indexOf(w); if(i<1||w-W[i-1]<5)return null; const n=I.disp[k], away=w-W[i-1]-1;
     return {n,away,t:`Welcome back to the championship, @${n}! Great to see you again after ${away} week${away===1?"":"s"} away 🎸`}}).filter(Boolean).sort((a,b)=>a.n.localeCompare(b.n))}
+// big improvements in week w: a song the player has played before on the same path, now at least HM_IMPROVE points
+// above their best score on it before (their biggest jump per song and path)
+const HM_IMPROVE=10;
+function hmImprove(w){const key=t=>String(t).toLowerCase().replace(/\s+/g," ").trim(), nm=i=>SB.names[i].replace(/[*~]+$/,""), ok=c=>!c[7]&&c[3]&&!/^n\/a$/i.test(c[3]), best={}, out={};
+  Object.keys(SB.weeks).map(Number).filter(x=>x<w).forEach(x=>SB.weeks[x].forEach(c=>{if(!ok(c))return;
+    c[6].forEach(e=>{if(typeof e[1]!=="number")return; const k=nm(e[0]).toLowerCase()+"|"+c[0]+"|"+key(c[3]); if(!(best[k]>=e[1]))best[k]=e[1]})}));
+  (SB.weeks[w]||[]).forEach(c=>{if(!ok(c))return; c[6].forEach(e=>{if(typeof e[1]!=="number")return; const n=nm(e[0]), k=n.toLowerCase()+"|"+c[0]+"|"+key(c[3]), b=best[k];
+    if(b==null||e[1]-b<HM_IMPROVE)return; if(!out[k]||out[k].pct<e[1])out[k]={n,pct:e[1],b,d:Math.round((e[1]-b)*10)/10,song:c[3],path:PATHS[c[0]]||""}})});
+  return Object.values(out).sort((a,b)=>b.d-a.d||a.n.localeCompare(b.n)).map(x=>({...x,
+    t:`Big improvement @${x.n}! ${x.pct}% on ${x.song}${x.path?` (${x.path})`:""}, up ${x.d} points from your best of ${x.b}% before 📈`}))}
 // milestone medals collected in week w, as encouraging messages: new play streaks and hosting milestones, round numbers
 // (every 50 weeks played, every 25 wins on a path), and firsts (the medal's all-time count is all from this week)
 function hmMsg(n,tip){const k=tip.split(" · ")[0], all=+((/\((\d+) all time\)/.exec(tip)||[])[1]||0), plus=+((/\+(\d+) this week/.exec(tip)||[])[1]||0), first=all>0&&all===plus;
@@ -6299,12 +6309,13 @@ function hostMsgSection(){const ws=hmWeeks(); if(!ws.length)return ""; const w=A
   return `<div class="adm acctsec hmsec hmhost"><h3>Host milestones <select class="hlsel" data-hmweek>${ws.map(x=>`<option value="${x}"${x===w?" selected":""}>Week ${x}</option>`).join("")}</select></h3>
     <p class="dim">Thank-you messages for hosts who reached a host medal, ready to copy.</p>${M.length?`<ul class="hml">${M.map(x=>row(x.t,x.what)).join("")}</ul>`:`<p class="dim">No host medal milestones in Week ${w}.</p>`}</div>`}
 function hmSection(){const ws=hmWeeks(); if(!ws.length)return ""; const w=ACCT.hmWeek&&ws.includes(ACCT.hmWeek)?ACCT.hmWeek:ws[0];
-  const W=hmWelcome(w), B=hmBack(w), M=hmMilestones(w).filter(x=>!hmIsHost(x)), row=(t,tag)=>`<li><div class="hmt">${tag?`<span class="hmk">${esc(tag)}</span>`:""}${esc(t)}</div><button type="button" class="btn ghost hmcp" data-hmcopy="${esc(t)}">Copy</button></li>`;
+  const W=hmWelcome(w), B=hmBack(w), M=hmMilestones(w).filter(x=>!hmIsHost(x)), U=hmImprove(w), row=(t,tag)=>`<li><div class="hmt">${tag?`<span class="hmk">${esc(tag)}</span>`:""}${esc(t)}</div><button type="button" class="btn ghost hmcp" data-hmcopy="${esc(t)}">Copy</button></li>`;
   return `<div class="acctsec hmsec"><h3>Messages for players <select class="hlsel" data-hmweek>${ws.map(x=>`<option value="${x}"${x===w?" selected":""}>Week ${x}</option>`).join("")}</select></h3>
     <p class="dim">Ready to copy into a forum reply or message.${w>DATA_WEEK?" This week is still running, so medals can still change.":""}</p>
     <h4>👋 Welcome new players</h4>${W.length?`<ul class="hml">${W.map(x=>row(x.t)).join("")}</ul>`:`<p class="dim">No new players in Week ${w}.</p>`}
     <h4>🔁 Welcome back</h4>${B.length?`<ul class="hml">${B.map(x=>row(x.t,`${x.away} weeks away`)).join("")}</ul>`:`<p class="dim">Nobody back from a break in Week ${w}.</p>`}
-    <h4>🎉 Milestones</h4>${M.length?`<ul class="hml">${M.map(x=>row(x.t,x.what)).join("")}</ul>`:`<p class="dim">No milestone medals in Week ${w} yet.</p>`}</div>`}
+    <h4>🎉 Milestones</h4>${M.length?`<ul class="hml">${M.map(x=>row(x.t,x.what)).join("")}</ul>`:`<p class="dim">No milestone medals in Week ${w} yet.</p>`}
+    <h4>📈 Big improvements</h4>${U.length?`<ul class="hml">${U.map(x=>row(x.t,`+${x.d} points`)).join("")}</ul>`:`<p class="dim">Nobody beat their own best on a song by ${HM_IMPROVE}+ points in Week ${w} yet.</p>`}</div>`}
 document.addEventListener("change",e=>{const s=e.target.closest("[data-hmweek]"); if(!s)return; ACCT.hmWeek=+s.value; const el=document.querySelector(".acctdlg .hmsec:not(.hmhost)"); if(el)el.outerHTML=hmSection(); const eh=document.querySelector(".acctdlg .hmhost"); if(eh)eh.outerHTML=hostMsgSection()});
 document.addEventListener("click",e=>{const b=e.target.closest("[data-hmcopy]"); if(!b)return; try{navigator.clipboard.writeText(b.dataset.hmcopy).then(()=>{b.textContent="Copied ✓"; setTimeout(()=>b.textContent="Copy",1500)})}catch(err){}});
 // Host tab: arrangements left unused recently. Songs played in the last 26 weeks whose latest week left out a path the
