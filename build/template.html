@@ -138,8 +138,6 @@ button.forum{background:none;cursor:pointer;font:inherit;font-size:.85rem}
 .now .n{font-size:.8rem;color:var(--muted)}
 .pill{display:inline-block;font-family:var(--f-mono);font-size:.7rem;padding:2px 7px;border-radius:999px;letter-spacing:.04em;vertical-align:middle}
 .pill.open{background:color-mix(in srgb,var(--open) 18%,transparent);color:var(--open);border:1px solid color-mix(in srgb,var(--open) 50%,transparent)}
-.twhostbar{display:flex;justify-content:flex-end;margin:0 0 10px}.twhostbar[hidden]{display:none}
-.twhostbar .btn{background:var(--accent);color:var(--accent-ink);border:0;border-radius:6px;padding:7px 14px;font:700 .82rem var(--f-display);cursor:pointer}
 .acctdlg a.btn{display:inline-block;text-decoration:none}
 .acctdlg h3>.nbadge{margin-left:8px;vertical-align:2px}
 .twwarn{display:flex;align-items:center;gap:12px;margin:0 0 14px;padding:12px 16px;border-radius:12px;background:color-mix(in srgb,var(--s-red) 14%,var(--panel));border:1px solid color-mix(in srgb,var(--s-red) 60%,transparent);color:var(--fg)}
@@ -1235,6 +1233,11 @@ footer .updated{display:block;margin-top:4px}
 .ups .pill.rkpath.act{color:#10131a;background:var(--pc);border-color:var(--pc)}
 #twsb{border-radius:999px;padding:7px 16px;font-weight:700;color:#1a1406;background:var(--s-orange);border:1px solid var(--s-orange);box-shadow:0 0 12px color-mix(in srgb,var(--s-orange) 40%,transparent);cursor:pointer}
 #twsb:hover{filter:brightness(1.1)}
+/* Open host settings: this week's host, under Open scoreboard and styled like it */
+.twhostrow{display:flex;justify-content:flex-end;margin-top:8px}.twhostrow[hidden]{display:none}
+#twhost{border-radius:999px;padding:7px 16px;font-weight:700;color:#1a1406;background:var(--s-orange);border:1px solid var(--s-orange);box-shadow:0 0 12px color-mix(in srgb,var(--s-orange) 40%,transparent);cursor:pointer;white-space:nowrap}
+#twhost:hover{filter:brightness(1.1)}
+@media (max-width:640px){.twhostrow{justify-content:center}#twhost{flex:1 1 100%;max-width:92%;text-align:center;padding:9px 16px}}
 @media (max-width:640px){#twsb{order:10;flex:1 1 100%;max-width:92%;margin:4px auto 0;text-align:center;padding:9px 16px}}
 /* Hall of fame: a victorious gold rim with musical notes dancing around the border */
 .panel.hof{position:relative;border:2px solid transparent;
@@ -1817,7 +1820,6 @@ footer{color:var(--dim);font-size:.78rem}
   <div class="view" id="view-thisweek" role="tabpanel" aria-labelledby="tab-thisweek" hidden>
   <div class="twwarn" id="twwarn" role="alert" hidden></div>
   <div class="cdbanner" id="cdbanner" hidden></div>
-  <div class="twhostbar" id="twhostbar" hidden><button type="button" class="btn" data-openhost>Open host settings</button></div>
   <section class="panel nwnote" id="twnote" hidden></section>
   <section class="panel goalsec" id="tw-goals" hidden></section>
   <section class="panel twhead">
@@ -1829,6 +1831,7 @@ footer{color:var(--dim);font-size:.78rem}
     </div>
     <div class="twcalrow"><div class="twcal" id="twcal"></div><div class="twcalside"><div class="twseas twlead" id="twlead" hidden></div></div></div>
     <div class="twstatrow"><div class="twstats" id="tw-stats"></div><button type="button" class="clear" id="twsb">Open scoreboard ›</button></div>
+    <div class="twhostrow" id="twhostbar" hidden><button type="button" class="clear" id="twhost" data-openhost>Open host settings ›</button></div>
   </section>
   <section class="panel dlsec pvsec" id="twpast" hidden></section>
   <section class="panel dlsec" id="twdl" hidden></section>
