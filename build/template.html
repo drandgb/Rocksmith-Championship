@@ -2960,7 +2960,7 @@ function goalsPlay(n,G,wk,pl){const p=byName[n]; if(!p)return; const tw=TW_MAX, 
   const thisWk=now?"":" (this week counts)";
   const k=STREAK_STEPS.filter(x=>x<52).find(x=>x>s)||52*(Math.floor(s/52)+1);   // then the year streaks: 52, 104, 156 ...
   if(k)G.push([k%52?`${k}-week play streak`:`${k/52}-year play streak`,`${wk(k-s)} in a row${thisWk}${longest<k?" · a new medal":""}`]);
-  if(longest>s&&longest>=5&&longest+1-s<=12&&(!k||longest+1!==k))G.push([`Beat your longest play streak (${longest} weeks)`,`${wk(longest+1-s)} in a row`]);
+  if(longest>s&&longest>=5&&longest+1-s<=12&&(!k||longest+1!==k))G.push([`Beat your longest play streak (${longest} wks)`,`${wk(longest+1-s)} in a row`]);
   const played=(p[3]||0)+(now?1:0), m=GOAL_PLAYED.find(x=>x>played); if(m&&m-played<=10)G.push([`${m} weeks played`,`${wk(m-played)}${thisWk}`]);
   try{eloBuild(); const id=seasonOf(ELO_DONE), [a,b]=seasonRange(id), left=b-Math.min(b,ELO_DONE), kk=String(n).toLowerCase(); let best=null;
     [0,1,2].forEach(pi=>Object.entries(seasonF1(pi,id)).forEach(([c,L])=>{const i=L.findIndex(x=>x.n.toLowerCase()===kk); if(i<1)return; const gap=L[i-1].p-L[i].p;
