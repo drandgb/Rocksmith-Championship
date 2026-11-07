@@ -4008,8 +4008,8 @@ document.addEventListener("click",e=>{const li=e.target.closest(".twseasin li.ts
 document.addEventListener("click",e=>{if(!e.target.closest("[data-goseason]")||e.target.closest("[data-profile],[data-player],.tsgain"))return; showView("season"); scrollTo({top:0})});
 // clicking (or tapping) a "+ points" in the Season box shows where they came from, until the next click
 var twTipPin=null;
-document.addEventListener("click",e=>{let g=e.target.closest(".tsgain,.twwelcome,#tw-new .tier[data-tip]"); if(g&&g.matches(".twwelcome[data-goplayer]"))g=null; if(!g){if(twTipPin){twTipPin=null; tip.hidden=true} return}
-  e.stopPropagation(); twTipPin=g; tip.textContent=g.dataset.tip; tip.hidden=false; const r=g.getBoundingClientRect(); placeTip(Math.min(r.left,innerWidth-260),r.bottom-4)},true);
+document.addEventListener("click",e=>{let g=e.target.closest(".tsgain,.twwelcome,#tw-new .tier[data-tip],#tw-stats [data-tip]"); if(g&&g.matches(".twwelcome[data-goplayer]"))g=null; if(!g){if(twTipPin){twTipPin=null; tip.hidden=true} return}
+  e.stopPropagation(); twTipPin=g; if(g.dataset.tiph)tip.innerHTML=g.dataset.tiph; else tip.textContent=g.dataset.tip; tip.hidden=false; const r=g.getBoundingClientRect(); placeTip(Math.min(r.left,innerWidth-260),r.bottom-4)},true);
 // New medals order: gold God winners first, then silver, then bronze God diamond winners, then everyone else
 // then most new regular gold medals, then silver, then bronze (all paths), then most new medals overall
 function podNew(m,i){return m.reduce((t,h)=>{if(!/medal-m wm pod/.test(h)||!new RegExp(`data-tip="${POD_NAME[i]} medal`).test(h))return t; const k=/data-k="(\d+)"/.exec(h); return t+(k?+k[1]:1)},0)}
@@ -4448,6 +4448,12 @@ var SB_SEEN=(()=>{let prev=null; try{prev=localStorage.getItem("rsc-seen")}catch
   const t=prev&&+prev<now?+prev:now-864e5;
   try{localStorage.setItem("rsc-seen",String(Math.max(prev&&+prev<now?+prev:0,built)))}catch(e){}
   return {t,first:!prev}})();
+// the players list in a hover, with colors: green = starting a new streak (didn't play the week before), then in red
+// the week before's players who haven't played this week (yet). intro: plain text above it.
+function plColorTip(w,names,live,intro){const abc=xs=>[...xs].sort((a,b)=>a.localeCompare(b,undefined,{sensitivity:"base"}));
+  const prevL=w>PRES_START?twNames(w-1):[], prevK=new Set(prevL.map(x=>x.toLowerCase())), curK=new Set(names.map(x=>x.toLowerCase())), gone=abc(prevL.filter(x=>!curK.has(x.toLowerCase())));
+  if(!names.length&&!gone.length)return "";
+  return `${intro?esc(intro).replace(/\n/g,"<br>")+"<br><br>":""}${names.length?`<b>Players${live?" so far":""}:</b><br>${abc(names).map(x=>prevK.has(x.toLowerCase())?esc(x):`<span class="tipnew">${esc(x)}</span>`).join(", ")}`:""}${gone.length?`${names.length?"<br><br>":""}<b>Players last week but not ${live?"yet ":""}this week:</b><br><span class="tipgone">${gone.map(esc).join(", ")}</span>`:""}`}
 function sbAgo(ms){const m=Math.round((Date.now()-ms)/6e4); return m<60?`${Math.max(1,m)} min ago`:m<1440?`${Math.round(m/60)} h ago`:`${Math.round(m/1440)} day${Math.round(m/1440)===1?"":"s"} ago`}
 // Click a score: the player's earlier tries at this challenge. This week: their first score if they've since improved
 // (from the site's update log); earlier weeks: every time the same song and arrangement was played, newest first.
@@ -4505,7 +4511,8 @@ function sbRender(){
   const plainTip=players.size?`Players:\n${abc(players).join(", ")}`:"";
   const allTip=all.length?`Entries per player, all paths:\n${perList(all)}`:"";
   const pathTip=pathEnts.length?`${pathName} entries per player:\n${perList(pathEnts)}`:"";
-  $("sbstats").innerHTML=(carried>0?`<span data-tip="${esc(compTipL)}"><b>${players.size}</b> players competing</span><span data-tip="${esc(postTipL)}"><b>${posted.size}</b> players this week</span>`:`<span data-tip="${esc(plainTip)}"><b>${players.size}</b> players this week</span>`)+`<span data-tip="${esc(allTip)}"><b>${all.length}</b> entries in all paths</span>${sbPath<3?`<span data-tip="${esc(pathTip)}"><b>${pathEnts.length}</b> ${["lead","rhythm","bass"][sbPath]} entries</span>`:""}`;
+  const liveSb=sbWeek===TW_LIVE, postH=plColorTip(sbWeek,abc(posted),liveSb,postTip), plainH=plColorTip(sbWeek,abc(players),liveSb,"");
+  $("sbstats").innerHTML=(carried>0?`<span data-tip="${esc(compTipL)}"><b>${players.size}</b> players competing</span><span data-tip="${esc(postTipL)}" data-tiph="${esc(postH)}"><b>${posted.size}</b> players this week</span>`:`<span data-tip="${esc(plainTip)}" data-tiph="${esc(plainH)}"><b>${players.size}</b> players this week</span>`)+`<span data-tip="${esc(allTip)}"><b>${all.length}</b> entries in all paths</span>${sbPath<3?`<span data-tip="${esc(pathTip)}"><b>${pathEnts.length}</b> ${["lead","rhythm","bass"][sbPath]} entries</span>`:""}`;
   // Your cards: the cards you're ranked on, plus every card in your own class on each path (from the player list), played or not yet
   const myTiers=sbPath===3?String(((PLAYERS.find(P=>P[0].toLowerCase()===mineWho)||[])[8])||PL_NEW[Object.keys(PL_NEW).find(k=>k.toLowerCase()===mineWho)]||"").toUpperCase():"";
   const cards=sbPath===3?ch.filter(c=>cardLv(c[2])!=="G"&&(cardLv(c[2])===myTiers.charAt(c[0])||c[6].some(e=>{const r=SB.names[e[0]]; return r.replace(/[*~]+$/,"").toLowerCase()===mineWho&&!r.includes("*")}))).sort((a,b)=>a[0]-b[0]||a[1]-b[1])
@@ -4609,7 +4616,7 @@ $("view-scores").addEventListener("click",e=>{
   showView("players"); showPlayer(n); $("pcard").closest("section").scrollIntoView({block:"start"});
 });
 let sbTipPin=null;   // a hover text a phone tap opened (stays until the next tap)
-$("view-scores").addEventListener("mousemove",e=>{if(sbTipPin)return; const p=e.target.closest("[data-tip]");if(!p){tip.hidden=true;return}tip.textContent=p.dataset.tip;tip.hidden=false;placeTip(e.clientX,e.clientY)});
+$("view-scores").addEventListener("mousemove",e=>{if(sbTipPin)return; const p=e.target.closest("[data-tip]");if(!p){tip.hidden=true;return}if(p.dataset.tiph)tip.innerHTML=p.dataset.tiph; else tip.textContent=p.dataset.tip;tip.hidden=false;placeTip(e.clientX,e.clientY)});
 $("view-scores").addEventListener("mouseleave",()=>{if(!sbTipPin)tip.hidden=true});
 // clicking a score (%, streak or score) shows the player's earlier tries at that challenge, until the next click
 $("sbcards").addEventListener("click",e=>{const td=e.target.closest("#sbcards tbody td"); if(!td||td.classList.contains("n")||!td.previousElementSibling)return;
@@ -4624,7 +4631,7 @@ document.addEventListener("pointerdown",e=>{if(sbTipPin&&!sbTipPin.contains(e.ta
  document.addEventListener("pointerdown",e=>{if(sbTipPin&&!sbTipPin.contains(e.target)){sbTipPin=null; tip.hidden=true}},true);
  $("view-scores").addEventListener("click",e=>{if(!touch)return; const p=e.target.closest("[data-tip]");
    if(!p||p.tagName==="TR"||p.closest("button,a,select,.golink,[data-pvw],[data-pvgo],[data-player]"))return;
-   e.preventDefault(); e.stopPropagation(); sbTipPin=p; tip.textContent=p.dataset.tip; tip.hidden=false;
+   e.preventDefault(); e.stopPropagation(); sbTipPin=p; if(p.dataset.tiph)tip.innerHTML=p.dataset.tiph; else tip.textContent=p.dataset.tip; tip.hidden=false;
    const r=p.getBoundingClientRect(); placeTip(Math.max(8,r.left-12),r.bottom-4)},true);
  addEventListener("scroll",()=>{if(sbTipPin){sbTipPin=null; tip.hidden=true}},{passive:true});}
 try{const st=JSON.parse(localStorage.getItem("rsc-sb")||"null");if(st){if(SB.weeks[st.w])sbWeek=st.w;if([0,1,2,3,4].includes(st.p))sbPath=st.p; if(Array.isArray(st.lv)&&st.lv.length===3&&st.lv.every(x=>SB_CYC.includes(x)))sbLv=st.lv}}catch(e){}
@@ -6101,11 +6108,7 @@ function renderThisWeek(){
   const abc=xs=>xs.slice().sort((a,b)=>a.localeCompare(b,undefined,{sensitivity:"base"}));
   const perP={}; ents.forEach(x=>perP[x.n]=(perP[x.n]||0)+1);
   const tipP=names.length?`Players${live?" so far":""}:\n`+abc(names).join(", "):"";
-  // the same list with colors: green for players starting a new streak (they didn't play the week before), then
-  // in red the players from the week before who haven't played this week (yet)
-  const prevL=w>PRES_START?twNames(w-1):[], prevK=new Set(prevL.map(x=>x.toLowerCase())), curK=new Set(names.map(x=>x.toLowerCase()));
-  const gone=abc(prevL.filter(x=>!curK.has(x.toLowerCase())));
-  const tipPh=names.length||gone.length?`${names.length?`<b>Players${live?" so far":""}:</b><br>${abc(names).map(x=>prevK.has(x.toLowerCase())?esc(x):`<span class="tipnew">${esc(x)}</span>`).join(", ")}`:""}${gone.length?`${names.length?"<br><br>":""}<b>Players last week but not ${live?"yet ":""}this week:</b><br><span class="tipgone">${gone.map(esc).join(", ")}</span>`:""}`:"";
+  const tipPh=plColorTip(w,names,live,"");   // the same list with colors (green: new streak; red: last week's, not this week)
   const tipE=ents.length?`Entries per player:\n`+Object.entries(perP).sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0],undefined,{sensitivity:"base"})).map(([n,k])=>`${n} (${k})`).join(", "):"";
   const tipB=back.length?`Back from a break:\n`+back.map(b=>`${b.n} (last played Week ${b.prev})`).join(", "):"Nobody back from a break";
   const tipN=fresh.length?`New this week:\n`+abc(fresh).join(", "):"No new players";
