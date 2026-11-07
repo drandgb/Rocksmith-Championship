@@ -3980,8 +3980,8 @@ document.addEventListener("click",e=>{const li=e.target.closest(".twseasin li.ts
 document.addEventListener("click",e=>{if(!e.target.closest("[data-goseason]")||e.target.closest("[data-profile],[data-player],.tsgain"))return; showView("season"); scrollTo({top:0})});
 // clicking (or tapping) a "+ points" in the Season box shows where they came from, until the next click
 var twTipPin=null;
-document.addEventListener("click",e=>{let g=e.target.closest(".tsgain,.twwelcome,#tw-new .tier[data-tip]"); if(g&&g.matches(".twwelcome[data-goplayer]"))g=null; if(!g){if(twTipPin){twTipPin=null; tip.hidden=true} return}
-  e.stopPropagation(); twTipPin=g; tip.textContent=g.dataset.tip; tip.hidden=false; const r=g.getBoundingClientRect(); placeTip(Math.min(r.left,innerWidth-260),r.bottom-4)},true);
+document.addEventListener("click",e=>{let g=e.target.closest(".tsgain,.twwelcome,#tw-new .tier[data-tip],#tw-stats [data-tip]"); if(g&&g.matches(".twwelcome[data-goplayer]"))g=null; if(!g){if(twTipPin){twTipPin=null; tip.hidden=true} return}
+  e.stopPropagation(); twTipPin=g; if(g.dataset.tiph)tip.innerHTML=g.dataset.tiph; else tip.textContent=g.dataset.tip; tip.hidden=false; const r=g.getBoundingClientRect(); placeTip(Math.min(r.left,innerWidth-260),r.bottom-4)},true);
 // New medals order: gold God winners first, then silver, then bronze God diamond winners, then everyone else
 // then most new regular gold medals, then silver, then bronze (all paths), then most new medals overall
 function podNew(m,i){return m.reduce((t,h)=>{if(!/medal-m wm pod/.test(h)||!new RegExp(`data-tip="${POD_NAME[i]} medal`).test(h))return t; const k=/data-k="(\d+)"/.exec(h); return t+(k?+k[1]:1)},0)}
