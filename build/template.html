@@ -2962,7 +2962,7 @@ function goalsPanel(n){const p=byName[n]; if(!p)return ""; const tw=TW_MAX, now=
 function twGoals(){const el=$("tw-goals"); if(!el)return; let G=[], n="";
   try{if(typeof ACCT!=="undefined"&&ACCT.claim&&ACCT.claim.status==="approved"&&twWeek===TW_LIVE){n=ACCT.claim.player; G=goalsPanel(n)||[]}}catch(e){console.error(e)}
   el.hidden=!G.length; if(!G.length){el.innerHTML=""; return}
-  el.innerHTML=`<div class="panel-head"><h2>🎯 Within reach</h2></div><ul class="twgoals">${G.map(([t,r])=>`<li><span class="fwt">${esc(t)}</span><span class="nwr">${esc(r)}</span></li>`).join("")}</ul>`}
+  el.innerHTML=`<div class="panel-head"><h2>🎯 Within reach - Keep Going!</h2></div><ul class="twgoals">${G.map(([t,r])=>`<li><span class="fwt">${esc(t)}</span><span class="nwr">${esc(r)}</span></li>`).join("")}</ul>`}
 
 // Welcome back: a player back after 4+ weeks away, for their first 4 weeks back
 function wbInfo(n){const W=sbIx().wk[String(n).toLowerCase()]||[], tw=TW_MAX; if(W.length<2||W[W.length-1]<tw-8)return null;
