@@ -905,8 +905,9 @@ html.acctwait body{visibility:hidden}html.acctwait{background:var(--bg)}html.acc
 .h2ht [data-sbw]{cursor:pointer;text-decoration:underline dotted}
 .tip .tipnew{color:var(--s-green);font-weight:600}.tip .tipgone{color:var(--s-red)}
 /* This Week: Within reach (the signed-in player's next goals) */
-.twgoals{list-style:none;margin:6px 0 0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:8px}
-.twgoals li{display:flex;flex-direction:column;gap:3px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:rgba(255,255,255,.02)}
+.twgoals{list-style:none;margin:6px 0 0;padding:0;display:flex;flex-direction:column;gap:6px}
+.twgoals li{display:flex;align-items:baseline;flex-wrap:wrap;gap:4px 14px;padding:9px 12px;border:1px solid var(--line);border-radius:10px;background:rgba(255,255,255,.02)}
+.twgoals li .fwt{flex:0 1 auto;min-width:0}
 .twgoals .fwt{font-weight:700}.twgoals .nwr{color:var(--muted);font-size:13px}
 /* Admin: engagement before and since the stats sheet and the website */
 .engt{width:100%;border-collapse:collapse;font-size:13px;margin:8px 0 4px}.engt th,.engt td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
@@ -2959,7 +2960,7 @@ function goalsPlay(n,G,wk,pl){const p=byName[n]; if(!p)return; const tw=TW_MAX, 
   const thisWk=now?"":" (this week counts)";
   const k=STREAK_STEPS.filter(x=>x<52).find(x=>x>s)||52*(Math.floor(s/52)+1);   // then the year streaks: 52, 104, 156 ...
   if(k)G.push([k%52?`${k}-week play streak`:`${k/52}-year play streak`,`${wk(k-s)} in a row${thisWk}${longest<k?" · a new medal":""}`]);
-  if(longest>s&&longest>=5&&longest+1-s<=12&&(!k||longest+1!==k))G.push([`Beat your longest streak (${longest} weeks)`,`${wk(longest+1-s)} in a row`]);
+  if(longest>s&&longest>=5&&longest+1-s<=12&&(!k||longest+1!==k))G.push([`Beat your longest play streak (${longest} weeks)`,`${wk(longest+1-s)} in a row`]);
   const played=(p[3]||0)+(now?1:0), m=GOAL_PLAYED.find(x=>x>played); if(m&&m-played<=10)G.push([`${m} weeks played`,`${wk(m-played)}${thisWk}`]);
   try{eloBuild(); const id=seasonOf(ELO_DONE), [a,b]=seasonRange(id), left=b-Math.min(b,ELO_DONE), kk=String(n).toLowerCase(); let best=null;
     [0,1,2].forEach(pi=>Object.entries(seasonF1(pi,id)).forEach(([c,L])=>{const i=L.findIndex(x=>x.n.toLowerCase()===kk); if(i<1)return; const gap=L[i-1].p-L[i].p;

@@ -16,7 +16,7 @@ The whole app is one self-contained `index.html`, with no server. It loads Googl
 ## Tabs
 
 ### 📅 This Week
-- **🎯 Within reach** (at the top, for a signed-in player who played this week or last): their next goals close by: the next play streak (and whether it's a new medal), beating their longest streak, a weeks-played milestone, the season place just above them, the next win streak medal when they're on one, and for hosts the next hosting medals and their place in this year's Host of the year race.
+- **🎯 Within reach** (at the top, for a signed-in player who played this week or last): their next goals close by: the next play streak (and whether it's a new medal), beating their longest play streak, a weeks-played milestone, the season place just above them, the next win streak medal when they're on one, and for hosts the next hosting medals and their place in this year's Host of the year race.
 - The page the site opens on (links ending in #winners, #players, #hosts, #songs or #scoreboard open that tab instead). Shows the current week; use ‹ › to step back through earlier weeks.
 - **Back from a break**: who played after missing last week, with the week they last played.
 - **New this week**: first-time players, with the rank they started at on each path.
