@@ -152,7 +152,7 @@ The page's *Last updated* time is the last time either Action checked the sheet 
 
 Run either one by hand from **Actions → (pick one) → Run workflow**.
 
-Before an update goes live, `build/check_page.py` opens the new page in headless Chrome at computer and phone widths and opens every tab. If a tab is empty or the page's code hits an error, the site keeps its last good page and the run is marked as failed, so GitHub emails you.
+Before an update goes live, `build/check_page.py` opens the new page in headless Chrome at computer and phone widths and opens every tab. If a tab is empty, the page's code hits an error (including one a section catches and logs), or two functions in the code share a name (the second would silently replace the first), the site keeps its last good page and the run is marked as failed, so GitHub emails you. A draft's check also compares every section with the live page and fails if one that has content there is gone, hidden or mostly empty in the draft.
 
 What it reads from the sheet (it must stay shared as *Anyone with the link can view*):
 

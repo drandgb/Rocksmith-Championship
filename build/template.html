@@ -2181,7 +2181,7 @@ document.addEventListener("keydown",e=>{const i=e.target.closest&&e.target.close
   if(e.key==="Escape"&&!l.hidden){e.preventDefault(); l.hidden=true; return}
   if(e.key==="Enter"){e.preventDefault(); if(!l.hidden&&k>=0){i.value=vis[k].dataset.tunopt; l.hidden=true; return} ed.querySelector("[data-tunsave]").click()}});
 function tuneFixGot(rows){if(!Array.isArray(rows))return; const m={}; rows.forEach(r=>m[r.song+"|"+r.path]={t:r.tuning,by:r.set_by,c:r.capo||0}); TUNE_FIX=m; try{localStorage.setItem("rsc-tunefix",JSON.stringify(m))}catch(e){}
-  try{sbRender()}catch(e){} try{if(!$("view-songs").hidden)renderSongLookup()}catch(e){}}
+  try{sbRender()}catch(e){console.error(e)} try{if(!$("view-songs").hidden)renderSongLookup()}catch(e){}}
 if(TUNE_EARLY)TUNE_EARLY.then(tuneFixGot);
 var LEVEL=__LEVEL__;   // Rodman's PlayerLevel tab (build_level.py)
 var YEAREND=__YEAREND__;   // year-end Rodman's Rankings (build_yearend.py)
@@ -3070,7 +3070,7 @@ function seasonNum(id){const L=seasonList(), i=L.indexOf(id); return roman(i>=0?
 function roman(n){let o=""; [[1000,"M"],[900,"CM"],[500,"D"],[400,"CD"],[100,"C"],[90,"XC"],[50,"L"],[40,"XL"],[10,"X"],[9,"IX"],[5,"V"],[4,"IV"],[1,"I"]].forEach(([v,r])=>{while(n>=v){o+=r; n-=v}}); return o}
 const SEASON_TIP="Seasons run Jan–Mar, Apr–Jun, Jul–Sep and Oct–Dec, so a new season starts in January, when most new players join.\n\nPoints: on each week's main challenge (not bonus or God challenges), the top 10 who can win it score 25, 18, 15, 12, 10, 8, 6, 4, 2 and 1. Each class is its own championship, and the same rules as winning a challenge decide who counts (playing up or down doesn't). Points add up over the season, so showing up every week matters; ties go to more wins, then more 2nd places, and so on. The leader when the season ends is that class's season champion.\n\nMost improved: the biggest player level gain in each class on a path over the season (the level from the 12 weeks before it against the level over its last 12 weeks), for players with games in at least half of its weeks (7 of a 13-week season).";
 var SEAS_AT=null;   // Season tab: show the standings after this week (null: now)
-function renderSeason(){setTimeout(()=>{try{seasHl()}catch(e){}},0); const el=$("season-box"); if(!el)return; eloBuild(); const L=seasonList(); if(!L.length)return;
+function renderSeason(){setTimeout(()=>{try{seasHl()}catch(e){console.error(e)}},0); const el=$("season-box"); if(!el)return; eloBuild(); const L=seasonList(); if(!L.length)return;
   const cur=seasonOf(ELO_DONE), id=SEASON_SEL&&L.includes(SEASON_SEL)?SEASON_SEL:cur, live=id===cur&&seasonOf(ELO_DONE+1)===cur;
   const [a,b]=seasonRange(id), len=b-a+1;
   // a finished week picked in the bar: the standings as they were after that week
@@ -3121,7 +3121,7 @@ $("view-season").addEventListener("mouseleave",()=>{if(!(typeof plTipPin!=="unde
 // Season tab: clicking a row (around a name, not the name itself) highlights that player everywhere on the tab, like the
 // Scoreboard; click the same row again to clear it. Clicking the name opens their profile as before.
 // (the Season tab's row highlight is the shared player highlight below, PL_HL)
-function seasHl(){try{plHl()}catch(e){}}
+function seasHl(){try{plHl()}catch(e){console.error(e)}}
 $("view-season").addEventListener("click",e=>{const pb=e.target.closest("[data-profile]"); if(!pb)return; const n=pb.dataset.profile; if(byName[n]){showView("players");showPlayer(n);$("pcard").closest("section").scrollIntoView({block:"start"})}});
 
 // Host tab: players who stopped in the last year (or 2), with where they were when they left
@@ -3583,15 +3583,15 @@ function laterStep(){const x=LATER.shift(); if(!x)return; laterRun(x[1]); if(LAT
 function runLater(v){for(let i=0;i<LATER.length;){if(v==null||LATER[i][0].includes(v))laterRun(LATER.splice(i,1)[0][1]); else i++}}
 function showView(v){
   if(LATER&&LATER.length)runLater(v);
-  try{tabReveal(v)}catch(e){}
+  try{tabReveal(v)}catch(e){console.error(e)}
   ["thisweek","level","rankings","season","hosting","players","winners","scores","songs","faq"].forEach(k=>{const on=k===v;$("view-"+k).hidden=!on;$("tab-"+k).setAttribute("aria-selected",on)});
   tip.hidden=true;
   $("pfilter").hidden=v==="scores"||v==="songs"||v==="thisweek"||v==="rankings"||v==="season"||v==="faq"||v==="level";
   // the Year picker of the Players, Hosts and Winners tabs (and Songs' Selected by) sits on the same row as the All / Active only toggle
   document.querySelectorAll("#navyear [data-yv]").forEach(l=>l.hidden=l.dataset.yv!==v); $("navopts").hidden=$("pfilter").hidden&&!document.querySelector(`#navyear [data-yv="${v}"]`);   // (Songs: its Selected by picker, no toggle)
-  if(v==="season")setTimeout(()=>{try{renderSeason()}catch(e){}},0);
+  if(v==="season")setTimeout(()=>{try{renderSeason()}catch(e){console.error(e)}},0);
   if(v==="level")setTimeout(()=>{try{renderLevel()}catch(e){console.error(e)}},0);
-  if(v==="season"||v==="level"||v==="rankings")setTimeout(()=>{try{plHl()}catch(e){}},30);   // (after the page has finished loading: opening the site on #season runs this first)
+  if(v==="season"||v==="level"||v==="rankings")setTimeout(()=>{try{plHl()}catch(e){console.error(e)}},30);   // (after the page has finished loading: opening the site on #season runs this first)
   if(v==="thisweek"&&window.__twReady)renderThisWeek();
   if(v==="winners"||v==="players"||v==="hosting")setTimeout(()=>mlEnsure(v==="winners"?"win":v==="players"?"player":"host"),50);
   if(v==="songs"&&window.__songsStale){window.__songsStale=false; renderSongs()} // player ratings arrived while another page was open
@@ -3803,7 +3803,7 @@ function renderLevel(){
   try{const h=levelScaleSection(); $("lv-scale").innerHTML=h; $("lv-scale").hidden=!h}catch(e){console.error(e)}
   lvHl();
 }
-function lvHl(){try{plHl()}catch(e){}}
+function lvHl(){try{plHl()}catch(e){console.error(e)}}
 $("lvmode").addEventListener("click",e=>{const b=e.target.closest("[data-lvm]"); if(!b)return; lvMode=b.dataset.lvm; renderLevel()});
 $("lvyear").addEventListener("change",e=>{lvYear=e.target.value; renderLevel()});
 // hover text on the Level tab (player rows, the weeks pill, the * on estimated years)
@@ -4439,12 +4439,12 @@ const LVI="BIAM";
 const isUp=u=>LVI.indexOf(u[3])>LVI.indexOf(u[2]);
 const RU_KEY=new Set(WR.ups.filter(isUp).map(([n,p,a,b,w])=>`${w}|${n}|${p}|${b}`));
 try{const r=localStorage.getItem("rsc-wpath");if(r!==null&&["0","1","2"].includes(r))wPath=+r}catch(e){}
-later(["winners","players"],()=>{renderWinners(); if(window.__twReady)try{renderEloBox()}catch(e){}}); setTimeout(()=>{try{renderEloBox()}catch(e){}},0);
+later(["winners","players"],()=>{renderWinners(); if(window.__twReady)try{renderEloBox()}catch(e){console.error(e)}}); setTimeout(()=>{try{renderEloBox()}catch(e){console.error(e)}},0);
 function setActiveOnly(v){
   activeOnly=v; try{localStorage.setItem("rsc-activeonly2",v?"1":"0")}catch(e){} document.body.classList.toggle("aonly",!!v);
   document.querySelectorAll("#pfilter button").forEach(b=>b.setAttribute("aria-pressed",(b.dataset.af==="1")===activeOnly));
   computeRecords(); renderRecords(); renderWinners(); renderHostPodium(); renderLB(); renderUpcoming();
-  try{renderEloBox()}catch(e){}
+  try{renderEloBox()}catch(e){console.error(e)}
   ["win","player","host"].forEach(k=>{if(typeof ML!=="undefined"&&ML[k]&&ML[k].done)mlRender(k)});
 }
 $("pfilter").addEventListener("click",e=>{const b=e.target.closest("button[data-af]");if(b)setActiveOnly(b.dataset.af==="1")});
@@ -5072,7 +5072,7 @@ function renderSongs(){
    cards.forEach(c=>{c.cont=c.card==="G"&&g.has(c.p+"|"+acctSongKey(c.song)+"|"+(c.w+1))});}
   const scored=cards.filter(c=>c.n!=null);
   songCards=cards;
-  setTimeout(()=>{try{renderSongLookup()}catch(e){}},0);
+  setTimeout(()=>{try{renderSongLookup()}catch(e){console.error(e)}},0);
   // each card's arrangement played, and the level its song's current average rating on that arrangement puts it at
   {const memo={}; cards.forEach(c=>{c.code=c.slot!=null?arrP(c.w,c.p,c.slot):"LRB"[c.p]; const k=c.code+"|"+acctSongKey(c.song);
     if(!(k in memo)){const R=songRating(c.code,c.song); memo[k]=R.avg!=null?tierByRating(c.card,+R.avg):null}
@@ -6082,7 +6082,7 @@ function renderTwTheme(w){const el=$("tw-theme"); if(!el)return; const live=w>DA
 function renderThisWeek(){
   try{const d=twWkStart(twWeek); twCalM=new Date(d.getFullYear(),d.getMonth(),1,12); renderTwCal()}catch(e){}
   try{renderTwLead()}catch(e){console.error(e)}
-  setTimeout(()=>{try{twGoals()}catch(e){}renderNewWeekNote();renderTwPast();renderDownloads();try{renderTwElo()}catch(e){}try{renderTwRk()}catch(e){}},0);
+  setTimeout(()=>{try{twGoals()}catch(e){console.error(e)}renderNewWeekNote();renderTwPast();renderDownloads();try{renderTwElo()}catch(e){console.error(e)}try{renderTwRk()}catch(e){console.error(e)}},0);
   renderHostWarn(); if(renderNextPreview())return;
   const w=twWeek, W=WEEKS[w-1], live=w===TW_LIVE, names=twNames(w), set=new Set(names);
   try{renderTwTheme(w)}catch(e){console.error(e)}
@@ -6319,7 +6319,7 @@ function renderYearEnd(){const el=$("rk-year"); if(!el)return; if(!YEAREND||!YEA
   el.hidden=false}
 document.addEventListener("change",e=>{if(e.target.id!=="yesel")return; yeYear=e.target.value==="all"?"all":+e.target.value; renderYearEnd(); try{plHl()}catch(err){}});
 function renderRankings(){
-  try{renderYearEnd()}catch(e){} setTimeout(()=>{try{plHl()}catch(e){}},0);
+  try{renderYearEnd()}catch(e){console.error(e)} setTimeout(()=>{try{plHl()}catch(e){console.error(e)}},0);
   if(rkLive===null)rkLive=rkCurrent()!==RK_SHEET;
   const RK=rkLive?rkLiveData():RK_SHEET;
   $("rkpath").innerHTML=["Lead","Rhythm","Bass"].map((k,i)=>{const t=rkLv[i], nx=RK_CYC[(RK_CYC.indexOf(t)+1)%RK_CYC.length];
@@ -6447,7 +6447,7 @@ async function acctLoadWeek(){
   ACCT.songs=S; ACCT.mine=mine; ACCT.rows=rows; ACCT.voters=voters; sbRender();
   {const h=document.querySelector(".acctdlg .hlbox"); if(h&&!h.matches(".unusedbox,.rpbox,.sibox"))h.outerHTML=hlSection()}   // the highlights thank the voters
   if($("acct").open&&(ACCT.tab==="host"||ACCT.tab==="admin"))admRateRedraw();
-  if($("acct").open&&ACCT.tab==="week"&&!ACCT.rateDrawn){ACCT.rateDrawn=true; try{acctDraw()}catch(e){}}
+  if($("acct").open&&ACCT.tab==="week"&&!ACCT.rateDrawn){ACCT.rateDrawn=true; try{acctDraw()}catch(e){console.error(e)}}
   {const tw=document.getElementById("acct-tw"); if(tw&&$("acct").open&&ACCT.claim)tw.innerHTML=acctThisWeek(ACCT.claim.player);} if(typeof renderSongs==="function"){if(!$("view-songs").hidden)renderSongs(); else window.__songsStale=true}
 }
 // a song's rating boxes on the Songs page, one per path in the path's color: the players' average for the song on
@@ -6560,7 +6560,7 @@ function hmImpMark(w,keys){
       .then(({error})=>{if(error)alert("Couldn't save that it was copied: "+error.message)}); return}
   const P=hmImpLocal(); P[w]=P[w]||{}; keys.forEach(k=>P[w][k]=1);
   Object.keys(P).forEach(x=>{if(+x<w-4)delete P[x]}); try{localStorage.setItem(HM_IMP_KEY,JSON.stringify(P))}catch(e){}}
-function hmImproveMsgs(w){try{hmImpLoad()}catch(e){} const P=hmImpPosted()[w]||{}, by={};
+function hmImproveMsgs(w){try{hmImpLoad()}catch(e){console.error(e)} const P=hmImpPosted()[w]||{}, by={};
   hmImprove(w).forEach(x=>(by[x.n]=by[x.n]||[]).push(x));
   const on=x=>`${x.song}${x.path?` (${x.path})`:""}`;
   return Object.entries(by).map(([n,xs])=>{const fresh=xs.filter(x=>!P[x.k]), again=fresh.length>0&&fresh.length<xs.length, use=fresh.length?fresh:xs;
@@ -6954,7 +6954,7 @@ var WEEKLOG={}/*WEEKLOG*/;
    if(st&&st.h===location.hash&&st.y>0){if("scrollRestoration" in history)history.scrollRestoration="manual"; let moved=false; ["wheel","touchstart","keydown"].forEach(ev=>addEventListener(ev,()=>moved=true,{once:true,passive:true}));
      [300,1200,2500].forEach(t=>setTimeout(()=>{if(!moved&&Math.abs(scrollY-st.y)>40)scrollTo(0,st.y)},t))}}catch(e){}
  setInterval(check,60000); document.addEventListener("visibilitychange",()=>{if(!document.hidden)check()});}
-try{sbRender()}catch(e){}   // draw the Scoreboard again now the week log is here, for the NEW tags
+try{sbRender()}catch(e){console.error(e)}   // draw the Scoreboard again now the week log is here, for the NEW tags
 const ywKey=n=>"rsc-passed-seen-"+n.toLowerCase();
 function ywSeen(n){try{return +localStorage.getItem(ywKey(n))||0}catch(e){return 0}}
 // every time this player was passed this week and last week, newest first
@@ -7264,7 +7264,7 @@ function acctProfile(n){
   return `<div class="acctsec acctlead"${leads?"":" hidden"}><div id="acct-lead" class="plead" data-n="${esc(n)}">${leads}</div></div><div class="acctsec"><h3>Player profile</h3><div id="acct-p"></div></div>${WR.wins[n]?`<div class="acctsec"><h3>Win profile</h3><div id="acct-w"></div></div>`:""}${hosts[n]?`<div class="acctsec"><h3>Host profile</h3><div id="acct-h"></div></div>`:""}`;
 }
 // header button and dialog
-function acctBtn(){const b=$("acctbtn"); b.hidden=!ACCT.on; try{twGoals()}catch(e){}
+function acctBtn(){const b=$("acctbtn"); b.hidden=!ACCT.on; try{twGoals()}catch(e){console.error(e)}
   b.title=ACCT.claim&&ACCT.claim.status==="approved"?"Opens your profile: your own stats page, last week's medals, your song ratings and your forum signature banner"
     :ACCT.claim?"Opens your profile. Your player claim is waiting for an admin to approve it"
     :ACCT.user?"Opens your profile, where you can claim your player name so you can rate songs and sign up to host"
@@ -7295,7 +7295,7 @@ async function acctRefresh(){
   const {data:cl}=await ACCT.sb.from("claims").select("user_id,player,status,created_at"); ACCT.claims=cl||[];
   ACCT.claim=ACCT.user?ACCT.claims.find(c=>c.user_id===ACCT.user.id)||null:null;
   lookupsToMe();
-  if(document.documentElement.classList.contains("acctwait")){try{sbRender()}catch(e){} acctShow()}   // who you are is known: show the page
+  if(document.documentElement.classList.contains("acctwait")){try{sbRender()}catch(e){console.error(e)} acctShow()}   // who you are is known: show the page
   ACCT.admin=false; if(ACCT.user){const {data:ad}=await ACCT.sb.from("admins").select("user_id").eq("user_id",ACCT.user.id); ACCT.admin=!!(ad&&ad.length)}
   ACCT.animal=null; ACCT.animals={};
   if(ACCT.user){const {data:an}=await ACCT.sb.from("player_animals").select("user_id,animal"); (an||[]).forEach(r=>{ACCT.animals[r.user_id]=r.animal; if(r.user_id===ACCT.user.id)ACCT.animal=r.animal})}
@@ -7550,9 +7550,9 @@ $("acctclose").addEventListener("click",()=>$("acct").close());
 // hover text inside the dialog (the tip moves into the dialog while it's open, so it shows above it)
 // ✕ on "You've been passed": mark everything up to the newest pass as seen, then hide the alert and clear the badges
 document.addEventListener("click",e=>{const b=e.target.closest("[data-seasdismiss]"); if(!b)return; e.stopPropagation(); const n=b.dataset.seasdismiss;
-  lsSet(seasKey(n),seasSig(seasDanger(n))); const a=b.closest(".ywalert"); if(a)a.remove(); document.querySelectorAll('.accttabs .nbadge[title^="Your season"]').forEach(x=>x.remove()); try{acctBtn()}catch(e){}});
+  lsSet(seasKey(n),seasSig(seasDanger(n))); const a=b.closest(".ywalert"); if(a)a.remove(); document.querySelectorAll('.accttabs .nbadge[title^="Your season"]').forEach(x=>x.remove()); try{acctBtn()}catch(e){console.error(e)}});
 document.addEventListener("click",e=>{const b=e.target.closest("[data-ywdismiss]"); if(!b)return; e.stopPropagation(); const n=b.dataset.ywdismiss, last=ywPasses(n)[0];
-  if(last)lsSet(ywKey(n),String(Date.parse(last.t))); ACCT.ywShown=[]; const a=b.closest(".ywalert"); if(a)a.remove(); try{acctBtn()}catch(e){}
+  if(last)lsSet(ywKey(n),String(Date.parse(last.t))); ACCT.ywShown=[]; const a=b.closest(".ywalert"); if(a)a.remove(); try{acctBtn()}catch(e){console.error(e)}
   document.querySelectorAll('.accttabs .nbadge[title^="Passed"]').forEach(x=>x.remove())},true);
 $("acct").addEventListener("close",()=>{tip.hidden=true;document.body.appendChild(tip);acctUnmount();ACCT.ywShown=null});
 // links inside the moved lookup cards go to other pages: close the dialog so the page shows
