@@ -1,6 +1,6 @@
 # Check a built page before it goes live: open it in headless Chrome, open every tab, and fail if any tab is empty,
-# the page's code hits an error (also one a section catches and logs), or two functions share a name (the later one
-# silently replaces the earlier). With --compare OLD.html, also fail if a section that had content on the old page is
+# the page's code hits an error (also one a section catches and logs), two functions share a name (the later one
+# silently replaces the earlier), a template placeholder was left unfilled, or the footer is far too long (data ended up in it). With --compare OLD.html, also fail if a section that had content on the old page is
 # now gone, hidden or mostly empty.
 #   python3 build/check_page.py [index.html] [--compare old.html]
 # Exit code 0: fine. 1: problems found (listed). 0 with a note: Chrome or playwright isn't available, nothing checked.
@@ -22,6 +22,9 @@ for sc in re.findall(r"<script(?![^>]*\bsrc=)[^>]*>(.*?)</script>", src, re.S):
     for m in re.finditer(r"^(?:async\s+)?function\s+([A-Za-z_$][\w$]*)\s*\(|^var\s+([A-Za-z_$][\w$]*)\s*=", sc, re.M):
         n = m.group(1) or m.group(2); seen[n] = seen.get(n, 0) + 1
 problems += [f"two definitions named {n}: the second replaces the first" for n, c in sorted(seen.items()) if c > 1]
+# 2. a template placeholder (like __SCORES__) left in the page, unfilled
+left = sorted(set(re.findall(r"__[A-Z][A-Z0-9_]*__", src)))
+problems += [f"placeholder {n} was left in the page unfilled" for n in left]
 
 try:
     from playwright.sync_api import sync_playwright
@@ -42,6 +45,9 @@ def visit(br, path, width, errors_too=True):
     pg.route("**/*", lambda r: r.continue_() if r.request.url.startswith("file:") else r.abort())
     pg.goto("file://" + path, wait_until="load")
     pg.wait_for_timeout(3000)
+    # 3. the footer is a few short lines: much longer means data ended up in it (a placeholder filled with the wrong thing)
+    ft = pg.evaluate("()=>{const f=document.querySelector('footer'); return f?f.innerText.trim().length:0}")
+    if ft > 1500: errs.append(f"the footer is {ft} characters long (it should be a few short lines): data ended up in it")
     tabs = {}
     for t in TABS:
         try:
@@ -63,7 +69,7 @@ with sync_playwright() as pw:
         problems += [f"{width}px: couldn't open the {t} tab" for t, n in tabs.items() if n == -2]
         problems += [f"{width}px: the {t} tab is empty" for t, n in tabs.items() if -2 < n < 50]
         problems += [f"{width}px: error: {e}" for e in dict.fromkeys(errs)]
-    # 2. sections that had content before and lost it
+    # 4. sections that had content before and lost it
     if base and os.path.exists(base):
         _, old_secs, _ = visit(br, base, 1300)
         for key, o in old_secs.items():

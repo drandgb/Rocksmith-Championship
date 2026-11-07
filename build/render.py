@@ -7,7 +7,7 @@ h = lambda b: hashlib.md5(b).hexdigest()[:10]   # fingerprints the refresh bar u
 cv = h(t.encode() + open("render.py", "rb").read()); sc = h(json.dumps([sb["names"], sb["weeks"]], sort_keys=True).encode())   # only the scores (the rest of scores.json, like the score-check times, changes every run)
 for key, f in [("__WEEKS__", "weeks.json"), ("__PLAYERS__", "players.json"), ("__PARTS__", "parts.json"),
                ("__SCORES__", "scores.json"), ("__WINS__", "wins.json"), ("__SONGS_OLD__", "songs_old.json"), ("__RANKINGS__", "rankings.json"), ("__OFFICIAL__", "official.json")]:
-    assert key in t, key
+    assert t.count(key) == 1, f"{key} must appear exactly once in template.html (found {t.count(key)}): another placeholder shares its name"
     t = t.replace(key, open(f).read())
 # "Site last updated" / "Scores last updated": kept from the previous page until the page code (cv) or the scores (sc) change
 out = os.environ.get("OUT", "../../index.html")
@@ -32,5 +32,7 @@ t = (t.replace("__SITE_ISO__", site_iso).replace("__SITE_DAY__", day(site_iso))
       .replace("__SBMAX__", str(max(map(int, sb["weeks"]))))
       # medal leaders worked out by a first build of the page in headless Chrome (build.sh); null if that step was skipped
       .replace("__MLPRE__", open("ml_pre.json").read() if os.path.exists("ml_pre.json") else "null"))
+left = sorted(set(re.findall(r"__[A-Z][A-Z0-9_]*__", t)))
+assert not left, f"placeholders left unfilled in the page: {', '.join(left)}"
 open(out, "w").write(t)
 print("wrote", out, f"({len(t)//1024} KB)")
