@@ -6502,6 +6502,7 @@ document.addEventListener("change",async e=>{
   const s=e.target.closest("select[data-rate]"); if(!s)return;
   // data-as: a host or admin rating on behalf of another player (only offered in the Host tab)
   const as=s.dataset.as&&canRateFor()&&s.closest(".adm")?s.dataset.as:null; if(!as&&!ACCT.claim)return;
+  const place=as&&s.closest("#admrate")?admPlace(s):null;   // where the changed rating sits on screen, to come back to once it's saved
   const p=s.dataset.rate, song=s.dataset.song, player=as||ACCT.claim.player, k=p+"|"+acctSongKey(song);
   const r=s.value?+s.value:null;
   // a rating the player gave themselves always wins: hosts and admins can't change it (player_rating_wins.sql enforces it too)
@@ -6520,7 +6521,7 @@ document.addEventListener("change",async e=>{
   const {error}=await q; if(error){alert("Couldn't save your rating: "+error.message);return}
   // changes on behalf of a player go in the ratings log (Host tab)
   if(as){await ACCT.sb.from("rating_log").insert({admin_player:ACCT.claim?ACCT.claim.player:null,player,path:at.path,song:at.song,old_rating:prevAs?prevAs.r:null,new_rating:r}); await ratingLogLoad()}
-  ACCT.songs=null; acctLoadWeek();
+  ACCT.songs=null; await acctLoadWeek(); if(place)admPut(place);
 });
 // your profile in the account dialog: the real player, win and host lookup cards, moved into the dialog while it's open
 // (so everything in them still works), and put back when it closes
@@ -6966,8 +6967,20 @@ function adminRateSection(){
 document.addEventListener("change",e=>{const s=e.target.closest("select[data-admrate]"); if(!s)return;
   if(s.dataset.admrate==="p")ACCT.admRateP=s.value; else ACCT.admRateW=+s.value; admRateRedraw()});
 // redraw only the ratings section, keeping the popup's scroll position (no jump back to the top)
-function admRateRedraw(){const el=$("admrate"); if(!el){acctDraw();return}
-  const dlg=$("acct"), top=dlg.scrollTop; el.outerHTML=adminRateSection(); dlg.scrollTop=top; requestAnimationFrame(()=>{dlg.scrollTop=top})}
+function admRateRedraw(){const el=$("admrate"); if(!el){acctDraw();return} const a=admPlace(); el.outerHTML=adminRateSection(); admPut(a)}
+// giving a player's rating redraws parts of the popup (the list, the highlights above it, the log) while it saves: the
+// rating you just changed stays at the same spot on screen and keeps focus, so you stay where you were in the list
+function admPlace(sel){const dlg=$("acct"), a=sel||document.activeElement, s=a&&a.matches&&a.matches("#admrate select")?a:null, l=document.querySelector("#admrate .alist");
+  return {top:dlg.scrollTop, ltop:l&&!(s&&s.dataset.admrate)?l.scrollTop:0,   /* a new player or week starts the list at the top */ y:s?s.getBoundingClientRect().top:null,
+    key:s&&(s.dataset.admrate?`select[data-admrate="${s.dataset.admrate}"]`:`select[data-rate="${CSS.escape(s.dataset.rate)}"][data-song="${CSS.escape(s.dataset.song)}"]`)}}
+function admPut(a){const dlg=$("acct");
+  // the arrangement list scrolls on its own (redrawing it puts it back at the top): its scroll comes back first, then the
+  // list and the popup move so the rating is where it was
+  const put=()=>{const n=a.key&&document.querySelector("#admrate "+a.key), l=document.querySelector("#admrate .alist");
+    if(l)l.scrollTop=a.ltop; dlg.scrollTop=a.top;
+    if(n&&a.y!=null){const d=n.getBoundingClientRect().top-a.y; if(d&&l&&l.contains(n))l.scrollTop+=d; const d2=n.getBoundingClientRect().top-a.y; if(d2)dlg.scrollTop+=d2;
+      if(document.activeElement!==n)n.focus({preventScroll:true})}};
+  put(); requestAnimationFrame(put); setTimeout(put,120)}
 // ---------- Your week: first score -> best score this week, and who passed you (weeklog.js, built at each update) ----------
 var WEEKLOG={}/*WEEKLOG*/;
 // A newer version of the site is live (the sheet changed since this page loaded): every minute while the page is open, check
