@@ -4145,10 +4145,12 @@ function sgaLine(x){return `• ${x.c[3]} (${PATHS[x.c[0]]}, ${x.c[2]}) · 100% 
 // (over: a medal for any score above that %, instead of 100%)
 function themeWins(name,weeks,re,over,best){const k=String(name).toLowerCase(), ws=new Set(weeks), ok=({w,c,e})=>!c[7]&&e[1]!=null&&(over!=null?+e[1]>over:+e[1]>=100)&&re.test(c[3]);
   const mine=(sbIx().ent[k]||[]).filter(x=>ws.has(x.w)&&ok(x)); if(!best||!mine.length)return mine;
-  // best: only the top score holds it (shared on a tie), counting everyone's scores up to the latest of these weeks,
-  // so a higher score later takes it from whoever had it
-  const upto=Math.max(...weeks); let top=-1; Object.values(sbIx().ent).forEach(L=>L.forEach(x=>{if(x.w<=upto&&SB_W.includes(x.w)&&ok(x)&&+x.e[1]>top)top=+x.e[1]}));
-  return mine.filter(x=>+x.e[1]===top)}
+  // best: a moving goalpost (best = its steps, e.g. [95,100]). Over the base % to start; once anyone reaches the next
+  // step, it takes that step to hold it, and those below lose it. Counts everyone's scores up to the latest of these weeks.
+  const bar=themeBar(re,over,best,Math.max(...weeks)); return mine.filter(x=>+x.e[1]>=bar)}
+// the % it takes to hold a moving-goalpost medal as of week upto: the highest step anyone has reached (just over the base before)
+function themeBar(re,over,best,upto){let top=-1; Object.values(sbIx().ent).forEach(L=>L.forEach(({w,c,e})=>{if(w<=upto&&SB_W.includes(w)&&!c[7]&&e[1]!=null&&re.test(c[3])&&+e[1]>top)top=+e[1]}));
+  const st=best.filter(x=>top>=x); return st.length?st[st.length-1]:over+1e-9}
 function themeLine(x){return `• ${x.c[3]} (${PATHS[x.c[0]]}, ${x.c[2]}) · ${x.e[1]}% · Week ${x.w}`}
 var THEME_MEDALS=[
   {name:"Pick of Destiny",id:"podg",what:"100% on a Tenacious D song",re:/^Tenacious D\b/i,col:"#4fd16a",
@@ -4157,8 +4159,8 @@ var THEME_MEDALS=[
   {name:"Certified Blue",id:"cbg",what:"100% on Blue (Da Ba Dee) by Eiffel 65",re:/^Eiffel 65 - Blue\b/i,col:"#3fa0ff",
    // a little blue man (he lives in a blue world)
    svg:()=>`<svg viewBox="0 0 30 30" aria-hidden="true"><defs><linearGradient id="cbg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7fd4ff"/><stop offset="1" stop-color="#2f5fef"/></linearGradient></defs><circle cx="15" cy="15" r="13" fill="#1d2433" stroke="url(#cbg)" stroke-width="2"/><circle cx="15" cy="10" r="4.2" fill="url(#cbg)"/><circle cx="13.5" cy="9.6" r=".7" fill="#1d2433"/><circle cx="16.5" cy="9.6" r=".7" fill="#1d2433"/><path d="M13.2 11.6q1.8 1.3 3.6 0" fill="none" stroke="#1d2433" stroke-width=".8" stroke-linecap="round"/><path d="M8.6 24.5c.3-4.6 2.9-8.6 6.4-8.6s6.1 4 6.4 8.6z" fill="url(#cbg)"/><path d="M10.4 17.6 6.9 13.6M19.6 17.6l3.5-4" stroke="#5aa8ff" stroke-width="2" stroke-linecap="round"/></svg>`},
-  {name:"Elusive nuggies",id:"nugg",what:"over 90% on The Ol' Grizz by Primus",re:/^Primus - The Ol'? Grizz\b/i,over:90,best:1,col:"#f5c84a",cls:"nugg",
-   note:"Only the best score holds it: a higher score takes it",
+  {name:"Elusive nuggies",id:"nugg",what:"over 90% on The Ol' Grizz by Primus",re:/^Primus - The Ol'? Grizz\b/i,over:90,best:[95,100],col:"#f5c84a",cls:"nugg",
+   note:"A moving goalpost: once someone scores 95%, it takes 95% to keep it, then 100% once someone scores 100%",
    // a pile of rough gold nuggets (no medal disc), each faceted and lit from the top left, with the God diamond's sparkles
    svg:()=>nuggiesSvg()},
   {name:"Hee Hee",id:"hhg",what:"100% on a Michael Jackson song",re:/^Michael Jackson\b/i,col:"#d9dcff",
@@ -5579,7 +5581,7 @@ const mlCmp=(a,b)=>b.v-a.v||(b.t||0)-(a.t||0)||a.n.localeCompare(b.n,undefined,{
 const mlSame=(a,b)=>a.v===b.v&&(a.t||0)===(b.t||0);
 const mlVal=(r,k)=>`${r.v}${k.unit}${r.t>1?` ×${r.t}`:""}`;
 // plain descriptions for the medals whose own hover text is all about one player's numbers
-const ML_DESC={"Pick of Destiny":"scored 100% on a Tenacious D song · ranked by how many times","Certified Blue":"scored 100% on Blue (Da Ba Dee) by Eiffel 65 · ranked by how many times","Hee Hee":"scored 100% on a Michael Jackson song · ranked by how many times","Elusive nuggies":"holds the best score over 90% on The Ol' Grizz by Primus (a higher score takes it)","Season most improved":"the biggest player level gain in their class on a path over a season, with games in 5+ of its weeks · ranked by how many seasons","Masterclass season champion":"had the most season points among Masterclass players on a path · ranked by how many seasons","Advanced season champion":"had the most season points among Advanced players on a path · ranked by how many seasons","Intermediate season champion":"had the most season points among Intermediate players on a path · ranked by how many seasons","Beginner season champion":"had the most season points among Beginner players on a path · ranked by how many seasons","Still got it":"scored 100% again on a challenge they'd scored 100% on the last time they played it · ranked by how many times","Harder, Better, Faster, Stronger":"beat their own score from the last time they played the same challenge (a higher %, then a longer note streak, then a higher score) · ranked by how many times","Kintsugi gem":"played every week from joining until the first missed week, then mended with gold on coming back · ranked by how many weeks that first unbroken run lasted",
+const ML_DESC={"Pick of Destiny":"scored 100% on a Tenacious D song · ranked by how many times","Certified Blue":"scored 100% on Blue (Da Ba Dee) by Eiffel 65 · ranked by how many times","Hee Hee":"scored 100% on a Michael Jackson song · ranked by how many times","Elusive nuggies":"over 90% on The Ol' Grizz by Primus, a moving goalpost (95%, then 100%, once someone reaches it)","Season most improved":"the biggest player level gain in their class on a path over a season, with games in 5+ of its weeks · ranked by how many seasons","Masterclass season champion":"had the most season points among Masterclass players on a path · ranked by how many seasons","Advanced season champion":"had the most season points among Advanced players on a path · ranked by how many seasons","Intermediate season champion":"had the most season points among Intermediate players on a path · ranked by how many seasons","Beginner season champion":"had the most season points among Beginner players on a path · ranked by how many seasons","Still got it":"scored 100% again on a challenge they'd scored 100% on the last time they played it · ranked by how many times","Harder, Better, Faster, Stronger":"beat their own score from the last time they played the same challenge (a higher %, then a longer note streak, then a higher score) · ranked by how many times","Kintsugi gem":"played every week from joining until the first missed week, then mended with gold on coming back · ranked by how many weeks that first unbroken run lasted",
   "Perfect gem":"played every week since joining, never missing one · ranked by weeks so far",
   playstreak:"most weeks played in a row",years:"time since first joining the championship",
   winstreak:"most weeks in a row winning at least one challenge",bestweek:"the most challenges won in a single week · ×N is how many weeks they did it, which breaks ties",
@@ -6091,7 +6093,7 @@ function renderTwTheme(w){const el=$("tw-theme"); if(!el)return; const live=w>DA
   el.hidden=!got.length; if(!got.length){el.innerHTML="";return}
   el.style.setProperty("--rc",got[0].T.col);   // the trim takes the (first) medal's color
   el.innerHTML=`<i class="trimspk t1"></i><i class="trimspk t2"></i><i class="trimspk t3"></i><i class="trimspk t4"></i><div class="panel-head"><h2>🎖️ Special medal${got.length>1?"s":""} up for grabs</h2></div><ul class="twthl">${got.map(({T,cs})=>{const songs=[...new Set(cs.map(c=>c[3]))];
-    return `<li><span class="medal-m wm" style="--ec:${T.col}">${uniqIds(T.svg(),[T.id])}</span><div><b>${esc(T.name)}</b> · a special medal for scoring ${esc(T.what)}.<br>To get it: score ${T.over!=null?`over ${T.over}%`:"100%"} on ${songs.map(sg=>`<b>${esc(sg)}</b> (${cs.filter(c=>c[3]===sg).map(c=>`${PATHS[c[0]]} ${c[2]}`).join(", ")})`).join(" or ")}, in any class.${T.note?` ${esc(T.note)}.`:""}</div></li>`}).join("")}</ul>`}
+    return `<li><span class="medal-m wm" style="--ec:${T.col}">${uniqIds(T.svg(),[T.id])}</span><div><b>${esc(T.name)}</b> · a special medal for scoring ${esc(T.what)}.<br>To get it: score ${T.best?(b=>b>T.over+.5?`${b}%`:`over ${T.over}%`)(themeBar(T.re,T.over,T.best,1e9)):T.over!=null?`over ${T.over}%`:"100%"} on ${songs.map(sg=>`<b>${esc(sg)}</b> (${cs.filter(c=>c[3]===sg).map(c=>`${PATHS[c[0]]} ${c[2]}`).join(", ")})`).join(" or ")}, in any class.${T.note?` ${esc(T.note)}.`:""}</div></li>`}).join("")}</ul>`}
 function renderThisWeek(){
   try{const d=twWkStart(twWeek); twCalM=new Date(d.getFullYear(),d.getMonth(),1,12); renderTwCal()}catch(e){}
   try{renderTwLead()}catch(e){console.error(e)}
