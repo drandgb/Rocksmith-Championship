@@ -4870,12 +4870,12 @@ function eloEntered(pi,w,keep){const r0=eloRanks(pi,w-1,keep), r1=eloRanks(pi,w,
 // above them says so in the hover text
 function eloMove(pi,k,w,keep,sep){const a=eloRanks(pi,w-1,keep)[k], b=eloRanks(pi,w,keep)[k], ar=esc(eloAround(pi,k,w,keep)); if(!b)return null;
   if(!a){const e=eloEntered(pi,w,keep).find(x=>x.n===k); return `<small class="eloin" data-tip="${esc(`New to the ranking this week: ${e?e.why:"entered"}, so ${k} comes in at #${b}`)}\n\n${ar}">entered #${b}</small>`}
-  const why=eloWhy(pi,k,w,keep,a,b), wt=why?esc(why)+"\n\n":"";
+  const why=eloRankWhy(pi,k,w,keep,a,b), wt=why?esc(why)+"\n\n":"";
   if(a===b)return `<small data-tip="${wt}${ar}">#${b}</small>`;
   return `<small class="${b<a?"up":"slip"}" data-tip="${wt}${ar}">#${a}${sep}#${b}</small>`}
 // why a rank moved (or stayed put while things moved around it): who they passed, who passed them, who entered
 // the ranking above them, and who above them left it. "" when nothing around them changed.
-function eloWhy(pi,k,w,keep,a,b){const r0=eloRanks(pi,w-1,keep), r1=eloRanks(pi,w,keep), L=xs=>xs.length>3?xs.slice(0,3).join(", ")+` and ${xs.length-3} more`:xs.length>1?xs.slice(0,-1).join(", ")+" and "+xs[xs.length-1]:xs[0];
+function eloRankWhy(pi,k,w,keep,a,b){const r0=eloRanks(pi,w-1,keep), r1=eloRanks(pi,w,keep), L=xs=>xs.length>3?xs.slice(0,3).join(", ")+` and ${xs.length-3} more`:xs.length>1?xs.slice(0,-1).join(", ")+" and "+xs[xs.length-1]:xs[0];
   const past=Object.keys(r0).filter(n=>n!==k&&r0[n]<a&&r1[n]&&r1[n]>b), by=Object.keys(r1).filter(n=>n!==k&&r1[n]<b&&r0[n]&&r0[n]>a),
     ins=Object.keys(r1).filter(n=>!r0[n]&&r1[n]<b).sort((x,y)=>r1[x]-r1[y]), out=Object.keys(r0).filter(n=>!r1[n]&&r0[n]<a);
   const up=[], dn=[];
@@ -6078,7 +6078,7 @@ function renderTwTheme(w){const el=$("tw-theme"); if(!el)return; const live=w>DA
   const got=live?THEME_MEDALS.map(T=>({T,cs:(SB.weeks[w]||[]).filter(c=>c[3]&&!/^n\/a$/i.test(c[3])&&T.re.test(c[3])).sort((a,b)=>a[0]-b[0]||a[1]-b[1])})).filter(x=>x.cs.length):[];
   el.hidden=!got.length; if(!got.length){el.innerHTML="";return}
   el.innerHTML=`<div class="panel-head"><h2>🎖️ Special medal${got.length>1?"s":""} up for grabs</h2></div><ul class="twthl">${got.map(({T,cs})=>{const songs=[...new Set(cs.map(c=>c[3]))];
-    return `<li><span class="medal-m wm" style="--ec:${T.col}">${uniqIds(T.svg(),[T.id])}</span><div><b>${esc(T.name)}</b> · a special medal for ${esc(T.what)}.<br>To get it: score 100% on ${songs.map(sg=>`<b>${esc(sg)}</b> (${cs.filter(c=>c[3]===sg).map(c=>`${PATHS[c[0]]} ${c[2]}`).join(", ")})`).join(" or ")}, in any class.</div></li>`}).join("")}</ul>`}
+    return `<li><span class="medal-m wm" style="--ec:${T.col}">${uniqIds(T.svg(),[T.id])}</span><div><b>${esc(T.name)}</b> · a special medal for scoring ${esc(T.what)}.<br>To get it: score ${T.over!=null?`over ${T.over}%`:"100%"} on ${songs.map(sg=>`<b>${esc(sg)}</b> (${cs.filter(c=>c[3]===sg).map(c=>`${PATHS[c[0]]} ${c[2]}`).join(", ")})`).join(" or ")}, in any class.</div></li>`}).join("")}</ul>`}
 function renderThisWeek(){
   try{const d=twWkStart(twWeek); twCalM=new Date(d.getFullYear(),d.getMonth(),1,12); renderTwCal()}catch(e){}
   try{renderTwLead()}catch(e){console.error(e)}
