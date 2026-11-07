@@ -3249,7 +3249,7 @@ function friText(){const w=TW_LIVE; if(!SB.weeks[w])return ""; const names=twNam
   if(open.length){L.push("","For active players, these trophies are yet to be claimed:");
     open.forEach(c=>{const lv=cardLv(c[2]), on=new Set(c[6].map(e=>SB.names[e[0]].replace(/[*~]+$/,"").toLowerCase()));
       const could="BIAM".includes(lv)&&lv?names.filter(n=>tiersOf(n).charAt(c[0])===lv&&!on.has(n.toLowerCase())).sort((a,b)=>a.localeCompare(b,undefined,{sensitivity:"base"})):[];
-      L.push(`${PATHS[c[0]]} ${c[2]}: ${c[3]}${could.length?` · ${could.map(at).join(", ")}`:""}`)})}
+      L.push(`${PATHS[c[0]]} ${c[2]}: ${c[3]}${could.length?` · ${could.map(at).join(" ")}`:""}`)})}
   return L.join("\n")}
 // ---------- Admin: engagement before and since the stats sheet (Jul 11, 2026) and the website (Oct 5, 2026) ----------
 // complete weeks only (the week in progress isn't counted); the same weeks a year earlier show what the season alone does
@@ -6553,7 +6553,7 @@ function hmClasses(w){const C={}; (SB.weeks[w]||[]).forEach(c=>{const L=cardLv(c
 const andList=xs=>xs.length<2?xs.join(""):xs.slice(0,-1).join(", ")+" and "+xs[xs.length-1];
 function hmWelcome(w){const byName=Object.fromEntries(PLAYERS.map(p=>[p[0].toLowerCase(),p])), C=hmClasses(w), live=w>DATA_WEEK;
   return Object.keys(C).filter(n=>{const p=byName[n.toLowerCase()]; return live?!p:(p&&p[1]===w)}).sort((a,b)=>a.localeCompare(b)).map(n=>{const x=C[n], cls=Object.entries(x.p).sort((a,b)=>a[0]-b[0]).map(([pi,L])=>`${TIER_NAME[L]} ${PATHS[pi]}`);
-    return {n,t:cls.length?`Welcome to the championship @${n}, you have been placed in ${andList(cls)}. Let us know if you prefer to be placed in a different difficulty bracket.`
+    return {n,t:cls.length?`Welcome to the championship @${n}! You have been placed in ${andList(cls)}. Let us know if you prefer to be placed in a different difficulty bracket.`
       :`Welcome to the championship @${n}! You're playing as a FreeBird for now. Let us know which difficulty bracket you'd like to be placed in.`}})}
 // players back in week w after 4+ weeks away, with a friendly message
 function hmBack(w){const I=sbIx();
@@ -6604,14 +6604,14 @@ function hmImproveMsgs(w){try{hmImpLoad()}catch(e){console.error(e)} const P=hmI
 // (every 50 weeks played, every 25 wins on a path), and firsts (the medal's all-time count is all from this week)
 function hmMsg(n,tip){const k=tip.split(" · ")[0], all=+((/\((\d+) all time\)/.exec(tip)||[])[1]||0), plus=+((/\+(\d+) this week/.exec(tip)||[])[1]||0), first=all>0&&all===plus;
   let m;
-  if((m=/^(\d+)-week play streak medal/.exec(k)))return `Congratulations @${n}, you've reached your first ${m[1]}-week play streak! 🔥`;
+  if((m=/^(\d+)-week play streak medal/.exec(k)))return `Congratulations @${n} on your first ${m[1]}-week play streak! 🔥`;   // (no comma right after a name: the forum doesn't turn @name, into a tag)
   if((m=/^(\d+)-week host medal/.exec(k)))return `Thank you @${n} for hosting ${m[1]} weeks! 🙌 The championship runs on hosts like you.`;
   if((m=/^Played (guitar|bass)/.exec(k))){const wk=+((/· (\d+) weeks \(/.exec(tip)||[])[1]||0); return wk&&wk%50===0?`Congratulations @${n} on ${wk} weeks playing ${m[1]} in the championship! 🎸`:""}
   if((m=/^Gold medal · (\w+)/.exec(tip)))return first?`Congratulations @${n} on your first ${m[1]} win! 🥇`:all%25===0&&all-plus<all-all%25+25&&all-plus<all?`@${n} has now won ${all} ${m[1]} challenges! 🏆`:"";
   if(!first)return "";
   if((m=/^(\w+) perfectionist/.exec(k)))return `Congratulations @${n} on your first 100% ${m[1]==="God"?"on a God challenge":`in ${m[1]}`}! 💯`;
   if(/^Catch ‘em all/.test(k))return `Amazing @${n}: your first Catch 'em all, a score on every challenge of the week! 🎯`;
-  if((m=/^(\w+) completionist/.exec(k)))return `Nice one @${n}, you played every ${m[1]} challenge of the week for the first time! ✅`;
+  if((m=/^(\w+) completionist/.exec(k)))return `Nice one @${n}! You played every ${m[1]} challenge of the week for the first time! ✅`;
   if(/^Harder, Better, Faster, Stronger/.test(k))return `Harder, better, faster, stronger! @${n} beat their own past score on a returning song for the first time. 📈`;
   if(/^Still got it/.test(k))return `@${n} still got it! A first 100% again on a song they'd already perfected. 💪`;
   if((m=/^(\d+)-win week trophy/.exec(k)))return `Congratulations @${n} on your first ${m[1]}-win week! 🏆`;
