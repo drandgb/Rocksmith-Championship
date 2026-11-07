@@ -6046,8 +6046,8 @@ function nwElo(n,w){eloBuild(); const k=eloKey(n), kp=eloKeep(k);
 function dlTune(s){const ps=[...new Set(s.ch.map(c=>c[0]))].sort(), t=ps.map(p=>[p,tuneShow(s.song,p)]).filter(x=>x[1]); if(!t.length)return "";
   const same=t.every(x=>x[1]===t[0][1]); return `<small class="dltun"><span class="tunpill" data-tip="Tuning (Song Selection List)">${same?esc(t[0][1]):t.map(([p,v])=>`${"LRB"[p]}: ${esc(v)}`).join(" · ")}</span></small>`}
 function renderDownloads(){
-  const el=$("twdl"); if(!el)return; const w=TW_MAX;
-  const cards=twWeek===w?(SB.weeks[w]||[]).filter(c=>c[3]&&!/^n\/a$/i.test(c[3])):[];
+  const el=$("twdl"); if(!el)return; const w=twWeek;   // the week shown on This Week (any week with a scoreboard)
+  const cards=(SB.weeks[w]||[]).filter(c=>c[3]&&!/^n\/a$/i.test(c[3]));
   if(!cards.length){el.hidden=true;return}
   const T=myTiers(), mine=c=>!!T&&cardLv(c[2])===T[c[0]], L=(SB.links&&SB.links[w])||{};
   const m=new Map(); cards.forEach(c=>{const k=c[3].toLowerCase().replace(/\s+/g," ").trim(); if(!m.has(k))m.set(k,{song:c[3],id:null,ch:[]}); const s=m.get(k); s.ch.push(c); if(!s.id&&L[c[0]*9+c[1]])s.id=L[c[0]*9+c[1]]});
@@ -6058,7 +6058,7 @@ function renderDownloads(){
     const me=cs.find(mine), col=c=>{const lv=cardLv(c[2]); return lv==="G"?"var(--t-god)":TIER_C[lv]||"var(--muted)"};
     const tip=cs.map(c=>`${PATHS[p]} ${c[2]}`).join(", ")+(tuneShow(cs[0][3],p)?` · tuning: ${tuneShow(cs[0][3],p)}`:"");
     return `<span class="dlbx${me?" me":""}"${me?` style="--mc:${col(me)}"`:""} data-tip="${esc(tip)}${me?" · your class":""}">${"LRB"[p]}<b>${cs.map(c=>`<span style="color:${col(c)}">${cardLv(c[2])||"?"}${/bonus/i.test(c[2])?"<sup>+</sup>":""}</span>`).join("·")}</b></span>`};
-  const fold=lsGet(DL_FOLD)===String(w);
+  const fold=lsGet(DL_FOLD)===String(TW_MAX);
   el.innerHTML=`<div class="panel-head dlhead" data-dl="fold" title="${fold?"Show":"Hide"} the download list"><h2>⬇ Download Week ${w}'s songs<span class="dlarw">${fold?"▸":"▾"}</span></h2>
     <span class="sub">${list.length} song${list.length===1?"":"s"} for ${cards.length} challenge${cards.length===1?"":"s"}${T&&!fold?" · your classes are highlighted":""}</span></div>
     ${fold?"":`<ul>${list.map(s=>{const pill=songPill(s.song,s.id);
