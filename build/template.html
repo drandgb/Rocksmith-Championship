@@ -2848,7 +2848,10 @@ function medalsFor(p,bitsOv){
   {const sw=sgaWins(n,doneM); if(sw.length){const ws=sw.map(x=>x.w);
     cRow+=uniqIds(`<span class="medal-m wm" style="--ec:#9ab8ff;cursor:pointer" data-all="${ws.join(",")}" data-hl="${[...new Set(ws)].join(",")}" data-tip="Still got it · 100% again on a challenge you scored 100% on the last time you played it (whatever the streak or score) · ${sw.length} time${sw.length===1?"":"s"} · click to highlight${esc("\n\n"+sw.slice().sort((a,b)=>b.w-a.w).slice(0,12).map(sgaLine).join("\n")+(sw.length>12?`\n… and ${sw.length-12} more`:""))}">${sgaSvg()}<b>${sw.length}</b></span>`,["sgag"])}}
   // theme medals: 100% on a Tenacious D song, on Eiffel 65's Blue (Da Ba Dee) and on a Michael Jackson song; over 90% on Primus' The Ol' Grizz
-  THEME_MEDALS.forEach(T=>{const tw=themeWins(n,doneM,T.re,T.over,T.best); if(!tw.length)return; const ws=tw.map(x=>x.w);
+  THEME_MEDALS.forEach(T=>{const tw=themeWins(n,doneM,T.re,T.over,T.best);
+    // lost to a moving goalpost: "Who took my nuggies?", just the shadow, with when it changed and who claimed the new goalpost
+    if(!tw.length&&T.best&&doneM.length){const L=themeLost(n,T,Math.max(...doneM)); if(L)cRow+=`<span class="medal-m wm nugg lost" style="--ec:#555;cursor:pointer" data-hl="${L.first.w}" data-tip="${esc(`Who took my nuggies? · held ${T.name} with ${L.best.e[1]}% in Week ${L.best.w} · lost it in Week ${L.first.w}, when the goalpost moved to ${L.step}%: ${L.by} first claimed it with ${L.first.e[1]}% on ${L.first.c[3]} (${PATHS[L.first.c[0]]}, ${L.first.c[2]})`)}">${nuggiesLostSvg()}</span>`}
+    if(!tw.length)return; const ws=tw.map(x=>x.w);
     cRow+=uniqIds(`<span class="medal-m wm${T.cls?" "+T.cls:""}" style="--ec:${T.col};cursor:pointer" data-all="${ws.join(",")}" data-hl="${[...new Set(ws)].join(",")}" data-tip="${T.name} · ${T.what}${T.note?` · ${T.note.toLowerCase()}`:""} · ${tw.length} time${tw.length===1?"":"s"} · click to highlight${esc("\n\n"+tw.slice().sort((a,b)=>b.w-a.w).slice(0,12).map(themeLine).join("\n")+(tw.length>12?`\n… and ${tw.length-12} more`:""))}">${T.svg()}<b>${tw.length}</b></span>`,[T.id])});
   // Perfectionist (100% scores): every 100% score on a finished week's challenge, whatever the place or class
   // one medal per class, in that class's gem color (God stays red)
@@ -4148,6 +4151,17 @@ function themeWins(name,weeks,re,over,best){const k=String(name).toLowerCase(), 
   // best: a moving goalpost (best = its steps, e.g. [95,100]). Over the base % to start; once anyone reaches the next
   // step, it takes that step to hold it, and those below lose it. Counts everyone's scores up to the latest of these weeks.
   const bar=themeBar(re,over,best,Math.max(...weeks)); return mine.filter(x=>+x.e[1]>=bar)}
+// a moving-goalpost medal that was held and then lost: the best score that held it, the step that took it away, and
+// who first reached that step (their entry and week). null when they never held it or still hold it.
+function themeLost(name,T,upto){if(!T.best)return null; const k=String(name).toLowerCase(), ent=sbIx().ent;
+  const ok=x=>x.w<=upto&&SB_W.includes(x.w)&&!x.c[7]&&x.e[1]!=null&&+x.e[1]>T.over&&T.re.test(x.c[3]);
+  const held=(ent[k]||[]).filter(x=>ok(x)&&+x.e[1]>=themeBar(T.re,T.over,T.best,x.w)); if(!held.length)return null;
+  const bar=themeBar(T.re,T.over,T.best,upto), best=held.reduce((a,x)=>+x.e[1]>+a.e[1]?x:a); if(+best.e[1]>=bar)return null;
+  const step=T.best.find(st=>st>+best.e[1]); let first=null;
+  Object.values(ent).forEach(L=>L.forEach(x=>{if(ok(x)&&+x.e[1]>=step&&(!first||x.w<first.w||(x.w===first.w&&+x.e[1]>+first.e[1])))first=x}));
+  return first?{best,step,first,by:SB.names[first.e[0]].replace(/[*~]+$/,"")}:null}
+// the shadow left behind when it's lost: just the ground shadow under where the pile was
+function nuggiesLostSvg(){return `<svg viewBox="0 0 30 30" aria-hidden="true" style="overflow:visible"><ellipse cx="15" cy="26.4" rx="13.6" ry="2.4" fill="#000" opacity=".6" stroke="rgba(245,200,74,.35)" stroke-width=".6"/></svg>`}
 // the % it takes to hold a moving-goalpost medal as of week upto: the highest step anyone has reached (just over the base before)
 function themeBar(re,over,best,upto){let top=-1; Object.values(sbIx().ent).forEach(L=>L.forEach(({w,c,e})=>{if(w<=upto&&SB_W.includes(w)&&!c[7]&&e[1]!=null&&re.test(c[3])&&+e[1]>top)top=+e[1]}));
   const st=best.filter(x=>top>=x); return st.length?st[st.length-1]:over+1e-9}
