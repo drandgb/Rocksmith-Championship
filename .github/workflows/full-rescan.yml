@@ -51,8 +51,20 @@ jobs:
             echo "bad=true" >> "$GITHUB_OUTPUT"
           fi
 
+      - name: Check nothing private is about to be committed (secret keys, passwords, email addresses)
+        id: secrets
+        run: |
+          set +e
+          python3 build/check_secrets.py > "$RUNNER_TEMP/secrets.log" 2>&1; code=$?
+          cat "$RUNNER_TEMP/secrets.log"; cat "$RUNNER_TEMP/secrets.log" >> build.log
+          if [ $code -ne 0 ]; then
+            echo "::error::Something private (listed above) would have been committed to this public repository, so nothing was committed."
+            echo "bad=true" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Commit if anything changed
         id: commit
+        if: steps.secrets.outputs.bad != 'true'
         run: |
           # ignore the "Site last updated" / "Scores last updated" lines (kept on their own lines in the template) so the site only changes when the data or page does
           if git diff --quiet -I 'ast updated:' -- index.html && [ -z "$(git status --porcelain -- build/data/cache ratings.json weekposts.json)" ]; then
@@ -77,8 +89,8 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: gh api -X POST "repos/${{ github.repository }}/pages/builds" || echo "Pages will pick up the commit on its own."
 
-      - name: Mark the run as failed if the new page had problems (GitHub emails you)
-        if: steps.check.outputs.bad == 'true'
+      - name: Mark the run as failed if the new page had problems or something private was found (GitHub emails you)
+        if: steps.check.outputs.bad == 'true' || steps.secrets.outputs.bad == 'true'
         run: exit 1
 
       - name: Save the build log

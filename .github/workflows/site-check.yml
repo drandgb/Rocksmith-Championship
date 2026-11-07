@@ -3,6 +3,7 @@ name: Check a draft
 # Every push to a draft branch: build the page from the current scoreboard sheet with the draft's code, then open
 # every tab in headless Chrome (on a computer and a phone) and fail if a tab is empty, the code hits an error or two
 # functions share a name, or a section that has content on the live page is gone, hidden or mostly empty in the draft.
+# Also fail if the draft has anything private in it (secret keys, passwords, email addresses).
 # Nothing is committed. Main is checked by the site updates themselves, which keep the last good page if a check fails.
 on:
   push:
@@ -29,6 +30,9 @@ jobs:
 
       - name: Install openpyxl and playwright
         run: pip install openpyxl==3.1.5 playwright==1.56.0
+
+      - name: Check nothing private is in the draft (secret keys, passwords, email addresses)
+        run: python3 build/check_secrets.py
 
       - name: Build the draft page
         run: OUT=../../_check.html MODE=quick ./build/build.sh
