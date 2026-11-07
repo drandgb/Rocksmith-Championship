@@ -1244,12 +1244,12 @@ footer .updated{display:block;margin-top:4px}
 @media (prefers-reduced-motion:no-preference){.hofnotes span{animation:notebob var(--d,3s) ease-in-out var(--dl,0s) infinite}}
 @keyframes notebob{0%,100%{transform:translate(-50%,-50%) rotate(var(--r,0deg)) translateY(0);opacity:.75}50%{transform:translate(-50%,-50%) rotate(calc(var(--r,0deg) * -1)) translateY(-6px);opacity:1}}
 /* This Week: colored glowing rims on boxes that have something in them */
-/* Special medal up for grabs: a gilded trim in the medal's color, a shine running round it, and a sparkle at each corner */
+/* Special medal up for grabs: a gilded trim in the medal's color, a shine running round it, and corner sparkles that twinkle in opposite pairs */
 .panel.twtheme{position:relative;border:2px solid transparent;background:linear-gradient(var(--panel),var(--panel)) padding-box,linear-gradient(115deg,color-mix(in srgb,var(--rc) 55%,#000) 0%,var(--rc) 18%,#fffbe6 26%,var(--rc) 34%,color-mix(in srgb,var(--rc) 55%,#000) 50%,var(--rc) 68%,#fffbe6 76%,var(--rc) 84%,color-mix(in srgb,var(--rc) 55%,#000) 100%) border-box;background-size:100% 100%,300% 100%}
 .panel.twtheme::after{content:"";position:absolute;inset:5px;border:1px solid color-mix(in srgb,var(--rc) 45%,transparent);border-radius:7px;pointer-events:none}
 .twtheme .trimspk{position:absolute;width:12px;height:12px;background:#fff;clip-path:polygon(50% 0,62% 38%,100% 50%,62% 62%,50% 100%,38% 62%,0 50%,38% 38%);filter:drop-shadow(0 0 3px var(--rc));opacity:.9;pointer-events:none;z-index:1}
 .twtheme .t1{top:-6px;left:-6px}.twtheme .t2{top:-6px;right:-6px}.twtheme .t3{bottom:-6px;left:-6px}.twtheme .t4{bottom:-6px;right:-6px}
-@media (prefers-reduced-motion:no-preference){.panel.twtheme{animation:trimshine 7s linear infinite}.twtheme .trimspk{opacity:0;animation:sparkle 2.4s ease-in-out infinite}.twtheme .t2{animation-delay:.6s}.twtheme .t4{animation-delay:1.2s}.twtheme .t3{animation-delay:1.8s}}
+@media (prefers-reduced-motion:no-preference){.panel.twtheme{animation:trimshine 7s linear infinite}.twtheme .trimspk{opacity:0;animation:sparkle 2.4s ease-in-out infinite}.twtheme .t2,.twtheme .t3{animation-delay:1.2s}}
 @keyframes trimshine{to{background-position:0 0,300% 0}}
 .panel.glowrim.lit{position:relative;border-color:color-mix(in srgb,var(--rc) 70%,var(--line));box-shadow:0 0 0 1px color-mix(in srgb,var(--rc) 25%,transparent),0 0 14px color-mix(in srgb,var(--rc) 30%,transparent)}
 @media (prefers-reduced-motion:no-preference){.panel.glowrim.lit{animation:rimglow 3.2s ease-in-out infinite}}
