@@ -1244,6 +1244,13 @@ footer .updated{display:block;margin-top:4px}
 @media (prefers-reduced-motion:no-preference){.hofnotes span{animation:notebob var(--d,3s) ease-in-out var(--dl,0s) infinite}}
 @keyframes notebob{0%,100%{transform:translate(-50%,-50%) rotate(var(--r,0deg)) translateY(0);opacity:.75}50%{transform:translate(-50%,-50%) rotate(calc(var(--r,0deg) * -1)) translateY(-6px);opacity:1}}
 /* This Week: colored glowing rims on boxes that have something in them */
+/* Special medal up for grabs: a gilded trim in the medal's color, a shine running round it, and a sparkle at each corner */
+.panel.twtheme{position:relative;border:2px solid transparent;background:linear-gradient(var(--panel),var(--panel)) padding-box,linear-gradient(115deg,color-mix(in srgb,var(--rc) 55%,#000) 0%,var(--rc) 18%,#fffbe6 26%,var(--rc) 34%,color-mix(in srgb,var(--rc) 55%,#000) 50%,var(--rc) 68%,#fffbe6 76%,var(--rc) 84%,color-mix(in srgb,var(--rc) 55%,#000) 100%) border-box;background-size:100% 100%,300% 100%}
+.panel.twtheme::after{content:"";position:absolute;inset:5px;border:1px solid color-mix(in srgb,var(--rc) 45%,transparent);border-radius:7px;pointer-events:none}
+.twtheme .trimspk{position:absolute;width:12px;height:12px;background:#fff;clip-path:polygon(50% 0,62% 38%,100% 50%,62% 62%,50% 100%,38% 62%,0 50%,38% 38%);filter:drop-shadow(0 0 3px var(--rc));opacity:.9;pointer-events:none;z-index:1}
+.twtheme .t1{top:-6px;left:-6px}.twtheme .t2{top:-6px;right:-6px}.twtheme .t3{bottom:-6px;left:-6px}.twtheme .t4{bottom:-6px;right:-6px}
+@media (prefers-reduced-motion:no-preference){.panel.twtheme{animation:trimshine 7s linear infinite}.twtheme .trimspk{opacity:0;animation:sparkle 2.4s ease-in-out infinite}.twtheme .t2{animation-delay:.6s}.twtheme .t4{animation-delay:1.2s}.twtheme .t3{animation-delay:1.8s}}
+@keyframes trimshine{to{background-position:0 0,300% 0}}
 .panel.glowrim.lit{position:relative;border-color:color-mix(in srgb,var(--rc) 70%,var(--line));box-shadow:0 0 0 1px color-mix(in srgb,var(--rc) 25%,transparent),0 0 14px color-mix(in srgb,var(--rc) 30%,transparent)}
 @media (prefers-reduced-motion:no-preference){.panel.glowrim.lit{animation:rimglow 3.2s ease-in-out infinite}}
 @keyframes rimglow{0%,100%{box-shadow:0 0 0 1px color-mix(in srgb,var(--rc) 22%,transparent),0 0 10px color-mix(in srgb,var(--rc) 22%,transparent)}50%{box-shadow:0 0 0 1px color-mix(in srgb,var(--rc) 40%,transparent),0 0 22px color-mix(in srgb,var(--rc) 42%,transparent)}}
@@ -6077,7 +6084,8 @@ function renderTwLead(){const el=$("twlead"); if(!el)return; const w=twWeek, car
 function renderTwTheme(w){const el=$("tw-theme"); if(!el)return; const live=w>DATA_WEEK;
   const got=live?THEME_MEDALS.map(T=>({T,cs:(SB.weeks[w]||[]).filter(c=>c[3]&&!/^n\/a$/i.test(c[3])&&T.re.test(c[3])).sort((a,b)=>a[0]-b[0]||a[1]-b[1])})).filter(x=>x.cs.length):[];
   el.hidden=!got.length; if(!got.length){el.innerHTML="";return}
-  el.innerHTML=`<div class="panel-head"><h2>🎖️ Special medal${got.length>1?"s":""} up for grabs</h2></div><ul class="twthl">${got.map(({T,cs})=>{const songs=[...new Set(cs.map(c=>c[3]))];
+  el.style.setProperty("--rc",got[0].T.col);   // the trim takes the (first) medal's color
+  el.innerHTML=`<i class="trimspk t1"></i><i class="trimspk t2"></i><i class="trimspk t3"></i><i class="trimspk t4"></i><div class="panel-head"><h2>🎖️ Special medal${got.length>1?"s":""} up for grabs</h2></div><ul class="twthl">${got.map(({T,cs})=>{const songs=[...new Set(cs.map(c=>c[3]))];
     return `<li><span class="medal-m wm" style="--ec:${T.col}">${uniqIds(T.svg(),[T.id])}</span><div><b>${esc(T.name)}</b> · a special medal for scoring ${esc(T.what)}.<br>To get it: score ${T.over!=null?`over ${T.over}%`:"100%"} on ${songs.map(sg=>`<b>${esc(sg)}</b> (${cs.filter(c=>c[3]===sg).map(c=>`${PATHS[c[0]]} ${c[2]}`).join(", ")})`).join(" or ")}, in any class.</div></li>`}).join("")}</ul>`}
 function renderThisWeek(){
   try{const d=twWkStart(twWeek); twCalM=new Date(d.getFullYear(),d.getMonth(),1,12); renderTwCal()}catch(e){}
