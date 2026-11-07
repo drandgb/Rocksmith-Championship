@@ -927,7 +927,15 @@ html.acctwait body{visibility:hidden}html.acctwait{background:var(--bg)}html.acc
 .seas h4{margin:8px 0 2px;font:800 .66rem var(--f-display);letter-spacing:.1em;text-transform:uppercase;color:var(--tc,var(--muted))}.seas h4:first-of-type{margin-top:0}
 .seas .elocol li{grid-template-columns:22px minmax(0,1fr) auto auto}.seas .sg{white-space:nowrap;min-width:4.4em}.seas .sgain{font:800 .9rem var(--f-display);color:var(--s-green);text-align:right}.seas .sgain.neg{color:var(--s-red)}.seas .sg{font-size:.72rem;color:var(--muted);text-align:right}
 .seas .slast{margin-top:8px;padding-top:6px;border-top:1px dashed var(--line);font-size:.76rem;color:var(--muted)}.seas .slast b{color:var(--fg)}
-.lapsed .alist li{border-left-color:var(--muted)}.unclaimed .alist{max-height:430px;overflow-y:auto;overscroll-behavior:contain;padding-right:4px}
+.lapsed .alist li{border-left-color:var(--muted)}.ucwrap{overflow-x:auto;margin:6px 0 12px}
+.uctab{border-collapse:collapse;font-size:.82rem;width:100%}
+.uctab th,.uctab td{padding:5px 8px;text-align:center;border-bottom:1px solid var(--line);white-space:nowrap}
+.uctab thead th{font:700 .7rem var(--f-display);letter-spacing:.08em;text-transform:uppercase}
+.uctab tbody th{text-align:left}
+.uctab td{background:linear-gradient(0deg,color-mix(in srgb,#ff4d6d calc(var(--uh,0%) * .55),transparent),color-mix(in srgb,#ff4d6d calc(var(--uh,0%) * .55),transparent))}
+.uctab td small{color:var(--muted)}
+@media(max-width:640px){.uctab{font-size:.74rem}.uctab th,.uctab td{padding:4px 5px}}
+.unclaimed .alist{max-height:430px;overflow-y:auto;overscroll-behavior:contain;padding-right:4px}
 .unclaimed .alist li{display:grid;grid-template-columns:11.2em 5.2em 9.6em minmax(0,1fr) auto;gap:4px 10px;align-items:center;padding:6px 10px}
 .unclaimed .alist li>span:first-child{white-space:nowrap}
 .unclaimed .alist .lvchip{justify-self:start;white-space:nowrap}
@@ -3163,15 +3171,27 @@ function lapsedSection(){const tw=TW_MAX, far=52, I=sbIx(), rows=[];
 
 // Host tab: challenges from finished weeks whose trophy went unclaimed: no one who could win it (a player in the
 // challenge's class, or a new player) posted a score; anyone who played was playing up or down. Most recent first.
-function unclaimedSection(){const rows=[];
+function unclaimedSection(){const rows=[], st={}, YR=DATA_WEEK-51;   // st: per challenge class and path, [all, unclaimed, last 52 weeks: all, unclaimed]
   Object.keys(SB.weeks).map(Number).filter(w=>w<=DATA_WEEK).sort((a,b)=>b-a).forEach(w=>(SB.weeks[w]||[]).slice().sort((a,b)=>a[0]-b[0]||a[1]-b[1]).forEach(c=>{
     if(c[7]||!c[3]||/^n\/a$/i.test(c[3]))return;
-    if(c[6].some(e=>canWin(e)&&e[1]!=null&&!isNaN(+e[1])))return;
+    const un=!c[6].some(e=>canWin(e)&&e[1]!=null&&!isNaN(+e[1])), s=((st[c[2]]=st[c[2]]||[[0,0,0,0],[0,0,0,0],[0,0,0,0]])[c[0]]);
+    s[0]++; if(un)s[1]++; if(w>=YR){s[2]++; if(un)s[3]++}
+    if(!un)return;
     rows.push({w,c,n:c[6].filter(e=>e[1]!=null&&!isNaN(+e[1])).length})}));
+  // which are most likely to go unclaimed: the share of each class's challenges on each path, all weeks and the last year
+  const ord=k=>{const i=["Beginner","Intermediate","Advanced","Masterclass","God of"].findIndex(x=>k.startsWith(x)); return i<0||/\//.test(k)?99:i*2+(/bonus/i.test(k)?1:0)};   // odd ones (Tribute, Int/Adv Bonus) last
+  const cls=Object.keys(st).sort((a,b)=>ord(a)-ord(b)||a.localeCompare(b)), pc=(a,b)=>b?Math.round(a/b*100):null;
+  const top=[]; cls.forEach(k=>st[k].forEach((s,pi)=>{if(s[0]>=10&&s[1])top.push({k,pi,v:s[1]/s[0]})})); top.sort((a,b)=>b.v-a.v);
+  const cell=(k,pi)=>{const s=st[k][pi]; if(!s[0])return `<td class="dim">–</td>`; const v=pc(s[1],s[0]), y=pc(s[3],s[2]);
+    return `<td style="--uh:${v}%" data-tip="${esc(`${PATHS[pi]} ${k}: ${s[1]} of ${s[0]} unclaimed (${v}%)${s[2]?`\nLast 52 weeks: ${s[3]} of ${s[2]} (${y}%)`:""}`)}"><b>${v}%</b> <small>${s[1]}/${s[0]}</small>${y!=null?`<br><small>last year ${y}%</small>`:""}</td>`};
+  const stats=`<p class="dim" style="margin-top:4px">Most likely to go unclaimed: ${top.slice(0,3).map(x=>`<b>${PATHS[x.pi]} ${esc(x.k)}</b> (${Math.round(x.v*100)}%)`).join(", ")||"none"}.</p>
+    <div class="ucwrap"><table class="uctab"><thead><tr><th></th>${[0,1,2].map(pi=>`<th style="color:${PATH_C[pi]}">${PATHS[pi]}</th>`).join("")}</tr></thead>
+    <tbody>${cls.map(k=>{const L=cardLv(k); return `<tr><th><span class="lvchip" style="--tc:${L==="G"?"var(--t-god)":TIER_C[L]||"var(--muted)"}">${esc(k)}</span></th>${[0,1,2].map(pi=>cell(k,pi)).join("")}</tr>`}).join("")}</tbody></table></div>`;
   const li=({w,c,n})=>{const L=cardLv(c[2]);
     return `<li style="--pc:${PATH_C[c[0]]}"><span class="dim">Week ${w}${WEEKS[w-1]?" · "+fmt(WEEKS[w-1][1]):""}</span><span class="apath">${PATHS[c[0]]}</span><span class="lvchip" style="--tc:${L==="G"?"var(--t-god)":TIER_C[L]||"var(--muted)"}">${esc(c[2])}</span><span class="asong">${esc(c[3])}</span><span class="dim">${n?`${n} played, none in the class`:"nobody played"}</span></li>`};
   return `<div class="acctsec unclaimed"><h3>Unclaimed trophies <small>${rows.length} challenge${rows.length===1?"":"s"}${rows.length>10?" · scroll for more":""}</small></h3>
     <p class="dim">Challenges where no ranked player in the class posted a score, so the trophy went unclaimed. Most recent first.</p>
+    ${stats}
     ${rows.length?`<ul class="alist">${rows.map(li).join("")}</ul>`:`<p class="dim">Every trophy has been claimed.</p>`}</div>`;
 }
 // Host tab: a week's highlights as plain text to paste into the weekly post
