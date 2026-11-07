@@ -927,7 +927,12 @@ html.acctwait body{visibility:hidden}html.acctwait{background:var(--bg)}html.acc
 .seas h4{margin:8px 0 2px;font:800 .66rem var(--f-display);letter-spacing:.1em;text-transform:uppercase;color:var(--tc,var(--muted))}.seas h4:first-of-type{margin-top:0}
 .seas .elocol li{grid-template-columns:22px minmax(0,1fr) auto auto}.seas .sg{white-space:nowrap;min-width:4.4em}.seas .sgain{font:800 .9rem var(--f-display);color:var(--s-green);text-align:right}.seas .sgain.neg{color:var(--s-red)}.seas .sg{font-size:.72rem;color:var(--muted);text-align:right}
 .seas .slast{margin-top:8px;padding-top:6px;border-top:1px dashed var(--line);font-size:.76rem;color:var(--muted)}.seas .slast b{color:var(--fg)}
-.lapsed .alist li{border-left-color:var(--muted)}.lapsed .alist.lpscroll{overflow-y:auto;position:relative;padding-right:4px;overscroll-behavior:contain}.lapsed .lptog{margin-left:6px}
+.lapsed .alist li{border-left-color:var(--muted)}.unclaimed .alist{max-height:430px;overflow-y:auto;overscroll-behavior:contain;padding-right:4px}
+.unclaimed .alist li{display:grid;grid-template-columns:11.2em 5.2em 9.6em minmax(0,1fr) auto;gap:4px 10px;align-items:center;padding:6px 10px}
+.unclaimed .alist li>span:first-child{white-space:nowrap}
+.unclaimed .alist .lvchip{justify-self:start;white-space:nowrap}
+@media(max-width:640px){.unclaimed .alist li{display:flex;flex-wrap:wrap}.unclaimed .alist li .asong{flex-basis:100%}}
+.lapsed .alist.lpscroll{overflow-y:auto;position:relative;padding-right:4px;overscroll-behavior:contain}.lapsed .lptog{margin-left:6px}
 .newhere{position:relative;margin:0 0 16px;padding:12px 40px 10px 16px;border:1px solid color-mix(in srgb,var(--s-yellow) 45%,var(--line));border-left:4px solid var(--s-yellow);border-radius:10px;background:color-mix(in srgb,var(--s-yellow) 6%,var(--panel));font-size:.92rem;line-height:1.5}.newhere p{margin:0}.newhere p+p{margin-top:6px}.newhere ol{margin:6px 0 8px;padding-left:22px}.newhere li{margin:2px 0}.newhere a{color:var(--s-yellow)}.newhere .nhl{font-size:.85rem}.newhere .nhd{margin:6px 0 8px}.newhere .nhd summary{cursor:pointer;color:var(--s-yellow);font-size:.88rem}.newhere .nhd ul{margin:4px 0 0;padding-left:20px;font-size:.88rem}.newhere .nhd li{margin:3px 0}.newhere .nhx{position:absolute;top:8px;right:8px;background:none;border:0;color:var(--muted);font-size:1rem;cursor:pointer;padding:4px 6px;border-radius:6px}.newhere .nhx:hover{color:var(--fg);background:var(--panel2)}   /* first-visit explainer */
 .hlbox .hlsel{margin-left:8px}.hlbox pre{white-space:pre-wrap;background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:10px 12px;font:500 .84rem/1.45 var(--f-body);max-height:360px;overflow:auto;margin:8px 0}
 .fwgo{color:var(--fg);font-weight:700;text-decoration:underline dotted;cursor:pointer}
@@ -3156,6 +3161,19 @@ function lapsedSection(){const tw=TW_MAX, far=52, I=sbIx(), rows=[];
     <p class="dim">Players who haven't posted a score for 4+ weeks, most recent first, with where they were when they left. A message from a host is often all it takes to bring someone back; when they return, their profile shows a Welcome back panel.</p>
     ${rows.length?`<ul class="alist${rows.length>10?" lpscroll":""}">${rows.map(r=>`<li><span class="fwhn" data-fwp="${esc(r.n)}" title="Open ${esc(r.n)}'s profile">${esc(r.n)}</span><span class="fwlv">${r.lv}</span><span class="dim">last played Week ${r.last}${WEEKS[r.last-1]?" · "+fmt(WEEKS[r.last-1][1]):""} · away ${r.gap-1} weeks · ${r.cnt} week${r.cnt===1?"":"s"} played</span><span class="fwhs">${r.info}</span></li>`).join("")}</ul>`:`<p class="dim">No lapsed players.</p>`}</div>`}
 
+// Host tab: challenges from finished weeks whose trophy went unclaimed: no one who could win it (a player in the
+// challenge's class, or a new player) posted a score; anyone who played was playing up or down. Most recent first.
+function unclaimedSection(){const rows=[];
+  Object.keys(SB.weeks).map(Number).filter(w=>w<=DATA_WEEK).sort((a,b)=>b-a).forEach(w=>(SB.weeks[w]||[]).slice().sort((a,b)=>a[0]-b[0]||a[1]-b[1]).forEach(c=>{
+    if(c[7]||!c[3]||/^n\/a$/i.test(c[3]))return;
+    if(c[6].some(e=>canWin(e)&&e[1]!=null&&!isNaN(+e[1])))return;
+    rows.push({w,c,n:c[6].filter(e=>e[1]!=null&&!isNaN(+e[1])).length})}));
+  const li=({w,c,n})=>{const L=cardLv(c[2]);
+    return `<li style="--pc:${PATH_C[c[0]]}"><span class="dim">Week ${w}${WEEKS[w-1]?" · "+fmt(WEEKS[w-1][1]):""}</span><span class="apath">${PATHS[c[0]]}</span><span class="lvchip" style="--tc:${L==="G"?"var(--t-god)":TIER_C[L]||"var(--muted)"}">${esc(c[2])}</span><span class="asong">${esc(c[3])}</span><span class="dim">${n?`${n} played, none in the class`:"nobody played"}</span></li>`};
+  return `<div class="acctsec unclaimed"><h3>Unclaimed trophies <small>${rows.length} challenge${rows.length===1?"":"s"}${rows.length>10?" · scroll for more":""}</small></h3>
+    <p class="dim">Challenges where no ranked player in the class posted a score, so the trophy went unclaimed. Most recent first.</p>
+    ${rows.length?`<ul class="alist">${rows.map(li).join("")}</ul>`:`<p class="dim">Every trophy has been claimed.</p>`}</div>`;
+}
 // Host tab: a week's highlights as plain text to paste into the weekly post
 function hlText(w){eloBuild(); const I=sbIx(), L=[], played=Object.keys(I.wk).filter(k=>I.wk[k].includes(w)), nm=k=>"@"+I.disp[k];   // names with @, as in the forum
   const both=xs=>xs.length>1?xs.slice(0,-1).join(", ")+" and "+xs[xs.length-1]:xs[0];
@@ -6823,7 +6841,7 @@ function typoScan(){
 function sslNote(){const i=SB.ssl||{}; return `The song names in the scoreboard and the Song Selection List's Songs Played sheet don't match`+(i.live?"":i.from?` (Songs Played as read on ${new Date(i.from).toLocaleDateString()})`:` (Songs Played copy up to week ${i.last||"?"}; the site couldn't read the live sheet)`)}
 // this week's host: the scoreboard issues of the week before (e.g. Week 680's host sees Week 679's), in the Host tab with a 🔧 badge
 // the Host tab's tools (week close, highlights, ratings for a player...); admins who have never hosted get them in the Admin tab
-function hostTools(){return `${(()=>{try{return closeSection()}catch(e){return ""}})()}${(()=>{try{return hlSection()}catch(e){return ""}})()}${(()=>{try{return unusedSection()}catch(e){console.error(e); return ""}})()}${(()=>{try{return fwHostSection()}catch(e){return ""}})()}${(()=>{try{const h=levelScaleSection(false); return h?`<div class="acctsec lvscale">${h.replace('<div class="panel-head"><h2>Player levels in each class</h2></div>','<h3>Player levels in each class</h3>')}</div>`:""}catch(e){return ""}})()}${(()=>{try{return lapsedSection()}catch(e){return ""}})()}${(()=>{try{return bracketSection()}catch(e){return ""}})()}${adminRateSection()}${ratingLogSection()}`}
+function hostTools(){return `${(()=>{try{return closeSection()}catch(e){return ""}})()}${(()=>{try{return hlSection()}catch(e){return ""}})()}${(()=>{try{return unusedSection()}catch(e){console.error(e); return ""}})()}${(()=>{try{return fwHostSection()}catch(e){return ""}})()}${(()=>{try{const h=levelScaleSection(false); return h?`<div class="acctsec lvscale">${h.replace('<div class="panel-head"><h2>Player levels in each class</h2></div>','<h3>Player levels in each class</h3>')}</div>`:""}catch(e){return ""}})()}${(()=>{try{return lapsedSection()}catch(e){return ""}})()}${(()=>{try{return unclaimedSection()}catch(e){console.error(e); return ""}})()}${(()=>{try{return bracketSection()}catch(e){return ""}})()}${adminRateSection()}${ratingLogSection()}`}
 // the Host tab: players who have hosted (or host this week)
 function hostTab(){try{return hostVerified()||!!hostIssueWeek()}catch(e){return false}}
 function hostIssueWeek(){try{if(!acctOn()||!ACCT.claim||ACCT.claim.status!=="approved")return 0; const w=WEEKS[curIdx], h=w[2]||(ACCT.hostSign&&ACCT.hostSign[w[0]]&&ACCT.hostSign[w[0]].player)||"";
