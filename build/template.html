@@ -908,6 +908,7 @@ html.acctwait body{visibility:hidden}html.acctwait{background:var(--bg)}html.acc
 .twgoals{list-style:none;margin:6px 0 0;padding:0;display:flex;flex-direction:column;gap:6px}
 .twgoals li{display:flex;align-items:baseline;flex-wrap:wrap;gap:4px 14px;padding:9px 12px;border:1px solid var(--line);border-radius:10px;background:rgba(255,255,255,.02)}
 .twgoals li .fwt{flex:0 1 auto;min-width:0}
+.twgoalh{margin:12px 0 4px;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}.twgoalh:first-of-type{margin-top:4px}
 .twgoals .fwt{font-weight:700}.twgoals .nwr{color:var(--muted);font-size:13px}
 /* Admin: engagement before and since the stats sheet and the website */
 .engt{width:100%;border-collapse:collapse;font-size:13px;margin:8px 0 4px}.engt th,.engt td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
@@ -2949,11 +2950,14 @@ function eloRivals(pi,k,w,kp){const T=eloTable(pi,w,kp), i=T.findIndex(x=>x[0]==
 // Within reach (top of This Week, for the signed-in player): the next play streak, beating their longest streak, a weeks-played milestone, and
 // the season place just above them. Only for players who are playing now (this week or last).
 const GOAL_PLAYED=[10,25,50,75,100,150,200,250,300,350,400,450,500,600,700,800];
-function goalsPanel(n){const G=[], wk=d=>`${d} more week${d===1?"":"s"}`, pl=r=>`#${r}${r<=3?" "+["gold","silver","bronze"][r-1]:""}`;   // places 1-3 with their medal
-  try{goalsPlay(n,G,wk,pl)}catch(e){console.error(e)}
-  try{goalsWin(n,G)}catch(e){console.error(e)}
-  try{goalsHost(n,G,wk,pl)}catch(e){console.error(e)}
-  return G}
+// in three sections, Play, Win and Host (the season place counts under Win: season points come from placing)
+function goalsPanel(n){const wk=d=>`${d} more week${d===1?"":"s"}`, pl=r=>`#${r}${r<=3?" "+["gold","silver","bronze"][r-1]:""}`;   // places 1-3 with their medal
+  const P=[], W=[], H=[];
+  try{goalsPlay(n,P,wk,pl)}catch(e){console.error(e)}
+  try{goalsWin(n,W)}catch(e){console.error(e)}
+  try{goalsHost(n,H,wk,pl)}catch(e){console.error(e)}
+  const S=P.filter(g=>/^Season /.test(g[0]));   // the season card moves from Play to Win
+  return [["Play",P.filter(g=>!S.includes(g))],["Win",[...S,...W]],["Host",H]].filter(x=>x[1].length)}
 // playing: the next play streak, beating their longest, a weeks-played milestone, the season place above them
 function goalsPlay(n,G,wk,pl){const p=byName[n]; if(!p)return; const tw=TW_MAX, now=twPlayed(n,tw), s=twStreakTo(n,now?tw:tw-1), longest=Math.max(p[6]||0,s);
   if(!now&&!twPlayed(n,tw-1))return;
@@ -2985,7 +2989,7 @@ function goalsHost(n,G,wk,pl){const hw=WEEKS.filter((x,i)=>i<=curIdx&&x[2]===n).
 function twGoals(){const el=$("tw-goals"); if(!el)return; let G=[], n="";
   try{if(typeof ACCT!=="undefined"&&ACCT.claim&&ACCT.claim.status==="approved"&&twWeek===TW_LIVE){n=ACCT.claim.player; G=goalsPanel(n)||[]}}catch(e){console.error(e)}
   el.hidden=!G.length; if(!G.length){el.innerHTML=""; return}
-  el.innerHTML=`<div class="panel-head"><h2>🎯 Within reach - Keep going!</h2></div><ul class="twgoals">${G.map(([t,r])=>`<li><span class="fwt">${esc(t)}</span><span class="nwr">${esc(r)}</span></li>`).join("")}</ul>`}
+  el.innerHTML=`<div class="panel-head"><h2>🎯 Within reach - Keep going!</h2></div>${G.map(([sec,gs])=>`<h4 class="twgoalh">${sec}</h4><ul class="twgoals">${gs.map(([t,r])=>`<li><span class="fwt">${esc(t)}</span><span class="nwr">${esc(r)}</span></li>`).join("")}</ul>`).join("")}`}
 
 // Welcome back: a player back after 4+ weeks away, for their first 4 weeks back
 function wbInfo(n){const W=sbIx().wk[String(n).toLowerCase()]||[], tw=TW_MAX; if(W.length<2||W[W.length-1]<tw-8)return null;
