@@ -6658,7 +6658,7 @@ function unusedArr(){const last=Math.max(DATA_WEEK,TW_MAX), key=t=>String(t).toL
     if(miss.length)out.push({song:x.song,lw,used:[...used].sort(),alt:(x.alt&&x.alt[lw])||[],miss})});
   return out.sort((a,b)=>b.lw-a.lw||a.song.localeCompare(b.song))}
 function unusedSection(){const L=unusedArr();
-  return `<div class="acctsec hlbox unusedbox"><h3>Unused arrangements <small>${L.length} song${L.length===1?"":"s"} · last ${UNUSED_WEEKS} weeks${L.length>8?" · scroll for more":""}</small></h3>
+  return `<div class="acctsec hlbox unusedbox"><h3>Possible unused arrangements <small>${L.length} song${L.length===1?"":"s"} · last ${UNUSED_WEEKS} weeks${L.length>8?" · scroll for more":""}</small></h3>
     <p class="dim">Songs played recently that left a path out, though the song has that arrangement: it was played on that path before, or the Song Selection List has a tuning for it. Ideas for a future week.</p>
     ${L.length?`<ul class="alist${L.length>8?" lpscroll":""}">${L.map(x=>`<li><span><b>${esc(x.song)}</b></span><span class="dim">Week ${x.lw}: ${x.used.length?`played ${x.used.map(p=>`<span style="color:${PATH_C[p]}">${PATHS[p]}</span>`).join(", ")}`:""}${x.alt.length?`${x.used.length?", plus ":"played "}${x.alt.map(arrName).join(", ")}`:""}</span><span class="unmiss">${x.miss.map(m=>`<span class="unp" style="--pc:${PATH_C[m.pi]}">${PATHS[m.pi]} unused</span><small>${m.before?`played in Week ${m.before}`:""}${m.before&&m.tu?" · ":""}${m.tu?esc(m.tu):""}</small>`).join(" ")}</span></li>`).join("")}</ul>`:`<p class="dim">No unused arrangements in the last ${UNUSED_WEEKS} weeks.</p>`}</div>`}
 // ---------- week close countdown (set in the Host tab by the next week's host, who closes the week, or an admin; week_close.sql) ----------
