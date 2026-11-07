@@ -6078,7 +6078,7 @@ function renderTwTheme(w){const el=$("tw-theme"); if(!el)return; const live=w>DA
   const got=live?THEME_MEDALS.map(T=>({T,cs:(SB.weeks[w]||[]).filter(c=>c[3]&&!/^n\/a$/i.test(c[3])&&T.re.test(c[3])).sort((a,b)=>a[0]-b[0]||a[1]-b[1])})).filter(x=>x.cs.length):[];
   el.hidden=!got.length; if(!got.length){el.innerHTML="";return}
   el.innerHTML=`<div class="panel-head"><h2>🎖️ Special medal${got.length>1?"s":""} up for grabs</h2></div><ul class="twthl">${got.map(({T,cs})=>{const songs=[...new Set(cs.map(c=>c[3]))];
-    return `<li><span class="medal-m wm" style="--ec:${T.col}">${uniqIds(T.svg(),[T.id])}</span><div><b>${esc(T.name)}</b> · a special medal for ${esc(T.what)}.<br>To get it: score 100% on ${songs.map(sg=>`<b>${esc(sg)}</b> (${cs.filter(c=>c[3]===sg).map(c=>`${PATHS[c[0]]} ${c[2]}`).join(", ")})`).join(" or ")}, in any class.</div></li>`}).join("")}</ul>`}
+    return `<li><span class="medal-m wm" style="--ec:${T.col}">${uniqIds(T.svg(),[T.id])}</span><div><b>${esc(T.name)}</b> · a special medal for ${esc(T.what)}.<br>To get it: score ${T.over!=null?`over ${T.over}%`:"100%"} on ${songs.map(sg=>`<b>${esc(sg)}</b> (${cs.filter(c=>c[3]===sg).map(c=>`${PATHS[c[0]]} ${c[2]}`).join(", ")})`).join(" or ")}, in any class.</div></li>`}).join("")}</ul>`}
 function renderThisWeek(){
   try{const d=twWkStart(twWeek); twCalM=new Date(d.getFullYear(),d.getMonth(),1,12); renderTwCal()}catch(e){}
   try{renderTwLead()}catch(e){console.error(e)}
