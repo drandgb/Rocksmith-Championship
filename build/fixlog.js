@@ -9,10 +9,31 @@ let h = fs.readFileSync(page, "utf8");
 const m = h.match(/SB=(\{[\s\S]*?\});\s*\n/);
 const a = h.indexOf("const ZERO_FROM"), b = h.indexOf("function typoSection");
 if (!m || a < 0 || b < 0 || !h.includes("var FIXLOG=[]/*FIXLOG*/")) { console.log("fixlog: page layout not found, skipped"); process.exit(0); }
-const SB = eval("(" + m[1] + ")");
-var TYPO_CACHE = null;
-eval(h.slice(a, b).replace("function typoScan", "globalThis.typoScan=function"));
-const { out } = typoScan();
+globalThis.SB = eval("(" + m[1] + ")");
+globalThis.TYPO_CACHE = null;
+// the checks' code also sets up a page click handler (remembering which lists are open): give it a stand-in page here,
+// or it stops with "document is not defined" and nothing gets logged
+globalThis.document = { addEventListener() {}, querySelector() { return null; }, querySelectorAll() { return []; }, getElementById() { return null; } };
+// the checks use helpers defined elsewhere in the page (fakeScore, yearScore, ...): run them, and each time one is
+// missing, bring along the line (or whole function) that defines it, then try again
+function defOf(name) {
+  const fn = new RegExp("\\n(?:async\\s+)?function\\s+" + name + "\\s*\\(").exec(h);
+  if (fn) { let k = h.indexOf("{", h.indexOf(")", fn.index)), d = 0; for (; ; k++) { if (h[k] === "{") d++; else if (h[k] === "}" && !--d) break; } return h.slice(fn.index + 1, k + 1); }
+  const ln = new RegExp("\\n((?:const|let|var)\\s(?:[^\\n]*?[\\s,])?" + name + "\\s*=[^\\n]*)").exec(h);
+  return ln ? ln[1] : null;
+}
+const extra = [], body = h.slice(a, b).replace("function typoScan", "globalThis.typoScan=function");
+let res = null;
+for (let tries = 0; tries < 40 && !res; tries++) {
+  try { (0, eval)((extra.join("\n") + "\n" + body).replace(/^(const|let) /gm, "var ")); res = typoScan(); }
+  catch (e) {
+    const miss = /^(\w+) is not defined/.exec(e.message), d = miss && defOf(miss[1]);
+    if (!d || extra.includes(d)) throw e;
+    extra.unshift(d);
+  }
+}
+if (!res) throw new Error("fixlog: couldn't run the scoreboard checks");
+const { out } = res;
 
 // one entry per issue, keyed so the same issue is recognised between updates
 const now = {};
