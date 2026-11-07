@@ -6049,7 +6049,10 @@ function renderDownloads(){
   const el=$("twdl"); if(!el)return; const w=twWeek;   // the week shown on This Week (any week with a scoreboard)
   const cards=(SB.weeks[w]||[]).filter(c=>c[3]&&!/^n\/a$/i.test(c[3]));
   if(!cards.length){el.hidden=true;return}
-  const T=myTiers(), mine=c=>!!T&&cardLv(c[2])===T[c[0]], L=(SB.links&&SB.links[w])||{};
+  // your classes as they were that week (from your class changes), so an earlier week highlights what you played then;
+  // nothing before your first week
+  const me=myPlayer(), first=me&&byName[me]?byName[me][1]:null;
+  const T=w===TW_MAX?myTiers():me&&first!=null&&w>=first?[0,1,2].map(p=>classAt(me,p,w,[],"")):null, mine=c=>!!T&&cardLv(c[2])===T[c[0]], L=(SB.links&&SB.links[w])||{};
   const m=new Map(); cards.forEach(c=>{const k=c[3].toLowerCase().replace(/\s+/g," ").trim(); if(!m.has(k))m.set(k,{song:c[3],id:null,ch:[]}); const s=m.get(k); s.ch.push(c); if(!s.id&&L[c[0]*9+c[1]])s.id=L[c[0]*9+c[1]]});
   // order: yours first, then by the song's classes lowest first (B, I, A, M, God), compared one by one, so AA comes before AM
   const lvI=c=>{const i="BIAMG".indexOf(cardLv(c[2])||"G");return i<0?4:i}, lvCmp=(x,y)=>{for(let i=0;i<Math.min(x.length,y.length);i++)if(x[i]!==y[i])return x[i]-y[i];return x.length-y.length};
