@@ -2962,7 +2962,7 @@ function goalsPlay(n,G,wk,pl){const p=byName[n]; if(!p)return; const tw=TW_MAX, 
   try{eloBuild(); const id=seasonOf(ELO_DONE), [a,b]=seasonRange(id), left=b-Math.min(b,ELO_DONE), kk=String(n).toLowerCase(); let best=null;
     [0,1,2].forEach(pi=>Object.entries(seasonF1(pi,id)).forEach(([c,L])=>{const i=L.findIndex(x=>x.n.toLowerCase()===kk); if(i<1)return; const gap=L[i-1].p-L[i].p;
       if(!best||gap<best.gap)best={gap,pi,c,i,above:L[i-1].n}}));
-    if(best&&left>0)G.push([`Season ${seasonNum(id)}: ${pl(best.i+1)} in ${PATHS[best.pi]} ${TIER_NAME[best.c]}`,`${best.gap===0?"level on points with":`${best.gap} point${best.gap===1?"":"s"} behind`} ${best.above}, ${pl(best.i)} · ${left} week${left===1?"":"s"} left`])}catch(e){}}
+    if(best&&left>0)G.push([`Season ${seasonNum(id)}: ${pl(best.i)} in ${PATHS[best.pi]} ${TIER_NAME[best.c]}`,`${best.gap===0?"level on points with":`${best.gap} point${best.gap===1?"":"s"} behind`} ${best.above} · you're ${pl(best.i+1)} · ${left} week${left===1?"":"s"} left`])}catch(e){}}
 // winning: on a win streak (won a challenge last week or more weeks in a row), the next win streak medal
 function goalsWin(n,G){const done=SB_W.filter(w=>w<cur[0]).sort((a,b)=>a-b), per=playerWeekWins(n,-1); let s=0, best=0, run=0;
   done.forEach(w=>{run=per[w]&&per[w][1]>0?run+1:0; if(run>best)best=run}); s=run; if(!s)return;
@@ -2977,7 +2977,7 @@ function goalsHost(n,G,wk,pl){const hw=WEEKS.filter((x,i)=>i<=curIdx&&x[2]===n).
   const y=WEEKS[curIdx][1].slice(0,4), c={}; WEEKS.forEach(([w,d,h],i)=>{if(i<=curIdx&&h&&h!==LOST&&d.startsWith(y))c[h]=(c[h]||0)+1});
   if(!c[n])return; const L=Object.keys(c).sort((a,b)=>c[b]-c[a]||a.localeCompare(b)), r=L.indexOf(n)+1, top=L[0];
   if(r>3&&c[top]-c[n]>4)return;   // (only when it's within reach: top 3, or 4 weeks or less behind)
-  G.push([`Host of the year ${y}: ${pl(r)}`,r===1?(L[1]&&c[L[1]]===c[n]?`level with ${L[1]} on ${c[n]} weeks`:`${c[n]} weeks hosted · ${L[1]?`${c[n]-c[L[1]]} ahead of ${L[1]}`:"nobody else yet"}`):`${c[top]-c[n]} week${c[top]-c[n]===1?"":"s"} behind ${top}, ${pl(1)}`])}
+  G.push([`Host of the year ${y}`,r===1?(L[1]&&c[L[1]]===c[n]?`level with ${L[1]} on ${c[n]} weeks`:`you're leading: ${c[n]} weeks hosted · ${L[1]?`${c[n]-c[L[1]]} ahead of ${L[1]}`:"nobody else yet"}`):`${c[top]-c[n]} week${c[top]-c[n]===1?"":"s"} behind ${top} · you're ${pl(r)}`])}
 // Within reach sits at the top of This Week for the signed-in player (their own goals, the first thing they see)
 function twGoals(){const el=$("tw-goals"); if(!el)return; let G=[], n="";
   try{if(typeof ACCT!=="undefined"&&ACCT.claim&&ACCT.claim.status==="approved"&&twWeek===TW_LIVE){n=ACCT.claim.player; G=goalsPanel(n)||[]}}catch(e){console.error(e)}
