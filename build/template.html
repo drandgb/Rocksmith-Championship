@@ -138,6 +138,8 @@ button.forum{background:none;cursor:pointer;font:inherit;font-size:.85rem}
 .now .n{font-size:.8rem;color:var(--muted)}
 .pill{display:inline-block;font-family:var(--f-mono);font-size:.7rem;padding:2px 7px;border-radius:999px;letter-spacing:.04em;vertical-align:middle}
 .pill.open{background:color-mix(in srgb,var(--open) 18%,transparent);color:var(--open);border:1px solid color-mix(in srgb,var(--open) 50%,transparent)}
+.acctdlg a.btn{display:inline-block;text-decoration:none}
+.acctdlg h3>.nbadge{margin-left:8px;vertical-align:2px}
 .twwarn{display:flex;align-items:center;gap:12px;margin:0 0 14px;padding:12px 16px;border-radius:12px;background:color-mix(in srgb,var(--s-red) 14%,var(--panel));border:1px solid color-mix(in srgb,var(--s-red) 60%,transparent);color:var(--fg)}
 .twwarn[hidden]{display:none}
 .twwarn .ic{font-size:1.4rem;color:var(--s-red);line-height:1}
@@ -1244,6 +1246,11 @@ footer .updated{display:block;margin-top:4px}
 .ups .pill.rkpath.act{color:#10131a;background:var(--pc);border-color:var(--pc)}
 #twsb{border-radius:999px;padding:7px 16px;font-weight:700;color:#1a1406;background:var(--s-orange);border:1px solid var(--s-orange);box-shadow:0 0 12px color-mix(in srgb,var(--s-orange) 40%,transparent);cursor:pointer}
 #twsb:hover{filter:brightness(1.1)}
+/* Open host settings: this week's host, under Open scoreboard and styled like it */
+.twhostrow{display:flex;justify-content:flex-end;margin-top:8px}.twhostrow[hidden]{display:none}
+#twhost{border-radius:999px;padding:7px 16px;font-weight:700;color:#1a1406;background:var(--s-orange);border:1px solid var(--s-orange);box-shadow:0 0 12px color-mix(in srgb,var(--s-orange) 40%,transparent);cursor:pointer;white-space:nowrap}
+#twhost:hover{filter:brightness(1.1)}
+@media (max-width:640px){.twhostrow{justify-content:center}#twhost{flex:1 1 100%;max-width:92%;text-align:center;padding:9px 16px}}
 @media (max-width:640px){#twsb{order:10;flex:1 1 100%;max-width:92%;margin:4px auto 0;text-align:center;padding:9px 16px}}
 /* Hall of fame: a victorious gold rim with musical notes dancing around the border */
 .panel.hof{position:relative;border:2px solid transparent;
@@ -1837,6 +1844,7 @@ footer{color:var(--dim);font-size:.78rem}
     </div>
     <div class="twcalrow"><div class="twcal" id="twcal"></div><div class="twcalside"><div class="twseas twlead" id="twlead" hidden></div></div></div>
     <div class="twstatrow"><div class="twstats" id="tw-stats"></div><button type="button" class="clear" id="twsb">Open scoreboard ›</button></div>
+    <div class="twhostrow" id="twhostbar" hidden><button type="button" class="clear" id="twhost" data-openhost>Open host settings ›</button></div>
   </section>
   <section class="panel dlsec pvsec" id="twpast" hidden></section>
   <section class="panel dlsec" id="twdl" hidden></section>
@@ -3334,11 +3342,22 @@ function engSection(){const E=engStats(); if(!E.sheet||!E.site)return "";
     <h4>Compared with the same weeks a year earlier</h4><p class="dim">2025 → 2026 over the same stretch of weeks, so a seasonal rise isn't mistaken for the sheet's or website's doing.</p>
     ${yoy([{h:"Stats sheet weeks",a:E.yrSheet,b:E.sheet},{h:"Website weeks",a:E.yrSite,b:E.site}])}
     <p class="dim">These show what changed, not why: seasons, song picks and word of mouth play a part too.</p></div>`}
+// the Friday post and the recruitment post remind you on their day: a badge on the profile button, the tab and the
+// section, from Friday (Saturday) in your own time until you copy the post that day
+const isCurHost=()=>{try{return !!hostIssueWeek()}catch(e){return false}};
+const todayKey=()=>{const d=new Date(); return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate()};
+function friDue(){try{return (isCurHost()||!!ACCT.admin)&&new Date().getDay()===5&&lsGet("rsc-fri-done")!==todayKey()&&!!friText()}catch(e){return false}}
+function rpDue(){try{return !!ACCT.admin&&new Date().getDay()===6&&lsGet("rsc-rp-done")!==todayKey()}catch(e){return false}}
+const friBadge=()=>friDue()?`<span class="nbadge" title="It's Friday: time for the Friday post">📣</span>`:"";
+const rpBadge=()=>rpDue()?`<span class="nbadge" title="It's Saturday: time for the recruitment post">📢</span>`:"";
+document.addEventListener("click",e=>{const b=e.target.closest("[data-rpcopy]"); if(!b)return;
+  const k=b.dataset.rpcopy==="fritext"?"rsc-fri-done":/^rp/.test(b.dataset.rpcopy)?"rsc-rp-done":null; if(!k)return;
+  lsSet(k,todayKey()); setTimeout(()=>{try{acctBtn(); if($("acct").open)acctDraw()}catch(err){}},1600)});
 function friSection(){const t=friText(); if(!t)return "";
-  return `<div class="adm acctsec hlbox fribox"><h3>Friday post</h3><p class="dim">A reminder for the forum thread before the weekend: play streaks with no score yet this week, and this week's challenges nobody can win yet, each with the players in that class who've played other challenges this week but not that one.</p>
+  return `<div class="adm acctsec hlbox fribox"><h3>Friday post${friBadge()}</h3><p class="dim">A reminder for the forum thread before the weekend: play streaks with no score yet this week, and this week's challenges nobody can win yet, each with the players in that class who've played other challenges this week but not that one.</p>
     <pre id="fritext">${esc(t)}</pre><div class="row"><button type="button" class="btn ghost" data-rpcopy="fritext">Copy post</button></div></div>`}
 function rpSection(){const t=nyAt(weekAt(TW_MAX)[1]), when=new Date(t).toLocaleString(undefined,{weekday:"short",month:"short",day:"numeric",hour:"numeric",minute:"2-digit"});
-  return `<div class="adm acctsec hlbox rpbox"><h3>Recruitment post</h3>
+  return `<div class="adm acctsec hlbox rpbox"><h3>Recruitment post${rpBadge()}</h3>
     <p class="dim">For the Steam discussion boards. Best posted right after a new week starts, Saturdays at ${WEEK_END_TXT} (next: <b>${esc(when)}</b> your time), so readers get a fresh set of songs and the whole week to play. Replying to comments keeps the thread near the top.</p>
     <p class="dim" style="margin-bottom:2px">Title</p><pre id="rptitle">${esc(RP_TITLE)}</pre><div class="row"><button type="button" class="btn ghost" data-rpcopy="rptitle">Copy title</button></div>
     <p class="dim" style="margin:10px 0 2px">Post</p><pre id="rptext">${esc(rpText())}</pre><div class="row"><button type="button" class="btn ghost" data-rpcopy="rptext">Copy post</button></div></div>`}
@@ -6714,8 +6733,7 @@ setInterval(()=>document.querySelectorAll("[data-cd] .cdt").forEach(el=>{el.text
 function cetTxt(t){try{const z=new Intl.DateTimeFormat("en-GB",{timeZone:"Europe/Berlin",timeZoneName:"short"}).formatToParts(t).find(x=>x.type==="timeZoneName").value;
   return t.toLocaleString(undefined,{timeZone:"Europe/Berlin",weekday:"short",hour:"numeric",minute:"2-digit"})+" "+(/^(CET|CEST)$/.test(z)?z:"CET")}catch(e){return ""}}
 function closeSection(){const w=TW_MAX, r=closeFor(w), def=nyAt(weekAt(w)[1]), t=r?new Date(r.ends_at):new Date(def);
-  if(!canTune(w+1)){const nr=WEEKS.find(x=>x[0]===w+1), nx=(nr&&nr[2])||(ACCT.hostSign&&ACCT.hostSign[w+1]&&ACCT.hostSign[w+1].player)||"";   // only the next week's host or an admin can set it
-    return `<div class="acctsec cdsec"><h3>Week close countdown</h3><p class="dim">${r?`Week ${w} closes <b>${esc(t.toLocaleString(undefined,{weekday:"short",month:"short",day:"numeric",hour:"numeric",minute:"2-digit"}))}</b> (${esc(cetTxt(t))})${r.set_by?`, set by ${esc(r.set_by)}`:""}.`:"Not set yet."} Only Week ${w+1}'s host${nx?` (${esc(nx)})`:""} or an admin can set it.</p></div>`}
+  if(!canTune(w+1))return "";   // shown only to the next week's host (who closes the week) and admins, who can set it
   const loc=new Date(t.getTime()-t.getTimezoneOffset()*6e4).toISOString().slice(0,16);
   return `<div class="acctsec cdsec"><h3>Week close countdown</h3><p class="dim">Set when Week ${w} closes, in your own time. This Week and the Scoreboard then show a countdown so players know how long they have. ${r?`Now set to <b>${esc(t.toLocaleString(undefined,{weekday:"short",month:"short",day:"numeric",hour:"numeric",minute:"2-digit"}))}</b> (${esc(cetTxt(t))})${r.set_by?` by ${esc(r.set_by)}`:""}.`:"Not set yet."}</p>
     <div class="row"><input type="datetime-local" id="cdwhen" value="${loc}"><span class="dim" id="cdcet" style="margin:0 6px;white-space:nowrap;align-self:center">(${esc(cetTxt(t))})</span><button type="button" class="btn" data-cdset="${w}">${r?"Update":"Start countdown"}</button>${r?`<button type="button" class="btn ghost" data-cdclear="${w}">Clear</button>`:""}</div></div>`}
@@ -6780,12 +6798,12 @@ function hostSection(admin){
     const all=Object.values(ACCT.hostSign).map(s=>({...s})), have=new Set(all.map(s=>s.week));
     for(let i=1;i<=hostAhead();i++){const w=weekAt(curIdx+i); if(w[2]&&w[2]!==LOST&&!have.has(w[0]))all.push({week:w[0],player:w[2],sheet:true})}
     all.sort((a,b)=>a.week-b.week);
-    return `<div class="adm acctsec hostsec"><h3>Host sign-ups</h3><p>${all.length?"Upcoming hosts. Add site sign-ups to the schedule sheet; weeks marked “in the schedule sheet” are already there.":"No sign-ups yet."}</p><ul>${all.map(s=>{const w=weekAt(curIdx+(s.week-WEEKS[curIdx][0]));return `<li><span>Week ${s.week} · ${fmtShort(w[1])} · ${(()=>{ // once the week is in the schedule sheet, the sheet's host shows with "in the schedule sheet" (it replaces "signed up by")
+    return `<div class="adm acctsec hostsec"><h3>Host sign-ups</h3><div class="row"><a class="btn ghost" href="${SHEET_URL}" target="_blank" rel="noopener">Open schedule sheet ↗</a></div><p>${all.length?"Upcoming hosts. Add site sign-ups to the schedule sheet; weeks marked “in the schedule sheet” are already there.":"No sign-ups yet."}</p><ul>${all.map(s=>{const w=weekAt(curIdx+(s.week-WEEKS[curIdx][0]));return `<li><span>Week ${s.week} · ${fmtShort(w[1])} · ${(()=>{ // once the week is in the schedule sheet, the sheet's host shows with "in the schedule sheet" (it replaces "signed up by")
         const inSheet=s.sheet||(w[2]&&w[2]!==LOST); if(inSheet)return `<b>${esc(w[2]||s.player)}</b> <small>in the schedule sheet</small>`;
         const by=ACCT.claims.find(c=>c.user_id===s.user_id);return `<b>${esc(s.player)}</b> ${by&&by.player!==s.player?`<small>signed up by ${esc(by.player)}</small>`:""}`})()}</span><button type="button" class="btn ghost" ${s.sheet?"data-hostsheet":"data-hostdrop"}="${s.week}">Remove</button></li>`}).join("")}</ul>
       <p>Open weeks:</p><ul>${open.map(([w,i])=>`<li><span>Week ${w[0]} · ${fmtShort(w[1])}${hostHol(w)}</span><span class="hslot">${hostSlot(w,i,null,true).replace("HOST NEEDED · SIGN UP","SIGN UP")}</span></li>`).join("")||`<li>Every week in the next ${hostAhead()} has a host.</li>`}</ul></div>`}
   if(!hostVerified())return "";
-  return `<div class="acctsec hostsec">${reactBtn()}<h3>Hosting</h3><p>Open weeks coming up. Sign up to host one here.</p><ul>${open.map(([w,i])=>`<li><span>Week ${w[0]} · ${fmtShort(w[1])}${hostHol(w)}</span><span class="hslot">${hostSlot(w,i).replace("HOST NEEDED · SIGN UP","SIGN UP")}</span></li>`).join("")||`<li>Every week in the next ${hostAhead()} has a host.</li>`}</ul></div>`;
+  return `<div class="acctsec hostsec">${reactBtn()}<h3>Host sign-ups</h3><p>Open weeks coming up. Sign up to host one here.</p><ul>${open.map(([w,i])=>`<li><span>Week ${w[0]} · ${fmtShort(w[1])}${hostHol(w)}</span><span class="hslot">${hostSlot(w,i).replace("HOST NEEDED · SIGN UP","SIGN UP")}</span></li>`).join("")||`<li>Every week in the next ${hostAhead()} has a host.</li>`}</ul></div>`;
 }
 // verification animals: one per player, seen only by the player and admins (see animals.sql)
 const VERIFY_EMOJI={"Aardvark": "🐜", "Alpaca": "🦙", "Armadillo": "🦔", "Axolotl": "🦎", "Badger": "🦡", "Bat": "🦇", "Bear": "🐻", "Beaver": "🦫", "Bee": "🐝", "Bison": "🦬", "Boar": "🐗", "Butterfly": "🦋", "Camel": "🐫", "Cat": "🐈", "Chameleon": "🦎", "Cheetah": "🐆", "Chicken": "🐔", "Chipmunk": "🐿️", "Cow": "🐄", "Crab": "🦀", "Crocodile": "🐊", "Deer": "🦌", "Dodo": "🦤", "Dog": "🐕", "Dolphin": "🐬", "Donkey": "🫏", "Dove": "🕊️", "Dragon": "🐉", "Duck": "🦆", "Eagle": "🦅", "Elephant": "🐘", "Flamingo": "🦩", "Fox": "🦊", "Frog": "🐸", "Giraffe": "🦒", "Goat": "🐐", "Gorilla": "🦍", "Hamster": "🐹", "Hedgehog": "🦔", "Hippo": "🦛", "Horse": "🐎", "Hummingbird": "🐦", "Jellyfish": "🪼", "Kangaroo": "🦘", "Koala": "🐨", "Ladybug": "🐞", "Leopard": "🐆", "Lion": "🦁", "Lizard": "🦎", "Llama": "🦙", "Lobster": "🦞", "Mammoth": "🦣", "Monkey": "🐒", "Moose": "🫎", "Mouse": "🐁", "Octopus": "🐙", "Orangutan": "🦧", "Otter": "🦦", "Owl": "🦉", "Ox": "🐂", "Panda": "🐼", "Parrot": "🦜", "Peacock": "🦚", "Penguin": "🐧", "Pig": "🐖", "Poodle": "🐩", "Rabbit": "🐇", "Raccoon": "🦝", "Ram": "🐏", "Rhino": "🦏", "Rooster": "🐓", "Scorpion": "🦂", "Seal": "🦭", "Shark": "🦈", "Sheep": "🐑", "Shrimp": "🦐", "Skunk": "🦨", "Sloth": "🦥", "Snail": "🐌", "Snake": "🐍", "Spider": "🕷️", "Squid": "🦑", "Swan": "🦢", "Tiger": "🐅", "Turkey": "🦃", "Turtle": "🐢", "T-Rex": "🦖", "Unicorn": "🦄", "Whale": "🐋", "Wolf": "🐺", "Zebra": "🦓"};
@@ -6863,7 +6881,7 @@ function sslNote(){const i=SB.ssl||{}; return `The song names in the scoreboard 
 // the Host tab's tools (week close, highlights, ratings for a player...); admins who have never hosted get them in the Admin tab
 function hostTools(){return `${(()=>{try{return closeSection()}catch(e){return ""}})()}${(()=>{try{return hlSection()}catch(e){return ""}})()}${(()=>{try{return unusedSection()}catch(e){console.error(e); return ""}})()}${(()=>{try{return fwHostSection()}catch(e){return ""}})()}${(()=>{try{const h=levelScaleSection(false); return h?`<div class="acctsec lvscale">${h.replace('<div class="panel-head"><h2>Player levels in each class</h2></div>','<h3>Player levels in each class</h3>')}</div>`:""}catch(e){return ""}})()}${(()=>{try{return lapsedSection()}catch(e){return ""}})()}${(()=>{try{return unclaimedSection()}catch(e){console.error(e); return ""}})()}${(()=>{try{return bracketSection()}catch(e){return ""}})()}${adminRateSection()}${ratingLogSection()}`}
 // the Host tab: players who have hosted (or host this week)
-function hostTab(){try{return hostVerified()||!!hostIssueWeek()}catch(e){return false}}
+function hostTab(){try{return hostVerified()||!!hostIssueWeek()||(!ACCT.admin&&canTune(TW_MAX+1))}catch(e){return false}}   // also next week's host, who sets the week close countdown
 function hostIssueWeek(){try{if(!acctOn()||!ACCT.claim||ACCT.claim.status!=="approved")return 0; const w=WEEKS[curIdx], h=w[2]||(ACCT.hostSign&&ACCT.hostSign[w[0]]&&ACCT.hostSign[w[0]].player)||"";
   return h&&String(h).toLowerCase()===ACCT.claim.player.toLowerCase()?w[0]-1:0}catch(e){return 0}}
 // this week's host: last week's issues and this week's so far (an empty list when they aren't this week's host)
@@ -7362,6 +7380,8 @@ function acctBtn(){const b=$("acctbtn"); b.hidden=!ACCT.on; try{twGoals()}catch(
   if(sd)b.insertAdjacentHTML("beforeend",`<span class="nbadge nbyel" title="Your season ranking is in danger on ${sd} path${sd===1?"":"s"} · dismiss it in Your week">🏁${sd}</span>`);
   // this week's host: likely issues in last week's scoreboard (Host tab)
   try{const L=hostIssueList(), n=hostIssueN(); if(n)b.insertAdjacentHTML("beforeend",`<span class="nbadge" title="${n} likely scoreboard issue${n===1?"":"s"} in ${L.map(H=>"Week "+H.w).join(" and ")} · see the Host tab">🔧${n}</span>`)}catch(e){}
+  try{b.insertAdjacentHTML("beforeend",friBadge()+rpBadge())}catch(e){}   // Friday post (this week's host and admins), recruitment post (admins)
+  try{const hb=$("twhostbar"); if(hb)hb.hidden=!isCurHost()}catch(e){}   // This Week: Open host settings, for this week's host
   try{localStorage.setItem("rsc-acctbtn",b.innerHTML)}catch(e){} // shown straight away on the next visit while the login loads
   try{if(!$("view-season").hidden)renderSeason()}catch(e){}   // the Season tab's ★ Your classes box
   if(typeof renderDownloads==="function"){try{renderNewWeekNote();renderTwPast();renderDownloads()}catch(e){}}
@@ -7548,10 +7568,10 @@ function acctDraw(msg,err){
   // the passes stay (alert and badges) until you dismiss the alert with its ✕
   if(ACCT.tab==="week"){const n=ACCT.claim.player; ACCT.ywShown=ywUnseen(n)}
   const ywN=appr?ywUnseen(ACCT.claim.player).length:0, sdN=appr?seasUnseen(ACCT.claim.player).length:0;
-  const tabs=`<div class="accttabs" role="tablist">${tb("me","Your profile")}${appr?tb("week",`Your week${ywN?`<span class="nbadge nbyel" title="Passed ${ywN} time${ywN===1?"":"s"} · the ✕ on the alert dismisses it">⬇️${ywN}</span>`:""}${sdN?`<span class="nbadge nbyel" title="Your season ranking is in danger on ${sdN} path${sdN===1?"":"s"} · the ✕ on the alert dismisses it">🏁${sdN}</span>`:""}`):""}${ACCT.claim&&ACCT.claim.status==="approved"?tb("banner","Forum banner"):""}${tb("manage","Manage account")}${hostTab()?tb("host",`Host${(()=>{const L=hostIssueList(), n=hostIssueN(); return n?`<span class="nbadge" title="${n} likely scoreboard issue${n===1?"":"s"} in ${L.map(H=>"Week "+H.w).join(" and ")}">🔧${n}</span>`:""})()}`):""}${appr?tb("wrapped",`🎸 ${WRAP_OPEN()-1} Restringed`):""}${ACCT.admin?tb("admin",`Admin${(()=>{const t=typoScan().nNew; return t?`<span class="nbadge tybadge" title="${t} likely typo${t===1?"":"s"} in this week's scoreboard">${t}</span>`:""})()}${pendN?`<span class="nbadge" title="${pendN} claim${pendN===1?"":"s"} waiting for approval">👤${pendN}</span>`:""}`):""}</div>`;
+  const tabs=`<div class="accttabs" role="tablist">${tb("me","Your profile")}${appr?tb("week",`Your week${ywN?`<span class="nbadge nbyel" title="Passed ${ywN} time${ywN===1?"":"s"} · the ✕ on the alert dismisses it">⬇️${ywN}</span>`:""}${sdN?`<span class="nbadge nbyel" title="Your season ranking is in danger on ${sdN} path${sdN===1?"":"s"} · the ✕ on the alert dismisses it">🏁${sdN}</span>`:""}`):""}${ACCT.claim&&ACCT.claim.status==="approved"?tb("banner","Forum banner"):""}${tb("manage","Manage account")}${hostTab()?tb("host",`Host${(()=>{const L=hostIssueList(), n=hostIssueN(); return n?`<span class="nbadge" title="${n} likely scoreboard issue${n===1?"":"s"} in ${L.map(H=>"Week "+H.w).join(" and ")}">🔧${n}</span>`:""})()}${friBadge()}`):""}${appr?tb("wrapped",`🎸 ${WRAP_OPEN()-1} Restringed`):""}${ACCT.admin?tb("admin",`Admin${friBadge()}${rpBadge()}${(()=>{const t=typoScan().nNew; return t?`<span class="nbadge tybadge" title="${t} likely typo${t===1?"":"s"} in this week's scoreboard">${t}</span>`:""})()}${pendN?`<span class="nbadge" title="${pendN} claim${pendN===1?"":"s"} waiting for approval">👤${pendN}</span>`:""}`):""}</div>`;
   let h=tabs;
   if(ACCT.tab==="admin"){}
-  else if(ACCT.tab==="host")h+=`${(()=>{try{return hostIssueList().map(H=>typoSection(H)).join("")}catch(e){console.error(e); return ""}})()}${hostSection(false).replace('class="acctsec hostsec"','class="acctsec hostsec hosttop"')}${hostTools()}`;
+  else if(ACCT.tab==="host")h+=`${(()=>{try{return hostIssueList().map(H=>typoSection(H)).join("")}catch(e){console.error(e); return ""}})()}${hostSection(false).replace('class="acctsec hostsec"','class="acctsec hostsec hosttop"')}${isCurHost()||ACCT.admin?(()=>{try{return friSection().replace('class="adm acctsec','class="acctsec')}catch(e){console.error(e); return ""}})():""}${hostTools()}`;
   else if(ACCT.tab==="banner")h+=bnTab(ACCT.claim.player);
   else if(ACCT.tab==="wrapped")h+=(()=>{try{return wrapSection(ACCT.claim.player)}catch(e){console.error(e); return ""}})();
   else if(ACCT.tab==="week"){const n=ACCT.claim.player; ACCT.twPart="week";
@@ -7630,6 +7650,7 @@ $("acctbody").addEventListener("click",async e=>{
   }finally{b.disabled=false}
 });
 $("acctbtn").addEventListener("click",()=>{acctDraw();$("acct").showModal();$("acct").appendChild(tip)});
+document.addEventListener("click",e=>{if(!e.target.closest("[data-openhost]"))return; ACCT.tab="host"; acctDraw(); $("acct").showModal(); $("acct").appendChild(tip)});
 $("acctclose").addEventListener("click",()=>$("acct").close());
 // hover text inside the dialog (the tip moves into the dialog while it's open, so it shows above it)
 // ✕ on "You've been passed": mark everything up to the newest pass as seen, then hide the alert and clear the badges
