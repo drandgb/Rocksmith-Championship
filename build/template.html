@@ -503,8 +503,8 @@ button.clear:hover{border-color:var(--accent)}
 .nwnote .nwx{position:absolute;top:6px;right:8px;background:none;border:0;color:var(--muted);font-size:16px;cursor:pointer;padding:2px 4px}
 .nwnote .nwx:hover{color:var(--fg)}
 @media (max-width:640px){.nwnote{flex-wrap:wrap}.nwnote .nwic{display:none}.nwnote .nwbtns{flex:1 1 100%;flex-direction:row;flex-wrap:wrap;margin-right:0}.nwnote .nwbtns button{flex:1 1 auto}.nwnote h2{padding-right:22px}}
-.dlsec .dlhead{cursor:pointer;margin-bottom:0;user-select:none}
-.dlsec .dlhead h2 .dlarw{color:var(--muted);font-size:.8em;margin-left:4px}
+.dlsec .dlhead,.goalsec .dlhead{cursor:pointer;margin-bottom:0;user-select:none}
+.dlsec .dlhead h2 .dlarw,.goalsec .dlhead h2 .dlarw{color:var(--muted);font-size:.8em;margin-left:4px}
 .dlsec ul{list-style:none;margin:10px 0 0;padding:0}
 .dlsec li{display:flex;align-items:center;gap:10px;padding:8px 6px;border-bottom:1px solid var(--line)}
 .dlsec li:last-child{border-bottom:0}
@@ -3000,7 +3000,11 @@ function goalsHost(n,G,wk,pl){const hw=WEEKS.filter((x,i)=>i<=curIdx&&x[2]===n).
 function twGoals(){const el=$("tw-goals"); if(!el)return; let G=[], n="";
   try{if(typeof ACCT!=="undefined"&&ACCT.claim&&ACCT.claim.status==="approved"&&twWeek===TW_LIVE){n=ACCT.claim.player; G=goalsPanel(n)||[]}}catch(e){console.error(e)}
   el.hidden=!G.length; if(!G.length){el.innerHTML=""; return}
-  el.innerHTML=`<div class="panel-head"><h2>🎯 Within reach - Keep going!</h2></div>${G.map(([sec,gs])=>`<h4 class="twgoalh">${sec}</h4><ul class="twgoals">${gs.map(([t,r])=>`<li><span class="fwt">${esc(t)}</span><span class="nwr">${esc(r)}</span></li>`).join("")}</ul>`).join("")}`}
+  const fold=lsGet(GOALS_FOLD)===String(TW_MAX);
+  el.innerHTML=`<div class="panel-head dlhead" data-goals="fold" title="${fold?"Show":"Hide"} the list"><h2>🎯 Within reach - Keep going!<span class="dlarw">${fold?"▸":"▾"}</span></h2></div>${fold?"":G.map(([sec,gs])=>`<h4 class="twgoalh">${sec}</h4><ul class="twgoals">${gs.map(([t,r])=>`<li><span class="fwt">${esc(t)}</span><span class="nwr">${esc(r)}</span></li>`).join("")}</ul>`).join("")}`}
+// clicking the Within reach heading hides or shows its list (remembered for the current week, like the download list)
+const GOALS_FOLD="rsc-goals-fold";
+document.addEventListener("click",e=>{if(e.target.closest("#tw-goals [data-goals=fold]")){lsSet(GOALS_FOLD,lsGet(GOALS_FOLD)===String(TW_MAX)?null:String(TW_MAX)); twGoals()}});
 
 // Welcome back: a player back after 4+ weeks away, for their first 4 weeks back
 function wbInfo(n){const W=sbIx().wk[String(n).toLowerCase()]||[], tw=TW_MAX; if(W.length<2||W[W.length-1]<tw-8)return null;
