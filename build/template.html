@@ -2956,7 +2956,8 @@ function goalsPanel(n){const p=byName[n]; if(!p)return ""; const tw=TW_MAX, now=
   try{eloBuild(); const id=seasonOf(ELO_DONE), [a,b]=seasonRange(id), left=b-Math.min(b,ELO_DONE), kk=String(n).toLowerCase(); let best=null;
     [0,1,2].forEach(pi=>Object.entries(seasonF1(pi,id)).forEach(([c,L])=>{const i=L.findIndex(x=>x.n.toLowerCase()===kk); if(i<1)return; const gap=L[i-1].p-L[i].p;
       if(!best||gap<best.gap)best={gap,pi,c,i,above:L[i-1].n}}));
-    if(best&&left>0)G.push([`Season ${seasonNum(id)}: #${best.i+1} in ${PATHS[best.pi]} ${TIER_NAME[best.c]}`,`${best.gap===0?"level on points with":`${best.gap} point${best.gap===1?"":"s"} behind`} ${best.above} (#${best.i}) · ${left} week${left===1?"":"s"} left`])}catch(e){}
+    if(best&&left>0)const pl=r=>`#${r}${r<=3?` (${["gold","silver","bronze"][r-1]})`:""}`;   // places 1-3 with their medal
+    G.push([`Season ${seasonNum(id)}: ${pl(best.i+1)} in ${PATHS[best.pi]} ${TIER_NAME[best.c]}`,`${best.gap===0?"level on points with":`${best.gap} point${best.gap===1?"":"s"} behind`} ${best.above} (${pl(best.i)}) · ${left} week${left===1?"":"s"} left`])}catch(e){}
   return G}
 // Within reach sits at the top of This Week for the signed-in player (their own goals, the first thing they see)
 function twGoals(){const el=$("tw-goals"); if(!el)return; let G=[], n="";
