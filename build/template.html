@@ -5679,6 +5679,7 @@ if(ML_PRECOMPUTING){ML_PRE=null; setTimeout(()=>{const out={}; ["win","player","
 // ---------- the website's rating for each recent challenge, worked out by the build (ratings_pre.py, ?rateout) ----------
 if(/[?&]rateout\b/.test(location.search))setTimeout(async()=>{
   const data=window.__VOTES||[]; ACCT.on=true; ACCT.sb={from:()=>({select:async()=>({data,error:null})})};
+  ACCT.claims=window.__CLAIMS||[]; ACCT.claimsLoaded=!!window.__CLAIMS;   // who gave each rating themselves (see songRating)
   ACCT.songs=null; await acctLoadWeek(); for(let i=0;i<200&&!ACCT.songs;i++)await new Promise(r=>setTimeout(r,50));   // (another caller may have started the load)
   const ws=Object.keys(SB.weeks).map(Number).sort((a,b)=>b-a).slice(0,12), out={made:new Date().toISOString(),weeks:{}};
   ws.forEach(w=>{const o=out.weeks[w]={}; (SB.weeks[w]||[]).forEach(c=>{if(!c[3]||/^n\/a$/i.test(c[3]))return;
@@ -6411,11 +6412,19 @@ function hostRatingsOf(p,song){
 // The rating shown for a song on a path: the average of the hosts' initial ratings and the players' ratings.
 // Each host counts once (their most recent initial rating for the song), a multi-week God run counts once,
 // and a host who also rated the song as a player only counts with that player rating (their latest).
+// A host's initial rating and a rating for the same player: the player's rating counts if they gave it themselves on the
+// site; one a host or admin gave for them ("Ratings for a player") counts only if it's newer than that host rating
+function voteOwn(v){if(v.u==null||!ACCT.claimsLoaded)return true; const c=(ACCT.claims||[]).find(x=>x.status==="approved"&&x.player.toLowerCase()===v.p.toLowerCase()); return !!c&&c.user_id===v.u}
 function songRating(p,song){
-  const players=acctOn()&&ACCT.songs?songVotes(p,song):[], pl=new Set(players.map(v=>v.p.toLowerCase()));
-  const seen=new Set(), hosts=[];
+  let players=acctOn()&&ACCT.songs?songVotes(p,song):[]; const pv={}; players.forEach(v=>pv[v.p.toLowerCase()]=v);
+  const seen=new Set(), hosts=[], drop=new Set();
   hostRatingsOf(p,song).forEach(x=>{if(x.d==null||!(x.d>0))return; const h=(WEEKS[x.w-1]||[])[2]; const key=h&&h!==LOST?h.toLowerCase():"w"+x.w;
-    if(seen.has(key))return; seen.add(key); hosts.push({w:x.w,t:x.t,d:x.d,cp:x.cp,h:h&&h!==LOST?h:null,replaced:!!h&&pl.has(h.toLowerCase())})});
+    if(seen.has(key))return; seen.add(key);
+    const v=h&&h!==LOST?pv[h.toLowerCase()]:null, at=WEEKS[x.w-1]?new Date(WEEKS[x.w-1][1]+"T00:00:00Z"):null;
+    const replaced=!!v&&(voteOwn(v)||!at||!v.t||new Date(v.t)>at);
+    if(v&&!replaced)drop.add(v.p.toLowerCase());   // the host rating is newer than the one given for them: it stands
+    hosts.push({w:x.w,t:x.t,d:x.d,cp:x.cp,h:h&&h!==LOST?h:null,replaced})});
+  players=players.filter(v=>!drop.has(v.p.toLowerCase()));
   const pool=players.map(v=>v.r).concat(hosts.filter(x=>!x.replaced).map(x=>x.d));
   const avg=pool.length?(Math.round(pool.reduce((a,b)=>a+b,0)/pool.length*10)/10).toFixed(1):null;
   // a host's initial rating counts as their own rating for the song (listed with the players' ratings) until they rate it
@@ -6476,7 +6485,7 @@ async function acctLoadWeek(){
     if(v.player===me)(mine[k]=mine[k]||[]).push({week:v.week,path:v.path,slot:v.slot});
     if(!best[id]||String(v.updated_at)>String(best[id].t))best[id]={k,p:v.player,r:+v.rating,t:v.updated_at,u:v.user_id};
   });
-  const S={}; Object.values(best).forEach(x=>(S[x.k]=S[x.k]||[]).push({p:x.p,r:x.r,u:x.u}));
+  const S={}; Object.values(best).forEach(x=>(S[x.k]=S[x.k]||[]).push({p:x.p,r:x.r,u:x.u,t:x.t}));
   ACCT.songs=S; ACCT.mine=mine; ACCT.rows=rows; ACCT.voters=voters; sbRender();
   {const h=document.querySelector(".acctdlg .hlbox"); if(h&&!h.matches(".unusedbox,.rpbox,.sibox"))h.outerHTML=hlSection()}   // the highlights thank the voters
   if($("acct").open&&(ACCT.tab==="host"||ACCT.tab==="admin"))admRateRedraw();
@@ -7338,7 +7347,7 @@ function lookupsToMe(){try{if(LOOKUP_DEF.me||!ACCT.claim||ACCT.claim.status!=="a
   window.navQuiet?navQuiet(go):go()}catch(e){}}
 async function acctRefresh(){
   const {data:{session}}=await ACCT.sb.auth.getSession(); ACCT.user=session?session.user:null; if(ACCT.user)prefPull();
-  const {data:cl}=await ACCT.sb.from("claims").select("user_id,player,status,created_at"); ACCT.claims=cl||[];
+  const {data:cl}=await ACCT.sb.from("claims").select("user_id,player,status,created_at"); ACCT.claims=cl||[]; ACCT.claimsLoaded=!!cl;
   ACCT.claim=ACCT.user?ACCT.claims.find(c=>c.user_id===ACCT.user.id)||null:null;
   lookupsToMe();
   if(document.documentElement.classList.contains("acctwait")){try{sbRender()}catch(e){console.error(e)} acctShow()}   // who you are is known: show the page

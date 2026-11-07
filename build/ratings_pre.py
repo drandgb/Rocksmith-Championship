@@ -27,8 +27,17 @@ except StopIteration:
     pass
 except Exception as e:
     print("ratings: couldn't read the ratings, kept the previous file:", e); sys.exit(0)
+# the claims (player and login), so the page can tell a rating a player gave themselves from one given for them
+claims = None
+if not os.environ.get("RATINGS_TEST_VOTES"):
+    try:
+        req = urllib.request.Request(f"{url}/rest/v1/claims?select=user_id,player,status", headers={"apikey": key, "Authorization": f"Bearer {key}"})
+        claims = json.load(urllib.request.urlopen(req, timeout=60))
+    except Exception as e:
+        print("ratings: couldn't read the claims, ratings given for players count as their own:", e)
 tmp = tempfile.NamedTemporaryFile("w", suffix=".html", delete=False, dir=os.path.dirname(page), encoding="utf-8")
-tmp.write(html.replace("<script>", "<script>window.__VOTES=" + json.dumps(votes).replace("<", "\\u003c") + ";</script><script>", 1)); tmp.close()   # before the page's first script
+tmp.write(html.replace("<script>", "<script>window.__VOTES=" + json.dumps(votes).replace("<", "\\u003c") + ";"
+          + ("window.__CLAIMS=" + json.dumps(claims).replace("<", "\\u003c") + ";" if claims is not None else "") + "</script><script>", 1)); tmp.close()   # before the page's first script
 try:
     dom = subprocess.run([chrome, "--headless=new", "--no-sandbox", "--disable-gpu", "--allow-file-access-from-files",
                           "--virtual-time-budget=120000", "--dump-dom", "file://" + tmp.name + "?rateout"],
