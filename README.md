@@ -16,6 +16,7 @@ The whole app is one self-contained `index.html`, with no server. It loads Googl
 ## Tabs
 
 ### 📅 This Week
+- **🎯 Within reach** (at the top, for a signed-in player who played this week or last): their next goals close by: the next play streak (and whether it's a new medal), beating their longest streak, a weeks-played milestone, and the season place just above them.
 - The page the site opens on (links ending in #winners, #players, #hosts, #songs or #scoreboard open that tab instead). Shows the current week; use ‹ › to step back through earlier weeks.
 - **Back from a break**: who played after missing last week, with the week they last played.
 - **New this week**: first-time players, with the rank they started at on each path.
@@ -65,7 +66,6 @@ The whole app is one self-contained `index.html`, with no server. It loads Googl
   - **Highest score** and **highest note streak** on any scoreboard challenge, with the song and week; click either to open it on the Scoreboard (on phones, the first tap shows the details).
   - **Skill rating:** the second-best song rating they've scored 95% or better on in the last 6 months, on each path, with a year-by-year table. **Elo** ratings and ranks on each path too.
   - **Medals:** perfect-attendance gem, 🏺 kintsugi gem once the perfect run is broken (the number is how many weeks they played without missing after joining), 💯 perfectionist medals (100% scores; the God one is the Perfect God medal), one per class in that class's gem colour (Beginner yellow, Intermediate green, Advanced blue, Masterclass purple, God red), counting every 100% score whatever the place, 𝄞 played guitar and 𝄢 played bass medals (weeks with at least one Lead or Rhythm score, or at least one Bass score, any level), ✅ completionist medal (weeks with a score on every challenge, every song on every path; a multi-week God challenge already played earlier in its run counts) and Lead, Rhythm and Bass completionist medals (every challenge on that one path), class gems (one for every class up to the highest reached, so Advanced also gives Beginner and Intermediate; dated by the first rank-up into that class when there is a record; gems are always collected in order, so a date later than a higher class's date is left off as a missing record), lunar-year medallions (zodiac animal, colored by element) and ⚡ play-streak bolts (2, 3, 4, 5, 10 … 50 weeks in a row) and yearly streak bolts (with that year's zodiac animal).
-  - **Within reach:** for anyone who played this week or last, the next goals close by: the next play streak (and whether it's a new medal), beating their longest streak, a weeks-played milestone, and the season place just above them.
   - **Year filter:** click a year label to see that year's stats only.
 - **⚔️ Head-to-head:** pick any two players to see every challenge they both played and who finished higher (accuracy, then streak, then score): the overall record, who averaged higher accuracy, the record on each path with both Elo ratings, and their latest 10 challenges together. It starts with the player you looked up against the player they've shared the most challenges with in the past year.
 

@@ -904,6 +904,10 @@ html.acctwait body{visibility:hidden}html.acctwait{background:var(--bg)}html.acc
 .h2ht thead th{font-size:12px;color:var(--muted);font-weight:600}.h2ht .num{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}.h2ht td.h2hw{color:var(--s-green);font-weight:700}
 .h2ht [data-sbw]{cursor:pointer;text-decoration:underline dotted}
 .tip .tipnew{color:var(--s-green);font-weight:600}.tip .tipgone{color:var(--s-red)}
+/* This Week: Within reach (the signed-in player's next goals) */
+.twgoals{list-style:none;margin:6px 0 0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:8px}
+.twgoals li{display:flex;flex-direction:column;gap:3px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:rgba(255,255,255,.02)}
+.twgoals .fwt{font-weight:700}.twgoals .nwr{color:var(--muted);font-size:13px}
 /* Admin: engagement before and since the stats sheet and the website */
 .engt{width:100%;border-collapse:collapse;font-size:13px;margin:8px 0 4px}.engt th,.engt td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
 .engt thead th{font-size:12px;color:var(--muted);font-weight:600}.engt thead th small{display:block;font-weight:400;font-size:11px;opacity:.8}
@@ -1799,6 +1803,7 @@ footer{color:var(--dim);font-size:.78rem}
   <div class="twwarn" id="twwarn" role="alert" hidden></div>
   <div class="cdbanner" id="cdbanner" hidden></div>
   <section class="panel nwnote" id="twnote" hidden></section>
+  <section class="panel goalsec" id="tw-goals" hidden></section>
   <section class="panel twhead">
     <div class="twnav">
       <button type="button" class="twarrow" id="twprev" aria-label="Previous week">‹</button>
@@ -2938,7 +2943,7 @@ function eloRivals(pi,k,w,kp){const T=eloTable(pi,w,kp), i=T.findIndex(x=>x[0]==
   const a=up?`<b>${Math.max(1,Math.round(up[1]-me))}</b> behind ${nm(up[0])}`:"top of the list", b=dn?`<b>${Math.max(1,Math.round(me-dn[1]))}</b> ahead of ${nm(dn[0])}`:"";
   return `<span class="nwriv">${up?"▲ ":"★ "}${a}${b?` · ▼ ${b}`:""}</span>`}
 
-// Within reach (Player lookup): the next play streak, beating their longest streak, a weeks-played milestone, and
+// Within reach (top of This Week, for the signed-in player): the next play streak, beating their longest streak, a weeks-played milestone, and
 // the season place just above them. Only for players who are playing now (this week or last).
 const GOAL_PLAYED=[10,25,50,75,100,150,200,250,300,350,400,450,500,600,700,800];
 function goalsPanel(n){const p=byName[n]; if(!p)return ""; const tw=TW_MAX, now=twPlayed(n,tw), s=twStreakTo(n,now?tw:tw-1), longest=Math.max(p[6]||0,s);
@@ -2952,8 +2957,12 @@ function goalsPanel(n){const p=byName[n]; if(!p)return ""; const tw=TW_MAX, now=
     [0,1,2].forEach(pi=>Object.entries(seasonF1(pi,id)).forEach(([c,L])=>{const i=L.findIndex(x=>x.n.toLowerCase()===kk); if(i<1)return; const gap=L[i-1].p-L[i].p;
       if(!best||gap<best.gap)best={gap,pi,c,i,above:L[i-1].n}}));
     if(best&&left>0)G.push([`Season: #${best.i+1} in ${PATHS[best.pi]} ${TIER_NAME[best.c]}`,`${best.gap===0?"level on points with":`${best.gap} point${best.gap===1?"":"s"} behind`} ${best.above} (#${best.i}) · ${left} week${left===1?"":"s"} left`])}catch(e){}
-  if(!G.length)return "";
-  return `<div class="pcwide nwelo pelo fwl wbl goals"><div class="nwelo-h">Within reach</div><ul>${G.map(([t,r])=>`<li><span class="fwt">${esc(t)}</span><span class="nwr">${esc(r)}</span></li>`).join("")}</ul></div>`}
+  return G}
+// Within reach sits at the top of This Week for the signed-in player (their own goals, the first thing they see)
+function twGoals(){const el=$("tw-goals"); if(!el)return; let G=[], n="";
+  try{if(typeof ACCT!=="undefined"&&ACCT.claim&&ACCT.claim.status==="approved"&&twWeek===TW_LIVE){n=ACCT.claim.player; G=goalsPanel(n)||[]}}catch(e){console.error(e)}
+  el.hidden=!G.length; if(!G.length){el.innerHTML=""; return}
+  el.innerHTML=`<div class="panel-head"><h2>🎯 Within reach</h2></div><ul class="twgoals">${G.map(([t,r])=>`<li><span class="fwt">${esc(t)}</span><span class="nwr">${esc(r)}</span></li>`).join("")}</ul>`}
 
 // Welcome back: a player back after 4+ weeks away, for their first 4 weeks back
 function wbInfo(n){const W=sbIx().wk[String(n).toLowerCase()]||[], tw=TW_MAX; if(W.length<2||W[W.length-1]<tw-8)return null;
@@ -3438,7 +3447,6 @@ function showPlayer(name){
     </div>
     ${(()=>{try{return fwPanel(n)}catch(e){return ""}})()}
     ${(()=>{try{return wbPanel(n)}catch(e){return ""}})()}
-    ${(()=>{try{return goalsPanel(n)}catch(e){return ""}})()}
     <div class="plead" data-n="${esc(n)}">${plLeads(n)}</div>
       ${(()=>{try{const c=hrChart(n); return `<p class="pcwide pnolin">Remember, progress isn’t linear! 🌱</p>`+(c?hrProfile(n)+`<div class="pcwide">${c}</div>`:hrNote(n))}catch(e){return ""}})()}
       ${(()=>{try{const c=lvChart(n); return c?`<div class="pcwide pclv">${c}</div>`:""}catch(e){return ""}})()}
@@ -6015,7 +6023,7 @@ function renderTwTheme(w){const el=$("tw-theme"); if(!el)return; const live=w>DA
 function renderThisWeek(){
   try{const d=twWkStart(twWeek); twCalM=new Date(d.getFullYear(),d.getMonth(),1,12); renderTwCal()}catch(e){}
   try{renderTwLead()}catch(e){console.error(e)}
-  setTimeout(()=>{renderNewWeekNote();renderTwPast();renderDownloads();try{renderTwElo()}catch(e){}try{renderTwRk()}catch(e){}},0);
+  setTimeout(()=>{try{twGoals()}catch(e){}renderNewWeekNote();renderTwPast();renderDownloads();try{renderTwElo()}catch(e){}try{renderTwRk()}catch(e){}},0);
   renderHostWarn(); if(renderNextPreview())return;
   const w=twWeek, W=WEEKS[w-1], live=w===TW_LIVE, names=twNames(w), set=new Set(names);
   try{renderTwTheme(w)}catch(e){console.error(e)}
@@ -7201,7 +7209,7 @@ function acctProfile(n){
   return `<div class="acctsec acctlead"${leads?"":" hidden"}><div id="acct-lead" class="plead" data-n="${esc(n)}">${leads}</div></div><div class="acctsec"><h3>Player profile</h3><div id="acct-p"></div></div>${WR.wins[n]?`<div class="acctsec"><h3>Win profile</h3><div id="acct-w"></div></div>`:""}${hosts[n]?`<div class="acctsec"><h3>Host profile</h3><div id="acct-h"></div></div>`:""}`;
 }
 // header button and dialog
-function acctBtn(){const b=$("acctbtn"); b.hidden=!ACCT.on;
+function acctBtn(){const b=$("acctbtn"); b.hidden=!ACCT.on; try{twGoals()}catch(e){}
   b.title=ACCT.claim&&ACCT.claim.status==="approved"?"Opens your profile: your own stats page, last week's medals, your song ratings and your forum signature banner"
     :ACCT.claim?"Opens your profile. Your player claim is waiting for an admin to approve it"
     :ACCT.user?"Opens your profile, where you can claim your player name so you can rate songs and sign up to host"
