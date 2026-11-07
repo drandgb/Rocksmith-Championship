@@ -3173,13 +3173,13 @@ function lapsedSection(){const tw=TW_MAX, far=52, I=sbIx(), rows=[];
 // challenge's class, or a new player) posted a score; anyone who played was playing up or down. Most recent first.
 function unclaimedSection(){const rows=[], st={}, YR=DATA_WEEK-51;   // st: per challenge class and path, [all, unclaimed, last 52 weeks: all, unclaimed]
   Object.keys(SB.weeks).map(Number).filter(w=>w<=DATA_WEEK).sort((a,b)=>b-a).forEach(w=>(SB.weeks[w]||[]).slice().sort((a,b)=>a[0]-b[0]||a[1]-b[1]).forEach(c=>{
-    if(c[7]||!c[3]||/^n\/a$/i.test(c[3]))return;
+    if(c[7]||!c[3]||/^n\/a$/i.test(c[3])||/^tribute/i.test(c[2]))return;   // Tribute challenges are no longer used
     const un=!c[6].some(e=>canWin(e)&&e[1]!=null&&!isNaN(+e[1])), s=((st[c[2]]=st[c[2]]||[[0,0,0,0],[0,0,0,0],[0,0,0,0]])[c[0]]);
     s[0]++; if(un)s[1]++; if(w>=YR){s[2]++; if(un)s[3]++}
     if(!un)return;
     rows.push({w,c,n:c[6].filter(e=>e[1]!=null&&!isNaN(+e[1])).length})}));
   // which are most likely to go unclaimed: the share of each class's challenges on each path, all weeks and the last year
-  const ord=k=>{const i=["Beginner","Intermediate","Advanced","Masterclass","God of"].findIndex(x=>k.startsWith(x)); return i<0||/\//.test(k)?99:i*2+(/bonus/i.test(k)?1:0)};   // odd ones (Tribute, Int/Adv Bonus) last
+  const ord=k=>{const i=["Beginner","Intermediate","Advanced","Masterclass","God of"].findIndex(x=>k.startsWith(x)); return i<0||/\//.test(k)?99:i*2+(/bonus/i.test(k)?1:0)};   // odd ones (Int/Adv Bonus) last
   const cls=Object.keys(st).sort((a,b)=>ord(a)-ord(b)||a.localeCompare(b)), pc=(a,b)=>b?Math.round(a/b*100):null;
   const top=[]; cls.forEach(k=>st[k].forEach((s,pi)=>{if(s[0]>=10&&s[1])top.push({k,pi,v:s[1]/s[0]})})); top.sort((a,b)=>b.v-a.v);
   const cell=(k,pi)=>{const s=st[k][pi]; if(!s[0])return `<td class="dim">–</td>`; const v=pc(s[1],s[0]), y=pc(s[3],s[2]);
