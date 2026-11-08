@@ -1549,7 +1549,14 @@ footer{color:var(--dim);font-size:.78rem}
 #mcard{position:fixed;z-index:70;pointer-events:none;max-width:min(440px,calc(100vw - 16px));padding:10px 12px 6px;border-radius:12px;background:var(--panel);border:1px solid var(--line);box-shadow:0 10px 30px rgba(0,0,0,.55)}
 #mcard[hidden]{display:none !important}
 #mcard .mh{font:700 .9rem var(--f-display);margin-bottom:8px;display:flex;align-items:center;gap:8px}
-#mcard .ms{font:600 .62rem var(--f-display);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:2px 0 4px}
+#mcard .ms{font:600 .62rem var(--f-display);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:12px 0 10px}
+#mcard .mh+.ms{margin-top:2px}
+/* even spacing: the same gap between every row of medals, and room above each row for the glows, wings and flames that
+   reach past a medal's box (so they don't cover the section names) */
+#mcard .medals,.acctdlg .acctmedals .medals{margin:0;padding:3px 0;row-gap:12px}
+#mcard .medals+.medals,.acctdlg .acctmedals .medals+.medals{margin-top:9px}
+#mcard .medals:has(.cup),.acctdlg .acctmedals .medals:has(.cup){padding-top:9px}   /* the season cups' flames reach highest */
+.acctdlg .acctmedals .ms{margin-bottom:10px}
 #mcard .none{font-size:.78rem;color:var(--muted);margin-bottom:6px}
 
 #hcard .pres i.hh{background:var(--hcol,var(--accent));box-shadow:0 0 4px color-mix(in srgb,var(--hcol,var(--accent)) 50%,transparent)}
