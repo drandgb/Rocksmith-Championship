@@ -1258,13 +1258,13 @@ footer .updated{display:block;margin-top:4px}
 .twhostrow{display:flex;justify-content:flex-end;margin-top:8px}.twhostrow[hidden]{display:none}
 #twhost{border-radius:999px;padding:7px 16px;font-weight:700;color:#1a1406;background:var(--s-orange);border:1px solid var(--s-orange);box-shadow:0 0 12px color-mix(in srgb,var(--s-orange) 40%,transparent);cursor:pointer;white-space:nowrap}
 #twhost:hover{filter:brightness(1.1)}
-#twforum,#twsheet{border-radius:999px;padding:7px 16px;font-weight:700;font-size:.8rem;line-height:1.5;color:#1a1406;background:var(--s-orange);border:1px solid var(--s-orange);box-shadow:0 0 12px color-mix(in srgb,var(--s-orange) 40%,transparent);cursor:pointer;white-space:nowrap;text-decoration:none}
-#twforum:hover,#twsheet:hover{filter:brightness(1.1)}
+#twforum,#twsheet,#twyw{border-radius:999px;padding:7px 16px;font-weight:700;font-size:.8rem;line-height:1.5;color:#1a1406;background:var(--s-orange);border:1px solid var(--s-orange);box-shadow:0 0 12px color-mix(in srgb,var(--s-orange) 40%,transparent);cursor:pointer;white-space:nowrap;text-decoration:none}
+#twforum:hover,#twsheet:hover,#twyw:hover{filter:brightness(1.1)}
 /* the orange buttons sit in the week's title row, between the arrows (above Leading now) */
 .twbtns{display:flex;flex-wrap:wrap;justify-content:flex-end;align-items:center;gap:8px;margin-left:auto}
 .twbtns .twhostrow:not([hidden]){display:contents}
-.twbtns #twsb,.twbtns #twforum,.twbtns #twsheet,.twbtns #twhost{margin:0;font-size:.8rem;line-height:1.5;padding:6px 14px;white-space:nowrap}
-@media (max-width:640px){.twbtns{order:5;flex:1 1 100%;justify-content:center;margin:2px 0 0}.twbtns #twsb,.twbtns #twforum,.twbtns #twsheet,.twbtns #twhost{flex:1 1 calc(50% - 8px);max-width:none;text-align:center;padding:9px 12px}}
+.twbtns #twsb,.twbtns #twyw,.twbtns #twforum,.twbtns #twsheet,.twbtns #twhost{margin:0;font-size:.8rem;line-height:1.5;padding:6px 14px;white-space:nowrap}
+@media (max-width:640px){.twbtns{order:5;flex:1 1 100%;justify-content:center;margin:2px 0 0}.twbtns #twsb,.twbtns #twyw,.twbtns #twforum,.twbtns #twsheet,.twbtns #twhost{flex:1 1 calc(50% - 8px);max-width:none;text-align:center;padding:9px 12px}}
 
 /* Hall of fame: a victorious gold rim with musical notes dancing around the border */
 .panel.hof{position:relative;border:2px solid transparent;
@@ -1866,6 +1866,7 @@ footer{color:var(--dim);font-size:.78rem}
       <button type="button" class="twarrow" id="twprev" aria-label="Previous week">‹</button>
       <div class="twtitle"><h2 id="tw-title"></h2><div class="sub" id="tw-meta"></div></div>
       <div class="twbtns"><button type="button" class="clear" id="twsb">Scoreboard ›</button>
+        <div class="twhostrow" id="twywbar" hidden><button type="button" class="clear" id="twyw" data-openyw>Your week ›</button></div>
         <div class="twhostrow" id="twforumbar" hidden><a class="clear" id="twforum" target="_blank" rel="noopener">Forum post ›</a></div>
         <div class="twhostrow" id="twsheetbar" hidden><a class="clear" id="twsheet" target="_blank" rel="noopener">Scoreboard sheet ›</a></div>
         <div class="twhostrow" id="twhostbar" hidden><button type="button" class="clear" id="twhost" data-openhost>Host settings ›</button></div></div>
@@ -7485,6 +7486,7 @@ function acctBtn(){const b=$("acctbtn"); b.hidden=!ACCT.on; try{twGoals()}catch(
   try{const L=hostIssueList(), n=hostIssueN(); if(n)b.insertAdjacentHTML("beforeend",`<span class="nbadge" title="${n} likely scoreboard issue${n===1?"":"s"} in ${L.map(H=>"Week "+H.w).join(" and ")} · see the Host tab">🔧${n}</span>`)}catch(e){}
   try{b.insertAdjacentHTML("beforeend",friBadge()+rpBadge())}catch(e){}   // Friday post (this week's host and admins), recruitment post (admins)
   try{const hb=$("twhostbar"); if(hb)hb.hidden=!isCurHost()}catch(e){}   // This Week: Open host settings, for this week's host
+  try{const yb=$("twywbar"); if(yb)yb.hidden=!(ACCT.claim&&ACCT.claim.status==="approved")}catch(e){}   // This Week: Your week, for a player with an approved claim
   try{localStorage.setItem("rsc-acctbtn",b.innerHTML)}catch(e){} // shown straight away on the next visit while the login loads
   try{if(!$("view-season").hidden)renderSeason()}catch(e){}   // the Season tab's ★ Your classes box
   if(typeof renderDownloads==="function"){try{renderNewWeekNote();renderTwPast();renderDownloads()}catch(e){}}
@@ -7754,6 +7756,7 @@ $("acctbody").addEventListener("click",async e=>{
 });
 $("acctbtn").addEventListener("click",()=>{acctDraw();$("acct").showModal();$("acct").appendChild(tip)});
 document.addEventListener("click",e=>{if(!e.target.closest("[data-openhost]"))return; ACCT.tab="host"; acctDraw(); $("acct").showModal(); $("acct").appendChild(tip)});
+document.addEventListener("click",e=>{if(!e.target.closest("[data-openyw]"))return; ACCT.tab="week"; acctDraw(); $("acct").showModal(); $("acct").appendChild(tip)});
 $("acctclose").addEventListener("click",()=>$("acct").close());
 // hover text inside the dialog (the tip moves into the dialog while it's open, so it shows above it)
 // ✕ on "You've been passed": mark everything up to the newest pass as seen, then hide the alert and clear the badges
