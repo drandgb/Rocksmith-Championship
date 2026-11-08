@@ -6804,7 +6804,10 @@ async function postsLoad(){if(!ACCT.sb)return;
     const o={}; (data||[]).forEach(r=>{if(/^https?:\/\//i.test(r.url||""))o[r.week]=r}); if(k==="post")WPOSTS=o; else WSHEETS=o}catch(e){}}));
   forumBar(); if($("acct").open&&(ACCT.tab==="host"||ACCT.tab==="admin"))acctDraw()}
 function forumBar(){try{const w=typeof twWeek!=="undefined"?twWeek:TW_MAX;
-  Object.entries(WLINK).forEach(([k,L])=>{const r=wlData(k)[w], bar=$(L.bar); if(!bar)return; bar.hidden=!r; if(r)$(L.btn).href=r.url})}catch(e){}}
+  Object.entries(WLINK).forEach(([k,L])=>{const r=wlData(k)[w], bar=$(L.bar); if(!bar)return; bar.hidden=!r; if(r)$(L.btn).href=r.url})}catch(e){}
+  // Play here (top of the page) opens the current week's forum post once it's added, otherwise the championship forum
+  try{const ph=document.querySelector("a.playhere"), r=WPOSTS[TW_MAX]; if(ph){ph.dataset.forum=ph.dataset.forum||ph.href; ph.dataset.title=ph.dataset.title||ph.title;
+    ph.href=r?r.url:ph.dataset.forum; ph.title=r?`Opens this week's forum post (Week ${TW_MAX}) on CustomsForge, where the songs are posted and scores are submitted`:ph.dataset.title}}catch(e){}}
 {const _rtw=renderThisWeek; renderThisWeek=function(){const r=_rtw.apply(this,arguments); forumBar(); return r}}
 function linkSection(k){const L=WLINK[k], D=wlData(k), adm=!!ACCT.admin; if(!adm&&!canTune(TW_MAX))return "";
   const sel=ACCT.linkW&&ACCT.linkW[k], w=adm&&sel?sel:TW_MAX, r=D[w];
