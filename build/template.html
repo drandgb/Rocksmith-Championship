@@ -4697,6 +4697,7 @@ function sbRender(){
 
 // "Played before" strip under a scoreboard card: one pill per earlier week (newest first); a pill opens that week's results
 var SHEET_URL="https://docs.google.com/spreadsheets/d/1WN-m8wF0lVkQ4cLWHBa009SkqDoPk0xN-C4-llcrXXs/edit";
+var SCHED_URL="https://docs.google.com/spreadsheets/d/1WN-m8wF0lVkQ4cLWHBa009SkqDoPk0xN-C4-llcrXXs/edit?gid=760975442#gid=760975442";   // the Schedule tab
 // plays before the site's scoreboards start (Week 440): only the week and class are known (Songs Played)
 function pastOld(w,p,slot,song){const pi=p, k=pastKey(song), out=[];   // same path (the arrangement played back then isn't recorded)
   if(!k||k==="n/a")return out;
@@ -6813,7 +6814,7 @@ function hostSection(admin){
     const all=Object.values(ACCT.hostSign).map(s=>({...s})), have=new Set(all.map(s=>s.week));
     for(let i=1;i<=hostAhead();i++){const w=weekAt(curIdx+i); if(w[2]&&w[2]!==LOST&&!have.has(w[0]))all.push({week:w[0],player:w[2],sheet:true})}
     all.sort((a,b)=>a.week-b.week);
-    return `<div class="adm acctsec hostsec"><h3>Host sign-ups</h3><div class="row"><a class="btn ghost" href="${SHEET_URL}" target="_blank" rel="noopener">Open schedule sheet ↗</a></div><p>${all.length?"Upcoming hosts. Add site sign-ups to the schedule sheet; weeks marked “in the schedule sheet” are already there.":"No sign-ups yet."}</p><ul>${all.map(s=>{const w=weekAt(curIdx+(s.week-WEEKS[curIdx][0]));return `<li><span>Week ${s.week} · ${fmtShort(w[1])} · ${(()=>{ // once the week is in the schedule sheet, the sheet's host shows with "in the schedule sheet" (it replaces "signed up by")
+    return `<div class="adm acctsec hostsec"><h3>Host sign-ups</h3><div class="row"><a class="btn ghost" href="${SCHED_URL}" target="_blank" rel="noopener">Open schedule sheet ↗</a></div><p>${all.length?"Upcoming hosts. Add site sign-ups to the schedule sheet; weeks marked “in the schedule sheet” are already there.":"No sign-ups yet."}</p><ul>${all.map(s=>{const w=weekAt(curIdx+(s.week-WEEKS[curIdx][0]));return `<li><span>Week ${s.week} · ${fmtShort(w[1])} · ${(()=>{ // once the week is in the schedule sheet, the sheet's host shows with "in the schedule sheet" (it replaces "signed up by")
         const inSheet=s.sheet||(w[2]&&w[2]!==LOST); if(inSheet)return `<b>${esc(w[2]||s.player)}</b> <small>in the schedule sheet</small>`;
         const by=ACCT.claims.find(c=>c.user_id===s.user_id);return `<b>${esc(s.player)}</b> ${by&&by.player!==s.player?`<small>signed up by ${esc(by.player)}</small>`:""}`})()}</span><button type="button" class="btn ghost" ${s.sheet?"data-hostsheet":"data-hostdrop"}="${s.week}">Remove</button></li>`}).join("")}</ul>
       <p>Open weeks:</p><ul>${open.map(([w,i])=>`<li><span>Week ${w[0]} · ${fmtShort(w[1])}${hostHol(w)}</span><span class="hslot">${hostSlot(w,i,null,true).replace("HOST NEEDED · SIGN UP","SIGN UP")}</span></li>`).join("")||`<li>Every week in the next ${hostAhead()} has a host.</li>`}</ul></div>`}
