@@ -1258,10 +1258,14 @@ footer .updated{display:block;margin-top:4px}
 .twhostrow{display:flex;justify-content:flex-end;margin-top:8px}.twhostrow[hidden]{display:none}
 #twhost{border-radius:999px;padding:7px 16px;font-weight:700;color:#1a1406;background:var(--s-orange);border:1px solid var(--s-orange);box-shadow:0 0 12px color-mix(in srgb,var(--s-orange) 40%,transparent);cursor:pointer;white-space:nowrap}
 #twhost:hover{filter:brightness(1.1)}
-#twforum{border-radius:999px;padding:7px 16px;font-weight:700;font-size:.8rem;line-height:1.5;color:#1a1406;background:var(--s-orange);border:1px solid var(--s-orange);box-shadow:0 0 12px color-mix(in srgb,var(--s-orange) 40%,transparent);cursor:pointer;white-space:nowrap;text-decoration:none}
-#twforum:hover{filter:brightness(1.1)}
-@media (max-width:640px){.twhostrow{justify-content:center}#twhost,#twforum{flex:1 1 100%;max-width:92%;text-align:center;padding:9px 16px}}
-@media (max-width:640px){#twsb{order:10;flex:1 1 100%;max-width:92%;margin:4px auto 0;text-align:center;padding:9px 16px}}
+#twforum,#twsheet{border-radius:999px;padding:7px 16px;font-weight:700;font-size:.8rem;line-height:1.5;color:#1a1406;background:var(--s-orange);border:1px solid var(--s-orange);box-shadow:0 0 12px color-mix(in srgb,var(--s-orange) 40%,transparent);cursor:pointer;white-space:nowrap;text-decoration:none}
+#twforum:hover,#twsheet:hover{filter:brightness(1.1)}
+/* the orange buttons sit in the week's title row, between the arrows (above Leading now) */
+.twbtns{display:flex;flex-wrap:wrap;justify-content:flex-end;align-items:center;gap:8px;margin-left:auto}
+.twbtns .twhostrow:not([hidden]){display:contents}
+.twbtns #twsb,.twbtns #twforum,.twbtns #twsheet,.twbtns #twhost{margin:0;font-size:.8rem;line-height:1.5;padding:6px 14px;white-space:nowrap}
+@media (max-width:640px){.twbtns{order:5;flex:1 1 100%;justify-content:center;margin:2px 0 0}.twbtns #twsb,.twbtns #twforum,.twbtns #twsheet,.twbtns #twhost{flex:1 1 calc(50% - 8px);max-width:none;text-align:center;padding:9px 12px}}
+
 /* Hall of fame: a victorious gold rim with musical notes dancing around the border */
 .panel.hof{position:relative;border:2px solid transparent;
   background:linear-gradient(var(--panel),var(--panel)) padding-box,linear-gradient(120deg,#f5c84a,#fff1b8,#d8925a,#f5c84a,#c9d0dc,#f5c84a) border-box;background-size:100% 100%,300% 300%;
@@ -1861,13 +1865,15 @@ footer{color:var(--dim);font-size:.78rem}
     <div class="twnav">
       <button type="button" class="twarrow" id="twprev" aria-label="Previous week">‹</button>
       <div class="twtitle"><h2 id="tw-title"></h2><div class="sub" id="tw-meta"></div></div>
+      <div class="twbtns"><button type="button" class="clear" id="twsb">Scoreboard ›</button>
+        <div class="twhostrow" id="twforumbar" hidden><a class="clear" id="twforum" target="_blank" rel="noopener">Forum post ›</a></div>
+        <div class="twhostrow" id="twsheetbar" hidden><a class="clear" id="twsheet" target="_blank" rel="noopener">Scoreboard sheet ›</a></div>
+        <div class="twhostrow" id="twhostbar" hidden><button type="button" class="clear" id="twhost" data-openhost>Host settings ›</button></div></div>
       <button type="button" class="twarrow" id="twnext" aria-label="Next week">›</button>
       <button type="button" class="clear sblatest" id="twnow" hidden></button>
     </div>
     <div class="twcalrow"><div class="twcal" id="twcal"></div><div class="twcalside"><div class="twseas twlead" id="twlead" hidden></div></div></div>
-    <div class="twstatrow"><div class="twstats" id="tw-stats"></div><button type="button" class="clear" id="twsb">Open scoreboard ›</button></div>
-    <div class="twhostrow" id="twforumbar" hidden><a class="clear" id="twforum" target="_blank" rel="noopener">Open forum post ›</a></div>
-    <div class="twhostrow" id="twhostbar" hidden><button type="button" class="clear" id="twhost" data-openhost>Open host settings ›</button></div>
+    <div class="twstatrow"><div class="twstats" id="tw-stats"></div></div>
   </section>
   <section class="panel dlsec pvsec" id="twpast" hidden></section>
   <section class="panel dlsec" id="twdl" hidden></section>
@@ -6784,27 +6790,36 @@ function cdText(ms){if(ms<=0)return "closing any moment"; const m=Math.floor(ms/
 function cdChip(w){const r=closeFor(w); if(!r)return ""; const t=new Date(r.ends_at);
   return `<span class="cdown" data-cd="${esc(r.ends_at)}" data-tip="${esc(`Week ${w} closes ${t.toLocaleString(undefined,{weekday:"short",month:"short",day:"numeric",hour:"numeric",minute:"2-digit"})} your time${r.set_by?` · set by ${r.set_by}`:""}`)}">⏱ <span class="cdt">${cdText(t-Date.now())}</span></span>`}
 setInterval(()=>document.querySelectorAll("[data-cd] .cdt").forEach(el=>{el.textContent=cdText(new Date(el.parentNode.dataset.cd)-Date.now())}),30000);
-// ---------- Forum post links ----------
-// The link to a week's forum post: This Week shows "Open forum post" under Open scoreboard for the week shown. The
-// current week's host sets it in the Host tab (an admin too, for any week they pick).
-var WPOSTS={};
-async function postsLoad(){if(!ACCT.sb)return; try{const {data,error}=await ACCT.sb.from("week_posts").select("week,url,set_by"); if(error)return;
-  WPOSTS={}; (data||[]).forEach(r=>{if(/^https?:\/\//i.test(r.url||""))WPOSTS[r.week]=r}); forumBar(); if($("acct").open&&(ACCT.tab==="host"||ACCT.tab==="admin"))acctDraw()}catch(e){}}
-function forumBar(){try{const r=WPOSTS[typeof twWeek!=="undefined"?twWeek:TW_MAX], bar=$("twforumbar"); if(!bar)return; bar.hidden=!r; if(r)$("twforum").href=r.url}catch(e){}}
+// ---------- Week links: the forum post and the scoreboard sheet ----------
+// The link to each week's forum post and scoreboard sheet: This Week shows "Open forum post" and "Open scoreboard
+// sheet" under Open scoreboard for the week shown. The current week's host sets them in the Host tab (an admin too,
+// for any week they pick).
+const WLINK={post:{table:"week_posts",title:"Forum post",what:"forum post",bar:"twforumbar",btn:"twforum"},
+             sheet:{table:"week_sheets",title:"Scoreboard sheet",what:"scoreboard sheet",bar:"twsheetbar",btn:"twsheet"}};
+var WPOSTS={}, WSHEETS={};
+const wlData=k=>k==="post"?WPOSTS:WSHEETS;
+async function postsLoad(){if(!ACCT.sb)return;
+  await Promise.all(Object.entries(WLINK).map(async([k,L])=>{try{const {data,error}=await ACCT.sb.from(L.table).select("week,url,set_by"); if(error)return;
+    const o={}; (data||[]).forEach(r=>{if(/^https?:\/\//i.test(r.url||""))o[r.week]=r}); if(k==="post")WPOSTS=o; else WSHEETS=o}catch(e){}}));
+  forumBar(); if($("acct").open&&(ACCT.tab==="host"||ACCT.tab==="admin"))acctDraw()}
+function forumBar(){try{const w=typeof twWeek!=="undefined"?twWeek:TW_MAX;
+  Object.entries(WLINK).forEach(([k,L])=>{const r=wlData(k)[w], bar=$(L.bar); if(!bar)return; bar.hidden=!r; if(r)$(L.btn).href=r.url})}catch(e){}}
 {const _rtw=renderThisWeek; renderThisWeek=function(){const r=_rtw.apply(this,arguments); forumBar(); return r}}
-function postSection(){const adm=!!ACCT.admin; if(!adm&&!canTune(TW_MAX))return "";
-  const w=adm&&ACCT.postW?ACCT.postW:TW_MAX, r=WPOSTS[w];
+function linkSection(k){const L=WLINK[k], D=wlData(k), adm=!!ACCT.admin; if(!adm&&!canTune(TW_MAX))return "";
+  const sel=ACCT.linkW&&ACCT.linkW[k], w=adm&&sel?sel:TW_MAX, r=D[w];
   const weeks=Object.keys(SB.weeks).map(Number).concat([TW_MAX]).filter((x,i,a)=>a.indexOf(x)===i).sort((a,b)=>b-a);
-  return `<div class="acctsec postsec"><h3>Forum post</h3>
-    ${adm?`<div class="row"><label class="dim" for="postw" style="align-self:center;margin-right:6px">Week</label><select id="postw">${weeks.map(x=>`<option value="${x}"${x===w?" selected":""}>Week ${x}${WPOSTS[x]?" ✓":""}</option>`).join("")}</select></div>`:""}
-    <p class="dim">The link to Week ${w}'s forum post${r?`: <a href="${esc(r.url)}" target="_blank" rel="noopener">${esc(r.url)}</a>${r.set_by?` (added by ${esc(r.set_by)})`:""}`:". Not added yet."}</p>
-    <div class="row"><input type="url" id="posturl" placeholder="https://" value="${r?esc(r.url):""}" style="flex:1;min-width:0"><button type="button" class="btn" data-postset="${w}">Save</button>${r?`<button type="button" class="btn ghost" data-postclear="${w}">Clear</button>`:""}</div></div>`}
-document.addEventListener("change",e=>{if(e.target.id!=="postw")return; ACCT.postW=+e.target.value; acctDraw()});
-document.addEventListener("click",async e=>{const s=e.target.closest("[data-postset]"), c=e.target.closest("[data-postclear]"); if(!s&&!c)return;
-  const w=+(s||c).dataset[s?"postset":"postclear"]; if(!ACCT.admin&&!(canTune(w)&&w===TW_MAX)){alert("Only this week's host or an admin can add the forum post.");return}
-  if(s){const v=($("posturl").value||"").trim(); if(!/^https?:\/\/\S+$/i.test(v)){alert("Paste the forum post's full address (starting with https://).");return}
-    const {error}=await ACCT.sb.from("week_posts").upsert({week:w,url:v,set_by:ACCT.claim&&ACCT.claim.player||null,updated_at:new Date().toISOString()},{onConflict:"week"}); if(error){alert("Couldn't save it: "+error.message);return}}
-  else{const {error}=await ACCT.sb.from("week_posts").delete().eq("week",w); if(error){alert("Couldn't clear it: "+error.message);return}}
+  return `<div class="acctsec postsec"><h3>${L.title}</h3>
+    ${adm?`<div class="row"><label class="dim" for="linkw-${k}" style="align-self:center;margin-right:6px">Week</label><select id="linkw-${k}" data-linkw="${k}">${weeks.map(x=>`<option value="${x}"${x===w?" selected":""}>Week ${x}${D[x]?" ✓":""}</option>`).join("")}</select></div>`:""}
+    <p class="dim">The link to Week ${w}'s ${L.what}${r?`: <a href="${esc(r.url)}" target="_blank" rel="noopener">${esc(r.url)}</a>${r.set_by?` (added by ${esc(r.set_by)})`:""}`:". Not added yet."}</p>
+    <div class="row"><input type="url" id="linkurl-${k}" placeholder="https://" value="${r?esc(r.url):""}" style="flex:1;min-width:0"><button type="button" class="btn" data-linkset="${k}|${w}">Save</button>${r?`<button type="button" class="btn ghost" data-linkclear="${k}|${w}">Clear</button>`:""}</div></div>`}
+function postSection(){return linkSection("post")+linkSection("sheet")}
+document.addEventListener("change",e=>{const k=e.target.dataset&&e.target.dataset.linkw; if(!k)return; ACCT.linkW=Object.assign(ACCT.linkW||{},{[k]:+e.target.value}); acctDraw()});
+document.addEventListener("click",async e=>{const s=e.target.closest("[data-linkset]"), c=e.target.closest("[data-linkclear]"); if(!s&&!c)return;
+  const [k,ws]=(s?s.dataset.linkset:c.dataset.linkclear).split("|"), w=+ws, L=WLINK[k]; if(!L)return;
+  if(!ACCT.admin&&!(canTune(w)&&w===TW_MAX)){alert(`Only this week's host or an admin can add the ${L.what}.`);return}
+  if(s){const v=($("linkurl-"+k).value||"").trim(); if(!/^https?:\/\/\S+$/i.test(v)){alert(`Paste the ${L.what}'s full address (starting with https://).`);return}
+    const {error}=await ACCT.sb.from(L.table).upsert({week:w,url:v,set_by:ACCT.claim&&ACCT.claim.player||null,updated_at:new Date().toISOString()},{onConflict:"week"}); if(error){alert("Couldn't save it: "+error.message);return}}
+  else{const {error}=await ACCT.sb.from(L.table).delete().eq("week",w); if(error){alert("Couldn't clear it: "+error.message);return}}
   await postsLoad()});
 // Host tab: set or clear the countdown for the current week
 // a time in Central European time, for the countdown box: "Sat 9:00 PM CET" (CEST in summer)
