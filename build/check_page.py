@@ -1,6 +1,7 @@
 # Check a built page before it goes live: open it in headless Chrome, open every tab, and fail if any tab is empty,
 # the page's code hits an error (also one a section catches and logs), two functions share a name (the later one
-# silently replaces the earlier), a template placeholder was left unfilled, or the footer is far too long (data ended up in it). With --compare OLD.html, also fail if a section that had content on the old page is
+# silently replaces the earlier), a template placeholder was left unfilled, the footer is far too long (data ended up in
+# it), or the page breaks when opened straight at a tab or week (#scoreboard/681, as a reload keeps it). With --compare OLD.html, also fail if a section that had content on the old page is
 # now gone, hidden or mostly empty.
 #   python3 build/check_page.py [index.html] [--compare old.html]
 # Exit code 0: fine. 1: problems found (listed). 0 with a note: Chrome or playwright isn't available, nothing checked.
@@ -60,9 +61,19 @@ def visit(br, path, width, errors_too=True):
     pg.close()
     return tabs, secs, errs
 
+# the newest scoreboard week, for the links to check
+WMAX = max((int(x) for x in re.findall(r'"(\d{3,4})":\[\[\d', src)), default=0)
+
 with sync_playwright() as pw:
     br = pw.chromium.launch(executable_path=chrome, args=["--no-sandbox"]) if chrome else pw.chromium.launch()
     new_secs = None
+    # 5. a link straight to a tab or week (what a reload keeps in the address): the page must load without errors
+    for h in ("#scoreboard/" + str(WMAX), "#thisweek/" + str(WMAX - 1), "#players", "#songs", "#hosts", "#winners") if WMAX else ():
+        lp = br.new_page(viewport={"width": 1300, "height": 900}); le = []
+        lp.on("pageerror", lambda e: le.append(str(e).split("\n")[0]))
+        lp.route("**/*", lambda r: r.continue_() if r.request.url.startswith("file:") else r.abort())
+        lp.goto("file://" + page + h, wait_until="load"); lp.wait_for_timeout(2500); lp.close()
+        problems += [f"opening the page at {h}: error: {e}" for e in dict.fromkeys(le)]
     for width in (1300, 390):  # a computer and a phone
         tabs, secs, errs = visit(br, page, width)
         if width == 1300: new_secs = secs

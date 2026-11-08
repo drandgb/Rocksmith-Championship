@@ -4573,6 +4573,9 @@ var SB_SEEN=(()=>{let prev=null; try{prev=localStorage.getItem("rsc-seen")}catch
 // the players list in a hover, with colors: green = starting a new streak (didn't play the week before), then in red
 // the week before's players who haven't played this week (yet). intro: plain text above it.
 function plColorTip(w,names,live,intro){const abc=xs=>[...xs].sort((a,b)=>a.localeCompare(b,undefined,{sensitivity:"base"}));
+  // twNames is set further down the page: when the Scoreboard is drawn before that (a link or reload straight to
+  // #scoreboard/681), leave the colored list out for now; it's drawn again once everything has loaded
+  try{twNames}catch(e){return ""}
   const prevL=w>PRES_START?twNames(w-1):[], prevK=new Set(prevL.map(x=>x.toLowerCase())), curK=new Set(names.map(x=>x.toLowerCase())), gone=abc(prevL.filter(x=>!curK.has(x.toLowerCase())));
   if(!names.length&&!gone.length)return "";
   return `${intro?esc(intro).replace(/\n/g,"<br>")+"<br><br>":""}${names.length?`<b>Players${live?" so far":""}:</b><br>${abc(names).map(x=>prevK.has(x.toLowerCase())?esc(x):`<span class="tipnew">${esc(x)}</span>`).join(", ")}`:""}${gone.length?`${names.length?"<br><br>":""}<b>Players last week but not ${live?"yet ":""}this week:</b><br><span class="tipgone">${gone.map(esc).join(", ")}</span>`:""}`}
@@ -4633,7 +4636,10 @@ function sbRender(){
   const plainTip=players.size?`Players:\n${abc(players).join(", ")}`:"";
   const allTip=all.length?`Entries per player, all paths:\n${perList(all)}`:"";
   const pathTip=pathEnts.length?`${pathName} entries per player:\n${perList(pathEnts)}`:"";
-  const liveSb=sbWeek===TW_LIVE, postH=plColorTip(sbWeek,abc(posted),liveSb,postTip), plainH=plColorTip(sbWeek,abc(players),liveSb,"");
+  // TW_LIVE is set further down the page: a link straight to the Scoreboard (#scoreboard/681) draws it before that, so
+  // don't let it stop the page (it's drawn again once everything has loaded)
+  let liveSb=false; try{liveSb=sbWeek===TW_LIVE}catch(e){}
+  const postH=plColorTip(sbWeek,abc(posted),liveSb,postTip), plainH=plColorTip(sbWeek,abc(players),liveSb,"");
   $("sbstats").innerHTML=(carried>0?`<span data-tip="${esc(compTipL)}"><b>${players.size}</b> players competing</span><span data-tip="${esc(postTipL)}" data-tiph="${esc(postH)}"><b>${posted.size}</b> players this week</span>`:`<span data-tip="${esc(plainTip)}" data-tiph="${esc(plainH)}"><b>${players.size}</b> players this week</span>`)+`<span data-tip="${esc(allTip)}"><b>${all.length}</b> entries in all paths</span>${sbPath<3?`<span data-tip="${esc(pathTip)}"><b>${pathEnts.length}</b> ${["lead","rhythm","bass"][sbPath]} entries</span>`:""}`;
   // Your cards: the cards you're ranked on, plus every card in your own class on each path (from the player list), played or not yet
   const myTiers=sbPath===3?String(((PLAYERS.find(P=>P[0].toLowerCase()===mineWho)||[])[8])||PL_NEW[Object.keys(PL_NEW).find(k=>k.toLowerCase()===mineWho)]||"").toUpperCase():"";
