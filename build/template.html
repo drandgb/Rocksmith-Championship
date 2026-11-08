@@ -1572,6 +1572,7 @@ footer{color:var(--dim);font-size:.78rem}
 .og-n{font:600 26px var(--f-mono);color:#8b93a7;margin-top:6px}
 .og{position:relative;gap:12px}
 .og-seas{font:900 40px/1 var(--f-display);letter-spacing:.12em;text-transform:uppercase;color:#ffd36e;text-shadow:0 0 12px rgba(255,211,110,.75),0 0 30px rgba(255,180,60,.45);margin-top:10px}
+.og-swk{color:#c9d0dc;text-shadow:none;font-size:.7em;letter-spacing:.1em}
 .og .og-n{margin-top:0}.og .og-n2{font-size:22px;color:#6f778b}.og .bn-stripe{position:absolute;left:40px;right:40px;bottom:18px;height:6px;display:flex;gap:12px}.og .bn-stripe i{flex:1;border-radius:4px}
 /* forum signature banners (Forum banner tab; build/banners.py screenshots them with ?banner=NAME into cards/) */
 .bn{position:relative;width:700px;height:150px;box-sizing:border-box;overflow:hidden;border-radius:12px;font-family:var(--f-body);color:#e9edf5;text-align:left;
@@ -4337,12 +4338,12 @@ function ogCardHtml(){
   const cups=["B","I","A","M"].map((t,i)=>`<div style="width:${96+i*22}px">${seasonCupSvg(TIER_C[t],t)}</div>`).join("");
   let scores=0; Object.values(SB.weeks).forEach(ch=>ch.forEach(c=>{scores+=c[6].length}));
   // the current season so far (its weeks up to this one): players who posted a score, and scores
-  const sid=seasonOf(TW_MAX), sPl=new Set(); let sSc=0;
+  const sid=seasonOf(TW_MAX), [sA,sB]=seasonRange(sid), sPl=new Set(); let sSc=0;
   Object.keys(SB.weeks).map(Number).filter(w=>w<=TW_MAX&&seasonOf(w)===sid).forEach(w=>SB.weeks[w].forEach(c=>c[6].forEach(e=>{sSc++; sPl.add(SB.names[e[0]].replace(/[*~]+$/,"").toLowerCase())})));
   const n=x=>x.toLocaleString("en-US");
   return `<div class="og"><div class="og-cups">${cups}</div><div class="og-t">Rocksmith 2014 Championship</div>
     <div class="og-s">Weekly guitar and bass challenges for every level</div>
-    <div class="og-seas">Season ${seasonNum(sid)}</div>
+    <div class="og-seas">Season ${seasonNum(sid)} <span class="og-swk">· week ${TW_MAX-sA+1} of ${sB-sA+1}</span></div>
     <div class="og-n">${n(sPl.size)} player${sPl.size===1?"":"s"} · ${n(sSc)} score${sSc===1?"":"s"} so far this season</div>
     <div class="og-n og-n2">${n(TW_MAX)} weeks · ${n(PLAYERS.length)} all-time players · ${n(scores)} scores</div>${BN_STRIPE}</div>`}   // the string colors along the bottom, like the player banners
 function seasonTrophies(name,done,path){const ds=new Set(done), k=String(name).toLowerCase();
