@@ -3221,8 +3221,8 @@ function hlText(w){eloBuild(); const I=sbIx(), L=[], played=Object.keys(I.wk).fi
    if(fm.length)L.push(`Congratulations on your first of these medals:${fm.map(x=>"\n"+x).join("")}`)}   // each line starts with the @name, not indented: the forum doesn't tag a name right after the indent
   const nw=played.filter(k=>{const W=I.wk[k]; return W.length===2&&W[1]===w}).map(nm); if(nw.length)L.push(`One more time (back for a second week): ${nw.join(", ")}`);
   const ht=played.filter(k=>{const W=I.wk[k], i=W.indexOf(w); if(i<2||W[i-1]!==w-1||W[i-2]!==w-2)return false; return !(i>=3&&W[i-3]===w-3)&&W.length<=FW_MAX}).map(nm); if(ht.length)L.push(`Hat trick (first three weeks in a row): ${ht.join(", ")}`);
-  // no play streak (2+ weeks in a row) ended this week: everyone on a streak kept it going
-  {const on=Object.keys(I.wk).filter(k=>{const W=I.wk[k]; return W.includes(w-1)&&W.includes(w-2)}), kept=on.filter(k=>I.wk[k].includes(w));
+  // no play streak ended this week: everyone who played last week played again
+  {const on=Object.keys(I.wk).filter(k=>I.wk[k].includes(w-1)), kept=on.filter(k=>I.wk[k].includes(w));
    if(on.length&&kept.length===on.length)L.push(`🔥 No streaks ended this week: all ${on.length} players on a play streak kept it going!`)}
   // no lost trophies: every challenge decided this week has a winner (God challenges that carry on don't count yet)
   {const ch=(SB.weeks[w]||[]).filter(c=>c[3]&&!/^n\/a$/i.test(c[3])&&!c[7]);
@@ -6207,7 +6207,7 @@ function renderThisWeek(){
   // streaks: still to play this week (live) / ended this week (past weeks)
   let dng;
   if(live) dng=PLAYERS.map(p=>p[0]).filter(n=>!set.has(n)).map(n=>({n,k:twStreakTo(n,w-1)})).filter(x=>x.k>0).sort((a,b)=>b.k-a.k||a.n.localeCompare(b.n));
-  else dng=PLAYERS.map(p=>p[0]).filter(n=>!set.has(n)&&twPlayed(n,w-1)).map(n=>({n,k:twStreakTo(n,w-1)})).filter(x=>x.k>=2).sort((a,b)=>b.k-a.k||a.n.localeCompare(b.n));
+  else dng=PLAYERS.map(p=>p[0]).filter(n=>!set.has(n)&&twPlayed(n,w-1)).map(n=>({n,k:twStreakTo(n,w-1)})).filter(x=>x.k>=1).sort((a,b)=>b.k-a.k||a.n.localeCompare(b.n));
   // new medals
   const cand=new Set(names); if(!live){ann.forEach(a=>cand.add(a.n));
     // God challenge winners decided this week who didn't post a score this week (they posted earlier in the run)
@@ -6274,7 +6274,7 @@ function renderThisWeek(){
   const annList=twAnnAll?annAll:ann;
   $("tw-ann").innerHTML=annList.length?annList.map(a=>`<li>${twName(a.n)}<span class="dt">joined ${twWk(a.first)} · ${fmt(a.fd)}${twAnnAll&&!a.active?(()=>{const lp=twLastBefore(a.n,w+1); return lp?` · last played ${twWk(lp)}`:""})():""}${set.has(a.n)?` <span class="ok" data-tip="Played this week" style="cursor:help">✓ playing</span>`:""}</span><span class="rt">🎂 ${a.yrs}<small>year${a.yrs===1?"":"s"}</small></span></li>`).join(""):twEmpty(twAnnAll?"No anniversaries this week.":"No anniversaries this week among players who played in the past year.");
   $("tw-dng-h").textContent=live?"⏳ Streaks at stake":"💔 Streaks that ended";
-  $("tw-dng-sub").textContent=live?`Active streaks with no score yet this week${left>0?` · ${twPl(left,"day")} left`:""}`:`Played week ${w-1} but not week ${w} (2+ week streaks)`;
+  $("tw-dng-sub").textContent=live?`Active streaks with no score yet this week${left>0?` · ${twPl(left,"day")} left`:""}`:`Played week ${w-1} but not week ${w}`;
   // perfect streak lost: players who had played every week since joining and missed their first week this week.
   // They're in "Streaks that ended" with a different rim and a crumbled Perfect gem
   const lostP={}; if(!live&&w<=DATA_WEEK)PLAYERS.forEach(p=>{const bits=twBits[p[0]]||"", b0=p[1]-PRES_START; if(b0<0)return; let k=0; while(b0+k<bits.length&&bits[b0+k]==="1")k++;
