@@ -1260,8 +1260,12 @@ footer .updated{display:block;margin-top:4px}
 #twhost:hover{filter:brightness(1.1)}
 #twforum,#twsheet{border-radius:999px;padding:7px 16px;font-weight:700;font-size:.8rem;line-height:1.5;color:#1a1406;background:var(--s-orange);border:1px solid var(--s-orange);box-shadow:0 0 12px color-mix(in srgb,var(--s-orange) 40%,transparent);cursor:pointer;white-space:nowrap;text-decoration:none}
 #twforum:hover,#twsheet:hover{filter:brightness(1.1)}
-@media (max-width:640px){.twhostrow{justify-content:center}#twhost,#twforum,#twsheet{flex:1 1 100%;max-width:92%;text-align:center;padding:9px 16px}}
-@media (max-width:640px){#twsb{order:10;flex:1 1 100%;max-width:92%;margin:4px auto 0;text-align:center;padding:9px 16px}}
+/* the orange buttons sit in the week's title row, between the arrows (above Leading now) */
+.twbtns{display:flex;flex-wrap:wrap;justify-content:flex-end;align-items:center;gap:8px;margin-left:auto}
+.twbtns .twhostrow:not([hidden]){display:contents}
+.twbtns #twsb,.twbtns #twforum,.twbtns #twsheet,.twbtns #twhost{margin:0;font-size:.8rem;line-height:1.5;padding:6px 14px;white-space:nowrap}
+@media (max-width:640px){.twbtns{order:5;flex:1 1 100%;justify-content:center;margin:2px 0 0}.twbtns #twsb,.twbtns #twforum,.twbtns #twsheet,.twbtns #twhost{flex:1 1 calc(50% - 8px);max-width:none;text-align:center;padding:9px 12px}}
+
 /* Hall of fame: a victorious gold rim with musical notes dancing around the border */
 .panel.hof{position:relative;border:2px solid transparent;
   background:linear-gradient(var(--panel),var(--panel)) padding-box,linear-gradient(120deg,#f5c84a,#fff1b8,#d8925a,#f5c84a,#c9d0dc,#f5c84a) border-box;background-size:100% 100%,300% 300%;
@@ -1861,14 +1865,15 @@ footer{color:var(--dim);font-size:.78rem}
     <div class="twnav">
       <button type="button" class="twarrow" id="twprev" aria-label="Previous week">‹</button>
       <div class="twtitle"><h2 id="tw-title"></h2><div class="sub" id="tw-meta"></div></div>
+      <div class="twbtns"><button type="button" class="clear" id="twsb">Scoreboard ›</button>
+        <div class="twhostrow" id="twforumbar" hidden><a class="clear" id="twforum" target="_blank" rel="noopener">Forum post ›</a></div>
+        <div class="twhostrow" id="twsheetbar" hidden><a class="clear" id="twsheet" target="_blank" rel="noopener">Scoreboard sheet ›</a></div>
+        <div class="twhostrow" id="twhostbar" hidden><button type="button" class="clear" id="twhost" data-openhost>Host settings ›</button></div></div>
       <button type="button" class="twarrow" id="twnext" aria-label="Next week">›</button>
       <button type="button" class="clear sblatest" id="twnow" hidden></button>
     </div>
     <div class="twcalrow"><div class="twcal" id="twcal"></div><div class="twcalside"><div class="twseas twlead" id="twlead" hidden></div></div></div>
-    <div class="twstatrow"><div class="twstats" id="tw-stats"></div><button type="button" class="clear" id="twsb">Open scoreboard ›</button></div>
-    <div class="twhostrow" id="twforumbar" hidden><a class="clear" id="twforum" target="_blank" rel="noopener">Open forum post ›</a></div>
-    <div class="twhostrow" id="twsheetbar" hidden><a class="clear" id="twsheet" target="_blank" rel="noopener">Open scoreboard sheet ›</a></div>
-    <div class="twhostrow" id="twhostbar" hidden><button type="button" class="clear" id="twhost" data-openhost>Open host settings ›</button></div>
+    <div class="twstatrow"><div class="twstats" id="tw-stats"></div></div>
   </section>
   <section class="panel dlsec pvsec" id="twpast" hidden></section>
   <section class="panel dlsec" id="twdl" hidden></section>
