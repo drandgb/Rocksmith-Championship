@@ -4329,14 +4329,14 @@ function grandCupSvg(col,multi,lv){const u="cup"+SVG_SALT+(++CUP_N), halo=[[1.3,
   <path d="M6.6 25.9h14.8l.6 1.6H6z" fill="url(#${u}g)"/></svg>`}
 function seasonCupSvg(col,lv){return grandCupSvg(col,false,lv)}
 // the site's link preview picture (1200x630; build/banners.py screenshots it into cards/og/site.png each week):
-// a season trophy for each class, the site's name, and how many weeks, players and scores it covers
+// a season trophy for each class, the site's name, the current season, and how many weeks, players and scores it covers
 function ogCardHtml(){
   const cups=["B","I","A","M"].map((t,i)=>`<div style="width:${96+i*22}px">${seasonCupSvg(TIER_C[t],t)}</div>`).join("");
   let scores=0; Object.values(SB.weeks).forEach(ch=>ch.forEach(c=>{scores+=c[6].length}));
   const n=x=>x.toLocaleString("en-US");
   return `<div class="og"><div class="og-cups">${cups}</div><div class="og-t">Rocksmith 2014 Championship</div>
     <div class="og-s">Weekly guitar and bass challenges for every level</div>
-    <div class="og-n">${n(Object.keys(SB.weeks).length)} weeks · ${n(PLAYERS.length)} players · ${n(scores)} scores</div></div>`}
+    <div class="og-n">Season ${seasonNum(seasonOf(TW_MAX))} · ${n(TW_MAX)} weeks · ${n(PLAYERS.length)} all-time players · ${n(scores)} scores</div></div>`}
 function seasonTrophies(name,done,path){const ds=new Set(done), k=String(name).toLowerCase();
   const T=seasonChamps().filter(x=>x.k===k&&ds.has(x.end)&&(path==null||path<0||x.pi===path));
   return ["M","A","I","B"].map(c=>{const t=T.filter(x=>x.c===c); if(!t.length)return ""; const ws=t.map(x=>x.end);
