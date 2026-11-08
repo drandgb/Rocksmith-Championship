@@ -6423,7 +6423,7 @@ const RK_CYC=["","B","I","A","M"]; let rkLv=["","",""]; // level shown per path 
 function rkCurrent(){const end=d=>{const m=String(d&&d.weeks||"").match(/(\d+)\D+(\d+)/); return m?+m[2]:0};
   try{const L=rkLiveData(); return end(RK_SHEET)>=end(L)?RK_SHEET:L}catch(e){return RK_SHEET}}
 // Year-end Rodman's Rankings: the leaderboard as it stood at the end of each year, from the year tabs in the championship sheet
-let yeYear="all";   // All time is shown first
+let yeYear=null;   // the current year is shown first (All time is in the list)
 // Years the sheet doesn't have year-end standings for yet (2025 on): worked out by the site the same way as Rodman's
 // Rankings (each week's main challenge in each class, the top 4 of players in that class or playing one class up get
 // 10/5/3/1 points), added up over the year. Marked * in the year menu. The current year counts the weeks so far.
@@ -6443,6 +6443,8 @@ function renderYearEnd(){const el=$("rk-year"); if(!el)return; if(!YEAREND||!YEA
   const allTime=()=>{const paths=[0,1,2].map(pi=>["B","I","A","M"].map(c=>{const T={}; YEAREND.forEach(Y=>((Y.paths[pi]||[]).find(b=>b.cls===c)||{rows:[]}).rows.forEach(([rk,n,pt])=>{T[n]=(T[n]||0)+(+pt||0)}));
       const r=Object.entries(T).sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0])); let k=0; return {cls:c,rows:r.map(([n,p],i)=>{if(i===0||p<r[i-1][1])k=i+1; return [k,n,p]})}}));
     const ys=YEAREND.map(x=>x.year); return {year:"all",paths,label:`${Math.min(...ys)}–${Math.max(...ys)}`}};
+  if(yeYear==null){const cy=+String((WEEKS[curIdx]||[])[1]||new Date().getFullYear()).slice(0,4), ys=YEAREND.map(x=>x.year).filter(y=>typeof y==="number");
+    yeYear=ys.includes(cy)?cy:(ys.length?Math.max(...ys):"all")}
   const Y=yeYear==="all"?allTime():(YEAREND.find(x=>x.year===yeYear)||YEAREND[0]); yeYear=Y.year;
   const MED=["🥇","🥈","🥉"];
   // every path shows the same four classes in the same order (an empty one says so), so the boxes line up in rows
