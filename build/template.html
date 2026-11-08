@@ -3001,10 +3001,12 @@ function goalsPlay(n,G,wk,pl){const p=byName[n]; if(!p)return; const tw=TW_MAX, 
   if(k)G.push([k%52?`${k}-week play streak`:`${k/52}-year play streak`,`${wk(k-s)} in a row${thisWk}${longest<k?" · a new medal":""}`]);
   if(longest>s&&longest>=5&&longest+1-s<=12&&(!k||longest+1!==k))G.push([`Beat your longest play streak (${longest} wks)`,`${wk(longest+1-s)} in a row`]);
   const played=(p[3]||0)+(now?1:0), m=GOAL_PLAYED.find(x=>x>played); if(m&&m-played<=10)G.push([`${m} weeks played`,`${wk(m-played)}${thisWk}`]);
-  try{eloBuild(); const id=seasonOf(ELO_DONE), [a,b]=seasonRange(id), left=b-Math.min(b,ELO_DONE), kk=String(n).toLowerCase(); let best=null;
-    [0,1,2].forEach(pi=>Object.entries(seasonF1(pi,id)).forEach(([c,L])=>{const i=L.findIndex(x=>x.n.toLowerCase()===kk); if(i<1)return; const gap=L[i-1].p-L[i].p;
-      if(!best||gap<best.gap)best={gap,pi,c,i,above:L[i-1].n}}));
-    if(best&&left>0)G.push([`Season ${seasonNum(id)}: ${pl(best.i)} in ${PATHS[best.pi]} ${TIER_NAME[best.c]}`,`${best.gap===0?"level on points with":`${best.gap} point${best.gap===1?"":"s"} behind`} ${best.above} · you're ${pl(best.i+1)} · ${left} week${left===1?"":"s"} left`])}catch(e){}}
+  // the season place above them on each path (Lead, Rhythm, Bass): in the class where they're closest to the player ahead
+  try{eloBuild(); const id=seasonOf(ELO_DONE), [a,b]=seasonRange(id), left=b-Math.min(b,ELO_DONE), kk=String(n).toLowerCase();
+    if(left>0)[0,1,2].forEach(pi=>{let best=null;
+      Object.entries(seasonF1(pi,id)).forEach(([c,L])=>{const i=L.findIndex(x=>x.n.toLowerCase()===kk); if(i<1)return; const gap=L[i-1].p-L[i].p;
+        if(!best||gap<best.gap)best={gap,c,i,above:L[i-1].n}});
+      if(best)G.push([`Season ${seasonNum(id)}: ${pl(best.i)} in ${PATHS[pi]} ${TIER_NAME[best.c]}`,`${best.gap===0?"level on points with":`${best.gap} point${best.gap===1?"":"s"} behind`} ${best.above} · you're ${pl(best.i+1)} · ${left} week${left===1?"":"s"} left`])})}catch(e){}}
 // winning: on a win streak (won a challenge last week or more weeks in a row), the next win streak medal
 function goalsWin(n,G){const done=SB_W.filter(w=>w<cur[0]).sort((a,b)=>a-b), per=playerWeekWins(n,-1); let s=0, best=0, run=0;
   done.forEach(w=>{run=per[w]&&per[w][1]>0?run+1:0; if(run>best)best=run}); s=run; if(!s)return;
