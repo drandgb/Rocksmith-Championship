@@ -1568,7 +1568,8 @@ footer{color:var(--dim);font-size:.78rem}
 .og{width:1200px;height:630px;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;color:#e9edf5;text-align:center;
   background:radial-gradient(ellipse 70% 60% at 50% 38%,#232a3c 0%,#0d0f14 70%);font-family:var(--f-body)}
 .og-cups{display:flex;align-items:flex-end;gap:34px;margin-bottom:10px}.og-cups svg{display:block;width:100%;height:auto;overflow:visible}
-.og-t{font:800 72px/1.05 var(--f-display);letter-spacing:.01em}.og-s{font:500 32px var(--f-body);color:#b9c1d3}
+.og-t{font:900 64px/1.05 var(--f-display);letter-spacing:.02em;text-transform:uppercase;white-space:nowrap;   /* like the Player Level title */
+  background:linear-gradient(90deg,#f5c84a,#3fd6e0,#b277ff,#ef4a55);-webkit-background-clip:text;background-clip:text;color:transparent}.og-s{font:500 32px var(--f-body);color:#b9c1d3}
 .og-n{font:600 26px var(--f-mono);color:#8b93a7;margin-top:6px}
 .og{position:relative;gap:12px}
 .og-seas{font:900 40px/1 var(--f-display);letter-spacing:.12em;text-transform:uppercase;color:#ffd36e;text-shadow:0 0 12px rgba(255,211,110,.75),0 0 30px rgba(255,180,60,.45);margin-top:10px}
@@ -4345,7 +4346,7 @@ function ogCardHtml(){
     <div class="og-s">Weekly guitar and bass challenges for every level</div>
     <div class="og-seas">Season ${seasonNum(sid)} <span class="og-swk">· week ${TW_MAX-sA+1} of ${sB-sA+1}</span></div>
     <div class="og-n">${n(sPl.size)} player${sPl.size===1?"":"s"} · ${n(sSc)} score${sSc===1?"":"s"} so far this season</div>
-    <div class="og-n og-n2">${n(TW_MAX)} weeks · ${n(PLAYERS.length)} all-time players · ${n(scores)} scores</div>${BN_STRIPE}</div>`}   // the string colors along the bottom, like the player banners
+    <div class="og-n og-n2">${n(TW_MAX)} weeks · ${n(PLAYERS.length)} players · ${n(scores)} scores</div>${BN_STRIPE}</div>`}   // the string colors along the bottom, like the player banners
 function seasonTrophies(name,done,path){const ds=new Set(done), k=String(name).toLowerCase();
   const T=seasonChamps().filter(x=>x.k===k&&ds.has(x.end)&&(path==null||path<0||x.pi===path));
   return ["M","A","I","B"].map(c=>{const t=T.filter(x=>x.c===c); if(!t.length)return ""; const ws=t.map(x=>x.end);

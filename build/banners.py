@@ -146,6 +146,8 @@ with sync_playwright() as pw:
         pg.set_viewport_size({"width": 1200, "height": 630})
         if pg.evaluate("()=>{if(typeof ogCardHtml!=='function')return false; const d=document.getElementById('bnshot'); d.innerHTML=ogCardHtml(); return !!d.firstElementChild}"):
             pg.evaluate("document.fonts.ready")
+            # the title is one line: make it smaller if the site's font draws it wider than the picture
+            pg.evaluate("()=>{const t=document.querySelector('#bnshot .og-t'); let s=64; while(t&&t.scrollWidth>1130&&s>40){s-=2; t.style.fontSize=s+'px'}}")
             pg.locator("#bnshot > div").screenshot(path=site_png)
             print("banners: drew the site's link preview picture")
     br.close()
