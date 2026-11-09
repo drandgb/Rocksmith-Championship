@@ -72,7 +72,10 @@ for wk,ch in raw.items():
             if '*' not in e[0]:
                 f=fl[k] if k<len(fl) and fl[k][0]==e[0].strip() else None
                 if f and f[1] in ('FFFF00FF','FF0000FF'): d_=9; STATS['noclass']+=1   # magenta = new player/invalid, blue = no class in this path
-            rows.append([ni(e[0]),num(e[1]),num(e[2]),num(e[3]),d_])
+            # Master Mode: a red % below 100 (marked as a 6th value, 1, only when it is one)
+            f=fl[k] if k<len(fl) and fl[k][0]==e[0].strip() else None
+            mm=bool(f and len(f)>4 and f[4] and isinstance(num(e[1]),(int,float)) and num(e[1])<100)
+            rows.append([ni(e[0]),num(e[1]),num(e[2]),num(e[3]),d_]+([1] if mm else []))
         out.append([p,s_,l,fixsong(wk,song),num(d) if d is not None else None,ex,rows])
     weeks[wk]=out
 # God / tribute challenges run for 2+ weeks in a row with the same song. Only the final week of the run decides the
