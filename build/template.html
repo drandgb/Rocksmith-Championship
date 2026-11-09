@@ -460,6 +460,17 @@ button.clear:hover{border-color:var(--accent)}
 .seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
 .seg button{background:var(--panel2);border:0;color:var(--muted);font:700 .85rem var(--f-display);letter-spacing:.08em;text-transform:uppercase;padding:8px 16px;cursor:pointer;border-right:1px solid var(--line)}
 .seg button:last-child{border-right:0}
+.tsabout{margin:6px 0 2px;font-size:.88rem;max-width:880px}
+#tsact button[aria-pressed="true"]{background:var(--accent)}
+#view-skill .wpathbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+#ts-body{display:block}#ts-body .tspanel{width:auto;max-width:none}
+.tstab{width:100%;border-collapse:collapse;font-size:.88rem}
+.tstab thead th.nocap{text-transform:none}
+.tstab th,.tstab td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+.tstab th:nth-child(2),.tstab td:nth-child(2){text-align:left;width:100%}
+.tstab thead th{font:700 .7rem var(--f-display);letter-spacing:.08em;text-transform:uppercase;color:var(--pc)}
+.tstab tbody tr:nth-child(-n+3) td:nth-child(3) b{color:var(--pc)}
+@media(max-width:640px){.tstab{font-size:.8rem}.tstab th,.tstab td{padding:5px 4px}.tstab th:nth-child(6),.tstab td:nth-child(6),.tstab th:nth-child(7),.tstab td:nth-child(7){display:none}}
 .seg button[aria-pressed="true"]{color:var(--bg)}
 .seg .s-lead[aria-pressed="true"]{background:var(--s-orange)}
 .seg .s-rhy[aria-pressed="true"]{background:var(--s-green)}
@@ -1685,6 +1696,7 @@ footer{color:var(--dim);font-size:.78rem}
     <button type="button" role="tab" id="tab-season" data-view="season" aria-selected="false">Season</button>
     <button type="button" role="tab" id="tab-level" data-view="level" aria-selected="false">Level</button>
     <button type="button" role="tab" id="tab-rankings" data-view="rankings" aria-selected="false">Rankings</button>
+    <button type="button" role="tab" id="tab-skill" data-view="skill" aria-selected="false">Skill</button>
     <button type="button" role="tab" id="tab-winners" data-view="winners" aria-selected="true">Winners</button>
     <button type="button" role="tab" id="tab-players" data-view="players" aria-selected="false">Players</button>
     <button type="button" role="tab" id="tab-hosting" data-view="hosting" aria-selected="false">Hosts</button>
@@ -1945,6 +1957,15 @@ footer{color:var(--dim);font-size:.78rem}
   <section class="panel lvscale" id="lv-scale" hidden></section>
   </div>
 
+  <div class="view" id="view-skill" role="tabpanel" aria-labelledby="tab-skill" hidden>
+  <section class="panel tshead">
+    <div class="panel-head rkhero"><div class="sh-eye">🎯 Rocksmith Championship</div><h2 class="lvtitle">Skill</h2><span class="sub" id="ts-sub"></span></div>
+    <p class="dim tsabout" id="ts-about"></p>
+  </section>
+  <div class="wpathbar"><div class="seg" role="radiogroup" aria-label="Path" id="tspath"><button type="button" class="s-lead" data-tsp="0" aria-pressed="true">Lead</button><button type="button" class="s-rhy" data-tsp="1" aria-pressed="false">Rhythm</button><button type="button" class="s-bass" data-tsp="2" aria-pressed="false">Bass</button></div>
+    <div class="seg" role="radiogroup" aria-label="Show" id="tsact"><button type="button" data-tsa="1" aria-pressed="true">Active</button><button type="button" data-tsa="0" aria-pressed="false">All</button></div></div>
+  <div id="ts-body" class="rkbody"></div>
+  </div>
   <div class="view" id="view-rankings" role="tabpanel" aria-labelledby="tab-rankings" hidden>
   <section class="panel rkhead">
     <div class="panel-head rkhero"><div class="sh-eye">🏆 Rocksmith Championship</div><h2 class="rkinfo" data-tip="How Rodman’s Rankings work&#10;&#10;Each path (Lead, Rhythm, Bass) and level (Beginner to Masterclass) has its own leaderboard covering the last 10 weeks.&#10;&#10;Points: on each challenge the top 4 earn 10, 5, 3 and 1 points, added up over the 10 weeks. Players with the same points share a rank.&#10;&#10;Who counts: only the main challenges (bonus and God challenges don’t count). Places go to players in that class or playing one class up, using the class they were in that week, so after a rank-up their points start counting in the new class. Players playing down, two or more classes up, or marked on the sheet as a new player or with no class on that path are skipped, and the next player takes the place.&#10;&#10;Arrows show how many places a player’s own rank moved since last week; New means they just entered the list, and Out means they have no points left in the last 10 weeks. With ties, one player can move without another moving the other way: if two players shared 1st last week and one pulls ahead, that one stays 1st (no change) and the other drops to 2nd (↓1).&#10;&#10;Rodman’s official table is kept in the scoreboard sheet. Tap the weeks pill for the latest 10 weeks, worked out by the site with the same rules. Players’ profiles and forum banners use whichever is more recent.">Rodman’s Rankings <span class="infoi" aria-hidden="true">ⓘ</span></h2><span class="sub" id="rk-sub"></span></div>
@@ -2127,7 +2148,7 @@ footer{color:var(--dim);font-size:.78rem}
       <dt><a href="#songs" data-faqgo="songs">Songs</a></dt><dd>Every song played, the Song lookup (search by title or tuning) and the Band lookup.</dd></dl></details>
     <details><summary>How do I look someone up?</summary><p>Click any name anywhere on the site to open their player profile, or type it into the Player lookup on the Players tab. Band names open the Band lookup the same way.</p></details>
     <details><summary>What do the * and ~ marks mean?</summary><p><b>*</b> means the score was outside the player's own class (faded when playing down, which doesn't count for wins). <b>~</b> is a FreeBird.</p></details>
-    <details><summary>What does "Active only" do?</summary><p>The All / Active only switch on some tabs hides players who haven't played in the last 52 weeks (about a year), so the lists show who's around now.</p></details>
+    <details><summary>What does "Active only" do?</summary><p>The All / Active only switch on some tabs hides players who haven't played in the last 26 weeks (about six months), so the lists show who's around now.</p></details>
     <details><summary>Hover and tap</summary><p>Most numbers, medals and badges have more detail: hover them on a computer or tap them on a phone. Clicking a medal highlights the weeks it came from. On a phone, swipe the tab row sideways to see every tab.</p></details>
     <details><summary>How often does the site update?</summary><p>It updates from the scoreboard spreadsheet shortly after the hosts enter scores, and again on a regular schedule. The footer shows when the data was last updated.</p></details>
   </section>
@@ -2305,7 +2326,7 @@ const hosts={};
 WEEKS.forEach(([w,d,h],i)=>{ if(i>curIdx||!h||h===LOST)return; const s=hosts[h]||(hosts[h]={name:h,n:0,first:w,last:w,firstD:d,lastD:d}); s.n++; s.last=w; s.lastD=d; });
 const hostList=Object.values(hosts).filter(h=>h.n>0).sort((a,b)=>b.n-a.n||b.last-a.last);
 const totalHosted=hostList.reduce((a,b)=>a+b.n,0);
-const ACTIVE_WINDOW=52; // hosted within the last ~1 year
+const ACTIVE_WINDOW=26; // hosted within the last ~6 months (the same 26 weeks as active players)
 const PAL=["var(--s-orange)","var(--s-blue)","var(--s-green)","var(--s-red)","var(--s-yellow)","var(--s-purple)","#5fd3d0","#ff7ab8","#c9e265","#e8a87c","#8fa8ff","#d98cd9"];
 const activeList=hostList.filter(h=>cur[0]-h.last<=ACTIVE_WINDOW);
 const color={}; activeList.forEach((h,i)=>color[h.name]=PAL[i%PAL.length]);
@@ -2541,7 +2562,7 @@ function renderLB(){
   const wk=w=>`<span${SB.weeks[w]?` data-sbw="${w}" title="Open Week ${w} on the Scoreboard"`:""}>${w}</span>`;
   const row=(h,val,max,extra,spanRow)=>{const active=hostActive(h);
     return `<tr data-host="${esc(h.name)}" class="${selHost&&matches(h.name)?"sel":""}" tabindex="0">
-      <td><div class="hostcell"><span class="sw" style="background:${hc(h.name)}"></span>${esc(h.name)} ${active?`<span class="pill on" data-tip="Hosted at least once in the last ${ACTIVE_WINDOW} weeks (around 1 year).">ACTIVE</span>`:`<span class="pill off" data-tip="Hasn't hosted in the last ${ACTIVE_WINDOW} weeks (around 1 year).">INACTIVE</span>`}</div></td>
+      <td><div class="hostcell"><span class="sw" style="background:${hc(h.name)}"></span>${esc(h.name)} ${active?`<span class="pill on" data-tip="Hosted at least once in the last ${ACTIVE_WINDOW} weeks (around 6 months).">ACTIVE</span>`:`<span class="pill off" data-tip="Hasn't hosted in the last ${ACTIVE_WINDOW} weeks (around 6 months).">INACTIVE</span>`}</div></td>
       ${spanRow?`<td class="r num">${wk(h.first)}</td><td><div class="bar"><span style="width:${val/max*100}%;background:${hc(h.name)}"></span></div></td><td class="num">${wk(h.last)}</td><td class="r num">${val}</td>`
       :`<td class="r num">${val}</td><td><div class="bar"><span style="width:${val/max*100}%;background:${hc(h.name)}"></span></div></td>`}${extra}</tr>`};
   const list=hostsShown(), maxN=list.length?list[0].n:1;
@@ -2630,7 +2651,7 @@ function barRows(list,color,unit="",tags=true){
     return `<div class="brow${i<3?" top":""}${i===0?" first":""}${tags?"":" notag"}${tags&&!isActivePlayer(n)?" inactive":""}" style="--c:${c}"><span class="rk">${i+1}</span><span class="nm" data-player="${esc(n)}" title="${esc(n)}">${esc(n)}</span>${tags?`<span class="act">${actPill(n)}</span>`:""}<span class="track"><span class="fill" style="width:${pct}%;animation-delay:${i*30}ms"></span></span><span class="val">${typeof v==="string"&&/^\d+\.\d$/.test(v)?v:x}${unit}</span></div>`;
   }).join("");
 }
-const ACTIVE_PLAYER_WINDOW=52;
+const ACTIVE_PLAYER_WINDOW=26;   // active: played at least once in the last 26 weeks (around 6 months), the same as on the Skill tab
 const isActivePlayer=n=>{const p=byName[n];return !!p&&DATA_WEEK-p[2]<ACTIVE_PLAYER_WINDOW};
 const NEW_YEAR=(WEEKS[DATA_WEEK-1]||WEEKS[WEEKS.length-1])[1].slice(0,4);
 const NEW_WINDOW=52;
@@ -2638,7 +2659,7 @@ const isNewPlayer=n=>{const p=byName[n];return !!p&&DATA_WEEK-p[1]<NEW_WINDOW};
 // empty space the size of a NEW pill, so every row of rings is the same height
 const RING_PILL_SPACE=`<span class="pill new" style="visibility:hidden" aria-hidden="true">NEW</span>`;
 const newPill=n=>isNewPlayer(n)?`<span class="pill new" data-tip="Joined in the last ${NEW_WINDOW} weeks (around 1 year).">NEW</span>`:"";
-const actPill=n=>isNewPlayer(n)?newPill(n):(isActivePlayer(n)?`<span class="pill on" data-tip="Played at least once in the last ${ACTIVE_PLAYER_WINDOW} weeks (around 1 year).">ACTIVE</span>`:(byName[n]?`<span class="pill off" data-tip="Hasn't played in the last ${ACTIVE_PLAYER_WINDOW} weeks (around 1 year).">INACTIVE</span>`:""));
+const actPill=n=>isNewPlayer(n)?newPill(n):(isActivePlayer(n)?`<span class="pill on" data-tip="Played at least once in the last ${ACTIVE_PLAYER_WINDOW} weeks (around 6 months).">ACTIVE</span>`:(byName[n]?`<span class="pill off" data-tip="Hasn't played in the last ${ACTIVE_PLAYER_WINDOW} weeks (around 6 months).">INACTIVE</span>`:""));
 const STR=["var(--s-red)","var(--s-yellow)","var(--s-blue)","var(--s-orange)","var(--s-green)","var(--s-purple)"];
 const STAR_PATH="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9z";
 const shinyStar=i=>`<svg class="shiny" viewBox="0 0 24 24" aria-hidden="true"><defs><linearGradient id="sg${i}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff3b0"/><stop offset=".45" stop-color="#ffd23f"/><stop offset="1" stop-color="#e79a1e"/></linearGradient><linearGradient id="sh${i}" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".5" stop-color="#fff" stop-opacity=".85"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient><clipPath id="sc${i}"><path d="${STAR_PATH}"/></clipPath></defs><path fill="url(#sg${i})" stroke="#b8741a" stroke-width=".5" d="${STAR_PATH}"/><path d="M12 2.5l2.9 6L12 12z M12 12l9.5-2.6-6.6-.9z" fill="#fff" opacity=".28"/><g clip-path="url(#sc${i})"><g class="shg" style="animation-delay:${(i*0.4).toFixed(1)}s"><rect x="-14" y="-4" width="8" height="32" fill="url(#sh${i})" transform="rotate(20 12 12)"/></g></g></svg>`;
@@ -3695,13 +3716,14 @@ function runLater(v){for(let i=0;i<LATER.length;){if(v==null||LATER[i][0].includ
 function showView(v){
   if(LATER&&LATER.length)runLater(v);
   try{tabReveal(v)}catch(e){console.error(e)}
-  ["thisweek","level","rankings","season","hosting","players","winners","scores","songs","faq"].forEach(k=>{const on=k===v;$("view-"+k).hidden=!on;$("tab-"+k).setAttribute("aria-selected",on)});
+  ["thisweek","level","skill","rankings","season","hosting","players","winners","scores","songs","faq"].forEach(k=>{const on=k===v;$("view-"+k).hidden=!on;$("tab-"+k).setAttribute("aria-selected",on)});
   tip.hidden=true;
-  $("pfilter").hidden=v==="scores"||v==="songs"||v==="thisweek"||v==="rankings"||v==="season"||v==="faq"||v==="level";
+  $("pfilter").hidden=v==="scores"||v==="songs"||v==="thisweek"||v==="rankings"||v==="season"||v==="faq"||v==="level"||v==="skill";
   // the Year picker of the Players, Hosts and Winners tabs (and Songs' Selected by) sits on the same row as the All / Active only toggle
   document.querySelectorAll("#navyear [data-yv]").forEach(l=>l.hidden=l.dataset.yv!==v); $("navopts").hidden=$("pfilter").hidden&&!document.querySelector(`#navyear [data-yv="${v}"]`);   // (Songs: its Selected by picker, no toggle)
   if(v==="season")setTimeout(()=>{try{renderSeason()}catch(e){console.error(e)}},0);
   if(v==="level")setTimeout(()=>{try{renderLevel()}catch(e){console.error(e)}},0);
+  if(v==="skill")setTimeout(()=>{try{renderSkill()}catch(e){console.error(e)}},0);
   if(v==="season"||v==="level"||v==="rankings")setTimeout(()=>{try{plHl()}catch(e){console.error(e)}},30);   // (after the page has finished loading: opening the site on #season runs this first)
   if(v==="thisweek"&&window.__twReady)renderThisWeek();
   if(v==="winners"||v==="players"||v==="hosting")setTimeout(()=>mlEnsure(v==="winners"?"win":v==="players"?"player":"host"),50);
@@ -3712,7 +3734,7 @@ $("tabrow").addEventListener("scroll",tabEdges,{passive:true}); addEventListener
 document.addEventListener("click",e=>{const a=e.target.closest("[data-faqgo]"); if(a){e.preventDefault(); showView(a.dataset.faqgo); scrollTo({top:0,behavior:"smooth"}); return}
   const j=e.target.closest(".faqjump a"); if(j){e.preventDefault(); const t=document.querySelector(j.getAttribute("href")); if(t){const d=t.querySelector("details"); if(d)d.open=true; t.scrollIntoView({behavior:"smooth"})}}});
 document.querySelector(".tabs").addEventListener("click",e=>{const b=e.target.closest("button[data-view]");if(b)showView(b.dataset.view)});
-{const H={"#thisweek":"thisweek","#level":"level","#rankings":"rankings","#season":"season","#hosts":"hosting","#players":"players","#winners":"winners","#scoreboard":"scores","#songs":"songs","#faq":"faq"};let v=H[location.hash.split("/")[0]]||null; v=["thisweek","rankings","season","hosting","scores","winners","songs","players","faq","level"].includes(v)?v:"thisweek";
+{const H={"#thisweek":"thisweek","#level":"level","#skill":"skill","#rankings":"rankings","#season":"season","#hosts":"hosting","#players":"players","#winners":"winners","#scoreboard":"scores","#songs":"songs","#faq":"faq"};let v=H[location.hash.split("/")[0]]||null; v=["thisweek","rankings","season","hosting","scores","winners","songs","players","faq","level","skill"].includes(v)?v:"thisweek";
  // some tabs (Hosts) need data set up further down: if opening one this early fails, start on This Week and open it once the page is ready
  try{showView(v)}catch(e){window.__pendingView=v; try{showView("thisweek")}catch(e2){}}}
 const SB=__SCORES__;
@@ -3893,6 +3915,102 @@ function lvLiveData(){if(lvLiveData.d)return lvLiveData.d; lvEnsure(); const end
   return lvLiveData.d={...LEVEL,paths,last:end,weeks:12}}
 document.addEventListener("click",e=>{if(!e.target.closest("[data-lvlive]"))return; lvLive=!lvLive; LV_NOW=null; tip.hidden=true; renderLevel()});
 document.addEventListener("keydown",e=>{if((e.key==="Enter"||e.key===" ")&&e.target.closest("[data-lvlive]")){e.preventDefault(); lvLive=!lvLive; LV_NOW=null; renderLevel(); const b=document.querySelector("[data-lvlive]"); if(b)b.focus()}});
+// ---------- Skill ----------
+// A Bayesian free-for-all rating: each challenge is one game, its players ranked by accuracy, then streak, then score
+// (all 100% scores tie). Settings: μ 25, σ 25/3, β σ/2, τ σ/100, 10% draws. A God challenge that runs several weeks
+// counts once, in its final week (as for Elo). Each path has its own ratings. The update is a factor graph: skill,
+// performance and the differences between neighbors in the ranking, passed back and forth until it settles.
+const TS_MU=25, TS_SIG=25/3, TS_BETA=TS_SIG/2, TS_TAU=TS_SIG/100, TS_DRAW=.1;
+function tsGauss(pi,tau){return {pi,tau}}
+const tsMul=(a,b)=>tsGauss(a.pi+b.pi,a.tau+b.tau), tsDiv=(a,b)=>tsGauss(a.pi-b.pi,a.tau-b.tau), tsMu=g=>g.pi?g.tau/g.pi:0;
+const tsPdf=x=>Math.exp(-x*x/2)/Math.sqrt(2*Math.PI);
+function tsCdf(x){const z=Math.abs(x)/Math.SQRT2, t=1/(1+.5*z), r=t*Math.exp(-z*z-1.26551223+t*(1.00002368+t*(.37409196+t*(.09678418+t*(-.18628806+t*(.27886807+t*(-1.13520398+t*(1.48851587+t*(-.82215223+t*.17087277)))))))));
+  return x>=0?1-r/2:r/2}
+function tsPpf(p){let lo=-10, hi=10; for(let i=0;i<100;i++){const m=(lo+hi)/2; if(tsCdf(m)<p)lo=m; else hi=m} return (lo+hi)/2}
+const TS_EPS=tsPpf((TS_DRAW+1)/2)*Math.SQRT2*TS_BETA;   // the draw margin for two single players
+const tsVwin=(d,e)=>{const x=d-e, c=tsCdf(x); return c?tsPdf(x)/c:-x}, tsWwin=(d,e)=>{const x=d-e, v=tsVwin(d,e); return v*(v+x)};
+const tsVdraw=(d,e)=>{const a=e-Math.abs(d), b=-e-Math.abs(d), den=tsCdf(a)-tsCdf(b), num=tsPdf(b)-tsPdf(a); return (den?num/den:a)*(d<0?-1:1)};
+const tsWdraw=(d,e)=>{const ad=Math.abs(d), a=e-ad, b=-e-ad, den=tsCdf(a)-tsCdf(b); const v=tsVdraw(ad,e); return den?v*v+(a*tsPdf(a)-b*tsPdf(b))/den:1};
+function tsVar(){return {v:tsGauss(0,0), m:new Map()}}
+const tsMsg=(V,f)=>V.m.get(f)||tsGauss(0,0);
+function tsSet(V,g){const dpi=Math.abs(V.v.pi-g.pi), d=dpi===Infinity?0:Math.max(Math.abs(V.v.tau-g.tau),Math.sqrt(dpi)); V.v=g; return d}
+function tsUpdMsg(V,f,g){const old=tsMsg(V,f); V.m.set(f,g); return tsSet(V,tsMul(tsDiv(V.v,old),g))}
+function tsUpdVal(V,f,g){const old=tsMsg(V,f); V.m.set(f,tsDiv(tsMul(g,old),V.v)); return tsSet(V,g)}
+function tsSum(f,sumV,terms,coeffs){let piInv=0, mu=0; terms.forEach((V,i)=>{const d=tsDiv(V.v,tsMsg(V,f)); mu+=coeffs[i]*tsMu(d); if(piInv!==Infinity)piInv=d.pi?piInv+coeffs[i]**2/d.pi:Infinity});
+  const pi=1/piInv; return tsUpdMsg(sumV,f,tsGauss(pi,pi*mu))}
+// players: [{mu,sig,rank}] (rank: lower is better, equal ranks are a draw); returns [{mu,sig}] in the same order
+function tsRate(players){const n=players.length; if(n<2)return players.map(p=>({mu:p.mu,sig:p.sig}));
+  const ord=players.map((p,i)=>i).sort((a,b)=>players[a].rank-players[b].rank), P=ord.map(i=>players[i]);
+  const S=P.map(tsVar), Q=P.map(tsVar), D=P.slice(1).map(tsVar), F={};
+  const prior=P.map((p,i)=>{const f={}; const sg=Math.sqrt(p.sig*p.sig+TS_TAU*TS_TAU); tsUpdVal(S[i],f,tsGauss(1/(sg*sg),p.mu/(sg*sg))); return f});
+  const like=P.map((p,i)=>({}));
+  const lDown=i=>{const f=like[i], m=tsDiv(S[i].v,tsMsg(S[i],f)), a=1/(1+TS_BETA*TS_BETA*m.pi); return tsUpdMsg(Q[i],f,tsGauss(a*m.pi,a*m.tau))};
+  const lUp=i=>{const f=like[i], m=tsDiv(Q[i].v,tsMsg(Q[i],f)), a=1/(1+TS_BETA*TS_BETA*m.pi); return tsUpdMsg(S[i],f,tsGauss(a*m.pi,a*m.tau))};
+  const dif=D.map(()=>({})), tr=D.map(()=>({}));
+  const dDown=i=>tsSum(dif[i],D[i],[Q[i],Q[i+1]],[1,-1]);
+  const dUp=(i,k)=>k===0?tsSum(dif[i],Q[i],[D[i],Q[i+1]],[1,1]):tsSum(dif[i],Q[i+1],[Q[i],D[i]],[1,-1]);
+  const tUp=i=>{const V=D[i], d=tsDiv(V.v,tsMsg(V,tr[i])), sp=Math.sqrt(d.pi), draw=P[i].rank===P[i+1].rank, x=d.tau/sp, e=TS_EPS*sp;
+    const v=draw?tsVdraw(x,e):tsVwin(x,e), w=draw?tsWdraw(x,e):tsWwin(x,e), den=1-w; return tsUpdVal(V,tr[i],tsGauss(d.pi/den,(d.tau+sp*v)/den))};
+  P.forEach((p,i)=>lDown(i));
+  const L=D.length;
+  for(let it=0;it<10;it++){let delta=0;
+    if(L===1){dDown(0); delta=tUp(0)}
+    else{for(let x=0;x<L-1;x++){dDown(x); delta=Math.max(delta,tUp(x)); dUp(x,1)}
+      for(let x=L-1;x>0;x--){dDown(x); delta=Math.max(delta,tUp(x)); dUp(x,0)}}
+    if(delta<=1e-4)break}
+  dUp(0,0); dUp(L-1,1); P.forEach((p,i)=>lUp(i));
+  const out=[]; ord.forEach((oi,k)=>{const g=S[k].v; out[oi]={mu:tsMu(g),sig:Math.sqrt(1/g.pi)}}); return out}
+let TSX=null;
+// The games, the same for both versions: [{w, pi, pl:[{n, acc, rank}]}] in week order
+let TSG=null;
+function tsGames(){if(TSG)return TSG; TSG=[]; const ws=Object.keys(SB.weeks).map(Number).sort((a,b)=>a-b);
+  ws.forEach(w=>(SB.weeks[w]||[]).forEach(c=>{if(c[7])return;
+    {const gw=/Week\s*(\d+)\s*\/\s*(\d+)/i.exec(c[5]||""); if(gw&&+gw[1]<+gw[2])return}
+    const best={}; c[6].forEach(e=>{if(e[1]==null||isNaN(+e[1]))return; const n=pvName(e); const k=[+e[1],+e[2]||0,+e[3]||0]; if(!best[n]||k[0]>best[n][0]||(k[0]===best[n][0]&&(k[1]>best[n][1]||(k[1]===best[n][1]&&k[2]>best[n][2]))))best[n]=k});
+    const ns=Object.keys(best); if(ns.length<2)return;
+    const key=n=>{const k=best[n]; return k[0]>=100?"100":k.join("|")}, keys=[...new Set(ns.map(key))].sort((a,b)=>{const A=a==="100"?[100,1e9,1e12]:a.split("|").map(Number), B=b==="100"?[100,1e9,1e12]:b.split("|").map(Number); return B[0]-A[0]||B[1]-A[1]||B[2]-A[2]});
+    TSG.push({w,pi:c[0],pl:ns.map(n=>({n,acc:Math.min(100,best[n][0]),rank:keys.indexOf(key(n))}))})}));
+  return TSG}
+// One run over every game. o: {tauW: extra uncertainty for each week away, mc/mv: how much the accuracy margin counts
+// (a skill reading of mc × the player's accuracy z-score in that game, with variance mv), ex/exG: experience (μ grows by
+// ex × e^(−games/exG) after each game)}. o.plain: none of those (for comparing). score: adds up how well the ratings before each
+// game predicted it (pairwise log loss), from week from.
+function tsRun(o,score,from){const R=[{},{},{}]; let ll=0, np=0, hit=0;
+  tsGames().forEach(G=>{const P=R[G.pi];
+    const pl=G.pl.map(x=>{let r=P[x.n]; if(!r)r=P[x.n]={mu:TS_MU,sig:TS_SIG,g:0,w:0,last:0,first:G.w};
+      let sig=r.sig; if(!o.plain&&r.g&&o.tauW){const gap=Math.max(0,G.w-r.last-1); sig=Math.sqrt(sig*sig+o.tauW*o.tauW*gap)}
+      return {r,n:x.n,acc:x.acc,rank:x.rank,mu:r.mu,sig}});
+    if(score&&G.w>=from){for(let a=0;a<pl.length;a++)for(let b=a+1;b<pl.length;b++){const A=pl[a], B=pl[b]; if(A.rank===B.rank)continue;
+      const p=tsCdf((A.mu-B.mu)/Math.sqrt(2*TS_BETA*TS_BETA+A.sig*A.sig+B.sig*B.sig)), y=A.rank<B.rank?1:0, q=Math.min(1-1e-9,Math.max(1e-9,y?p:1-p));
+      ll-=Math.log(q); np++; if(q>.5)hit++}}
+    const out=tsRate(pl);
+    let zs=null; if(!o.plain&&o.mc){const m=pl.reduce((s,x)=>s+x.acc,0)/pl.length, sd=Math.sqrt(pl.reduce((s,x)=>s+(x.acc-m)**2,0)/pl.length);
+      zs=pl.map(x=>sd>.5?Math.max(-3,Math.min(3,(x.acc-m)/sd)):0)}
+    const gm=out.reduce((s,x)=>s+x.mu,0)/out.length;
+    out.forEach((x,i)=>{const r=pl[i].r; let mu=x.mu, sig=x.sig;
+      if(zs){const obs=gm+o.mc*zs[i], K=sig*sig/(sig*sig+o.mv); mu+=K*(obs-mu); sig=Math.sqrt((1-K)*sig*sig)}
+      if(!o.plain&&o.ex)mu+=o.ex*Math.exp(-r.g/(o.exG||20));
+      r.mu=mu; r.sig=sig; r.g++; if(pl[i].rank===0)r.w++; r.last=G.w})});
+  return {R,ll:np?ll/np:0,acc:np?hit/np:0,np}}
+// The settings, picked by testing on past weeks: the values that best predicted each next week's results
+// (fitted on Weeks 560–640 and checked on 641–680, which it wasn't fitted on: pairwise log loss 0.483 vs 0.486 without
+// time and margin, the winner of a head-to-head picked 77.6% vs 77.5%; the experience boost didn't help, so it's off)
+const TSX_O={tauW:.4,mc:1.5,mv:100,ex:0,exG:20};
+function tsBuildX(){if(!TSX)TSX=tsRun(TSX_O).R; return TSX}
+let tsPath=0, tsActive=true;
+const TS_X100=2;   // shown out of 100: the ratings run 0 (a new player's μ − 3σ) to 50, so they're doubled
+function renderSkill(){const R=tsBuildX()[tsPath], el=$("ts-body"); if(!el)return;
+  $("ts-about").innerHTML=TS_ABOUT;
+  const rows=Object.entries(R).filter(([n,r])=>r.g>=10&&(!tsActive||isActivePlayer(n))).map(([n,r])=>({n,...r,sk:Math.min(100,Math.max(0,TS_X100*(r.mu-3*r.sig)))})).sort((a,b)=>b.sk-a.sk);
+  $("ts-sub").textContent=`${PATHS[tsPath]} · ${rows.length} player${rows.length===1?"":"s"}${tsActive?` who played in the last ${ACTIVE_PLAYER_WINDOW} weeks`:""} · 10 or more games`;
+  document.querySelectorAll("#tspath [data-tsp]").forEach(b=>b.setAttribute("aria-pressed",+b.dataset.tsp===tsPath));
+  document.querySelectorAll("#tsact [data-tsa]").forEach(b=>b.setAttribute("aria-pressed",(b.dataset.tsa==="1")===tsActive));
+  el.innerHTML=`<section class="panel tspanel" style="--pc:${PATH_C[tsPath]}"><table class="tstab"><thead><tr><th>#</th><th>Player</th><th data-tip="μ − 3σ: the careful estimate the list is sorted by">Skill</th><th class="nocap" data-tip="μ: the estimated skill · σ: how unsure it still is">μ ± σ</th><th data-tip="Challenges played on this path">Games</th><th data-tip="Challenges won (first place, ties included)">Wins</th><th>Last played</th></tr></thead>
+    <tbody>${rows.map((r,i)=>`<tr><td class="dim">${i+1}</td><td><span class="pname" data-player="${esc(r.n)}">${esc(r.n)}</span></td><td><b>${r.sk.toFixed(1)}</b></td><td>${(TS_X100*r.mu).toFixed(1)} <small class="dim">± ${(TS_X100*r.sig).toFixed(1)}</small></td><td>${r.g}</td><td>${r.w}</td><td class="dim">Wk ${r.last}</td></tr>`).join("")}</tbody></table>
+    ${rows.length?"":`<p class="dim">No players yet.</p>`}</section>`;
+  try{plHl()}catch(e){}}
+document.addEventListener("click",e=>{const p=e.target.closest("[data-tsp]"), a=e.target.closest("[data-tsa]"); if(!p&&!a)return; if(p)tsPath=+p.dataset.tsp; if(a)tsActive=a.dataset.tsa==="1"; renderSkill()});
+const TS_ABOUT=`Skill rates everyone with a free-for-all model: every challenge is one game, and everyone who played it is ranked by accuracy, then streak, then score (all 100% scores tie). Each player has an estimated skill (μ) and how unsure that estimate still is (σ). It also counts <b>time</b>, so the longer someone has been away the less sure their rating is and the faster it moves when they're back, and <b>how much you won by</b>, so beating everyone by a wide accuracy margin counts for more than a close win. The list is sorted by <b>μ − 3σ</b>, a careful estimate that rises as you play more and win, shown out of 100: a new player starts at 0 and an average one is around 50. Each path has its own ratings. Its settings were picked by testing on past weeks: on Weeks 641–680, which weren't used to pick them, it predicts the winner of a head-to-head 77.6% of the time.`;
 function renderLevel(){
   if(!LEVEL||!LEVEL.paths){$("lv-body").innerHTML=`<div class="empty">The PlayerLevel tab wasn't found in the sheet.</div>`; return}
   const D=lvCur(), years=D.years||[], sheetEnd=LEVEL.last||0, newer=sheetEnd<DATA_WEEK;
@@ -5411,7 +5529,7 @@ $("view-songs").addEventListener("mouseleave",()=>tip.hidden=true);
 
 // ---------- floating bubble showing which filters are on in the current tab ----------
 const fbub=document.createElement("div"); fbub.id="fbub"; fbub.setAttribute("role","status"); fbub.setAttribute("aria-live","polite"); fbub.hidden=true; document.body.appendChild(fbub);
-function curView(){return ["thisweek","level","rankings","season","hosting","players","winners","songs","scores","faq"].find(k=>$("view-"+k)&&!$("view-"+k).hidden)}
+function curView(){return ["thisweek","level","skill","rankings","season","hosting","players","winners","songs","scores","faq"].find(k=>$("view-"+k)&&!$("view-"+k).hidden)}
 function activeFilters(){
   const v=curView(), f=[];
   if((v==="hosting"||v==="players"||v==="winners")&&activeOnly)f.push(["Active players only",()=>setActiveOnly(false)]);
@@ -7800,7 +7918,7 @@ if(!/[?&](banner|mlpre)\b/.test(location.search)&&history.pushState){
   showView=function(){const r=_sv.apply(this,arguments); soon(); return r};
   sbRender=function(){const r=_sr.apply(this,arguments); soon(); return r};
   renderThisWeek=function(){const r=_tw.apply(this,arguments); soon(); return r};
-  const HASH={thisweek:"thisweek",level:"level",rankings:"rankings",season:"season",hosting:"hosts",players:"players",winners:"winners",scores:"scoreboard",songs:"songs",faq:"faq"};
+  const HASH={thisweek:"thisweek",level:"level",skill:"skill",rankings:"rankings",season:"season",hosting:"hosts",players:"players",winners:"winners",scores:"scoreboard",songs:"songs",faq:"faq"};
   const state=()=>{const v=curView(), st={v};
     if(v==="players"&&NAV.p)st.p=NAV.p; if(v==="winners"&&NAV.w)st.w=NAV.w; if(v==="hosting"&&NAV.h)st.h=NAV.h;
     if(v==="songs"&&bandName)st.b=bandName; if(v==="scores")st.sb=sbWeek; if(v==="thisweek"&&twWeek!==TW_MAX)st.tw=twWeek;
