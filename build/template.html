@@ -2326,7 +2326,7 @@ const hosts={};
 WEEKS.forEach(([w,d,h],i)=>{ if(i>curIdx||!h||h===LOST)return; const s=hosts[h]||(hosts[h]={name:h,n:0,first:w,last:w,firstD:d,lastD:d}); s.n++; s.last=w; s.lastD=d; });
 const hostList=Object.values(hosts).filter(h=>h.n>0).sort((a,b)=>b.n-a.n||b.last-a.last);
 const totalHosted=hostList.reduce((a,b)=>a+b.n,0);
-const ACTIVE_WINDOW=52; // hosted within the last ~1 year
+const ACTIVE_WINDOW=26; // hosted within the last ~6 months (the same 26 weeks as active players)
 const PAL=["var(--s-orange)","var(--s-blue)","var(--s-green)","var(--s-red)","var(--s-yellow)","var(--s-purple)","#5fd3d0","#ff7ab8","#c9e265","#e8a87c","#8fa8ff","#d98cd9"];
 const activeList=hostList.filter(h=>cur[0]-h.last<=ACTIVE_WINDOW);
 const color={}; activeList.forEach((h,i)=>color[h.name]=PAL[i%PAL.length]);
@@ -2562,7 +2562,7 @@ function renderLB(){
   const wk=w=>`<span${SB.weeks[w]?` data-sbw="${w}" title="Open Week ${w} on the Scoreboard"`:""}>${w}</span>`;
   const row=(h,val,max,extra,spanRow)=>{const active=hostActive(h);
     return `<tr data-host="${esc(h.name)}" class="${selHost&&matches(h.name)?"sel":""}" tabindex="0">
-      <td><div class="hostcell"><span class="sw" style="background:${hc(h.name)}"></span>${esc(h.name)} ${active?`<span class="pill on" data-tip="Hosted at least once in the last ${ACTIVE_WINDOW} weeks (around 1 year).">ACTIVE</span>`:`<span class="pill off" data-tip="Hasn't hosted in the last ${ACTIVE_WINDOW} weeks (around 1 year).">INACTIVE</span>`}</div></td>
+      <td><div class="hostcell"><span class="sw" style="background:${hc(h.name)}"></span>${esc(h.name)} ${active?`<span class="pill on" data-tip="Hosted at least once in the last ${ACTIVE_WINDOW} weeks (around 6 months).">ACTIVE</span>`:`<span class="pill off" data-tip="Hasn't hosted in the last ${ACTIVE_WINDOW} weeks (around 6 months).">INACTIVE</span>`}</div></td>
       ${spanRow?`<td class="r num">${wk(h.first)}</td><td><div class="bar"><span style="width:${val/max*100}%;background:${hc(h.name)}"></span></div></td><td class="num">${wk(h.last)}</td><td class="r num">${val}</td>`
       :`<td class="r num">${val}</td><td><div class="bar"><span style="width:${val/max*100}%;background:${hc(h.name)}"></span></div></td>`}${extra}</tr>`};
   const list=hostsShown(), maxN=list.length?list[0].n:1;
