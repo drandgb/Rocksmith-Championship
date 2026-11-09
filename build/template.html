@@ -461,7 +461,7 @@ button.clear:hover{border-color:var(--accent)}
 .seg button{background:var(--panel2);border:0;color:var(--muted);font:700 .85rem var(--f-display);letter-spacing:.08em;text-transform:uppercase;padding:8px 16px;cursor:pointer;border-right:1px solid var(--line)}
 .seg button:last-child{border-right:0}
 .tsabout{margin:6px 0 2px;font-size:.88rem;max-width:880px}
-#tsact button[aria-pressed="true"],#tsver button[aria-pressed="true"]{background:var(--accent)}
+#tsact button[aria-pressed="true"]{background:var(--accent)}
 #view-skill .wpathbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
 #ts-body{display:block}#ts-body .tspanel{width:auto;max-width:none}
 .tstab{width:100%;border-collapse:collapse;font-size:.88rem}
@@ -1962,8 +1962,7 @@ footer{color:var(--dim);font-size:.78rem}
     <div class="panel-head rkhero"><div class="sh-eye">🎯 Rocksmith Championship</div><h2 class="lvtitle">Skill</h2><span class="sub" id="ts-sub"></span></div>
     <p class="dim tsabout" id="ts-about"></p>
   </section>
-  <div class="wpathbar"><div class="seg" role="radiogroup" aria-label="Version" id="tsver"><button type="button" data-tsv="0" aria-pressed="true">Classic</button><button type="button" data-tsv="1" aria-pressed="false">Plus</button></div>
-    <div class="seg" role="radiogroup" aria-label="Path" id="tspath"><button type="button" class="s-lead" data-tsp="0" aria-pressed="true">Lead</button><button type="button" class="s-rhy" data-tsp="1" aria-pressed="false">Rhythm</button><button type="button" class="s-bass" data-tsp="2" aria-pressed="false">Bass</button></div>
+  <div class="wpathbar"><div class="seg" role="radiogroup" aria-label="Path" id="tspath"><button type="button" class="s-lead" data-tsp="0" aria-pressed="true">Lead</button><button type="button" class="s-rhy" data-tsp="1" aria-pressed="false">Rhythm</button><button type="button" class="s-bass" data-tsp="2" aria-pressed="false">Bass</button></div>
     <div class="seg" role="radiogroup" aria-label="Show" id="tsact"><button type="button" data-tsa="1" aria-pressed="true">Active</button><button type="button" data-tsa="0" aria-pressed="false">All</button></div></div>
   <div id="ts-body" class="rkbody"></div>
   </div>
@@ -3961,7 +3960,7 @@ function tsRate(players){const n=players.length; if(n<2)return players.map(p=>({
     if(delta<=1e-4)break}
   dUp(0,0); dUp(L-1,1); P.forEach((p,i)=>lUp(i));
   const out=[]; ord.forEach((oi,k)=>{const g=S[k].v; out[oi]={mu:tsMu(g),sig:Math.sqrt(1/g.pi)}}); return out}
-let TSR=null, TSX=null;
+let TSX=null;
 // The games, the same for both versions: [{w, pi, pl:[{n, acc, rank}]}] in week order
 let TSG=null;
 function tsGames(){if(TSG)return TSG; TSG=[]; const ws=Object.keys(SB.weeks).map(Number).sort((a,b)=>a-b);
@@ -3974,7 +3973,7 @@ function tsGames(){if(TSG)return TSG; TSG=[]; const ws=Object.keys(SB.weeks).map
   return TSG}
 // One run over every game. o: {tauW: extra uncertainty for each week away, mc/mv: how much the accuracy margin counts
 // (a skill reading of mc × the player's accuracy z-score in that game, with variance mv), ex/exG: experience (μ grows by
-// ex × e^(−games/exG) after each game)}. o.plain = Classic. score: adds up how well the ratings before each
+// ex × e^(−games/exG) after each game)}. o.plain: none of those (for comparing). score: adds up how well the ratings before each
 // game predicted it (pairwise log loss), from week from.
 function tsRun(o,score,from){const R=[{},{},{}]; let ll=0, np=0, hit=0;
   tsGames().forEach(G=>{const P=R[G.pi];
@@ -3993,16 +3992,14 @@ function tsRun(o,score,from){const R=[{},{},{}]; let ll=0, np=0, hit=0;
       if(!o.plain&&o.ex)mu+=o.ex*Math.exp(-r.g/(o.exG||20));
       r.mu=mu; r.sig=sig; r.g++; if(pl[i].rank===0)r.w++; r.last=G.w})});
   return {R,ll:np?ll/np:0,acc:np?hit/np:0,np}}
-// Plus settings, picked by testing on past weeks: the values that best predicted each next week's results
-// (fitted on Weeks 560–640 and checked on 641–680, which it wasn't fitted on: pairwise log loss 0.483 vs 0.486 for
-// Classic, the winner of a head-to-head picked 77.6% vs 77.5%; the experience boost didn't help, so it's off)
+// The settings, picked by testing on past weeks: the values that best predicted each next week's results
+// (fitted on Weeks 560–640 and checked on 641–680, which it wasn't fitted on: pairwise log loss 0.483 vs 0.486 without
+// time and margin, the winner of a head-to-head picked 77.6% vs 77.5%; the experience boost didn't help, so it's off)
 const TSX_O={tauW:.4,mc:1.5,mv:100,ex:0,exG:20};
-function tsBuild(){if(!TSR)TSR=tsRun({plain:true}).R; return TSR}
 function tsBuildX(){if(!TSX)TSX=tsRun(TSX_O).R; return TSX}
-let tsPath=0, tsActive=true, tsPlus=false;
-function renderSkill(){const R=(tsPlus?tsBuildX():tsBuild())[tsPath], el=$("ts-body"); if(!el)return;
-  document.querySelectorAll("#tsver [data-tsv]").forEach(b=>b.setAttribute("aria-pressed",(b.dataset.tsv==="1")===tsPlus));
-  $("ts-about").innerHTML=tsPlus?TS_ABOUT_X:TS_ABOUT;
+let tsPath=0, tsActive=true;
+function renderSkill(){const R=tsBuildX()[tsPath], el=$("ts-body"); if(!el)return;
+  $("ts-about").innerHTML=TS_ABOUT;
   const cut=TW_MAX-26, rows=Object.entries(R).filter(([n,r])=>r.g>=10&&(!tsActive||r.last>=cut)).map(([n,r])=>({n,...r,sk:r.mu-3*r.sig})).sort((a,b)=>b.sk-a.sk);
   $("ts-sub").textContent=`${PATHS[tsPath]} · ${rows.length} player${rows.length===1?"":"s"}${tsActive?" who played in the last 26 weeks":""} · 10 or more games`;
   document.querySelectorAll("#tspath [data-tsp]").forEach(b=>b.setAttribute("aria-pressed",+b.dataset.tsp===tsPath));
@@ -4011,9 +4008,8 @@ function renderSkill(){const R=(tsPlus?tsBuildX():tsBuild())[tsPath], el=$("ts-b
     <tbody>${rows.map((r,i)=>`<tr><td class="dim">${i+1}</td><td><span class="pname" data-player="${esc(r.n)}">${esc(r.n)}</span></td><td><b>${r.sk.toFixed(1)}</b></td><td>${r.mu.toFixed(1)} <small class="dim">± ${r.sig.toFixed(1)}</small></td><td>${r.g}</td><td>${r.w}</td><td class="dim">Wk ${r.last}</td></tr>`).join("")}</tbody></table>
     ${rows.length?"":`<p class="dim">No players yet.</p>`}</section>`;
   try{plHl()}catch(e){}}
-document.addEventListener("click",e=>{const p=e.target.closest("[data-tsp]"), a=e.target.closest("[data-tsa]"), v=e.target.closest("[data-tsv]"); if(!p&&!a&&!v)return; if(p)tsPath=+p.dataset.tsp; if(a)tsActive=a.dataset.tsa==="1"; if(v)tsPlus=v.dataset.tsv==="1"; renderSkill()});
-const TS_ABOUT=`Skill rates everyone with a free-for-all model: every challenge is one game, and everyone who played it is ranked by accuracy, then streak, then score (all 100% scores tie). Each player has an estimated skill (μ) and how unsure that estimate still is (σ). The list is sorted by <b>μ − 3σ</b>, a careful estimate that rises as you play more and win. Each path has its own ratings.`;
-const TS_ABOUT_X=`<b>Plus</b> adds two things to Classic: <b>time</b>, so the longer someone has been away the less sure their rating is and the faster it moves when they're back, and <b>how much you won by</b>, so beating everyone by a wide accuracy margin counts for more than a close win. Its settings were picked by testing on past weeks: on Weeks 641–680, which weren't used to pick them, it predicts the winner of a head-to-head 77.6% of the time (Classic: 77.5%). Otherwise it works like Classic: each challenge is a free-for-all game ranked by accuracy, then streak, then score, and the list is sorted by <b>μ − 3σ</b>.`;
+document.addEventListener("click",e=>{const p=e.target.closest("[data-tsp]"), a=e.target.closest("[data-tsa]"); if(!p&&!a)return; if(p)tsPath=+p.dataset.tsp; if(a)tsActive=a.dataset.tsa==="1"; renderSkill()});
+const TS_ABOUT=`Skill rates everyone with a free-for-all model: every challenge is one game, and everyone who played it is ranked by accuracy, then streak, then score (all 100% scores tie). Each player has an estimated skill (μ) and how unsure that estimate still is (σ). It also counts <b>time</b>, so the longer someone has been away the less sure their rating is and the faster it moves when they're back, and <b>how much you won by</b>, so beating everyone by a wide accuracy margin counts for more than a close win. The list is sorted by <b>μ − 3σ</b>, a careful estimate that rises as you play more and win. Each path has its own ratings. Its settings were picked by testing on past weeks: on Weeks 641–680, which weren't used to pick them, it predicts the winner of a head-to-head 77.6% of the time.`;
 function renderLevel(){
   if(!LEVEL||!LEVEL.paths){$("lv-body").innerHTML=`<div class="empty">The PlayerLevel tab wasn't found in the sheet.</div>`; return}
   const D=lvCur(), years=D.years||[], sheetEnd=LEVEL.last||0, newer=sheetEnd<DATA_WEEK;
