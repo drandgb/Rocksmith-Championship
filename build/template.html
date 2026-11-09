@@ -2148,7 +2148,7 @@ footer{color:var(--dim);font-size:.78rem}
       <dt><a href="#songs" data-faqgo="songs">Songs</a></dt><dd>Every song played, the Song lookup (search by title or tuning) and the Band lookup.</dd></dl></details>
     <details><summary>How do I look someone up?</summary><p>Click any name anywhere on the site to open their player profile, or type it into the Player lookup on the Players tab. Band names open the Band lookup the same way.</p></details>
     <details><summary>What do the * and ~ marks mean?</summary><p><b>*</b> means the score was outside the player's own class (faded when playing down, which doesn't count for wins). <b>~</b> is a FreeBird.</p></details>
-    <details><summary>What does "Active only" do?</summary><p>The All / Active only switch on some tabs hides players who haven't played in the last 52 weeks (about a year), so the lists show who's around now.</p></details>
+    <details><summary>What does "Active only" do?</summary><p>The All / Active only switch on some tabs hides players who haven't played in the last 26 weeks (about six months), so the lists show who's around now.</p></details>
     <details><summary>Hover and tap</summary><p>Most numbers, medals and badges have more detail: hover them on a computer or tap them on a phone. Clicking a medal highlights the weeks it came from. On a phone, swipe the tab row sideways to see every tab.</p></details>
     <details><summary>How often does the site update?</summary><p>It updates from the scoreboard spreadsheet shortly after the hosts enter scores, and again on a regular schedule. The footer shows when the data was last updated.</p></details>
   </section>
@@ -2651,7 +2651,7 @@ function barRows(list,color,unit="",tags=true){
     return `<div class="brow${i<3?" top":""}${i===0?" first":""}${tags?"":" notag"}${tags&&!isActivePlayer(n)?" inactive":""}" style="--c:${c}"><span class="rk">${i+1}</span><span class="nm" data-player="${esc(n)}" title="${esc(n)}">${esc(n)}</span>${tags?`<span class="act">${actPill(n)}</span>`:""}<span class="track"><span class="fill" style="width:${pct}%;animation-delay:${i*30}ms"></span></span><span class="val">${typeof v==="string"&&/^\d+\.\d$/.test(v)?v:x}${unit}</span></div>`;
   }).join("");
 }
-const ACTIVE_PLAYER_WINDOW=52;
+const ACTIVE_PLAYER_WINDOW=26;   // active: played at least once in the last 26 weeks (around 6 months), the same as on the Skill tab
 const isActivePlayer=n=>{const p=byName[n];return !!p&&DATA_WEEK-p[2]<ACTIVE_PLAYER_WINDOW};
 const NEW_YEAR=(WEEKS[DATA_WEEK-1]||WEEKS[WEEKS.length-1])[1].slice(0,4);
 const NEW_WINDOW=52;
@@ -2659,7 +2659,7 @@ const isNewPlayer=n=>{const p=byName[n];return !!p&&DATA_WEEK-p[1]<NEW_WINDOW};
 // empty space the size of a NEW pill, so every row of rings is the same height
 const RING_PILL_SPACE=`<span class="pill new" style="visibility:hidden" aria-hidden="true">NEW</span>`;
 const newPill=n=>isNewPlayer(n)?`<span class="pill new" data-tip="Joined in the last ${NEW_WINDOW} weeks (around 1 year).">NEW</span>`:"";
-const actPill=n=>isNewPlayer(n)?newPill(n):(isActivePlayer(n)?`<span class="pill on" data-tip="Played at least once in the last ${ACTIVE_PLAYER_WINDOW} weeks (around 1 year).">ACTIVE</span>`:(byName[n]?`<span class="pill off" data-tip="Hasn't played in the last ${ACTIVE_PLAYER_WINDOW} weeks (around 1 year).">INACTIVE</span>`:""));
+const actPill=n=>isNewPlayer(n)?newPill(n):(isActivePlayer(n)?`<span class="pill on" data-tip="Played at least once in the last ${ACTIVE_PLAYER_WINDOW} weeks (around 6 months).">ACTIVE</span>`:(byName[n]?`<span class="pill off" data-tip="Hasn't played in the last ${ACTIVE_PLAYER_WINDOW} weeks (around 6 months).">INACTIVE</span>`:""));
 const STR=["var(--s-red)","var(--s-yellow)","var(--s-blue)","var(--s-orange)","var(--s-green)","var(--s-purple)"];
 const STAR_PATH="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9z";
 const shinyStar=i=>`<svg class="shiny" viewBox="0 0 24 24" aria-hidden="true"><defs><linearGradient id="sg${i}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff3b0"/><stop offset=".45" stop-color="#ffd23f"/><stop offset="1" stop-color="#e79a1e"/></linearGradient><linearGradient id="sh${i}" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".5" stop-color="#fff" stop-opacity=".85"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient><clipPath id="sc${i}"><path d="${STAR_PATH}"/></clipPath></defs><path fill="url(#sg${i})" stroke="#b8741a" stroke-width=".5" d="${STAR_PATH}"/><path d="M12 2.5l2.9 6L12 12z M12 12l9.5-2.6-6.6-.9z" fill="#fff" opacity=".28"/><g clip-path="url(#sc${i})"><g class="shg" style="animation-delay:${(i*0.4).toFixed(1)}s"><rect x="-14" y="-4" width="8" height="32" fill="url(#sh${i})" transform="rotate(20 12 12)"/></g></g></svg>`;
@@ -4000,8 +4000,8 @@ function tsBuildX(){if(!TSX)TSX=tsRun(TSX_O).R; return TSX}
 let tsPath=0, tsActive=true;
 function renderSkill(){const R=tsBuildX()[tsPath], el=$("ts-body"); if(!el)return;
   $("ts-about").innerHTML=TS_ABOUT;
-  const cut=TW_MAX-26, rows=Object.entries(R).filter(([n,r])=>r.g>=10&&(!tsActive||r.last>=cut)).map(([n,r])=>({n,...r,sk:r.mu-3*r.sig})).sort((a,b)=>b.sk-a.sk);
-  $("ts-sub").textContent=`${PATHS[tsPath]} · ${rows.length} player${rows.length===1?"":"s"}${tsActive?" who played in the last 26 weeks":""} · 10 or more games`;
+  const rows=Object.entries(R).filter(([n,r])=>r.g>=10&&(!tsActive||isActivePlayer(n))).map(([n,r])=>({n,...r,sk:r.mu-3*r.sig})).sort((a,b)=>b.sk-a.sk);
+  $("ts-sub").textContent=`${PATHS[tsPath]} · ${rows.length} player${rows.length===1?"":"s"}${tsActive?` who played in the last ${ACTIVE_PLAYER_WINDOW} weeks`:""} · 10 or more games`;
   document.querySelectorAll("#tspath [data-tsp]").forEach(b=>b.setAttribute("aria-pressed",+b.dataset.tsp===tsPath));
   document.querySelectorAll("#tsact [data-tsa]").forEach(b=>b.setAttribute("aria-pressed",(b.dataset.tsa==="1")===tsActive));
   el.innerHTML=`<section class="panel tspanel" style="--pc:${PATH_C[tsPath]}"><table class="tstab"><thead><tr><th>#</th><th>Player</th><th data-tip="μ − 3σ: the careful estimate the list is sorted by">Skill</th><th class="nocap" data-tip="μ: the estimated skill · σ: how unsure it still is">μ ± σ</th><th data-tip="Challenges played on this path">Games</th><th data-tip="Challenges won (first place, ties included)">Wins</th><th>Last played</th></tr></thead>
