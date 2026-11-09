@@ -48,7 +48,8 @@ for wk in sorted(todo):
             vals = [val(r, c + k) for k in (1, 2, 3)]
             ents.append([str(n).strip()] + [v if isinstance(v, (int, float)) else None for v in vals])
             f = cell(r, c).font
-            fl.append([str(n).strip(), color(f), bool(f.b), f.sz])
+            # a red % marks a 100% or a Master Mode score (played from memory, red without being 100%)
+            fl.append([str(n).strip(), color(f), bool(f.b), f.sz, color(cell(r, c + 1).font) == "FFFF0000"])
         frows[b] = fl
         if song in (None, "", "n/a") and not ents: continue
         chal.append([b // 9, b % 9, str(lvl or ""), str(song or ""), diff if isinstance(diff, (int, float)) else None, str(extra or ""), ents])
