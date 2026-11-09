@@ -33,7 +33,7 @@ except ImportError:
     for p in problems: print("  - " + p)
     print("check: playwright isn't installed, the page itself wasn't opened"); sys.exit(1 if problems else 0)
 
-TABS = ["thisweek", "level", "rankings", "season", "hosting", "players", "winners", "scores", "songs", "faq"]
+TABS = ["thisweek", "level", "skill", "rankings", "season", "hosting", "players", "winners", "scores", "songs", "faq"]
 NOISE = re.compile(r"net::ERR|Failed to load resource|ERR_FAILED|ERR_ABORTED")
 SECTIONS = """v=>[...document.querySelectorAll('#view-'+v+' section')].map((s,i)=>{const h=s.querySelector('h2');
   return {k:s.id||(h?h.textContent.trim().slice(0,40):'')||('#'+i), vis:!s.hidden&&s.offsetParent!==null, n:s.innerText.trim().length}})"""
