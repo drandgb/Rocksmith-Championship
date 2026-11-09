@@ -4100,6 +4100,9 @@ $("lvyear").addEventListener("change",e=>{lvYear=e.target.value; renderLevel()})
 // hover text on the Level tab (player rows, the weeks pill, the * on estimated years)
 $("view-level").addEventListener("mousemove",e=>{if(typeof plTipPin!=="undefined"&&plTipPin)return; const p=e.target.closest("[data-tip]"); if(!p){tip.hidden=true;return} tip.textContent=p.dataset.tip; tip.hidden=false; placeTip(e.clientX,e.clientY)});
 $("view-level").addEventListener("mouseleave",()=>{if(!(typeof plTipPin!=="undefined"&&plTipPin))tip.hidden=true});
+// the same on the Skill tab (the dots in Skill in each class and Each player over time, the table's column headings)
+$("view-skill").addEventListener("mousemove",e=>{if(typeof plTipPin!=="undefined"&&plTipPin)return; const p=e.target.closest("[data-tip]"); if(!p){tip.hidden=true;return} tip.textContent=p.dataset.tip; tip.hidden=false; placeTip(e.clientX,e.clientY)});
+$("view-skill").addEventListener("mouseleave",()=>{if(!(typeof plTipPin!=="undefined"&&plTipPin))tip.hidden=true});
 // ---------- shared by Winner lookup and This Week: canonical names, God carry-overs and rivals ----------
 const TW_ALIAS={AndreCardoso:"ALSRC",BetterCallJamie:"FlatCap Jay",jasmith85:"FlatCap Jay",aand14:"drand",mattimatti:"mattibassi",Tinman86:"TinMan86"};
 const TW_CANON={}; PLAYERS.forEach(p=>TW_CANON[p[0].toLowerCase()]=p[0]);
@@ -6086,7 +6089,7 @@ window.addEventListener("click",plClick,true);
 // highlights a player used to hide it straight away)
 let plTipPin=null, plPtr="mouse";
 window.addEventListener("pointerdown",e=>{plPtr=e.pointerType||"mouse"; if(plTipPin&&!plTipPin.contains(e.target)){plTipPin=null; tip.hidden=true}},true);
-window.addEventListener("click",e=>{if(plPtr==="mouse")return; const t=e.target.closest("#view-season [data-tip],#view-level [data-tip],#view-rankings [data-tip]"); if(!t)return;
+window.addEventListener("click",e=>{if(plPtr==="mouse")return; const t=e.target.closest("#view-season [data-tip],#view-level [data-tip],#view-rankings [data-tip],#view-skill [data-tip]"); if(!t)return;
   plTipPin=t; tip.textContent=t.dataset.tip; tip.hidden=false; const r=t.getBoundingClientRect(); placeTip(Math.max(8,Math.min(r.left,innerWidth-40)),r.bottom-4)},true);
 addEventListener("scroll",()=>{if(plTipPin){plTipPin=null; tip.hidden=true}},{passive:true});
 // ---------- level pills in Most popular / Most replayed songs filter that list ----------
