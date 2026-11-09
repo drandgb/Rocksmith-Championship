@@ -470,7 +470,8 @@ button.clear:hover{border-color:var(--accent)}
 .tstab th:nth-child(2),.tstab td:nth-child(2){text-align:left;width:100%}
 .tstab thead th{font:700 .7rem var(--f-display);letter-spacing:.08em;text-transform:uppercase;color:var(--pc)}
 .tstab tbody tr:nth-child(-n+3) td:nth-child(3) b{color:var(--pc)}
-@media(max-width:640px){.tstab{font-size:.8rem}.tstab th,.tstab td{padding:5px 4px}.tstab th:nth-child(6),.tstab td:nth-child(6),.tstab th:nth-child(7),.tstab td:nth-child(7){display:none}}
+.tstab td.tssp{width:64px;color:var(--pc)}
+@media(max-width:640px){.tstab{font-size:.8rem}.tstab th,.tstab td{padding:5px 4px}.tstab th:nth-child(6),.tstab td:nth-child(6),.tstab th:nth-child(7),.tstab td:nth-child(7){display:none}.tstab td.tssp{width:52px}.tstab td.tssp .lvsp{width:50px}}
 .seg button[aria-pressed="true"]{color:var(--bg)}
 .seg .s-lead[aria-pressed="true"]{background:var(--s-orange)}
 .seg .s-rhy[aria-pressed="true"]{background:var(--s-green)}
@@ -3609,6 +3610,7 @@ function showPlayer(name){
     <div class="plead" data-n="${esc(n)}">${plLeads(n)}</div>
       ${(()=>{try{const c=hrChart(n); return `<p class="pcwide pnolin">Remember, progress isn’t linear! 🌱</p>`+(c?hrProfile(n)+`<div class="pcwide">${c}</div>`:hrNote(n))}catch(e){return ""}})()}
       ${(()=>{try{const c=lvChart(n); return c?`<div class="pcwide pclv">${c}</div>`:""}catch(e){return ""}})()}
+      ${(()=>{try{const c=skChart(n); return c?`<div class="pcwide pclv">${c}</div>`:""}catch(e){console.error(e); return ""}})()}
       ${(()=>{try{return hrNextHtml(n)}catch(e){return ""}})()}
       ${(()=>{try{return eloProfile(n)+`<div class="pcwide">${eloChart(n)}</div>`}catch(e){return ""}})()}
       ${(()=>{const u=WR.ups.filter(x=>x[0]===n).sort((a,b)=>b[4]-a[4]||b[1]-a[1]);return u.length?`<div class="ups pcwide">Rank changes: ${u.map(([,p,a,b,w])=>`<span class="pill hol rkpath" data-hl="${w}" data-tip="Click to highlight Week ${w}" style="cursor:pointer;--pc:${PATH_C[p]}">${PATHS[p]} ${a}${"BIAM".indexOf(b)<"BIAM".indexOf(a)?"↘":"↗"}${b} · wk ${w}</span>`).join("")}</div>`:""})()}
@@ -3990,7 +3992,8 @@ function tsRun(o,score,from){const R=[{},{},{}]; let ll=0, np=0, hit=0;
     out.forEach((x,i)=>{const r=pl[i].r; let mu=x.mu, sig=x.sig;
       if(zs){const obs=gm+o.mc*zs[i], K=sig*sig/(sig*sig+o.mv); mu+=K*(obs-mu); sig=Math.sqrt((1-K)*sig*sig)}
       if(!o.plain&&o.ex)mu+=o.ex*Math.exp(-r.g/(o.exG||20));
-      r.mu=mu; r.sig=sig; r.g++; if(pl[i].rank===0)r.w++; r.last=G.w})});
+      r.mu=mu; r.sig=sig; r.g++; if(pl[i].rank===0)r.w++; r.last=G.w;
+      const sk=Math.min(100,Math.max(0,TS_X100*(mu-3*sig))), h=r.h||(r.h=[]); if(h.length&&h[h.length-1][0]===G.w)h[h.length-1][1]=sk; else h.push([G.w,sk])})});   // the skill at the end of each week they played
   return {R,ll:np?ll/np:0,acc:np?hit/np:0,np}}
 // The settings, picked by testing on past weeks: the values that best predicted each next week's results
 // (fitted on Weeks 560–640 and checked on 641–680, which it wasn't fitted on: pairwise log loss 0.483 vs 0.486 without
@@ -3999,14 +4002,35 @@ const TSX_O={tauW:.4,mc:1.5,mv:100,ex:0,exG:20};
 function tsBuildX(){if(!TSX)TSX=tsRun(TSX_O).R; return TSX}
 let tsPath=0, tsActive=true;
 const TS_X100=2;   // shown out of 100: the ratings run 0 (a new player's μ − 3σ) to 50, so they're doubled
+// the last year's skill as a small line (like the Level tab's)
+function skSpark(r){const h=(r.h||[]).filter(x=>x[0]>=TW_MAX-52); if(h.length<2)return ""; const W=60,H=18, w0=h[0][0], w1=h[h.length-1][0], v=h.map(x=>x[1]), lo=Math.min(...v)-2, hi=Math.max(...v)+2;
+  const d=h.map((x,i)=>(i?"L":"M")+(w1===w0?0:(x[0]-w0)/(w1-w0)*W).toFixed(1)+","+(H-(x[1]-lo)/(hi-lo)*H).toFixed(1)).join("");
+  return `<svg class="lvsp" viewBox="-1 -1 ${W+2} ${H+2}" aria-hidden="true"><path d="${d}" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`}
+// a player's skill over time on each path (on their profile, like the Player level chart)
+function skChart(n){const T=tsBuildX(), k=String(n).toLowerCase(), H0=[0,1,2].map(pi=>{const e=Object.entries(T[pi]).find(([m])=>m.toLowerCase()===k); return e&&e[1].g>=10?e[1].h:null});
+  const all=H0.filter(Boolean).flat(); if(all.length<2)return "";
+  const w0=Math.min(...all.map(x=>x[0])), w1=Math.max(...all.map(x=>x[0])); if(w1<=w0)return "";
+  const W=640,H=190,L=34,R=12,T0=14,B=26, vs=all.map(x=>x[1]), lo=Math.max(0,Math.floor((Math.min(...vs)-4)/10)*10), hi=Math.min(100,Math.ceil((Math.max(...vs)+4)/10)*10);
+  const X=w=>L+(w-w0)/(w1-w0)*(W-L-R), Y=v=>T0+(1-(v-lo)/(hi-lo))*(H-T0-B);
+  let g=""; for(let v=lo;v<=hi;v+=10)g+=`<line x1="${L}" x2="${W-R}" y1="${Y(v).toFixed(1)}" y2="${Y(v).toFixed(1)}" stroke="var(--line)" stroke-width="1"/><text x="${L-6}" y="${(Y(v)+3.5).toFixed(1)}" text-anchor="end" font-size="10" fill="#8b93a7">${v}</text>`;
+  // the x axis: the first week of each year
+  let xl="", py=null; for(let w=w0;w<=w1;w++){const d=WEEKS[w-1]; if(!d)continue; const y=d[1].slice(0,4); if(y!==py&&py!==null)xl+=`<line x1="${X(w).toFixed(1)}" x2="${X(w).toFixed(1)}" y1="${T0}" y2="${H-B}" stroke="var(--line)" stroke-width="1" stroke-dasharray="2 4"/><text x="${X(w).toFixed(1)}" y="${H-8}" text-anchor="middle" font-size="10" fill="#8b93a7">’${y.slice(2)}</text>`; py=y}
+  let ln="";
+  H0.forEach((h,pi)=>{if(!h||h.length<2)return; ln+=`<path d="${h.map((x,i)=>(i?"L":"M")+X(x[0]).toFixed(1)+","+Y(x[1]).toFixed(1)).join("")}" fill="none" stroke="${ELO_C[pi]}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>`;
+    const lx=h[h.length-1]; ln+=`<circle cx="${X(lx[0]).toFixed(1)}" cy="${Y(lx[1]).toFixed(1)}" r="3.6" fill="${ELO_C[pi]}"><title>${PATHS[pi]} · Week ${lx[0]}: ${lx[1].toFixed(1)}</title></circle>`;
+    h.forEach(x=>{ln+=`<circle cx="${X(x[0]).toFixed(1)}" cy="${Y(x[1]).toFixed(1)}" r="5" fill="transparent"><title>${PATHS[pi]} · Week ${x[0]}: ${x[1].toFixed(1)}</title></circle>`})});
+  const leg=[0,1,2].filter(pi=>H0[pi]&&H0[pi].length>=2).map(pi=>`<span class="lvlg" style="--pc:${ELO_C[pi]}">${PATHS[pi]}</span>`).join("");
+  return `<div class="elochart lvchart"><div class="echhead"><h4>Skill over time</h4><span class="echleg">${leg}</span></div>
+    <svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(n)}'s skill over time">${g}${xl}${ln}</svg>
+    <p class="echnote">Skill (out of 100) at the end of each week played, on each path with 10 or more games · hover a point for the week</p></div>`}
 function renderSkill(){const R=tsBuildX()[tsPath], el=$("ts-body"); if(!el)return;
   $("ts-about").innerHTML=TS_ABOUT;
   const rows=Object.entries(R).filter(([n,r])=>r.g>=10&&(!tsActive||isActivePlayer(n))).map(([n,r])=>({n,...r,sk:Math.min(100,Math.max(0,TS_X100*(r.mu-3*r.sig)))})).sort((a,b)=>b.sk-a.sk);
   $("ts-sub").textContent=`${PATHS[tsPath]} · ${rows.length} player${rows.length===1?"":"s"}${tsActive?` who played in the last ${ACTIVE_PLAYER_WINDOW} weeks`:""} · 10 or more games`;
   document.querySelectorAll("#tspath [data-tsp]").forEach(b=>b.setAttribute("aria-pressed",+b.dataset.tsp===tsPath));
   document.querySelectorAll("#tsact [data-tsa]").forEach(b=>b.setAttribute("aria-pressed",(b.dataset.tsa==="1")===tsActive));
-  el.innerHTML=`<section class="panel tspanel" style="--pc:${PATH_C[tsPath]}"><table class="tstab"><thead><tr><th>#</th><th>Player</th><th data-tip="μ − 3σ: the careful estimate the list is sorted by">Skill</th><th class="nocap" data-tip="μ: the estimated skill · σ: how unsure it still is">μ ± σ</th><th data-tip="Challenges played on this path">Games</th><th data-tip="Challenges won (first place, ties included)">Wins</th><th>Last played</th></tr></thead>
-    <tbody>${rows.map((r,i)=>`<tr><td class="dim">${i+1}</td><td><span class="pname" data-player="${esc(r.n)}">${esc(r.n)}</span></td><td><b>${r.sk.toFixed(1)}</b></td><td>${(TS_X100*r.mu).toFixed(1)} <small class="dim">± ${(TS_X100*r.sig).toFixed(1)}</small></td><td>${r.g}</td><td>${r.w}</td><td class="dim">Wk ${r.last}</td></tr>`).join("")}</tbody></table>
+  el.innerHTML=`<section class="panel tspanel" style="--pc:${PATH_C[tsPath]}"><table class="tstab"><thead><tr><th>#</th><th>Player</th><th data-tip="μ − 3σ: the careful estimate the list is sorted by">Skill</th><th class="nocap" data-tip="μ: the estimated skill · σ: how unsure it still is">μ ± σ</th><th data-tip="Challenges played on this path">Games</th><th data-tip="Challenges won (first place, ties included)">Wins</th><th>Last played</th><th data-tip="The last year's skill">Trend</th></tr></thead>
+    <tbody>${rows.map((r,i)=>`<tr><td class="dim">${i+1}</td><td><span class="pname" data-player="${esc(r.n)}">${esc(r.n)}</span></td><td><b>${r.sk.toFixed(1)}</b></td><td>${(TS_X100*r.mu).toFixed(1)} <small class="dim">± ${(TS_X100*r.sig).toFixed(1)}</small></td><td>${r.g}</td><td>${r.w}</td><td class="dim">Wk ${r.last}</td><td class="tssp">${skSpark(r)}</td></tr>`).join("")}</tbody></table>
     ${rows.length?"":`<p class="dim">No players yet.</p>`}</section>`;
   try{plHl()}catch(e){}}
 document.addEventListener("click",e=>{const p=e.target.closest("[data-tsp]"), a=e.target.closest("[data-tsa]"); if(!p&&!a)return; if(p)tsPath=+p.dataset.tsp; if(a)tsActive=a.dataset.tsa==="1"; renderSkill()});
