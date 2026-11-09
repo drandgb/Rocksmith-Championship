@@ -2496,10 +2496,10 @@ function lsTrackPlayers(){if(LS_TRK)return LS_TRK; lvAt(0,"",DATA_WEEK); const m
   LS_TRK=[0,1,2].map(pi=>Object.keys(LV_ROLL[pi]).map(k=>{let lastV=null; const ws=Object.keys(LV_ROLL[pi][k]).map(Number).filter(w=>w>=mn&&w<=DATA_WEEK).sort((a,b)=>b-a);
       for(const w of ws){const v=lvAt(pi,k,w); if(v!=null){lastV=v; break}} if(lastV==null)return null;
       let wk=0; for(let w=mn;w<=DATA_WEEK;w++)if(lvAt(pi,k,w)!=null)wk++;
-      return {k,n:twCanon(k),last:lastV,reg:wk>=LS_REG,act:!!ws.length&&DATA_WEEK-ws[0]<52}}).filter(Boolean).sort((a,b)=>b.last-a.last));
+      return {k,n:twCanon(k),last:lastV,reg:wk>=LS_REG,act:!!ws.length&&DATA_WEEK-ws[0]<ACTIVE_PLAYER_WINDOW}}).filter(Boolean).sort((a,b)=>b.last-a.last));
   return LS_TRK}
 function lsTrackHtml(W){const T=lsTrackPlayers();
-  return `<div class="lstrk m-reg"><h3 class="lstrkh">Each player over time <span class="seg lstrkseg" role="radiogroup" aria-label="Which players"><button type="button" class="s-all" data-lstrk="reg" aria-pressed="true">Regulars</button><button type="button" class="s-all" data-lstrk="act" aria-pressed="false">Active</button><button type="button" class="s-all" data-lstrk="all" aria-pressed="false">Everyone</button></span></h3><p class="dim lsnote">One row per player; drag the slider to watch each dot move. Dots take the color of the class the player was in that week. Regulars: players who had a level for at least a year's worth of weeks on that path. Active: players who played that path in the past year. Faint rows: no level that week (not enough scores in the 12 weeks up to it).</p><div class="lstrkg">${T.map((L,pi)=>`<div class="lstp" style="--pc:${PATH_C[pi]}"><h4>${PATHS[pi]} <small class="lstc">${L.filter(x=>x.reg).length}</small></h4>
+  return `<div class="lstrk m-reg"><h3 class="lstrkh">Each player over time <span class="seg lstrkseg" role="radiogroup" aria-label="Which players"><button type="button" class="s-all" data-lstrk="reg" aria-pressed="true">Regulars</button><button type="button" class="s-all" data-lstrk="act" aria-pressed="false">Active</button><button type="button" class="s-all" data-lstrk="all" aria-pressed="false">Everyone</button></span></h3><p class="dim lsnote">One row per player; drag the slider to watch each dot move. Dots take the color of the class the player was in that week. Regulars: players who had a level for at least a year's worth of weeks on that path. Active: players who played that path in the last 26 weeks. Faint rows: no level that week (not enough scores in the 12 weeks up to it).</p><div class="lstrkg">${T.map((L,pi)=>`<div class="lstp" style="--pc:${PATH_C[pi]}"><h4>${PATHS[pi]} <small class="lstc">${L.filter(x=>x.reg).length}</small></h4>
     <div class="lstr lstax"><span></span><div>${LV_BANDS.slice().reverse().map(([m,k],i,a)=>`<span class="lsband" style="left:${m}%;width:${(i<a.length-1?a[i+1][0]:100)-m}%;--tc:${TIER_C[k]}"></span>`).join("")}${[0,20,40,60,80,100].map(v=>`<b style="left:${v}%">${v}</b>`).join("")}</div></div>
     ${L.map(x=>`<div class="lstr${x.reg?" reg":""}${x.act?" act":""}" data-k="${esc(x.k)}" data-pi="${pi}"><span class="lstn" title="${esc(x.n)}">${esc(x.n)}</span><div class="lstt">${LV_BANDS.slice().reverse().map(([m,k],i,a)=>`<span class="lsband" style="left:${m}%;width:${(i<a.length-1?a[i+1][0]:100)-m}%;--tc:${TIER_C[k]}"></span>`).join("")}<i class="lsd"></i></div></div>`).join("")}${lsSlider(W,1)}</div>`).join("")}</div></div>`}
 document.addEventListener("click",e=>{const b=e.target.closest("[data-lstrk]"); if(!b)return; const t=b.closest(".lstrk"); ["reg","act","all"].forEach(m=>t.classList.toggle("m-"+m,b.dataset.lstrk===m)); t.querySelectorAll("[data-lstrk]").forEach(x=>x.setAttribute("aria-pressed",x===b)); lsTrackCount(t.closest(".lvscale"))});
@@ -2531,7 +2531,7 @@ document.addEventListener("input",e=>{const r=e.target.closest("[data-lsslide]")
   const W=+r.value; box.querySelectorAll("[data-lsslide]").forEach(x=>{if(x!==r)x.value=W}); box.querySelectorAll(".lswk").forEach(x=>x.textContent=lsWeekTxt(W));
   cancelAnimationFrame(box._raf); box._raf=requestAnimationFrame(()=>{const H=lsPaths(W); box.querySelectorAll(".lspb").forEach(x=>x.innerHTML=H[+x.dataset.pi]); lsTrackMove(box,W)})});
 // place the dots once a scale section is on the page
-new MutationObserver(()=>document.querySelectorAll(".lvscale").forEach(b=>{if(b.querySelector(".lstr[data-k]")&&!b.querySelector(".lstr[data-k] .lsd[style]")){const r=b.querySelector("[data-lsslide]"); lsTrackMove(b,r?+r.value:DATA_WEEK)}})).observe(document.body,{childList:true,subtree:true});
+new MutationObserver(()=>document.querySelectorAll(".lvscale:not(.skscale)").forEach(b=>{if(b.querySelector(".lstr[data-k]")&&!b.querySelector(".lstr[data-k] .lsd[style]")){const r=b.querySelector("[data-lsslide]"); lsTrackMove(b,r?+r.value:DATA_WEEK)}})).observe(document.body,{childList:true,subtree:true});
 function bracketCharts(){
   const ws=Object.keys(SB.weeks).map(Number).filter(w=>w<=DATA_WEEK&&(SB.weeks[w]||[]).length).sort((a,b)=>a-b), CL=["B","I","A","M"], AVG=10;
   const cnt=[0,1,2].map(()=>CL.map(()=>[]));   // [path][class][week index] = players
@@ -4006,6 +4006,43 @@ const TS_X100=2;   // shown out of 100: the ratings run 0 (a new player's μ −
 function skSpark(r){const h=(r.h||[]).filter(x=>x[0]>=TW_MAX-52); if(h.length<2)return ""; const W=60,H=18, w0=h[0][0], w1=h[h.length-1][0], v=h.map(x=>x[1]), lo=Math.min(...v)-2, hi=Math.max(...v)+2;
   const d=h.map((x,i)=>(i?"L":"M")+(w1===w0?0:(x[0]-w0)/(w1-w0)*W).toFixed(1)+","+(H-(x[1]-lo)/(hi-lo)*H).toFixed(1)).join("");
   return `<svg class="lvsp" viewBox="-1 -1 ${W+2} ${H+2}" aria-hidden="true"><path d="${d}" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`}
+// ---------- Skill tab: the same week-slider charts as Player levels ----------
+// skill at week W: the last week they played up to W (none after 26 weeks without playing that path)
+function skAt(r,W){const h=r&&r.h; if(!h)return null; let v=null; for(const x of h){if(x[0]>W)break; v=x} return v&&W-v[0]<=26?v[1]:null}
+const SK_MIN=()=>Math.min(...Object.keys(SB.weeks).map(Number))+11;
+const skWeekTxt=W=>W>=TW_MAX?`Now (Week ${W})`:`Week ${W}${WEEKS[W-1]?" · "+fmt(WEEKS[W-1][1]):""}`;
+const skSlider=(W,mini)=>`<div class="lsslide${mini?" mini":""}"><input type="range" min="${SK_MIN()}" max="${TW_MAX}" step="1" value="${W}" data-skslide aria-label="Week"><span class="lswk">${skWeekTxt(W)}</span></div>`;
+// each class on each path: a dot per player in that class at week W, placed by skill, with the middle player marked
+function skPaths(W){const T=tsBuildX(), now=W>=TW_MAX, CL=["B","I","A","M"], X=v=>Math.max(0,Math.min(100,v));
+  return [0,1,2].map(pi=>{const R=T[pi];
+    const rows=CL.map(c=>{const pts=[];
+      Object.entries(R).forEach(([n,r])=>{if(r.g<10)return; let cl=lsClassAt(pi,lvKey(n),Math.min(W,DATA_WEEK)); if(!cl&&now){const P=byName[twCanon(lvKey(n))]||byName[n]; cl=P?String(P[8]||"").charAt(pi).toUpperCase():null}
+        if(cl!==c)return; const v=skAt(r,W); if(v!=null)pts.push({n,v})});
+      pts.sort((a,b)=>a.v-b.v); const med=pts.length?pts[Math.floor((pts.length-1)/2)].v:null;
+      let last=-9, lane=0; const dots=pts.map(x=>{const pos=X(x.v); lane=pos-last<2.2?(lane+1)%3:0; last=pos;
+        return `<i class="lsd" style="left:${pos}%;--tc:${TIER_C[c]};--ln:${lane}" data-tip="${esc(`${x.n} · ${TIER_NAME[c]} ${PATHS[pi]} · ${now?"now":`Week ${W}`}\nSkill ${x.v.toFixed(1)}`)}"></i>`}).join("");
+      return `<div class="lsrow"><span class="lvchip" style="--tc:${TIER_C[c]}">${TIER_NAME[c].slice(0,3)}</span><div class="lstrack">${med!=null?`<span class="lsmed" style="left:${X(med)}%" data-tip="Middle player in ${TIER_NAME[c]}: ${med.toFixed(1)}"></span>`:""}${dots}</div><span class="lscount" data-tip="${pts.length} ${TIER_NAME[c]} ${PATHS[pi]} player${pts.length===1?"":"s"} with a skill">${pts.length}</span></div>`}).join("");
+    return `<div class="lspath" style="--pc:${PATH_C[pi]}"><h4>${PATHS[pi]}</h4>${rows}<div class="lsaxis"><span></span><div>${[0,20,40,60,80,100].map(v=>`<b style="left:${v}%">${v}</b>`).join("")}</div><span></span></div></div>`})}
+// one row per player, the dot moving with the slider (Regulars: a skill for a year's worth of weeks; Active: as elsewhere)
+let SK_TRK=null;
+function skTrackPlayers(){if(SK_TRK)return SK_TRK; const T=tsBuildX(), mn=SK_MIN();
+  SK_TRK=[0,1,2].map(pi=>Object.entries(T[pi]).filter(([n,r])=>r.g>=10).map(([n,r])=>{let wk=0; for(let w=mn;w<=TW_MAX;w++)if(skAt(r,w)!=null)wk++;
+    return {n,r,last:skAt(r,TW_MAX)??(r.h[r.h.length-1][1]),reg:wk>=52,act:isActivePlayer(n)}}).sort((a,b)=>b.last-a.last));
+  return SK_TRK}
+function skScaleHtml(){const W=TW_MAX, T=skTrackPlayers();
+  return `<section class="panel lvscale skscale" style="margin-top:14px"><div class="panel-head"><h2>Skill in each class</h2></div><p class="dim lsnote">Each dot is a player in that class on that path, placed by their skill (players with 10 or more games). The line marks the middle player. Drag a slider to see an earlier week: earlier weeks use the class each player was playing in then.</p>
+    <div class="lsbody">${skPaths(W).map((h,pi)=>`<div class="lspb" data-pi="${pi}">${h}</div>${skSlider(W)}`).join("")}</div>
+    <div class="lstrk m-reg"><h3 class="lstrkh">Each player over time <span class="seg lstrkseg" role="radiogroup" aria-label="Which players"><button type="button" class="s-all" data-lstrk="reg" aria-pressed="true">Regulars</button><button type="button" class="s-all" data-lstrk="act" aria-pressed="false">Active</button><button type="button" class="s-all" data-lstrk="all" aria-pressed="false">Everyone</button></span></h3><p class="dim lsnote">One row per player; drag the slider to watch each dot move. Dots take the color of the class the player was in that week. Regulars: players who had a skill for at least a year's worth of weeks on that path. Active: players who played in the last 26 weeks. Faint rows: no skill that week (not played that path in the 26 weeks up to it).</p><div class="lstrkg">${T.map((L,pi)=>`<div class="lstp" style="--pc:${PATH_C[pi]}"><h4>${PATHS[pi]} <small class="lstc">${L.filter(x=>x.reg).length}</small></h4>
+      <div class="lstr lstax"><span></span><div>${[0,20,40,60,80,100].map(v=>`<b style="left:${v}%">${v}</b>`).join("")}</div></div>
+      ${L.map(x=>`<div class="lstr${x.reg?" reg":""}${x.act?" act":""}" data-k="${esc(x.n)}" data-pi="${pi}"><span class="lstn" title="${esc(x.n)}">${esc(x.n)}</span><div class="lstt"><i class="lsd"></i></div></div>`).join("")}${skSlider(W,1)}</div>`).join("")}</div></div></section>`}
+function skTrackMove(box,W){const T=tsBuildX(), now=W>=TW_MAX; box.querySelectorAll(".lstr[data-k]").forEach(row=>{const pi=+row.dataset.pi, n=row.dataset.k, r=T[pi][n], d=row.querySelector(".lsd"), v=skAt(r,W);
+    let c=lsClassAt(pi,lvKey(n),Math.min(W,DATA_WEEK)); if(!c&&now){const P=byName[twCanon(lvKey(n))]||byName[n]; c=P?String(P[8]||"").charAt(pi).toUpperCase():null}
+    row.classList.toggle("off",v==null); if(v==null)return; d.style.left=Math.max(0,Math.min(100,v))+"%"; d.style.setProperty("--tc","BIAM".includes(c||"-")?TIER_C[c]:"var(--muted)");
+    d.dataset.tip=`${n} · ${PATHS[pi]} · ${now?"now":`Week ${W}`}\nSkill ${v.toFixed(1)}${c&&"BIAM".includes(c)?`\nPlaying in ${TIER_NAME[c]}`:""}`});
+  lsTrackCount(box)}
+document.addEventListener("input",e=>{const s=e.target.closest("[data-skslide]"); if(!s)return; const box=s.closest(".skscale"); if(!box)return;
+  const W=+s.value; box.querySelectorAll("[data-skslide]").forEach(x=>{if(x!==s)x.value=W}); box.querySelectorAll(".lswk").forEach(x=>x.textContent=skWeekTxt(W));
+  cancelAnimationFrame(box._raf); box._raf=requestAnimationFrame(()=>{const H=skPaths(W); box.querySelectorAll(".lspb").forEach(x=>x.innerHTML=H[+x.dataset.pi]); skTrackMove(box,W)})});
 // a player's skill over time on each path (on their profile, like the Player level chart)
 function skChart(n){const T=tsBuildX(), k=String(n).toLowerCase(), H0=[0,1,2].map(pi=>{const e=Object.entries(T[pi]).find(([m])=>m.toLowerCase()===k); return e&&e[1].g>=10?e[1].h:null});
   const all=H0.filter(Boolean).flat(); if(all.length<2)return "";
@@ -4032,6 +4069,7 @@ function renderSkill(){const R=tsBuildX()[tsPath], el=$("ts-body"); if(!el)retur
   el.innerHTML=`<section class="panel tspanel" style="--pc:${PATH_C[tsPath]}"><table class="tstab"><thead><tr><th>#</th><th>Player</th><th data-tip="μ − 3σ: the careful estimate the list is sorted by">Skill</th><th class="nocap" data-tip="μ: the estimated skill · σ: how unsure it still is">μ ± σ</th><th data-tip="Challenges played on this path">Games</th><th data-tip="Challenges won (first place, ties included)">Wins</th><th>Last played</th><th data-tip="The last year's skill">Trend</th></tr></thead>
     <tbody>${rows.map((r,i)=>`<tr><td class="dim">${i+1}</td><td><span class="pname" data-player="${esc(r.n)}">${esc(r.n)}</span></td><td><b>${r.sk.toFixed(1)}</b></td><td>${(TS_X100*r.mu).toFixed(1)} <small class="dim">± ${(TS_X100*r.sig).toFixed(1)}</small></td><td>${r.g}</td><td>${r.w}</td><td class="dim">Wk ${r.last}</td><td class="tssp">${skSpark(r)}</td></tr>`).join("")}</tbody></table>
     ${rows.length?"":`<p class="dim">No players yet.</p>`}</section>`;
+  if(!$("sk-scale")){const d=document.createElement("div"); d.id="sk-scale"; d.innerHTML=skScaleHtml(); el.after(d); const b=d.querySelector(".skscale"); skTrackMove(b,TW_MAX)}
   try{plHl()}catch(e){}}
 document.addEventListener("click",e=>{const p=e.target.closest("[data-tsp]"), a=e.target.closest("[data-tsa]"); if(!p&&!a)return; if(p)tsPath=+p.dataset.tsp; if(a)tsActive=a.dataset.tsa==="1"; renderSkill()});
 const TS_ABOUT=`Skill rates everyone with a free-for-all model: every challenge is one game, and everyone who played it is ranked by accuracy, then streak, then score (all 100% scores tie). Each player has an estimated skill (μ) and how unsure that estimate still is (σ). It also counts <b>time</b>, so the longer someone has been away the less sure their rating is and the faster it moves when they're back, and <b>how much you won by</b>, so beating everyone by a wide accuracy margin counts for more than a close win. The list is sorted by <b>μ − 3σ</b>, a careful estimate that rises as you play more and win, shown out of 100: a new player starts at 0 and an average one is around 50. Each path has its own ratings. Its settings were picked by testing on past weeks: on Weeks 641–680, which weren't used to pick them, it predicts the winner of a head-to-head 77.6% of the time.`;
