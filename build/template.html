@@ -892,6 +892,8 @@ html.acctwait body{visibility:hidden}html.acctwait{background:var(--bg)}html.acc
 @media (max-width:640px){.navopts{flex-wrap:wrap;min-width:0;max-width:100%}.navpath{order:3;flex:1 1 100%;min-width:0}.navpath .seg{width:100%}.navpath .seg button{flex:1 1 auto;min-width:0;white-space:nowrap;padding:8px 4px;font-size:.68rem;letter-spacing:.02em}}
 /* computers: the page tabs share out the full width, and the Year picker (left) and All / Active only toggle (right) get a row of their own under them */
 @media (min-width:641px){.tabrow{flex:1 1 100%}.tabrow button{flex:1 1 auto;text-align:center}.navopts{flex:1 1 100%;margin-top:8px}}
+/* computers: the path picker sits in the exact middle of the row (whatever is on either side, like Songs' wide Selected by picker) */
+@media (min-width:641px){.navopts:not([hidden]){display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr)}.navopts .navyear{grid-column:1;justify-self:start}.navopts .navpath{grid-column:2}.navopts .actfilter{grid-column:3;justify-self:end;margin:0}}
 #pfilter .s-all[aria-pressed="true"],#wpath .s-all[aria-pressed="true"],#rufilter .s-all[aria-pressed="true"]{background:var(--accent)}
 .ruf{margin-bottom:12px}
 .rulist{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr));column-gap:28px}
