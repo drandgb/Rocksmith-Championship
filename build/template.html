@@ -815,7 +815,7 @@ span.hrdn{color:var(--s-red)!important}small.eloin{color:var(--s-green)!importan
 .card .empty{padding:14px;color:var(--dim);font-size:.85rem}
 .card .aka{display:block;font-size:.7rem;color:var(--dim)}
 .legendline{color:var(--muted);font-size:.8rem;margin:0}
-.seaspathbar{margin:12px 0 14px}#seaspath .tier.mine b{color:var(--s-yellow)}#seaspath .tier.mine[aria-pressed="true"]{background:color-mix(in srgb,var(--s-yellow) 16%,var(--panel2));box-shadow:0 0 0 1px var(--s-yellow)}.wpathbar{display:flex;justify-content:center;align-items:center;gap:10px 16px;flex-wrap:wrap}
+.seaspathbar{margin:12px 0 14px}#seaspath .tier.mine b,#rkpath .tier.mine b{color:var(--s-yellow)}#seaspath .tier.mine[aria-pressed="false"],#rkpath .tier.mine[aria-pressed="false"]{opacity:.5}#seaspath .tier.mine[aria-pressed="false"]:hover,#rkpath .tier.mine[aria-pressed="false"]:hover{opacity:.85}#seaspath .tier.mine[aria-pressed="true"],#rkpath .tier.mine[aria-pressed="true"]{background:color-mix(in srgb,var(--s-yellow) 16%,var(--panel2));box-shadow:0 0 0 1px var(--s-yellow)}.wpathbar{display:flex;justify-content:center;align-items:center;gap:10px 16px;flex-wrap:wrap}
 @media (max-width:480px){.wpathbar .seg{display:flex;max-width:100%}.wpathbar .seg button{flex:1 1 auto;min-width:0;white-space:nowrap;padding:8px 9px;font-size:.7rem;letter-spacing:.03em}}
 .shostpick{display:flex;align-items:center;gap:8px;font-size:.82rem;color:var(--muted)}
 .shostpick select{background:var(--panel2);color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:6px 10px;font:inherit;max-width:60vw}
@@ -1406,7 +1406,7 @@ footer .updated{display:block;margin-top:4px}
 /* Scoreboard: pick a path, click it again to cycle its level */
 .sbtiers .tier{min-width:78px;padding:5px 8px}
 @media (max-width:640px){.sbtiers{width:100%;justify-content:center}#sbfind{flex:1 1 100%}
-  .sbtiers,#seaspath{gap:5px}.sbtiers .tier,#seaspath .tier{flex:1 1 0;min-width:0;padding:5px 2px}.sbtiers .tier small,#seaspath .tier small{font-size:.56rem;letter-spacing:.04em;text-align:center;line-height:1.2}.sbtiers .tier i,#seaspath .tier i{font-size:.56rem;white-space:nowrap}#seaspath{width:100%}}
+  .sbtiers,#seaspath,#rkpath{gap:5px}.sbtiers .tier,#seaspath .tier,#rkpath .tier{flex:1 1 0;min-width:0;padding:5px 2px}.sbtiers .tier small,#seaspath .tier small,#rkpath .tier small{font-size:.56rem;letter-spacing:.04em;text-align:center;line-height:1.2}.sbtiers .tier i,#seaspath .tier i,#rkpath .tier i{font-size:.56rem;white-space:nowrap}#seaspath,#rkpath{width:100%}}
 @media (max-width:640px){.sbtools:has(#sbme:not([hidden])) #sbfind{flex:1 1 0;min-width:0}}
 .sbtiers .tier[aria-pressed="false"]{opacity:.5}
 .sbtiers .tier[aria-pressed="false"]:hover{opacity:.85}
@@ -3186,9 +3186,9 @@ function renderSeason(){setTimeout(()=>{try{seasHl()}catch(e){console.error(e)}}
   // the level shown for each path (the same boxes as on the Rankings tab): all, or one class
   $("seaspath").innerHTML=["Lead","Rhythm","Bass"].map((k,i)=>{const t=seLv[i], nx=SE_CYC[(SE_CYC.indexOf(t)+1)%SE_CYC.length];
     return `<button type="button" class="tier" data-se="${i}" style="--pc:${PATH_C[i]};--tc:${t?TIER_C[t]:"var(--fg)"}" title="${k}: showing ${t?TIER_NAME[t]:"all levels"} · click for ${nx?TIER_NAME[nx]:"all levels"}"><small>${k}</small><b>${t||"All"}</b><i>${t?TIER_NAME[t]:"all levels"}</i></button>`}).join("");
-  // logged in: a ★ box first (like Your cards on the Scoreboard) that shows only your own class on each path
+  // logged in: a 👤 Your classes box first (like Your cards on the Scoreboard) that shows only your own class on each path
   {const me=seMine(); if(me){const on=seLv.join()===me.t.join();
-    $("seaspath").insertAdjacentHTML("afterbegin",`<button type="button" class="tier mine" data-se="mine" aria-pressed="${on}" style="--pc:var(--s-yellow);--tc:var(--fg)" title="${on?"Showing":"Show"} only ${esc(me.n)}'s own class on Lead, Rhythm and Bass${on?" · click to show all levels":""}"><small>Your classes</small><b>★</b><i>L · R · B</i></button>`)}}
+    $("seaspath").insertAdjacentHTML("afterbegin",`<button type="button" class="tier mine" data-se="mine" aria-pressed="${on}" style="--pc:var(--s-yellow);--tc:var(--fg)" title="${on?"Showing":"Show"} only ${esc(me.n)}'s own class on Lead, Rhythm and Bass${on?" · click to show all levels":""}"><small>Your classes</small><b aria-hidden="true">👤</b><i>L · R · B</i></button>`)}}
   $("seasall").hidden=!seLv.some(Boolean);
   el.style.setProperty("--srows",SCLS.length+1);
   el.innerHTML=[0,1,2].map(pi=>{const T=seasonF1(pi,id,up), MI=seasonImproved(pi,id,up);
@@ -6660,6 +6660,9 @@ function renderRankings(){
   const RK=rkLive?rkLiveData():RK_SHEET;
   $("rkpath").innerHTML=["Lead","Rhythm","Bass"].map((k,i)=>{const t=rkLv[i], nx=RK_CYC[(RK_CYC.indexOf(t)+1)%RK_CYC.length];
     return `<button type="button" class="tier" data-rk="${i}" style="--pc:${PATH_C[i]};--tc:${t?TIER_C[t]:"var(--fg)"}" title="${k}: showing ${t?TIER_NAME[t]:"all levels"} · click for ${nx?TIER_NAME[nx]:"all levels"}"><small>${k}</small><b>${t||"All"}</b><i>${t?TIER_NAME[t]:"all levels"}</i></button>`}).join("");
+  // logged in: a Your classes box first (like on the Season tab) that shows only your own class on each path
+  {const me=seMine(); if(me){const on=rkLv.join()===me.t.join();
+    $("rkpath").insertAdjacentHTML("afterbegin",`<button type="button" class="tier mine" data-rk="mine" aria-pressed="${on}" style="--pc:var(--s-yellow);--tc:var(--fg)" title="${on?"Showing":"Show"} only ${esc(me.n)}'s own class on Lead, Rhythm and Bass${on?" · click to show all levels":""}"><small>Your classes</small><b aria-hidden="true">👤</b><i>L · R · B</i></button>`)}}
   $("rkall").hidden=!rkLv.some(Boolean);
   {const m=String(RK.weeks||"").match(/(\d+)\D+(\d+)/);
    $("rk-sub").innerHTML=RK.weeks?`<span class="rkweeks${rkLive?" live":""}" role="button" tabindex="0" data-tip="${rkLive?`Latest 10 finished weeks, worked out by the site from the scoreboards with Rodman's rules (main challenges only; the top 4 among players in that class or playing one class up get 10, 5, 3, 1 points, plus 1 for a 100% or Master Mode score). Rodman's own rankings may differ slightly. Click for Rodman's rankings (Weeks ${esc(RK_SHEET.weeks)})`:`Rodman's rankings for these 10 weeks, from his tab in the scoreboard sheet. Click for the latest 10 finished weeks, worked out by the site`}"><small>Weeks</small><b>${m?m[1]:esc(RK.weeks)}</b>${m?`<i>–</i><b>${m[2]}</b>`:""}<em>${rkLive?"Latest":"Rodman's"}</em></span><span class="rkupd"><span class="rkroll">A rolling 10-week performance indicator: points from the last 10 finished weeks</span>${rkLive?"worked out by the site · may differ from Rodman's official rankings · tap for his":(()=>{const lw=(()=>{try{return rkLiveData().weeks}catch(e){return null}})(), upd=RK.updated?`updated ${esc(RK.updated)} · `:"";
@@ -6678,7 +6681,9 @@ function renderRankings(){
         const tipc=tip5?tip5:/↑/.test(ch)?`Up ${ch.replace(/\D/g,"")} since last week`:/↓/.test(ch)?`Down ${ch.replace(/\D/g,"")} since last week`:/new/i.test(ch)?"New in the rankings this week":out?"Dropped out of the last 10 weeks":"No change";
         return `<li class="${cls}"><span class="rr">${esc(rk)}</span><span class="nmw"><span class="nm" data-name="${esc(n)}"${byName[n]?` data-goplayer="${esc(n)}"`:""}>${esc(n)}</span>${lvChip(n,pi)}</span><span class="pts">${esc(pts)}</span><span class="chg ${cc}" data-tip="${tipc}">${esc(ch)}</span></li>`}).join("")}</ol>`:`<div class="empty">Nobody ranked</div>`}</div>`}).join("")}</div></section>`}).join("")||`<div class="empty">The rankings tab wasn't found in the sheet.</div>`;
 }
-$("rkpath").addEventListener("click",e=>{const b=e.target.closest("button[data-rk]");if(!b)return;const i=+b.dataset.rk;rkLv[i]=RK_CYC[(RK_CYC.indexOf(rkLv[i])+1)%RK_CYC.length];tip.hidden=true;renderRankings();$("rkpath").querySelector(`[data-rk="${i}"]`).focus()});
+$("rkpath").addEventListener("click",e=>{const b=e.target.closest("button[data-rk]");if(!b)return;
+  if(b.dataset.rk==="mine"){const me=seMine(); if(me)rkLv=rkLv.join()===me.t.join()?["","",""]:me.t.slice(); tip.hidden=true; renderRankings(); const f=$("rkpath").querySelector('[data-rk="mine"]'); if(f)f.focus(); return}
+  const i=+b.dataset.rk;rkLv[i]=RK_CYC[(RK_CYC.indexOf(rkLv[i])+1)%RK_CYC.length];tip.hidden=true;renderRankings();$("rkpath").querySelector(`[data-rk="${i}"]`).focus()});
 $("rkall").addEventListener("click",()=>{rkLv=["","",""];renderRankings()});
 $("rk-sub").addEventListener("click",e=>{if(!e.target.closest(".rkweeks"))return; rkLive=!rkLive; tip.hidden=true; renderRankings()});
 $("rk-sub").addEventListener("keydown",e=>{if((e.key==="Enter"||e.key===" ")&&e.target.closest(".rkweeks")){e.preventDefault(); rkLive=!rkLive; renderRankings(); const b=$("rk-sub").querySelector(".rkweeks"); if(b)b.focus()}});
@@ -7682,7 +7687,8 @@ function acctBtn(){const b=$("acctbtn"); b.hidden=!ACCT.on; try{twGoals()}catch(
   try{const hb=$("twhostbar"); if(hb)hb.hidden=!isCurHost()}catch(e){}   // This Week: Open host settings, for this week's host
   try{const yb=$("twywbar"); if(yb)yb.hidden=!(ACCT.claim&&ACCT.claim.status==="approved")}catch(e){} sbYwShow();   // This Week: Your week, for a player with an approved claim
   try{localStorage.setItem("rsc-acctbtn",b.innerHTML)}catch(e){} // shown straight away on the next visit while the login loads
-  try{if(!$("view-season").hidden)renderSeason()}catch(e){}   // the Season tab's ★ Your classes box
+  try{if(!$("view-season").hidden)renderSeason()}catch(e){}   // the Season tab's Your classes box
+  try{if(!$("view-rankings").hidden)renderRankings()}catch(e){}   // and the Rankings tab's
   if(typeof renderDownloads==="function"){try{renderNewWeekNote();renderTwPast();renderDownloads()}catch(e){}}
 }
 // logged in with an approved claim: the Player, Win and Host lookups open on your own profile (once per visit, and only
