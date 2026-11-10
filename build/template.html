@@ -616,7 +616,7 @@ a.dl svg,.offpill svg{width:11px;height:11px}
 .twwin .wlvt{cursor:help;text-decoration:underline dotted color-mix(in srgb,var(--fg) 35%,transparent);text-underline-offset:3px}
 .twwin .wlost{color:var(--muted);letter-spacing:.02em}
 .sbstat{margin-top:6px}
-.sbtw{margin-top:8px;padding:2px 12px;font-size:.78rem;width:auto}
+.sbtw{margin-top:8px;padding:2px 12px;font-size:.78rem;width:auto}.sbtwrow #sbtw,.sbtwrow #sbyw{margin:8px 0 0}@media (max-width:640px){.sbtwrow #sbtw,.sbtwrow #sbyw{padding:6px 10px;font-size:.76rem}}
 .acctdlg .adm.acctsec{border-top:0;margin-top:0;padding-top:2px}
 .acctdlg .adm.acctsec+.adm.acctsec{margin-top:16px}
 .acctdlg .acctsec:not(.adm)+.adm.acctsec{margin-top:16px;border-top:1px solid var(--line);padding-top:12px}   /* e.g. after Lapsed players in the Host tab */ /* the same gap between every Admin section */
@@ -1270,8 +1270,8 @@ footer .updated{display:block;margin-top:4px}
 .twhostrow{display:flex;justify-content:flex-end;margin-top:8px}.twhostrow[hidden]{display:none}
 #twhost{border-radius:999px;padding:7px 16px;font-weight:700;color:#1a1406;background:var(--s-orange);border:1px solid var(--s-orange);box-shadow:0 0 12px color-mix(in srgb,var(--s-orange) 40%,transparent);cursor:pointer;white-space:nowrap}
 #twhost:hover{filter:brightness(1.1)}
-#twforum,#twsheet,#twyw{border-radius:999px;padding:7px 16px;font-weight:700;font-size:.8rem;line-height:1.5;color:#1a1406;background:var(--s-orange);border:1px solid var(--s-orange);box-shadow:0 0 12px color-mix(in srgb,var(--s-orange) 40%,transparent);cursor:pointer;white-space:nowrap;text-decoration:none}
-#twforum:hover,#twsheet:hover,#twyw:hover{filter:brightness(1.1)}
+#twforum,#twsheet,#twyw,#sbtw,#sbyw{border-radius:999px;padding:7px 16px;font-weight:700;font-size:.8rem;line-height:1.5;color:#1a1406;background:var(--s-orange);border:1px solid var(--s-orange);box-shadow:0 0 12px color-mix(in srgb,var(--s-orange) 40%,transparent);cursor:pointer;white-space:nowrap;text-decoration:none}
+#twforum:hover,#twsheet:hover,#twyw:hover,#sbtw:hover,#sbyw:hover{filter:brightness(1.1)}
 /* the orange buttons sit in the week's title row, between the arrows (above Leading now) */
 .twbtns{display:flex;flex-wrap:wrap;justify-content:flex-end;align-items:center;gap:8px;margin-left:auto}
 .twbtns .twhostrow:not([hidden]){display:contents}
@@ -2179,7 +2179,7 @@ footer{color:var(--dim);font-size:.78rem}
     <section class="panel sbhead">
       <div class="sbnav">
         <button type="button" class="navbtn" id="sbprev" aria-label="Previous week">‹</button>
-        <div class="sbtitle"><select id="sbweek" aria-label="Week"></select><div class="sub" id="sbmeta"></div><div class="sbtwrow"><button type="button" class="clear sbtw" id="sbtw" hidden>Open This Week ›</button><button type="button" class="clear sblatest sbtw" id="sblatest" hidden>Back to latest week ›</button></div></div>
+        <div class="sbtitle"><select id="sbweek" aria-label="Week"></select><div class="sub" id="sbmeta"></div><div class="sbtwrow"><button type="button" class="clear sbtw" id="sbtw" hidden>This Week ›</button><button type="button" class="clear sbtw" id="sbyw" data-openyw hidden>Your week ›</button><button type="button" class="clear sblatest sbtw" id="sblatest" hidden>Back to latest week ›</button></div></div>
         <button type="button" class="navbtn" id="sbnext" aria-label="Next week">›</button>
       </div>
       <details class="sbabout"><summary>About difficulty ratings: how to vote</summary>
@@ -4825,6 +4825,8 @@ function sbNewMark(w,p,slot,n){const W=typeof WEEKLOG!=="undefined"&&WEEKLOG[w];
   // (the log also updates when only the place changes, so it counts as improved only if the % or streak went up)
   if(!(t1>SB_SEEN.t)||(r[0][0]===r[1][0]&&r[0][1]===r[1][1]))return "";
   return `<span class="sbnew up" data-tip="Improved ${since} (${sbAgo(t1)}): ${r[0][0]}% → ${r[1][0]}%${r[0][1]!==r[1][1]?`, streak ${r[0][1]} → ${r[1][1]}`:""}">▲</span>`}
+// Scoreboard: Your week, only on the current week and for a player with an approved claim (like on This Week)
+function sbYwShow(){try{const b=$("sbyw"); if(b)b.hidden=!(sbWeek===SB_HOME&&ACCT.claim&&ACCT.claim.status==="approved")}catch(e){}}
 function sbRender(){
   const ch=SB.weeks[sbWeek]||[], wk=WEEKS[sbWeek-1];
   $("sbweek").value=sbWeek;
@@ -4832,7 +4834,7 @@ function sbRender(){
   $("sbnext").disabled=sbWeek===SB_WEEKS[0];
   $("sblatest").hidden=sbWeek===SB_HOME;
   {const twMax=Math.max(DATA_WEEK,cur[0]), twNext=SB.weeks[twMax+1]&&SB.weeks[twMax+1].length?twMax+1:null; // (TW_MIN/TW_MAX aren't defined yet on first render)
-   const ok=(sbWeek>=3&&sbWeek<=twMax)||sbWeek===twNext; $("sbtw").hidden=!ok; $("sbtw").title=`Open week ${sbWeek} on the This Week page`; $("sbtw").textContent=`Open Week ${sbWeek} on This Week ›`} $("sblatest").textContent=`Back to this week (${SB_HOME}) ›`;
+   const ok=(sbWeek>=3&&sbWeek<=twMax)||sbWeek===twNext; $("sbtw").hidden=!ok; $("sbtw").title=`Open week ${sbWeek} on the This Week page`; $("sbtw").textContent="This Week ›"} sbYwShow(); $("sblatest").textContent=`Back to this week (${SB_HOME}) ›`;
   const sbLive=sbWeek>DATA_WEEK&&sbWeek===cur[0];
   const sbNext=sbWeek>cur[0];
   $("sbmeta").innerHTML=`<div>${(wk?`${fmt(wk[1])}${wk[2]&&wk[2]!==LOST?` · hosted by <b>${esc(wk[2])}</b>`:""}`:"")}${sbLive&&typeof closeFor==="function"&&closeFor(sbWeek)?` · ${cdChip(sbWeek)}`:""}</div><div class="sbstat">${(sbNext?'<span class="pill nextwk" style="width:auto" data-tip="Next week: scores can be posted already. It becomes the current week, and this week&#39;s winners are decided, at 9 pm CET (Central European time) on its start Saturday">UPCOMING</span> ':sbLive?'<span class="pill new" style="width:auto">IN PROGRESS</span> ':'<span class="pill done" style="width:auto">CONCLUDED</span> ')}</div>`;
@@ -7673,7 +7675,7 @@ function acctBtn(){const b=$("acctbtn"); b.hidden=!ACCT.on; try{twGoals()}catch(
   try{const L=hostIssueList(), n=hostIssueN(); if(n)b.insertAdjacentHTML("beforeend",`<span class="nbadge" title="${n} likely scoreboard issue${n===1?"":"s"} in ${L.map(H=>"Week "+H.w).join(" and ")} · see the Host tab">🔧${n}</span>`)}catch(e){}
   try{b.insertAdjacentHTML("beforeend",friBadge()+rpBadge())}catch(e){}   // Friday post (this week's host and admins), recruitment post (admins)
   try{const hb=$("twhostbar"); if(hb)hb.hidden=!isCurHost()}catch(e){}   // This Week: Open host settings, for this week's host
-  try{const yb=$("twywbar"); if(yb)yb.hidden=!(ACCT.claim&&ACCT.claim.status==="approved")}catch(e){}   // This Week: Your week, for a player with an approved claim
+  try{const yb=$("twywbar"); if(yb)yb.hidden=!(ACCT.claim&&ACCT.claim.status==="approved")}catch(e){} sbYwShow();   // This Week: Your week, for a player with an approved claim
   try{localStorage.setItem("rsc-acctbtn",b.innerHTML)}catch(e){} // shown straight away on the next visit while the login loads
   try{if(!$("view-season").hidden)renderSeason()}catch(e){}   // the Season tab's ★ Your classes box
   if(typeof renderDownloads==="function"){try{renderNewWeekNote();renderTwPast();renderDownloads()}catch(e){}}
