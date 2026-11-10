@@ -2447,7 +2447,7 @@ document.fonts&&document.fonts.ready.then(()=>renderUpcoming());
 
 const hostActive=h=>cur[0]-(hosts[h.name]||h).last<=ACTIVE_WINDOW;   // (active: by their latest week overall, in a year view too)
 // the Hosts tab's Year filter: the leaderboards, Hall of fame, timeline, Week log and Host lookup count only that year
-let hostYearF=null;
+let hostYearF=null, HOST_YR0=0;
 function hostsOfYear(y){const o={}; WEEKS.forEach(([w,d,h],i)=>{if(i>curIdx||!h||h===LOST||!d.startsWith(y))return; const s=o[h]||(o[h]={name:h,n:0,first:w,last:w,firstD:d,lastD:d}); s.n++; s.last=w; s.lastD=d});
   return Object.values(o).sort((a,b)=>b.n-a.n||b.last-a.last)}
 const hostsShown=()=>{const base=hostYearF?hostsOfYear(hostYearF):hostList; return activeOnly?base.filter(hostActive):base};
@@ -4862,9 +4862,11 @@ function renderWinners(){
   try{localStorage.setItem("rsc-wpath",String(wPath))}catch(e){}
 }
 {const ys=[...new Set(Object.keys(SB.weeks).map(Number).filter(w=>w<=DATA_WEEK).map(yearOfWeek))].filter(Boolean).sort().reverse();
- $("wseason").innerHTML=`<option value="">All time</option>`+ys.map(y=>`<option value="${y}">${y}</option>`).join("");}
+ $("wseason").innerHTML=`<option value="">All time</option>`+ys.map(y=>`<option value="${y}">${y}</option>`).join("");
+ if(ys[0]){$("wseason").value=ys[0]; wSeason=wYear=ys[0]}}   // starts on the current year
 {const ys=[...new Set(WEEKS.filter(w=>w[0]>=PRES_START&&w[0]<=DATA_WEEK).map(w=>w[1].slice(0,4)))].sort().reverse();
- $("plyear").innerHTML=`<option value="">All time</option>`+ys.map(y=>`<option value="${y}">${y}</option>`).join("");}
+ $("plyear").innerHTML=`<option value="">All time</option>`+ys.map(y=>`<option value="${y}">${y}</option>`).join("");
+ if(ys[0]){$("plyear").value=ys[0]; plYearF=pYear=ys[0]}}   // starts on the current year
 $("plyear").addEventListener("change",e=>{plYearF=e.target.value||null; pYear=plYearF; renderRecords(); const q=$("pq").value.trim(); if(q&&typeof showPlayer==="function")showPlayer(q); updateBubble()});
 $("wseason").addEventListener("change",e=>{wSeason=e.target.value||null; wYear=wSeason; renderWinners(); updateBubble()});
 $("wpath").addEventListener("click",e=>{const b=e.target.closest("button[data-rp]");if(b){wPath=+b.dataset.rp;renderWinners()}});
@@ -4894,7 +4896,8 @@ $("view-winners").addEventListener("click",e=>{
 $("view-winners").addEventListener("mousemove",e=>{if(e.target.closest("#wcard"))return;const p=e.target.closest("[data-tip]");if(!p){tip.hidden=true;return}tip.textContent=p.dataset.tip;tip.hidden=false;placeTip(e.clientX,e.clientY)});
 $("view-winners").addEventListener("mouseleave",()=>tip.hidden=true);
 
-later("hosting",()=>{fillYears(); renderNow(); renderHostPodium(); renderUpcoming()}); later("players",renderRecords);
+later("hosting",()=>{fillYears(); renderNow(); renderHostPodium(); renderUpcoming(); if(!HOST_YR0){HOST_YR0=1; const y=($("hostyear").options[1]||{}).value; if(y){$("hostyear").value=y; setHostYear(y)}}});   // Hosts starts on the current year
+later("players",renderRecords);
 var LOOKUP_DEF={p:RECORDS["Most weeks played"][0][0]};   // the lookups' starting picks (switched to your own once you're logged in)
 later("players",()=>showPlayer(LOOKUP_DEF.p));
 try{const s=localStorage.getItem("rsc-host"); if(s&&(hosts[s]||CATS[s])){selHost=s;$("filterbar").hidden=false;$("fhost").textContent=CATS[s]||s}}catch(e){}
