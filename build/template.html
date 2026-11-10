@@ -5102,9 +5102,10 @@ function ELO_K(r,g){return g<30?40:r>=2400?10:20}
 // rating levels, named for a guitarist's career from the bedroom to legend; shown beside ratings and as bands on the Elo chart
 const ELO_BANDS=[[2300,"Legend","#f5192b"],[2200,"Superstar","#f62821"],[2000,"Arena Act","#f64829"],[1800,"Headliner","#f66731"],[1600,"Session Player","#f78339"],[1400,"Opening Act","#f79e41"],[1200,"Open Mic","#f7b749"],[1000,"Busker","#f8ce51"],[-1e9,"Bedroom Player","#f8e359"]];   // the rating levels, colored yellow (lowest) to red (highest)   // (same rating steps as the chess ladder they replaced)
 // a level's color on a path: white for the lowest, the path's own color for the highest, blended in between
+// (eased, so the color comes in fast: halfway up is already three-quarters of the way to the path's color)
 // (pi −1: white to gray, for a chart showing more than one path; no pi: the levels' own colors)
 const LV_PATH_HEX=["#ff9a2e","#45d17a","#3fa0ff"], LV_MIXC={};
-function lvMix(pi,i){const k=pi+"|"+i; if(LV_MIXC[k])return LV_MIXC[k]; const to=pi>=0?LV_PATH_HEX[pi]:"#8c94a8", t=i/(ELO_BANDS.length-1), c=[1,3,5].map(j=>Math.round(255+(parseInt(to.slice(j,j+2),16)-255)*t));
+function lvMix(pi,i){const k=pi+"|"+i; if(LV_MIXC[k])return LV_MIXC[k]; const to=pi>=0?LV_PATH_HEX[pi]:"#8c94a8", t=1-(1-i/(ELO_BANDS.length-1))**2, c=[1,3,5].map(j=>Math.round(255+(parseInt(to.slice(j,j+2),16)-255)*t));
   return LV_MIXC[k]="#"+c.map(x=>x.toString(16).padStart(2,"0")).join("")}
 function eloBand(v,pi){const b=ELO_BANDS.find(b=>v>=b[0]); return pi==null?b:[b[0],b[1],lvMix(pi,ELO_BANDS.length-1-ELO_BANDS.indexOf(b))]}
 function eloBandTip(v){const i=ELO_BANDS.indexOf(eloBand(v)), b=ELO_BANDS[i], up=i>0?ELO_BANDS[i-1][0]:null; return `${b[1]}: ${b[0]<0?"under "+up:up?b[0]+"–"+up:b[0]+" and up"}`}
