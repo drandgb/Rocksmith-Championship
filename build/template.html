@@ -460,7 +460,7 @@ button.clear:hover{border-color:var(--accent)}
 .seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
 .seg button{background:var(--panel2);border:0;color:var(--muted);font:700 .85rem var(--f-display);letter-spacing:.08em;text-transform:uppercase;padding:8px 16px;cursor:pointer;border-right:1px solid var(--line)}
 .seg button:last-child{border-right:0}
-.tsabout{margin:6px 0 2px;font-size:.88rem;max-width:880px}
+.tsabout{margin:6px auto 2px;font-size:.88rem;max-width:880px;text-align:center}
 
 #view-skill .wpathbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
 #ts-body{display:block}#ts-body .tspanel{width:auto;max-width:none}
@@ -815,7 +815,7 @@ span.hrdn{color:var(--s-red)!important}small.eloin{color:var(--s-green)!importan
 .card .empty{padding:14px;color:var(--dim);font-size:.85rem}
 .card .aka{display:block;font-size:.7rem;color:var(--dim)}
 .legendline{color:var(--muted);font-size:.8rem;margin:0}
-.seaspathbar{margin:12px 0 14px}.rkpathin{margin-top:14px}#seaspath .tier.mine b,#rkpath .tier.mine b{color:var(--s-yellow)}#seaspath .tier.mine[aria-pressed="false"],#rkpath .tier.mine[aria-pressed="false"]{opacity:.5}#seaspath .tier.mine[aria-pressed="false"]:hover,#rkpath .tier.mine[aria-pressed="false"]:hover{opacity:.85}#seaspath .tier.mine[aria-pressed="true"],#rkpath .tier.mine[aria-pressed="true"]{background:color-mix(in srgb,var(--s-yellow) 16%,var(--panel2));box-shadow:0 0 0 1px var(--s-yellow)}.wpathbar{display:flex;justify-content:center;align-items:center;gap:10px 16px;flex-wrap:wrap}
+.seaspathbar{margin:12px 0 14px}.rkpathin{margin-top:14px}#view-skill .wpathbar.rkpathin,#view-level .wpathbar.rkpathin{justify-content:center}#seaspath .tier.mine b,#rkpath .tier.mine b{color:var(--s-yellow)}#seaspath .tier.mine[aria-pressed="false"],#rkpath .tier.mine[aria-pressed="false"]{opacity:.5}#seaspath .tier.mine[aria-pressed="false"]:hover,#rkpath .tier.mine[aria-pressed="false"]:hover{opacity:.85}#seaspath .tier.mine[aria-pressed="true"],#rkpath .tier.mine[aria-pressed="true"]{background:color-mix(in srgb,var(--s-yellow) 16%,var(--panel2));box-shadow:0 0 0 1px var(--s-yellow)}.wpathbar{display:flex;justify-content:center;align-items:center;gap:10px 16px;flex-wrap:wrap}
 @media (max-width:480px){.wpathbar .seg{display:flex;max-width:100%}.wpathbar .seg button{flex:1 1 auto;min-width:0;white-space:nowrap;padding:8px 9px;font-size:.7rem;letter-spacing:.03em}}
 .shostpick{display:flex;align-items:center;gap:8px;font-size:.82rem;color:var(--muted)}
 .shostpick select{background:var(--panel2);color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:6px 10px;font:inherit;max-width:60vw}
@@ -1972,8 +1972,8 @@ footer{color:var(--dim);font-size:.78rem}
   <section class="panel lvhead">
     <div class="panel-head rkhero"><div class="sh-eye">📈 Rocksmith Championship</div><h2 class="lvtitle">Rodman’s Player Level</h2><span class="sub" id="lv-sub"></span></div>
     <div class="lvbands" id="lv-bands"></div>
+    <div class="wpathbar rkpathin"><div class="seg" role="radiogroup" aria-label="Show" id="lvmode"><button type="button" data-lvm="m6" class="s-all" aria-pressed="true">Last 6 months</button><button type="button" data-lvm="year" class="s-all" aria-pressed="false">By year</button></div><label class="shostpick" id="lvyrl" hidden><span>Year</span><select id="lvyear" aria-label="Year"></select></label></div>
   </section>
-  <div class="wpathbar"><div class="seg" role="radiogroup" aria-label="Show" id="lvmode"><button type="button" data-lvm="m6" class="s-all" aria-pressed="true">Last 6 months</button><button type="button" data-lvm="year" class="s-all" aria-pressed="false">By year</button></div><label class="shostpick" id="lvyrl" hidden><span>Year</span><select id="lvyear" aria-label="Year"></select></label></div>
   <div class="lvextra" id="lv-extra"></div>
   <div id="lv-body" class="rkbody"></div>
   <section class="panel lvscale" id="lv-scale" hidden></section>
@@ -1983,8 +1983,8 @@ footer{color:var(--dim);font-size:.78rem}
   <section class="panel tshead">
     <div class="panel-head rkhero"><div class="sh-eye">🎯 Rocksmith Championship</div><h2 class="lvtitle">Relative Skill Level</h2><span class="sub" id="ts-sub"></span></div>
     <p class="dim tsabout" id="ts-about"></p>
+    <div class="wpathbar rkpathin"><div class="seg" role="radiogroup" aria-label="Path" id="tspath"><button type="button" class="s-lead" data-tsp="0" aria-pressed="true">Lead</button><button type="button" class="s-rhy" data-tsp="1" aria-pressed="false">Rhythm</button><button type="button" class="s-bass" data-tsp="2" aria-pressed="false">Bass</button></div></div>
   </section>
-  <div class="wpathbar"><div class="seg" role="radiogroup" aria-label="Path" id="tspath"><button type="button" class="s-lead" data-tsp="0" aria-pressed="true">Lead</button><button type="button" class="s-rhy" data-tsp="1" aria-pressed="false">Rhythm</button><button type="button" class="s-bass" data-tsp="2" aria-pressed="false">Bass</button></div></div>
   <div id="ts-body" class="rkbody"></div>
   </div>
   <div class="view" id="view-rankings" role="tabpanel" aria-labelledby="tab-rankings" hidden>
@@ -6220,7 +6220,7 @@ $("refreshbtn").addEventListener("click",async()=>{
 // ---------- one highlighted player across the Scoreboard, Season, Level and Rankings tabs ----------
 // The same player as the Scoreboard's "Highlight a player" (sbFind). On Season, Level and Rankings: clicking a row
 // highlights that player everywhere on the tab (and keeps them highlighted on the other tabs); clicking a name the
-// first time highlights it too, and clicking an already highlighted name opens the profile. Clicking their row again,
+// first time highlights it too (on Level a name opens the profile straight away). Clicking their row again,
 // or the ✕ on the filter bubble, clears it.
 const PL_VIEWS=["view-season","view-level","view-rankings"], PL_ATTR="[data-profile],[data-player],[data-goplayer],[data-name]";
 const plNameOf=el=>el.dataset.profile||el.dataset.player||el.dataset.goplayer||el.dataset.name||"";
@@ -6231,7 +6231,8 @@ function plClick(e){const view=e.target.closest("#view-season,#view-level,#view-
   if(e.target.closest("a,button,select,input,[data-goseason],[data-gorank],.lvchip,.tier,[data-rk]"))return;
   const nmEl=e.target.closest(PL_ATTR), row=e.target.closest("li,tr,.sc,.smi"), el=nmEl||(row&&row.querySelector(PL_ATTR)); if(!el)return;
   const n=plNameOf(el); if(!n)return; const same=String(sbFind||"").toLowerCase()===n.toLowerCase();
-  if(nmEl&&same){if(view.id==="view-level"&&byName[n]){e.stopPropagation(); showView("players"); showPlayer(n); $("pcard").closest("section").scrollIntoView({block:"start"})} return}   // second click on the highlighted name: open the profile
+  if(nmEl&&view.id==="view-level"){const m=byName[n]?n:Object.keys(byName).find(x=>x.toLowerCase()===n.toLowerCase()); if(m){e.preventDefault(); e.stopPropagation(); tip.hidden=true; showView("players"); showPlayer(m); $("pcard").closest("section").scrollIntoView({block:"start"}); return}}   // Level: a name opens the profile (a click elsewhere on the row highlights)
+  if(nmEl&&same)return;
   e.preventDefault(); e.stopPropagation(); tip.hidden=true;
   sbFind=same?"":n; try{$("sbfind").value=sbFind}catch(err){} plHl(); if(typeof updateBubble==="function")updateBubble()};
 window.addEventListener("click",plClick,true);
