@@ -782,6 +782,7 @@ span.hrdn{color:var(--s-red)!important}small.eloin{color:var(--s-green)!importan
 .srate.upd{background:color-mix(in srgb,var(--pc) 28%,transparent);border-color:var(--pc)}
 .card .diff.canrate{cursor:pointer;position:relative;box-shadow:0 0 0 1px color-mix(in srgb,var(--tc) 40%,transparent)}
 .card .diff.canrate select{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;font-size:16px;-webkit-appearance:none;appearance:none}
+@media (hover:none){.diff.canrate:not(.armed) select{pointer-events:none}}   /* phones: the first tap shows the ratings, the second opens the picker */
 .card .diff.mine{box-shadow:0 0 0 1px var(--tc),0 0 6px color-mix(in srgb,var(--tc) 55%,transparent)}
 /* your own rating is in: a green check badge on the corner of the rating box (Scoreboard, Songs page, Your profile) */
 .card .diff.mine::before,.srate.mine::before{content:"✓";position:absolute;top:-6px;right:-6px;width:13px;height:13px;border-radius:50%;background:var(--s-green);color:#10131a;font:900 9px/13px Arial,sans-serif;text-align:center;box-shadow:0 0 0 2px var(--panel);pointer-events:none;z-index:1}
@@ -3631,6 +3632,14 @@ document.addEventListener("click",e=>{if(!matchMedia("(hover: none)").matches)re
   e.preventDefault(); e.stopPropagation(); pbArmed=pb;
   const r=pb.getBoundingClientRect(); tip.textContent=pb.dataset.tip.replace(/ · click to open it on the Scoreboard$/,"\nTap again to open it on the Scoreboard"); tip.hidden=false; placeTip(r.left,r.bottom-8)},true);
 addEventListener("scroll",()=>{if(pbArmed&&matchMedia("(hover: none)").matches){tip.hidden=true; pbArmed=null}},{passive:true});
+// the same for a card's rating badge on the Scoreboard: the first tap shows every rating so far, the second opens your rating picker
+document.addEventListener("click",e=>{if(!matchMedia("(hover: none)").matches)return; const rb=e.target.closest(".diff.canrate");
+  document.querySelectorAll(".diff.canrate.armed").forEach(x=>{if(x!==rb)x.classList.remove("armed")});
+  if(!rb||rb.classList.contains("armed"))return;   // second tap: the picker opens
+  e.preventDefault(); e.stopPropagation(); rb.classList.add("armed");
+  const r=rb.getBoundingClientRect(); tip.textContent=(rb.dataset.tip||"").replace(/ · click to change$/," · tap again to change").replace(/Click to give your rating$/,"Tap again to give your rating"); tip.hidden=false; placeTip(r.left,r.bottom-8)},true);
+document.addEventListener("change",e=>{const rb=e.target.closest&&e.target.closest(".diff.canrate"); if(rb){rb.classList.remove("armed"); tip.hidden=true}},true);
+addEventListener("scroll",()=>{const a=document.querySelector(".diff.canrate.armed"); if(a&&matchMedia("(hover: none)").matches){a.classList.remove("armed"); tip.hidden=true}},{passive:true});
 $("pcard").addEventListener("click",e=>{
   const yb=e.target.closest("[data-pyear]");
   if(yb){pYear=pYear===yb.dataset.pyear?null:yb.dataset.pyear;showPlayer($("pq").value.trim());return}
