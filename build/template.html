@@ -4089,7 +4089,25 @@ function skRivals(pi,k,w,kp){const T=skTable(pi,w,kp), i=T.findIndex(x=>x[0]===k
   const a=up?`<b>${Math.max(1,Math.round(up[1]-me))}</b> behind ${nm(up[0])}`:"top of the list", b=dn?`<b>${Math.max(1,Math.round(me-dn[1]))}</b> ahead of ${nm(dn[0])}`:"";
   return `<span class="nwriv">${up?"▲ ":"★ "}${a}${b?` · ▼ ${b}`:""}</span>`}
 function skAround(pi,k,w,kp){const T=skTable(pi,w,kp), i=T.findIndex(x=>x[0]===k); if(i<0)return "";
-  return T.slice(Math.max(0,i-10),i+11).map((x,j,A)=>`${x[0]===k?"▸ ":""}#${T.indexOf(x)+1} ${x[0]} ${Math.round(x[1])}`).join("\n")}
+  return `${kp?"Active players":"Everyone"} on ${PATHS[pi]} after Week ${w}:\n`+T.slice(Math.max(0,i-10),i+11).map(x=>`${x[0]===k?"▶ ":"    "}#${T.indexOf(x)+1} ${x[0]} · ${Math.round(x[1])}`).join("\n")}
+function skRankMap(pi,w,kp){const r={}; skTable(pi,w,kp).forEach((x,i)=>r[x[0]]=i+1); return r}
+// why a rank moved in week w: who they passed, who passed them, who entered the ranking above them or left it
+function skRankWhy(pi,k,w,kp,a,b){const r0=skRankMap(pi,w-1,kp), r1=skRankMap(pi,w,kp), L=xs=>xs.length>3?xs.slice(0,3).join(", ")+` and ${xs.length-3} more`:xs.length>1?xs.slice(0,-1).join(", ")+" and "+xs[xs.length-1]:xs[0];
+  const past=Object.keys(r0).filter(n=>n!==k&&r0[n]<a&&r1[n]&&r1[n]>b), by=Object.keys(r1).filter(n=>n!==k&&r1[n]<b&&r0[n]&&r0[n]>a),
+    ins=Object.keys(r1).filter(n=>!r0[n]&&r1[n]<b).sort((x,y)=>r1[x]-r1[y]), out=Object.keys(r0).filter(n=>!r1[n]&&r0[n]<a);
+  const up=[], dn=[];
+  if(past.length)up.push(`up ${past.length} past ${L(past)}`);
+  if(out.length)up.push(`up ${out.length} because ${L(out)} left the ${kp?"active players":"ranking"}`);
+  if(ins.length)dn.push(`down ${ins.length} because ${L(ins.map(n=>`${n} entered the ranking at #${r1[n]}`))}`);
+  if(by.length)dn.push(`down ${by.length}: passed by ${L(by)}`);
+  const t=[...up,...dn].join(", "); return t?t[0].toUpperCase()+t.slice(1):""}
+// a rank and how it moved in week w ("entered #15", "#31 → #32"), with the why and the players around them in the hover text
+function skMove(pi,k,w,kp,sep){const a=skRankMap(pi,w-1,kp)[k], b=skRankMap(pi,w,kp)[k], ar=skAround(pi,k,w,kp); if(!b)return null;
+  if(!a){const x=skAtE(pi,k,w-1), why=!x||x[2]<SKG_MIN?`reached ${SKG_MIN} games`:"came back among the active players";
+    return `<small class="eloin" data-tip="${esc(`New to the ranking this week: ${why}, so ${k} comes in at #${b}\n\n${ar}`)}">entered #${b}</small>`}
+  const why=skRankWhy(pi,k,w,kp,a,b), wt=why?why+"\n\n":"";
+  if(a===b)return `<small data-tip="${esc(wt+ar)}">#${b}</small>`;
+  return `<small class="${b<a?"up":"slip"}" data-tip="${esc(wt+ar)}">#${a}${sep}#${b}</small>`}
 // the typical active player on a path: the median rating, every 2 weeks, of players with 10+ games who played it in the 52 weeks before
 function skPool(pi){if(SK_POOL[pi])return SK_POOL[pi]; const P=tsBuildX()[pi], ev={};
   Object.entries(P).forEach(([n,r])=>(r.h||[]).forEach(e=>(ev[e[0]]=ev[e[0]]||[]).push([n,e[1],e[2]])));
@@ -4103,7 +4121,7 @@ function skProfile(n){const w=skW(), k=skKey(n), kp=skKeep(k), T=tsBuildX();
   const rows=[0,1,2].map(pi=>{const r=T[pi][k]; if(!r||r.g<SKG_MIN)return ""; const x=skAtE(pi,k,w); if(!x)return "";
     const tb=skTable(pi,w,kp), rk=tb.findIndex(z=>z[0]===k)+1, o=skAtE(pi,k,w-10), d=o?Math.round(x[1]-o[1]):0, t=rk&&rk<=3?" elo-t"+rk:"";
     const rr=rk?`<small data-tip="${esc(`#${rk} of ${tb.length} ${kp?"active players":"players (inactive, so ranked among everyone)"} · ${x[2]} games\n\n${skAround(pi,k,w,kp)}`)}">#${rk}</small>`:"";
-    return `<li class="${t.trim()}" style="--pc:${PATH_C[pi]}"><span class="nwp">${PATHS[pi]}</span><b class="nwv" style="color:${eloBand(x[1],pi)[2]}">${Math.round(x[1])}</b><span class="nwd" data-tip="${esc("Change over the last 10 weeks"+(()=>{const t=d>0?skWhy(pi,k,w-9,w):""; return t?"\n\n"+t:""})())}">${d>0?eloD(d):"–"}</span><span class="nwr">${eloBandTag(x[1],pi)}${rr}</span>${rk?skRivals(pi,k,w,kp):""}</li>`}).join("");
+    return `<li class="${t.trim()}" style="--pc:${PATH_C[pi]}"><span class="nwp">${PATHS[pi]}</span><b class="nwv" style="color:${eloBand(x[1],pi)[2]}" data-tip="${esc(skAround(pi,k,w,kp))}">${Math.round(x[1])}</b><span class="nwd" data-tip="${esc("Change over the last 10 weeks"+(()=>{const t=d>0?skWhy(pi,k,w-9,w):""; return t?"\n\n"+t:""})())}">${d>0?eloD(d):"–"}</span><span class="nwr">${eloBandTag(x[1],pi)}${rr}</span>${rk?skRivals(pi,k,w,kp):""}</li>`}).join("");
   return rows?`<div class="pcwide nwelo pelo"><div class="nwelo-h">Relative skill after Week ${w} <span class="elohelp" data-tip="${esc(SK_TIP)}">ⓘ</span> <span class="pelo-sub">▲ last 10 weeks</span></div><ul>${rows}</ul></div>`:""}
 // a player's relative skill over time: one line per path, range buttons (all / last year / 6 months), path pills,
 // weekly or a 4-week trend, the level bands behind, dotted lines for the typical player, and rank-change pills (B→I)
@@ -4156,7 +4174,7 @@ function renderSkill(){const R=tsBuildX()[tsPath], el=$("ts-body"); if(!el)retur
   $("ts-sub").textContent=`${PATHS[tsPath]} · ${rows.length} player${rows.length===1?"":"s"}${activeOnly?` who played in the last ${ACTIVE_PLAYER_WINDOW} weeks`:""} · 10 or more games`;
   document.querySelectorAll("#tspath [data-tsp]").forEach(b=>b.setAttribute("aria-pressed",+b.dataset.tsp===tsPath));
   el.innerHTML=`<section class="panel tspanel" style="--pc:${PATH_C[tsPath]}"><table class="tstab"><thead><tr><th>#</th><th>Player</th><th data-tip="μ − 3σ: the careful estimate the list is sorted by (hover a number for its μ ± σ)">Skill</th><th data-tip="The level for that rating, from lowest to highest: Bedroom Player, Busker, Open Mic, Opening Act, Session Player, Headliner, Arena Act, Superstar, Legend">Level</th><th data-tip="Challenges played on this path">Games</th><th data-tip="Challenges won (first place, ties included)">Wins</th><th>Last played</th><th data-tip="The last year's skill">Trend</th></tr></thead>
-    <tbody>${rows.map((r,i)=>`<tr><td class="dim">${i+1}</td><td><span class="pname" data-player="${esc(r.n)}"${(()=>{const P=byName[twCanon(lvKey(r.n))]||byName[r.n], c=P?String(P[8]||"").charAt(tsPath).toUpperCase():""; return TIER_C[c]?` style="color:${TIER_C[c]}"`:""})()}>${esc(r.n)}</span></td><td><b style="color:${eloBand(r.sk,tsPath)[2]};cursor:help" data-tip="${esc(`${eloBandTip(r.sk)}\n\nμ ± σ: ${Math.round(tsShow(r.mu))} ± ${Math.round(TS_ELO*r.sig)}\nμ: the estimated skill · σ: how unsure it still is`)}">${Math.round(r.sk)}</b></td><td>${eloBandTag(r.sk,tsPath)}</td><td>${r.g}</td><td>${r.w}</td><td class="dim">Wk ${r.last}</td><td class="tssp">${skSpark(r)}</td></tr>`).join("")}</tbody></table>
+    <tbody>${rows.map((r,i)=>`<tr><td class="dim">${i+1}</td><td><span class="pname" data-player="${esc(r.n)}"${(()=>{const P=byName[twCanon(lvKey(r.n))]||byName[r.n], c=P?String(P[8]||"").charAt(tsPath).toUpperCase():""; return TIER_C[c]?` style="color:${TIER_C[c]}"`:""})()}>${esc(r.n)}</span></td><td><b style="color:${eloBand(r.sk,tsPath)[2]};cursor:help" data-tip="${esc(`${eloBandTip(r.sk)}\n\nμ ± σ: ${Math.round(tsShow(r.mu))} ± ${Math.round(TS_ELO*r.sig)}\nμ: the estimated skill · σ: how unsure it still is${(()=>{const t=skAround(tsPath,r.n,skW(),activeOnly?isActivePlayer:null); return t?"\n\n"+t:""})()}`)}">${Math.round(r.sk)}</b></td><td>${eloBandTag(r.sk,tsPath)}</td><td>${r.g}</td><td>${r.w}</td><td class="dim">Wk ${r.last}</td><td class="tssp">${skSpark(r)}</td></tr>`).join("")}</tbody></table>
     ${rows.length?"":`<p class="dim">No players yet.</p>`}</section>`;
   if(!$("sk-scale")){const d=document.createElement("div"); d.id="sk-scale"; d.innerHTML=skScaleHtml(); el.after(d); const b=d.querySelector(".skscale"); skTrackMove(b,TW_MAX)}
   try{plHl()}catch(e){}}
@@ -5193,11 +5211,11 @@ function renderEloBox(){const el=$("elo-box"); if(!el)return; const w=skW();
   $("elo-sub").innerHTML=`From who finished ahead of whom on every challenge · after Week ${w} · ▲ last 10 weeks · rating color: level, from Bedroom Player to Legend (hover a rating) <span class="elohelp" data-tip="${esc(SK_TIP)}">ⓘ</span>`;
   el.innerHTML=[0,1,2].map(pi=>{const rows=skTable(pi,w,n=>!activeOnly||isActivePlayer(n)).slice(0,10);
     return `<div class="elocol" style="--pc:${PATH_C[pi]}"><h3>${PATHS[pi]}</h3><ol>${rows.map(([n,v,g],i)=>{const o=skAtE(pi,n,w-10), d=o?Math.round(v-o[1]):null;
-      return `<li class="${i===0?"top":""}${i<3?" elo-t"+(i+1):""}${!isActivePlayer(n)?" inactive":""}"><span class="er">${i+1}</span><span class="nm" data-player="${esc(n)}">${esc(n)}</span><span class="ed" data-tip="${esc("Change over the last 10 weeks"+(()=>{const t=d>0?skWhy(pi,n,w-9,w):""; return t?"\n\n"+t:""})())}">${d==null?"":eloD(d)}</span><b class="ev" style="color:${eloBand(v,pi)[2]}" data-tip="${esc(eloBandTip(v))} · ${g} games">${Math.round(v)}</b></li>`}).join("")||`<li class="dim">No ratings yet</li>`}</ol></div>`}).join("")}
+      return `<li class="${i===0?"top":""}${i<3?" elo-t"+(i+1):""}${!isActivePlayer(n)?" inactive":""}"><span class="er">${i+1}</span><span class="nm" data-player="${esc(n)}">${esc(n)}</span><span class="ed" data-tip="${esc("Change over the last 10 weeks"+(()=>{const t=d>0?skWhy(pi,n,w-9,w):""; return t?"\n\n"+t:""})())}">${d==null?"":eloD(d)}</span><b class="ev" style="color:${eloBand(v,pi)[2]}" data-tip="${esc(`${eloBandTip(v)} · ${g} games\n\n${skAround(pi,n,w,activeOnly?isActivePlayer:null)}`)}">${Math.round(v)}</b></li>`}).join("")||`<li class="dim">No ratings yet</li>`}</ol></div>`}).join("")}
 // This Week: who gained relative skill (the Skill tab's rating) with the week's scores (provisional while the week runs)
 function skRanks(pi,W){const T=tsBuildX(), r={}; Object.entries(T[pi]).filter(([n,x])=>x.g>=10&&isActivePlayer(n)).map(([n,x])=>[n,skAt(x,W)]).filter(x=>x[1]!=null).sort((a,b)=>b[1]-a[1]).forEach(([n],i)=>r[n]=i+1); return r}
 const SK_TIP=TS_ABOUT.replace(/<[^>]+>/g,"");
-function renderTwElo(){const el=$("tw-elo"); if(!el)return; const T=tsBuildX(), w=twWeek, live=w>DATA_WEEK;
+function renderTwElo(){const el=$("tw-elo"); if(!el)return; const T=tsBuildX(), w=twWeek, live=w>DATA_WEEK, aroundTip=(pi,n)=>{const t=skAround(pi,n,w,isActivePlayer); return t?"\n\n"+t:""};
   if(!SB.weeks[w]){el.closest("section").hidden=true;return} el.closest("section").hidden=false;
   $("tw-elo-h").textContent=w===TW_MAX?"🎯 Relative skill gains this week":`🎯 Relative skill gains in Week ${w}`;
   $("tw-elo-sub").innerHTML=`Who gained skill with ${live?`Week ${w}'s scores so far · provisional until the week ends`:`Week ${w}'s scores`} · rank among active players with 10+ games <span class="elohelp" data-tip="${esc(SK_TIP)}">ⓘ</span>`;
@@ -5207,9 +5225,8 @@ function renderTwElo(){const el=$("tw-elo"); if(!el)return; const T=tsBuildX(), 
       return {n,r,now,was,d:Math.round(now-was)}}).filter(x=>x&&x.d>0).sort((a,b)=>b.d-a.d||b.now-a.now);   // gains only
     if(!rows.length)return "";
     return `<div class="elocol" style="--pc:${PATH_C[pi]}"><h3>${PATHS[pi]}</h3><ol>${rows.map((x,i)=>{const a=r0[x.n], b=r1[x.n];
-      const mv=x.r.g<10?`<small class="elonew" data-tip="Provisional: ${x.r.g} of 10 games">new</small>`:!b?`<small class="elonew" data-tip="Not in the ranking (not active)">new</small>`
-        :!a?`<small class="eloin" data-tip="New to the ranking this week, at #${b}">entered #${b}</small>`:a===b?`<small>#${b}</small>`:`<small class="${b<a?"up":"slip"}">#${a}→#${b}</small>`;   // (a placeholder keeps the columns lined up)
-      return `<li class="${i===0?"top":""}">${twName(x.n)}${mv}<span class="ed" data-tip="${esc(`From ${Math.round(x.was)} to ${Math.round(x.now)}`+(()=>{const t=skWhy(pi,x.n,w,w); return t?"\n\n"+t:""})())}">${eloD(x.d)}</span><b class="ev" style="color:${eloBand(x.now,pi)[2]}" data-tip="${esc(eloBandTip(x.now))}">${Math.round(x.now)}</b></li>`}).join("")}</ol></div>`}).join("")||`<p class="dim">No skill gains yet this week.</p>`}
+      const mv=x.r.g<10?`<small class="elonew" data-tip="Provisional: ${x.r.g} of 10 games">new</small>`:skMove(pi,x.n,w,isActivePlayer,"→")||`<small class="elonew" data-tip="Not in the ranking (not active)">new</small>`;
+      return `<li class="${i===0?"top":""}">${twName(x.n)}${mv}<span class="ed" data-tip="${esc(`From ${Math.round(x.was)} to ${Math.round(x.now)}`+(()=>{const t=skWhy(pi,x.n,w,w); return t?"\n\n"+t:""})())}">${eloD(x.d)}</span><b class="ev" style="color:${eloBand(x.now,pi)[2]}" data-tip="${esc(eloBandTip(x.now)+aroundTip(pi,x.n))}">${Math.round(x.now)}</b></li>`}).join("")}</ol></div>`}).join("")||`<p class="dim">No skill gains yet this week.</p>`}
 // Elo over time: one line per path (in its color), from the week they first played it to the latest finished week.
 // Range buttons (all / last year / last 6 months), tap a path in the legend to hide it, hover or tap for the week's numbers.
 const ELO_C=["#ff9a2e","#45d17a","#3fa0ff"];
@@ -6446,7 +6463,7 @@ function nwRodman(n,w){const now=rkCompute(w), prev=rkCompute(w-1), key=n.toLowe
 function nwElo(n,w){const k=skKey(n), kp=skKeep(k), T=tsBuildX();
   const rows=[0,1,2].map(pi=>{const r=T[pi][k]; if(!r)return ""; const x=skAtE(pi,k,w); if(!x||x[0]!==w)return ""; const b=skAtE(pi,k,w-1), was=b?b[1]:skStart(), d=Math.round(x[1]-was);
     const t0=skTable(pi,w-1,kp), t1=skTable(pi,w,kp), r0=t0.findIndex(z=>z[0]===k)+1, r1=t1.findIndex(z=>z[0]===k)+1, t=r1&&r1<=3?" elo-t"+r1:"";
-    const mv=x[2]<SKG_MIN?`<small data-tip="Provisional: ${x[2]} of ${SKG_MIN} games">new</small>`:!r1?"":!r0?`<small class="eloin">entered #${r1}</small>`:r0===r1?`<small>#${r1}</small>`:`<small class="${r1<r0?"up":"slip"}">#${r0} → #${r1}</small>`;
+    const mv=x[2]<SKG_MIN?`<small data-tip="Provisional: ${x[2]} of ${SKG_MIN} games">new</small>`:skMove(pi,k,w,kp," → ")||"";
     return `<li class="${t.trim()}" style="--pc:${PATH_C[pi]}"><span class="nwp">${PATHS[pi]}</span><b class="nwv" style="color:${eloBand(x[1],pi)[2]}">${Math.round(x[1])}</b><span class="nwd" data-tip="${esc(`From ${Math.round(was)} to ${Math.round(x[1])}`+(()=>{const t=skWhy(pi,k,w,w); return t?"\n\n"+t:""})())}">${d>0?eloD(d):"–"}</span><span class="nwr">${eloBandTag(x[1],pi)}${mv}</span></li>`}).join("");
   return rows?`<div class="nwelo"><div class="nwelo-h">Relative skill after Week ${w} <span class="elohelp" data-tip="${esc(SK_TIP)}">ⓘ</span></div><div class="nwelo-s">Your rating · ▲ gained in Week ${w} · your rank</div><ul>${rows}</ul></div>`:""}
 // the song's tunings on the paths it's played on: one line if they're all the same, else per path
