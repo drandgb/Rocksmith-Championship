@@ -579,15 +579,15 @@ a.dl svg,.offpill svg{width:11px;height:11px}
 .mlgrid{display:block}
 /* medal leaders: one tile per medal, all the same shape; contested medals (a shared lead) in their own row below */
 .mlt-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,190px),1fr));gap:10px}
-.mlt{display:flex;flex-direction:column;align-items:center;text-align:center;gap:4px;padding:16px 10px 12px;border:1px solid var(--line);border-radius:14px;background:radial-gradient(120% 80% at 50% 0%,color-mix(in srgb,var(--accent) 9%,transparent),transparent 60%),var(--panel2);min-height:168px;min-width:0;cursor:help}
-.mlt>.medal-m{margin:4px 0 6px!important;transform:scale(1.35);transform-origin:center;flex:none}
+.mlt{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:4px;padding:16px 10px 12px;border:1px solid var(--line);border-radius:14px;background:radial-gradient(120% 80% at 50% 0%,color-mix(in srgb,var(--accent) 9%,transparent),transparent 60%),var(--panel2);min-height:168px;min-width:0;cursor:help}
+.mlt>.medal-m{margin:10px 0 8px!important;transform:scale(1.35);transform-origin:center;flex:none}
 .mlt>.medal-m.tro{width:52px!important;height:30px;transform:scale(1.15)}.mlt>.medal-m.tro svg{width:52px!important;height:auto}
 .mlt-lab{font:800 .66rem var(--f-display);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);min-height:2.4em;display:flex;align-items:center;justify-content:center;margin-top:4px}
 .mlt-who{display:flex;flex-direction:column;align-items:center;max-width:100%}
 .mlt-who .nm{font-weight:700;font-size:.98rem;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer;line-height:1.35}
 .mlt-who .nm:hover{color:var(--accent)}
 .mlt.con .mlt-who .nm{font-size:.9rem}
-.mlt-v{font:800 1.15rem var(--f-display);margin-top:auto;padding-top:4px}.mlt-v small{font:600 .7rem var(--f-body);color:var(--muted);margin-left:2px}
+.mlt-v{font:800 1.15rem var(--f-display);padding-top:4px}.mlt-v small{font:600 .7rem var(--f-body);color:var(--muted);margin-left:2px}
 .mlt-h{margin:16px 0 8px;font:800 .72rem var(--f-display);letter-spacing:.12em;text-transform:uppercase;color:var(--accent)}.mlt-h small{font:400 .75rem var(--f-body);letter-spacing:0;text-transform:none;color:var(--muted);margin-left:6px}
 .mlcard>.medal-m.tro{width:52px!important;height:30px;align-items:center;margin:0!important} /* the row of trophies, scaled down to fit */
 .mlcard>.medal-m.tro svg{width:52px!important;height:auto}
