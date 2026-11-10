@@ -4900,7 +4900,7 @@ $("view-winners").addEventListener("click",e=>{
 $("view-winners").addEventListener("mousemove",e=>{if(e.target.closest("#wcard"))return;const p=e.target.closest("[data-tip]");if(!p){tip.hidden=true;return}tip.textContent=p.dataset.tip;tip.hidden=false;placeTip(e.clientX,e.clientY)});
 $("view-winners").addEventListener("mouseleave",()=>tip.hidden=true);
 
-later("hosting",()=>{fillYears(); renderNow(); renderHostPodium(); renderUpcoming(); if(!HOST_YR0){HOST_YR0=1; const y=($("hostyear").options[1]||{}).value; if(y){$("hostyear").value=y; setHostYear(y)}}});   // Hosts starts on the current year
+later("hosting",()=>{fillYears(); renderNow(); renderHostPodium(); renderUpcoming(); if(!HOST_YR0){HOST_YR0=1; const y=($("hostyear").options[1]||{}).value; if(y){$("hostyear").value=y; setTimeout(()=>setHostYear(y),0)}}});   // (after the page has finished setting up, for a page opened at #hosts)   // Hosts starts on the current year
 later("players",renderRecords);
 var LOOKUP_DEF={p:RECORDS["Most weeks played"][0][0]};   // the lookups' starting picks (switched to your own once you're logged in)
 later("players",()=>showPlayer(LOOKUP_DEF.p));
