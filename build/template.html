@@ -1994,7 +1994,7 @@ footer{color:var(--dim);font-size:.78rem}
     <div class="bars" id="b-hot"></div>
   </section>
   <section class="panel elosec">
-    <div class="panel-head"><h2>♟ Elo ratings</h2><span class="sub" id="elo-sub"></span></div>
+    <div class="panel-head"><h2>🎯 Relative skill</h2><span class="sub" id="elo-sub"></span></div>
     <div class="elogrid" id="elo-box"></div>
   </section>
 
@@ -2143,7 +2143,7 @@ footer{color:var(--dim);font-size:.78rem}
       <dt><a href="#level" data-faqgo="level">Level</a></dt><dd>Player levels for each path over the last 6 months and year by year, plus the biggest climbers. Roughly song rating × accuracy.</dd>
       <dt><a href="#rankings" data-faqgo="rankings">Rankings</a></dt><dd>Rodman's Rankings for each path and class, and the year-end standings.</dd>
       <dt><a href="#skill" data-faqgo="skill">Skill</a></dt><dd>Relative skill level for each path: a rating from who finished ahead of whom on every challenge, with its level (Bedroom Player to Legend), plus where each class's players stand and how they've moved over time.</dd>
-      <dt><a href="#winners" data-faqgo="winners">Winners</a></dt><dd>Hall of fame, hot streaks, Elo ratings, most wins and win rates, by path and by year, plus the Winner lookup.</dd>
+      <dt><a href="#winners" data-faqgo="winners">Winners</a></dt><dd>Hall of fame, hot streaks, relative skill, most wins and win rates, by path and by year, plus the Winner lookup.</dd>
       <dt><a href="#players" data-faqgo="players">Players</a></dt><dd>Attendance: players per week, play streaks, perfect attendance, play rates, newcomers and rank changes, all time or by year, plus the Player lookup with each player's medals and history.</dd>
       <dt><a href="#hosts" data-faqgo="hosting">Hosts</a></dt><dd>Who hosted which week, and the host medals.</dd>
       <dt><a href="#songs" data-faqgo="songs">Songs</a></dt><dd>Every song played, the Song lookup (search by title or tuning) and the Band lookup.</dd></dl></details>
@@ -2159,8 +2159,7 @@ footer{color:var(--dim);font-size:.78rem}
     <details><summary>What is a win?</summary><p>First place among the players in their own class on a challenge (playing up into the class counts; playing down doesn't). Wins are counted from the scoreboards since week 440.</p></details>
     <details><summary>How do Rodman's Rankings work?</summary><p>A rolling score over the last 10 completed weeks, counting your class and above: 10 points for 1st place, 5 for 2nd, 3 for 3rd, 1 for 4th, +1 for a 100% score and +1 for a Master Mode score (played from memory instead of sight-read, and no more than 2% below your own best).</p></details>
     <details><summary>How do seasons work?</summary><p>A season is 13 weeks (a calendar quarter). On each week's main challenge in your class, the top 10 score 25, 18, 15, 12, 10, 8, 6, 4, 2 and 1 season points. Whoever leads each class when the season ends is its season champion. Most improved goes to the biggest player level gain in each class over the season (the level going into the season against the level over its last 12 weeks), for players who play at least half of its weeks; a projected winner starts showing in week 4. Everyone starts each season on zero.</p></details>
-    <details><summary>What is Elo?</summary><p>A rating like in chess. Every time two players post on the same challenge it counts as a game: the higher % wins, then the longer streak, then the higher score. Beating a higher-rated player moves your rating more. New players start at their class's average (Beginner 900, Intermediate 1200, Advanced 1500, Masterclass 1900). Two 100% scores never count as a game. Hover the ⓘ next to any Elo list for the full details.</p></details>
-    <details><summary>What is Relative skill level?</summary><p>The rating on the Skill tab, one for each path. Every challenge counts as one game where everyone who played it is ranked by accuracy, then streak, then score, so finishing ahead of strong players raises it the most, and winning by a wide margin counts for more than a close win. It's shown on a scale like Elo: a 400-point gap means about 10-to-1 odds, a new player starts at about 325, and an average player whose rating has settled is around 1500. The same levels as Elo go with it, from Bedroom Player and Busker up to Headliner, Arena Act, Superstar and Legend. It needs 10 games on a path, and This Week shows who gained the most.</p></details>
+    <details><summary>What is Relative skill level?</summary><p>The rating on the Skill tab, one for each path. Every challenge counts as one game where everyone who played it is ranked by accuracy, then streak, then score, so finishing ahead of strong players raises it the most, and winning by a wide margin counts for more than a close win. It's shown on a chess-style scale: a 400-point gap means about 10-to-1 odds, a new player starts at about 325, and an average player whose rating has settled is around 1500. Each rating has a level, from Bedroom Player and Busker up to Headliner, Arena Act, Superstar and Legend. It needs 10 games on a path. This Week shows who gained the most, the Winners tab has the top 10, and your profile has your rating, rank and a chart over time.</p></details>
     <details><summary>What is Performance?</summary><p>Your second-best song rating with a 95% or better score in the last 6 months, on each path. It's the second-best so one lucky week doesn't count, and it goes up when you start scoring 95% on harder songs. It's on your profile under <b>Performance over time</b>, and your profile's <b>Next rung</b> shows this week's songs that would raise it.</p></details>
     <details><summary>What is the player level?</summary><p>A number for how hard the songs you play are and how well you play them, on each path. Roughly <b>song rating × accuracy</b>: a level of 70 is like 100% on songs rated 7, or about 93% on 7.5s. The bands are Beginner 0–39, Intermediate 40–59, Advanced 60–79 and Masterclass 80+.</p><ul><li>It comes from Rodman's Player Level tab. When his tab is behind the latest finished week, the site works the levels out itself from the scoreboards (the <b>Weeks</b> pill on the Level tab switches between his and the latest). Years his tab doesn't have yet are the site's own estimates, marked <b>est.</b></li><li>A level needs <b>3 scores</b> on that path in the last 12 weeks (each year needs 5+).</li><li>On the Scoreboard and in Rodman's Rankings, the small number next to a name is that player's level on the path. <b>?</b> means not enough scores yet (tap it to see how many more), and a dashed box is a level the site worked out because Rodman's tab doesn't have one for them yet.</li><li>Your profile shows your level over the years, and the Level tab shows the biggest climbers.</li></ul></details>
     <details><summary>Is there a penalty for playing hard songs, or lots of songs?</summary><p>No.</p><ul><li>Only your <b>best card</b> on each path each week counts, so extra songs never lower your level.</li><li>Harder songs are worth more when played well: a 7 at 95% is 66.5, an 8 at 90% is 72.</li><li>Your lowest week is dropped, and weeks you don't play aren't counted.</li></ul><p>If your level sits in a higher band than your class, you're probably ready to play up. Trying a harder card on top of your usual one is risk-free: if it goes badly, your better score is the one that counts.</p></details>
@@ -2966,8 +2965,8 @@ function fwN95(D,pi,w){return D.ent.filter(x=>x.c[0]===pi&&x.pc>=95&&x.w>w-26&&x
 const FW_BASS="No bass? You can play the bass arrangement on your guitar with Rocksmith's bass emulation and it still counts. Bass charts also tend to be more approachable at lower difficulty ratings, so if Lead and Rhythm feel too hard, the bass arrangement is a good place to start.";
 function fwTryHtml(n,D){const t=fwTry(n,D); if(!t)return "";
   return `<span style="--pc:${PATH_C[t.pi]}">Try <b>${PATHS[t.pi]}</b> this week: <span class="fwgo" data-sbw="${t.w}" data-sbp="${t.pi}" data-sbs="${t.c[1]}" title="Open this challenge on the Scoreboard">${TIER_NAME[t.L]} · ${esc(t.c[3])}</span></span>${t.pi===2?`<span class="fwbass">${FW_BASS}</span>`:""}`}
-const FW_GAMES="Elo counts every pair of players on the same challenge as a game: the higher % wins. So one challenge with 5 other players is 5 games. 20 games on a path puts you in the Elo ranking.";
-const FW_TIP="Shown for a player's first 8 weeks.\n\nNewcomers who play a second week (One more time), play three weeks in a row (Hat trick) and try a second path are the ones who keep playing.\n\nUnlocks: the Elo ranking lists a player once they have 20 games on a path (a game is one other player on the same challenge, so a challenge with 5 others is 5 games); the skill-rating graph shows from their 4th week on a path, once they have two scores of 95% or better within 6 months.";
+const FW_GAMES="Relative skill counts every challenge you play as one game, against everyone else on it. 10 games on a path puts you in the Relative skill ranking.";
+const FW_TIP="Shown for a player's first 8 weeks.\n\nNewcomers who play a second week (One more time), play three weeks in a row (Hat trick) and try a second path are the ones who keep playing.\n\nUnlocks: the Relative skill ranking lists a player once they have 10 games on a path (a game is one challenge they played); the Performance graph shows from their 4th week on a path, once they have two scores of 95% or better within 6 months.";
 function fwPanel(n){const D=fwData(n), W=D.wk; if(!W.length||fwPlayed(n,D)>FW_MAX)return "";
   const tw=TW_MAX, last=W[W.length-1], ms=[];
   let maxRun=1, run=1; for(let i=1;i<W.length;i++){run=W[i]===W[i-1]+1?run+1:1; if(run>maxRun)maxRun=run}
@@ -2981,12 +2980,12 @@ function fwPanel(n){const D=fwData(n), W=D.wk; if(!W.length||fwPlayed(n,D)>FW_MA
   ms.push(n95?[1,"A 95% score",`${n95} so far`]:[0,"A 95% score",`best ${Math.max(...D.ent.map(x=>x.pc))}%`]);
   const left=`<div class="pcwide nwelo pelo fwl"><div class="nwelo-h">First weeks <span class="elohelp" data-tip="${esc(FW_TIP)}">ⓘ</span> <span class="pelo-sub">week ${fwPlayed(n,D)} of ${FW_MAX}</span></div><ul>${ms.map(([d,t,r])=>`<li class="${d?"done":""}"><span class="fwk">${d?"✓":"○"}</span><span class="fwt">${t}</span><span class="nwr">${r}</span></li>`).join("")}</ul></div>`;
   const cell=(v,need,lab)=>v>=need?`<td data-tip="${esc(lab)}: done"><b class="fwok">✓</b></td>`:`<td data-tip="${esc(lab)}: ${v} of ${need}"><b>${v}<small class="fwof">/${need}</small></b></td>`;
-  const rows=paths.map(pi=>{let g=0; try{const x=eloAt(pi,eloKey(n),1e9); g=x?x[2]:0}catch(e){}
+  const rows=paths.map(pi=>{let g=0; try{const r=tsBuildX()[pi][skKey(n)]; g=r?r.g:0}catch(e){}
     const hrOk=hrSeries(n,pi).some(e=>e[1]!=null), wks=hrOk?4:D.pw[pi].size, h95=hrOk?2:fwN95(D,pi,TW_MAX);
-    return `<tr style="--pc:${PATH_C[pi]}"><td>${PATHS[pi]}</td>${cell(g,ELO_MIN,"Elo games")}${cell(wks,4,"Weeks on this path")}${cell(h95,2,"Scores at 95%+ on rated songs in the last 6 months")}</tr>`}).join("");
+    return `<tr style="--pc:${PATH_C[pi]}"><td>${PATHS[pi]}</td>${cell(g,SKG_MIN,"Skill games")}${cell(wks,4,"Weeks on this path")}${cell(h95,2,"Scores at 95%+ on rated songs in the last 6 months")}</tr>`}).join("");
   const tr=fwTryHtml(n,D);   // any path they haven't played yet (so a Lead and Rhythm player is pointed at Bass)
-  const right=`<div class="pcwide"><div class="elochart"><div class="echhead"><h4>Unlocks</h4></div><div class="hryears fwtab"><table><tr><th></th><th data-tip="${esc(FW_GAMES)}" style="cursor:help">Elo games ⓘ</th><th>Weeks</th><th>95%+ scores</th></tr>${rows}</table></div>
-    ${tr?`<p class="fwtry">${tr}</p>`:""}<p class="echnote">A game is one other player on a challenge you played (a challenge with 5 others is 5 games) · 20 games on a path put you in the Elo ranking · 4 weeks and two 95%+ scores on rated songs within 6 months unlock your skill-rating graph</p></div></div>`;
+  const right=`<div class="pcwide"><div class="elochart"><div class="echhead"><h4>Unlocks</h4></div><div class="hryears fwtab"><table><tr><th></th><th data-tip="${esc(FW_GAMES)}" style="cursor:help">Skill games ⓘ</th><th>Weeks</th><th>95%+ scores</th></tr>${rows}</table></div>
+    ${tr?`<p class="fwtry">${tr}</p>`:""}<p class="echnote">A game is one challenge you played · 10 games on a path put you in the Relative skill ranking · 4 weeks and two 95%+ scores on rated songs within 6 months unlock your Performance graph</p></div></div>`;
   return left+right}
 // Host tab: the newcomers seeing the First weeks panel (played in the last 8 weeks), and the next steps it's showing them,
 // so hosts can welcome them, encourage them or answer questions
@@ -3094,15 +3093,15 @@ document.addEventListener("click",e=>{if(e.target.closest("#tw-goals [data-goals
 // Welcome back: a player back after 4+ weeks away, for their first 4 weeks back
 function wbInfo(n){const W=sbIx().wk[String(n).toLowerCase()]||[], tw=TW_MAX; if(W.length<2||W[W.length-1]<tw-8)return null;
   for(let i=W.length-1;i>0;i--)if(W[i]-W[i-1]>=5){const back=W.length-i; if(back>4)return null; return {left:W[i-1],ret:W[i],away:W[i]-W[i-1]-1,back,before:i}} return null}
-function wbPanel(n){const B=wbInfo(n); if(!B)return ""; const k=eloKey(n);
+function wbPanel(n){const B=wbInfo(n); if(!B)return ""; const k=skKey(n);
   const left=`<div class="pcwide nwelo pelo fwl wbl"><div class="nwelo-h">Welcome back <span class="pelo-sub">week ${B.back} back</span></div><ul>
     <li class="done"><span class="fwt">Away</span><span class="nwr">${B.away} weeks</span></li><li class="done"><span class="fwt">Last played before</span><span class="nwr">Week ${B.left}${WEEKS[B.left-1]?" · "+fmt(WEEKS[B.left-1][1]):""}</span></li><li class="done"><span class="fwt">Back since</span><span class="nwr">Week ${B.ret}</span></li></ul></div>`;
   const paths=[0,1,2].filter(pi=>(sbIx().ent[String(n).toLowerCase()]||[]).some(x=>x.c[0]===pi));
   const cell=(a,b,f)=>`<td><b>${a==null?"–":f(a)}</b><small>${b==null?"":"now "+f(b)}</small></td>`;
-  const rows=paths.map(pi=>{let e0=null,e1=null; try{const x=eloAt(pi,k,B.left), y=eloAt(pi,k,ELO_DONE); e0=x?x[1]:null; e1=y&&y[0]>=B.ret?y[1]:null}catch(e){}
+  const rows=paths.map(pi=>{let e0=null,e1=null; try{const x=skAtE(pi,k,B.left), y=skAtE(pi,k,skW()); e0=x&&x[2]>=SKG_MIN?x[1]:null; e1=y&&y[0]>=B.ret&&y[2]>=SKG_MIN?y[1]:null}catch(e){}
     const s=hrSeries(n,pi), h0=hrAt(s,B.left), h1=s.length&&s[s.length-1][0]>=B.ret?s[s.length-1][1]:null;
     return `<tr style="--pc:${PATH_C[pi]}"><td>${PATHS[pi]}</td>${cell(e0,e1,v=>Math.round(v))}${cell(h0,h1,v=>v.toFixed(1))}</tr>`}).join("");
-  const right=`<div class="pcwide"><div class="elochart"><div class="echhead"><h4>When you left</h4></div><div class="hryears fwtab wbtab"><table><tr><th></th><th>Elo</th><th>Performance</th></tr>${rows}</table></div><p class="echnote">Your ratings in Week ${B.left}, and now (once you've played that path again)</p></div></div>`;
+  const right=`<div class="pcwide"><div class="elochart"><div class="echhead"><h4>When you left</h4></div><div class="hryears fwtab wbtab"><table><tr><th></th><th>Skill</th><th>Performance</th></tr>${rows}</table></div><p class="echnote">Your ratings in Week ${B.left}, and now (once you've played that path again)</p></div></div>`;
   return left+right}
 
 // Seasons: calendar quarters; the season's biggest Elo gains in each class (10+ games that season)
@@ -3231,8 +3230,8 @@ $("view-season").addEventListener("click",e=>{const pb=e.target.closest("[data-p
 function lapsedSection(){const tw=TW_MAX, far=52, I=sbIx(), rows=[];
   Object.entries(I.wk).forEach(([k,W])=>{const last=W[W.length-1], gap=tw-last; if(gap<5||gap>far)return; const n=I.disp[k];
     const paths=[0,1,2].filter(pi=>(I.ent[k]||[]).some(x=>x.c[0]===pi));
-    const info=paths.map(pi=>{let e=null; try{const x=eloAt(pi,eloKey(n),last); e=x&&x[2]>=ELO_MIN?Math.round(x[1]):null}catch(err){} const h=hrAt(hrSeries(n,pi),last);
-      return `<b style="color:${PATH_C[pi]}">${PATHS[pi]}</b>${e!=null?` Elo ${e}`:""}${h!=null?` · Performance ${h.toFixed(1)}`:""}`}).join(" &nbsp; ");
+    const info=paths.map(pi=>{let e=null; try{const x=skAtE(pi,skKey(n),last); e=x&&x[2]>=SKG_MIN?Math.round(x[1]):null}catch(err){} const h=hrAt(hrSeries(n,pi),last);
+      return `<b style="color:${PATH_C[pi]}">${PATHS[pi]}</b>${e!=null?` Skill ${e}`:""}${h!=null?` · Performance ${h.toFixed(1)}`:""}`}).join(" &nbsp; ");
     // their level when they left: worked out from the 12 weeks up to their last week (they've no recent scores for a level now)
     const lv=paths.map(pi=>{let v=null; try{v=lvAt(pi,lvKey(n),last); if(v==null){const o=lvLast(pi,lvKey(n),last); if(o)v=o.v}}catch(err){}
       const c=v!=null?`<span class="lvc lve" style="--tc:${TIER_C[lvBand(v)[1]]}" data-tip="${esc(`${PATHS[pi]} player level when they left: ${v.toFixed(1)} (${lvBand(v)[2]})\nWorked out by the site from their 12 weeks up to Week ${last}`)}">${Math.floor(v)}</span>`
@@ -3525,10 +3524,10 @@ function h2hRender(){const a=h2hName($("h2a").value), b=h2hName($("h2b").value),
   const R=rec(G), tot=G.length, pa=Math.round(R.w/tot*100), pt=Math.round(R.t/tot*100);
   const avg=gs=>{const xs=gs.filter(x=>typeof x.ea[1]==="number"&&typeof x.eb[1]==="number"); return xs.length?xs.reduce((s,x)=>s+x.ea[1]-x.eb[1],0)/xs.length:null};
   const gap=avg(G);
-  const elo=n=>[0,1,2].map(pi=>{try{const x=eloAt(pi,eloKey(n),ELO_LIVE||ELO_DONE); return x&&x[2]>=ELO_MIN?Math.round(x[1]):null}catch(e){return null}});
+  const elo=n=>[0,1,2].map(pi=>{try{const x=skAtE(pi,skKey(n),skW()); return x&&x[2]>=SKG_MIN?Math.round(x[1]):null}catch(e){return null}});
   const ea=elo(a), eb=elo(b);
   const paths=[0,1,2].map(pi=>{const gs=G.filter(x=>x.c[0]===pi); if(!gs.length)return ""; const r=rec(gs);
-    return `<tr><th style="color:${["var(--s-orange)","var(--s-green)","var(--s-blue)"][pi]}">${PATHS[pi]}${ea[pi]!=null&&eb[pi]!=null?`<small class="h2helo" data-tip="Their Elo ratings now on ${PATHS[pi]} (20+ games)">Elo ${ea[pi]} · ${eb[pi]}</small>`:""}</th><td class="num${r.w>r.l?" h2hw":""}">${r.w}</td><td class="num dim">${r.t||""}</td><td class="num${r.l>r.w?" h2hw":""}">${r.l}</td></tr>`}).join("");
+    return `<tr><th style="color:${["var(--s-orange)","var(--s-green)","var(--s-blue)"][pi]}">${PATHS[pi]}${ea[pi]!=null&&eb[pi]!=null?`<small class="h2helo" data-tip="Their Relative skill now on ${PATHS[pi]} (10+ games)">Skill ${ea[pi]} · ${eb[pi]}</small>`:""}</th><td class="num${r.w>r.l?" h2hw":""}">${r.w}</td><td class="num dim">${r.t||""}</td><td class="num${r.l>r.w?" h2hw":""}">${r.l}</td></tr>`}).join("");
   const pct=v=>typeof v==="number"?`${v}%`:"–";
   const last=G.slice(-10).reverse().map(x=>`<tr><td class="num"><span data-sbw="${x.w}" title="Open Week ${x.w} on the Scoreboard">${x.w}</span></td><td>${esc(x.c[3])} <small class="dim">${PATHS[x.c[0]]||""} · ${esc(x.c[2])}</small></td><td class="num${x.r>0?" h2hw":""}">${pct(x.ea[1])}</td><td class="num${x.r<0?" h2hw":""}">${pct(x.eb[1])}</td></tr>`).join("");
   el.innerHTML=`<div class="h2hrec"><div class="h2hn${R.w>R.l?" h2hw":""}"><b class="nm" data-goplayer="${esc(a)}">${esc(a)}</b><span>${R.w}</span></div>
@@ -3616,7 +3615,7 @@ function showPlayer(name){
     <div class="plead" data-n="${esc(n)}">${plLeads(n)}</div>
       ${(()=>{try{const c=hrChart(n); return `<p class="pcwide pnolin">Remember, progress isn’t linear! 🌱</p>`+(c?hrProfile(n)+`<div class="pcwide">${c}</div>`:hrNote(n))}catch(e){return ""}})()}
       ${(()=>{try{const c=lvChart(n); return c?`<div class="pcwide pclv">${c}</div>`:""}catch(e){return ""}})()}
-      ${(()=>{try{const c=skChart(n); return c?`<div class="pcwide pclv">${c}</div>`:""}catch(e){console.error(e); return ""}})()}
+      ${(()=>{try{const c=skChart(n); return c?skProfile(n)+`<div class="pcwide">${c}</div>`:""}catch(e){console.error(e); return ""}})()}
       ${(()=>{try{return hrNextHtml(n)}catch(e){return ""}})()}
       ${(()=>{const u=WR.ups.filter(x=>x[0]===n).sort((a,b)=>b[4]-a[4]||b[1]-a[1]);return u.length?`<div class="ups pcwide">Rank changes: ${u.map(([,p,a,b,w])=>`<span class="pill hol rkpath" data-hl="${w}" data-tip="Click to highlight Week ${w}" style="cursor:pointer;--pc:${PATH_C[p]}">${PATHS[p]} ${a}${"BIAM".indexOf(b)<"BIAM".indexOf(a)?"↘":"↗"}${b} · wk ${w}</span>`).join("")}</div>`:""})()}
     </div>`;
@@ -3998,7 +3997,7 @@ function tsRun(o,score,from){const R=[{},{},{}]; let ll=0, np=0, hit=0;
       if(zs){const obs=gm+o.mc*zs[i], K=sig*sig/(sig*sig+o.mv); mu+=K*(obs-mu); sig=Math.sqrt((1-K)*sig*sig)}
       if(!o.plain&&o.ex)mu+=o.ex*Math.exp(-r.g/(o.exG||20));
       r.mu=mu; r.sig=sig; r.g++; if(pl[i].rank===0)r.w++; r.last=G.w;
-      const sk=tsShow(mu-3*sig), h=r.h||(r.h=[]); if(h.length&&h[h.length-1][0]===G.w)h[h.length-1][1]=sk; else h.push([G.w,sk])})});   // the skill at the end of each week they played
+      const sk=tsShow(mu-3*sig), h=r.h||(r.h=[]); if(h.length&&h[h.length-1][0]===G.w){h[h.length-1][1]=sk; h[h.length-1][2]=r.g} else h.push([G.w,sk,r.g])})});   // the skill at the end of each week they played
   return {R,ll:np?ll/np:0,acc:np?hit/np:0,np}}
 // The settings, picked by testing on past weeks: the values that best predicted each next week's results
 // (fitted on Weeks 560–640 and checked on 641–680, which it wasn't fitted on: pairwise log loss 0.483 vs 0.486 without
@@ -4053,35 +4052,95 @@ function skTrackMove(box,W){const T=tsBuildX(), now=W>=TW_MAX; box.querySelector
 document.addEventListener("input",e=>{const s=e.target.closest("[data-skslide]"); if(!s)return; const box=s.closest(".skscale"); if(!box)return;
   const W=+s.value; box.querySelectorAll("[data-skslide]").forEach(x=>{if(x!==s)x.value=W}); box.querySelectorAll(".lswk").forEach(x=>x.textContent=skWeekTxt(W));
   cancelAnimationFrame(box._raf); box._raf=requestAnimationFrame(()=>{const H=skPaths(W); box.querySelectorAll(".lspb").forEach(x=>x.innerHTML=H[+x.dataset.pi]); skTrackMove(box,W)})});
-// a player's skill over time on each path (on their profile, like the Player level chart)
-function skChart(n){const T=tsBuildX(), k=String(n).toLowerCase(), H0=[0,1,2].map(pi=>{const e=Object.entries(T[pi]).find(([m])=>m.toLowerCase()===k); return e&&e[1].g>=10?e[1].h:null});
-  const all=H0.filter(Boolean).flat(); if(all.length<2)return "";
-  const w0=Math.min(...all.map(x=>x[0])), w1=Math.max(...all.map(x=>x[0])); if(w1<=w0)return "";
-  const W=640,H=190,L=34,R=12,T0=14,B=26, vs=all.map(x=>x[1]), lo=Math.max(0,Math.floor((Math.min(...vs)-40)/200)*200), hi=Math.ceil((Math.max(...vs)+40)/200)*200;
-  const X=w=>L+(w-w0)/(w1-w0)*(W-L-R), Y=v=>T0+(1-(v-lo)/(hi-lo))*(H-T0-B);
-  let g=""; for(let v=lo;v<=hi;v+=200)g+=`<line x1="${L}" x2="${W-R}" y1="${Y(v).toFixed(1)}" y2="${Y(v).toFixed(1)}" stroke="var(--line)" stroke-width="1"/><text x="${L-6}" y="${(Y(v)+3.5).toFixed(1)}" text-anchor="end" font-size="10" fill="#8b93a7">${v}</text>`;
-  // the x axis: the first week of each year
-  let xl="", py=null; for(let w=w0;w<=w1;w++){const d=WEEKS[w-1]; if(!d)continue; const y=d[1].slice(0,4); if(y!==py&&py!==null)xl+=`<line x1="${X(w).toFixed(1)}" x2="${X(w).toFixed(1)}" y1="${T0}" y2="${H-B}" stroke="var(--line)" stroke-width="1" stroke-dasharray="2 4"/><text x="${X(w).toFixed(1)}" y="${H-8}" text-anchor="middle" font-size="10" fill="#8b93a7">’${y.slice(2)}</text>`; py=y}
-  let ln="";
-  H0.forEach((h,pi)=>{if(!h||h.length<2)return; ln+=`<path d="${h.map((x,i)=>(i?"L":"M")+X(x[0]).toFixed(1)+","+Y(x[1]).toFixed(1)).join("")}" fill="none" stroke="${ELO_C[pi]}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>`;
-    const lx=h[h.length-1]; ln+=`<circle cx="${X(lx[0]).toFixed(1)}" cy="${Y(lx[1]).toFixed(1)}" r="3.6" fill="${ELO_C[pi]}"><title>${PATHS[pi]} · Week ${lx[0]}: ${Math.round(lx[1])}</title></circle>`;
-    h.forEach(x=>{ln+=`<circle cx="${X(x[0]).toFixed(1)}" cy="${Y(x[1]).toFixed(1)}" r="5" fill="transparent"><title>${PATHS[pi]} · Week ${x[0]}: ${Math.round(x[1])}</title></circle>`})});
-  const leg=[0,1,2].filter(pi=>H0[pi]&&H0[pi].length>=2).map(pi=>`<span class="lvlg" style="--pc:${ELO_C[pi]}">${PATHS[pi]}</span>`).join("");
-  return `<div class="elochart lvchart"><div class="echhead"><h4>Skill over time</h4><span class="echleg">${leg}</span></div>
-    <svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(n)}'s skill over time">${g}${xl}${ln}</svg>
-    <p class="echnote">Skill at the end of each week played, on each path with 10 or more games · hover a point for the week</p></div>`}
+// ---------- Relative skill lookups (the Skill tab's rating), for the places that used Elo ----------
+// each player's history on a path is [week, rating, games so far] at the end of every week they played it
+const SKG_MIN=10;   // games on a path before a player is ranked
+let SK_KEYS=null, SK_WMAX=null, SK_POOL=[null,null,null];
+function skKey(n){if(!SK_KEYS){SK_KEYS={}; tsBuildX().forEach(P=>Object.keys(P).forEach(m=>{SK_KEYS[m.toLowerCase()]=SK_KEYS[m.toLowerCase()]||m}))} return SK_KEYS[String(n).toLowerCase()]||n}
+function skW(){if(SK_WMAX==null){let m=0; tsBuildX().forEach(P=>Object.values(P).forEach(r=>{const h=r.h; if(h&&h.length)m=Math.max(m,h[h.length-1][0])})); SK_WMAX=m} return SK_WMAX}
+const skStart=()=>tsShow(TS_MU-3*TS_SIG);
+function skAtE(pi,k,w){const r=tsBuildX()[pi][k], h=r&&r.h; if(!h)return null; let x=null; for(const e of h){if(e[0]<=w)x=e; else break} return x}
+// everyone ranked on a path after week w: [name, rating, games], best first
+function skTable(pi,w,keep){const out=[]; Object.keys(tsBuildX()[pi]).forEach(n=>{if(keep&&!keep(n))return; const x=skAtE(pi,n,w); if(x&&x[2]>=SKG_MIN)out.push([n,x[1],x[2]])}); return out.sort((a,b)=>b[1]-a[1])}
+const skKeep=n=>isActivePlayer(n)?isActivePlayer:null;
+function skRivals(pi,k,w,kp){const T=skTable(pi,w,kp), i=T.findIndex(x=>x[0]===k); if(i<0)return "";
+  const up=T[i-1], dn=T[i+1], me=T[i][1], nm=n=>`<span class="nm" data-player="${esc(n)}">${esc(n)}</span>`;
+  const a=up?`<b>${Math.max(1,Math.round(up[1]-me))}</b> behind ${nm(up[0])}`:"top of the list", b=dn?`<b>${Math.max(1,Math.round(me-dn[1]))}</b> ahead of ${nm(dn[0])}`:"";
+  return `<span class="nwriv">${up?"▲ ":"★ "}${a}${b?` · ▼ ${b}`:""}</span>`}
+function skAround(pi,k,w,kp){const T=skTable(pi,w,kp), i=T.findIndex(x=>x[0]===k); if(i<0)return "";
+  return T.slice(Math.max(0,i-10),i+11).map((x,j,A)=>`${x[0]===k?"▸ ":""}#${T.indexOf(x)+1} ${x[0]} ${Math.round(x[1])}`).join("\n")}
+// the typical active player on a path: the median rating, every 2 weeks, of players with 10+ games who played it in the 52 weeks before
+function skPool(pi){if(SK_POOL[pi])return SK_POOL[pi]; const P=tsBuildX()[pi], ev={};
+  Object.entries(P).forEach(([n,r])=>(r.h||[]).forEach(e=>(ev[e[0]]=ev[e[0]]||[]).push([n,e[1],e[2]])));
+  const ws=Object.keys(ev).map(Number).sort((a,b)=>a-b), st={}, out=[]; let i=0;
+  if(ws.length)for(let w=ws[0];w<=skW();w++){while(i<ws.length&&ws[i]<=w){ev[ws[i]].forEach(([n,v,g])=>{st[n]=[v,g,ws[i]]}); i++}
+    if((w-ws[0])%2)continue; const v=Object.values(st).filter(x=>x[1]>=SKG_MIN&&w-x[2]<52).map(x=>x[0]).sort((a,b)=>a-b); if(v.length>=5)out.push([w,v[v.length>>1]])}
+  return SK_POOL[pi]=out}
+function skPoolAt(pi,w){let v=null; for(const e of skPool(pi)){if(e[0]>w)break; v=e[1]} return v}
+// profiles: rating, level, rank and the change over the last 10 weeks on each path (10+ games), with the players either side
+function skProfile(n){const w=skW(), k=skKey(n), kp=skKeep(k), T=tsBuildX();
+  const rows=[0,1,2].map(pi=>{const r=T[pi][k]; if(!r||r.g<SKG_MIN)return ""; const x=skAtE(pi,k,w); if(!x)return "";
+    const tb=skTable(pi,w,kp), rk=tb.findIndex(z=>z[0]===k)+1, o=skAtE(pi,k,w-10), d=o?Math.round(x[1]-o[1]):0, t=rk&&rk<=3?" elo-t"+rk:"";
+    const rr=rk?`<small data-tip="${esc(`#${rk} of ${tb.length} ${kp?"active players":"players (inactive, so ranked among everyone)"} · ${x[2]} games\n\n${skAround(pi,k,w,kp)}`)}">#${rk}</small>`:"";
+    return `<li class="${t.trim()}" style="--pc:${PATH_C[pi]}"><span class="nwp">${PATHS[pi]}</span><b class="nwv" style="color:${eloBand(x[1])[2]}">${Math.round(x[1])}</b><span class="nwd" data-tip="Change over the last 10 weeks">${d>0?eloD(d):"–"}</span><span class="nwr">${eloBandTag(x[1])}${rr}</span>${rk?skRivals(pi,k,w,kp):""}</li>`}).join("");
+  return rows?`<div class="pcwide nwelo pelo"><div class="nwelo-h">Relative skill after Week ${w} <span class="elohelp" data-tip="${esc(SK_TIP)}">ⓘ</span> <span class="pelo-sub">▲ last 10 weeks</span></div><ul>${rows}</ul></div>`:""}
+// a player's relative skill over time: one line per path, range buttons (all / last year / 6 months), path pills,
+// weekly or a 4-week trend, the level bands behind, dotted lines for the typical player, and rank-change pills (B→I)
+function skChart(n,opt){opt=opt||{}; const T=tsBuildX(), k=skKey(n), w1=skW(), rng=opt.r||"all", hid=opt.h||"", mode=opt.t==="t"?"t":"w", only=mode==="t";
+  const all=[0,1,2].map(pi=>{const r=T[pi][k]; return r&&r.g>=SKG_MIN?(r.h||[]).filter(e=>e[0]<=w1):[]}); if(!all.some(s=>s.length>=2))return "";
+  const first=Math.min(...all.filter(s=>s.length).map(s=>s[0][0]));
+  const w0=Math.min(w1-1,rng==="1y"?Math.max(first,w1-52):rng==="6m"?Math.max(first,w1-26):first);
+  const ser=all.map((s,pi)=>{if(hid.includes("LRB"[pi]))return []; const prev=s.filter(e=>e[0]<w0).pop(), pts=s.filter(e=>e[0]>=w0); return prev?[[w0,prev[1],prev[2]],...pts]:pts});
+  const pools=[0,1,2].map(pi=>ser[pi].length?skPool(pi).filter(e=>e[0]>=w0&&e[0]<=w1):[]);
+  const vals=[...ser.flat(),...pools.flat()].map(e=>e[1]); let lo=Math.min(...vals), hi=Math.max(...vals); lo=Math.max(0,Math.floor((lo-20)/100)*100); hi=Math.ceil((hi+20)/100)*100;
+  const W=660,H=210,L=40,R=12,Tp=10,B=22, X=w=>L+(w-w0)/(w1-w0||1)*(W-L-R), Y=v=>Tp+(hi-v)/(hi-lo||1)*(H-Tp-B);
+  let g=""; const step=hi-lo>800?200:100;
+  for(let v=lo;v<=hi;v+=step)g+=`<line x1="${L}" x2="${W-R}" y1="${Y(v)}" y2="${Y(v)}" stroke="#232a38"/><text x="${L-6}" y="${Y(v)+4}" text-anchor="end" font-size="10" fill="#8b93a7">${v}</text>`;
+  ELO_BANDS.forEach((b,bi)=>{const top=bi?ELO_BANDS[bi-1][0]:1e9, bot=b[0]; if(top<=lo||bot>=hi)return; const y1=Y(Math.min(hi,top)), y2=Y(Math.max(lo,bot));
+    g+=`<rect x="${L}" y="${y1.toFixed(1)}" width="${W-L-R}" height="${(y2-y1).toFixed(1)}" fill="${b[2]}" opacity="${bi%2?.05:.09}"/>`+(y2-y1>=13?`<text x="${W-R-4}" y="${(y1+11).toFixed(1)}" text-anchor="end" font-size="9" font-weight="700" fill="${b[2]}" opacity=".85">${b[1]}</text>`:"")});
+  let ly=null, lx=-99; for(let w=w0;w<=w1;w++){const y=yearOfWeek(w); if(y!==ly){if(w>w0&&X(w)-lx<34)g=g.replace(/<text[^>]*>\d{4}<\/text>$/,""); g+=`<line x1="${X(w)}" x2="${X(w)}" y1="${Tp}" y2="${H-B}" stroke="#1d2330"/><text x="${X(w)+3}" y="${H-6}" font-size="10" fill="#8b93a7">${y}</text>`; lx=X(w); ly=y}}
+  const at=(pi,w)=>{let x=null; for(const e of all[pi]){if(e[0]<=w)x=e; else break} return x?x[1]:null};
+  const avg=(pi,w)=>{const v=[0,1,2,3].map(d=>at(pi,w-d)).filter(v=>v!=null); return v.length?v.reduce((a,b)=>a+b,0)/v.length:null};
+  let rk=""; const rows=[]; (WR.ups||[]).filter(u=>String(u[0]).toLowerCase()===k.toLowerCase()&&u[4]>=w0&&u[4]<=w1&&!hid.includes("LRB"[u[1]])&&all[u[1]].length).sort((a,b)=>a[4]-b[4]||a[1]-b[1]).forEach(u=>{const yv=only?avg(u[1],u[4]):at(u[1],u[4]); if(yv==null)return;
+    const xx=X(u[4]), c=ELO_C[u[1]], row=rows.findIndex(r=>xx-r>=32), ri=row<0?Math.min(rows.length,2):row; rows[ri]=xx; const py=Tp+ri*15;
+    g+=`<line x1="${xx.toFixed(1)}" x2="${xx.toFixed(1)}" y1="${py+13}" y2="${H-B}" stroke="${c}" stroke-opacity=".55" stroke-dasharray="3 3"/>`;
+    rk+=`<rect x="${(xx-15).toFixed(1)}" y="${py}" width="30" height="13" rx="6.5" fill="${c}"/><text x="${xx.toFixed(1)}" y="${py+9.5}" text-anchor="middle" font-size="9" font-weight="800" fill="#0d0f14">${u[2]}→${u[3]}</text><circle cx="${xx.toFixed(1)}" cy="${Y(yv).toFixed(1)}" r="4" fill="#0d0f14" stroke="${c}" stroke-width="2"/>`});
+  const tr=only?ser.map((s,pi)=>s.length<2?"":`<polyline fill="none" stroke="${ELO_C[pi]}" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round" points="${s.map(e=>X(e[0]).toFixed(1)+","+Y(avg(pi,e[0])).toFixed(1)).join(" ")}"/><circle cx="${X(s[s.length-1][0]).toFixed(1)}" cy="${Y(avg(pi,s[s.length-1][0])).toFixed(1)}" r="3.5" fill="${ELO_C[pi]}"/>`).join(""):"";
+  const lines=only?"":ser.map((s,pi)=>s.length?`<polyline fill="none" stroke="${ELO_C[pi]}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" points="${s.map(e=>X(e[0]).toFixed(1)+","+Y(e[1]).toFixed(1)).join(" ")}"/><circle cx="${X(s[s.length-1][0]).toFixed(1)}" cy="${Y(s[s.length-1][1]).toFixed(1)}" r="3.5" fill="${ELO_C[pi]}"/>`:"").join("");
+  const leg=[0,1,2].filter(pi=>all[pi].length).map(pi=>`<button type="button" class="echp${hid.includes("LRB"[pi])?" off":""}" data-skc-p="${"LRB"[pi]}" style="--pc:${ELO_C[pi]}" title="Show just ${PATHS[pi]}, or add it to the paths shown">${PATHS[pi]}</button>`).join("");
+  const rb=[["all","All"],["1y","Last year"],["6m","6 months"]].map(([v,t])=>`<button type="button" class="echr${rng===v?" on":""}" data-skc-r="${v}">${t}</button>`).join("");
+  return `<div class="elochart skchart" data-n="${esc(k)}" data-r="${rng}" data-h="${hid}" data-t="${mode}" data-w0="${w0}" data-w1="${w1}"><div class="echhead"><h4>Relative skill over time</h4><span class="echleg">${leg}</span><span class="echrs">${rb}</span><span class="echts">${[["w","Weekly","The rating after each week"],["t","Trend","The 4-week average: smoother, shows the direction"]].map(([v,t,d])=>`<button type="button" class="echt${mode===v?" on":""}" data-skc-t="${v}" title="${d}">${t}</button>`).join("")}</span></div>
+    <svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" data-skc="1">${g}${pools.map((s,pi)=>s.length>1?`<polyline fill="none" stroke="${ELO_C[pi]}" stroke-width="1.3" stroke-opacity=".5" stroke-dasharray="3 3" points="${s.map(e=>X(e[0]).toFixed(1)+","+Y(e[1]).toFixed(1)).join(" ")}"/>`:"").join("")}${tr}${lines}${rk}<line class="echx" x1="0" x2="0" y1="${Tp}" y2="${H-B}" stroke="#8b93a7" stroke-width="1" opacity="0"/></svg>
+    <p class="echnote">Shaded bands: rating levels · dotted: the typical active player · colored pill: rank change${only?" · lines: 4-week average":""} · on each path with 10 or more games · hover or tap the chart for a week's ratings</p></div>`}
+document.addEventListener("click",e=>{const b=e.target.closest(".skchart [data-skc-p],.skchart [data-skc-r],.skchart [data-skc-t]"); if(!b)return; e.stopPropagation();
+  const c=b.closest(".skchart"); let r=c.dataset.r, h=c.dataset.h, t=c.dataset.t;
+  if(b.dataset.skcR)r=b.dataset.skcR; else if(b.dataset.skcT)t=b.dataset.skcT; else h=chartPick(c,"skcP",b.dataset.skcP,h);
+  c.outerHTML=skChart(c.dataset.n,{r,h,t})},true);
+// hover (or tap): the week under the pointer and each shown path's rating then
+function skChartTip(e){const sv=e.target.closest(".skchart svg[data-skc]"); if(!sv)return; const c=sv.closest(".skchart"), rc=sv.getBoundingClientRect(), T=tsBuildX();
+  const w0=+c.dataset.w0, w1=+c.dataset.w1, k=c.dataset.n, f=(e.clientX-rc.left)/rc.width, W=660, L=40, R=12;
+  const fx=Math.max(0,Math.min(1,(f*W-L)/(W-L-R))), w=Math.round(w0+fx*(w1-w0));
+  const rows=[0,1,2].filter(pi=>!c.dataset.h.includes("LRB"[pi])).map(pi=>{const r=T[pi][k], h=r&&r.g>=SKG_MIN?r.h:null; if(!h)return null; const i=h.findIndex(x=>x[0]>w), j=(i<0?h.length:i)-1; if(j<0)return null;
+    const cur=h[j], played=cur[0]===w, d=played?Math.round(cur[1]-(j>0?h[j-1][1]:skStart())):0, tp=skPoolAt(pi,w);
+    if(c.dataset.t==="t"){const v=[0,1,2,3].map(dd=>{const q=h.filter(x=>x[0]<=w-dd).pop(); return q?q[1]:null}).filter(v=>v!=null); return `${PATHS[pi]} ${Math.round(v.reduce((a,b)=>a+b,0)/v.length)} (4-week avg)${tp!=null?` · typical ${Math.round(tp)}`:""}`}
+    return `${PATHS[pi]} ${Math.round(cur[1])}${played&&d>0?` ▲${d}`:""} · ${eloBand(cur[1])[1]}${tp!=null?` · typical ${Math.round(tp)}`:""}`}).filter(Boolean);
+  const ln=sv.querySelector(".echx"), xx=L+fx*(W-L-R); ln.setAttribute("x1",xx); ln.setAttribute("x2",xx); ln.setAttribute("opacity",".5");
+  const ups=(WR.ups||[]).filter(u=>Math.abs(u[4]-w)<=1&&String(u[0]).toLowerCase()===k.toLowerCase()&&!c.dataset.h.includes("LRB"[u[1]])).map(u=>`Rank ${LVI.indexOf(u[3])>LVI.indexOf(u[2])?"up":"down"} on ${PATHS[u[1]]} (Week ${u[4]}): ${TIER_NAME[u[2]]||u[2]} → ${TIER_NAME[u[3]]||u[3]}`);
+  tip.textContent=`Week ${w}${rows.length?"\n"+rows.join("\n"):""}${ups.length?"\n\n"+ups.join("\n"):""}`; tip.hidden=false; placeTip(e.clientX,e.clientY)}
+document.addEventListener("mousemove",e=>{if(e.target.closest(".skchart svg[data-skc]"))skChartTip(e); else document.querySelectorAll(".skchart .echx[opacity='.5']").forEach(l=>l.setAttribute("opacity","0"))});
+document.addEventListener("click",e=>{if(e.target.closest(".skchart svg[data-skc]"))skChartTip(e)});
 function renderSkill(){const R=tsBuildX()[tsPath], el=$("ts-body"); if(!el)return;
   $("ts-about").innerHTML=TS_ABOUT;
   const rows=Object.entries(R).filter(([n,r])=>r.g>=10&&(!activeOnly||isActivePlayer(n))).map(([n,r])=>({n,...r,sk:tsShow(r.mu-3*r.sig)})).sort((a,b)=>b.sk-a.sk);
   $("ts-sub").textContent=`${PATHS[tsPath]} · ${rows.length} player${rows.length===1?"":"s"}${activeOnly?` who played in the last ${ACTIVE_PLAYER_WINDOW} weeks`:""} · 10 or more games`;
   document.querySelectorAll("#tspath [data-tsp]").forEach(b=>b.setAttribute("aria-pressed",+b.dataset.tsp===tsPath));
-  el.innerHTML=`<section class="panel tspanel" style="--pc:${PATH_C[tsPath]}"><table class="tstab"><thead><tr><th>#</th><th>Player</th><th data-tip="μ − 3σ: the careful estimate the list is sorted by">Skill</th><th data-tip="The level for that rating, the same steps as Elo: Bedroom Player, Busker, Open Mic, Opening Act, Session Player, Headliner, Arena Act, Superstar, Legend">Level</th><th class="nocap" data-tip="μ: the estimated skill · σ: how unsure it still is">μ ± σ</th><th data-tip="Challenges played on this path">Games</th><th data-tip="Challenges won (first place, ties included)">Wins</th><th>Last played</th><th data-tip="The last year's skill">Trend</th></tr></thead>
+  el.innerHTML=`<section class="panel tspanel" style="--pc:${PATH_C[tsPath]}"><table class="tstab"><thead><tr><th>#</th><th>Player</th><th data-tip="μ − 3σ: the careful estimate the list is sorted by">Skill</th><th data-tip="The level for that rating, from lowest to highest: Bedroom Player, Busker, Open Mic, Opening Act, Session Player, Headliner, Arena Act, Superstar, Legend">Level</th><th class="nocap" data-tip="μ: the estimated skill · σ: how unsure it still is">μ ± σ</th><th data-tip="Challenges played on this path">Games</th><th data-tip="Challenges won (first place, ties included)">Wins</th><th>Last played</th><th data-tip="The last year's skill">Trend</th></tr></thead>
     <tbody>${rows.map((r,i)=>`<tr><td class="dim">${i+1}</td><td><span class="pname" data-player="${esc(r.n)}"${(()=>{const P=byName[twCanon(lvKey(r.n))]||byName[r.n], c=P?String(P[8]||"").charAt(tsPath).toUpperCase():""; return TIER_C[c]?` style="color:${TIER_C[c]}"`:""})()}>${esc(r.n)}</span></td><td><b style="color:${eloBand(r.sk)[2]}" data-tip="${esc(eloBandTip(r.sk))}">${Math.round(r.sk)}</b></td><td>${eloBandTag(r.sk)}</td><td>${Math.round(tsShow(r.mu))} <small class="dim">± ${Math.round(TS_ELO*r.sig)}</small></td><td>${r.g}</td><td>${r.w}</td><td class="dim">Wk ${r.last}</td><td class="tssp">${skSpark(r)}</td></tr>`).join("")}</tbody></table>
     ${rows.length?"":`<p class="dim">No players yet.</p>`}</section>`;
   if(!$("sk-scale")){const d=document.createElement("div"); d.id="sk-scale"; d.innerHTML=skScaleHtml(); el.after(d); const b=d.querySelector(".skscale"); skTrackMove(b,TW_MAX)}
   try{plHl()}catch(e){}}
 document.addEventListener("click",e=>{const p=e.target.closest("[data-tsp]"); if(!p)return; tsPath=+p.dataset.tsp; renderSkill()});
-const TS_ABOUT=`Skill rates everyone with a free-for-all model: every challenge is one game, and everyone who played it is ranked by accuracy, then streak, then score (all 100% scores tie). Each player has an estimated skill (μ) and how unsure that estimate still is (σ). It also counts <b>time</b>, so the longer someone has been away the less sure their rating is and the faster it moves when they're back, and <b>how much you won by</b>, so beating everyone by a wide accuracy margin counts for more than a close win. The list is sorted by <b>μ − 3σ</b>, a careful estimate that rises as you play more and win, shown on a scale like Elo, where a 400-point gap means about 10-to-1 odds: a new player starts at about 325 and an average player whose rating has settled is around 1500. Each path has its own ratings. Its settings were picked by testing on past weeks: on Weeks 641–680, which weren't used to pick them, it predicts the winner of a head-to-head 77.6% of the time.`;
+const TS_ABOUT=`Skill rates everyone with a free-for-all model: every challenge is one game, and everyone who played it is ranked by accuracy, then streak, then score (all 100% scores tie). Each player has an estimated skill (μ) and how unsure that estimate still is (σ). It also counts <b>time</b>, so the longer someone has been away the less sure their rating is and the faster it moves when they're back, and <b>how much you won by</b>, so beating everyone by a wide accuracy margin counts for more than a close win. The list is sorted by <b>μ − 3σ</b>, a careful estimate that rises as you play more and win, shown on a chess-style scale, where a 400-point gap means about 10-to-1 odds: a new player starts at about 325 and an average player whose rating has settled is around 1500. Each path has its own ratings. Its settings were picked by testing on past weeks: on Weeks 641–680, which weren't used to pick them, it predicts the winner of a head-to-head 77.6% of the time.`;
 function renderLevel(){
   if(!LEVEL||!LEVEL.paths){$("lv-body").innerHTML=`<div class="empty">The PlayerLevel tab wasn't found in the sheet.</div>`; return}
   const D=lvCur(), years=D.years||[], sheetEnd=LEVEL.last||0, newer=sheetEnd<DATA_WEEK;
@@ -5096,11 +5155,11 @@ const eloKeep=n=>isActivePlayer(n)?isActivePlayer:null;
 const ELO_TIP="Elo correctly predicts who will win a head-to-head (the better score of two players on the same challenge) about 75% of the time, for players with 20+ games (checked against every game since Week 440).\n\nElo ratings, like chess: every time two players post on the same challenge it counts as a game. The higher % wins; the same % goes to the longer note streak, then the higher score; the same on all three is a draw. Two 100% scores never count as a game, whatever the streak or score: nobody could have done better, so a 100% can't lose you rating to another 100% (and a later chart update changing streaks or scores can't either).\n\nOn a chess-like scale: a new player starts at their class's average (Beginner 900, Intermediate 1200, Advanced 1500, Masterclass 1900). A game moves a rating by at most 40 points for the first 30 games, then 20, then 10 from 2400 up. Beating a higher-rated player earns more than beating a lower-rated one. On a busy card each game counts for less (divided by the square root of the number of opponents: 4 opponents ÷ 2, 9 opponents ÷ 3), so one big week doesn't swing a rating too far.\n\nGames against a player from another class count at quarter stakes (it goes by each player's own class, whatever card you're both on): you win and lose a quarter as much, so trying another class costs little. Below Masterclass, wins can't lift a rating past the next class's average (Beginner 1200, Intermediate 1500, Advanced 1900): to go higher, rank up.\n\nEach class's average is held steady: every week, everyone in a class is nudged up or down by the same small amount to bring the class back to its average. Without it, ratings drift down as players are promoted in with lower ratings. It never changes anyone's place within their class.\n\nRating levels, a guitarist’s career: Legend 2300+, Superstar 2200–2300, Arena Act 2000–2200, Headliner 1800–2000, Session Player 1600–1800, Opening Act 1400–1600, Open Mic 1200–1400, Busker 1000–1200, Bedroom Player under 1000.\n\nOne rating per path, from every week since the scoreboards start (Week 440), in order. A rating is provisional (new) until 20 games; the rankings list players with 20 or more.";
 const eloD=d=>d>0?`<span class="up">▲${d}</span>`:"";   // Elo losses are never shown
 // Winners: top 10 per path (follows All / Active only), with the change over the last 10 weeks
-function renderEloBox(){const el=$("elo-box"); if(!el)return; eloBuild(); const w=ELO_DONE;
-  $("elo-sub").innerHTML=`Head-to-head on the same challenge, like chess · after Week ${w} · ▲ last 10 weeks · rating color: level, from Bedroom Player to Legend (hover a rating) <span class="elohelp" data-tip="${esc(ELO_TIP)}">ⓘ</span>`;
-  el.innerHTML=[0,1,2].map(pi=>{const rows=eloTable(pi,w,n=>!activeOnly||isActivePlayer(n)).slice(0,10);
-    return `<div class="elocol" style="--pc:${PATH_C[pi]}"><h3>${PATHS[pi]}</h3><ol>${rows.map(([n,v,g],i)=>{const o=eloAt(pi,n,w-10), d=o?Math.round(v-o[1]):null;
-      return `<li class="${i===0?"top":""}${i<3?" elo-t"+(i+1):""}${!isActivePlayer(n)?" inactive":""}"><span class="er">${i+1}</span><span class="nm" data-player="${esc(n)}">${esc(n)}</span><span class="ed" data-tip="${esc(eloWhy(pi,n,w-9,w))}">${d==null?"":eloD(d)}</span><b class="ev" style="color:${eloBand(v)[2]}" data-tip="${esc(eloBandTip(v))} · ${g} games">${Math.round(v)}</b></li>`}).join("")||`<li class="dim">No ratings yet</li>`}</ol></div>`}).join("")}
+function renderEloBox(){const el=$("elo-box"); if(!el)return; const w=skW();
+  $("elo-sub").innerHTML=`From who finished ahead of whom on every challenge · after Week ${w} · ▲ last 10 weeks · rating color: level, from Bedroom Player to Legend (hover a rating) <span class="elohelp" data-tip="${esc(SK_TIP)}">ⓘ</span>`;
+  el.innerHTML=[0,1,2].map(pi=>{const rows=skTable(pi,w,n=>!activeOnly||isActivePlayer(n)).slice(0,10);
+    return `<div class="elocol" style="--pc:${PATH_C[pi]}"><h3>${PATHS[pi]}</h3><ol>${rows.map(([n,v,g],i)=>{const o=skAtE(pi,n,w-10), d=o?Math.round(v-o[1]):null;
+      return `<li class="${i===0?"top":""}${i<3?" elo-t"+(i+1):""}${!isActivePlayer(n)?" inactive":""}"><span class="er">${i+1}</span><span class="nm" data-player="${esc(n)}">${esc(n)}</span><span class="ed" data-tip="Change over the last 10 weeks">${d==null?"":eloD(d)}</span><b class="ev" style="color:${eloBand(v)[2]}" data-tip="${esc(eloBandTip(v))} · ${g} games">${Math.round(v)}</b></li>`}).join("")||`<li class="dim">No ratings yet</li>`}</ol></div>`}).join("")}
 // This Week: who gained relative skill (the Skill tab's rating) with the week's scores (provisional while the week runs)
 function skRanks(pi,W){const T=tsBuildX(), r={}; Object.entries(T[pi]).filter(([n,x])=>x.g>=10&&isActivePlayer(n)).map(([n,x])=>[n,skAt(x,W)]).filter(x=>x[1]!=null).sort((a,b)=>b[1]-a[1]).forEach(([n],i)=>r[n]=i+1); return r}
 const SK_TIP=TS_ABOUT.replace(/<[^>]+>/g,"");
@@ -5179,7 +5238,7 @@ function eloChartTip(e){const sv=e.target.closest(".elochart svg[data-ech]"); if
   const ln=sv.querySelector(".echx"), xx=L+fx*(W-L-R); ln.setAttribute("x1",xx); ln.setAttribute("x2",xx); ln.setAttribute("opacity",".5");
   const ups=(WR.ups||[]).filter(u=>Math.abs(u[4]-w)<=1&&String(u[0]).toLowerCase()===k.toLowerCase()&&!c.dataset.h.includes("LRB"[u[1]])).map(u=>`Rank ${LVI.indexOf(u[3])>LVI.indexOf(u[2])?"up":"down"} on ${PATHS[u[1]]} (Week ${u[4]}): ${TIER_NAME[u[2]]||u[2]} → ${TIER_NAME[u[3]]||u[3]}`);
   tip.textContent=`Week ${w}${rows.length?"\n"+rows.join("\n"):""}${ups.length?"\n\n"+ups.join("\n"):""}`; tip.hidden=false; placeTip(e.clientX,e.clientY)}
-document.addEventListener("mousemove",e=>{if(e.target.closest(".elochart svg[data-ech]"))eloChartTip(e); else document.querySelectorAll(".elochart .echx[opacity='.5']").forEach(l=>l.setAttribute("opacity","0"))});
+document.addEventListener("mousemove",e=>{if(e.target.closest(".elochart svg[data-ech]"))eloChartTip(e); else document.querySelectorAll(".elochart:not(.skchart) .echx[opacity='.5']").forEach(l=>l.setAttribute("opacity","0"))});
 document.addEventListener("click",e=>{if(e.target.closest(".elochart svg[data-ech]"))eloChartTip(e)});
 // hover text: how a rating change was worked out, game by game (weeks w0..w1, from the last 12 weeks' games)
 function eloWhy(pi,n,w0,w1){eloBuild(); const L=ELO_LOG&&ELO_LOG[pi][n]; if(!L)return "";
@@ -6350,12 +6409,12 @@ function nwRodman(n,w){const now=rkCompute(w), prev=rkCompute(w-1), key=n.toLowe
     return `<li class="${best.r<=3?"elo-t"+best.r:""}" style="--pc:${PATH_C[pi]}"><span class="nwp">${PATHS[pi]}</span><b class="nwv">${best.p}<small> pts</small></b><span class="nwd" data-tip="How your points changed with Week ${w} (the 10-week window moved on a week)">${d>0?`<span class="up">▲${d}</span>`:d<0?`<span class="dn">▼${-d}</span>`:"–"}</span><span class="nwr">${nwTag(best.c)}${nwMv(o?o.r:null,best.r)}</span></li>`}).join("");
   return rows?`<div class="nwelo"><div class="nwelo-h">Rodman’s Rankings after Week ${w}</div><div class="nwelo-s">Points over Weeks ${w-9}–${w} in your class · ▲▼ change with Week ${w} · your place</div><ul>${rows}</ul></div>`:""}
 // the new-week note: how the player's Elo moved in the week that just finished, on each path they played
-function nwElo(n,w){eloBuild(); const k=eloKey(n), kp=eloKeep(k);
-  const rows=[0,1,2].map(pi=>{const x=eloAt(pi,k,w); if(!x||x[0]!==w)return ""; const b=eloAt(pi,k,w-1), d=Math.round(x[1]-(b?b[1]:eloStart(pi,k)));
-    const r0=eloRanks(pi,w-1,kp)[k], r1=eloRanks(pi,w,kp)[k], t=x[2]>=ELO_MIN&&r1&&r1<=3?" elo-t"+r1:"";
-    const mv=x[2]<ELO_MIN?`<small data-tip="Provisional: ${x[2]} of ${ELO_MIN} games">new</small>`:eloMove(pi,k,w,kp," → ")||"";
-    return `<li class="${t.trim()}" style="--pc:${PATH_C[pi]}"><span class="nwp">${PATHS[pi]}</span><b class="nwv">${Math.round(x[1])}</b><span class="nwd" data-tip="${esc(eloWhy(pi,k,w,w))}">${d?eloD(d):"–"}</span><span class="nwr">${eloBandTag(x[1])}${mv}</span></li>`}).join("");
-  return rows?`<div class="nwelo"><div class="nwelo-h">Elo after Week ${w} <span class="elohelp" data-tip="${esc(ELO_TIP)}">ⓘ</span></div><div class="nwelo-s">Your Elo rating · ▲ gained in Week ${w} · your rank</div><ul>${rows}</ul></div>`:""}
+function nwElo(n,w){const k=skKey(n), kp=skKeep(k), T=tsBuildX();
+  const rows=[0,1,2].map(pi=>{const r=T[pi][k]; if(!r)return ""; const x=skAtE(pi,k,w); if(!x||x[0]!==w)return ""; const b=skAtE(pi,k,w-1), was=b?b[1]:skStart(), d=Math.round(x[1]-was);
+    const t0=skTable(pi,w-1,kp), t1=skTable(pi,w,kp), r0=t0.findIndex(z=>z[0]===k)+1, r1=t1.findIndex(z=>z[0]===k)+1, t=r1&&r1<=3?" elo-t"+r1:"";
+    const mv=x[2]<SKG_MIN?`<small data-tip="Provisional: ${x[2]} of ${SKG_MIN} games">new</small>`:!r1?"":!r0?`<small class="eloin">entered #${r1}</small>`:r0===r1?`<small>#${r1}</small>`:`<small class="${r1<r0?"up":"slip"}">#${r0} → #${r1}</small>`;
+    return `<li class="${t.trim()}" style="--pc:${PATH_C[pi]}"><span class="nwp">${PATHS[pi]}</span><b class="nwv" style="color:${eloBand(x[1])[2]}">${Math.round(x[1])}</b><span class="nwd" data-tip="${esc(`From ${Math.round(was)} to ${Math.round(x[1])}`)}">${d>0?eloD(d):"–"}</span><span class="nwr">${eloBandTag(x[1])}${mv}</span></li>`}).join("");
+  return rows?`<div class="nwelo"><div class="nwelo-h">Relative skill after Week ${w} <span class="elohelp" data-tip="${esc(SK_TIP)}">ⓘ</span></div><div class="nwelo-s">Your rating · ▲ gained in Week ${w} · your rank</div><ul>${rows}</ul></div>`:""}
 // the song's tunings on the paths it's played on: one line if they're all the same, else per path
 function dlTune(s){const ps=[...new Set(s.ch.map(c=>c[0]))].sort(), t=ps.map(p=>[p,tuneShow(s.song,p)]).filter(x=>x[1]); if(!t.length)return "";
   const same=t.every(x=>x[1]===t[0][1]); return `<small class="dltun"><span class="tunpill" data-tip="Tuning (Song Selection List)">${same?esc(t[0][1]):t.map(([p,v])=>`${"LRB"[p]}: ${esc(v)}`).join(" · ")}</span></small>`}
