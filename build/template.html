@@ -454,7 +454,7 @@ button.clear:hover{border-color:var(--accent)}
 .sbabout{margin:8px auto 0;max-width:620px;text-align:left;font-size:.85rem;color:var(--muted)}
 .sbabout summary{cursor:pointer;text-align:center;color:var(--accent);font-weight:600}
 .sbabout[open]{background:var(--panel2,rgba(255,255,255,.03));border:1px solid var(--line);border-radius:10px;padding:8px 14px 4px}
-.sbabout p,.sbabout ol{margin:8px 0}.sbabout .sbrng{list-style:none;padding:0;margin:8px 0;display:flex;flex-wrap:wrap;gap:4px 14px;justify-content:center}.sbabout .sbrng li{margin:0;white-space:nowrap}.sbabout ol{padding-left:20px}.sbabout li{margin:3px 0}.sbabout b{color:var(--fg)}.sbtwrow:not(:has(button:not([hidden]))){display:none}
+.sbabout p,.sbabout ol{margin:8px 0}.sbrng{list-style:none;padding:0;margin:8px auto 0;display:flex;flex-wrap:wrap;gap:4px 14px;justify-content:center;font-size:.85rem;color:var(--muted)}.sbrng li{margin:0;white-space:nowrap}.sbrng b{color:var(--fg)}.sbabout .sbrng{margin:8px 0}.sbabout ol{padding-left:20px}.sbabout li{margin:3px 0}.sbabout b{color:var(--fg)}.sbtwrow:not(:has(button:not([hidden]))){display:none}
 .sbtools #sbfind{grid-column:3;grid-row:1;justify-self:end;width:100%;max-width:240px}
 @media (max-width:640px){.sbtools{display:flex;flex-wrap:wrap;justify-content:center}.sbtools #sbfind{max-width:none}}
 .seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
@@ -2182,6 +2182,7 @@ footer{color:var(--dim);font-size:.78rem}
         <div class="sbtitle"><select id="sbweek" aria-label="Week"></select><div class="sub" id="sbmeta"></div><div class="sbtwrow"><button type="button" class="clear sbtw" id="sbtw" hidden>Open This Week ›</button><button type="button" class="clear sblatest sbtw" id="sblatest" hidden>Back to latest week ›</button></div></div>
         <button type="button" class="navbtn" id="sbnext" aria-label="Next week">›</button>
       </div>
+      <ul class="sbrng sbrngbar" aria-label="Difficulty ratings for each level"><li><b>BEG:</b> 1-3.5</li><li><b>INT:</b> 4-5.5</li><li><b>ADV:</b> 6-7.5</li><li><b>MC:</b> 8-9.5</li><li><b>GOG:</b> 10</li></ul>
       <details class="sbabout"><summary>About difficulty ratings: how to vote</summary>
             <p>The number on each challenge card is its difficulty rating. It starts as the host's rating, and once players vote it shows the average of everyone's ratings. Hover it to see each rating behind it.</p>
             <ul class="sbrng"><li><b>BEG:</b> 1-3.5</li><li><b>INT:</b> 4-5.5</li><li><b>ADV:</b> 6-7.5</li><li><b>MC:</b> 8-9.5</li><li><b>GOG:</b> 10</li></ul>
@@ -6739,7 +6740,7 @@ function songRating(p,song){
 // the rating dropdown laid invisibly over a rating badge, so clicking the number opens the list.
 // A player has one rating per song per path; it's stored against the song's latest challenge on that path.
 function rateSelect(p,song,mine){
-  const opts=[];for(let r=1;r<=10;r+=.5)opts.push(`<option value="${r}"${mine&&mine.r===r?" selected":""}>${r}</option>`);
+  const opts=[];for(let r=1;r<=10;r+=.5)opts.push(`<option value="${r}"${mine&&mine.r===r?" selected":""}>${r} · ${r<4?"BEG":r<6?"INT":r<8?"ADV":r<10?"MC":"GOG"}</option>`);
   return `<select data-rate="${p}" data-song="${esc(song)}" aria-label="Your difficulty rating for this song's ${arrName(p)} arrangement"><option value=""${mine?"":" selected"}>${mine?"Remove my rating":"Your rating…"}</option>${opts.join("")}</select>`;
 }
 function songVotes(p,song){return ((ACCT.songs||{})[p+"|"+acctSongKey(song)]||[]).slice().sort((a,b)=>a.p.localeCompare(b.p,undefined,{sensitivity:"base"}))}
