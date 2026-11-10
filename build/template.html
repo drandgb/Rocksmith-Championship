@@ -888,6 +888,8 @@ html.acctwait body{visibility:hidden}html.acctwait{background:var(--bg)}html.acc
 
 .navopts{display:flex;align-items:center;gap:8px 16px;margin-left:auto;margin-bottom:6px}.navopts[hidden]{display:none}.navopts .actfilter{margin:0 0 0 auto}
 .navyear{display:flex;align-items:center}.navyear label[hidden]{display:none}
+.navpath{display:flex;justify-content:center;flex:1 1 auto;min-width:0}.navpath .seg[hidden]{display:none}.navpath .seg{display:flex;max-width:100%}
+@media (max-width:640px){.navopts{flex-wrap:wrap;min-width:0;max-width:100%}.navpath{order:3;flex:1 1 100%;min-width:0}.navpath .seg{width:100%}.navpath .seg button{flex:1 1 auto;min-width:0;white-space:nowrap;padding:8px 4px;font-size:.68rem;letter-spacing:.02em}}
 /* computers: the page tabs share out the full width, and the Year picker (left) and All / Active only toggle (right) get a row of their own under them */
 @media (min-width:641px){.tabrow{flex:1 1 100%}.tabrow button{flex:1 1 auto;text-align:center}.navopts{flex:1 1 100%;margin-top:8px}}
 #pfilter .s-all[aria-pressed="true"],#wpath .s-all[aria-pressed="true"],#rufilter .s-all[aria-pressed="true"]{background:var(--accent)}
@@ -1712,9 +1714,23 @@ footer{color:var(--dim);font-size:.78rem}
       <label class="shostpick" data-yv="hosting" hidden><span>Year</span><select id="hostyear" aria-label="Calendar year"></select></label>
       <label class="shostpick" data-yv="winners" hidden><span>Year</span><select id="wseason" aria-label="Calendar year"></select></label>
       <label class="shostpick" data-yv="songs" hidden><span>Selected by</span><select id="shost" aria-label="Only songs selected by this host"><option value="">All hosts</option></select></label></div>
+    <div class="navpath" id="navpath">   <!-- Winners and Songs: the path picker, in the same row as the year and the toggle -->
+      <div class="seg" data-yv="winners" hidden role="radiogroup" aria-label="Show winners for" id="wpath">
+    <button type="button" data-rp="-1" class="s-all" aria-pressed="true" title="All paths">All</button>
+    <button type="button" data-rp="0" class="s-lead" aria-pressed="false">Lead</button>
+    <button type="button" data-rp="1" class="s-rhy" aria-pressed="false">Rhythm</button>
+    <button type="button" data-rp="2" class="s-bass" aria-pressed="false">Bass</button>
+  </div>
+      <div class="seg" data-yv="songs" hidden role="radiogroup" aria-label="Arrangement" id="spath">
+    <button type="button" data-sp="-1" class="s-all" aria-pressed="true" title="All paths">All</button>
+    <button type="button" data-sp="0" class="s-lead" aria-pressed="false">Lead</button>
+    <button type="button" data-sp="1" class="s-rhy" aria-pressed="false">Rhythm</button>
+    <button type="button" data-sp="2" class="s-bass" aria-pressed="false">Bass</button>
+  </div>
+    </div>
     <div class="seg actfilter" role="radiogroup" aria-label="Show everyone or active only" id="pfilter">
       <button type="button" data-af="0" class="s-all" aria-pressed="false">All</button>
-      <button type="button" data-af="1" class="s-act" aria-pressed="true">Active only</button>
+      <button type="button" data-af="1" class="s-act" aria-pressed="true" title="Active players only">Active</button>
     </div></div>
   </nav>
 
@@ -1980,12 +1996,6 @@ footer{color:var(--dim);font-size:.78rem}
   </div>
 
   <div class="view" id="view-winners" role="tabpanel" aria-labelledby="tab-winners">
-  <div class="wpathbar"><div class="seg" role="radiogroup" aria-label="Show winners for" id="wpath">
-    <button type="button" data-rp="-1" class="s-all" aria-pressed="true">All paths</button>
-    <button type="button" data-rp="0" class="s-lead" aria-pressed="false">Lead</button>
-    <button type="button" data-rp="1" class="s-rhy" aria-pressed="false">Rhythm</button>
-    <button type="button" data-rp="2" class="s-bass" aria-pressed="false">Bass</button>
-  </div></div>
   <section class="panel hof">
     <div class="panel-head"><h2>Hall of fame</h2><span class="sub" id="whof-sub"></span></div>
     <div class="podium" id="wpodium"></div>
@@ -2029,12 +2039,6 @@ footer{color:var(--dim);font-size:.78rem}
   </div>
 
   <div class="view" id="view-songs" role="tabpanel" aria-labelledby="tab-songs" hidden>
-  <div class="wpathbar"><div class="seg" role="radiogroup" aria-label="Arrangement" id="spath">
-    <button type="button" data-sp="-1" class="s-all" aria-pressed="true">All paths</button>
-    <button type="button" data-sp="0" class="s-lead" aria-pressed="false">Lead</button>
-    <button type="button" data-sp="1" class="s-rhy" aria-pressed="false">Rhythm</button>
-    <button type="button" data-sp="2" class="s-bass" aria-pressed="false">Bass</button>
-  </div></div>
   <section class="now" id="songstats" aria-label="Song totals"></section>
 
   <div class="grid2 even">
@@ -2152,7 +2156,7 @@ footer{color:var(--dim);font-size:.78rem}
       <dt><a href="#songs" data-faqgo="songs">Songs</a></dt><dd>Every song played, the Song lookup (search by title or tuning) and the Band lookup.</dd></dl></details>
     <details><summary>How do I look someone up?</summary><p>Click any name anywhere on the site to open their player profile, or type it into the Player lookup on the Players tab. Band names open the Band lookup the same way.</p></details>
     <details><summary>What do the * and ~ marks mean?</summary><p><b>*</b> means the score was outside the player's own class (faded when playing down, which doesn't count for wins). <b>~</b> is a FreeBird.</p></details>
-    <details><summary>What does "Active only" do?</summary><p>The All / Active only switch on some tabs hides players who haven't played in the last 26 weeks (about six months), so the lists show who's around now.</p></details>
+    <details><summary>What does "Active" do?</summary><p>The All / Active switch on some tabs hides players who haven't played in the last 26 weeks (about six months), so the lists show who's around now.</p></details>
     <details><summary>Hover and tap</summary><p>Most numbers, medals and badges have more detail: hover them on a computer or tap them on a phone. Clicking a medal highlights the weeks it came from. On a phone, swipe the tab row sideways to see every tab.</p></details>
     <details><summary>How often does the site update?</summary><p>It updates from the scoreboard spreadsheet shortly after the hosts enter scores, and again on a regular schedule. The footer shows when the data was last updated.</p></details>
   </section>
@@ -3737,7 +3741,7 @@ function showView(v){
   tip.hidden=true;
   $("pfilter").hidden=v==="scores"||v==="songs"||v==="thisweek"||v==="rankings"||v==="season"||v==="faq"||v==="level";
   // the Year picker of the Players, Hosts and Winners tabs (and Songs' Selected by) sits on the same row as the All / Active only toggle
-  document.querySelectorAll("#navyear [data-yv]").forEach(l=>l.hidden=l.dataset.yv!==v); $("navopts").hidden=$("pfilter").hidden&&!document.querySelector(`#navyear [data-yv="${v}"]`);   // (Songs: its Selected by picker, no toggle)
+  document.querySelectorAll("#navyear [data-yv],#navpath [data-yv]").forEach(l=>l.hidden=l.dataset.yv!==v); $("navopts").hidden=$("pfilter").hidden&&!document.querySelector(`#navyear [data-yv="${v}"],#navpath [data-yv="${v}"]`);   // (Songs: its Selected by picker, no toggle)
   if(v==="season")setTimeout(()=>{try{renderSeason()}catch(e){console.error(e)}},0);
   if(v==="level")setTimeout(()=>{try{renderLevel()}catch(e){console.error(e)}},0);
   if(v==="skill")setTimeout(()=>{try{renderSkill()}catch(e){console.error(e)}},0);
