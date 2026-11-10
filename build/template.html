@@ -5100,7 +5100,7 @@ var ELO=null, ELO_MIN=20, ELO_LIVE=null, ELO_DONE=null, ELO_LOG=null;   // ELO_L
 const ELO_BASE={B:900,I:1200,A:1500,M:1900}, ELO_CAP={B:1200,I:1500,A:1900};   // each class's average is held here (anchoring); new players start at it; the ceiling is the next class's average
 function ELO_K(r,g){return g<30?40:r>=2400?10:20}
 // rating levels, named for a guitarist's career from the bedroom to legend; shown beside ratings and as bands on the Elo chart
-const ELO_BANDS=[[2300,"Legend","#f5c84a"],[2200,"Superstar","#ff8fb0"],[2000,"Arena Act","#b277ff"],[1800,"Headliner","#6aa8ff"],[1600,"Session Player","#5ec4b6"],[1400,"Opening Act","#79d2a0"],[1200,"Open Mic","#9fb6c8"],[1000,"Busker","#8a96ab"],[-1e9,"Bedroom Player","#7e8aa3"]];   // (same rating steps as the chess ladder they replaced)
+const ELO_BANDS=[[2300,"Legend","#f5192b"],[2200,"Superstar","#f62821"],[2000,"Arena Act","#f64829"],[1800,"Headliner","#f66731"],[1600,"Session Player","#f78339"],[1400,"Opening Act","#f79e41"],[1200,"Open Mic","#f7b749"],[1000,"Busker","#f8ce51"],[-1e9,"Bedroom Player","#f8e359"]];   // the rating levels, colored yellow (lowest) to red (highest)   // (same rating steps as the chess ladder they replaced)
 function eloBand(v){return ELO_BANDS.find(b=>v>=b[0])}
 function eloBandTip(v){const i=ELO_BANDS.indexOf(eloBand(v)), b=ELO_BANDS[i], up=i>0?ELO_BANDS[i-1][0]:null; return `${b[1]}: ${b[0]<0?"under "+up:up?b[0]+"–"+up:b[0]+" and up"}`}
 function eloBandTag(v){const b=eloBand(v); return `<span class="eloband" style="--bc:${b[2]}" data-tip="${esc(eloBandTip(v))}">${b[1]}</span>`}
