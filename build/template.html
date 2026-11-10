@@ -4082,7 +4082,7 @@ function skProfile(n){const w=skW(), k=skKey(n), kp=skKeep(k), T=tsBuildX();
   const rows=[0,1,2].map(pi=>{const r=T[pi][k]; if(!r||r.g<SKG_MIN)return ""; const x=skAtE(pi,k,w); if(!x)return "";
     const tb=skTable(pi,w,kp), rk=tb.findIndex(z=>z[0]===k)+1, o=skAtE(pi,k,w-10), d=o?Math.round(x[1]-o[1]):0, t=rk&&rk<=3?" elo-t"+rk:"";
     const rr=rk?`<small data-tip="${esc(`#${rk} of ${tb.length} ${kp?"active players":"players (inactive, so ranked among everyone)"} · ${x[2]} games\n\n${skAround(pi,k,w,kp)}`)}">#${rk}</small>`:"";
-    return `<li class="${t.trim()}" style="--pc:${PATH_C[pi]}"><span class="nwp">${PATHS[pi]}</span><b class="nwv" style="color:${eloBand(x[1])[2]}">${Math.round(x[1])}</b><span class="nwd" data-tip="Change over the last 10 weeks">${d>0?eloD(d):"–"}</span><span class="nwr">${eloBandTag(x[1])}${rr}</span>${rk?skRivals(pi,k,w,kp):""}</li>`}).join("");
+    return `<li class="${t.trim()}" style="--pc:${PATH_C[pi]}"><span class="nwp">${PATHS[pi]}</span><b class="nwv" style="color:${eloBand(x[1],pi)[2]}">${Math.round(x[1])}</b><span class="nwd" data-tip="Change over the last 10 weeks">${d>0?eloD(d):"–"}</span><span class="nwr">${eloBandTag(x[1],pi)}${rr}</span>${rk?skRivals(pi,k,w,kp):""}</li>`}).join("");
   return rows?`<div class="pcwide nwelo pelo"><div class="nwelo-h">Relative skill after Week ${w} <span class="elohelp" data-tip="${esc(SK_TIP)}">ⓘ</span> <span class="pelo-sub">▲ last 10 weeks</span></div><ul>${rows}</ul></div>`:""}
 // a player's relative skill over time: one line per path, range buttons (all / last year / 6 months), path pills,
 // weekly or a 4-week trend, the level bands behind, dotted lines for the typical player, and rank-change pills (B→I)
@@ -4096,7 +4096,7 @@ function skChart(n,opt){opt=opt||{}; const T=tsBuildX(), k=skKey(n), w1=skW(), r
   const W=660,H=210,L=40,R=12,Tp=10,B=22, X=w=>L+(w-w0)/(w1-w0||1)*(W-L-R), Y=v=>Tp+(hi-v)/(hi-lo||1)*(H-Tp-B);
   let g=""; const step=hi-lo>800?200:100;
   for(let v=lo;v<=hi;v+=step)g+=`<line x1="${L}" x2="${W-R}" y1="${Y(v)}" y2="${Y(v)}" stroke="#232a38"/><text x="${L-6}" y="${Y(v)+4}" text-anchor="end" font-size="10" fill="#8b93a7">${v}</text>`;
-  ELO_BANDS.forEach((b,bi)=>{const top=bi?ELO_BANDS[bi-1][0]:1e9, bot=b[0]; if(top<=lo||bot>=hi)return; const y1=Y(Math.min(hi,top)), y2=Y(Math.max(lo,bot));
+  const bp=(()=>{const v=[0,1,2].filter(pi=>ser[pi].length); return v.length===1?v[0]:-1})(); ELO_BANDS.forEach((b0,bi)=>{const b=[b0[0],b0[1],lvMix(bp,ELO_BANDS.length-1-bi)];const top=bi?ELO_BANDS[bi-1][0]:1e9, bot=b[0]; if(top<=lo||bot>=hi)return; const y1=Y(Math.min(hi,top)), y2=Y(Math.max(lo,bot));
     g+=`<rect x="${L}" y="${y1.toFixed(1)}" width="${W-L-R}" height="${(y2-y1).toFixed(1)}" fill="${b[2]}" opacity="${bi%2?.05:.09}"/>`+(y2-y1>=13?`<text x="${W-R-4}" y="${(y1+11).toFixed(1)}" text-anchor="end" font-size="9" font-weight="700" fill="${b[2]}" opacity=".85">${b[1]}</text>`:"")});
   let ly=null, lx=-99; for(let w=w0;w<=w1;w++){const y=yearOfWeek(w); if(y!==ly){if(w>w0&&X(w)-lx<34)g=g.replace(/<text[^>]*>\d{4}<\/text>$/,""); g+=`<line x1="${X(w)}" x2="${X(w)}" y1="${Tp}" y2="${H-B}" stroke="#1d2330"/><text x="${X(w)+3}" y="${H-6}" font-size="10" fill="#8b93a7">${y}</text>`; lx=X(w); ly=y}}
   const at=(pi,w)=>{let x=null; for(const e of all[pi]){if(e[0]<=w)x=e; else break} return x?x[1]:null};
@@ -4123,7 +4123,7 @@ function skChartTip(e){const sv=e.target.closest(".skchart svg[data-skc]"); if(!
   const rows=[0,1,2].filter(pi=>!c.dataset.h.includes("LRB"[pi])).map(pi=>{const r=T[pi][k], h=r&&r.g>=SKG_MIN?r.h:null; if(!h)return null; const i=h.findIndex(x=>x[0]>w), j=(i<0?h.length:i)-1; if(j<0)return null;
     const cur=h[j], played=cur[0]===w, d=played?Math.round(cur[1]-(j>0?h[j-1][1]:skStart())):0, tp=skPoolAt(pi,w);
     if(c.dataset.t==="t"){const v=[0,1,2,3].map(dd=>{const q=h.filter(x=>x[0]<=w-dd).pop(); return q?q[1]:null}).filter(v=>v!=null); return `${PATHS[pi]} ${Math.round(v.reduce((a,b)=>a+b,0)/v.length)} (4-week avg)${tp!=null?` · typical ${Math.round(tp)}`:""}`}
-    return `${PATHS[pi]} ${Math.round(cur[1])}${played&&d>0?` ▲${d}`:""} · ${eloBand(cur[1])[1]}${tp!=null?` · typical ${Math.round(tp)}`:""}`}).filter(Boolean);
+    return `${PATHS[pi]} ${Math.round(cur[1])}${played&&d>0?` ▲${d}`:""} · ${eloBand(cur[1],pi)[1]}${tp!=null?` · typical ${Math.round(tp)}`:""}`}).filter(Boolean);
   const ln=sv.querySelector(".echx"), xx=L+fx*(W-L-R); ln.setAttribute("x1",xx); ln.setAttribute("x2",xx); ln.setAttribute("opacity",".5");
   const ups=(WR.ups||[]).filter(u=>Math.abs(u[4]-w)<=1&&String(u[0]).toLowerCase()===k.toLowerCase()&&!c.dataset.h.includes("LRB"[u[1]])).map(u=>`Rank ${LVI.indexOf(u[3])>LVI.indexOf(u[2])?"up":"down"} on ${PATHS[u[1]]} (Week ${u[4]}): ${TIER_NAME[u[2]]||u[2]} → ${TIER_NAME[u[3]]||u[3]}`);
   tip.textContent=`Week ${w}${rows.length?"\n"+rows.join("\n"):""}${ups.length?"\n\n"+ups.join("\n"):""}`; tip.hidden=false; placeTip(e.clientX,e.clientY)}
@@ -4135,7 +4135,7 @@ function renderSkill(){const R=tsBuildX()[tsPath], el=$("ts-body"); if(!el)retur
   $("ts-sub").textContent=`${PATHS[tsPath]} · ${rows.length} player${rows.length===1?"":"s"}${activeOnly?` who played in the last ${ACTIVE_PLAYER_WINDOW} weeks`:""} · 10 or more games`;
   document.querySelectorAll("#tspath [data-tsp]").forEach(b=>b.setAttribute("aria-pressed",+b.dataset.tsp===tsPath));
   el.innerHTML=`<section class="panel tspanel" style="--pc:${PATH_C[tsPath]}"><table class="tstab"><thead><tr><th>#</th><th>Player</th><th data-tip="μ − 3σ: the careful estimate the list is sorted by (hover a number for its μ ± σ)">Skill</th><th data-tip="The level for that rating, from lowest to highest: Bedroom Player, Busker, Open Mic, Opening Act, Session Player, Headliner, Arena Act, Superstar, Legend">Level</th><th data-tip="Challenges played on this path">Games</th><th data-tip="Challenges won (first place, ties included)">Wins</th><th>Last played</th><th data-tip="The last year's skill">Trend</th></tr></thead>
-    <tbody>${rows.map((r,i)=>`<tr><td class="dim">${i+1}</td><td><span class="pname" data-player="${esc(r.n)}"${(()=>{const P=byName[twCanon(lvKey(r.n))]||byName[r.n], c=P?String(P[8]||"").charAt(tsPath).toUpperCase():""; return TIER_C[c]?` style="color:${TIER_C[c]}"`:""})()}>${esc(r.n)}</span></td><td><b style="color:${eloBand(r.sk)[2]};cursor:help" data-tip="${esc(`${eloBandTip(r.sk)}\n\nμ ± σ: ${Math.round(tsShow(r.mu))} ± ${Math.round(TS_ELO*r.sig)}\nμ: the estimated skill · σ: how unsure it still is`)}">${Math.round(r.sk)}</b></td><td>${eloBandTag(r.sk)}</td><td>${r.g}</td><td>${r.w}</td><td class="dim">Wk ${r.last}</td><td class="tssp">${skSpark(r)}</td></tr>`).join("")}</tbody></table>
+    <tbody>${rows.map((r,i)=>`<tr><td class="dim">${i+1}</td><td><span class="pname" data-player="${esc(r.n)}"${(()=>{const P=byName[twCanon(lvKey(r.n))]||byName[r.n], c=P?String(P[8]||"").charAt(tsPath).toUpperCase():""; return TIER_C[c]?` style="color:${TIER_C[c]}"`:""})()}>${esc(r.n)}</span></td><td><b style="color:${eloBand(r.sk,tsPath)[2]};cursor:help" data-tip="${esc(`${eloBandTip(r.sk)}\n\nμ ± σ: ${Math.round(tsShow(r.mu))} ± ${Math.round(TS_ELO*r.sig)}\nμ: the estimated skill · σ: how unsure it still is`)}">${Math.round(r.sk)}</b></td><td>${eloBandTag(r.sk,tsPath)}</td><td>${r.g}</td><td>${r.w}</td><td class="dim">Wk ${r.last}</td><td class="tssp">${skSpark(r)}</td></tr>`).join("")}</tbody></table>
     ${rows.length?"":`<p class="dim">No players yet.</p>`}</section>`;
   if(!$("sk-scale")){const d=document.createElement("div"); d.id="sk-scale"; d.innerHTML=skScaleHtml(); el.after(d); const b=d.querySelector(".skscale"); skTrackMove(b,TW_MAX)}
   try{plHl()}catch(e){}}
@@ -5101,9 +5101,14 @@ const ELO_BASE={B:900,I:1200,A:1500,M:1900}, ELO_CAP={B:1200,I:1500,A:1900};   /
 function ELO_K(r,g){return g<30?40:r>=2400?10:20}
 // rating levels, named for a guitarist's career from the bedroom to legend; shown beside ratings and as bands on the Elo chart
 const ELO_BANDS=[[2300,"Legend","#f5192b"],[2200,"Superstar","#f62821"],[2000,"Arena Act","#f64829"],[1800,"Headliner","#f66731"],[1600,"Session Player","#f78339"],[1400,"Opening Act","#f79e41"],[1200,"Open Mic","#f7b749"],[1000,"Busker","#f8ce51"],[-1e9,"Bedroom Player","#f8e359"]];   // the rating levels, colored yellow (lowest) to red (highest)   // (same rating steps as the chess ladder they replaced)
-function eloBand(v){return ELO_BANDS.find(b=>v>=b[0])}
+// a level's color on a path: white for the lowest, the path's own color for the highest, blended in between
+// (pi −1: white to gray, for a chart showing more than one path; no pi: the levels' own colors)
+const LV_PATH_HEX=["#ff9a2e","#45d17a","#3fa0ff"], LV_MIXC={};
+function lvMix(pi,i){const k=pi+"|"+i; if(LV_MIXC[k])return LV_MIXC[k]; const to=pi>=0?LV_PATH_HEX[pi]:"#8c94a8", t=i/(ELO_BANDS.length-1), c=[1,3,5].map(j=>Math.round(255+(parseInt(to.slice(j,j+2),16)-255)*t));
+  return LV_MIXC[k]="#"+c.map(x=>x.toString(16).padStart(2,"0")).join("")}
+function eloBand(v,pi){const b=ELO_BANDS.find(b=>v>=b[0]); return pi==null?b:[b[0],b[1],lvMix(pi,ELO_BANDS.length-1-ELO_BANDS.indexOf(b))]}
 function eloBandTip(v){const i=ELO_BANDS.indexOf(eloBand(v)), b=ELO_BANDS[i], up=i>0?ELO_BANDS[i-1][0]:null; return `${b[1]}: ${b[0]<0?"under "+up:up?b[0]+"–"+up:b[0]+" and up"}`}
-function eloBandTag(v){const b=eloBand(v); return `<span class="eloband" style="--bc:${b[2]}" data-tip="${esc(eloBandTip(v))}">${b[1]}</span>`}
+function eloBandTag(v,pi){const b=eloBand(v,pi); return `<span class="eloband" style="--bc:${b[2]}" data-tip="${esc(eloBandTip(v))}">${b[1]}</span>`}
 function eloStart(pi,n){return ELO&&ELO[pi].start[n]||1500}
 function eloBuild(){if(ELO)return ELO; const ws=Object.keys(SB.weeks).map(Number).sort((a,b)=>a-b), mx=ws[ws.length-1];
   ELO_LIVE=mx>DATA_WEEK?mx:null; ELO_DONE=ELO_LIVE?ELO_LIVE-1:mx;
@@ -5159,7 +5164,7 @@ function renderEloBox(){const el=$("elo-box"); if(!el)return; const w=skW();
   $("elo-sub").innerHTML=`From who finished ahead of whom on every challenge · after Week ${w} · ▲ last 10 weeks · rating color: level, from Bedroom Player to Legend (hover a rating) <span class="elohelp" data-tip="${esc(SK_TIP)}">ⓘ</span>`;
   el.innerHTML=[0,1,2].map(pi=>{const rows=skTable(pi,w,n=>!activeOnly||isActivePlayer(n)).slice(0,10);
     return `<div class="elocol" style="--pc:${PATH_C[pi]}"><h3>${PATHS[pi]}</h3><ol>${rows.map(([n,v,g],i)=>{const o=skAtE(pi,n,w-10), d=o?Math.round(v-o[1]):null;
-      return `<li class="${i===0?"top":""}${i<3?" elo-t"+(i+1):""}${!isActivePlayer(n)?" inactive":""}"><span class="er">${i+1}</span><span class="nm" data-player="${esc(n)}">${esc(n)}</span><span class="ed" data-tip="Change over the last 10 weeks">${d==null?"":eloD(d)}</span><b class="ev" style="color:${eloBand(v)[2]}" data-tip="${esc(eloBandTip(v))} · ${g} games">${Math.round(v)}</b></li>`}).join("")||`<li class="dim">No ratings yet</li>`}</ol></div>`}).join("")}
+      return `<li class="${i===0?"top":""}${i<3?" elo-t"+(i+1):""}${!isActivePlayer(n)?" inactive":""}"><span class="er">${i+1}</span><span class="nm" data-player="${esc(n)}">${esc(n)}</span><span class="ed" data-tip="Change over the last 10 weeks">${d==null?"":eloD(d)}</span><b class="ev" style="color:${eloBand(v,pi)[2]}" data-tip="${esc(eloBandTip(v))} · ${g} games">${Math.round(v)}</b></li>`}).join("")||`<li class="dim">No ratings yet</li>`}</ol></div>`}).join("")}
 // This Week: who gained relative skill (the Skill tab's rating) with the week's scores (provisional while the week runs)
 function skRanks(pi,W){const T=tsBuildX(), r={}; Object.entries(T[pi]).filter(([n,x])=>x.g>=10&&isActivePlayer(n)).map(([n,x])=>[n,skAt(x,W)]).filter(x=>x[1]!=null).sort((a,b)=>b[1]-a[1]).forEach(([n],i)=>r[n]=i+1); return r}
 const SK_TIP=TS_ABOUT.replace(/<[^>]+>/g,"");
@@ -5175,7 +5180,7 @@ function renderTwElo(){const el=$("tw-elo"); if(!el)return; const T=tsBuildX(), 
     return `<div class="elocol" style="--pc:${PATH_C[pi]}"><h3>${PATHS[pi]}</h3><ol>${rows.map((x,i)=>{const a=r0[x.n], b=r1[x.n];
       const mv=x.r.g<10?`<small class="elonew" data-tip="Provisional: ${x.r.g} of 10 games">new</small>`:!b?`<small class="elonew" data-tip="Not in the ranking (not active)">new</small>`
         :!a?`<small class="eloin" data-tip="New to the ranking this week, at #${b}">entered #${b}</small>`:a===b?`<small>#${b}</small>`:`<small class="${b<a?"up":"slip"}">#${a}→#${b}</small>`;   // (a placeholder keeps the columns lined up)
-      return `<li class="${i===0?"top":""}">${twName(x.n)}${mv}<span class="ed" data-tip="${esc(`From ${Math.round(x.was)} to ${Math.round(x.now)}`)}">${eloD(x.d)}</span><b class="ev" style="color:${eloBand(x.now)[2]}" data-tip="${esc(eloBandTip(x.now))}">${Math.round(x.now)}</b></li>`}).join("")}</ol></div>`}).join("")||`<p class="dim">No skill gains yet this week.</p>`}
+      return `<li class="${i===0?"top":""}">${twName(x.n)}${mv}<span class="ed" data-tip="${esc(`From ${Math.round(x.was)} to ${Math.round(x.now)}`)}">${eloD(x.d)}</span><b class="ev" style="color:${eloBand(x.now,pi)[2]}" data-tip="${esc(eloBandTip(x.now))}">${Math.round(x.now)}</b></li>`}).join("")}</ol></div>`}).join("")||`<p class="dim">No skill gains yet this week.</p>`}
 // Elo over time: one line per path (in its color), from the week they first played it to the latest finished week.
 // Range buttons (all / last year / last 6 months), tap a path in the legend to hide it, hover or tap for the week's numbers.
 const ELO_C=["#ff9a2e","#45d17a","#3fa0ff"];
@@ -6413,7 +6418,7 @@ function nwElo(n,w){const k=skKey(n), kp=skKeep(k), T=tsBuildX();
   const rows=[0,1,2].map(pi=>{const r=T[pi][k]; if(!r)return ""; const x=skAtE(pi,k,w); if(!x||x[0]!==w)return ""; const b=skAtE(pi,k,w-1), was=b?b[1]:skStart(), d=Math.round(x[1]-was);
     const t0=skTable(pi,w-1,kp), t1=skTable(pi,w,kp), r0=t0.findIndex(z=>z[0]===k)+1, r1=t1.findIndex(z=>z[0]===k)+1, t=r1&&r1<=3?" elo-t"+r1:"";
     const mv=x[2]<SKG_MIN?`<small data-tip="Provisional: ${x[2]} of ${SKG_MIN} games">new</small>`:!r1?"":!r0?`<small class="eloin">entered #${r1}</small>`:r0===r1?`<small>#${r1}</small>`:`<small class="${r1<r0?"up":"slip"}">#${r0} → #${r1}</small>`;
-    return `<li class="${t.trim()}" style="--pc:${PATH_C[pi]}"><span class="nwp">${PATHS[pi]}</span><b class="nwv" style="color:${eloBand(x[1])[2]}">${Math.round(x[1])}</b><span class="nwd" data-tip="${esc(`From ${Math.round(was)} to ${Math.round(x[1])}`)}">${d>0?eloD(d):"–"}</span><span class="nwr">${eloBandTag(x[1])}${mv}</span></li>`}).join("");
+    return `<li class="${t.trim()}" style="--pc:${PATH_C[pi]}"><span class="nwp">${PATHS[pi]}</span><b class="nwv" style="color:${eloBand(x[1],pi)[2]}">${Math.round(x[1])}</b><span class="nwd" data-tip="${esc(`From ${Math.round(was)} to ${Math.round(x[1])}`)}">${d>0?eloD(d):"–"}</span><span class="nwr">${eloBandTag(x[1],pi)}${mv}</span></li>`}).join("");
   return rows?`<div class="nwelo"><div class="nwelo-h">Relative skill after Week ${w} <span class="elohelp" data-tip="${esc(SK_TIP)}">ⓘ</span></div><div class="nwelo-s">Your rating · ▲ gained in Week ${w} · your rank</div><ul>${rows}</ul></div>`:""}
 // the song's tunings on the paths it's played on: one line if they're all the same, else per path
 function dlTune(s){const ps=[...new Set(s.ch.map(c=>c[0]))].sort(), t=ps.map(p=>[p,tuneShow(s.song,p)]).filter(x=>x[1]); if(!t.length)return "";
