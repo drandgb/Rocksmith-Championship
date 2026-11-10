@@ -4187,6 +4187,8 @@ document.addEventListener("mousemove",e=>{if(e.target.closest(".skchart svg[data
 document.addEventListener("click",e=>{if(e.target.closest(".skchart svg[data-skc]"))skChartTip(e)});
 function renderSkill(){const R=tsBuildX()[tsPath], el=$("ts-body"); if(!el)return;
   $("ts-about").innerHTML=TS_ABOUT;
+  // the title in the shown path's level colors, white (Bedroom Player) through to Legend
+  try{const t=document.querySelector(".tshead .lvtitle"); if(t)t.style.backgroundImage=`linear-gradient(90deg,${ELO_BANDS.map((b,i)=>lvMix(tsPath,i)).join(",")})`}catch(e){}
   const rows=Object.entries(R).filter(([n,r])=>r.g>=10&&(!activeOnly||isActivePlayer(n))).map(([n,r])=>({n,...r,sk:tsShow(r.mu-3*r.sig)})).sort((a,b)=>b.sk-a.sk);
   $("ts-sub").textContent=`${PATHS[tsPath]} · ${rows.length} player${rows.length===1?"":"s"}${activeOnly?` who played in the last ${ACTIVE_PLAYER_WINDOW} weeks`:""} · 10 or more games`;
   document.querySelectorAll("#tspath [data-tsp]").forEach(b=>b.setAttribute("aria-pressed",+b.dataset.tsp===tsPath));
