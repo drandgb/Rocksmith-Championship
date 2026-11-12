@@ -8052,14 +8052,17 @@ function acctDraw(msg,err){
   if(ACCT.tab===ACCT.lastTab){dlg.scrollTop=keep[0];b.scrollTop=keep[1]} ACCT.lastTab=ACCT.tab;
   if(ACCT.tab==="me"&&ACCT.claim&&ACCT.claim.status==="approved")acctMount(ACCT.claim.player);
   if(ACCT.tab==="banner")bnMount(ACCT.claim.player);
-  if(ACCT.tab==="admin")admFold(b);
+  if(ACCT.tab==="admin"||ACCT.tab==="host")admFold(b);
 }
-// Admin tab: each section's orange title hides or shows what's under it (like This Week's download box), remembered on this device
+// Admin and Host tabs: each section's orange title hides or shows what's under it (like This Week's download box), remembered on this device
 const ADM_FOLD="rs-admfold", admFolds=()=>{try{return JSON.parse(lsGet(ADM_FOLD)||"[]")}catch(e){return []}};
 function admFold(root){const F=admFolds(); root.querySelectorAll(".acctsec>h3:first-of-type").forEach(h=>{
   const t=(h.dataset.fold=h.dataset.fold||h.textContent.trim()), off=F.includes(t);
   if(!h.querySelector(".dlarw"))h.insertAdjacentHTML("beforeend",`<span class="dlarw"></span>`);
-  h.classList.add("admfoldh"); h.parentElement.classList.toggle("admfolded",off); h.querySelector(".dlarw").textContent=off?"▸":"▾"; h.title=off?"Show this section":"Hide this section"})}
+  const ar=h.querySelector(".dlarw"), tx=off?"▸":"▾", ti=off?"Show this section":"Hide this section";   // (only changed when different, so the watcher below doesn't loop)
+  if(!h.classList.contains("admfoldh"))h.classList.add("admfoldh"); if(h.parentElement.classList.contains("admfolded")!==off)h.parentElement.classList.toggle("admfolded",off); if(ar.textContent!==tx)ar.textContent=tx; if(h.title!==ti)h.title=ti})}
+// sections that redraw on their own (logs loading, ratings changing) get their title control back straight away
+{let q=0; new MutationObserver(()=>{if(q||!(ACCT.tab==="admin"||ACCT.tab==="host"))return; q=requestAnimationFrame(()=>{q=0; try{admFold($("acctbody"))}catch(e){}})}).observe($("acctbody"),{childList:true,subtree:true})}
 $("acctbody").addEventListener("change",async e=>{const t=e.target.closest("[data-rmset]"); if(!t)return;
   const n=t.dataset.player, row=t.closest("li"), show=row.querySelector('[data-rmset="show"]').checked, carry=row.querySelector('[data-rmset="carry"]').checked, keep=row.querySelector('[data-rmset="keep"]').checked;
   const {error}=await ACCT.sb.rpc("set_removed_claim",{p_player:n,p_hide:!show,p_carry:carry,p_keep:keep}); if(error){alert("Couldn't save: "+error.message)}
