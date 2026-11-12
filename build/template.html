@@ -723,6 +723,7 @@ span.hrdn{color:var(--s-red)!important}small.eloin{color:var(--s-green)!importan
 .acctdlg .hhol{display:inline-flex;flex-wrap:wrap;gap:4px;margin-left:8px;vertical-align:1px}.acctdlg .hhol .pill.hol{font-size:.72rem;padding:1px 7px}
 .acctdlg .claimtip{font-size:.84rem;border-left:3px solid var(--accent);background:color-mix(in srgb,var(--accent) 8%,transparent);padding:6px 10px;border-radius:0 6px 6px 0;margin:6px 0 10px}
 .acctdlg .apprhead{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.acctsec>h3.admfoldh{cursor:pointer;user-select:none}.acctsec>h3.admfoldh .dlarw{color:var(--muted);font-size:.8em;margin-left:6px}.acctsec.admfolded>:not(h3:first-of-type){display:none!important}
 .acctdlg .btn.small{padding:3px 10px;font-size:.78rem}
 .acctdlg .fixlog .tylink{cursor:pointer}
 .acctdlg .ratelog li{display:block;padding:6px 0;border-bottom:1px solid var(--line);font-size:.84rem}
@@ -8051,12 +8052,20 @@ function acctDraw(msg,err){
   if(ACCT.tab===ACCT.lastTab){dlg.scrollTop=keep[0];b.scrollTop=keep[1]} ACCT.lastTab=ACCT.tab;
   if(ACCT.tab==="me"&&ACCT.claim&&ACCT.claim.status==="approved")acctMount(ACCT.claim.player);
   if(ACCT.tab==="banner")bnMount(ACCT.claim.player);
+  if(ACCT.tab==="admin")admFold(b);
 }
+// Admin tab: each section's orange title hides or shows what's under it (like This Week's download box), remembered on this device
+const ADM_FOLD="rs-admfold", admFolds=()=>{try{return JSON.parse(lsGet(ADM_FOLD)||"[]")}catch(e){return []}};
+function admFold(root){const F=admFolds(); root.querySelectorAll(".acctsec>h3:first-of-type").forEach(h=>{
+  const t=(h.dataset.fold=h.dataset.fold||h.textContent.trim()), off=F.includes(t);
+  if(!h.querySelector(".dlarw"))h.insertAdjacentHTML("beforeend",`<span class="dlarw"></span>`);
+  h.classList.add("admfoldh"); h.parentElement.classList.toggle("admfolded",off); h.querySelector(".dlarw").textContent=off?"▸":"▾"; h.title=off?"Show this section":"Hide this section"})}
 $("acctbody").addEventListener("change",async e=>{const t=e.target.closest("[data-rmset]"); if(!t)return;
   const n=t.dataset.player, row=t.closest("li"), show=row.querySelector('[data-rmset="show"]').checked, carry=row.querySelector('[data-rmset="carry"]').checked, keep=row.querySelector('[data-rmset="keep"]').checked;
   const {error}=await ACCT.sb.rpc("set_removed_claim",{p_player:n,p_hide:!show,p_carry:carry,p_keep:keep}); if(error){alert("Couldn't save: "+error.message)}
   await removedLoad(); ACCT.songs=null; acctDraw()});
 $("acctbody").addEventListener("click",async e=>{
+  const fh=e.target.closest("h3.admfoldh"); if(fh){const t=fh.dataset.fold, F=admFolds(), i=F.indexOf(t); if(i<0)F.push(t); else F.splice(i,1); lsSet(ADM_FOLD,F.length?JSON.stringify(F):null); admFold($("acctbody")); return}
   const tb=e.target.closest("[data-accttab]"); if(tb){ACCT.tab=tb.dataset.accttab; acctDraw(); return}
   const cp=e.target.closest("[data-bncopy]"); if(cp&&ACCT.claim){const n=ACCT.claim.player, t=cp.dataset.bncopy==="img"?`${BN_SITE}cards/${bnSlug(n)}.png`:cp.dataset.bncopy==="share"?`${BN_SITE}cards/${bnSlug(n)}.html`:BN_SITE;
     const done=()=>{const o=cp.textContent; cp.textContent="Copied ✓"; setTimeout(()=>{cp.textContent=o},1500)};
