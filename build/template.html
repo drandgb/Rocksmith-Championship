@@ -2046,6 +2046,11 @@ footer{color:var(--dim);font-size:.78rem}
   <div class="view" id="view-songs" role="tabpanel" aria-labelledby="tab-songs" hidden>
   <section class="now" id="songstats" aria-label="Song totals"></section>
 
+  <section class="panel">
+    <div class="panel-head"><h2>Recently played</h2><span class="sub">The 20 songs played most recently · latest week first</span></div>
+    <ol class="songlist" id="recentlist"></ol>
+  </section>
+
   <div class="grid2 even">
     <section class="panel">
       <div class="panel-head"><h2>Most featured bands</h2><span class="sub">Top 20 · challenges using their songs</span></div>
@@ -5619,6 +5624,12 @@ function renderSongs(){
     const byWk={}; v.forEach(c=>(c.who||[]).forEach(n=>{const m=(byWk[c.w]=byWk[c.w]||{});(m[n]=m[n]||new Set()).add(c.p)}));
     const tipTxt=`${ti} — ${Object.keys(who).length} players\n`+Object.keys(byWk).map(Number).sort((a,b)=>b-a).map(w=>`\nWeek ${w}\n`+Object.entries(byWk[w]).sort((a,b)=>b[1].size-a[1].size||a[0].localeCompare(b[0])).map(([n,ps])=>`• ${n} · ${[...ps].sort().map(p=>PATHS[p]).join(", ")}`).join("\n")).join("\n");
     return `<li data-tip="${esc(tipTxt)}"><div><b class="songlink" data-band="${esc(a)}" data-song="${esc(ti)}">${esc(ti)}</b><small><span data-band="${esc(a)}" class="bandlink">${esc(a)}</span> · ${v.length} challenge${v.length===1?"":"s"}</small><div class="chips">${tiers.map(t=>lvPill(t,"lvp",lvlPlayed)).join("")}${songRateBox(v)}</div></div><span class="cnt">${songPill(sg,IG_LATEST(sg))}<b>${songAvg?n.toFixed(1):n}</b>${songAvg?"players per challenge":"players attempted"}</span></li>`}).join("");
+  // recently played: each song's latest week, newest first; players = different players on it that week
+  {const rec=Object.entries(songs).map(([sg,v])=>{const lw=Math.max(...v.map(c=>c.w)), lc=v.filter(c=>c.w===lw); return [sg,lw,lc,v]}).sort((a,b)=>b[1]-a[1]||Math.min(...a[2].map(c=>c.p*9+(c.slot||0)))-Math.min(...b[2].map(c=>c.p*9+(c.slot||0)))).slice(0,20);
+   $("recentlist").innerHTML=rec.map(([sg,lw,lc,v])=>{const [a,ti]=splitSong(sg), who=new Set(lc.flatMap(c=>c.who||[])), known=lc.some(c=>c.who);
+     const tiers=[...new Set(lc.map(c=>c.t))].sort((x,y)=>TIER_ORDER.indexOf(x)-TIER_ORDER.indexOf(y));
+     const tipTxt=`${ti} — Week ${lw}\n`+lc.map(c=>`${PATHS[c.p]} ${TIER_LABEL[c.t]}${c.diff!=null?" ("+c.diff+")":""}`).join("\n");
+     return `<li data-tip="${esc(tipTxt)}"><div><b class="songlink" data-band="${esc(a)}" data-song="${esc(ti)}">${esc(ti)}</b><small><span data-band="${esc(a)}" class="bandlink">${esc(a)}</span> · week ${lw}</small><div class="chips">${tiers.map(t=>`<span class="lvchip" style="--tc:${TIER_COL[t]}">${TIER_SHORT[t]||TIER_LABEL[t]}</span>`).join("")}${songRateBox(lc)}</div></div><span class="cnt">${songPill(sg,IG_LATEST(sg))}<b>${known?who.size:"–"}</b>players attempted</span></li>`}).join("")||`<li class="empty">No songs on record for ${esc(sHost||"this filter")}.</li>`}
   // a multi-week God challenge (same song in back-to-back weeks as a God challenge) counts as one play
   const plays=(ws,v)=>{let n=0,prev=null;const god=w=>v.some(c=>c.w===w&&c.card==="G");ws.forEach(w=>{if(!(prev!=null&&w===prev+1&&god(w)&&god(prev)))n++;prev=w});return n};
   const replay=byLvl(lvlReplay).map(([sg,v])=>{const ws=[...new Set(v.map(c=>c.w))].sort((a,b)=>a-b);return [sg,ws,v,plays(ws,v)]}).filter(x=>x[3]>1).sort((a,b)=>b[3]-a[3]||b[1][b[1].length-1]-a[1][a[1].length-1]).slice(0,20);
