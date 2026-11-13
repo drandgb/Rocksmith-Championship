@@ -532,7 +532,7 @@ button.clear:hover{border-color:var(--accent)}
 .dlsec .yours{margin-left:8px;font:800 .6rem var(--f-display);letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
 .dlsec .dlbxs{display:flex;gap:6px;flex:none}
 .dlbx{display:inline-flex;align-items:baseline;justify-content:center;gap:4px;width:52px;box-sizing:border-box;font:700 10.5px/1 var(--f-display);letter-spacing:.06em;color:#8b93a7;border:1px solid var(--line);background:color-mix(in srgb,var(--panel) 80%,#000);border-radius:6px;padding:4px 3px;white-space:nowrap}
-.dlbx b{font:800 15px/1 var(--f-display)}.dlbx sup{font-size:9px}
+.dlbx b{font:800 15px/1 var(--f-display)}.dlbx{flex-wrap:wrap;row-gap:3px}.dlbx .dlrt{flex-basis:100%;text-align:center;font:700 10.5px/1 var(--f-mono);font-style:normal;letter-spacing:0;color:var(--fg)}.dlbx .dlar{font-size:8px;margin-right:2px;vertical-align:1px}.dlbx sup{font-size:9px}
 .dlbx.me{border-color:var(--mc);background:color-mix(in srgb,var(--mc) 16%,var(--panel));box-shadow:0 0 8px color-mix(in srgb,var(--mc) 45%,transparent);color:var(--fg)}
 .dlsec{--tc:var(--accent)}
 .dlsec .dlpill{flex:none;width:118px;display:flex;justify-content:flex-end}
@@ -6524,7 +6524,12 @@ function renderDownloads(){
   const box=(p,cs)=>{if(!cs.length)return `<span class="dlbx">${"LRB"[p]}<b style="color:#8b93a7">–</b></span>`;
     const me=cs.find(mine), col=c=>{const lv=cardLv(c[2]); return lv==="G"?"var(--t-god)":TIER_C[lv]||"var(--muted)"};
     const tip=cs.map(c=>`${PATHS[p]} ${c[2]}`).join(", ")+(tuneShow(cs[0][3],p)?` · tuning: ${tuneShow(cs[0][3],p)}`:"");
-    return `<span class="dlbx${me?" me":""}"${me?` style="--mc:${col(me)}"`:""} data-tip="${esc(tip)}${me?" · your class":""}">${"LRB"[p]}<b>${cs.map(c=>`<span style="color:${col(c)}">${cardLv(c[2])||"?"}${/bonus/i.test(c[2])?"<sup>+</sup>":""}</span>`).join("·")}</b></span>`};
+    // the song's current difficulty rating on that path (players' and hosts' average, else the scoreboard's rating)
+    const R=(()=>{try{return songRating(arrP(w,p,cs[0][1]),cs[0][3])}catch(e){return null}})(), rt=R&&R.avg||(typeof cs[0][4]==="number"?cs[0][4].toFixed(1):null);
+    return `<span class="dlbx${me?" me":""}"${me?` style="--mc:${col(me)}"`:""} data-tip="${esc(tip)}${me?" · your class":""}${rt?esc(`\nDifficulty: ${rt}${R&&R.n?` (average of ${R.n} rating${R.n===1?"":"s"})`:""}`):""}">${"LRB"[p]}<b>${cs.map(c=>`<span style="color:${col(c)}">${cardLv(c[2])||"?"}${/bonus/i.test(c[2])?"<sup>+</sup>":""}</span>`).join("·")}</b>${rt?(()=>{// the arrow: the rating has moved out of the card's class range (▲ above it, ▼ below it)
+      const v=+rt, O="BIAMG", RNG={B:"1–3.5",I:"4–5.5",A:"6–7.5",M:"8–9.5",G:"10"}, k=v>=10?"G":v>=8?"M":v>=6?"A":v>=4?"I":"B", ki=O.indexOf(k);
+      const cl=cs.map(c=>O.indexOf(cardLv(c[2]))).filter(i=>i>=0), ar=!cl.length||cl.includes(ki)?"":ki>Math.max(...cl)?"▲":"▼", ref=O[ar==="▲"?Math.max(...cl):Math.min(...cl)];
+      return `<i class="dlrt" style="color:${k==="G"?"var(--t-god)":TIER_C[k]}">${ar?`<span class="dlar" data-tip="${esc(`${ar==="▲"?"Above":"Below"} the ${TIER_NAME[ref]||"God"} range (${RNG[ref]}): now rated like ${TIER_NAME[k]||"God"} (${RNG[k]})`)}">${ar}</span>`:""}${rt}</i>`})():""}</span>`};
   const fold=lsGet(DL_FOLD)===String(TW_MAX);
   el.innerHTML=`<div class="panel-head dlhead" data-dl="fold" title="${fold?"Show":"Hide"} the download list"><h2>⬇ Download Week ${w}'s songs<span class="dlarw">${fold?"▸":"▾"}</span></h2>
     <span class="sub">${list.length} song${list.length===1?"":"s"} for ${cards.length} challenge${cards.length===1?"":"s"}${T&&!fold?" · your classes are highlighted":""}</span></div>
