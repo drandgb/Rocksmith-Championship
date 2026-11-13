@@ -3930,7 +3930,8 @@ function lvExtra(val,what,years,D){const el=$("lv-extra"); if(!el)return; D=D||L
 // Like Rodman's Rankings: when his PlayerLevel tab is behind the latest finished week, the site can show its own "Now" and
 // "Last 6 months" levels worked out from the scoreboards (each week's best card on the path, rating × accuracy, the average
 // without the lowest and highest week; 3+ scores needed in the last 12 or 26 finished weeks). The years stay the same.
-function lvLiveData(){if(lvLiveData.d)return lvLiveData.d; lvEnsure(); const end=DATA_WEEK;
+function lvLiveData(){if(lvLiveData.d)return lvLiveData.d; return lvLiveData.d=lvCalcAt(DATA_WEEK)}
+function lvCalcAt(end){lvEnsure();
   const paths=LEVEL.paths.map((L,pi)=>{const by={}, n12={}, n26={}, disp={};
     for(let w=end-25;w<=end;w++)(SB.weeks[w]||[]).forEach(c=>{if(c[0]!==pi||c[7])return; c[6].forEach(e=>{if(e[1]==null)return; const raw=SB.names[e[0]], k=lvKey(raw); if(!k||k==="#ref!"||k==="player name")return;
       disp[k]=disp[k]||twCanon(raw); n26[k]=(n26[k]||0)+1; if(w>end-12)n12[k]=(n12[k]||0)+1;
@@ -3939,7 +3940,14 @@ function lvLiveData(){if(lvLiveData.d)return lvLiveData.d; lvEnsure(); const end
     const idx={}, out=L.map(p=>{const q={...p,xp:null,m6:null}, k=lvKey(p.n); if(!idx[k]||p.n.toLowerCase()===k)idx[k]=q; return q});
     Object.keys(by).forEach(k=>{let q=idx[k]; if(!q){q=idx[k]={n:disp[k],xp:null,m6:null,y:{}}; out.push(q)} if((n12[k]||0)>=3)q.xp=tm(by[k],end-11); if((n26[k]||0)>=3)q.m6=tm(by[k],end-25)});
     return out});
-  return lvLiveData.d={...LEVEL,paths,last:end,weeks:12}}
+  return {...LEVEL,paths,last:end,weeks:12}}
+// how close the site's math comes to Rodman's: his "Now" levels against the site's for the same 12 weeks
+function lvMatch(){if(lvMatch.d!==undefined)return lvMatch.d; lvMatch.d=null;
+  try{const end=LEVEL.last; if(!end)return null; const S=lvCalcAt(end); let n=0,w1=0,band=0,sum=0;
+    LEVEL.paths.forEach((L,pi)=>{const s={}; S.paths[pi].forEach(q=>s[lvKey(q.n)]=q.xp);
+      L.forEach(q=>{const a=q.xp, c=s[lvKey(q.n)]; if(a==null||c==null)return; n++; const d=Math.abs(a-c); sum+=d; if(d<=1)w1++; if(lvBand(a)[1]===lvBand(c)[1])band++})});
+    if(n)lvMatch.d={end,n,w1,band,avg:sum/n}}catch(e){console.error(e)}
+  return lvMatch.d}
 document.addEventListener("click",e=>{if(!e.target.closest("[data-lvlive]"))return; lvLive=!lvLive; LV_NOW=null; tip.hidden=true; renderLevel()});
 document.addEventListener("keydown",e=>{if((e.key==="Enter"||e.key===" ")&&e.target.closest("[data-lvlive]")){e.preventDefault(); lvLive=!lvLive; LV_NOW=null; renderLevel(); const b=document.querySelector("[data-lvlive]"); if(b)b.focus()}});
 // ---------- Skill ----------
@@ -4207,7 +4215,7 @@ function renderLevel(){
   if(!LEVEL||!LEVEL.paths){$("lv-body").innerHTML=`<div class="empty">The PlayerLevel tab wasn't found in the sheet.</div>`; return}
   const D=lvCur(), years=D.years||[], sheetEnd=LEVEL.last||0, newer=sheetEnd<DATA_WEEK;
   const wk=`<span class="rkweeks${lvLive?" live":""}" role="button" tabindex="0" data-lvlive="1" data-tip="${lvLive?`“Now” and “Last 6 months” worked out by the site from the scoreboards up to Week ${DATA_WEEK} (each week's best card: song rating × accuracy, the average without the lowest and highest week, 3+ scores needed). Rodman’s own levels may differ a little. Click for Rodman’s levels (to Week ${sheetEnd})`:`Rodman’s levels from his PlayerLevel tab (to Week ${sheetEnd}). Click for levels the site works out up to Week ${DATA_WEEK}`}"><small>Weeks</small><b>${D.last-11}</b><i>–</i><b>${D.last}</b><em>${lvLive?"Latest":"Rodman's"}</em></span> <span class="dim">${lvLive?"worked out by the site · may differ from Rodman’s · tap for his":newer?`tap to see the latest weeks (to Week ${DATA_WEEK}), newer than Rodman’s`:"tap to see the site’s own numbers (the same weeks right now)"}</span><br>`;
-  $("lv-sub").innerHTML=wk+`${lvLive?"Player levels worked out by the site the way Rodman’s are":"Rodman’s XP levels from the championship sheet"}: a number for how hard the songs you play are and how well you play them.<br>Roughly <b>song rating × accuracy</b>: an XP of <b>70</b> is like scoring 100% on songs rated 7, or 93% on 7.5s. Each week counts your best card, and the average leaves out your best and worst week, so one lucky week or one bad rating doesn't swing it. <span class="dim">“Last 6 months” needs 3+ score entries in those 26 weeks (to Week ${D.last||"?"}); each year needs 5+ entries that year.</span><br><span class="lvnolin">Remember, progress isn’t linear! 🌱</span>`;
+  $("lv-sub").innerHTML=wk+`${lvLive?"Player levels worked out by the site the way Rodman’s are":"Rodman’s XP levels from the championship sheet"}: a number for how hard the songs you play are and how well you play them.<br>Roughly <b>song rating × accuracy</b>: an XP of <b>70</b> is like scoring 100% on songs rated 7, or 93% on 7.5s. Each week counts your best card, and the average leaves out your best and worst week, so one lucky week or one bad rating doesn't swing it. <span class="dim">“Last 6 months” needs 3+ score entries in those 26 weeks (to Week ${D.last||"?"}); each year needs 5+ entries that year.</span><br><span class="lvnolin">Remember, progress isn’t linear! 🌱</span>${(()=>{const M=lvLive&&lvMatch(); return M?`<br><span class="dim">Checked against Rodman’s levels for Weeks ${M.end-11}–${M.end}: ${M.w1} of ${M.n} players’ “Now” levels are within 1 point of his (${Math.round(M.w1/M.n*100)}%), ${M.band} of ${M.n} are in the same band (${Math.round(M.band/M.n*100)}%), and they differ by ${M.avg.toFixed(1)} points on average.</span>`:""})()}`;
   $("lv-bands").innerHTML=LV_BANDS.slice().reverse().map(([min,k,name],i,a)=>`<span class="lvband" style="--tc:${TIER_C[k]}"><b>${name}</b> ${i===a.length-1?`${min}+`:`${min}–${a[i+1][0]-1}`}</span>`).join("");
   if(!lvYear||!years.includes(+lvYear))lvYear=String(years[0]);
   $("lvyear").innerHTML=years.map(y=>`<option value="${y}"${String(y)===lvYear?" selected":""}>${lvYl(y)}</option>`).join("");
@@ -6753,6 +6761,14 @@ function rkCompute(last,one){   // one: just that week (for adding up a whole ye
   for(let w=one?last:last-9;w<=last;w++)(SB.weeks[w]||[]).forEach(c=>{const lv=cardLv(c[2]); if(!LV[lv]||/bonus/i.test(c[2])||c[7])return;
     c[6].filter(e=>e[4]===0||e[4]===1).forEach((e,i)=>{const v=(i<4?PTS[i]:0)+(e[1]>=100||e[5]===1?1:0); if(!v)return; const n=SB.names[e[0]].replace(/[*~]+$/,""), k=c[0]+"|"+lv; (tot[k]=tot[k]||{})[n]=(tot[k][n]||0)+v})});
   return tot}
+// how close the site's math comes to Rodman's: his points against the site's for the same 10 weeks
+function rkMatch(){if(rkMatch.d!==undefined)return rkMatch.d; rkMatch.d=null;
+  try{const m=String(RK_SHEET.weeks||"").match(/(\d+)\D+(\d+)/); if(!m)return null; const T=rkCompute(+m[2]), LT={Beginner:"B",Intermediate:"I",Advanced:"A",Masterclass:"M"}; let n=0,same=0;
+    (RK_SHEET.paths||[]).forEach((P,pi)=>P.levels.forEach(l=>{const t={}; Object.entries(T[pi+"|"+LT[l.level]]||{}).forEach(([k,v])=>t[lvKey(k)]=v); const seen={};
+      l.rows.filter(r=>r[3]!=="Out").forEach(r=>{const k=lvKey(r[1]); seen[k]=1; n++; if(t[k]===+r[2])same++});
+      Object.keys(t).forEach(k=>{if(!seen[k])n++})}));   // a player the site ranks and Rodman doesn't counts as a miss
+    if(n)rkMatch.d={weeks:m[1]+"–"+m[2],n,same}}catch(e){console.error(e)}
+  return rkMatch.d}
 function rkLiveData(){
   if(rkLiveData.d)return rkLiveData.d;
   const last=TW_LIVE?TW_LIVE-1:DATA_WEEK, now=rkCompute(last), prev=rkCompute(last-1), LV={B:"Beginner",I:"Intermediate",A:"Advanced",M:"Masterclass"};
@@ -6817,7 +6833,7 @@ function renderRankings(){
     $("rkpath").insertAdjacentHTML("afterbegin",`<button type="button" class="tier mine" data-rk="mine" aria-pressed="${on}" style="--pc:var(--s-yellow);--tc:var(--fg)" title="${on?"Showing":"Show"} only ${esc(me.n)}'s own class on Lead, Rhythm and Bass${on?" · click to show all levels":""}"><small>Your classes</small><b aria-hidden="true">👤</b><i>L · R · B</i></button>`)}}
   $("rkall").hidden=!rkLv.some(Boolean);
   {const m=String(RK.weeks||"").match(/(\d+)\D+(\d+)/);
-   $("rk-sub").innerHTML=RK.weeks?`<span class="rkweeks${rkLive?" live":""}" role="button" tabindex="0" data-tip="${rkLive?`Latest 10 finished weeks, worked out by the site from the scoreboards with Rodman's rules (main challenges only; the top 4 among players in that class or playing one class up get 10, 5, 3, 1 points, plus 1 for a 100% or Master Mode score). Rodman's own rankings may differ slightly. Click for Rodman's rankings (Weeks ${esc(RK_SHEET.weeks)})`:`Rodman's rankings for these 10 weeks, from his tab in the scoreboard sheet. Click for the latest 10 finished weeks, worked out by the site`}"><small>Weeks</small><b>${m?m[1]:esc(RK.weeks)}</b>${m?`<i>–</i><b>${m[2]}</b>`:""}<em>${rkLive?"Latest":"Rodman's"}</em></span><span class="rkupd"><span class="rkroll">A rolling 10-week performance indicator: points from the last 10 finished weeks<br>The top 4 on each challenge earn 10, 5, 3 and 1 points, plus 1 point for a 100% score or a Master Mode score (played from memory, no more than 2% below your own best)</span>${rkLive?"worked out by the site · may differ from Rodman's official rankings · tap for his":(()=>{const lw=(()=>{try{return rkLiveData().weeks}catch(e){return null}})(), upd=RK.updated?`updated ${esc(RK.updated)} · `:"";
+   $("rk-sub").innerHTML=RK.weeks?`<span class="rkweeks${rkLive?" live":""}" role="button" tabindex="0" data-tip="${rkLive?`Latest 10 finished weeks, worked out by the site from the scoreboards with Rodman's rules (main challenges only; the top 4 among players in that class or playing one class up get 10, 5, 3, 1 points, plus 1 for a 100% or Master Mode score). Rodman's own rankings may differ slightly. Click for Rodman's rankings (Weeks ${esc(RK_SHEET.weeks)})`:`Rodman's rankings for these 10 weeks, from his tab in the scoreboard sheet. Click for the latest 10 finished weeks, worked out by the site`}"><small>Weeks</small><b>${m?m[1]:esc(RK.weeks)}</b>${m?`<i>–</i><b>${m[2]}</b>`:""}<em>${rkLive?"Latest":"Rodman's"}</em></span><span class="rkupd"><span class="rkroll">A rolling 10-week performance indicator: points from the last 10 finished weeks<br>The top 4 on each challenge earn 10, 5, 3 and 1 points, plus 1 point for a 100% score or a Master Mode score (played from memory, no more than 2% below your own best)</span>${rkLive?`worked out by the site · may differ from Rodman's official rankings · tap for his${(()=>{const M=rkMatch(); return M?`<br>Checked against Rodman’s rankings for Weeks ${M.weeks}: the same points for ${M.same} of ${M.n} players (${Math.round(M.same/M.n*100)}%)`:""})()}`:(()=>{const lw=(()=>{try{return rkLiveData().weeks}catch(e){return null}})(), upd=RK.updated?`updated ${esc(RK.updated)} · `:"";
     return lw&&lw!==RK.weeks?`${upd}tap to see the latest weeks (${esc(lw)}), newer than this update`:`${upd}tap to see the latest weeks (the same as this update right now)`})()}</span>`:"Not available";}
   const L=RK.listed||[];
   // the sheet's "listed" total counts ranking places (a player ranked on two paths counts twice), so also show unique players
