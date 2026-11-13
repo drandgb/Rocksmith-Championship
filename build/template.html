@@ -723,7 +723,7 @@ span.hrdn{color:var(--s-red)!important}small.eloin{color:var(--s-green)!importan
 .acctdlg .hhol{display:inline-flex;flex-wrap:wrap;gap:4px;margin-left:8px;vertical-align:1px}.acctdlg .hhol .pill.hol{font-size:.72rem;padding:1px 7px}
 .acctdlg .claimtip{font-size:.84rem;border-left:3px solid var(--accent);background:color-mix(in srgb,var(--accent) 8%,transparent);padding:6px 10px;border-radius:0 6px 6px 0;margin:6px 0 10px}
 .acctdlg .apprhead{display:flex;align-items:center;justify-content:space-between;gap:8px}
-.acctsec>h3.admfoldh{cursor:pointer;user-select:none}.acctsec>h3.admfoldh .dlarw{color:var(--muted);font-size:.8em;margin-left:6px}.acctsec.admfolded>:not(h3:first-of-type){display:none!important}
+.acctsec>h3.admfoldh{cursor:pointer;user-select:none}.acctsec>h3.admfoldh .dlarw{color:var(--muted);font-size:.8em;margin-left:6px}.acctsec.admfolded>:not(h3:first-of-type){display:none!important}#view-thisweek .twfoldh{cursor:pointer;user-select:none}#view-thisweek .twfoldh .dlarw{color:var(--muted);font-size:.8em;margin-left:6px}#view-thisweek .twseasin .tsh .twfarw{cursor:pointer;color:var(--muted);padding:2px 8px;margin:-2px -6px -2px 0;font-size:.9em}#view-thisweek section.twfolded>:not(.panel-head):not(.twseasin),#view-thisweek .twfolded .twseasin>:not(.tsh),#view-thisweek section.twfolded>.panel-head>.sub{display:none!important}#view-thisweek section.twfolded .panel-head{margin-bottom:0}
 .acctdlg .btn.small{padding:3px 10px;font-size:.78rem}
 .acctdlg .fixlog .tylink{cursor:pointer}
 .acctdlg .ratelog li{display:block;padding:6px 0;border-bottom:1px solid var(--line);font-size:.84rem}
@@ -1927,15 +1927,15 @@ footer{color:var(--dim);font-size:.78rem}
     <ul class="twl cols" id="tw-med"></ul>
   </section>
   <section class="panel twseas" id="tw-seas" hidden></section>
+  <section class="panel elosec" hidden>
+    <div class="panel-head"><h2 id="tw-elo-h">🎯 Relative skill gains this week</h2><span class="sub" id="tw-elo-sub"></span></div>
+    <div class="elogrid" id="tw-elo"></div>
+  </section>
   <section class="panel glowrim" style="--rc:#ff4f5e">
     <div class="panel-head"><h2>⚔️ Rivals</h2><span class="sub" id="tw-riv-sub"></span></div>
     <div class="twpaths" id="tw-riv"></div>
   </section>
   <section class="panel twseas twrksec" id="tw-rksec" hidden></section>
-  <section class="panel elosec" hidden>
-    <div class="panel-head"><h2 id="tw-elo-h">🎯 Relative skill gains this week</h2><span class="sub" id="tw-elo-sub"></span></div>
-    <div class="elogrid" id="tw-elo"></div>
-  </section>
   <div class="twgrid4">
     <div class="twstack">
     <section class="panel vacation">
@@ -8096,6 +8096,21 @@ function admFold(root){const F=admFolds(); root.querySelectorAll(".acctsec>h3:fi
   if(!h.querySelector(".dlarw"))h.insertAdjacentHTML("beforeend",`<span class="dlarw"></span>`);
   const ar=h.querySelector(".dlarw"), tx=off?"▸":"▾", ti=off?"Show this section":"Hide this section";   // (only changed when different, so the watcher below doesn't loop)
   if(!h.classList.contains("admfoldh"))h.classList.add("admfoldh"); if(h.parentElement.classList.contains("admfolded")!==off)h.parentElement.classList.toggle("admfolded",off); if(ar.textContent!==tx)ar.textContent=tx; if(h.title!==ti)h.title=ti})}
+// This Week: every box can be folded down to its title (remembered on this device). Boxes that already fold
+// (the download list, past scores, goals) keep their own control; the week's title box doesn't fold (its Leading now box does).
+const TW_FOLD="rs-twfold", twFolds=()=>{try{return JSON.parse(lsGet(TW_FOLD)||"[]")}catch(e){return []}};
+function twFoldKey(sec){const h=sec.querySelector(".panel-head h2,.twseasin .tsn"); return sec.id||(h?h.textContent.replace(/[▾▸]/g,"").replace(/\d+/g,"#").trim():"")}
+function twFold(){const F=twFolds(); document.querySelectorAll("#view-thisweek section.panel,#twlead").forEach(sec=>{
+  if(sec.classList.contains("twhead")||sec.querySelector(".dlhead"))return;
+  const ph=[...sec.children].find(c=>c.classList.contains("panel-head")), h=ph&&ph.querySelector("h2"), tsh=!h&&sec.querySelector(".twseasin>.tsh"); if(!h&&!tsh)return;
+  const k=twFoldKey(sec); if(!k)return; const off=F.includes(k), tx=off?"▸":"▾", ti=off?"Show this box":"Hide this box";
+  if(sec.dataset.twfold!==k)sec.dataset.twfold=k; if(sec.classList.contains("twfolded")!==off)sec.classList.toggle("twfolded",off);
+  if(h){if(!h.classList.contains("twfoldh"))h.classList.add("twfoldh"); let ar=h.querySelector(".dlarw"); if(!ar){h.insertAdjacentHTML("beforeend",`<span class="dlarw"></span>`); ar=h.querySelector(".dlarw")} if(ar.textContent!==tx)ar.textContent=tx; if(h.title!==ti)h.title=ti}
+  else {let ar=tsh.querySelector(".twfarw"); if(!ar){tsh.insertAdjacentHTML("beforeend",`<span class="twfarw" role="button" tabindex="0"></span>`); ar=tsh.querySelector(".twfarw")} if(ar.textContent!==tx)ar.textContent=tx; if(ar.title!==ti)ar.title=ti}})}
+{let q=0; new MutationObserver(()=>{if(q)return; q=requestAnimationFrame(()=>{q=0; try{twFold()}catch(e){}})}).observe($("view-thisweek"),{childList:true,subtree:true})}
+$("view-thisweek").addEventListener("click",e=>{const t=e.target.closest(".twfoldh,.twfarw"); if(!t)return; const sec=t.closest("[data-twfold]"); if(!sec)return;
+  if(t.closest("a,button,select,input,[data-goplayer]")&&!t.classList.contains("twfarw"))return; e.preventDefault(); e.stopPropagation();
+  const k=sec.dataset.twfold, F=twFolds(), i=F.indexOf(k); if(i<0)F.push(k); else F.splice(i,1); lsSet(TW_FOLD,F.length?JSON.stringify(F):null); twFold()},true);
 // sections that redraw on their own (logs loading, ratings changing) get their title control back straight away
 {let q=0; new MutationObserver(()=>{if(q||!(ACCT.tab==="admin"||ACCT.tab==="host"))return; q=requestAnimationFrame(()=>{q=0; try{admFold($("acctbody"))}catch(e){}})}).observe($("acctbody"),{childList:true,subtree:true})}
 $("acctbody").addEventListener("change",async e=>{const t=e.target.closest("[data-rmset]"); if(!t)return;
