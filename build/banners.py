@@ -1,5 +1,6 @@
 # Forum signature banners for players with an approved profile claim.
 #   python3 build/banners.py [index.html] [cards dir]
+#   python3 build/banners.py --stamp [index.html] [cards dir]   (only update the page's link to the preview picture)
 # Reads the approved claims from the site's database (the same public read the site itself does), then screenshots
 # each player's banner from the built page in headless Chrome (bannerHtml() in the page, opened with ?banner=) into
 # cards/<slug>.png (700x150).
@@ -16,8 +17,26 @@ import html as htmlmod, json, os, re, shutil, sys, urllib.parse, urllib.request
 BANNER_VERSION = 56  # bump to redraw every banner after a design change
 
 root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-page = os.path.abspath(sys.argv[1] if len(sys.argv) > 1 else os.path.join(root, "index.html"))
-out = os.path.abspath(sys.argv[2] if len(sys.argv) > 2 else os.path.join(os.path.dirname(page), "cards"))
+stamp_only = "--stamp" in sys.argv
+args = [a for a in sys.argv[1:] if a != "--stamp"]
+page = os.path.abspath(args[0] if len(args) > 0 else os.path.join(root, "index.html"))
+out = os.path.abspath(args[1] if len(args) > 1 else os.path.join(os.path.dirname(page), "cards"))
+
+# The page's link to the preview picture carries a fingerprint of the picture itself (?v=…), so every redraw gets a
+# new link: Discord and other apps keep the first picture they saw for a link, forever, so a link that stayed the
+# same after a redraw kept showing the old picture. Done whenever this script ends, however it ends.
+import atexit, hashlib
+def og_stamp():
+    try:
+        png = os.path.join(out, "og", "site.png")
+        if not os.path.exists(png) or not os.path.exists(page): return
+        v = hashlib.md5(open(png, "rb").read()).hexdigest()[:10]
+        t = open(page, encoding="utf-8").read()
+        n = re.sub(r'(cards/og/site\.png)\?[^"]*', r'\g<1>?v=' + v, t)
+        if n != t: open(page, "w", encoding="utf-8").write(n); print(f"banners: link preview picture is now ?v={v}")
+    except Exception as e: print("banners: couldn't stamp the preview picture link:", e)
+atexit.register(og_stamp)
+if stamp_only: sys.exit(0)
 html = open(page, encoding="utf-8").read()
 
 def grab(pat):

@@ -38,9 +38,12 @@ jobs:
           else
             git config user.name  "github-actions[bot]"
             git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
+            git checkout -- index.html
             git add cards
             git commit -m "Forum banners for newly approved players"
             git pull --rebase -X theirs origin main
+            python3 build/banners.py --stamp index.html cards
+            if [ -n "$(git status --porcelain -- index.html)" ]; then git add index.html; git commit -m "Link preview picture link"; fi
             git push
             echo "changed=true" >> "$GITHUB_OUTPUT"
           fi
