@@ -775,7 +775,7 @@ span.hrdn{color:var(--s-red)!important}small.eloin{color:var(--s-green)!importan
 .card .prate b{color:var(--fg);font:700 .9rem var(--f-mono)}
 .card .prate select{background:var(--panel2);color:var(--fg);border:1px solid color-mix(in srgb,var(--tc) 55%,var(--line));border-radius:5px;padding:2px 6px;font:700 .8rem var(--f-mono);cursor:pointer}
 .card .prate .ok{color:#7dffb0}
-.card .diff.upd{border-color:color-mix(in srgb,var(--tc) 70%,var(--line));color:var(--tc);cursor:help}
+.card .diff.upd{border-color:color-mix(in srgb,var(--tc) 70%,var(--line));color:var(--tc);cursor:help}.diff.rc{border-color:color-mix(in srgb,var(--tc) 70%,var(--line));background:color-mix(in srgb,var(--tc) 14%,var(--panel2));color:var(--tc)}.diff .dlar{font-size:.5em;margin-right:3px;vertical-align:2px}
 .srate{display:inline-flex;align-items:center;font:700 .76rem var(--f-mono);padding:1px 7px;border-radius:5px;background:color-mix(in srgb,var(--pc) 14%,transparent);border:1px solid color-mix(in srgb,var(--pc) 55%,transparent);color:var(--pc);cursor:help;vertical-align:1px;margin-left:6px}
 .srate+.srate{margin-left:4px}
 .srate.xarr i{font-style:normal;font-size:.62rem;opacity:.8;margin-right:4px}
@@ -6526,10 +6526,7 @@ function renderDownloads(){
     const tip=cs.map(c=>`${PATHS[p]} ${c[2]}`).join(", ")+(tuneShow(cs[0][3],p)?` · tuning: ${tuneShow(cs[0][3],p)}`:"");
     // the song's current difficulty rating on that path (players' and hosts' average, else the scoreboard's rating)
     const R=(()=>{try{return songRating(arrP(w,p,cs[0][1]),cs[0][3])}catch(e){return null}})(), rt=R&&R.avg||(typeof cs[0][4]==="number"?cs[0][4].toFixed(1):null);
-    return `<span class="dlbx${me?" me":""}"${me?` style="--mc:${col(me)}"`:""} data-tip="${esc(tip)}${me?" · your class":""}${rt?esc(`\nDifficulty: ${rt}${R&&R.n?` (average of ${R.n} rating${R.n===1?"":"s"})`:""}`):""}">${"LRB"[p]}<b>${cs.map(c=>`<span style="color:${col(c)}">${cardLv(c[2])||"?"}${/bonus/i.test(c[2])?"<sup>+</sup>":""}</span>`).join("·")}</b>${rt?(()=>{// the arrow: the rating has moved out of the card's class range (▲ above it, ▼ below it)
-      const v=+rt, O="BIAMG", RNG={B:"1–3.5",I:"4–5.5",A:"6–7.5",M:"8–9.5",G:"10"}, k=v>=10?"G":v>=8?"M":v>=6?"A":v>=4?"I":"B", ki=O.indexOf(k);
-      const cl=cs.map(c=>O.indexOf(cardLv(c[2]))).filter(i=>i>=0), ar=!cl.length||cl.includes(ki)?"":ki>Math.max(...cl)?"▲":"▼", ref=O[ar==="▲"?Math.max(...cl):Math.min(...cl)];
-      return `<i class="dlrt" style="color:${k==="G"?"var(--t-god)":TIER_C[k]}">${ar?`<span class="dlar" data-tip="${esc(`${ar==="▲"?"Above":"Below"} the ${TIER_NAME[ref]||"God"} range (${RNG[ref]}): now rated like ${TIER_NAME[k]||"God"} (${RNG[k]})`)}">${ar}</span>`:""}${rt}</i>`})():""}</span>`};
+    return `<span class="dlbx${me?" me":""}"${me?` style="--mc:${col(me)}"`:""} data-tip="${esc(tip)}${me?" · your class":""}${rt?esc(`\nDifficulty: ${rt}${R&&R.n?` (average of ${R.n} rating${R.n===1?"":"s"})`:""}`):""}">${"LRB"[p]}<b>${cs.map(c=>`<span style="color:${col(c)}">${cardLv(c[2])||"?"}${/bonus/i.test(c[2])?"<sup>+</sup>":""}</span>`).join("·")}</b>${rt?(()=>{const M=rateMark(rt,cs.map(c=>cardLv(c[2]))); return M?`<i class="dlrt" style="color:${M.col}">${M.html}${rt}</i>`:`<i class="dlrt">${rt}</i>`})():""}</span>`};
   const fold=lsGet(DL_FOLD)===String(TW_MAX);
   el.innerHTML=`<div class="panel-head dlhead" data-dl="fold" title="${fold?"Show":"Hide"} the download list"><h2>⬇ Download Week ${w}'s songs<span class="dlarw">${fold?"▸":"▾"}</span></h2>
     <span class="sub">${list.length} song${list.length===1?"":"s"} for ${cards.length} challenge${cards.length===1?"":"s"}${T&&!fold?" · your classes are highlighted":""}</span></div>
@@ -6929,20 +6926,30 @@ function rateSelect(p,song,mine){
 function songVotes(p,song){return ((ACCT.songs||{})[p+"|"+acctSongKey(song)]||[]).slice().sort((a,b)=>a.p.localeCompare(b.p,undefined,{sensitivity:"base"}))}
 // Scoreboard badge: hover shows the host's initial ratings and every player's rating of the song on this path;
 // logged-in players click it to rate.
+// a difficulty rating's class range (Beginner 1–3.5, Intermediate 4–5.5, Advanced 6–7.5, Masterclass 8–9.5, God 10; in between
+// goes with the lower one), its color, and an arrow when it's out of the card's class range (▲ above it, ▼ below it).
+// cls: the class letters of the card(s) it's on
+const RATE_RNG={B:"1–3.5",I:"4–5.5",A:"6–7.5",M:"8–9.5",G:"10"};
+function rateMark(v,cls){v=+v; if(!(v>0))return null; const O="BIAMG", k=v>=10?"G":v>=8?"M":v>=6?"A":v>=4?"I":"B", ki=O.indexOf(k), nm=x=>TIER_NAME[x]||"God";
+  const cl=(cls||[]).map(c=>O.indexOf(c)).filter(i=>i>=0), ar=!cl.length||cl.includes(ki)?"":ki>Math.max(...cl)?"▲":"▼", ref=ar?O[ar==="▲"?Math.max(...cl):Math.min(...cl)]:"";
+  const tip=ar?`${ar==="▲"?"Above":"Below"} the ${nm(ref)} range (${RATE_RNG[ref]}): now rated like ${nm(k)} (${RATE_RNG[k]})`:"";
+  return {k,col:k==="G"?"var(--t-god)":TIER_C[k],ar,tip,html:ar?`<span class="dlar" data-tip="${esc(tip)}">${ar}</span>`:""}}
 function rateBadge(w,p,slot,diff,ents){
-  const plain=diff!=null?`<span class="diff" title="Difficulty rating">${diff}</span>`:"";
+  const card=(SB.weeks[w]||[]).find(c=>c[0]===p&&c[1]===slot), mk=v=>rateMark(v,card?[cardLv(card[2])]:[]);
+  const look=v=>{const M=mk(v); return M?{st:` style="--tc:${M.col}"`,cl:" rc",ar:M.html,tip:M.tip?"\n\n"+M.tip:""}:{st:"",cl:"",ar:"",tip:""}};
+  const plain=diff!=null?(()=>{const L=look(diff); return `<span class="diff${L.cl}"${L.st} ${L.tip?`data-tip="${esc("Difficulty rating"+L.tip)}"`:`title="Difficulty rating"`}>${L.ar}${diff}</span>`})():"";
   if(!acctOn())return plain;
   if(!ACCT.songs){acctLoadWeek();return plain}
-  const card=(SB.weeks[w]||[]).find(c=>c[0]===p&&c[1]===slot); if(!card||!card[3])return plain;
+  if(!card||!card[3])return plain;
   const rp=arrP(w,p,slot), sw=rp!=="LRB"[p]?`Rating for the song's ${arrName(rp)} arrangement (played on this ${PATHS[p]} challenge)\n\n`:"";
   const list=songVotes(rp,card[3]), can=acctCanRate(ents);
   const R=songRating(rp,card[3]);
   if(!R.n&&!can)return plain;
   const mine=can?list.find(v=>v.p===ACCT.claim.player):null, hostMine=can&&!mine?myHostRating(R):null;
   const tipTxt=sw+R.tip+(can?(mine?`\n\nYour rating: ${mine.r} · click to change`:hostMine?hostTip(hostMine):"\n\nClick to give your rating"):"");
-  const label=R.avg||(diff!=null?diff:"–");
-  if(!can)return `<span class="diff${list.length?" upd":""}" data-tip="${esc(tipTxt)}">${label}</span>`;
-  return `<span class="diff canrate${list.length?" upd":""}${mine||hostMine?" mine":""}" data-tip="${esc(tipTxt)}">${label}${rateSelect(rp,card[3],mine)}</span>`;
+  const label=R.avg||(diff!=null?diff:"–"), L=look(label);
+  if(!can)return `<span class="diff${list.length?" upd":""}${L.cl}"${L.st} data-tip="${esc(tipTxt+L.tip)}">${L.ar}${label}</span>`;
+  return `<span class="diff canrate${list.length?" upd":""}${mine||hostMine?" mine":""}${L.cl}"${L.st} data-tip="${esc(tipTxt+L.tip)}">${L.ar}${label}${rateSelect(rp,card[3],mine)}</span>`;
 }
 // the rating picker on a card, opened by clicking its difficulty badge
 function acctCard(){return ""} // (the rating dropdown lives inside the rating badge)
