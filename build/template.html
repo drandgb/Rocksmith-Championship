@@ -6325,7 +6325,14 @@ function svgFreshIds(h){const ids=[...new Set([...h.matchAll(/\bid="([^"]+)"/g)]
 // This Week: medal leaders (Players and Winners tabs) that changed this week, or would change with this week's scores so far.
 // Each new medal's hover says "+k this week (N all time)": N is the count after this week, N-k before it. Only for the
 // latest finished week and the week being played.
-function twMlChanges(w,live,med0){if(!(w===DATA_WEEK||(live&&w===DATA_WEEK+1)))return "";
+// Every finished week also gets a line for who collected the most medals that week.
+function twMlChanges(w,live,med0){
+  let most=""; if(!live&&w<=DATA_WEEK&&med0&&med0.length){const t=med0.map(x=>({n:x.n,k:medalTotal(x.m)})), mx=Math.max(0,...t.map(x=>x.k));
+    if(mx>0){const top=t.filter(x=>x.k===mx).map(x=>`<b class="nm" data-goplayer="${esc(x.n)}">${esc(x.n)}</b>`);
+      most=`<li>${top.length>1?top.slice(0,-1).join(", ")+" and "+top[top.length-1]+` tied for the most medals this week (${mx} each)`:`${top[0]} got the most medals this week (${mx})`}</li>`}}
+  const rest=twMlChanges1(w,live,med0); if(!most)return rest;
+  return rest?rest.replace("<ul>","<ul>"+most):`<div class="twmlh">🏅 Medal leaders this week</div><ul>${most}</ul>`}
+function twMlChanges1(w,live,med0){if(!(w===DATA_WEEK||(live&&w===DATA_WEEK+1)))return "";
   const gain={}; med0.forEach(x=>x.m.forEach(h=>{const tip=((/data-tip="([^"]*)"/.exec(h)||[])[1]||"").replace(/&#39;/g,"'").replace(/&quot;/g,'"').replace(/&amp;/g,"&"), parts=tip.split(" · "), m=/\+(\d+) this week \((\d+) all time\)/.exec(tip); if(!m||!parts[0])return;
     const key=parts[0]+(PATHS.includes(parts[1])?" · "+parts[1]:""); ((gain[key]=gain[key]||{})[x.n.toLowerCase()]={k:+m[1],N:+m[2]})}));
   const out=[];
