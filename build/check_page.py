@@ -36,7 +36,7 @@ except ImportError:
 TABS = ["thisweek", "level", "skill", "rankings", "season", "hosting", "players", "winners", "scores", "songs", "faq"]
 NOISE = re.compile(r"net::ERR|Failed to load resource|ERR_FAILED|ERR_ABORTED")
 SECTIONS = """v=>[...document.querySelectorAll('#view-'+v+' section')].map((s,i)=>{const h=s.querySelector('h2');
-  return {k:s.id||(h?h.textContent.trim().slice(0,40):'')||('#'+i), vis:!s.hidden&&s.offsetParent!==null, n:s.innerText.trim().length}})"""
+  return {k:s.id||(h?h.textContent.replace(/[▾▸]/g,"").trim().slice(0,40):'')||('#'+i), vis:!s.hidden&&s.offsetParent!==null, n:s.innerText.trim().length}})"""
 
 def visit(br, path, width, errors_too=True):
     pg = br.new_page(viewport={"width": width, "height": 900})
