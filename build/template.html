@@ -532,7 +532,7 @@ button.clear:hover{border-color:var(--accent)}
 .dlsec .yours{margin-left:8px;font:800 .6rem var(--f-display);letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
 .dlsec .dlbxs{display:flex;gap:6px;flex:none}
 .dlbx{display:inline-flex;align-items:baseline;justify-content:center;gap:4px;width:52px;box-sizing:border-box;font:700 10.5px/1 var(--f-display);letter-spacing:.06em;color:#8b93a7;border:1px solid var(--line);background:color-mix(in srgb,var(--panel) 80%,#000);border-radius:6px;padding:4px 3px;white-space:nowrap}
-.dlbx b{font:800 15px/1 var(--f-display)}.dlbx{flex-wrap:wrap;row-gap:3px}.dlbx .dlrt{flex-basis:100%;text-align:center;font:700 10.5px/1 var(--f-mono);font-style:normal;letter-spacing:0;color:var(--fg)}.dlbx .dlar{font-size:8px;margin-right:2px;vertical-align:1px}.dlbx sup{font-size:9px}
+.dlbx b{font:800 15px/1 var(--f-display)}.recpg{display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap;margin-top:12px;font-size:.85rem;color:var(--muted)}.recpg span{padding:0 6px;text-align:center}.recpg button{font:600 .8rem var(--f-body,inherit);padding:5px 11px;border-radius:7px;border:1px solid var(--line);background:var(--panel2);color:var(--fg);cursor:pointer}.recpg button:disabled{opacity:.35;cursor:default}#recentlist li{grid-template-columns:2.4em minmax(0,1fr) auto}@media (max-width:600px){.recpg span{flex-basis:100%;order:-1}}.dlbx{flex-wrap:wrap;row-gap:3px}.dlbx .dlrt{flex-basis:100%;text-align:center;font:700 10.5px/1 var(--f-mono);font-style:normal;letter-spacing:0;color:var(--fg)}.dlbx .dlar{font-size:8px;margin-right:2px;vertical-align:1px}.dlbx sup{font-size:9px}
 .dlbx.me{border-color:var(--mc);background:color-mix(in srgb,var(--mc) 16%,var(--panel));box-shadow:0 0 8px color-mix(in srgb,var(--mc) 45%,transparent);color:var(--fg)}
 .dlsec{--tc:var(--accent)}
 .dlsec .dlpill{flex:none;width:118px;display:flex;justify-content:flex-end}
@@ -2047,8 +2047,9 @@ footer{color:var(--dim);font-size:.78rem}
   <section class="now" id="songstats" aria-label="Song totals"></section>
 
   <section class="panel">
-    <div class="panel-head"><h2>Recently played</h2><span class="sub">The 20 songs played most recently · latest week first</span></div>
+    <div class="panel-head"><h2>Recently played</h2><span class="sub" id="recsub">Every song by the last week it was played · latest week first</span></div>
     <ol class="songlist" id="recentlist"></ol>
+    <div class="recpg" id="recpg"></div>
   </section>
 
   <div class="grid2 even">
@@ -5624,12 +5625,9 @@ function renderSongs(){
     const byWk={}; v.forEach(c=>(c.who||[]).forEach(n=>{const m=(byWk[c.w]=byWk[c.w]||{});(m[n]=m[n]||new Set()).add(c.p)}));
     const tipTxt=`${ti} — ${Object.keys(who).length} players\n`+Object.keys(byWk).map(Number).sort((a,b)=>b-a).map(w=>`\nWeek ${w}\n`+Object.entries(byWk[w]).sort((a,b)=>b[1].size-a[1].size||a[0].localeCompare(b[0])).map(([n,ps])=>`• ${n} · ${[...ps].sort().map(p=>PATHS[p]).join(", ")}`).join("\n")).join("\n");
     return `<li data-tip="${esc(tipTxt)}"><div><b class="songlink" data-band="${esc(a)}" data-song="${esc(ti)}">${esc(ti)}</b><small><span data-band="${esc(a)}" class="bandlink">${esc(a)}</span> · ${v.length} challenge${v.length===1?"":"s"}</small><div class="chips">${tiers.map(t=>lvPill(t,"lvp",lvlPlayed)).join("")}${songRateBox(v)}</div></div><span class="cnt">${songPill(sg,IG_LATEST(sg))}<b>${songAvg?n.toFixed(1):n}</b>${songAvg?"players per challenge":"players attempted"}</span></li>`}).join("");
-  // recently played: each song's latest week, newest first; players = different players on it that week
-  {const rec=Object.entries(songs).map(([sg,v])=>{const lw=Math.max(...v.map(c=>c.w)), lc=v.filter(c=>c.w===lw); return [sg,lw,lc,v]}).sort((a,b)=>b[1]-a[1]||Math.min(...a[2].map(c=>c.p*9+(c.slot||0)))-Math.min(...b[2].map(c=>c.p*9+(c.slot||0)))).slice(0,20);
-   $("recentlist").innerHTML=rec.map(([sg,lw,lc,v])=>{const [a,ti]=splitSong(sg), who=new Set(lc.flatMap(c=>c.who||[])), known=lc.some(c=>c.who);
-     const tiers=[...new Set(lc.map(c=>c.t))].sort((x,y)=>TIER_ORDER.indexOf(x)-TIER_ORDER.indexOf(y));
-     const tipTxt=`${ti} — Week ${lw}\n`+lc.map(c=>`${PATHS[c.p]} ${TIER_LABEL[c.t]}${c.diff!=null?" ("+c.diff+")":""}`).join("\n");
-     return `<li data-tip="${esc(tipTxt)}"><div><b class="songlink" data-band="${esc(a)}" data-song="${esc(ti)}">${esc(ti)}</b><small><span data-band="${esc(a)}" class="bandlink">${esc(a)}</span> · week ${lw}</small><div class="chips">${tiers.map(t=>`<span class="lvchip" style="--tc:${TIER_COL[t]}">${TIER_SHORT[t]||TIER_LABEL[t]}</span>`).join("")}${songRateBox(lc)}</div></div><span class="cnt">${songPill(sg,IG_LATEST(sg))}<b>${known?who.size:"–"}</b>players attempted</span></li>`}).join("")||`<li class="empty">No songs on record for ${esc(sHost||"this filter")}.</li>`}
+  // recently played: each song's latest week, newest first, in pages of 20 back to the earliest records
+  REC_LIST=Object.entries(songs).map(([sg,v])=>{const lw=Math.max(...v.map(c=>c.w)), lc=v.filter(c=>c.w===lw); return [sg,lw,lc]}).sort((a,b)=>b[1]-a[1]||Math.min(...a[2].map(c=>c.p*9+(c.slot||0)))-Math.min(...b[2].map(c=>c.p*9+(c.slot||0))));
+  renderRecent();
   // a multi-week God challenge (same song in back-to-back weeks as a God challenge) counts as one play
   const plays=(ws,v)=>{let n=0,prev=null;const god=w=>v.some(c=>c.w===w&&c.card==="G");ws.forEach(w=>{if(!(prev!=null&&w===prev+1&&god(w)&&god(prev)))n++;prev=w});return n};
   const replay=byLvl(lvlReplay).map(([sg,v])=>{const ws=[...new Set(v.map(c=>c.w))].sort((a,b)=>a-b);return [sg,ws,v,plays(ws,v)]}).filter(x=>x[3]>1).sort((a,b)=>b[3]-a[3]||b[1][b[1].length-1]-a[1][a[1].length-1]).slice(0,20);
@@ -5641,6 +5639,19 @@ function renderSongs(){
   if(featured.length)showBand(bandName&&bands[bandName]?bandName:featured[0][0]); else $("bcard").innerHTML=`<div class="empty">No songs on record for ${esc(sHost||"this filter")}.</div>`;
   try{localStorage.setItem("rsc-spath",String(sPath))}catch(e){}
 }
+let REC_LIST=[], recPage=0; const REC_N=20;
+function renderRecent(){const n=Math.max(1,Math.ceil(REC_LIST.length/REC_N)); recPage=Math.max(0,Math.min(recPage,n-1));
+  const page=REC_LIST.slice(recPage*REC_N,recPage*REC_N+REC_N);
+  $("recentlist").style.counterReset=`r ${recPage*REC_N}`;
+  $("recentlist").innerHTML=page.map(([sg,lw,lc])=>{const [a,ti]=splitSong(sg), who=new Set(lc.flatMap(c=>c.who||[])), known=lc.some(c=>c.who);
+    const tiers=[...new Set(lc.map(c=>c.t))].sort((x,y)=>TIER_ORDER.indexOf(x)-TIER_ORDER.indexOf(y));
+    const tipTxt=`${ti} — Week ${lw}\n`+lc.map(c=>`${PATHS[c.p]} ${TIER_LABEL[c.t]}${c.diff!=null?" ("+c.diff+")":""}`).join("\n");
+    return `<li data-tip="${esc(tipTxt)}"><div><b class="songlink" data-band="${esc(a)}" data-song="${esc(ti)}">${esc(ti)}</b><small><span data-band="${esc(a)}" class="bandlink">${esc(a)}</span> · week ${lw}</small><div class="chips">${tiers.map(t=>`<span class="lvchip" style="--tc:${TIER_COL[t]}">${TIER_SHORT[t]||TIER_LABEL[t]}</span>`).join("")}${songRateBox(lc)}</div></div><span class="cnt">${songPill(sg,IG_LATEST(sg))}<b>${known?who.size:"–"}</b>players attempted</span></li>`}).join("")||`<li class="empty">No songs on record for ${esc(sHost||"this filter")}.</li>`;
+  const wk=page.length?(page[0][1]===page[page.length-1][1]?`week ${page[0][1]}`:`weeks ${page[0][1]}–${page[page.length-1][1]}`):"";
+  const bt=(to,lab,ti)=>`<button type="button" data-recpg="${to}"${to===recPage||to<0||to>=n?" disabled":""} title="${ti}">${lab}</button>`;
+  $("recpg").innerHTML=n>1?`${bt(0,"«","Newest")}${bt(recPage-1,"‹ Newer","Newer songs")}<span>Page ${recPage+1} of ${n}${wk?` · ${wk}`:""}</span>${bt(recPage+1,"Older ›","Older songs")}${bt(n-1,"»","Earliest records")}`:""}
+document.addEventListener("click",e=>{const b=e.target.closest("[data-recpg]"); if(!b||b.disabled)return; recPage=+b.dataset.recpg; renderRecent();
+  const h=$("recentlist").closest("section"), r=h.getBoundingClientRect(); if(r.top<0)scrollTo({top:scrollY+r.top-70,behavior:"smooth"})});
 // Song lookup: search the titles of every song played (this path, this host), and/or filter by tuning (Song Selection List)
 let sqQ="", sqTun="";
 function renderSongLookup(){const el=$("sqres"); if(!el)return;
