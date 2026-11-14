@@ -2244,7 +2244,8 @@ const tuneKey=song=>String(song||"").toLowerCase().replace(/[^a-z0-9]+/g," ").tr
 // the tuning of a song on a path: an admin's fix first, then the Song Selection List
 // a tuning is always shown with every word's first letter capitalized (Drop D, E Standard), however it was typed in the sheet
 // or on the site, so "drop D" and "Drop D" are one tuning everywhere (the Song lookup's tuning filter too)
-const tuneCap=t=>String(t||"").replace(/\s+/g," ").trim().split(" ").map(w=>w.charAt(0).toUpperCase()+w.slice(1)).join(" ");
+// ("testing" in the sheet's Tuning columns is leftover test data, not a tuning: it counts as no tuning)
+const tuneCap=t=>{const v=String(t||"").replace(/\s+/g," ").trim(); return /^testing$/i.test(v)?"":v.split(" ").map(w=>w.charAt(0).toUpperCase()+w.slice(1)).join(" ")};
 function tuneOf(song,p){if(!song)return ""; const k=tuneKey(song), f=TUNE_FIX[k+"|"+p]; if(f)return tuneCap(f.t); const t=TUNINGS[k]; return t&&t[p]?tuneCap(t[p]):""}
 // the capo fret an admin set for a song on a path (0 = none), and the tuning as shown, with the capo
 const capoOf=(song,p)=>{const f=song&&TUNE_FIX[tuneKey(song)+"|"+p]; return f&&f.c>0?f.c:0};
@@ -2256,7 +2257,7 @@ function canTune(w){try{if(!acctOn())return false; if(ACCT.admin)return true; co
 document.addEventListener("click",async e=>{const b=e.target.closest("[data-tunfix]");
   if(b){e.stopPropagation(); const song=b.dataset.tunfix, p=+b.dataset.tunp, wk=b.dataset.tunw, cur=tuneOf(song,p), fx=TUNE_FIX[tuneKey(song)+"|"+p];
     // spellings that only differ in capitals ("E standard") count as one, written the way it's used most
-    const cnt={}; [...Object.values(TUNINGS).flatMap(x=>x.filter(Boolean)),...Object.values(TUNE_FIX).map(x=>x.t)].map(tuneCap).forEach(t=>{const k=t.toLowerCase(); (cnt[k]=cnt[k]||{})[t]=(cnt[k][t]||0)+1});
+    const cnt={}; [...Object.values(TUNINGS).flatMap(x=>x.filter(Boolean)),...Object.values(TUNE_FIX).map(x=>x.t)].map(tuneCap).filter(Boolean).forEach(t=>{const k=t.toLowerCase(); (cnt[k]=cnt[k]||{})[t]=(cnt[k][t]||0)+1});
     const all=Object.values(cnt).map(o=>Object.keys(o).sort((a,b)=>o[b]-o[a])[0]).sort((a,b)=>a.localeCompare(b,undefined,{sensitivity:"base"}));
     if(cur&&!all.includes(cur)){const i=all.findIndex(t=>t.toLowerCase()===cur.toLowerCase()); i>=0?all.splice(i,1,cur):all.push(cur)}
     const ed=document.createElement("span"); ed.className="tunedit"; ed.dataset.song=song; ed.dataset.p=p; ed.dataset.w=wk;
