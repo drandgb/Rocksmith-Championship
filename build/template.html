@@ -8054,7 +8054,7 @@ document.addEventListener("change",e=>{const i=e.target.closest("[data-bnapv]");
 // Admin tab: Fetch the latest scores. Asks the scoreboard sheet's own script (drandTools, section 10) to run its
 // "Faster fetch the latest scores" for the newest week and then update the website. The script checks that the
 // caller is logged in here as an admin. FETCH_URL is that script's web app address; while it's empty the section isn't shown.
-const FETCH_URL="";
+const FETCH_URL="https://script.google.com/macros/s/AKfycbzEW2FLXFznFWjW8cKlhMuUEobKPq4LVxWq9nnYzkbEZXrjkSWiLxVnXFdKj73IPdiTkA/exec";
 let FETCH_ST={busy:false,res:null,at:0};
 function fetchSection(){if(!FETCH_URL||!ACCT.admin)return ""; const S=FETCH_ST, r=S.res, pl=(n,w)=>`${n} ${w}${n===1?"":"s"}`;
   const when=S.at?new Date(S.at).toLocaleTimeString("en-US",{hour:"numeric",minute:"2-digit"}):"";
