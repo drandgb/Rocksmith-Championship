@@ -1161,7 +1161,7 @@ footer .updated{display:block;margin-top:4px}
 .twcalrow{display:flex;align-items:stretch;gap:20px;flex-wrap:wrap;margin:12px 0 4px}.twcalrow .twcal{margin:0;flex:0 1 400px}.twcalside{padding-top:2px;flex:1 1 320px;display:flex;flex-direction:column;gap:12px;min-width:0}.twstatrow{display:flex;align-items:center;justify-content:space-between;gap:10px 16px;flex-wrap:wrap;margin-top:12px}.twstatrow .twstats{margin-top:0}.twstatrow #twsb{margin-left:auto;white-space:nowrap}
 .twlead{margin:0}.twlead .tsg{grid-template-columns:repeat(3,minmax(0,1fr))}@media(max-width:1000px){.twlead .tsg{grid-template-columns:1fr}}.twlead .twseasin{cursor:default}.twlead li{grid-template-columns:40px minmax(0,1fr) auto;gap:4px;font-size:.8rem}.twlead li b{font-size:.74rem}.twlead .lvchip{padding:1px 3px;font-size:.6rem}.twlead .tsg{gap:6px 12px}.twlead .dim{color:var(--dim)}.twlead .wlost{color:var(--muted);font-size:.74rem;font-weight:700;letter-spacing:.02em}.twcalside .clear{white-space:nowrap}@media (max-width:520px){.twcalside{flex:1 1 100%}.twcalside .clear{width:100%}}
 .twcal{margin:12px 0 4px;max-width:440px}
-.twcal .tch{display:flex;align-items:center;gap:8px;margin-bottom:8px}.twcal .tch b{flex:1;text-align:center;font-size:1rem}
+.twcal .tch{display:flex;align-items:center;gap:8px;margin-bottom:8px}.twcal .tch b{flex:1;text-align:center;font-size:1rem}.twcal .tch b select{font:inherit;font-weight:700}
 .twcal .tch select{background:var(--panel2);color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:4px 6px}
 .twcal .tch .twarrow{width:30px;height:30px;font-size:1.1rem}
 .twcal table{width:100%;border-collapse:separate;border-spacing:0 3px;font-size:.85rem}
@@ -6619,7 +6619,7 @@ function renderThisWeek(){
   // the › arrow glows when next week's songs are up to preview
   $("twnext").classList.toggle("glow",w===TW_MAX&&!!TW_NEXT); $("twnext").title=w===TW_MAX&&TW_NEXT?`Preview next week (Week ${TW_NEXT})`:"Next week";
   $("twnow").hidden=w===TW_MAX; $("twsb").hidden=!SB.weeks[w]; $("twsb").dataset.sbw=w; $("twsb").title=`Open week ${w} on the Scoreboard`; $("twnow").textContent=`Back to ${TW_LIVE?"this":"the latest"} week (${TW_MAX}) ›`;
-  const start=W?new Date(W[1]+"T12:00:00"):null, end=start?new Date(start.getTime()+6*864e5):null;
+  const start=W?new Date(W[1]+"T12:00:00"):null, end=start?new Date(start.getTime()+7*864e5):null;   // a week ends on the day the next one starts
   const left=end?Math.ceil((new Date(W[1]+"T00:00:00").getTime()+7*864e5-Date.now())/864e5):0;
   $("tw-title").innerHTML=`${SB.weeks[w]?`<span class="golink" data-sbw="${w}" title="Open this week on the Scoreboard">Week ${w}</span>`:`Week ${w}`}${live?' <span class="pill new" style="width:auto">IN PROGRESS</span>':' <span class="pill done" style="width:auto">CONCLUDED</span>'}`;
   $("tw-meta").innerHTML=W?`${fmtShort(W[1])} – ${fmt(iso(end))}${W[2]&&W[2]!==LOST?` · hosted by <span class="nm" data-name="${esc(W[2])}" data-gohost="${esc(W[2])}" style="cursor:pointer;font-weight:700;color:var(--fg)">${esc(W[2])}</span>`:""}${live&&closeFor(w)?"":live&&left>0?` · ${twPl(left,"day")} left`:""}`:"";
@@ -6746,7 +6746,7 @@ let twCalM=null;   // first day of the month shown
 function twWkOf(d){const s0=new Date(WEEKS[0][1]+"T12:00:00"); return WEEKS[0][0]+Math.floor((d-s0)/(7*864e5))}
 function twWkStart(w){return new Date(weekAt(w-WEEKS[0][0])[1]+"T12:00:00")}
 function renderTwCal(){const el=$("twcal"); if(!el||el.hidden)return;
-  const hi=TW_NEXT||TW_MAX, minD=twWkStart(TW_MIN), maxD=new Date(twWkStart(hi).getTime()+6*864e5);
+  const hi=TW_NEXT||TW_MAX, minD=twWkStart(TW_MIN), maxD=new Date(twWkStart(hi).getTime()+7*864e5);
   if(!twCalM){const d=twWkStart(twWeek); twCalM=new Date(d.getFullYear(),d.getMonth(),1,12)}
   const y=twCalM.getFullYear(), m=twCalM.getMonth(), first=new Date(y,m,1,12), last=new Date(y,m+1,0,12);
   const s0=new Date(WEEKS[0][1]+"T12:00:00"), dow=s0.getDay(), today=iso(new Date());
@@ -6761,11 +6761,12 @@ function renderTwCal(){const el=$("twcal"); if(!el||el.hidden)return;
       return `<td class="${cls}${i===0&&w===twWeek+1?" ovl":i===0&&w===twWeek?" ovs":""}">${d.getDate()}</td>`}).join("")}</tr>`); w++}
   const ys=[]; for(let k=maxD.getFullYear();k>=minD.getFullYear();k--)ys.push(k);
   const canPrev=first>minD, canNext=last<maxD;
-  el.innerHTML=`<div class="tch"><button type="button" class="twarrow" data-twcalm="-1" aria-label="Previous month"${canPrev?"":" disabled"}>‹</button><b>${first.toLocaleString(undefined,{month:"long"})}</b><select data-twcaly aria-label="Year">${ys.map(k=>`<option${k===y?" selected":""}>${k}</option>`).join("")}</select><button type="button" class="twarrow" data-twcalm="1" aria-label="Next month"${canNext?"":" disabled"}>›</button></div>
+  el.innerHTML=`<div class="tch"><button type="button" class="twarrow" data-twcalm="-1" aria-label="Previous month"${canPrev?"":" disabled"}>‹</button><b><select data-twcalmo aria-label="Month">${[...Array(12)].map((_,k)=>{const a=new Date(y,k,1,12), z=new Date(y,k+1,0,12); return `<option value="${k}"${k===m?" selected":""}${z<minD||a>maxD?" disabled":""}>${a.toLocaleString(undefined,{month:"long"})}</option>`}).join("")}</select></b><select data-twcaly aria-label="Year">${ys.map(k=>`<option${k===y?" selected":""}>${k}</option>`).join("")}</select><button type="button" class="twarrow" data-twcalm="1" aria-label="Next month"${canNext?"":" disabled"}>›</button></div>
     <table><thead><tr><th></th>${[...Array(7)].map((_,i)=>`<th>${DN[(dow+i)%7]}</th>`).join("")}</tr></thead><tbody>${rows.join("")}</tbody></table>`}
 $("twcal").addEventListener("click",e=>{const mb=e.target.closest("[data-twcalm]"); if(mb){twCalM=new Date(twCalM.getFullYear(),twCalM.getMonth()+ +mb.dataset.twcalm,1,12); renderTwCal(); return}
   const r=e.target.closest("[data-twcal]"); if(!r)return; twWeek=+r.dataset.twcal; renderThisWeek()});
-$("twcal").addEventListener("change",e=>{if(!e.target.matches("[data-twcaly]"))return; twCalM=new Date(+e.target.value,twCalM.getMonth(),1,12); renderTwCal()});
+$("twcal").addEventListener("change",e=>{if(e.target.matches("[data-twcalmo]")){twCalM=new Date(twCalM.getFullYear(),+e.target.value,1,12); renderTwCal(); return}
+  if(!e.target.matches("[data-twcaly]"))return; twCalM=new Date(+e.target.value,twCalM.getMonth(),1,12); renderTwCal()});
 $("twprev").addEventListener("click",()=>{if(twWeek>TW_MIN){twWeek--;renderThisWeek()}});
 $("twnext").addEventListener("click",()=>{if(twWeek<TW_MAX){twWeek++;renderThisWeek()}else if(TW_NEXT&&twWeek===TW_MAX){twWeek=TW_NEXT;renderThisWeek()}});
 $("twnow").addEventListener("click",()=>{twWeek=TW_MAX;renderThisWeek()});
