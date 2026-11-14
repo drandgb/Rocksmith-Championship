@@ -6616,7 +6616,9 @@ function renderTwTheme(w){const el=$("tw-theme"); if(!el)return; const live=w>DA
   el.innerHTML=`<i class="trimspk t1"></i><i class="trimspk t2"></i><i class="trimspk t3"></i><i class="trimspk t4"></i><div class="panel-head"><h2>🎖️ Special medal${got.length>1?"s":""} up for grabs</h2></div><ul class="twthl">${got.map(({T,cs})=>{const songs=[...new Set(cs.map(c=>c[3]))];
     return `<li><span class="medal-m wm" style="--ec:${T.col}">${uniqIds(T.svg(),[T.id])}</span><div><b>${esc(T.name)}</b> · a special medal for scoring ${esc(T.what)}.<br>To get it: score ${T.best?(b=>b>T.over+.5?`${b}%`:`over ${T.over}%`)(themeBar(T.re,T.over,T.best,1e9)):T.over!=null?`over ${T.over}%`:"100%"} on ${songs.map(sg=>`<b>${esc(sg)}</b> (${cs.filter(c=>c[3]===sg).map(c=>`${PATHS[c[0]]} ${c[2]}`).join(", ")})`).join(" or ")}, in any class.${T.note?` ${esc(T.note)}.`:""}</div></li>`}).join("")}</ul>`}
 function renderThisWeek(){
-  try{const d=twWkStart(twWeek); twCalM=new Date(d.getFullYear(),d.getMonth(),1,12); renderTwCal()}catch(e){}
+  // the calendar stays on the month it's showing when that month already has the week's row; otherwise it goes to the week's month
+  try{const d=twWkStart(twWeek), f=twCalM, l=f&&new Date(f.getFullYear(),f.getMonth()+1,0,12);
+    if(!f||d>l||new Date(d.getTime()+6*864e5)<f)twCalM=new Date(d.getFullYear(),d.getMonth(),1,12); renderTwCal()}catch(e){}
   try{renderTwLead()}catch(e){console.error(e)}
   setTimeout(()=>{try{twGoals()}catch(e){console.error(e)}renderNewWeekNote();renderTwPast();renderDownloads();try{renderTwElo()}catch(e){console.error(e)}try{renderTwRk()}catch(e){console.error(e)}},0);
   renderHostWarn(); if(renderNextPreview())return;
