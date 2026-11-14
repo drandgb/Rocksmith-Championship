@@ -723,7 +723,7 @@ span.hrdn{color:var(--s-red)!important}small.eloin{color:var(--s-green)!importan
 .acctdlg .hhol{display:inline-flex;flex-wrap:wrap;gap:4px;margin-left:8px;vertical-align:1px}.acctdlg .hhol .pill.hol{font-size:.72rem;padding:1px 7px}
 .acctdlg .claimtip{font-size:.84rem;border-left:3px solid var(--accent);background:color-mix(in srgb,var(--accent) 8%,transparent);padding:6px 10px;border-radius:0 6px 6px 0;margin:6px 0 10px}
 .acctdlg .apprhead{display:flex;align-items:center;justify-content:space-between;gap:8px}
-.acctsec>h3.admfoldh{cursor:pointer;user-select:none}.acctsec>h3.admfoldh .dlarw{color:var(--muted);font-size:.8em;margin-left:6px}.acctsec.admfolded>:not(h3:first-of-type){display:none!important}#view-thisweek .twfoldh{cursor:pointer;user-select:none}#view-thisweek .twfoldh .dlarw{color:var(--muted);font-size:.8em;margin-left:6px}#view-thisweek .twseasin .tsh .twfarw{cursor:pointer;color:var(--muted);padding:2px 8px;margin:-2px -6px -2px 0;font-size:.9em}#view-thisweek section.twfolded>:not(.panel-head):not(.twseasin),#view-thisweek .twfolded .twseasin>:not(.tsh),#view-thisweek section.twfolded>.panel-head>.sub{display:none!important}#view-thisweek section.twfolded .panel-head{margin-bottom:0}
+.acctsec>h3.admfoldh{cursor:pointer;user-select:none}.acctsec>h3.admfoldh .dlarw{color:var(--muted);font-size:.8em;margin-left:6px}.acctsec.admfolded>:not(h3:first-of-type){display:none!important}#view-thisweek .twfoldh{cursor:pointer;user-select:none}#view-thisweek .twfoldh .dlarw{color:var(--muted);font-size:.8em;margin-left:6px}#view-thisweek .twseasin .tsh .twfarw{cursor:pointer;color:var(--muted);padding:2px 8px;margin:-2px 0 -2px -10px;font-size:.9em}#view-thisweek .twseasin .tsh>span:not(.tsn):not(.twfarw):not(.golink){flex-basis:100%;order:9}#view-thisweek .twfolded .twseasin .tsh>:not(.tsn):not(.twfarw){display:none!important}#view-thisweek section.twfolded>:not(.panel-head):not(.twseasin),#view-thisweek .twfolded .twseasin>:not(.tsh),#view-thisweek section.twfolded>.panel-head>.sub{display:none!important}#view-thisweek section.twfolded .panel-head{margin-bottom:0}
 .acctdlg .btn.small{padding:3px 10px;font-size:.78rem}
 .acctdlg .fixlog .tylink{cursor:pointer}
 .acctdlg .ratelog li{display:block;padding:6px 0;border-bottom:1px solid var(--line);font-size:.84rem}
@@ -1444,7 +1444,7 @@ footer .updated{display:block;margin-top:4px}
 .twrkl{border-left:3px solid var(--tc);padding:2px 0 2px 8px;margin:0 0 8px}.twrkl h4{margin:0 0 3px;font:800 .66rem var(--f-display);letter-spacing:.1em;text-transform:uppercase;color:var(--tc)}
 .twrkl ol{list-style:none;margin:0;padding:0}.twrkl li{display:grid;grid-template-columns:22px minmax(0,1fr) auto 30px;gap:6px;align-items:center;font-size:.88rem;padding:2px 0}
 .twrkl .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer}.twrkl .pts{font:700 .85rem var(--f-mono);color:var(--fg)}.twrkl .chg{font-size:.72rem;text-align:right;color:var(--muted)}.twrkl .chg.up{color:var(--s-green)}.twrkl .chg.down{color:var(--s-red)}.twrkl .chg.new{color:var(--s-yellow)}
-.twrksec .golink{color:var(--s-yellow);font-weight:600;cursor:pointer}
+.twrksec .golink{color:var(--s-yellow);font-weight:600;cursor:pointer}.tsgo{margin:0 0 8px;font-size:.9rem}.tsgo .golink{color:var(--s-yellow);font-weight:600;cursor:pointer}.elosec .tsgo{margin:-4px 0 12px}
 .twpaths{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:16px;align-items:start}
 .twpath li.riv:not(.even){border:1.5px solid color-mix(in srgb,var(--pc) 75%,var(--line));background:color-mix(in srgb,var(--pc) 9%,var(--panel2));box-shadow:0 0 8px color-mix(in srgb,var(--pc) 28%,transparent),inset 0 0 10px color-mix(in srgb,var(--pc) 10%,transparent)}
 .twpath li.riv .vs{color:var(--pc)}
@@ -1929,6 +1929,7 @@ footer{color:var(--dim);font-size:.78rem}
   <section class="panel twseas" id="tw-seas" hidden></section>
   <section class="panel elosec" hidden>
     <div class="panel-head"><h2 id="tw-elo-h">🎯 Relative skill gains this week</h2><span class="sub" id="tw-elo-sub"></span></div>
+    <div class="tsgo"><span class="golink" data-goskill role="button" tabindex="0" title="Open the Skill tab">All skills ›</span></div>
     <div class="elogrid" id="tw-elo"></div>
   </section>
   <section class="panel glowrim" style="--rc:#ff4f5e">
@@ -6558,7 +6559,7 @@ function renderDownloads(){
     return `<span class="dlbx${me?" me":""}"${me?` style="--mc:${col(me)}"`:""} data-tip="${esc(tip)}${me?" · your class":""}${rt?esc(`\nDifficulty: ${rt}${R&&R.n?` (average of ${R.n} rating${R.n===1?"":"s"})`:""}`):""}">${"LRB"[p]}<b>${cs.map(c=>`<span style="color:${col(c)}">${cardLv(c[2])||"?"}${/bonus/i.test(c[2])?"<sup>+</sup>":""}</span>`).join("·")}</b>${rt?(()=>{const M=rateMark(rt,cs.map(c=>cardLv(c[2]))); return M?`<i class="dlrt" style="color:${M.col}">${M.html}${rt}</i>`:`<i class="dlrt">${rt}</i>`})():""}</span>`};
   const fold=lsGet(DL_FOLD)===String(TW_MAX);
   el.innerHTML=`<div class="panel-head dlhead" data-dl="fold" title="${fold?"Show":"Hide"} the download list"><h2>⬇ Download Week ${w}'s songs<span class="dlarw">${fold?"▸":"▾"}</span></h2>
-    <span class="sub">${list.length} song${list.length===1?"":"s"} for ${cards.length} challenge${cards.length===1?"":"s"}${T&&!fold?" · your classes are highlighted":""}</span></div>
+    ${fold?"":`<span class="sub">${list.length} song${list.length===1?"":"s"} for ${cards.length} challenge${cards.length===1?"":"s"}${T?" · your classes are highlighted":""}</span>`}</div>
     ${fold?"":`<ul>${list.map(s=>{const pill=songPill(s.song,s.id);
       return `<li class="${s.my?"mine":""}"><span class="dls">${esc(s.song)}${s.my?`<span class="yours">yours</span>`:""}${dlTune(s)}</span><span class="dlbxs">${[0,1,2].map(p=>box(p,s.ch.filter(c=>c[0]===p))).join("")}</span><span class="dlpill">${pill}</span></li>`}).join("")}</ul>`}`;
   el.hidden=false;
@@ -6578,13 +6579,14 @@ function renderTwRk(){const w=twWeek, last=w===TW_LIVE?w-1:w, sec=$("tw-rksec");
   const now=rkCompute(last), prev=rkCompute(last-1), LV=[["M","Masterclass"],["A","Advanced"],["I","Intermediate"],["B","Beginner"]];
   const ranked=o=>{const r=Object.entries(o||{}).sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0],undefined,{sensitivity:"base"})); let k=0; return r.map(([n,p],i)=>{if(i===0||p<r[i-1][1])k=i+1; return [k,n,p]})};
   // laid out like the Season box above: a heading line, then a column per path with each class's leader (shared firsts joined by =)
-  const head=`<div class="tsh"><span class="tsn">👑 Rodman’s Rankings</span><span>weeks ${last-9}–${last}</span><span class="golink">All rankings ›</span></div>`;
+  const head=`<div class="tsh"><span class="tsn">👑 Rodman’s Rankings</span><span>weeks ${last-9}–${last}</span></div>`;
   const cols=[0,1,2].map(pi=>{const rows=LV.map(([lv])=>{const N=ranked(now[pi+"|"+lv]), P={}; ranked(prev[pi+"|"+lv]).forEach(([k,n])=>P[n]=k);
       const top=N.filter(x=>x[0]===1); if(!top.length)return "";
       return `<li><span class="lvchip" style="--tc:${TIER_C[lv]}">${TIER_NAME[lv].slice(0,3)}</span><span class="tsl">${top.map(x=>"🥇 "+twName(x[1])).join(" = ")}</span><b>${top[0][2]}</b></li>`}).join("");
     return rows?`<div class="tsc" style="--pc:${PATH_C[pi]}"><h4>${PATHS[pi]}</h4><ul>${rows}</ul></div>`:""}).join("");
-  sec.innerHTML=`<div class="twseasin" data-gorank role="button" tabindex="0" title="Open the Rankings tab">${head}<div class="tsnote">Leaders over the last 10 finished weeks${w===TW_LIVE?" · this week counts once it's finished":""}</div><div class="tsg">${cols}</div></div>`;
+  sec.innerHTML=`<div class="twseasin" data-gorank role="button" tabindex="0" title="Open the Rankings tab">${head}<div class="tsnote">Leaders over the last 10 finished weeks${w===TW_LIVE?" · this week counts once it's finished":""}</div><div class="tsgo"><span class="golink">All rankings ›</span></div><div class="tsg">${cols}</div></div>`;
   sec.hidden=false}
+document.addEventListener("click",e=>{if(e.target.closest("[data-goskill]")){showView("skill"); scrollTo({top:0,behavior:"smooth"})}});
 document.addEventListener("click",e=>{if(e.target.closest("[data-gorank]")&&!e.target.closest("[data-player],[data-goplayer],[data-name]")){showView("rankings"); scrollTo({top:0,behavior:"smooth"})}});
 // beside the calendar: who's first on each challenge card of the week (the winner once the week is over), like the Season box
 function renderTwLead(){const el=$("twlead"); if(!el)return; const w=twWeek, cards=(SB.weeks[w]||[]).filter(c=>c[3]&&!/^n\/a$/i.test(c[3])&&c[6].length);
@@ -7787,7 +7789,7 @@ function renderTwPast(){const el=$("twpast"); if(!el)return; const n=myPlayer(),
   const rows=n&&twWeek===w?ywPastRows(n):[]; if(!rows.length){el.hidden=true;return}
   const fold=lsGet(PV_FOLD)===String(w);
   el.innerHTML=`<div class="panel-head dlhead" data-pv="fold" title="${fold?"Show":"Hide"} your past scores"><h2>↺ Your past scores on this week's songs<span class="dlarw">${fold?"▸":"▾"}</span></h2>
-    <span class="sub">${rows.length} challenge${rows.length===1?"":"s"} you've played before · your last score then → this week</span></div>${fold?"":`<div class="yw ywpv"><ul class="ywl">${rows.join("")}</ul></div>`}`;
+    ${fold?"":`<span class="sub">${rows.length} challenge${rows.length===1?"":"s"} you've played before · your last score then → this week</span>`}</div>${fold?"":`<div class="yw ywpv"><ul class="ywl">${rows.join("")}</ul></div>`}`;
   el.hidden=false}
 document.addEventListener("click",e=>{if(e.target.closest("#twpast [data-pv=fold]")){lsSet(PV_FOLD,lsGet(PV_FOLD)===String(TW_MAX)?null:String(TW_MAX)); renderTwPast()}});
 // Your profile: where you stand in this season, on each path (points place in your class, and Most improved if you qualify)
@@ -8130,7 +8132,7 @@ function twFold(){const F=twFolds(); document.querySelectorAll("#view-thisweek s
   const k=twFoldKey(sec); if(!k)return; const off=F.includes(k), tx=off?"▸":"▾", ti=off?"Show this box":"Hide this box";
   if(sec.dataset.twfold!==k)sec.dataset.twfold=k; if(sec.classList.contains("twfolded")!==off)sec.classList.toggle("twfolded",off);
   if(h){if(!h.classList.contains("twfoldh"))h.classList.add("twfoldh"); let ar=h.querySelector(".dlarw"); if(!ar){h.insertAdjacentHTML("beforeend",`<span class="dlarw"></span>`); ar=h.querySelector(".dlarw")} if(ar.textContent!==tx)ar.textContent=tx; if(h.title!==ti)h.title=ti}
-  else {let ar=tsh.querySelector(".twfarw"); if(!ar){tsh.insertAdjacentHTML("beforeend",`<span class="twfarw" role="button" tabindex="0"></span>`); ar=tsh.querySelector(".twfarw")} if(ar.textContent!==tx)ar.textContent=tx; if(ar.title!==ti)ar.title=ti}})}
+  else {let ar=tsh.querySelector(".twfarw"); if(!ar){(tsh.querySelector(".tsn")||tsh).insertAdjacentHTML(tsh.querySelector(".tsn")?"afterend":"beforeend",`<span class="twfarw" role="button" tabindex="0"></span>`); ar=tsh.querySelector(".twfarw")} if(ar.textContent!==tx)ar.textContent=tx; if(ar.title!==ti)ar.title=ti}})}
 {let q=0; new MutationObserver(()=>{if(q)return; q=requestAnimationFrame(()=>{q=0; try{twFold()}catch(e){}})}).observe($("view-thisweek"),{childList:true,subtree:true})}
 $("view-thisweek").addEventListener("click",e=>{const t=e.target.closest(".twfoldh,.twfarw"); if(!t)return; const sec=t.closest("[data-twfold]"); if(!sec)return;
   if(t.closest("a,button,select,input,[data-goplayer]")&&!t.classList.contains("twfarw"))return; e.preventDefault(); e.stopPropagation();
