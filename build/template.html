@@ -5857,19 +5857,23 @@ const hostCol=(i,n)=>HOST_COL[Math.min(HOST_COL.length-1,Math.round((n<=1?1:i/(n
 function micSvg(col){return `<svg viewBox="0 0 28 30" aria-hidden="true"><circle cx="14" cy="15" r="12" fill="${col}"/><rect x="11" y="6" width="6" height="11" rx="3" fill="#1a1406" opacity=".78"/><path d="M8.5 13.5a5.5 5.5 0 0 0 11 0M14 19v4M10.5 23h7" fill="none" stroke="#1a1406" stroke-width="1.8" stroke-linecap="round" opacity=".78"/><path d="M6 11a9 9 0 0 1 5-5.5" stroke="rgba(255,255,255,.5)" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg>`}
 function chainSvg(col){return `<svg viewBox="0 0 28 30" aria-hidden="true"><circle cx="14" cy="15" r="12" fill="${col}"/><rect x="5.5" y="11.5" width="10" height="7" rx="3.5" fill="none" stroke="#1a1406" stroke-width="2.2" opacity=".78"/><rect x="12.5" y="11.5" width="10" height="7" rx="3.5" fill="none" stroke="#1a1406" stroke-width="2.2" opacity=".78"/><path d="M6 11a9 9 0 0 1 5-5.5" stroke="rgba(255,255,255,.5)" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg>`}
 function calSvg(col){return `<svg viewBox="0 0 28 30" aria-hidden="true"><circle cx="14" cy="15" r="12" fill="${col}"/><rect x="7.5" y="9" width="13" height="12" rx="2" fill="none" stroke="#1a1406" stroke-width="1.9" opacity=".78"/><path d="M7.5 13h13M11 7v4M17 7v4" stroke="#1a1406" stroke-width="1.9" stroke-linecap="round" opacity=".78"/><path d="M6 11a9 9 0 0 1 5-5.5" stroke="rgba(255,255,255,.5)" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg>`}
-// Host of the year: whoever hosted the most weeks in a calendar year (shared on a tie), awarded once the year is over
+// Host of the year: whoever hosted the most weeks in a calendar year (shared on a tie), awarded once the year is over.
+// Silver and Bronze host of the year: second and third place that year, counted like a podium (two hosts sharing
+// first are followed by third place, so there's no silver that year)
 const HOST_YEAR=(()=>{const by={}, last={}; WEEKS.forEach(([w,d,h],i)=>{if(i>curIdx)return; const y=d.slice(0,4); last[y]=w; if(!h||h===LOST)return; const c=by[y]=by[y]||{}; c[h]=(c[h]||0)+1});
-  const out={}; Object.keys(last).sort().slice(0,-1).forEach(y=>{const c=by[y]; if(!c)return; const mx=Math.max(...Object.values(c)); out[y]={n:mx,who:Object.keys(c).filter(h=>c[h]===mx),w:last[y]}}); return out})();
+  const out={}; Object.keys(last).sort().slice(0,-1).forEach(y=>{const c=by[y]; if(!c)return; const mx=Math.max(...Object.values(c)); out[y]={n:mx,who:Object.keys(c).filter(h=>c[h]===mx),w:last[y],pod:{}};
+    const L=Object.keys(c).sort((a,b)=>c[b]-c[a]); L.forEach(h=>{const place=1+L.filter(x=>c[x]>c[h]).length; if(place===2||place===3)(out[y].pod[place]=out[y].pod[place]||{n:c[h],who:[]}).who.push(h)})}); return out})();
 // a golden old-school microphone (grille head on a yoke, stem and base), glowing like the gold medals
 var hoyN=0;
-function hostYearSvg(){const u=++hoyN, g="hoyg"+u, h="hoyh"+u, d="#7a5512", slot="#3a2608";
+const HOY_METAL={1:["#b8862a","#fff2b0","#f5c84a","#9a6b18","#7a5512","#3a2608"],2:["#8a93a3","#ffffff","#cfd6e0","#737d8d","#4a5361","#252b36"],3:["#8f4f24","#ffd6ad","#d98a4e","#6e3a18","#5a2e12","#2e1708"]};   // gold, silver, bronze: gradient (4), outline, grille slots
+function hostYearSvg(place){const u=++hoyN, g="hoyg"+u, h="hoyh"+u, [c0,c1,c2,c3,d,slot]=HOY_METAL[place||1];
   const slots=[4.3,6.6,8.9,11.2].map(y=>`<rect x="9.9" y="${y}" width="8.2" height="1.15" rx=".57" fill="${slot}" opacity=".85"/>`).join("");
-  return `<svg viewBox="0 0 28 30" aria-hidden="true" style="overflow:visible"><defs><linearGradient id="${g}" x1="0" x2="1" y1="0" y2="0"><stop offset="0" stop-color="#b8862a"/><stop offset=".35" stop-color="#fff2b0"/><stop offset=".6" stop-color="#f5c84a"/><stop offset="1" stop-color="#9a6b18"/></linearGradient><filter id="${h}" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="3.3"/></filter></defs>
-<g class="podhalo" filter="url(#${h})"><rect x="7.5" y="1" width="13" height="15" rx="6" fill="#f5c84a" opacity=".9"/><rect x="7" y="22" width="14" height="6.5" rx="3" fill="#f5c84a" opacity=".8"/></g>
+  return `<svg viewBox="0 0 28 30" aria-hidden="true" style="overflow:visible"><defs><linearGradient id="${g}" x1="0" x2="1" y1="0" y2="0"><stop offset="0" stop-color="${c0}"/><stop offset=".35" stop-color="${c1}"/><stop offset=".6" stop-color="${c2}"/><stop offset="1" stop-color="${c3}"/></linearGradient><filter id="${h}" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="3.3"/></filter></defs>
+<g class="podhalo" filter="url(#${h})"><rect x="7.5" y="1" width="13" height="15" rx="6" fill="${c2}" opacity=".9"/><rect x="7" y="22" width="14" height="6.5" rx="3" fill="${c2}" opacity=".8"/></g>
 <path d="M7.3 9.6c0 6 3 9.1 6.7 9.1s6.7-3.1 6.7-9.1" fill="none" stroke="${d}" stroke-width="2.4" stroke-linecap="round"/><path d="M7.3 9.6c0 6 3 9.1 6.7 9.1s6.7-3.1 6.7-9.1" fill="none" stroke="url(#${g})" stroke-width="1.4" stroke-linecap="round"/>
 <rect x="12.7" y="18.4" width="2.6" height="5.4" fill="url(#${g})" stroke="${d}" stroke-width=".7"/>
 <rect x="9.2" y="22.9" width="9.6" height="2.4" rx="1.1" fill="url(#${g})" stroke="${d}" stroke-width=".7"/><rect x="6.6" y="24.8" width="14.8" height="3.6" rx="1.8" fill="url(#${g})" stroke="${d}" stroke-width=".8"/>
-<rect x="8.6" y="1.2" width="10.8" height="14.6" rx="5.4" fill="url(#${g})" stroke="${d}" stroke-width=".9"/>${slots}<rect x="13.25" y="1.6" width="1.5" height="13.8" fill="#fff2b0" opacity=".55"/>
+<rect x="8.6" y="1.2" width="10.8" height="14.6" rx="5.4" fill="url(#${g})" stroke="${d}" stroke-width=".9"/>${slots}<rect x="13.25" y="1.6" width="1.5" height="13.8" fill="${c1}" opacity=".55"/>
 <circle cx="7.3" cy="9.6" r="1.2" fill="url(#${g})" stroke="${d}" stroke-width=".6"/><circle cx="20.7" cy="9.6" r="1.2" fill="url(#${g})" stroke="${d}" stroke-width=".6"/>
 <path d="M10.2 3.2a4.6 4.6 0 0 1 2.6-1.4" stroke="#fff" stroke-width="1" fill="none" stroke-linecap="round" opacity=".75"/></svg>`.replace(/\n/g,"")}
 const hostMedalCache={};
@@ -5887,9 +5891,10 @@ function hostMedals(name){
   const st=HOST_STREAK_STEPS.filter(x=>best>=x);
   if(st.length)rows.push(st.map((x,i)=>{const c=hostCol(i,HOST_STREAK_STEPS.length);return mk(chainSvg(c),c,x,`${x}-week hosting streak medal · hosted ${x} weeks in a row${rec(reachAt[x])}`).replace('<span class="medal-m wm"',`<span class="medal-m wm" data-hl="${weekRange(reachAt[x],x)}" style="cursor:pointer"`)}));
   // Host of the year (most weeks hosted that calendar year)
-  const hoy=Object.keys(HOST_YEAR).filter(y=>HOST_YEAR[y].who.includes(name));
-  if(hoy.length)rows.push(hoy.map(y=>{const H=HOST_YEAR[y], others=H.who.filter(x=>x!==name);
-    return mk(hostYearSvg(),"#f5c84a","’"+y.slice(2),`Host of the year ${y} · hosted the most weeks in ${y} (${H.n})${others.length?` · shared with ${others.join(", ")}`:""}${rec(H.w)}`).replace('class="medal-m wm"','class="medal-m wm hoy"')}));
+  // ...and Silver and Bronze host of the year (second and third most): the same microphone in that metal; gold first, then by year
+  const hoy=[]; [1,2,3].forEach(pl=>Object.keys(HOST_YEAR).forEach(y=>{const H=pl===1?HOST_YEAR[y]:HOST_YEAR[y].pod[pl]; if(!H||!H.who.includes(name))return; const others=H.who.filter(x=>x!==name);
+    hoy.push(mk(hostYearSvg(pl),HOY_METAL[pl][2],"’"+y.slice(2),`${["Host","Silver host","Bronze host"][pl-1]} of the year ${y} · hosted the ${["most","second-most","third-most"][pl-1]} weeks in ${y} (${H.n})${others.length?` · shared with ${others.join(", ")}`:""}${rec(HOST_YEAR[y].w)}`).replace('class="medal-m wm"','class="medal-m wm hoy"'))}));
+  if(hoy.length)rows.push(hoy);
   // one medal for every calendar year hosted
   const yrs={}; ws.forEach(([w,d])=>{const y=d.slice(0,4);(yrs[y]=yrs[y]||[]).push(w)});
   const ys=Object.keys(yrs).sort();
