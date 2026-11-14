@@ -1170,8 +1170,8 @@ footer .updated{display:block;margin-top:4px}
 .twcal td.wk{text-align:left;padding-left:8px;font-weight:700;color:var(--dim);white-space:nowrap}
 .twcal tr.r td:first-child{border-radius:8px 0 0 8px}.twcal tr.r td:last-child{border-radius:0 8px 8px 0}
 .twcal tr.r{cursor:pointer}.twcal tr.r:hover td{background:var(--panel2)}
-.twcal tr.r.off{cursor:default;opacity:.35}.twcal tr.r.off:hover td{background:none}
-.twcal tr.r.sel td{background:color-mix(in srgb,var(--accent) 22%,transparent)}.twcal tr.r.sel td.wk{color:var(--accent)}
+.twcal tr.r.off{cursor:default}.twcal tr.r.off td{opacity:.35}.twcal tr.r.off td.om{opacity:.18}.twcal tr.r.off td.ovl{opacity:1;color:color-mix(in srgb,var(--fg) 40%,transparent)}.twcal tr.r.off:hover td{background:none}
+.twcal tr.r.sel td{background:color-mix(in srgb,var(--accent) 22%,transparent)}.twcal tr.r.sel td.wk{color:var(--accent)}.twcal tr.r td.ovl,.twcal tr.r:hover td.ovl,.twcal tr.r.off:hover td.ovl{background:linear-gradient(135deg,color-mix(in srgb,var(--accent) 22%,transparent) 50%,transparent 50%)}
 .twcal tr.r.live td.wk::after{content:" •";color:#45d17a}
 .twcal td.om{color:var(--dim);opacity:.5}.twcal tr.r.sel td.fut{color:var(--dim);opacity:.5}   /* the rest of the week: the same tint, fainter */.twcal td.today{font-weight:800;color:var(--accent)}
 .twnp .npn{display:block;font-size:.72rem;font-weight:400;color:var(--s-green)}
@@ -6752,9 +6752,10 @@ function renderTwCal(){const el=$("twcal"); if(!el||el.hidden)return;
   let w=twWkOf(first); const rows=[];
   for(;;){const st=twWkStart(w); if(st>last)break; const days=[...Array(7)].map((_,i)=>new Date(st.getTime()+i*864e5));
     const ok=w>=TW_MIN&&w<=hi, W=weekAt(w-WEEKS[0][0]), host=W[2]&&W[2]!==LOST?W[2]:"";
-    rows.push(`<tr class="r${ok?"":" off"}${w===twWeek?" sel":""}${w===TW_LIVE?" live":""}"${ok?` data-twcal="${w}" title="Week ${w}${host?` · hosted by ${esc(host)}`:""}${w===TW_LIVE?" · in progress":""}"`:""}><td class="wk">Wk ${w}</td>${days.map(d=>{const D=iso(d), lv=w===TW_LIVE; // the week being played: filled up to today, like a progress bar
+    rows.push(`<tr class="r${ok?"":" off"}${w===twWeek?" sel":""}${w===TW_LIVE?" live":""}"${ok?` data-twcal="${w}" title="Week ${w}${host?` · hosted by ${esc(host)}`:""}${w===TW_LIVE?" · in progress":""}"`:""}><td class="wk">Wk ${w}</td>${days.map((d,i)=>{const D=iso(d), lv=w===TW_LIVE; // the week being played: filled up to today, like a progress bar
       const cls=lv?(D<today?"done":D===today?"done today end":"fut"):`${d.getMonth()!==m?"om":""}${D===today?" today":""}`;
-      return `<td class="${cls}">${d.getDate()}</td>`}).join("")}</tr>`); w++}
+      // a week's last day is also the next week's first: that day's cell, in the row below, is half highlighted too
+      return `<td class="${cls}${i===0&&w===twWeek+1?" ovl":""}">${d.getDate()}</td>`}).join("")}</tr>`); w++}
   const ys=[]; for(let k=maxD.getFullYear();k>=minD.getFullYear();k--)ys.push(k);
   const canPrev=first>minD, canNext=last<maxD;
   el.innerHTML=`<div class="tch"><button type="button" class="twarrow" data-twcalm="-1" aria-label="Previous month"${canPrev?"":" disabled"}>‹</button><b>${first.toLocaleString(undefined,{month:"long"})}</b><select data-twcaly aria-label="Year">${ys.map(k=>`<option${k===y?" selected":""}>${k}</option>`).join("")}</select><button type="button" class="twarrow" data-twcalm="1" aria-label="Next month"${canNext?"":" disabled"}>›</button></div>
