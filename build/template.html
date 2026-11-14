@@ -3097,9 +3097,14 @@ function goalsHost(n,G,wk,pl){const hw=WEEKS.filter((x,i)=>i<=curIdx&&x[2]===n).
   let run=0, best=0, prev=null; hw.forEach(w=>{run=prev===w-1?run+1:1; prev=w; if(run>best)best=run});
   if(prev===cur[0]){const ks=HOST_STREAK_STEPS.find(x=>x>run); if(ks)G.push([`${ks}-week hosting streak`,`host ${wk(ks-run)} in a row${best<ks?" · a new medal":""}`])}
   const y=WEEKS[curIdx][1].slice(0,4), c={}; WEEKS.forEach(([w,d,h],i)=>{if(i<=curIdx&&h&&h!==LOST&&d.startsWith(y))c[h]=(c[h]||0)+1});
-  if(!c[n])return; const L=Object.keys(c).sort((a,b)=>c[b]-c[a]||a.localeCompare(b)), r=L.indexOf(n)+1, top=L[0];
-  if(r>3&&c[top]-c[n]>4)return;   // (only when it's within reach: top 3, or 4 weeks or less behind)
-  G.push([`Host of the year ${y}`,r===1?(L[1]&&c[L[1]]===c[n]?`level with ${L[1]} on ${c[n]} weeks`:`you're leading: ${c[n]} weeks hosted · ${L[1]?`${c[n]-c[L[1]]} ahead of ${L[1]}`:"nobody else yet"}`):`${c[top]-c[n]} week${c[top]-c[n]===1?"":"s"} behind ${top} · you're ${pl(r)}`])}
+  if(!c[n])return; const L=Object.keys(c).sort((a,b)=>c[b]-c[a]||a.localeCompare(b)), top=L[0];
+  // placed like a podium (hosts level on weeks share a place): gold, silver or bronze, or the gap to third place
+  const place=h=>1+L.filter(x=>c[x]>c[h]).length, r=place(n), level=L.filter(x=>x!==n&&c[x]===c[n]), wks=k=>`${k} week${k===1?"":"s"}`;
+  if(r===1){G.push([`Host of the year ${y}`,L[1]&&c[L[1]]===c[n]?`level with ${L[1]} on ${c[n]} weeks`:`you're leading: ${c[n]} weeks hosted · ${L[1]?`${c[n]-c[L[1]]} ahead of ${L[1]}`:"nobody else yet"}`]); return}
+  if(r<=3){const up=L.filter(x=>c[x]>c[n]).pop();   // the host just ahead
+    G.push([`${r===2?"Silver":"Bronze"} host of the year ${y}`,`you're ${pl(r)}${level.length?`, level with ${level[0]}`:""}: ${c[n]} weeks hosted · ${wks(c[up]-c[n])} behind ${up}`]); return}
+  const third=L.filter(x=>place(x)<=3).pop(), gap=c[third]-c[n]; if(gap>4)return;   // (only when third place is within reach: 4 weeks or less behind)
+  G.push([`Bronze host of the year ${y}`,`${wks(gap)} behind ${third} for ${pl(place(third))} place · you're ${pl(r)}`])}
 // Within reach sits at the top of This Week for the signed-in player (their own goals, the first thing they see)
 function twGoals(){const el=$("tw-goals"); if(!el)return; let G=[], n="";
   try{if(typeof ACCT!=="undefined"&&ACCT.claim&&ACCT.claim.status==="approved"&&twWeek===TW_LIVE){n=ACCT.claim.player; G=goalsPanel(n)||[]}}catch(e){console.error(e)}
