@@ -2242,7 +2242,10 @@ var HOSTORIG={}/*HOSTORIG*/;
 var TUNINGS=__TUNINGS__;
 const tuneKey=song=>String(song||"").toLowerCase().replace(/[^a-z0-9]+/g," ").trim();
 // the tuning of a song on a path: an admin's fix first, then the Song Selection List
-function tuneOf(song,p){if(!song)return ""; const k=tuneKey(song), f=TUNE_FIX[k+"|"+p]; if(f)return f.t; const t=TUNINGS[k]; return t&&t[p]?t[p]:""}
+// a tuning is always shown with every word's first letter capitalized (Drop D, E Standard), however it was typed in the sheet
+// or on the site, so "drop D" and "Drop D" are one tuning everywhere (the Song lookup's tuning filter too)
+const tuneCap=t=>String(t||"").replace(/\s+/g," ").trim().split(" ").map(w=>w.charAt(0).toUpperCase()+w.slice(1)).join(" ");
+function tuneOf(song,p){if(!song)return ""; const k=tuneKey(song), f=TUNE_FIX[k+"|"+p]; if(f)return tuneCap(f.t); const t=TUNINGS[k]; return t&&t[p]?tuneCap(t[p]):""}
 // the capo fret an admin set for a song on a path (0 = none), and the tuning as shown, with the capo
 const capoOf=(song,p)=>{const f=song&&TUNE_FIX[tuneKey(song)+"|"+p]; return f&&f.c>0?f.c:0};
 function tuneShow(song,p){const t=tuneOf(song,p), c=capoOf(song,p); return c?`${t||"?"} · Capo ${c}`:t}
@@ -2253,7 +2256,7 @@ function canTune(w){try{if(!acctOn())return false; if(ACCT.admin)return true; co
 document.addEventListener("click",async e=>{const b=e.target.closest("[data-tunfix]");
   if(b){e.stopPropagation(); const song=b.dataset.tunfix, p=+b.dataset.tunp, wk=b.dataset.tunw, cur=tuneOf(song,p), fx=TUNE_FIX[tuneKey(song)+"|"+p];
     // spellings that only differ in capitals ("E standard") count as one, written the way it's used most
-    const cnt={}; [...Object.values(TUNINGS).flatMap(x=>x.filter(Boolean)),...Object.values(TUNE_FIX).map(x=>x.t)].forEach(t=>{const k=t.toLowerCase(); (cnt[k]=cnt[k]||{})[t]=(cnt[k][t]||0)+1});
+    const cnt={}; [...Object.values(TUNINGS).flatMap(x=>x.filter(Boolean)),...Object.values(TUNE_FIX).map(x=>x.t)].map(tuneCap).forEach(t=>{const k=t.toLowerCase(); (cnt[k]=cnt[k]||{})[t]=(cnt[k][t]||0)+1});
     const all=Object.values(cnt).map(o=>Object.keys(o).sort((a,b)=>o[b]-o[a])[0]).sort((a,b)=>a.localeCompare(b,undefined,{sensitivity:"base"}));
     if(cur&&!all.includes(cur)){const i=all.findIndex(t=>t.toLowerCase()===cur.toLowerCase()); i>=0?all.splice(i,1,cur):all.push(cur)}
     const ed=document.createElement("span"); ed.className="tunedit"; ed.dataset.song=song; ed.dataset.p=p; ed.dataset.w=wk;
@@ -2275,7 +2278,7 @@ document.addEventListener("click",async e=>{const b=e.target.closest("[data-tunf
     try{await ACCT.sb.from("tuning_log").insert({by_player:ACCT.claim&&ACCT.claim.player||null,week:+ed.dataset.w||null,song,path:p,old_tuning:oldT||null,old_capo:oldC||null,new_tuning:newT,new_capo:newC||null,reset:newT==null})}catch(x){}
     const {data}=await ACCT.sb.from("song_tunings").select("*"); tuneFixGot(data||[]); if(ACCT.admin)tuneLogLoad()};
   if(e.target.closest("[data-tunreset]")){const L=TUNINGS[k]; return done(ACCT.sb.from("song_tunings").delete().match({song:k,path:p}),L&&L[p]||null,0)}
-  if(e.target.closest("[data-tunsave]")){const v=ed.querySelector("[data-tunin]").value.replace(/\s+/g," ").trim(); if(!v){alert("Pick or type a tuning first (or Reset).");return}
+  if(e.target.closest("[data-tunsave]")){const v=tuneCap(ed.querySelector("[data-tunin]").value); if(!v){alert("Pick or type a tuning first (or Reset).");return}
     const c=+ed.querySelector("[data-tuncapo]").value||0, row={song:k,path:p,tuning:v,set_by:ACCT.claim&&ACCT.claim.player||null,updated_at:new Date().toISOString()};
     if(c||capoOf(song,p))row.capo=c||null;   // only send the capo when one is set (or being cleared), so it saves before the capo column exists
     return done(ACCT.sb.from("song_tunings").upsert(row,{onConflict:"song,path"}),v,c)}},true);
