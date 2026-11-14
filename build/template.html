@@ -723,7 +723,7 @@ span.hrdn{color:var(--s-red)!important}small.eloin{color:var(--s-green)!importan
 .acctdlg .hhol{display:inline-flex;flex-wrap:wrap;gap:4px;margin-left:8px;vertical-align:1px}.acctdlg .hhol .pill.hol{font-size:.72rem;padding:1px 7px}
 .acctdlg .claimtip{font-size:.84rem;border-left:3px solid var(--accent);background:color-mix(in srgb,var(--accent) 8%,transparent);padding:6px 10px;border-radius:0 6px 6px 0;margin:6px 0 10px}
 .acctdlg .apprhead{display:flex;align-items:center;justify-content:space-between;gap:8px}
-.acctsec>h3.admfoldh{cursor:pointer;user-select:none}.acctsec>h3.admfoldh .dlarw{color:var(--muted);font-size:.8em;margin-left:6px}.acctsec.admfolded>:not(h3:first-of-type){display:none!important}#view-thisweek .twfoldh{cursor:pointer;user-select:none}#view-thisweek .twfoldh .dlarw{color:var(--muted);font-size:.8em;margin-left:6px}#view-thisweek .twseasin .tsh .twfarw{cursor:pointer;color:var(--muted);padding:2px 8px;margin:-2px -6px -2px 0;font-size:.9em}#view-thisweek section.twfolded>:not(.panel-head):not(.twseasin),#view-thisweek .twfolded .twseasin>:not(.tsh),#view-thisweek section.twfolded>.panel-head>.sub{display:none!important}#view-thisweek section.twfolded .panel-head{margin-bottom:0}
+.acctsec>h3.admfoldh{cursor:pointer;user-select:none}.acctsec>h3.admfoldh .dlarw{color:var(--muted);font-size:.8em;margin-left:6px}.acctsec.admfolded>:not(h3:first-of-type){display:none!important}#view-thisweek .twfoldh{cursor:pointer;user-select:none}#view-thisweek .twfoldh .dlarw{color:var(--muted);font-size:.8em;margin-left:6px}#view-thisweek .twseasin .tsh .twfarw{cursor:pointer;color:var(--muted);padding:2px 8px;margin:-2px 0 -2px -10px;font-size:.9em}#view-thisweek .twseasin .tsh>span:not(.tsn):not(.twfarw):not(.golink){flex-basis:100%;order:9}#view-thisweek .twfolded .twseasin .tsh>:not(.tsn):not(.twfarw){display:none!important}#view-thisweek section.twfolded>:not(.panel-head):not(.twseasin),#view-thisweek .twfolded .twseasin>:not(.tsh),#view-thisweek section.twfolded>.panel-head>.sub{display:none!important}#view-thisweek section.twfolded .panel-head{margin-bottom:0}
 .acctdlg .btn.small{padding:3px 10px;font-size:.78rem}
 .acctdlg .fixlog .tylink{cursor:pointer}
 .acctdlg .ratelog li{display:block;padding:6px 0;border-bottom:1px solid var(--line);font-size:.84rem}
@@ -6558,7 +6558,7 @@ function renderDownloads(){
     return `<span class="dlbx${me?" me":""}"${me?` style="--mc:${col(me)}"`:""} data-tip="${esc(tip)}${me?" · your class":""}${rt?esc(`\nDifficulty: ${rt}${R&&R.n?` (average of ${R.n} rating${R.n===1?"":"s"})`:""}`):""}">${"LRB"[p]}<b>${cs.map(c=>`<span style="color:${col(c)}">${cardLv(c[2])||"?"}${/bonus/i.test(c[2])?"<sup>+</sup>":""}</span>`).join("·")}</b>${rt?(()=>{const M=rateMark(rt,cs.map(c=>cardLv(c[2]))); return M?`<i class="dlrt" style="color:${M.col}">${M.html}${rt}</i>`:`<i class="dlrt">${rt}</i>`})():""}</span>`};
   const fold=lsGet(DL_FOLD)===String(TW_MAX);
   el.innerHTML=`<div class="panel-head dlhead" data-dl="fold" title="${fold?"Show":"Hide"} the download list"><h2>⬇ Download Week ${w}'s songs<span class="dlarw">${fold?"▸":"▾"}</span></h2>
-    <span class="sub">${list.length} song${list.length===1?"":"s"} for ${cards.length} challenge${cards.length===1?"":"s"}${T&&!fold?" · your classes are highlighted":""}</span></div>
+    ${fold?"":`<span class="sub">${list.length} song${list.length===1?"":"s"} for ${cards.length} challenge${cards.length===1?"":"s"}${T?" · your classes are highlighted":""}</span>`}</div>
     ${fold?"":`<ul>${list.map(s=>{const pill=songPill(s.song,s.id);
       return `<li class="${s.my?"mine":""}"><span class="dls">${esc(s.song)}${s.my?`<span class="yours">yours</span>`:""}${dlTune(s)}</span><span class="dlbxs">${[0,1,2].map(p=>box(p,s.ch.filter(c=>c[0]===p))).join("")}</span><span class="dlpill">${pill}</span></li>`}).join("")}</ul>`}`;
   el.hidden=false;
@@ -7785,7 +7785,7 @@ function renderTwPast(){const el=$("twpast"); if(!el)return; const n=myPlayer(),
   const rows=n&&twWeek===w?ywPastRows(n):[]; if(!rows.length){el.hidden=true;return}
   const fold=lsGet(PV_FOLD)===String(w);
   el.innerHTML=`<div class="panel-head dlhead" data-pv="fold" title="${fold?"Show":"Hide"} your past scores"><h2>↺ Your past scores on this week's songs<span class="dlarw">${fold?"▸":"▾"}</span></h2>
-    <span class="sub">${rows.length} challenge${rows.length===1?"":"s"} you've played before · your last score then → this week</span></div>${fold?"":`<div class="yw ywpv"><ul class="ywl">${rows.join("")}</ul></div>`}`;
+    ${fold?"":`<span class="sub">${rows.length} challenge${rows.length===1?"":"s"} you've played before · your last score then → this week</span>`}</div>${fold?"":`<div class="yw ywpv"><ul class="ywl">${rows.join("")}</ul></div>`}`;
   el.hidden=false}
 document.addEventListener("click",e=>{if(e.target.closest("#twpast [data-pv=fold]")){lsSet(PV_FOLD,lsGet(PV_FOLD)===String(TW_MAX)?null:String(TW_MAX)); renderTwPast()}});
 // Your profile: where you stand in this season, on each path (points place in your class, and Most improved if you qualify)
@@ -8128,7 +8128,7 @@ function twFold(){const F=twFolds(); document.querySelectorAll("#view-thisweek s
   const k=twFoldKey(sec); if(!k)return; const off=F.includes(k), tx=off?"▸":"▾", ti=off?"Show this box":"Hide this box";
   if(sec.dataset.twfold!==k)sec.dataset.twfold=k; if(sec.classList.contains("twfolded")!==off)sec.classList.toggle("twfolded",off);
   if(h){if(!h.classList.contains("twfoldh"))h.classList.add("twfoldh"); let ar=h.querySelector(".dlarw"); if(!ar){h.insertAdjacentHTML("beforeend",`<span class="dlarw"></span>`); ar=h.querySelector(".dlarw")} if(ar.textContent!==tx)ar.textContent=tx; if(h.title!==ti)h.title=ti}
-  else {let ar=tsh.querySelector(".twfarw"); if(!ar){tsh.insertAdjacentHTML("beforeend",`<span class="twfarw" role="button" tabindex="0"></span>`); ar=tsh.querySelector(".twfarw")} if(ar.textContent!==tx)ar.textContent=tx; if(ar.title!==ti)ar.title=ti}})}
+  else {let ar=tsh.querySelector(".twfarw"); if(!ar){(tsh.querySelector(".tsn")||tsh).insertAdjacentHTML(tsh.querySelector(".tsn")?"afterend":"beforeend",`<span class="twfarw" role="button" tabindex="0"></span>`); ar=tsh.querySelector(".twfarw")} if(ar.textContent!==tx)ar.textContent=tx; if(ar.title!==ti)ar.title=ti}})}
 {let q=0; new MutationObserver(()=>{if(q)return; q=requestAnimationFrame(()=>{q=0; try{twFold()}catch(e){}})}).observe($("view-thisweek"),{childList:true,subtree:true})}
 $("view-thisweek").addEventListener("click",e=>{const t=e.target.closest(".twfoldh,.twfarw"); if(!t)return; const sec=t.closest("[data-twfold]"); if(!sec)return;
   if(t.closest("a,button,select,input,[data-goplayer]")&&!t.classList.contains("twfarw"))return; e.preventDefault(); e.stopPropagation();
