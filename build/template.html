@@ -5766,7 +5766,7 @@ document.addEventListener("click",e=>{const o=e.target.closest(".tagico"); if(!o
   tagOpen(o.dataset.tagsong,(o.dataset.tagps||"").split(",").filter(Boolean).map(Number),typeof sPath!=="undefined"?sPath:-1)},true);
 let TAGDLG=null;   // {song, ps, path}
 // techniques to pick from (any other tag can still be typed in): guitar for Lead and Rhythm, and bass
-const TAG_TECH={g:["Bends","Pre-bends","Slides","Hammer-ons","Pull-offs","Legato","Tapping","Harmonics","Pinch harmonics","Palm mutes","Fret-hand mutes","Vibrato","Tremolo picking","Whammy bar","Power chords","Open chords","Barre chords","Double stops","Arpeggios","Fingerpicking","Strumming","Alternate picking","Sweep picking","String skipping","Fast runs","Syncopation","Odd time","Sustains"],
+const TAG_TECH={g:["Bends","Pre-bends","Slides","Hammer-ons","Pull-offs","Legato","Tapping","Harmonics","Pinch harmonics","Palm mutes","Fret-hand mutes","Vibrato","Tremolo picking","Whammy bar","Power chords","Open chords","Barre chords","Double stops","Arpeggios","Fingerpicking","Strumming","Alternate picking","Hybrid picking","Sweep picking","String skipping","Fast runs","Syncopation","Odd time","Sustains"],
   b:["Fingerstyle","Picking","Slap","Pop","Octaves","Walking bass","Slides","Hammer-ons","Pull-offs","Harmonics","Palm mutes","Ghost notes","Vibrato","Bends","Tapping","Double stops","Chords","Fast runs","String skipping","Syncopation","Odd time","Sustains"]};
 function tagCanEdit(){return !!(ACCT.user&&ACCT.claim&&ACCT.claim.status==="approved")}
 function tagRedraw(){const d=$("tagdlg"); if(!TAGDLG||!d||!d.open)return; const {song,ps,path}=TAGDLG, k=acctSongKey(song), me=ACCT.user&&ACCT.user.id;
