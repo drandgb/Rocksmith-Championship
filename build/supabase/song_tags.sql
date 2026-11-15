@@ -22,3 +22,25 @@ create policy sgt_insert on public.song_tags for insert to authenticated
 create policy sgt_delete on public.song_tags for delete to authenticated using (user_id = auth.uid() or public.is_admin());
 grant select on public.song_tags to anon, authenticated;
 grant insert, delete on public.song_tags to authenticated;
+
+-- Tag log: every tag added or removed, and who did it (admins read it in the Admin tab).
+-- Safe to run this whole file again on an existing setup: it only adds what's missing.
+create table if not exists public.tag_log (
+  id        bigint generated always as identity primary key,
+  at        timestamptz not null default now(),
+  user_id   uuid default auth.uid() references auth.users on delete set null,
+  player    text,
+  song      text,                     -- the song as shown on the site ("Artist - Title")
+  path      smallint,
+  tag       text,
+  removed   boolean not null default false
+);
+alter table public.tag_log enable row level security;
+drop policy if exists tgl_read on public.tag_log;
+drop policy if exists tgl_insert on public.tag_log;
+create policy tgl_read   on public.tag_log for select to authenticated using (public.is_admin());
+create policy tgl_insert on public.tag_log for insert to authenticated with check (user_id = auth.uid() and public.my_player() is not null);
+grant select, insert on public.tag_log to authenticated;
+
+-- make the site see the new table right away
+notify pgrst, 'reload schema';
