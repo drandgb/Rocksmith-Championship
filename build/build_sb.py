@@ -7,10 +7,23 @@ FONTS=json.load(open('fonts.json'))
 exec(open('classes.py').read().split("raw=json.load(open('scores_raw.json'))")[1])
 STATS=collections.Counter()
 names=[];idx={};aka={}
-def ni(n):
+# The older scoreboards (before week 440) spell some names with different capitals from week to week ("MaZtor",
+# "MaZtoR"). Those take the spelling used from week 440 on, or else the one used most often.
+_new=collections.Counter(); _old=collections.Counter()
+for _w,_ch in raw.items():
+    for _c in _ch:
+        for _e in _c[6]: (_new if int(_w)>=440 else _old)[_e[0].strip().rstrip('*~').strip()]+=1
+CASE={}
+for _n in _old:
+    if _n in _new: continue
+    _v=[x for x in _new if x.lower()==_n.lower()] or [x for x in _old if x.lower()==_n.lower()]
+    _best=max(_v,key=lambda x:(_new[x],_old[x],x))
+    if _best!=_n: CASE[_n]=_best
+def ni(n,wk=440):
     n=n.strip()
     if re.match(r'^ALSRC\*trw',n): n='ALSRC*'
     m=re.match(r'^(.*?)([*~]*)$',n); base,suf=m.group(1).strip(),m.group(2)
+    if wk<440: base=CASE.get(base,base)
     new=ALIAS.get(base,base); key=(new+suf,base if new!=base else None)
     if key not in idx:
         idx[key]=len(names); names.append(new+suf)
@@ -31,6 +44,11 @@ def fixsong(wk,song):
     if not song or song=='n/a': return song
     cands=SP.get(str(wk),[]); clean=re.sub(r'\s+',' ',song).strip()
     if not cands or clean.lower() in ('na','n/a','-'): return clean
+    # the first scoreboards (weeks 2-29) give the title alone: take "Artist - Title" from Songs Played
+    if int(wk)<440 and ' - ' not in clean:
+        tl=lambda c: norm(c.split(' - ',1)[1]) if ' - ' in c else norm(c)
+        hit=[c for c in cands if tl(c)==norm(clean)] or [c for c in cands if difflib.SequenceMatcher(None,tl(c),norm(clean)).ratio()>=0.85]
+        if len(hit)==1: return hit[0]
     # a note in brackets after the title (e.g. "(Bass)") is only shown on the scoreboard, so it isn't a difference
     nb=lambda t: norm(re.sub(r'\s*\([^)]*\)\s*$','',t))
     if any(nb(c)==nb(clean) for c in cands) and not any(norm(c)==norm(clean) for c in cands): return clean
@@ -46,14 +64,22 @@ def fixsong(wk,song):
     return clean
 weeks={}
 for wk,ch in raw.items():
-    if int(wk)<440: continue
-    out=[]
+    out=[]; OLD=int(wk)<440
     for p,s_,l,song,d,ex,ents in ch:
         fl=FONTS.get(wk,{}).get(str(p*9+s_),[])
         L=lvl(l); rows=[]
         for k,e in enumerate(ents):
             if e[0].strip() in DROP: continue
             d_=0
+            if OLD:
+                # before week 440: a dimmed name (small or grey) is playing down, a starred name in normal type is playing
+                # up; weeks 2-27 don't mark it at all
+                f=fl[k] if k<len(fl) and fl[k][0]==e[0].strip() else None
+                dim=bool(f and ((f[3] is not None and f[3]<10) or f[1] in ('FF666666','FF434343','FF999999')))
+                if '~' not in e[0]:
+                    if dim: d_=-1
+                    elif '*' in e[0]: d_=1
+                rows.append([ni(e[0],int(wk)),num(e[1]),num(e[2]),num(e[3]),d_]); continue
             if '*' in e[0]:
                 f=fl[k] if k<len(fl) and fl[k][0]==e[0].strip() else None
                 fd=None
@@ -92,7 +118,7 @@ print('God cards that continue into the next week:',CONT)
 _seen=set(); _ssl=[]
 for x in SSLDIFF:
     k=(x['w'],x['sb'])
-    if k not in _seen: _seen.add(k); _ssl.append(x)
+    if k not in _seen and x['w']>=440: _seen.add(k); _ssl.append(x)   # the older scoreboards (before 440) aren't checked
 _info=json.load(open('cache/songsel_info.json')) if os.path.exists('cache/songsel_info.json') else {}
 json.dump({"names":names,"aka":aka,"weeks":weeks,"ssl":{"diff":_ssl,**_info}},open('scores.json','w'),separators=(',',':'))
 N=names

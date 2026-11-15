@@ -2,11 +2,18 @@
 # who was playing down). MODE=full reads every tab; MODE=quick only reads the newest weeks and reuses
 # the saved results (cache/) for the rest.
 import openpyxl, re, json, os
+from old_layout import read_old
+
+PARSE_VER = 2   # 2: the older layouts (weeks 2-435) are read too, and name fonts are kept for every week
 
 MODE = os.environ.get("MODE", "full")
 QUICK_WEEKS = int(os.environ.get("QUICK_WEEKS", "2"))   # how many of the newest week tabs a quick run re-reads
 wb = openpyxl.load_workbook("board.xlsx", read_only=True, data_only=True)
 tabs = {int(m.group(1)): n for n in wb.sheetnames if (m := re.fullmatch(r"Week(\d+)", n))}
+# the first weeks are kept in tabs named "Copy of Week NN"
+for n in wb.sheetnames:
+    if (m := re.fullmatch(r"Copy of Week ?(\d+)", n)) and int(m.group(1)) not in tabs: tabs[int(m.group(1))] = n
+tabs = dict(sorted(tabs.items()))
 
 raw, fonts, skipped, arr = {}, {}, set(), {}
 if MODE == "quick" and os.path.exists("cache/scores_raw.json"):
@@ -15,7 +22,9 @@ if MODE == "quick" and os.path.exists("cache/scores_raw.json"):
     if os.path.exists("cache/skipped.json"): skipped = set(json.load(open("cache/skipped.json")))
     if os.path.exists("cache/arr.json"): arr = json.load(open("cache/arr.json"))
     newest = sorted(tabs)[-QUICK_WEEKS:]
-    todo = [w for w in tabs if w in newest or (str(w) not in raw and w not in skipped)]
+    ver = json.load(open("cache/parse_ver.json")) if os.path.exists("cache/parse_ver.json") else 1
+    if ver < PARSE_VER: skipped = set()          # saved by an older reader: read those tabs again
+    todo = [w for w in tabs if w in newest or (str(w) not in raw and w not in skipped) or (ver < PARSE_VER and str(w) not in fonts)]
 else:
     MODE = "full"; todo = list(tabs)
 
@@ -28,10 +37,17 @@ for wk in sorted(todo):
     ws = wb[tabs[wk]]
     grid = [list(r) for r in ws.iter_rows(min_row=1, max_row=120, max_col=136)]
     if len(grid) < 8: skipped.add(wk); continue
+    skipped.discard(wk)
     cell = lambda r, c: grid[r - 1][c - 1] if r - 1 < len(grid) and c - 1 < len(grid[r - 1]) else None
     val = lambda r, c: getattr(cell(r, c), "value", None)
     # current scoreboard layout: 27 blocks of 5 columns (Lead/Rhythm/Bass x 9 levels), "Name" headers on row 8
-    if val(8, 2) != "Name" or val(8, 132) != "Name": skipped.add(wk); continue   # older layout
+    if val(8, 2) != "Name" or val(8, 132) != "Name":                             # older layout
+        old = read_old(wk, grid)
+        if not old or not old[0]: skipped.add(wk); continue
+        raw[str(wk)], fonts[str(wk)] = old[0], {str(b): f for b, f in old[1].items()}
+        arr.pop(str(wk), None)
+        for note in old[2]: print(f"week {wk}: {note}")
+        continue
     chal, frows, sw = [], {}, {}
     for b in range(27):
         c = 2 + 5 * b
@@ -56,7 +72,7 @@ for wk in sorted(todo):
     raw[str(wk)] = chal
     if sw: arr[str(wk)] = sw
     else: arr.pop(str(wk), None)
-    if wk >= 440: fonts[str(wk)] = frows
+    fonts[str(wk)] = frows
 
 # keep the sheet's tab order, and drop weeks whose tab was deleted
 order = [str(w) for w in tabs]
@@ -68,4 +84,5 @@ for name, obj in (("scores_raw.json", raw), ("fonts.json", fonts), ("arr.json", 
     s = json.dumps(obj, separators=(",", ":"))
     open(name, "w").write(s); open("cache/" + name, "w").write(s)
 json.dump(sorted(skipped), open("cache/skipped.json", "w"))
+json.dump(PARSE_VER, open("cache/parse_ver.json", "w"))
 print(f"{MODE} scan: read {len(todo)} week tabs, {len(raw)} weeks total")
