@@ -3305,24 +3305,53 @@ function unclaimedSection(){const rows=[], st={}, YR=DATA_WEEK-51;   // st: per 
 function hlEmo(name){const M=[[/^Silver God diamond/,"🥈💎"],[/^Bronze God diamond/,"🥉💎"],[/God diamond/,"🥇💎"],[/^Uncrowned silver/,"🥈💨"],[/^Uncrowned bronze/,"🥉💨"],[/^Uncrowned/,"🥇💨"],
     [/^Gold medal/,"🥇"],[/^Silver medal/,"🥈"],[/^Bronze medal/,"🥉"],[/^Close win/,"🟰"],[/trophy/i,"🏆"],[/perfectionist/i,"💯"],[/crown/i,"👑"],[/gem|diamond/i,"💎"],[/streak/i,"🔥"],[/host/i,"🎤"]];
   const m=M.find(x=>x[0].test(name)); return m?m[1]:"🏅"}
+// the medal leaders' name for a medal, from its hover text (as in mlParse): the medal, with its path when it has one
+function hlMlKey(tip){const p=tip.split(" · "); return p[0]+(PATHS.includes(p[1])?" · "+p[1]:"")}
+// how many of a kind of medal a player added in a week
+function hlGain(n,key,x){let g=0; try{twMedals(n,x,x>DATA_WEEK).forEach(h=>{const tip=((/data-tip="([^"]*)"/.exec(h)||[])[1]||"").replace(/&#39;/g,"'").replace(/&quot;/g,'"').replace(/&amp;/g,"&");
+    if(hlMlKey(tip)===key)g+=+((/\+(\d+) this week/.exec(tip)||[])[1]||0)})}catch(e){} return g}
+// New medal leaders in week w. gains: the week's medal counts that went up. The standings today come from the medal
+// leaders (the Winners and Players tabs); anything collected after week w is taken off again, so an older week reads
+// as it stood then. A player is listed when they weren't at the top before the week (alone or tied) and are after it,
+// or were tied and now lead alone.
+function hlLeaders(w,gains){const out=[], pre=(typeof ML_PRE!=="undefined"&&ML_PRE)||{}, kinds={}; ["win","player"].forEach(k=>(pre[k]||[]).forEach(x=>kinds[x.key]=x));
+  const later=(n,key)=>{let g=0; for(let x=w+1;x<=TW_MAX;x++)if(SB.weeks[x])g+=hlGain(n,key,x); return g};
+  const seen=new Set();
+  gains.forEach(c=>{const K=kinds[c.key]; if(!K||K.unit!=="×"&&K.unit!==" wk"||seen.has(c.key+"|"+c.n))return; seen.add(c.key+"|"+c.n);
+    const me=K.rows.find(r=>r[0]===c.n); if(!me||me[1]!==c.all+later(c.n,c.key))return;   // (the two counts must agree, or the kind is counted another way)
+    const before=c.all-c.plus; let topAfter=0, topBefore=0; const tied=[];
+    K.rows.forEach(r=>{if(r[0]===c.n||r[1]<before)return; const a=r[1]-later(r[0],c.key), b=a-hlGain(r[0],c.key,w);
+      topAfter=Math.max(topAfter,a); topBefore=Math.max(topBefore,b); if(a===c.all)tied.push(r[0])});
+    if(c.all<topAfter)return;                       // not at the top
+    const sole=c.all>topAfter, wasTop=before>=topBefore&&before>0, wasSole=before>topBefore;
+    if(wasSole||(wasTop&&!sole))return;             // already there
+    const what=`${hlEmo(c.name)} **${c.key}**`, val=`${c.all}${K.unit==="×"?"":K.unit}`;
+    out.push(sole?(wasTop?`@${c.n} · now leads ${what} alone (${val})`:`@${c.n} · the new leader in ${what} (${val})`)
+                 :(()=>{const who=[c.n,...tied].sort((a,b)=>a.localeCompare(b,undefined,{sensitivity:"base"})), id=c.key+"="+who.join("|"); if(seen.has(id))return null; seen.add(id);   // one line for players who tie the same week
+                    return `${who.map(x=>"@"+x).join(", ")} · now tied for the lead in ${what} (${val})`})())});
+  return out.filter(Boolean)}
 function hlText(w){return hlParts(w).map(g=>g.join("\n").replace(/\*\*/g,"")).join("\n\n")}
 function hlHtml(w){return hlParts(w).map(g=>`<p>${g.map(x=>esc(x).replace(/\*\*(.+?)\*\*/g,"<strong>$1</strong>")).join("<br>")}</p>`).join("")}
-function hlParts(w){eloBuild(); const I=sbIx(), L=[], G1=[], G2=[], G3=[], G4=[], played=Object.keys(I.wk).filter(k=>I.wk[k].includes(w)), nm=k=>"@"+I.disp[k];   // names with @, as in the forum
+function hlParts(w){eloBuild(); const I=sbIx(), L=[], G1=[], G2=[], G2b=[], G3=[], G4=[], played=Object.keys(I.wk).filter(k=>I.wk[k].includes(w)), nm=k=>"@"+I.disp[k];   // names with @, as in the forum
   const both=xs=>xs.length>1?xs.slice(0,-1).join(", ")+" and "+xs[xs.length-1]:xs[0];
   const newc=played.filter(k=>I.wk[k][0]===w).map(nm); if(newc.length)G1.push(`🐣 **Welcome** to our new player${newc.length===1?"":"s"}: ${newc.join(", ")}`);
   const back=played.filter(k=>{const W=I.wk[k], i=W.indexOf(w); return i>0&&w-W[i-1]>=5}).map(k=>{const W=I.wk[k], i=W.indexOf(w); return `${nm(k)} (after ${w-W[i-1]-1} weeks away)`}); if(back.length)G1.push(`🎟️ **Welcome back** to the championship, ${both(back)}!`);
   const ups=(WR.ups||[]).filter(u=>u[4]===w&&LVI.indexOf(u[3])>LVI.indexOf(u[2])).map(u=>`@${u[0]} (${PATHS[u[1]]} ${TIER_NAME[u[2]]||u[2]} → ${TIER_NAME[u[3]]||u[3]})`); if(ups.length)G1.push(`⬆️ **Rank-ups**: ${ups.join(", ")}`);
   // firsts: a medal collected for the first time ever this week, other than the ones the Host tab's player messages already cover
+  const gains=[];   // every medal count that went up this week: who, which kind, the new total and how many were added
   {const fm=[]; played.forEach(k=>{const n=I.disp[k]; let ms=[]; try{ms=twMedals(n,w,w>DATA_WEEK)}catch(e){}
      const got=[]; ms.forEach(h=>{const tip=((/data-tip="([^"]*)"/.exec(h)||[])[1]||"").replace(/&#39;/g,"'").replace(/&quot;/g,'"').replace(/&amp;/g,"&");
        const all=+((/\((\d+) all time\)/.exec(tip)||[])[1]||0), plus=+((/\+(\d+) this week/.exec(tip)||[])[1]||0), name=tip.split(" · ")[0];
+       if(all>0&&plus>0&&name)gains.push({n,key:hlMlKey(tip),name,all,plus});
        if(!(all>0&&all===plus)||!name||/^(Joined|Played guitar|Played bass|Rivalry win)/.test(name))return; let covered=""; try{covered=hmMsg(n,tip)}catch(e){} if(covered||got.some(g=>g.name===name))return;
        // what the medal is for: the hover text's first line without the name and the counts
        const what=tip.split("\n")[0].split(" · ").slice(1).filter(x=>!/this week|all time|^\d+ (weeks?|times?)\b|click to|scoreboards since/.test(x)).join(" · ");
        got.push({name,what})});
      got.forEach(g=>{const what=g.what.replace(/, counting everyone not playing down, while/," while").replace(/ \(only players in that class can claim the place\)/,"");   // Uncrowned: short, without the explanation
        fm.push(`@${n} · ${hlEmo(g.name)} **${g.name}**${what?`: ${what}`:""}`)})});
-   if(fm.length)G2.push(`🎉 **Congratulations** on your first of these medals:`,...fm)}   // each line starts with the @name, not indented: the forum doesn't tag a name right after the indent
+   if(fm.length)G2.push(`🎉 **Congratulations** on your first of these medals:`,...fm)}
+  // new medal leaders: a player whose count this week took them to the top of a kind of medal, alone or tied
+  try{const nl=hlLeaders(w,gains); if(nl.length)G2b.push(`👑 **New medal leaders**:`,...nl)}catch(e){}   // each line starts with the @name, not indented: the forum doesn't tag a name right after the indent
   const nw=played.filter(k=>{const W=I.wk[k]; return W.length===2&&W[1]===w}).map(nm); if(nw.length)G3.push(`🔁 **One more time** (back for a second week): ${nw.join(", ")}`);
   const ht=played.filter(k=>{const W=I.wk[k], i=W.indexOf(w); if(i<2||W[i-1]!==w-1||W[i-2]!==w-2)return false; return !(i>=3&&W[i-3]===w-3)&&W.length<=FW_MAX}).map(nm); if(ht.length)G3.push(`🎩 **Hat trick** (first three weeks in a row): ${ht.join(", ")}`);
   // no play streak ended this week: everyone who played last week played again
@@ -3347,8 +3376,8 @@ function hlParts(w){eloBuild(); const I=sbIx(), L=[], G1=[], G2=[], G3=[], G4=[]
   if(sNow&&sNext&&sNow!==sNext){const ch=[0,1,2].map(pi=>sLine(pi)).filter(Boolean);
     out.push([`🏁 **A new season starts this week: Season ${seasonNum(sNext)} (${sNext})!** Everyone starts on zero points: 25 for a win, 18 for 2nd, down to 1 for 10th on each week's main challenge in your class. Show up every week to keep scoring.`]);
     if(ch.length)out.push([`🏆 **Season ${seasonNum(sNow)} (${sNow}) champions**:`],...ch)}
-  [G1,G2,G3,G4].forEach(g=>{if(g.length)out.push(g)});
-  if(!(G1.length||G2.length||G3.length||G4.length))out.push(["Nothing to highlight yet."]);
+  [G1,G2,G2b,G3,G4].forEach(g=>{if(g.length)out.push(g)});
+  if(!(G1.length||G2.length||G2b.length||G3.length||G4.length))out.push(["Nothing to highlight yet."]);
   if(sNow&&!(sNext&&sNow!==sNext)){const [a,b]=seasonRange(sNow);
     const ln=[0,1,2].map(pi=>sLine(pi,w)).filter(Boolean);
     if(ln.length)out.push([`🏁 **Season ${seasonNum(sNow)} (${sNow}) leaders after Week ${w}** (week ${w-a+1} of ${b-a+1}):`],...ln)}
