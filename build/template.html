@@ -8244,7 +8244,7 @@ document.addEventListener("change",e=>{const i=e.target.closest("[data-bnapv]");
 // The script checks that the caller is logged in here as an admin, or as a claimed player who has hosted.
 // FETCH_URL is that script's web app address; while it's empty the sections aren't shown.
 const FETCH_URL="https://script.google.com/macros/s/AKfycbzEW2FLXFznFWjW8cKlhMuUEobKPq4LVxWq9nnYzkbEZXrjkSWiLxVnXFdKj73IPdiTkA/exec";
-let FETCH_ST={busy:false,res:null,at:0}, SITEUP_ST={busy:"",res:null,at:0,what:""};
+let FETCH_ST={busy:"",res:null,at:0,what:""}, SITEUP_ST={busy:"",res:null,at:0,what:""};
 const hostRunOk=()=>{try{return !!FETCH_URL&&acctOn()&&(ACCT.admin||hostVerified())}catch(e){return false}};
 const hostRunAt=t=>t?new Date(t).toLocaleTimeString("en-US",{hour:"numeric",minute:"2-digit"}):"";
 async function hostRunCall(action){try{const {data}=await ACCT.sb.auth.getSession(), token=data&&data.session&&data.session.access_token; if(!token)throw new Error("You're not logged in.");
@@ -8254,12 +8254,13 @@ async function hostRunCall(action){try{const {data}=await ACCT.sb.auth.getSessio
 const hostRunRedraw=()=>{try{if($("acct").open&&(ACCT.tab==="host"||ACCT.tab==="admin"))acctDraw()}catch(x){}};
 function fetchSection(){if(!hostRunOk())return ""; const S=FETCH_ST, r=S.res, pl=(n,w)=>`${n} ${w}${n===1?"":"s"}`;
   const list=(t,L)=>L&&L.length?`<details class="fetchl"><summary>${esc(t)} (${L.length})</summary><ul>${L.map(x=>`<li>${esc(String(x).replace(/^\s*-\s*/,""))}</li>`).join("")}</ul></details>`:"";
-  const out=!r?"":r.ok?`<p class="fetchok">✓ Week ${esc(String(r.week))} at ${esc(hostRunAt(S.at))}: ${pl((r.added||[]).length,"new score")}, ${(r.updated||[]).length} updated, ${(r.skipped||[]).length} skipped · website update ${r.site==="queued"?"starts within a minute":"started (live in about 3 minutes)"}${r.notMarked?` · ${pl(r.notMarked,"score")} still to mark in the Score Assistant: run the fetch again`:""}</p>${list("New scores",r.added)}${list("Updated",r.updated)}${list("Skipped",r.skipped)}`:`<p class="fetcherr">${esc(r.error||"The fetch didn't finish.")}</p>`;
-  return `<div class="acctsec fetchsec"><h3>Fetch scores</h3><p class="dim">Runs the scoreboard sheet's “Faster fetch the latest scores (drand)” for the newest week, then updates the website. It can take up to 3 minutes; keep this page open.</p><div class="row"><button type="button" class="btn" data-fetchrun${S.busy?" disabled":""}>${S.busy?"Fetching… please wait":"Fetch the latest scores"}</button></div>${out}</div>`}
-document.addEventListener("click",async e=>{if(!e.target.closest("[data-fetchrun]")||FETCH_ST.busy||!hostRunOk())return;
-  if(!confirm("Fetch the latest scores, add them to the newest week's sheet and update the website?"))return;
-  FETCH_ST={busy:true,res:null,at:0}; hostRunRedraw();
-  const res=await hostRunCall("fetch"); FETCH_ST={busy:false,res,at:Date.now()}; hostRunRedraw()});
+  const out=!r?"":r.ok?`<p class="fetchok">✓ Week ${esc(String(r.week))} at ${esc(hostRunAt(S.at))}: ${pl((r.added||[]).length,"new score")}, ${(r.updated||[]).length} updated, ${(r.skipped||[]).length} skipped · website update ${r.site==="queued"?"starts within a minute":"started (live in about 3 minutes)"}${r.notMarked?` · ${pl(r.notMarked,"score")} still to mark in the Score Assistant: run ${S.what==="add"?"it":"the fetch"} again`:""}</p>${list("New scores",r.added)}${list("Updated",r.updated)}${list("Skipped",r.skipped)}`:`<p class="fetcherr">${esc(/Unknown request/.test(r.error||"")&&S.what==="add"?"The sheet's script doesn't have this yet: paste the newest drandTools.gs into the sheet's script and deploy it again.":r.error||"The fetch didn't finish.")}</p>`;
+  return `<div class="acctsec fetchsec"><h3>Fetch scores</h3><p class="dim">Runs the scoreboard sheet's “Faster fetch the latest scores (drand)” for the newest week, then updates the website. It can take up to 3 minutes; keep this page open. “Add fetched scores” only adds the scores that were already fetched, for when a fetch ran out of time.</p><div class="row"><button type="button" class="btn" data-fetchrun="fetch"${S.busy?" disabled":""}>${S.busy==="fetch"?"Fetching… please wait":"Fetch the latest scores"}</button> <button type="button" class="btn ghost" data-fetchrun="add"${S.busy?" disabled":""} title="The sheet's “Only add fetched scores (no fetch)”: adds the scores that were already fetched, without fetching again">${S.busy==="add"?"Adding… please wait":"Add fetched scores (no fetch)"}</button></div>${out}</div>`}
+// (the second button is the sheet's "Only add fetched scores (no fetch)": the same, without fetching first)
+document.addEventListener("click",async e=>{const b=e.target.closest("[data-fetchrun]"); if(!b||FETCH_ST.busy||!hostRunOk())return; const what=b.dataset.fetchrun==="add"?"add":"fetch";
+  if(!confirm(what==="add"?"Add the scores that were already fetched to the newest week's sheet and update the website? (Nothing is fetched first.)":"Fetch the latest scores, add them to the newest week's sheet and update the website?"))return;
+  FETCH_ST={busy:what,res:null,at:0}; hostRunRedraw();
+  const res=await hostRunCall(what); FETCH_ST={busy:"",res,at:Date.now(),what}; hostRunRedraw()});
 // Update website: the sheet's "Send scoreboard to website now" and "Send full sheet to website now"
 function siteUpSection(){if(!hostRunOk())return ""; const S=SITEUP_ST, r=S.res, full=S.what==="rescan";
   const out=!r?"":r.ok?`<p class="fetchok">✓ ${full?"Full update":"Website update"} started at ${esc(hostRunAt(S.at))} · live in about ${full?5:3} minutes</p>`:`<p class="fetcherr">${esc(r.error||"The update didn't start.")}</p>`;
