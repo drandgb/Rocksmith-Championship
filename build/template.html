@@ -5756,7 +5756,15 @@ function renderSongLookup(){const el=$("sqres"); if(!el)return;
 let SONG_TAGS=null, tagsLoading=false;
 const tagNorm=t=>String(t||"").replace(/\s+/g," ").trim().toLowerCase().slice(0,24), tagShow=t=>t.charAt(0).toUpperCase()+t.slice(1);
 async function tagsLoad(force){if(tagsLoading||(SONG_TAGS&&!force)||!ACCT.sb)return; tagsLoading=true;
-  try{const {data,error}=await ACCT.sb.from("song_tags").select("id,song,path,tag,player,user_id").limit(20000); if(!error){SONG_TAGS=data||[]; if(!$("view-songs").hidden)renderSongLookup(); tagRedraw(); tagIcoRefresh()}}finally{tagsLoading=false}}
+  try{const {data,error}=await ACCT.sb.from("song_tags").select("id,song,path,tag,player,user_id,created_at").limit(20000); if(!error){SONG_TAGS=tagsLegacy(data||[]); if(!$("view-songs").hidden)renderSongLookup(); tagRedraw(); tagIcoRefresh()}}finally{tagsLoading=false}}
+// Tags made before they were kept for each arrangement (Nov 15, 2026) were saved under the path of the card they were made
+// on. Where every card of the song on that path plays one other arrangement (a Rhythm card on the Lead arrangement, an
+// Alternate Lead), they belong to that arrangement and are shown there. (Only how they're read: the saved rows stay as they are.)
+function tagsLegacy(rows){try{const C=tagCodes(), ix={};
+    Object.entries(SB.weeks).forEach(([w,ch])=>ch.forEach(c=>{if(!c[3])return; const k=acctSongKey(c[3])+"|"+c[0]; (ix[k]=ix[k]||new Set()).add(arrP(w,c[0],c[1]))}));
+    rows.forEach(r=>{if(!(r.created_at&&r.created_at<"2026-11-15T18:00:00")||!(r.path>=0&&r.path<=2))return; const s=ix[r.song+"|"+r.path];
+      if(s&&s.size===1){const a=C.indexOf([...s][0]); if(a>=0)r.path=a}})}catch(e){}
+  return rows}
 // the tags on a song (one path, or all of them): [{tag, n, mine}] most used first
 // path: one arrangement, or a list of them (an empty list or nothing: every arrangement)
 function tagsOf(song,path){const k=acctSongKey(song), me=ACCT.user&&ACCT.user.id, m={};
