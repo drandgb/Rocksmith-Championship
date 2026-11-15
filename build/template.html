@@ -972,7 +972,8 @@ html.acctwait body{visibility:hidden}html.acctwait{background:var(--bg)}html.acc
 @media(max-width:640px){.unclaimed .alist li{display:flex;flex-wrap:wrap}.unclaimed .alist li .asong{flex-basis:100%}}
 .lapsed .alist.lpscroll{overflow-y:auto;position:relative;padding-right:4px;overscroll-behavior:contain}.lapsed .lptog{margin-left:6px}
 .newhere{position:relative;margin:0 0 16px;padding:12px 40px 10px 16px;border:1px solid color-mix(in srgb,var(--s-yellow) 45%,var(--line));border-left:4px solid var(--s-yellow);border-radius:10px;background:color-mix(in srgb,var(--s-yellow) 6%,var(--panel));font-size:.92rem;line-height:1.5}.newhere p{margin:0}.newhere p+p{margin-top:6px}.newhere ol{margin:6px 0 8px;padding-left:22px}.newhere li{margin:2px 0}.newhere a{color:var(--s-yellow)}.newhere .nhl{font-size:.85rem}.newhere .nhd{margin:6px 0 8px}.newhere .nhd summary{cursor:pointer;color:var(--s-yellow);font-size:.88rem}.newhere .nhd ul{margin:4px 0 0;padding-left:20px;font-size:.88rem}.newhere .nhd li{margin:3px 0}.newhere .nhx{position:absolute;top:8px;right:8px;background:none;border:0;color:var(--muted);font-size:1rem;cursor:pointer;padding:4px 6px;border-radius:6px}.newhere .nhx:hover{color:var(--fg);background:var(--panel2)}   /* first-visit explainer */
-.hlbox .hlsel{margin-left:8px}.hlbox pre{white-space:pre-wrap;background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:10px 12px;font:500 .84rem/1.45 var(--f-body);max-height:360px;overflow:auto;margin:8px 0}
+.hlbox .hlsel{margin-left:8px}.hlrich{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:4px 12px;font:500 .84rem/1.5 var(--f-body);max-height:360px;overflow:auto;margin:8px 0}.hlrich p{margin:.7em 0}
+.hlbox pre{white-space:pre-wrap;background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:10px 12px;font:500 .84rem/1.45 var(--f-body);max-height:360px;overflow:auto;margin:8px 0}
 .fwgo{color:var(--fg);font-weight:700;text-decoration:underline dotted;cursor:pointer}
 .fwtry{margin:10px 0 2px;font-size:.86rem}.fwtry b{color:var(--pc)}
 .seashero{text-align:center;padding:6px 0 14px}
@@ -3299,12 +3300,18 @@ function unclaimedSection(){const rows=[], st={}, YR=DATA_WEEK-51;   // st: per 
     ${stats}
     ${rows.length?`<ul class="alist">${rows.map(li).join("")}</ul>`:`<p class="dim">Every trophy has been claimed.</p>`}</div>`;
 }
-// Host tab: a week's highlights as plain text to paste into the weekly post
-function hlText(w){eloBuild(); const I=sbIx(), L=[], played=Object.keys(I.wk).filter(k=>I.wk[k].includes(w)), nm=k=>"@"+I.disp[k];   // names with @, as in the forum
+// Host tab: a week's highlights to paste into the weekly post. hlParts gives groups of lines, with **bold** marked;
+// hlText is the plain text (a blank line between groups) and hlHtml the same with the bold kept, a paragraph per group
+function hlEmo(name){const M=[[/^Silver God diamond/,"🥈💎"],[/^Bronze God diamond/,"🥉💎"],[/God diamond/,"🥇💎"],[/^Uncrowned silver/,"🥈💨"],[/^Uncrowned bronze/,"🥉💨"],[/^Uncrowned/,"🥇💨"],
+    [/^Gold medal/,"🥇"],[/^Silver medal/,"🥈"],[/^Bronze medal/,"🥉"],[/^Close win/,"🟰"],[/trophy/i,"🏆"],[/perfectionist/i,"💯"],[/crown/i,"👑"],[/gem|diamond/i,"💎"],[/streak/i,"🔥"],[/host/i,"🎤"]];
+  const m=M.find(x=>x[0].test(name)); return m?m[1]:"🏅"}
+function hlText(w){return hlParts(w).map(g=>g.join("\n").replace(/\*\*/g,"")).join("\n\n")}
+function hlHtml(w){return hlParts(w).map(g=>`<p>${g.map(x=>esc(x).replace(/\*\*(.+?)\*\*/g,"<strong>$1</strong>")).join("<br>")}</p>`).join("")}
+function hlParts(w){eloBuild(); const I=sbIx(), L=[], G1=[], G2=[], G3=[], G4=[], played=Object.keys(I.wk).filter(k=>I.wk[k].includes(w)), nm=k=>"@"+I.disp[k];   // names with @, as in the forum
   const both=xs=>xs.length>1?xs.slice(0,-1).join(", ")+" and "+xs[xs.length-1]:xs[0];
-  const newc=played.filter(k=>I.wk[k][0]===w).map(nm); if(newc.length)L.push(`Welcome to our new players: ${newc.join(", ")}`);
-  const back=played.filter(k=>{const W=I.wk[k], i=W.indexOf(w); return i>0&&w-W[i-1]>=5}).map(k=>{const W=I.wk[k], i=W.indexOf(w); return `${nm(k)} (after ${w-W[i-1]-1} weeks away)`}); if(back.length)L.push(`Welcome back to the championship, ${both(back)}!`);
-  const ups=(WR.ups||[]).filter(u=>u[4]===w&&LVI.indexOf(u[3])>LVI.indexOf(u[2])).map(u=>`@${u[0]} (${PATHS[u[1]]} ${TIER_NAME[u[2]]||u[2]} → ${TIER_NAME[u[3]]||u[3]})`); if(ups.length)L.push(`Rank-ups: ${ups.join(", ")}`);
+  const newc=played.filter(k=>I.wk[k][0]===w).map(nm); if(newc.length)G1.push(`🐣 **Welcome** to our new player${newc.length===1?"":"s"}: ${newc.join(", ")}`);
+  const back=played.filter(k=>{const W=I.wk[k], i=W.indexOf(w); return i>0&&w-W[i-1]>=5}).map(k=>{const W=I.wk[k], i=W.indexOf(w); return `${nm(k)} (after ${w-W[i-1]-1} weeks away)`}); if(back.length)G1.push(`🎟️ **Welcome back** to the championship, ${both(back)}!`);
+  const ups=(WR.ups||[]).filter(u=>u[4]===w&&LVI.indexOf(u[3])>LVI.indexOf(u[2])).map(u=>`@${u[0]} (${PATHS[u[1]]} ${TIER_NAME[u[2]]||u[2]} → ${TIER_NAME[u[3]]||u[3]})`); if(ups.length)G1.push(`⬆️ **Rank-ups**: ${ups.join(", ")}`);
   // firsts: a medal collected for the first time ever this week, other than the ones the Host tab's player messages already cover
   {const fm=[]; played.forEach(k=>{const n=I.disp[k]; let ms=[]; try{ms=twMedals(n,w,w>DATA_WEEK)}catch(e){}
      const got=[]; ms.forEach(h=>{const tip=((/data-tip="([^"]*)"/.exec(h)||[])[1]||"").replace(/&#39;/g,"'").replace(/&quot;/g,'"').replace(/&amp;/g,"&");
@@ -3314,38 +3321,42 @@ function hlText(w){eloBuild(); const I=sbIx(), L=[], played=Object.keys(I.wk).fi
        const what=tip.split("\n")[0].split(" · ").slice(1).filter(x=>!/this week|all time|^\d+ (weeks?|times?)\b|click to|scoreboards since/.test(x)).join(" · ");
        got.push({name,what})});
      got.forEach(g=>{const what=g.what.replace(/, counting everyone not playing down, while/," while").replace(/ \(only players in that class can claim the place\)/,"");   // Uncrowned: short, without the explanation
-       fm.push(`@${n} · ${g.name}${what?`: ${what}`:""}`)})});
-   if(fm.length)L.push(`Congratulations on your first of these medals:${fm.map(x=>"\n"+x).join("")}`)}   // each line starts with the @name, not indented: the forum doesn't tag a name right after the indent
-  const nw=played.filter(k=>{const W=I.wk[k]; return W.length===2&&W[1]===w}).map(nm); if(nw.length)L.push(`One more time (back for a second week): ${nw.join(", ")}`);
-  const ht=played.filter(k=>{const W=I.wk[k], i=W.indexOf(w); if(i<2||W[i-1]!==w-1||W[i-2]!==w-2)return false; return !(i>=3&&W[i-3]===w-3)&&W.length<=FW_MAX}).map(nm); if(ht.length)L.push(`Hat trick (first three weeks in a row): ${ht.join(", ")}`);
+       fm.push(`@${n} · ${hlEmo(g.name)} **${g.name}**${what?`: ${what}`:""}`)})});
+   if(fm.length)G2.push(`🎉 **Congratulations** on your first of these medals:`,...fm)}   // each line starts with the @name, not indented: the forum doesn't tag a name right after the indent
+  const nw=played.filter(k=>{const W=I.wk[k]; return W.length===2&&W[1]===w}).map(nm); if(nw.length)G3.push(`🔁 **One more time** (back for a second week): ${nw.join(", ")}`);
+  const ht=played.filter(k=>{const W=I.wk[k], i=W.indexOf(w); if(i<2||W[i-1]!==w-1||W[i-2]!==w-2)return false; return !(i>=3&&W[i-3]===w-3)&&W.length<=FW_MAX}).map(nm); if(ht.length)G3.push(`🎩 **Hat trick** (first three weeks in a row): ${ht.join(", ")}`);
   // no play streak ended this week: everyone who played last week played again
   {const on=Object.keys(I.wk).filter(k=>I.wk[k].includes(w-1)), kept=on.filter(k=>I.wk[k].includes(w));
-   if(on.length&&kept.length===on.length)L.push(`🔥 No streaks ended this week: all ${on.length} players on a play streak kept it going!`)}
+   if(on.length&&kept.length===on.length)G4.push(`🔥 **No streaks ended this week**: all ${on.length} players on a play streak kept it going!`)}
   // no lost trophies: every challenge decided this week has a winner (God challenges that carry on don't count yet)
   {const ch=(SB.weeks[w]||[]).filter(c=>c[3]&&!/^n\/a$/i.test(c[3])&&!c[7]);
-   if(w<=DATA_WEEK&&ch.length&&ch.every(c=>c[6].some(x=>canWin(x))))L.push(`🏆 No lost trophies this week: all ${ch.length} challenges have a winner!`)}
+   if(w<=DATA_WEEK&&ch.length&&ch.every(c=>c[6].some(x=>canWin(x))))G4.push(`🏆 **No lost trophies this week**: all ${ch.length} challenges have a winner!`)}
   // thank everyone who rated the week's songs
   // this week's number of players, when it's the most since a week over a year ago (or the most ever)
   {const cnt=x=>{const i=x-PRES_START; return i>=0&&i<PARTS.length?PARTS[i]:x===w?played.length:null}, n=cnt(w);
    if(n){let v=null; for(let x=w-1;x>=PRES_START;x--){const c=cnt(x); if(c!=null&&c>=n){v=x;break}}
-     if(v==null&&w-PRES_START>52)L.push(`📈 ${n} players this week, the most ever!`);
-     else if(v!=null&&w-v>52){const yrs=Math.floor((w-v)/52), d=WEEKS[v-1]; L.push(`📈 ${n} players this week, the most since Week ${v}${d?` (${fmtShort(d[1])}, ${d[1].slice(0,4)})`:""}, over ${yrs===1?"a year":yrs+" years"} ago!`)}}}
-  {const V=ACCT.voters&&ACCT.voters[w]; if(V&&V.size)L.push(`🙏 Thank you to everyone who submitted their vote for the difficulty ratings of Week ${w}'s songs: ${[...V].sort((a,b)=>a.localeCompare(b,undefined,{sensitivity:"base"})).map(n=>"@"+n).join(", ")}`)}
+     if(v==null&&w-PRES_START>52)G4.push(`📈 **${n} players this week**, the most ever!`);
+     else if(v!=null&&w-v>52){const yrs=Math.floor((w-v)/52), d=WEEKS[v-1]; G4.push(`📈 **${n} players this week**, the most since Week ${v}${d?` (${fmtShort(d[1])}, ${d[1].slice(0,4)})`:""}, over ${yrs===1?"a year":yrs+" years"} ago!`)}}}
+  {const V=ACCT.voters&&ACCT.voters[w]; if(V&&V.size)G4.push(`🙏 **Thank you** to everyone who submitted their vote for the difficulty ratings of Week ${w}'s songs: ${[...V].sort((a,b)=>a.localeCompare(b,undefined,{sensitivity:"base"})).map(n=>"@"+n).join(", ")}`)}
   // the last week of a season: announce the new one, with the champions of the one just finished
-  let head=""; const sNow=seasonOf(w), sNext=seasonOf(w+1);
+  const sNow=seasonOf(w), sNext=seasonOf(w+1);
   const sLine=(pi,up)=>{const T=seasonF1(pi,sNow,up), M=seasonImproved(pi,sNow,up);
-    const c=["M","A","I","B"].filter(c=>(T[c]&&T[c].length)||M[c]).map(c=>`${TIER_NAME[c]}: ${T[c]&&T[c][0]?`@${T[c][0].n} (${T[c][0].p} pts)`:"no points yet"}${M[c]?` · most improved @${M[c][0].n} (${lvGain(M[c][0].d)} lvl)`:""}`);
-    return c.length?`${PATHS[pi]}:${c.map(x=>"\n        "+x).join("")}`:""};
+    const c=["M","A","I","B"].filter(c=>(T[c]&&T[c].length)||M[c]).map(c=>`**${TIER_NAME[c]}**: ${T[c]&&T[c][0]?`@${T[c][0].n} (${T[c][0].p} pts)`:"no points yet"}${M[c]?` · most improved @${M[c][0].n} (${lvGain(M[c][0].d)} lvl)`:""}`);
+    return c.length?[`${["🎸","🎶","🎵"][pi]} **${PATHS[pi]}**`,...c]:null};
+  const out=[[`**Week ${w} Highlights**`]];
   if(sNow&&sNext&&sNow!==sNext){const ch=[0,1,2].map(pi=>sLine(pi)).filter(Boolean);
-    head=`🏁 A new season starts this week: Season ${seasonNum(sNext)} (${sNext})! Everyone starts on zero points: 25 for a win, 18 for 2nd, down to 1 for 10th on each week's main challenge in your class. Show up every week to keep scoring.${ch.length?`\nSeason ${seasonNum(sNow)} (${sNow}) champions:${ch.map(x=>"\n    "+x).join("")}`:""}\n\n`}
-  let lead="";
-  if(sNow&&!(sNext&&sNow!==sNext)){const [a,b]=seasonRange(sNow), sg=d=>`${d>=0?"+":"−"}${Math.abs(Math.round(d))}`;
+    out.push([`🏁 **A new season starts this week: Season ${seasonNum(sNext)} (${sNext})!** Everyone starts on zero points: 25 for a win, 18 for 2nd, down to 1 for 10th on each week's main challenge in your class. Show up every week to keep scoring.`]);
+    if(ch.length)out.push([`🏆 **Season ${seasonNum(sNow)} (${sNow}) champions**:`],...ch)}
+  [G1,G2,G3,G4].forEach(g=>{if(g.length)out.push(g)});
+  if(!(G1.length||G2.length||G3.length||G4.length))out.push(["Nothing to highlight yet."]);
+  if(sNow&&!(sNext&&sNow!==sNext)){const [a,b]=seasonRange(sNow);
     const ln=[0,1,2].map(pi=>sLine(pi,w)).filter(Boolean);
-    if(ln.length)lead=`\n\n🏁 Season ${seasonNum(sNow)} (${sNow}) leaders after Week ${w} (week ${w-a+1} of ${b-a+1}):${ln.map(x=>"\n    "+x).join("")}`}
-  return `Week ${w} highlights\n\n${head}${L.map(x=>"• "+x).join("\n")||"• Nothing to highlight yet."}${lead}\n\nKeep going!`}
+    if(ln.length)out.push([`🏁 **Season ${seasonNum(sNow)} (${sNow}) leaders after Week ${w}** (week ${w-a+1} of ${b-a+1}):`],...ln)}
+  out.push(["**Keep going!**"]);
+  return out}
 function hlSection(){const ws=[]; for(let w=ELO_DONE;w>ELO_DONE-6&&w>0;w--)if(SB.weeks[w])ws.push(w); const w=ACCT.hlWeek&&ws.includes(ACCT.hlWeek)?ACCT.hlWeek:ws[0]; if(!w)return "";
   return `<div class="acctsec hlbox"><h3>Weekly highlights <select class="hlsel" data-hlweek>${ws.map(x=>`<option value="${x}"${x===w?" selected":""}>Week ${x}</option>`).join("")}</select></h3>
-    <p class="dim">New players, welcome backs, rank-ups, first medals, newcomers' milestones and the season leaders for Week ${w}, ready to copy into the Week ${w+1} post.</p><pre id="hltext">${esc(hlText(w))}</pre><div class="row"><button type="button" class="btn ghost" data-hlcopy>Copy</button></div></div>`}
+    <p class="dim">New players, welcome backs, rank-ups, first medals, newcomers' milestones and the season leaders for Week ${w}, ready to copy into the Week ${w+1} post.</p><div id="hltext" class="hlrich" data-w="${w}">${hlHtml(w)}</div><div class="row"><button type="button" class="btn ghost" data-hlcopy>Copy</button><button type="button" class="btn ghost" data-hlcopy="plain">Copy as plain text</button></div></div>`}
 // ---------- Admin: season introduction, ready to copy into a forum post (for new and current players) ----------
 function siLab(w){const d=weekAt(w-1)[1], q=Math.floor((+d.slice(5,7)-1)/3); return ["Jan–Mar ","Apr–Jun ","Jul–Sep ","Oct–Dec "][q]+d.slice(0,4)}
 function siRange(id,from){let a=null,b=null; for(let w=Math.max(1,from-20);w<from+40;w++){if(siLab(w)===id){if(a==null)a=w; b=w}else if(a!=null)break} return [a,b]}
@@ -3498,7 +3509,11 @@ document.addEventListener("click",e=>{const b=e.target.closest("[data-sicopy]");
 (function(){const el=$("newhere"); if(!el)return; let seen=false; try{seen=localStorage.getItem("rsc-newhere")==="1"}catch(e){} if(!seen)el.hidden=false;
   $("newherex").addEventListener("click",()=>{el.hidden=true; lsSet("rsc-newhere","1")})})();
 document.addEventListener("change",e=>{const s=e.target.closest("[data-hlweek]"); if(!s)return; ACCT.hlWeek=+s.value; const el=document.querySelector(".acctdlg .hlbox"); if(el)el.outerHTML=hlSection()});
-document.addEventListener("click",e=>{const b=e.target.closest("[data-hlcopy]"); if(!b)return; const t=$("hltext").textContent; try{navigator.clipboard.writeText(t).then(()=>{b.textContent="Copied ✓"; setTimeout(()=>b.textContent="Copy",1500)})}catch(err){}});
+// Copy: the formatted text (bold kept, for the forum's editor) with the plain text alongside it; "Copy as plain text": the plain text alone
+document.addEventListener("click",e=>{const b=e.target.closest("[data-hlcopy]"); if(!b)return; const w=+$("hltext").dataset.w, plain=hlText(w), lab=b.textContent, ok=()=>{b.textContent="Copied ✓"; setTimeout(()=>b.textContent=lab,1500)};
+  try{if(b.dataset.hlcopy!=="plain"&&window.ClipboardItem&&navigator.clipboard.write)
+        navigator.clipboard.write([new ClipboardItem({"text/html":new Blob([hlHtml(w)],{type:"text/html"}),"text/plain":new Blob([plain],{type:"text/plain"})})]).then(ok,()=>navigator.clipboard.writeText(plain).then(ok));
+      else navigator.clipboard.writeText(plain).then(ok)}catch(err){}});
 // medals and glowing panels only animate while they're on screen: a profile can show hundreds of medals, and every glow, shine and sparkle costs a repaint
 (function medalsOnScreen(){if(!("IntersectionObserver" in window)||!("MutationObserver" in window))return;
   const io=new IntersectionObserver(es=>es.forEach(e=>e.target.classList.toggle("moff",!e.isIntersecting)),{rootMargin:"80px"}), seen=new WeakSet();
