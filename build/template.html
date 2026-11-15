@@ -1153,6 +1153,7 @@ footer .updated{display:block;margin-top:4px}
 .twtitle{flex:1;min-width:12em}
 .twtitle h2{font-size:1.35rem}
 .twtitle h2 .golink{cursor:pointer}
+.twtitle h2 .twwsel{background:none;border:0;color:inherit;font:inherit;letter-spacing:inherit;text-transform:inherit;cursor:pointer;padding:0;margin:0 4px 0 -2px;max-width:100%}.twtitle h2 .twwsel option{background:var(--panel);font-size:1rem;text-transform:none}
 .twarrow{background:var(--panel2);border:1px solid var(--line);color:var(--fg);border-radius:8px;width:36px;height:36px;font-size:1.3rem;cursor:pointer}
 .twarrow:disabled{opacity:.35;cursor:default}
 .twarrow.glow{border-color:var(--s-blue);color:var(--s-blue);box-shadow:0 0 0 1px var(--s-blue),0 0 14px color-mix(in srgb,var(--s-blue) 60%,transparent);animation:twglow 1.8s ease-in-out infinite}
@@ -6417,6 +6418,10 @@ const TW_MIN=3, TW_MAX=Math.max(DATA_WEEK,cur[0]);
 // next week, once its tab is on the scoreboard sheet: a preview one step past the current week
 const TW_NEXT=SB.weeks[TW_MAX+1]&&SB.weeks[TW_MAX+1].length?TW_MAX+1:null;
 let twWeek=TW_MAX;
+// the week in the title is a list to pick any week from, like the Scoreboard's (the Scoreboard button opens the scoreboard)
+function twWeekSel(w){const hi=TW_NEXT||TW_MAX; let o=""; for(let x=hi;x>=TW_MIN;x--)o+=`<option value="${x}"${x===w?" selected":""}>Week ${x}</option>`;
+  return `<select class="twwsel" data-twsel aria-label="Week">${o}</select>`}
+document.addEventListener("change",e=>{const s=e.target.closest("[data-twsel]"); if(!s)return; twWeek=+s.value; renderThisWeek()});
 let twAnnAll=false; // Anniversaries: false = players who played in the past year, true = everyone
 document.addEventListener("click",e=>{const b=e.target.closest("#annmode button"); if(!b)return; twAnnAll=b.dataset.ann==="1"; renderThisWeek()});
 const twRivLv=["","",""]; // rivals level filter per path ("" = all)
@@ -6582,7 +6587,7 @@ function renderNextPreview(){
   $("twnow").hidden=false; $("twnow").textContent=`Back to this week (${TW_MAX}) ›`;
   $("tw-winsec").hidden=true;
   $("twsb").hidden=false; $("twsb").dataset.sbw=nw; $("twsb").title=`Open week ${nw} on the Scoreboard`;
-  $("tw-title").innerHTML=`<span class="golink" data-sbw="${nw}" title="Open this week on the Scoreboard">Week ${nw}</span> <span class="pill nextwk" style="width:auto">UPCOMING</span>`;
+  $("tw-title").innerHTML=`${twWeekSel(nw)} <span class="pill nextwk" style="width:auto">UPCOMING</span>`;
   $("tw-meta").innerHTML=W?`Starts ${fmt(W[1])} at 9 pm CET${host?` · hosted by <span class="nm" data-name="${esc(host)}" data-gohost="${esc(host)}" style="cursor:pointer;font-weight:700;color:var(--fg)">${esc(host)}</span>${W[2]?"":" (signed up)"}`:` · <span data-tip="No host for Week ${nw} in the schedule sheet yet, and nobody has signed up on the site">host needed</span>`}`:"";
   $("tw-seas").hidden=true;
   $("tw-stats").innerHTML=`<span><b>${players.size}</b> player${players.size===1?"":"s"} posted so far</span><span><b>${ents.length}</b> entr${ents.length===1?"y":"ies"}</span>`;
@@ -6744,7 +6749,7 @@ function renderThisWeek(){
   $("twnow").hidden=w===TW_MAX; $("twsb").hidden=!SB.weeks[w]; $("twsb").dataset.sbw=w; $("twsb").title=`Open week ${w} on the Scoreboard`; $("twnow").textContent=`Back to ${TW_LIVE?"this":"the latest"} week (${TW_MAX}) ›`;
   const start=W?new Date(W[1]+"T12:00:00"):null, end=start?new Date(start.getTime()+7*864e5):null;   // a week ends on the day the next one starts
   const left=end?Math.ceil((new Date(W[1]+"T00:00:00").getTime()+7*864e5-Date.now())/864e5):0;
-  $("tw-title").innerHTML=`${SB.weeks[w]?`<span class="golink" data-sbw="${w}" title="Open this week on the Scoreboard">Week ${w}</span>`:`Week ${w}`}${live?' <span class="pill new" style="width:auto">IN PROGRESS</span>':' <span class="pill done" style="width:auto">CONCLUDED</span>'}`;
+  $("tw-title").innerHTML=`${twWeekSel(w)}${live?' <span class="pill new" style="width:auto">IN PROGRESS</span>':' <span class="pill done" style="width:auto">CONCLUDED</span>'}`;
   $("tw-meta").innerHTML=W?`${fmtShort(W[1])} – ${fmt(iso(end))}${W[2]&&W[2]!==LOST?` · hosted by <span class="nm" data-name="${esc(W[2])}" data-gohost="${esc(W[2])}" style="cursor:pointer;font-weight:700;color:var(--fg)">${esc(W[2])}</span>`:""}${live&&closeFor(w)?"":live&&left>0?` · ${twPl(left,"day")} left`:""}`:"";
   const ents=SB.weeks[w]?twEntries(w):[];
   // back from a break

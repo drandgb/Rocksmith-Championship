@@ -35,8 +35,9 @@ except ImportError:
 
 TABS = ["thisweek", "level", "skill", "rankings", "season", "hosting", "players", "winners", "scores", "songs", "faq"]
 NOISE = re.compile(r"net::ERR|Failed to load resource|ERR_FAILED|ERR_ABORTED")
-SECTIONS = """v=>[...document.querySelectorAll('#view-'+v+' section')].map((s,i)=>{const h=s.querySelector('h2');
-  return {k:s.id||(h?h.textContent.replace(/[▾▸]/g,"").replace(/^(Season) [IVXLCDM]+\\b/,"$1").trim().slice(0,40):'')||('#'+i), vis:!s.hidden&&s.offsetParent!==null, n:s.innerText.trim().length}})"""
+SECTIONS = """v=>{const hText=h=>{const c=h.cloneNode(true), src=[...h.querySelectorAll('select')]; [...c.querySelectorAll('select')].forEach((s,j)=>{const o=src[j].selectedOptions[0]; s.replaceWith(o?o.textContent:'')}); return c.textContent};   // (a list in a title counts as the choice it shows)
+  return [...document.querySelectorAll('#view-'+v+' section')].map((s,i)=>{const h=s.querySelector('h2');
+  return {k:s.id||(h?hText(h).replace(/[▾▸]/g,"").replace(/^(Season) [IVXLCDM]+\\b/,"$1").trim().slice(0,40):'')||('#'+i), vis:!s.hidden&&s.offsetParent!==null, n:s.innerText.trim().length}})}"""
 
 def visit(br, path, width, errors_too=True):
     pg = br.new_page(viewport={"width": width, "height": 900})
