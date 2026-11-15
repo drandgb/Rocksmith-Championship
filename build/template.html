@@ -3141,7 +3141,6 @@ const SEASON_MIN=10;
 var SEAS_OF=[], SEAS_RNG={}, SEAS_TAB={};   // (worked out once: they're asked for a lot)
 function seasonOf(w){if(SEAS_OF[w]!==undefined)return SEAS_OF[w]; return SEAS_OF[w]=seasonOf0(w)}
 function seasonOf0(w){const d=WEEKS[w-1]&&WEEKS[w-1][1]; if(!d)return null; const y=+d.slice(0,4), q=Math.floor((+d.slice(5,7)-1)/3);
-  if(y<2022)return null;   // seasons start in 2022 (Season I): the older scoreboards feed ratings, wins and medals but don't add seasons
   return ["Jan–Mar ","Apr–Jun ","Jul–Sep ","Oct–Dec "][q]+y}
 function seasonRange(id){if(SEAS_RNG[id])return SEAS_RNG[id]; let a=null,b=null; for(let w=1;w<=WEEKS.length;w++)if(seasonOf(w)===id){if(a==null)a=w; b=w} return SEAS_RNG[id]=[a,b]}
 function qSeasonTable(pi,id,upto){eloBuild(); const ck=pi+"|"+id+"|"+(upto||""); if(SEAS_TAB[ck])return SEAS_TAB[ck]; const [a,b]=seasonRange(id), end=Math.min(b,ELO_DONE,upto||1e9), out=SEAS_TAB[ck]={};
