@@ -5743,10 +5743,14 @@ const tagNorm=t=>String(t||"").replace(/\s+/g," ").trim().toLowerCase().slice(0,
 async function tagsLoad(force){if(tagsLoading||(SONG_TAGS&&!force)||!ACCT.sb)return; tagsLoading=true;
   try{const {data,error}=await ACCT.sb.from("song_tags").select("id,song,path,tag,player,user_id").limit(20000); if(!error){SONG_TAGS=data||[]; if(!$("view-songs").hidden)renderSongLookup(); tagRedraw(); tagIcoRefresh()}}finally{tagsLoading=false}}
 // the tags on a song (one path, or all of them): [{tag, n, mine}] most used first
+// path: one path, or a list of paths (an empty list or nothing: every path)
 function tagsOf(song,path){const k=acctSongKey(song), me=ACCT.user&&ACCT.user.id, m={};
+  if(Array.isArray(path)){const ps=path.map(String); if(!ps.length)path=null; else{const all=[]; ps.forEach(p=>(SONG_TAGS||[]).forEach(r=>{if(r.song===k&&String(r.path)===p)all.push(r)}));
+    all.forEach(r=>{const x=m[r.tag]=m[r.tag]||{tag:r.tag,n:0,mine:false,who:new Set()}; if(!x.who.has(r.player+"|"+r.path)){x.who.add(r.player+"|"+r.path); x.n++} if(me&&r.user_id===me)x.mine=true});
+    return Object.values(m).sort((a,b)=>b.n-a.n||a.tag.localeCompare(b.tag))}}
   (SONG_TAGS||[]).forEach(r=>{if(r.song!==k||(path!=null&&r.path!==path))return; const x=m[r.tag]=m[r.tag]||{tag:r.tag,n:0,mine:false,who:new Set()}; if(!x.who.has(r.player+"|"+r.path)){x.who.add(r.player+"|"+r.path); x.n++} if(me&&r.user_id===me&&(path==null||r.path===path))x.mine=true});
   return Object.values(m).sort((a,b)=>b.n-a.n||a.tag.localeCompare(b.tag))}
-function tagChips(song,ps){const T=tagsOf(song).slice(0,4);
+function tagChips(song,ps){const T=tagsOf(song,ps||[]).slice(0,4);
   return T.length?`<span class="tagrow">${T.map(t=>`<span class="tagchip" data-tagsong="${esc(song)}" data-tagps="${ps.join(",")}">${esc(tagShow(t.tag))}</span>`).join("")}</span>`:""}
 // The tag button: a small tag next to a song's name, wherever the song is shown. It opens the tag window; it's lit when
 // the song has tags, and its hover text lists them. ps: the paths the song is played on there.
@@ -5756,10 +5760,10 @@ function tagIcoTip(T){try{return tagIcoTip0(T)}catch(e){return "Tags"}}
 function tagIcoTip0(T){return T.length?`Tags: ${T.slice(0,8).map(t=>tagShow(t.tag)).join(", ")}${T.length>8?` and ${T.length-8} more`:""}\nClick to see ${tagCanEdit()?"and add ":""}tags`:tagCanEdit()?"No tags yet · click to add tags":"No tags yet"}
 function tagIco(song,ps){if(!song||/^n\/a$/i.test(song))return "";
   // (a list can draw before the account and the tags are ready: the button is drawn plain and brought up to date later)
-  let T=[]; try{if(ACCT){if(SONG_TAGS===null)tagsLoad(); T=tagsOf(song)}}catch(e){}
+  let T=[]; try{if(ACCT){if(SONG_TAGS===null)tagsLoad(); T=tagsOf(song,ps||[])}}catch(e){}   // only the tags of the paths the song is shown for here
   return `<button type="button" class="tagico${T.length?" has":""}" data-tagsong="${esc(song)}" data-tagps="${(ps||[]).join(",")}" data-tip="${esc(tagIcoTip(T))}" aria-label="Tags">${tagSvg()}</button>`}
 // once the tags have loaded (or changed), every tag button on the page is brought up to date
-function tagIcoRefresh(){document.querySelectorAll(".tagico").forEach(b=>{const T=tagsOf(b.dataset.tagsong); b.classList.toggle("has",!!T.length); b.dataset.tip=tagIcoTip(T)})}
+function tagIcoRefresh(){document.querySelectorAll(".tagico").forEach(b=>{const T=tagsOf(b.dataset.tagsong,(b.dataset.tagps||"").split(",").filter(Boolean)); b.classList.toggle("has",!!T.length); b.dataset.tip=tagIcoTip(T)})}
 {const t=setInterval(()=>{try{if(SONG_TAGS){clearInterval(t);return} if(ACCT.sb&&document.querySelector(".tagico"))tagsLoad()}catch(e){}},1500)}
 // (first in line, so a tag button inside a song's name doesn't also open the song)
 document.addEventListener("click",e=>{const o=e.target.closest(".tagico"); if(!o)return; e.preventDefault(); e.stopPropagation(); tip.hidden=true;
