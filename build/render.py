@@ -8,7 +8,10 @@ cv = h(t.encode() + open("render.py", "rb").read()); sc = h(json.dumps([sb["name
 for key, f in [("__WEEKS__", "weeks.json"), ("__PLAYERS__", "players.json"), ("__PARTS__", "parts.json"),
                ("__SCORES__", "scores.json"), ("__WINS__", "wins.json"), ("__SONGS_OLD__", "songs_old.json"), ("__RANKINGS__", "rankings.json"), ("__OFFICIAL__", "official.json")]:
     assert t.count(key) == 1, f"{key} must appear exactly once in template.html (found {t.count(key)}): another placeholder shares its name"
-    t = t.replace(key, open(f).read())
+    data = open(f).read()
+    if key == "__SONGS_OLD__":   # songs of the weeks that have no scoreboard on the site; a week with one is read from it instead
+        data = json.dumps([r for r in json.loads(data) if not sb["weeks"].get(str(r[0]))], separators=(",", ":"))
+    t = t.replace(key, data)
 # "Site last updated" / "Scores last updated": kept from the previous page until the page code (cv) or the scores (sc) change
 out = os.environ.get("OUT", "../../index.html")
 now = datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds")
@@ -30,6 +33,7 @@ t = (t.replace("__SITE_ISO__", site_iso).replace("__SITE_DAY__", day(site_iso))
       .replace("__LEVEL__", open("level.json").read() if os.path.exists("level.json") else "null")
       .replace("__DATAWEEK__", open("data_week.txt").read().strip())
       .replace("__SBMAX__", str(max(map(int, sb["weeks"]))))
+      .replace("__SBMIN__", str(min(map(int, sb["weeks"]))))
       # medal leaders worked out by a first build of the page in headless Chrome (build.sh); null if that step was skipped
       .replace("__MLPRE__", open("ml_pre.json").read() if os.path.exists("ml_pre.json") else "null"))
 left = sorted(set(re.findall(r"__[A-Z][A-Z0-9_]*__", t)))

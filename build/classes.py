@@ -16,7 +16,6 @@ def base(n):
 own=collections.defaultdict(lambda:collections.defaultdict(collections.Counter))
 for wk,ch in raw.items():
     w=int(wk)
-    if w<440: continue
     for P,slot,l,song,d,ex,ents in ch:
         L=lvl(l)
         if not L: continue

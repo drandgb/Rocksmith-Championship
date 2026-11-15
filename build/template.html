@@ -2067,7 +2067,7 @@ footer{color:var(--dim);font-size:.78rem}
   </div>
 
   <section class="panel">
-    <div class="panel-head"><h2>Most popular songs</h2><div class="seg bpmode" role="radiogroup" aria-label="Total or per challenge" id="spmode"><button type="button" data-sp="0" aria-pressed="true">Total</button><button type="button" data-sp="1" aria-pressed="false">Per challenge</button></div><span class="sub" id="spsub">Top 20 · different players who posted a score on the song since week 440</span></div>
+    <div class="panel-head"><h2>Most popular songs</h2><div class="seg bpmode" role="radiogroup" aria-label="Total or per challenge" id="spmode"><button type="button" data-sp="0" aria-pressed="true">Total</button><button type="button" data-sp="1" aria-pressed="false">Per challenge</button></div><span class="sub" id="spsub">Top 20 · different players who posted a score on the song since week __SBMIN__</span></div>
     <div class="lvfilter" id="sl-f"></div>
     <ol class="songlist" id="songlist"></ol>
   </section>
@@ -2223,7 +2223,7 @@ footer{color:var(--dim);font-size:.78rem}
     <p class="legendline"><span class="mk">*</span> outside own class (faded = playing down, not counted for wins) · <span class="mk">~</span> FreeBird · <span class="pct100">100%</span> full score or Master Mode · click a name to open their profile</p>
   </div>
 
-  <footer>Data: Rodman’s Rocksmith 2014 Championship Google Sheets (older attendance also from the Championship Metrics workbook). Player stats run through week __DATAWEEK__; scoreboards cover weeks 440–__SBMAX__. Weeks 1–16 have no recorded host in the source.
+  <footer>Data: Rodman’s Rocksmith 2014 Championship Google Sheets (older attendance also from the Championship Metrics workbook). Player stats run through week __DATAWEEK__; scoreboards cover weeks __SBMIN__–__SBMAX__. Weeks 1–16 have no recorded host in the source.
   <span class="updated disclaimer">Unofficial fan project. Not affiliated with CustomsForge, Ubisoft or Rocksmith.</span>
   <span class="updated" id="sheetedit-row" hidden>Sheet last edited: <span id="sheetedit" data-iso="__SHEET_EDITED__"></span></span>
   <span class="updated">Scores last updated: <span id="scoresat" data-iso="__SCORES_ISO__">__SCORES_DAY__</span><span id="builtat" data-iso="__BUILT_ISO__" data-sc="__SCHASH__" data-cv="__CODEHASH__" hidden></span></span>
@@ -3141,6 +3141,7 @@ const SEASON_MIN=10;
 var SEAS_OF=[], SEAS_RNG={}, SEAS_TAB={};   // (worked out once: they're asked for a lot)
 function seasonOf(w){if(SEAS_OF[w]!==undefined)return SEAS_OF[w]; return SEAS_OF[w]=seasonOf0(w)}
 function seasonOf0(w){const d=WEEKS[w-1]&&WEEKS[w-1][1]; if(!d)return null; const y=+d.slice(0,4), q=Math.floor((+d.slice(5,7)-1)/3);
+  if(y<2022)return null;   // seasons start in 2022 (Season I): the older scoreboards feed ratings, wins and medals but don't add seasons
   return ["Jan–Mar ","Apr–Jun ","Jul–Sep ","Oct–Dec "][q]+y}
 function seasonRange(id){if(SEAS_RNG[id])return SEAS_RNG[id]; let a=null,b=null; for(let w=1;w<=WEEKS.length;w++)if(seasonOf(w)===id){if(a==null)a=w; b=w} return SEAS_RNG[id]=[a,b]}
 function qSeasonTable(pi,id,upto){eloBuild(); const ck=pi+"|"+id+"|"+(upto||""); if(SEAS_TAB[ck])return SEAS_TAB[ck]; const [a,b]=seasonRange(id), end=Math.min(b,ELO_DONE,upto||1e9), out=SEAS_TAB[ck]={};
@@ -5290,7 +5291,7 @@ function eloTable(pi,w,keep){eloBuild(); const out=[]; Object.keys(ELO[pi].hist)
 // ranks among active players (as on the Winners page by default); an inactive player is ranked among everyone
 function eloRanks(pi,w,keep){const r={}; eloTable(pi,w,keep).forEach(([n],i)=>r[n]=i+1); return r}
 const eloKeep=n=>isActivePlayer(n)?isActivePlayer:null;
-const ELO_TIP="Elo correctly predicts who will win a head-to-head (the better score of two players on the same challenge) about 75% of the time, for players with 20+ games (checked against every game since Week 440).\n\nElo ratings, like chess: every time two players post on the same challenge it counts as a game. The higher % wins; the same % goes to the longer note streak, then the higher score; the same on all three is a draw. Two 100% scores never count as a game, whatever the streak or score: nobody could have done better, so a 100% can't lose you rating to another 100% (and a later chart update changing streaks or scores can't either).\n\nOn a chess-like scale: a new player starts at their class's average (Beginner 900, Intermediate 1200, Advanced 1500, Masterclass 1900). A game moves a rating by at most 40 points for the first 30 games, then 20, then 10 from 2400 up. Beating a higher-rated player earns more than beating a lower-rated one. On a busy card each game counts for less (divided by the square root of the number of opponents: 4 opponents ÷ 2, 9 opponents ÷ 3), so one big week doesn't swing a rating too far.\n\nGames against a player from another class count at quarter stakes (it goes by each player's own class, whatever card you're both on): you win and lose a quarter as much, so trying another class costs little. Below Masterclass, wins can't lift a rating past the next class's average (Beginner 1200, Intermediate 1500, Advanced 1900): to go higher, rank up.\n\nEach class's average is held steady: every week, everyone in a class is nudged up or down by the same small amount to bring the class back to its average. Without it, ratings drift down as players are promoted in with lower ratings. It never changes anyone's place within their class.\n\nRating levels, a guitarist’s career: Legend 2300+, Superstar 2200–2300, Arena Act 2000–2200, Headliner 1800–2000, Session Player 1600–1800, Opening Act 1400–1600, Open Mic 1200–1400, Busker 1000–1200, Bedroom Player under 1000.\n\nOne rating per path, from every week since the scoreboards start (Week 440), in order. A rating is provisional (new) until 20 games; the rankings list players with 20 or more.";
+const ELO_TIP="Elo correctly predicts who will win a head-to-head (the better score of two players on the same challenge) about 75% of the time, for players with 20+ games (checked against every game since Week 440).\n\nElo ratings, like chess: every time two players post on the same challenge it counts as a game. The higher % wins; the same % goes to the longer note streak, then the higher score; the same on all three is a draw. Two 100% scores never count as a game, whatever the streak or score: nobody could have done better, so a 100% can't lose you rating to another 100% (and a later chart update changing streaks or scores can't either).\n\nOn a chess-like scale: a new player starts at their class's average (Beginner 900, Intermediate 1200, Advanced 1500, Masterclass 1900). A game moves a rating by at most 40 points for the first 30 games, then 20, then 10 from 2400 up. Beating a higher-rated player earns more than beating a lower-rated one. On a busy card each game counts for less (divided by the square root of the number of opponents: 4 opponents ÷ 2, 9 opponents ÷ 3), so one big week doesn't swing a rating too far.\n\nGames against a player from another class count at quarter stakes (it goes by each player's own class, whatever card you're both on): you win and lose a quarter as much, so trying another class costs little. Below Masterclass, wins can't lift a rating past the next class's average (Beginner 1200, Intermediate 1500, Advanced 1900): to go higher, rank up.\n\nEach class's average is held steady: every week, everyone in a class is nudged up or down by the same small amount to bring the class back to its average. Without it, ratings drift down as players are promoted in with lower ratings. It never changes anyone's place within their class.\n\nRating levels, a guitarist’s career: Legend 2300+, Superstar 2200–2300, Arena Act 2000–2200, Headliner 1800–2000, Session Player 1600–1800, Opening Act 1400–1600, Open Mic 1200–1400, Busker 1000–1200, Bedroom Player under 1000.\n\nOne rating per path, from every week since the scoreboards start (Week __SBMIN__), in order. A rating is provisional (new) until 20 games; the rankings list players with 20 or more.";
 const eloD=d=>d>0?`<span class="up">▲${d}</span>`:"";   // Elo losses are never shown
 // Winners: top 10 per path (follows All / Active only), with the change over the last 10 weeks
 function renderEloBox(){const el=$("elo-box"); if(!el)return; const w=skW();
@@ -5631,7 +5632,7 @@ function renderSongs(){
     : Object.entries(bands).map(([a,v])=>[a,new Set(v.flatMap(c=>c.who||[])).size,v.reduce((s,c)=>s+(c.n||0),0)]).filter(x=>x[1]>0).sort((a,b)=>b[1]-a[1]||b[2]-a[2]||a[0].localeCompare(b[0])).slice(0,20);   // total: different players, as for songs
   $("b-playedbands").innerHTML=barRows(played.map(x=>[x[0],x[1]]),(n,i)=>STR[(i+2)%6],"",false);
   if(!bandAvg)[...$("b-playedbands").querySelectorAll(".brow")].forEach((r,i)=>{const x=played[i]; if(x)r.dataset.tip=`${x[0]} · ${x[1]} different player${x[1]===1?"":"s"} · ${x[2].toLocaleString()} score${x[2]===1?"":"s"} posted on their songs`});
-  $("bpsub").textContent=bandAvg?`Top 20 · average players per challenge since week 440 · bands with ${BP_MIN}+ challenge${BP_MIN===1?"":"s"} · overall average ${(entries/scored.length).toFixed(1)}`:"Top 20 · different players who posted a score on their songs since week 440";
+  $("bpsub").textContent=bandAvg?`Top 20 · average players per challenge since week __SBMIN__ · bands with ${BP_MIN}+ challenge${BP_MIN===1?"":"s"} · overall average ${(entries/scored.length).toFixed(1)}`:"Top 20 · different players who posted a score on their songs since week __SBMIN__";
   document.querySelectorAll("#bpmode button").forEach(b=>b.setAttribute("aria-pressed",(+b.dataset.bp===1)===bandAvg));
   bandDiff(bandAvg);
   setTimeout(()=>{try{markCrowdFav($("view-songs"))}catch(e){}},0);
@@ -5658,7 +5659,7 @@ function renderSongs(){
   lvNote("sl-f",lvlPlayed,"lvp"); lvNote("rl-f",lvlReplay,"lvr");
   // total: different players who posted a score on the song; per challenge: the average number of players on each challenge it was used in
   const topSongs=byLvl(lvlPlayed).map(([sg,v])=>{const tot=new Set(v.flatMap(c=>c.who||[])).size, avg=v.length?v.reduce((t,c)=>t+(c.who||[]).length,0)/v.length:0; return [sg,songAvg?avg:tot,v,tot]}).filter(x=>x[1]>0).sort((a,b)=>b[1]-a[1]||b[3]-a[3]||b[2].length-a[2].length).slice(0,20);
-  $("spsub").textContent=songAvg?"Top 20 · average players per challenge the song was used in, since week 440":"Top 20 · different players who posted a score on the song since week 440";
+  $("spsub").textContent=songAvg?"Top 20 · average players per challenge the song was used in, since week __SBMIN__":"Top 20 · different players who posted a score on the song since week __SBMIN__";
   document.querySelectorAll("#spmode button").forEach(b=>b.setAttribute("aria-pressed",(+b.dataset.sp===1)===songAvg));
   $("songlist").innerHTML=topSongs.map(([sg,n,v,tot])=>{const [a,ti]=splitSong(sg); const tiers=[...new Set(v.map(c=>c.t))].sort((x,y)=>TIER_ORDER.indexOf(x)-TIER_ORDER.indexOf(y));
     const who={}; v.forEach(c=>(c.who||[]).forEach(n=>{(who[n]=who[n]||new Set()).add(c.p)}));
@@ -7435,7 +7436,7 @@ const ZERO_FROM=650;
 
 function typoScan(){
   if(TYPO_CACHE)return TYPO_CACHE;
-  const nm=i=>SB.names[i].replace(/[*~]+$/,""), weeks=Object.keys(SB.weeks).map(Number).sort((a,b)=>a-b), NEW=weeks[weeks.length-1];
+  const nm=i=>SB.names[i].replace(/[*~]+$/,""), weeks=Object.keys(SB.weeks).map(Number).filter(w=>w>=440).sort((a,b)=>a-b), NEW=weeks[weeks.length-1];   // the older scoreboards (before 440) aren't checked
   const out={big:[],year:[],high:[],zero:[],noscore:[],nopct:[],dup:[],order:[],band:[],song:[],player:[],ssl:[]};
   // a 0 score is probably a typo, unless the player puts 0 on most of their entries (some always do)
   const sc={}; weeks.forEach(w=>SB.weeks[w].forEach(c=>c[6].forEach(e=>{const n=nm(e[0]).toLowerCase(), x=sc[n]=sc[n]||[0,0]; x[1]++; if(e[3]===0)x[0]++})));
@@ -7921,7 +7922,7 @@ function acctThisWeek(n,part){ part=part||ACCT.twPart||"me";
     <div class="acctsec"><h3>${RKc===RK_SHEET?"Rodman's Rankings":"Rankings"} ${RKc.weeks?`<small>Weeks ${esc(RKc.weeks)}</small>`:""}</h3>${RKc===RK_SHEET?"":`<p class="dim" style="margin:-4px 0 8px">Worked out by the site from the latest 10 weeks · may differ from Rodman's official rankings (Weeks ${esc(RK_SHEET.weeks)})</p>`}${rk.length?`<ul class="alist">${rk.join("")}</ul>`:`<p class="dim">Not ranked right now.</p>`}<div class="row"><button type="button" class="btn ghost" data-goview="rankings">Open Rodman's Rankings ›</button></div></div>`;
 }
 // ---------- rank-up readiness (private: only in the player's own profile) ----------
-// From the scoreboards since week 440: a player is "Ready" for the next class on a path when, in the last 12 weeks, they
+// From the scoreboards: a player is "Ready" for the next class on a path when, in the last 12 weeks, they
 // played up to that class at least twice and beat at least 30% of its regulars on average. The track record compares
 // every past rank-up with 12 weeks behind it: did the player hold their own over their first 12 weeks in the new class
 // (no move back down, kept playing at least half as often, not in the bottom quarter of the new class)?
