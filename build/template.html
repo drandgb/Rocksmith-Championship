@@ -3330,6 +3330,18 @@ function hlLeaders(w,gains){const out=[], pre=(typeof ML_PRE!=="undefined"&&ML_P
                  :(()=>{const who=[c.n,...tied].sort((a,b)=>a.localeCompare(b,undefined,{sensitivity:"base"})), id=c.key+"="+who.join("|"); if(seen.has(id))return null; seen.add(id);   // one line for players who tie the same week
                     return `${who.map(x=>"@"+x).join(", ")} · now tied for the lead in ${what} (${val})`})())});
   return out.filter(Boolean)}
+// the same for the two hosting records (most weeks hosted, longest hosting streak), counted from the schedule up to week w
+function hlHostLeaders(w){const out=[], h=(WEEKS.find(x=>x[0]===w)||[])[2]; if(!h||h===LOST)return out;
+  const stats=upTo=>{const S={}; let prev=null, run=0; WEEKS.forEach(([x,d,n])=>{if(x>upTo)return; if(!n||n===LOST){prev=null;return}
+      run=prev===n?run+1:1; prev=n; const s=S[n]=S[n]||{tot:0,best:0}; s.tot++; if(run>s.best)s.best=run}); return S};
+  const A=stats(w), B=stats(w-1);
+  [["tot","Most weeks hosted"],["best","Longest hosting streak"]].forEach(([f,label])=>{const a=A[h][f], b=(B[h]||{})[f]||0; if(a===b)return;
+    let top=0; const tied=[]; Object.keys(A).forEach(n=>{if(n===h)return; top=Math.max(top,A[n][f]); if(A[n][f]===a)tied.push(n)});
+    if(a<top)return; const sole=a>top, wasTop=b>=top&&b>0, wasSole=b>top; if(wasSole||(wasTop&&!sole))return;
+    const what=`🎤 **${label}**`, val=`${a} wk`;
+    out.push(sole?(wasTop?`@${h} · now leads ${what} alone (${val})`:`@${h} · the new leader in ${what} (${val})`)
+                 :`${[h,...tied].sort((x,y)=>x.localeCompare(y,undefined,{sensitivity:"base"})).map(x=>"@"+x).join(", ")} · now tied for the lead in ${what} (${val})`)});
+  return out}
 function hlText(w){return hlParts(w).map(g=>g.join("\n").replace(/\*\*/g,"")).join("\n\n")}
 function hlHtml(w){return hlParts(w).map(g=>`<p>${g.map(x=>esc(x).replace(/\*\*(.+?)\*\*/g,"<strong>$1</strong>")).join("<br>")}</p>`).join("")}
 function hlParts(w){eloBuild(); const I=sbIx(), L=[], G1=[], G2=[], G2b=[], G3=[], G4=[], played=Object.keys(I.wk).filter(k=>I.wk[k].includes(w)), nm=k=>"@"+I.disp[k];   // names with @, as in the forum
@@ -3351,7 +3363,7 @@ function hlParts(w){eloBuild(); const I=sbIx(), L=[], G1=[], G2=[], G2b=[], G3=[
        fm.push(`@${n} · ${hlEmo(g.name)} **${g.name}**${what?`: ${what}`:""}`)})});
    if(fm.length)G2.push(`🎉 **Congratulations** on your first of these medals:`,...fm)}
   // new medal leaders: a player whose count this week took them to the top of a kind of medal, alone or tied
-  try{const nl=hlLeaders(w,gains); if(nl.length)G2b.push(`👑 **New medal leaders**:`,...nl)}catch(e){}   // each line starts with the @name, not indented: the forum doesn't tag a name right after the indent
+  try{const nl=hlLeaders(w,gains).concat(hlHostLeaders(w)); if(nl.length)G2b.push(`👑 **New medal leaders**:`,...nl)}catch(e){}   // each line starts with the @name, not indented: the forum doesn't tag a name right after the indent
   const nw=played.filter(k=>{const W=I.wk[k]; return W.length===2&&W[1]===w}).map(nm); if(nw.length)G3.push(`🔁 **One more time** (back for a second week): ${nw.join(", ")}`);
   const ht=played.filter(k=>{const W=I.wk[k], i=W.indexOf(w); if(i<2||W[i-1]!==w-1||W[i-2]!==w-2)return false; return !(i>=3&&W[i-3]===w-3)&&W.length<=FW_MAX}).map(nm); if(ht.length)G3.push(`🎩 **Hat trick** (first three weeks in a row): ${ht.join(", ")}`);
   // no play streak ended this week: everyone who played last week played again
