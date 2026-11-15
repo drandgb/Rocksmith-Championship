@@ -1656,14 +1656,14 @@ footer{color:var(--dim);font-size:.78rem}
 /* the name, class pills, stat boxes and season pills sit above the medals, so the medals' glow doesn't wash over them */
 .bn .bn-top,.bn .bn-who,.bn .bn-nm,.bn .bn-tags,.bn .bn-stats,.bn .bn-elos,.bn .bn-seas{position:relative;z-index:5}.bn .bn-st,.bn .bn-elo{position:relative}.bn .bn-medrow{position:relative;z-index:1}
 .bn .bn-st::before,.bn .bn-elo::before{content:"";position:absolute;inset:0;border-radius:inherit;background:#1a1b1e;z-index:-1}   /* a solid base under their see-through fill */
-/* bottoms in line with the God diamonds' (whose laurel sits lowest): medals down a little, the taller cups a little more */
+/* bottoms in line with the god diamonds' (whose laurel sits lowest): medals down a little, the taller cups a little more */
 .bn .bn-medrow .medal-m{top:1.4px}.bn .bn-medrow .medal-m.cup{top:3.6px}.bn .bn-medrow .medal-m.diamond{top:0}
 /* the white count pills all at the same height across the row (the cups and diamonds are taller than the medals) */
 .bn .bn-medrow .medal-m.diamond>b{translate:0 1.4px}.bn .bn-medrow .medal-m.cup>b{translate:0 -2.2px}
 /* and the #1/#2/#3 place tags at one height too, lifted clear of the medals' faces */
 .bn .bn-medrow .bn-first{top:-11px}
 .bn .bn-medrow .medal-m.diamond>.bn-first{translate:0 8.4px}.bn .bn-medrow .medal-m.cup>.bn-first{translate:0 -2.1px}
-/* God diamonds are wider than the other medals: pull them in by the difference so every medal's centre is evenly spaced */
+/* god diamonds are wider than the other medals: pull them in by the difference so every medal's centre is evenly spaced */
 .bn .bn-meds .medal-m.diamond{margin-left:-6px;margin-right:-2px}.bn .bn-meds .medal-m.diamond .bn-first{left:-2px}.bn .bn-medrow{padding-left:6px}   /* the place badge sits the same distance from every medal's edge, and the first one clears the banner's rounded corner */
 .bn .bn-meds:has(> .medal-m.diamond:first-child){padding-left:11px}
 .bn .bn-first{position:absolute;left:-8px;top:-6px;z-index:2;font:800 10px/14px var(--f-display);padding:0 3px;border-radius:6px;background:linear-gradient(180deg,#ffe28a,#f5c84a);color:#2a1a02}
@@ -2854,7 +2854,7 @@ function gemSvg(col,label){
 // class gem: highest class the player has reached on any path (player list or rank history)
 // class gems: one for every class up to the highest the player has reached on any path (player list or rank history).
 // Reaching Advanced also gives the Beginner and Intermediate gems. Each is dated by the first rank-up into that class.
-// class gems are celestial emerald-cut stones (like the God diamonds): a rectangular step cut, starlit and twinkling
+// class gems are celestial emerald-cut stones (like the god diamonds): a rectangular step cut, starlit and twinkling
 const CG_TINT={B:"#fff2b8",I:"#c8fbff",A:"#ead9ff",M:"#ffd2d6"}, CG_DEEP={B:"#f2b92c",I:"#1fb6c2",A:"#9a5cff",M:"#d4202c"};   // the class colors: yellow, cyan, purple, red
 let cgN=0; // unique gradient ids, so a gem never borrows a gradient from a hidden copy
 function classGemSvg(tc){const g="cg"+tc+(cgN++), tint=CG_TINT[tc], deep=CG_DEEP[tc];
@@ -3303,7 +3303,7 @@ function unclaimedSection(){const rows=[], st={}, YR=DATA_WEEK-51;   // st: per 
 }
 // Host tab: a week's highlights to paste into the weekly post. hlParts gives groups of lines, with **bold** marked;
 // hlText is the plain text (a blank line between groups) and hlHtml the same with the bold kept, a paragraph per group
-function hlEmo(name){const M=[[/^Silver God diamond/,"🥈💎"],[/^Bronze God diamond/,"🥉💎"],[/God diamond/,"🥇💎"],[/^Uncrowned silver/,"🥈💨"],[/^Uncrowned bronze/,"🥉💨"],[/^Uncrowned/,"🥇💨"],
+function hlEmo(name){const M=[[/^Silver god diamond/,"🥈💎"],[/^Bronze god diamond/,"🥉💎"],[/god diamond/,"🥇💎"],[/^Uncrowned silver/,"🥈💨"],[/^Uncrowned bronze/,"🥉💨"],[/^Uncrowned/,"🥇💨"],
     [/^Gold medal/,"🥇"],[/^Silver medal/,"🥈"],[/^Bronze medal/,"🥉"],[/^Close win/,"🟰"],[/trophy/i,"🏆"],[/perfectionist/i,"💯"],[/crown/i,"👑"],[/gem|diamond/i,"💎"],[/streak/i,"🔥"],[/host/i,"🎤"]];
   const m=M.find(x=>x[0].test(name)); return m?m[1]:"🏅"}
 // the medal leaders' name for a medal, from its hover text (as in mlParse): the medal, with its path when it has one
@@ -4553,7 +4553,7 @@ document.addEventListener("click",e=>{if(!e.target.closest("[data-goseason]")||e
 var twTipPin=null;
 document.addEventListener("click",e=>{let g=e.target.closest(".tsgain,.twwelcome,#tw-new .tier[data-tip],#tw-stats [data-tip]"); if(g&&g.matches(".twwelcome[data-goplayer]"))g=null; if(!g){if(twTipPin){twTipPin=null; tip.hidden=true} return}
   e.stopPropagation(); twTipPin=g; if(g.dataset.tiph)tip.innerHTML=g.dataset.tiph; else tip.textContent=g.dataset.tip; tip.hidden=false; const r=g.getBoundingClientRect(); placeTip(Math.min(r.left,innerWidth-260),r.bottom-4)},true);
-// New medals order: gold God winners first, then silver, then bronze God diamond winners, then everyone else
+// New medals order: gold God winners first, then silver, then bronze god diamond winners, then everyone else
 // then most new regular gold medals, then silver, then bronze (all paths), then most new medals overall
 function podNew(m,i){return m.reduce((t,h)=>{if(!/medal-m wm pod/.test(h)||!new RegExp(`data-tip="${POD_NAME[i]} medal`).test(h))return t; const k=/data-k="(\d+)"/.exec(h); return t+(k?+k[1]:1)},0)}
 // same number of medals: new players (Joined medal) first, then play streak medals, then Still got it, then the hardest perfectionist medal
@@ -4598,7 +4598,7 @@ function podiumMedals(pod){
   const rows=[], reg=[], god=[];
   // one medal per place per path (Lead, Rhythm, Bass): gold L R B, then silver, then bronze
     pod.regP.forEach((pp,i)=>pp.forEach((ws,p)=>{if(ws.length)reg.push(`<span class="medal-m wm pod" data-path="${p}" style="--ec:${POD_COL[i]};cursor:pointer" data-all="${ws.join(",")}" data-hl="${[...new Set(ws)].join(",")}" data-tip="${POD_NAME[i]} medal · ${PATHS[p]} · finished ${POD_PLACE[i]} on a ${PATHS[p]} challenge ${ws.length} time${ws.length===1?"":"s"} · click to highlight">${podSvg(POD_COL[i],p)}<b>${ws.length}</b></span>`)}));
-    pod.godP.forEach((pp,i)=>pp.forEach((ws,p)=>{if(ws.length)god.push(`<span class="medal-m wm diamond d${i}" data-path="${p}" style="--ec:${PATH_C[p]};cursor:pointer" data-all="${ws.join(",")}" data-hl="${[...new Set(ws)].join(",")}" data-tip="${POD_NAME[i]} God diamond · ${PATHS[p]} · finished ${POD_PLACE[i]} on a ${["God of Guitar","God of Rhythm","God of Bass"][p]} challenge ${ws.length} time${ws.length===1?"":"s"} · click to highlight">${diamondSvg(i,p)}<b>${ws.length}</b></span>`)}));
+    pod.godP.forEach((pp,i)=>pp.forEach((ws,p)=>{if(ws.length)god.push(`<span class="medal-m wm diamond d${i}" data-path="${p}" style="--ec:${PATH_C[p]};cursor:pointer" data-all="${ws.join(",")}" data-hl="${[...new Set(ws)].join(",")}" data-tip="${POD_NAME[i]} god diamond · ${PATHS[p]} · finished ${POD_PLACE[i]} on a ${["God of Guitar","God of Rhythm","God of Bass"][p]} challenge ${ws.length} time${ws.length===1?"":"s"} · click to highlight">${diamondSvg(i,p)}<b>${ws.length}</b></span>`)}));
     return {reg,god};
 }
 
@@ -4701,7 +4701,7 @@ var THEME_MEDALS=[
    svg:()=>`<svg viewBox="0 0 30 30" aria-hidden="true"><defs><linearGradient id="cbg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7fd4ff"/><stop offset="1" stop-color="#2f5fef"/></linearGradient></defs><circle cx="15" cy="15" r="13" fill="#1d2433" stroke="url(#cbg)" stroke-width="2"/><circle cx="15" cy="10" r="4.2" fill="url(#cbg)"/><circle cx="13.5" cy="9.6" r=".7" fill="#1d2433"/><circle cx="16.5" cy="9.6" r=".7" fill="#1d2433"/><path d="M13.2 11.6q1.8 1.3 3.6 0" fill="none" stroke="#1d2433" stroke-width=".8" stroke-linecap="round"/><path d="M8.6 24.5c.3-4.6 2.9-8.6 6.4-8.6s6.1 4 6.4 8.6z" fill="url(#cbg)"/><path d="M10.4 17.6 6.9 13.6M19.6 17.6l3.5-4" stroke="#5aa8ff" stroke-width="2" stroke-linecap="round"/></svg>`},
   {name:"Elusive nuggies",id:"nugg",what:"over 90% on The Ol' Grizz by Primus",re:/^Primus - The Ol'? Grizz\b/i,over:90,best:[95,100],col:"#f5c84a",cls:"nugg",
    note:"A moving goalpost: once someone scores 95%, it takes 95% to keep it, then 100% once someone scores 100%",
-   // a pile of rough gold nuggets (no medal disc), each faceted and lit from the top left, with the God diamond's sparkles
+   // a pile of rough gold nuggets (no medal disc), each faceted and lit from the top left, with the god diamond's sparkles
    svg:()=>nuggiesSvg()},
   {name:"Hee Hee",id:"hhg",what:"100% on a Michael Jackson song",re:/^Michael Jackson\b/i,col:"#d9dcff",
    // the moonwalk under a crescent moon: a trouser leg, white sock and black loafer up on its toes, sliding back
@@ -4824,7 +4824,7 @@ function winMedals(per,done,bestN,streak,total,trip,ties,pod,rivw,unc,sea){
   // Uncrowned (1st), then silver and bronze: places reached while playing up or as a FreeBird, which can't be claimed
   (unc||[]).forEach((ws,i)=>{if(!ws||!ws.length)return; const what=["had the best score","finished 2nd","finished 3rd"][i];
     xr.push(`<span class="medal-m wm pod" style="--ec:${UNC_GLOW[i]};cursor:pointer" data-all="${ws.join(",")}" data-hl="${[...new Set(ws)].sort((a,b)=>a-b).join(",")}" data-tip="${UNC_NAME[i]} · ${what} on a board, counting everyone not playing down, while playing up from a lower class or as a FreeBird (only players in that class can claim the place) · ${ws.length} time${ws.length===1?"":"s"} · click to highlight">${uncrownSvg(UNC_COL[i])}<b>${ws.length}</b></span>`)});
-  // season champion trophies first, then God diamonds, then the gold, silver and bronze medals
+  // season champion trophies first, then god diamonds, then the gold, silver and bronze medals
   if(sea&&sea.length)rows.push(sea);
   if(P.god.length)rows.push(P.god);
   if(P.reg.length)rows.push(P.reg);
@@ -6261,8 +6261,8 @@ const ML_DESC={"Pick of Destiny":"scored 100% on a Tenacious D song · ranked by
 const mlSbNote=()=>`Counted from scoreboards since Week ${SB_W[0]} (earlier weeks have no scoreboard on the site)`;
 const mlFromSb=(kind,key)=>kind==="win"||/^(Played guitar|Played bass|Catch ‘em all|Lead completionist|Rhythm completionist|Bass completionist|Harder, Better, Faster, Stronger|Still got it|Pick of Destiny|Certified Blue|Hee Hee|Elusive nuggies|Perfect God medal)$| perfectionist$/.test(key);
 function mlRender(kind){const acc=ML[kind].acc, link=kind==="win"?"data-gowin":kind==="host"?"data-gohost":"data-goplayer";
-  // fixed order, like the medal rows: God diamonds, gold/silver/bronze (Lead, Rhythm, Bass), then the rest
-  const ORDER=["Masterclass season champion","Advanced season champion","Intermediate season champion","Beginner season champion","Season most improved","Gold God diamond","Silver God diamond","Bronze God diamond","Gold medal","Silver medal","Bronze medal","Triple crown","Close win medal","Rivalry win","Uncrowned","Uncrowned silver","Uncrowned bronze","Most wins in one week","Longest win streak",
+  // fixed order, like the medal rows: god diamonds, gold/silver/bronze (Lead, Rhythm, Bass), then the rest
+  const ORDER=["Masterclass season champion","Advanced season champion","Intermediate season champion","Beginner season champion","Season most improved","Gold god diamond","Silver god diamond","Bronze god diamond","Gold medal","Silver medal","Bronze medal","Triple crown","Close win medal","Rivalry win","Uncrowned","Uncrowned silver","Uncrowned bronze","Most wins in one week","Longest win streak",
     "Years in the championship","Longest play streak","Perfect gem","Kintsugi gem","Played guitar","Played bass","Catch ‘em all","Lead completionist","Rhythm completionist","Bass completionist","Harder, Better, Faster, Stronger","Still got it","Pick of Destiny","Certified Blue","Hee Hee","Elusive nuggies","Beginner perfectionist","Intermediate perfectionist","Advanced perfectionist","Masterclass perfectionist","Perfect God medal","God tier perfectionist",
     "Most weeks hosted","Longest hosting streak"];
   const ordOf=k=>{const [base,path]=k.label.split(" · "); const i=ORDER.indexOf(base); return (i<0?999:i)*4+(path?PATHS.indexOf(path)+1:0)};
@@ -6565,8 +6565,8 @@ function twMedals0(n,w,live){
     // which songs the medal came from this week
     const fin=twFinishes(n,w), lvOf=c=>{const L=cardLv(c[2]); return L&&L!=="G"?TIER_NAME[L]:c[2]};
     const list=xs=>xs.map(x=>`• ${x.c[3]} (${x.god?x.c[2]:`${PATHS[x.c[0]]}, ${lvOf(x.c)}`})${x.gain||""}`).join("\n");
-    let from=[], pm=/^(Gold|Silver|Bronze) (God diamond|medal)/.exec(t);
-    if(pm){const i=POD_NAME.indexOf(pm[1]), god=pm[2]==="God diamond", pp=m.dataset.path!=null?+m.dataset.path:-1;
+    let from=[], pm=/^(Gold|Silver|Bronze) (god diamond|medal)/.exec(t);
+    if(pm){const i=POD_NAME.indexOf(pm[1]), god=pm[2]==="god diamond", pp=m.dataset.path!=null?+m.dataset.path:-1;
       from=fin.filter(x=>x.place===i&&x.god===god&&(pp<0||x.c[0]===pp))}
     else if(/^Close win/.test(t))from=fin.filter(x=>x.place===0&&x.tie);
     else if(/^Harder, Better, Faster, Stronger/.test(t))from=hbfsWins(n,[w]).map(x=>({c:x.c,god:/^god|tribute/i.test(x.c[2]),gain:` · Week ${x.ow}: ${hbfsGain(x)}`}));
@@ -8151,25 +8151,25 @@ function bannerHtml(n){
     const pl=1+act.filter(r=>r[1]>me[1]||(r[1]===me[1]&&(r[2]||0)>(me[2]||0))).length; return pl<=3?{label:k.label,pl}:null}).filter(Boolean);
   const box=document.createElement("div"); box.innerHTML=allMedalsHtml(n);
   // one order of priority for every player, every gold-tier medal before the silver ones and those before bronze:
-  // gold God diamonds, season champion trophies, season most improved, gold medals, triple crown, Uncrowned, close win; then silver God diamonds, silver medals, Uncrowned silver; then bronze God diamonds,
+  // gold god diamonds, season champion trophies, season most improved, gold medals, triple crown, Uncrowned, close win; then silver god diamonds, silver medals, Uncrowned silver; then bronze god diamonds,
   // bronze medals, Uncrowned bronze; then the longest win streak medal and rivalry wins. They fill the row's 8 spots in
-  // that order; a kind that doesn't fit whole takes the spots left (most-won first for the God diamonds and the medals).
+  // that order; a kind that doesn't fit whole takes the spots left (most-won first for the god diamonds and the medals).
   let gold=[];
   {const tipOf=m=>m.getAttribute("data-tip")||"", all=[...box.querySelectorAll(".medal-m")], of=re=>all.filter(m=>re.test(tipOf(m)));
    const cnt=m=>{const b=m.querySelector(":scope > b"); return b?+b.textContent.replace(/\D/g,"")||0:0};
    const most=L=>L.map((m,i)=>({m,i})).sort((a,b)=>cnt(b.m)-cnt(a.m)||a.i-b.i).map(x=>x.m);
    const top=re=>{const L=of(re); if(!L.length)return []; const v=m=>+(tipOf(m).match(/^(\d+)/)||[0,0])[1]; return [L.reduce((a,b)=>v(b)>v(a)?b:a)]};   // only the highest tier
-   const kinds=[()=>most(of(/^Gold God diamond/)),()=>of(/^Masterclass season champion/),()=>of(/^Advanced season champion/),()=>of(/^Intermediate season champion/),()=>of(/^Beginner season champion/),
+   const kinds=[()=>most(of(/^Gold god diamond/)),()=>of(/^Masterclass season champion/),()=>of(/^Advanced season champion/),()=>of(/^Intermediate season champion/),()=>of(/^Beginner season champion/),
      ()=>of(/^Season most improved/),()=>most(of(/^Gold medal/)),()=>of(/^Triple crown/),()=>of(/^Uncrowned ·/),()=>of(/^Close win/),
-     ()=>most(of(/^Silver God diamond/)),()=>most(of(/^Silver medal/)),()=>of(/^Uncrowned silver/),
-     ()=>most(of(/^Bronze God diamond/)),()=>most(of(/^Bronze medal/)),()=>of(/^Uncrowned bronze/),
+     ()=>most(of(/^Silver god diamond/)),()=>most(of(/^Silver medal/)),()=>of(/^Uncrowned silver/),
+     ()=>most(of(/^Bronze god diamond/)),()=>most(of(/^Bronze medal/)),()=>of(/^Uncrowned bronze/),
      ()=>top(/^\d+-week win streak medal/),()=>of(/^Rivalry win/)];
    kinds.forEach(f=>{const k=f(), room=BN_MED_MAX-gold.length; if(k.length&&room>0)gold=gold.concat(k.slice(0,room))})}
   const meds=gold.map(m=>{
     const tip=m.getAttribute("data-tip")||"", L=places.find(k=>tip===k.label||tip.startsWith(k.label+" ·")||tip.startsWith(k.label+" medal"));
     ["data-tip","data-hl","data-all","data-path"].forEach(a=>m.removeAttribute(a)); m.style.cursor="";
     if(L)m.insertAdjacentHTML("beforeend",`<span class="bn-first bn-pl${L.pl}">#${L.pl}</span>`); return svgFreshIds(m.outerHTML)});   // own ids: a copy elsewhere on the page can't blank it
-  // one medal size for everyone, set so a player with every type (3 gold God diamonds, 3 gold medals, close win, rivalry
+  // one medal size for everyone, set so a player with every type (3 gold god diamonds, 3 gold medals, close win, rivalry
   // win, Uncrowned) fills the row exactly: 3 x 44px + 6 x 32px at 1.4x plus 8 gaps of 27px, ending in line with the stat boxes. Left-aligned.
   const st=(l,b,cls)=>`<div class="bn-st${cls?" "+cls:""}">${/bn-num/.test(cls||"")?`<div class="bn-in"><small>${l}</small><b>${b}</b></div>`:`<small>${l}</small><b>${b}</b>`}</div>`;   // weeks/wins: label and number in one block, centered in the box
   // win streak: won at least one challenge in each of the last 2+ completed weeks (as in Hot streaks)
@@ -8199,7 +8199,7 @@ function bnTab(n){
       <li><b>Weeks:</b> how many weeks you've played. The blue flame badge is your play streak: weeks in a row you've played (it appears once the streak reaches 2 weeks).</li>
       <li><b>Wins:</b> how many challenges you've won. The orange flame badge is your win streak: weeks in a row with at least one win (it appears once the streak reaches 2 weeks).</li>
       <li><b>Lead, Rhy and Bass LVL:</b> your player level on each path. The green <b>+N.N</b> next to it is how much it has gone up this season.</li>
-      <li><b>Medals:</b> up to 8 of your win medals, in this order: gold God diamonds, season champion trophies (the flame's color is the class), season most improved, gold medals, triple crown, Uncrowned and close win; then silver God diamonds, silver medals and Uncrowned silver; then the bronze ones, your longest win streak medal and rivalry wins. Within each kind, the ones you've won most come first. A medal's ribbon color is the path: orange Lead, green Rhythm, blue Bass. Uncrowned is the top score on a board while playing up or as a FreeBird (so it couldn't win), and a close win is a win on the tiebreak. The number is how many you have; a <b>#1</b>, <b>#2</b> or <b>#3</b> tag means you're in the top 3 for that medal among active players.</li>
+      <li><b>Medals:</b> up to 8 of your win medals, in this order: gold god diamonds, season champion trophies (the flame's color is the class), season most improved, gold medals, triple crown, Uncrowned and close win; then silver god diamonds, silver medals and Uncrowned silver; then the bronze ones, your longest win streak medal and rivalry wins. Within each kind, the ones you've won most come first. A medal's ribbon color is the path: orange Lead, green Rhythm, blue Bass. Uncrowned is the top score on a board while playing up or as a FreeBird (so it couldn't win), and a close win is a win on the tiebreak. The number is how many you have; a <b>#1</b>, <b>#2</b> or <b>#3</b> tag means you're in the top 3 for that medal among active players.</li>
       <li><b>Season box:</b> the season and week, then your place, class and season points on each path you've scored on this season.</li>
     </ul></details>
     <h3 style="margin-top:14px">Add it to your signature</h3>
