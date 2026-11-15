@@ -1,4 +1,5 @@
--- Song tags: players tag a song on each path (Lead 0, Rhythm 1, Bass 2) with short words, like techniques.
+-- Song tags: players tag a song's arrangement with short words, like techniques. "path" is the arrangement:
+-- Lead 0, Rhythm 1, Bass 2, Bonus Lead 3, Bonus Rhythm 4, Bonus Bass 5, Alternate Lead 6, Alternate Rhythm 7, Alternate Bass 8.
 -- Everyone can read them; a player with an approved claim adds and removes their own.
 -- Run once in the Supabase SQL editor (needs schema.sql's my_player()).
 create table if not exists public.song_tags (
@@ -12,6 +13,9 @@ create table if not exists public.song_tags (
   unique (song, path, tag, user_id)
 );
 create index if not exists song_tags_song on public.song_tags (song);
+-- (an existing table only allowed 0-2: the paths)
+alter table public.song_tags drop constraint if exists song_tags_path_check;
+alter table public.song_tags add constraint song_tags_path_check check (path between 0 and 8);
 alter table public.song_tags enable row level security;
 drop policy if exists sgt_read on public.song_tags;
 drop policy if exists sgt_insert on public.song_tags;
