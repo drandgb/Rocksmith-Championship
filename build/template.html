@@ -576,7 +576,7 @@ a.dl svg,.offpill svg{width:11px;height:11px}
 .tagtog{width:20px;height:20px;border-radius:50%;display:inline-grid;place-items:center;background:var(--panel);border:1px solid var(--line);color:var(--muted);font:800 .72rem var(--f-body);cursor:pointer;padding:0}.tagtog.on{background:var(--pc,var(--accent));border-color:var(--pc,var(--accent));color:#10131a}.tagtog:hover{border-color:var(--pc,var(--accent));color:var(--fg)}
 .tagdlg .taglab{margin:12px 0 6px;font:800 .66rem var(--f-display);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}.tagadd{display:flex;gap:6px}.tagadd input{flex:1;min-width:0;background:var(--panel);color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:7px 10px;font:inherit}.tagadd input:focus{outline:none;border-color:var(--pc,var(--accent))}
 .tagused{display:flex;flex-wrap:wrap;gap:5px}.tagplus{background:transparent;border-style:dashed;color:var(--muted);font-size:.74rem;padding:2px 9px}.tagplus:hover{color:var(--fg);border-style:solid;background:color-mix(in srgb,var(--pc,var(--accent)) 14%,transparent)}.tagnote{margin-top:12px;font-size:.78rem}
-.tagrow{display:flex;flex-wrap:wrap;gap:4px;margin-top:5px}.tagrow .tagchip{--pc:var(--accent);font-size:.68rem;padding:1px 8px}.tagbtn{background:none;border:1px dashed color-mix(in srgb,var(--accent) 45%,transparent);border-radius:999px;color:var(--accent);font:700 .68rem var(--f-body);padding:1px 9px;cursor:pointer}.tagbtn:hover{background:color-mix(in srgb,var(--accent) 14%,transparent);border-style:solid}
+.tagrow{display:flex;flex-wrap:wrap;gap:4px;margin-top:5px}.tagrow .tagchip{--pc:var(--accent);font-size:.68rem;padding:1px 8px}.tagbtn{background:none;border:1px dashed color-mix(in srgb,var(--accent) 45%,transparent);border-radius:999px;color:var(--accent);font:700 .68rem var(--f-body);padding:1px 9px;cursor:pointer}.tagbtn:hover{background:color-mix(in srgb,var(--accent) 14%,transparent);border-style:solid}.tagico{background:none;border:0;padding:0;margin:0 0 0 6px;cursor:pointer;color:var(--muted);opacity:.6;line-height:0;vertical-align:-2px}.tagico svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2;stroke-linejoin:round}.tagico:hover{opacity:1;color:var(--accent)}.tagico.has{opacity:1;color:var(--accent)}.tagico.has svg path{fill:color-mix(in srgb,var(--accent) 28%,transparent)}
 .acctdlg .acctsec{margin-top:16px;border-top:1px solid var(--line);padding-top:12px}
 .mlgrid{display:block}
 /* medal leaders: one tile per medal, all the same shape; contested medals (a shared lead) in their own row below */
@@ -5076,7 +5076,7 @@ function sbRender(){
   {const me=myPlayer(), b=$("sbme"); b.hidden=!me; if(me){const on=sbFind.toLowerCase()===me.toLowerCase(); b.setAttribute("aria-pressed",on); b.textContent=on?`Highlighting ${me} ✓`:`Highlight ${me}`; b.title=on?"Click to clear the highlight":"Highlight your own scores on every card"}}
   $("sbcards").innerHTML=cards.map(([p,slot,lvl,song,diff,extra,ents,cont])=>{
     const tc=tierColor(lvl), dash=song.indexOf(" - ");
-    const songHtml=song&&song!=="n/a"?(dash>0?`<b class="golink" data-goband="${esc(song.slice(0,dash).trim())}" data-gosong="${esc(song.slice(dash+3).trim())}" title="Show this song in Band lookup">${esc(song.slice(dash+3))}</b><small class="golink" data-goband="${esc(song.slice(0,dash).trim())}" title="Show this band in Band lookup">${esc(song.slice(0,dash))}</small>`:`<b>${esc(song)}</b>`):`<small>No song this week</small>`;
+    const songHtml=song&&song!=="n/a"?(dash>0?`<b class="golink" data-goband="${esc(song.slice(0,dash).trim())}" data-gosong="${esc(song.slice(dash+3).trim())}" title="Show this song in Band lookup">${esc(song.slice(dash+3))}${tagIco(song,[p])}</b><small class="golink" data-goband="${esc(song.slice(0,dash).trim())}" title="Show this band in Band lookup">${esc(song.slice(0,dash))}</small>`:`<b>${esc(song)}${tagIco(song,[p])}</b>`):`<small>No song this week</small>`;
     let place=0, openPlace=0; // openPlace: place among everyone not playing down (own class and playing up)
     const rows=ents.map((e,i)=>{
       const elig=canWin(e); if(elig)place++; if(e[4]>=0)openPlace++;
@@ -5665,7 +5665,7 @@ function renderSongs(){
     // players grouped by the week they played it, latest week first
     const byWk={}; v.forEach(c=>(c.who||[]).forEach(n=>{const m=(byWk[c.w]=byWk[c.w]||{});(m[n]=m[n]||new Set()).add(c.p)}));
     const tipTxt=`${ti} — ${Object.keys(who).length} players\n`+Object.keys(byWk).map(Number).sort((a,b)=>b-a).map(w=>`\nWeek ${w}\n`+Object.entries(byWk[w]).sort((a,b)=>b[1].size-a[1].size||a[0].localeCompare(b[0])).map(([n,ps])=>`• ${n} · ${[...ps].sort().map(p=>PATHS[p]).join(", ")}`).join("\n")).join("\n");
-    return `<li data-tip="${esc(tipTxt)}"><div><b class="songlink" data-band="${esc(a)}" data-song="${esc(ti)}">${esc(ti)}</b><small><span data-band="${esc(a)}" class="bandlink">${esc(a)}</span> · ${v.length} challenge${v.length===1?"":"s"}</small><div class="chips">${tiers.map(t=>lvPill(t,"lvp",lvlPlayed)).join("")}${songRateBox(v)}</div></div><span class="cnt">${songPill(sg,IG_LATEST(sg))}<b>${songAvg?n.toFixed(1):n}</b>${songAvg?"players per challenge":"players attempted"}</span></li>`}).join("");
+    return `<li data-tip="${esc(tipTxt)}"><div><b class="songlink" data-band="${esc(a)}" data-song="${esc(ti)}">${esc(ti)}${tagIco(sg,[...new Set(v.map(c=>c.p))].sort())}</b><small><span data-band="${esc(a)}" class="bandlink">${esc(a)}</span> · ${v.length} challenge${v.length===1?"":"s"}</small><div class="chips">${tiers.map(t=>lvPill(t,"lvp",lvlPlayed)).join("")}${songRateBox(v)}</div></div><span class="cnt">${songPill(sg,IG_LATEST(sg))}<b>${songAvg?n.toFixed(1):n}</b>${songAvg?"players per challenge":"players attempted"}</span></li>`}).join("");
   // recently played: each song's latest week, newest first, in pages of 20 back to the earliest records
   REC_SRC=songs;
   renderRecent();
@@ -5675,7 +5675,7 @@ function renderSongs(){
   $("replaylist").innerHTML=replay.map(([sg,ws,v,np])=>{const [a,ti]=splitSong(sg);
     const lines=ws.slice().reverse().map(w=>{const cs=v.filter(c=>c.w===w);return `Week ${w} · `+cs.map(c=>`${PATHS[c.p]} ${TIER_LABEL[c.t]}${c.diff!=null?" ("+c.diff+")":""}`).join(", ")});
     const tipTxt=`${ti} — played ${np} times over ${ws.length} weeks\n`+lines.join("\n");
-    return `<li data-tip="${esc(tipTxt)}"><div><b class="songlink" data-band="${esc(a)}" data-song="${esc(ti)}">${esc(ti)}</b><small><span data-band="${esc(a)}" class="bandlink">${esc(a)}</span> · first wk ${ws[0]} · latest wk ${ws[ws.length-1]}</small><div class="chips">${[...new Set(v.map(c=>c.t))].sort((x,y)=>TIER_ORDER.indexOf(x)-TIER_ORDER.indexOf(y)).map(t=>lvPill(t,"lvr",lvlReplay)).join("")}${songRateBox(v)}</div></div><span class="cnt">${songPill(sg,IG_LATEST(sg))}<b>${np}</b>times played</span></li>`}).join("")||`<li class="empty">No songs have been used in more than one week.</li>`;
+    return `<li data-tip="${esc(tipTxt)}"><div><b class="songlink" data-band="${esc(a)}" data-song="${esc(ti)}">${esc(ti)}${tagIco(sg,[...new Set(v.map(c=>c.p))].sort())}</b><small><span data-band="${esc(a)}" class="bandlink">${esc(a)}</span> · first wk ${ws[0]} · latest wk ${ws[ws.length-1]}</small><div class="chips">${[...new Set(v.map(c=>c.t))].sort((x,y)=>TIER_ORDER.indexOf(x)-TIER_ORDER.indexOf(y)).map(t=>lvPill(t,"lvr",lvlReplay)).join("")}${songRateBox(v)}</div></div><span class="cnt">${songPill(sg,IG_LATEST(sg))}<b>${np}</b>times played</span></li>`}).join("")||`<li class="empty">No songs have been used in more than one week.</li>`;
   $("bqlist").innerHTML=Object.entries(bands).sort((a,b)=>b[1].length-a[1].length).map(([a])=>`<option value="${esc(a)}"></option>`).join("");
   if(featured.length)showBand(bandName&&bands[bandName]?bandName:featured[0][0]); else $("bcard").innerHTML=`<div class="empty">No songs on record for ${esc(sHost||"this filter")}.</div>`;
   try{localStorage.setItem("rsc-spath",String(sPath))}catch(e){}
@@ -5705,7 +5705,7 @@ function renderRecent(){
     const wp={}; lc.forEach(c=>(c.who||[]).forEach(n=>{(wp[n]=wp[n]||new Set()).add(c.p)}));
     const whoTip=`${ti} — ${who.size} player${who.size===1?"":"s"}\n\nWeek ${lw}\n`+Object.entries(wp).sort((a,b)=>b[1].size-a[1].size||a[0].localeCompare(b[0])).map(([n,ps])=>`• ${n} · ${[...ps].sort().map(q=>PATHS[q]).join(", ")}`).join("\n");
     const tipTxt=`${ti} — Week ${lw}\n`+lc.map(c=>`${PATHS[c.p]} ${TIER_LABEL[c.t]}${c.diff!=null?" ("+c.diff+")":""}`).join("\n");
-    return `<li data-tip="${esc(tipTxt)}"><div><b class="songlink" data-band="${esc(a)}" data-song="${esc(ti)}">${esc(ti)}</b><small><span data-band="${esc(a)}" class="bandlink">${esc(a)}</span> · week ${lw}</small><div class="chips">${tiers.map(t=>`<span class="lvchip lvbtn${recLv===t?" sel":""}" data-recl="${t}" style="--tc:${TIER_COL[t]}" title="${recLv===t?"Show all difficulties":`Show only songs rated ${REC_RNG[t]}`}">${TIER_SHORT[t]||TIER_LABEL[t]}</span>`).join("")}${songRateBox(lc)}${tun}</div></div><span class="cnt"${known?` data-tip="${esc(whoTip)}"`:""}>${songPill(sg,IG_LATEST(sg))}<b>${known?who.size:"–"}</b>players attempted</span></li>`}).join("")||`<li class="empty">No songs on record for ${esc(sHost||"this filter")}.</li>`;
+    return `<li data-tip="${esc(tipTxt)}"><div><b class="songlink" data-band="${esc(a)}" data-song="${esc(ti)}">${esc(ti)}${tagIco(sg,[...new Set(lc.map(c=>c.p))].sort())}</b><small><span data-band="${esc(a)}" class="bandlink">${esc(a)}</span> · week ${lw}</small><div class="chips">${tiers.map(t=>`<span class="lvchip lvbtn${recLv===t?" sel":""}" data-recl="${t}" style="--tc:${TIER_COL[t]}" title="${recLv===t?"Show all difficulties":`Show only songs rated ${REC_RNG[t]}`}">${TIER_SHORT[t]||TIER_LABEL[t]}</span>`).join("")}${songRateBox(lc)}${tun}</div></div><span class="cnt"${known?` data-tip="${esc(whoTip)}"`:""}>${songPill(sg,IG_LATEST(sg))}<b>${known?who.size:"–"}</b>players attempted</span></li>`}).join("")||`<li class="empty">No songs on record for ${esc(sHost||"this filter")}.</li>`;
   const wk=page.length?(page[0][1]===page[page.length-1][1]?`week ${page[0][1]}`:`weeks ${page[0][1]}–${page[page.length-1][1]}`):"";
   const bt=(to,lab,ti)=>`<button type="button" data-recpg="${to}"${to===recPage||to<0||to>=n?" disabled":""} title="${ti}">${lab}</button>`;
   $("recpg").innerHTML=n>1?`${bt(0,"«","Newest")}${bt(recPage-1,"‹ Newer","Newer songs")}<span>Page ${recPage+1} of ${n}${wk?` · ${wk}`:""}</span>${bt(recPage+1,"Older ›","Older songs")}${bt(n-1,"»","Earliest records")}`:""}
@@ -5731,7 +5731,7 @@ function renderSongLookup(){const el=$("sqres"); if(!el)return;
   if(!hits.length){el.innerHTML=`<div class="empty">No songs found${q?` with “${esc(sqQ)}” in the title`:""}${sqTun?` in ${esc(sqTun)}`:""}.</div>`;return}
   const rows=hits.slice(0,40).map(g=>{const ps=paths(g), last=Math.max(...g.cs.map(c=>c.w)), lv=[...new Set(g.cs.map(c=>c.t))].sort((a,b)=>TIER_ORDER.indexOf(a)-TIER_ORDER.indexOf(b));
     const tn=ps.map(p=>[p,tuneShow(g.song,p)]).filter(x=>x[1]), same=tn.length&&tn.every(x=>x[1]===tn[0][1]);
-    return `<tr><td><b class="golink" data-goband="${esc(g.artist)}" data-gosong="${esc(g.title)}" title="Show this song in Band lookup">${esc(g.title)}</b>${songRateBox(g.cs)}${songPill(g.song,IG_LATEST(g.song))}<small class="golink" data-goband="${esc(g.artist)}" title="Show this band in Band lookup">${esc(g.artist)}</small>${tagChips(g.song,ps)}</td>
+    return `<tr><td><b class="golink" data-goband="${esc(g.artist)}" data-gosong="${esc(g.title)}" title="Show this song in Band lookup">${esc(g.title)}${tagIco(g.song,ps)}</b>${songRateBox(g.cs)}${songPill(g.song,IG_LATEST(g.song))}<small class="golink" data-goband="${esc(g.artist)}" title="Show this band in Band lookup">${esc(g.artist)}</small>${tagChips(g.song,ps)}</td>
       <td><div class="chips">${lv.map(t=>`<span class="lvchip" style="--tc:${TIER_COL[t]}" title="${TIER_LABEL[t]||t}">${TIER_SHORT[t]||t}</span>`).join("")}</div></td>
       <td class="sqp">${ps.map(p=>`<span style="color:${PATH_C[p]}">${"LRB"[p]}</span>`).join(" ")}</td>
       <td class="sqt">${same?esc(tn[0][1]):tn.map(([p,t])=>`${"LRB"[p]}: ${esc(t)}`).join("<br>")||`<span class="dim" title="Not in the Song Selection List's tuning columns">?</span>`}</td>
@@ -5741,13 +5741,29 @@ function renderSongLookup(){const el=$("sqres"); if(!el)return;
 let SONG_TAGS=null, tagsLoading=false;
 const tagNorm=t=>String(t||"").replace(/\s+/g," ").trim().toLowerCase().slice(0,24), tagShow=t=>t.charAt(0).toUpperCase()+t.slice(1);
 async function tagsLoad(force){if(tagsLoading||(SONG_TAGS&&!force)||!ACCT.sb)return; tagsLoading=true;
-  try{const {data,error}=await ACCT.sb.from("song_tags").select("id,song,path,tag,player,user_id").limit(20000); if(!error){SONG_TAGS=data||[]; if(!$("view-songs").hidden)renderSongLookup(); tagRedraw()}}finally{tagsLoading=false}}
+  try{const {data,error}=await ACCT.sb.from("song_tags").select("id,song,path,tag,player,user_id").limit(20000); if(!error){SONG_TAGS=data||[]; if(!$("view-songs").hidden)renderSongLookup(); tagRedraw(); tagIcoRefresh()}}finally{tagsLoading=false}}
 // the tags on a song (one path, or all of them): [{tag, n, mine}] most used first
 function tagsOf(song,path){const k=acctSongKey(song), me=ACCT.user&&ACCT.user.id, m={};
   (SONG_TAGS||[]).forEach(r=>{if(r.song!==k||(path!=null&&r.path!==path))return; const x=m[r.tag]=m[r.tag]||{tag:r.tag,n:0,mine:false,who:new Set()}; if(!x.who.has(r.player+"|"+r.path)){x.who.add(r.player+"|"+r.path); x.n++} if(me&&r.user_id===me&&(path==null||r.path===path))x.mine=true});
   return Object.values(m).sort((a,b)=>b.n-a.n||a.tag.localeCompare(b.tag))}
 function tagChips(song,ps){const T=tagsOf(song).slice(0,4);
-  return `<span class="tagrow">${T.map(t=>`<span class="tagchip" data-tagsong="${esc(song)}" data-tagps="${ps.join(",")}">${esc(tagShow(t.tag))}</span>`).join("")}<button type="button" class="tagbtn" data-tagsong="${esc(song)}" data-tagps="${ps.join(",")}" title="See and add tags for this song">🏷 ${T.length?"Tags":"Add tags"}</button></span>`}
+  return T.length?`<span class="tagrow">${T.map(t=>`<span class="tagchip" data-tagsong="${esc(song)}" data-tagps="${ps.join(",")}">${esc(tagShow(t.tag))}</span>`).join("")}</span>`:""}
+// The tag button: a small tag next to a song's name, wherever the song is shown. It opens the tag window; it's lit when
+// the song has tags, and its hover text lists them. ps: the paths the song is played on there.
+// (functions, not constants: a list can draw before a constant declared here is ready)
+function tagSvg(){return `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.6 13.3 12.7 4.2a2 2 0 0 1 1.4-.6h4.3a2 2 0 0 1 2 2v4.3a2 2 0 0 1-.6 1.4l-9.1 9.1a2 2 0 0 1-2.8 0l-4.3-4.3a2 2 0 0 1 0-2.8Z"/><circle cx="16.4" cy="7.6" r="1.3"/></svg>`}
+function tagIcoTip(T){try{return tagIcoTip0(T)}catch(e){return "Tags"}}
+function tagIcoTip0(T){return T.length?`Tags: ${T.slice(0,8).map(t=>tagShow(t.tag)).join(", ")}${T.length>8?` and ${T.length-8} more`:""}\nClick to see ${tagCanEdit()?"and add ":""}tags`:tagCanEdit()?"No tags yet · click to add tags":"No tags yet"}
+function tagIco(song,ps){if(!song||/^n\/a$/i.test(song))return "";
+  // (a list can draw before the account and the tags are ready: the button is drawn plain and brought up to date later)
+  let T=[]; try{if(ACCT){if(SONG_TAGS===null)tagsLoad(); T=tagsOf(song)}}catch(e){}
+  return `<button type="button" class="tagico${T.length?" has":""}" data-tagsong="${esc(song)}" data-tagps="${(ps||[]).join(",")}" data-tip="${esc(tagIcoTip(T))}" aria-label="Tags">${tagSvg()}</button>`}
+// once the tags have loaded (or changed), every tag button on the page is brought up to date
+function tagIcoRefresh(){document.querySelectorAll(".tagico").forEach(b=>{const T=tagsOf(b.dataset.tagsong); b.classList.toggle("has",!!T.length); b.dataset.tip=tagIcoTip(T)})}
+{const t=setInterval(()=>{try{if(SONG_TAGS){clearInterval(t);return} if(ACCT.sb&&document.querySelector(".tagico"))tagsLoad()}catch(e){}},1500)}
+// (first in line, so a tag button inside a song's name doesn't also open the song)
+document.addEventListener("click",e=>{const o=e.target.closest(".tagico"); if(!o)return; e.preventDefault(); e.stopPropagation(); tip.hidden=true;
+  tagOpen(o.dataset.tagsong,(o.dataset.tagps||"").split(",").filter(Boolean).map(Number),typeof sPath!=="undefined"?sPath:-1)},true);
 let TAGDLG=null;   // {song, ps, path}
 // techniques to pick from (any other tag can still be typed in): guitar for Lead and Rhythm, and bass
 const TAG_TECH={g:["Bends","Pre-bends","Slides","Hammer-ons","Pull-offs","Legato","Tapping","Harmonics","Pinch harmonics","Palm mutes","Fret-hand mutes","Vibrato","Tremolo picking","Whammy bar","Power chords","Open chords","Barre chords","Double stops","Arpeggios","Fingerpicking","Strumming","Alternate picking","Sweep picking","String skipping","Fast runs","Syncopation","Odd time","Sustains"],
@@ -5823,7 +5839,7 @@ function showBand(name){songsReady();
     </div>
     <div style="min-width:0"><div class="bandscroll"><table class="bandtbl"><thead><tr>${th("song","Song")}${th("levels","Levels")}${th("paths","Paths")}${th("ratings","Ratings","r")}${th("challenges","Challenges","r","How many challenges used this song. Each path counts separately, so one week on Lead, Rhythm and Bass is 3.")}${th("weeks","Weeks","r")}</tr></thead><tbody>${
       songsArr.map(([ti,v])=>{const lv=[...new Set(v.map(c=>c.t))].sort((a,b)=>TIER_ORDER.indexOf(a)-TIER_ORDER.indexOf(b));const ps=[...new Set(v.map(c=>c.p))].sort();const r=[...new Set(v.filter(c=>!c.cont).map(c=>c.diff).filter(d=>d!=null&&d>0))].sort((a,b)=>a-b);const ws=[...new Set(v.map(c=>c.w))].sort((a,b)=>b-a);
-        return `<tr><td><b>${esc(ti)}</b>${songRateBox(v)}${songPill(name+" - "+ti,IG_LATEST(name+" - "+ti))}</td><td><div class="chips">${lv.map(t=>`<span class="lvchip lvclick" data-btier="${t}" style="--tc:${TIER_COL[t]}" title="Show only ${TIER_LABEL[t]} songs">${TIER_SHORT[t]||TIER_LABEL[t]}</span>`).join("")}</div></td>${(()=>{ // paths and ratings follow the arrangement actually played (like the rating boxes): a Lead challenge played on the
+        return `<tr><td><b>${esc(ti)}${tagIco(name+" - "+ti,[...new Set(v.map(c=>c.p))].sort())}</b>${songRateBox(v)}${songPill(name+" - "+ti,IG_LATEST(name+" - "+ti))}</td><td><div class="chips">${lv.map(t=>`<span class="lvchip lvclick" data-btier="${t}" style="--tc:${TIER_COL[t]}" title="Show only ${TIER_LABEL[t]} songs">${TIER_SHORT[t]||TIER_LABEL[t]}</span>`).join("")}</div></td>${(()=>{ // paths and ratings follow the arrangement actually played (like the rating boxes): a Lead challenge played on the
           // Rhythm arrangement counts as Rhythm, and a bonus or alternate arrangement gets its own line
           const codeOf=c=>c.slot!=null?arrP(c.w,c.p,c.slot):"LRB"[c.p], codes=ARR_CODES.filter(k=>v.some(c=>codeOf(c)===k));
           const chip=k=>{if(k.length===1){const p="LRB".indexOf(k); return `<span class="pth lvclick${bandPathF===p?" sel":""}" data-bpath="${p}" style="--pc:${PATH_C[p]}" title="Show only ${PATHS[p]} songs">${PATHS[p]}</span>`}
@@ -6629,7 +6645,7 @@ function renderDownloads(){
   el.innerHTML=`<div class="panel-head dlhead" data-dl="fold" title="${fold?"Show":"Hide"} the download list"><h2>⬇ Download Week ${w}'s songs<span class="dlarw">${fold?"▸":"▾"}</span></h2>
     ${fold?"":`<span class="sub">${list.length} song${list.length===1?"":"s"} for ${cards.length} challenge${cards.length===1?"":"s"}${T?" · your classes are highlighted":""}</span>`}</div>
     ${fold?"":`<ul>${list.map(s=>{const pill=songPill(s.song,s.id);
-      return `<li class="${s.my?"mine":""}"><span class="dls">${esc(s.song)}${s.my?`<span class="yours">yours</span>`:""}${dlTune(s)}</span><span class="dlbxs">${[0,1,2].map(p=>box(p,s.ch.filter(c=>c[0]===p))).join("")}</span><span class="dlpill">${pill}</span></li>`}).join("")}</ul>`}`;
+      return `<li class="${s.my?"mine":""}"><span class="dls">${esc(s.song)}${tagIco(s.song,[...new Set(s.ch.map(c=>c[0]))].sort())}${s.my?`<span class="yours">yours</span>`:""}${dlTune(s)}</span><span class="dlbxs">${[0,1,2].map(p=>box(p,s.ch.filter(c=>c[0]===p))).join("")}</span><span class="dlpill">${pill}</span></li>`}).join("")}</ul>`}`;
   el.hidden=false;
 }
 document.addEventListener("click",e=>{
