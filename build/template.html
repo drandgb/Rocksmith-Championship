@@ -1408,6 +1408,8 @@ footer .updated{display:block;margin-top:4px}
 .rkweeks small{font:700 .66rem var(--f-display);letter-spacing:.16em;text-transform:uppercase;color:#ffb3c0}
 .rkweeks b{font:900 1.15rem var(--f-display);letter-spacing:.04em;background:linear-gradient(180deg,#fff 20%,#ff8a9e 70%,#e31837);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 4px rgba(227,24,55,.6))}
 .rkweeks i{font-style:normal;color:#ff8a9e;font-weight:800}
+.rkup.rknew{background:color-mix(in srgb,var(--accent) 20%,transparent);color:var(--accent);border-color:color-mix(in srgb,var(--accent) 45%,transparent)}
+.rkup.rkfirst{background:color-mix(in srgb,var(--pc) 18%,transparent);color:var(--pc);border-color:color-mix(in srgb,var(--pc) 45%,transparent)}
 .rkupd{font-size:.72rem;color:var(--muted);letter-spacing:.02em}
 @media (max-width:640px){.rkhead #rk-sub{align-items:center;flex-basis:100%;text-align:center}}
 .rkweeks{cursor:pointer;user-select:none}.rkweeks:hover{box-shadow:0 0 14px rgba(227,24,55,.7),inset 0 0 8px rgba(255,255,255,.12)}
@@ -5037,6 +5039,13 @@ $("rufilter").addEventListener("click",e=>{const b=e.target.closest("button[data
 // rank-up markers on the scoreboard: first week a player appears in their new class
 const LVI="BIAM";
 const isUp=u=>LVI.indexOf(u[3])>LVI.indexOf(u[2]);
+// NEW PLAYER on a player's first week in the championship; FIRST LEAD / RHYTHM / BASS in a later week, on the first
+// week they post a score on that path
+let SB_FIRSTP=null;
+function firstTag(n,p,w){try{const I=sbIx(), k=String(n).toLowerCase(), ws=I.wk[k]; if(!ws||!ws.length)return "";
+  if(ws[0]===w)return `<span class="rkup rknew" data-tip="${esc(n)}'s first week in the championship">NEW PLAYER</span>`;
+  if(!SB_FIRSTP){SB_FIRSTP={}; Object.entries(I.ent).forEach(([kk,L])=>L.forEach(x=>{const q=kk+"|"+x.c[0]; if(!(SB_FIRSTP[q]<=x.w))SB_FIRSTP[q]=x.w}))}
+  return SB_FIRSTP[k+"|"+p]===w?`<span class="rkup rkfirst" style="--pc:${PATH_C[p]}" data-tip="${esc(n)}'s first ${PATHS[p]} score in the championship">FIRST ${PATHS[p].toUpperCase()}</span>`:""}catch(e){return ""}}
 const RU_KEY=new Set(WR.ups.filter(isUp).map(([n,p,a,b,w])=>`${w}|${n}|${p}|${b}`));
 try{const r=localStorage.getItem("rsc-wpath");if(r!==null&&["0","1","2"].includes(r))wPath=+r}catch(e){}
 later(["winners","players"],()=>{renderWinners(); if(window.__twReady)try{renderEloBox()}catch(e){console.error(e)}}); setTimeout(()=>{try{renderEloBox()}catch(e){console.error(e)}},0);
@@ -5190,7 +5199,7 @@ function sbRender(){
       // the name in the player's own class color that week, on this card's path (FreeBirds gray)
       const own=(()=>{if(isFB(e))return "F"; const li=lvLetter?"BIAM".indexOf(lvLetter):-1, f=+e[4]||0;   // (God cards have no letter) if(li>=0&&f>=0)return "BIAM"[Math.max(0,li-f)];
         try{const k=classAt(pvName(e),p,sbWeek,e,lvl); if(k&&"BIAM".includes(k))return k}catch(x){} return lsClassAt(p,lvKey(base),sbWeek)})();
-      const up=!raw.includes("*")&&lvLetter&&RU_KEY.has(`${sbWeek}|${base}|${p}|${lvLetter}`)?`<span class="rkup" data-tip="First week in ${TIER_NAME[lvLetter]} ${PATHS[p]} after ranking up">RANKED UP</span>`:"";
+      const up=(!raw.includes("*")&&lvLetter&&RU_KEY.has(`${sbWeek}|${base}|${p}|${lvLetter}`)?`<span class="rkup" data-tip="First week in ${TIER_NAME[lvLetter]} ${PATHS[p]} after ranking up">RANKED UP</span>`:"")+firstTag(base,p,sbWeek);
       return `<tr class="${me}${e[4]<0?" down":""}" data-tip="${me?`Click the row to clear the highlight`:`Click the row to highlight ${esc(base)} on every card · click the name to open their profile`}"><td>${rk}</td><td class="n"><div class="sbnm"><span data-player="${esc(base)}"${own&&TIER_C[own]?` style="color:${TIER_C[own]}"`:""}>${esc(base)}</span><span class="sbtags">${marks}${lvChip(base,p,1)}${nw}</span></div>${up}${SB.aka&&SB.aka[e[0]]?`<span class="aka">as ${esc(SB.aka[e[0]])}</span>`:""}</td><td${ftip?` data-tip="${esc(ftip)}"`:""}>${pct}</td><td>${fmtNum(e[2])}</td><td>${fakeScore(e[3])?`<span class="sbbad" data-tip="${esc(`This score looks like a placeholder in the scoreboard sheet: ${(+e[3]).toLocaleString("en-US")} is the digits 1 to 9 in a row, not a real score. It needs correcting in the sheet.`)}">⚠️ ${fmtNum(e[3])}</span>`:yearScore(e[3])?`<span class="sbbad" data-tip="${esc(`A score of ${e[3]} looks like a year, probably the song's release year recorded as the score by mistake. It needs correcting in the sheet.`)}">⚠️ ${e[3]}</span>`:highScore(e[3])?`<span class="sbchk" data-tip="${esc(`${(+e[3]).toLocaleString("en-US")} is over 5 million, higher than almost every score (the top ones are about 3.4 million). Worth checking it's right in the sheet.`)}">${fmtNum(e[3])} ⚠</span>`:fmtNum(e[3])}</td></tr>`;
     }).join("");
     return `<article class="card" data-slot="${slot}" data-p="${p}" style="--tc:${tc}"><div class="ch"><div class="lv"><span${/^(intermediate|masterclass) bonus$/i.test(lvl)?` title="${esc(lvl)}"`:""}>${esc(String(lvl).replace(/^intermediate bonus$/i,"INT Bonus").replace(/^masterclass bonus$/i,"MC Bonus"))}</span><div class="lvr">${(()=>{const id=SB.links&&SB.links[sbWeek]&&SB.links[sbWeek][p*9+slot];return songPill(song,id)})()}${rateBadge(sbWeek,p,slot,diff,ents)}</div></div><div class="song">${(()=>{const t=tuneShow(song,p), fx=TUNE_FIX[tuneKey(song)+"|"+p], adm=typeof ACCT!=="undefined"&&canTune(sbWeek), isAdm=adm&&ACCT.admin; if(!t&&!adm)return songHtml;
@@ -7580,7 +7589,7 @@ const ZERO_FROM=650;
 function typoScan(){
   if(TYPO_CACHE)return TYPO_CACHE;
   const nm=i=>SB.names[i].replace(/[*~]+$/,""), weeks=Object.keys(SB.weeks).map(Number).filter(w=>w>=440).sort((a,b)=>a-b), NEW=weeks[weeks.length-1];   // the older scoreboards (before 440) aren't checked
-  const out={big:[],year:[],high:[],zero:[],noscore:[],nopct:[],dup:[],order:[],band:[],song:[],player:[],ssl:[]};
+  const out={big:[],year:[],high:[],zero:[],noscore:[],nopct:[],streak:[],dup:[],order:[],band:[],song:[],player:[],ssl:[]};
   // a 0 score is probably a typo, unless the player puts 0 on most of their entries (some always do)
   const sc={}; weeks.forEach(w=>SB.weeks[w].forEach(c=>c[6].forEach(e=>{const n=nm(e[0]).toLowerCase(), x=sc[n]=sc[n]||[0,0]; x[1]++; if(e[3]===0)x[0]++})));
   const usual=n=>{const x=sc[n.toLowerCase()]; return !(x&&x[0]/x[1]>=.5)};
@@ -7600,6 +7609,11 @@ function typoScan(){
       if(e[1]!=null&&/\.\d\d$/.test(String(e[1]))&&(e[3]==null||e[3]===""))out.noscore.push({...it,note:`${e[1]}% · no score`});
       if(seen[k])out.dup.push(it); seen[k]=1;
       if(e[1]!=null){if(prev!=null&&e[1]>prev+1e-9)out.order.push({...it,note:`${e[1]}% is listed below ${prev}%`}); prev=e[1]}});
+    // everyone at 100% on a card hit every note, so their streaks should all be the song's note count: the ones that
+    // differ from the most common streak are flagged (all of them when no streak is the most common)
+    {const full=c[6].filter(e=>+e[1]===100&&e[2]!=null&&e[2]!==""&&!isNaN(+e[2])), cnt={}; full.forEach(e=>cnt[+e[2]]=(cnt[+e[2]]||0)+1);
+     const vals=Object.keys(cnt).map(Number); if(vals.length>1){const top=Math.max(...Object.values(cnt)), modes=vals.filter(v=>cnt[v]===top), mode=modes.length===1?modes[0]:null;
+       full.forEach(e=>{if(+e[2]===mode)return; out.streak.push({...at,n:nm(e[0]),note:mode!=null?`streak ${e[2]} · the others at 100% have ${mode}`:`streak ${e[2]} · 100% streaks on this card: ${vals.sort((a,b)=>a-b).join(", ")}`})})}}
   }));
   const variants=(map,kind)=>Object.values(map).forEach(v=>{const ks=Object.keys(v); if(ks.length<2)return;
     const top=ks.slice().sort((a,b)=>v[b].length-v[a].length);
@@ -7642,6 +7656,7 @@ function typoSection(H){
     ["zero","Score of 0","Since week 650 (before that, 0 was often used for a blank score)",x=>`${card(x)} · <b>${esc(x.n)}</b> · ${esc(x.song)}`],
     ["noscore","Missing score","A % with two decimals (like 96.66%) comes from the results screen, which shows the score too, so it was probably left out",x=>`${card(x)} · <b>${esc(x.n)}</b> · ${esc(x.note)} · ${esc(x.song)}`],
     ["nopct","Missing %","An entry with no percentage",x=>`${card(x)} · <b>${esc(x.n)}</b> · ${esc(x.song)}`],
+    ["streak","100% streaks differ","Everyone at 100% on a card hit every note, so their streaks should match (the song's note count)",x=>`${card(x)} · <b>${esc(x.n)}</b> · ${esc(x.note)} · ${esc(x.song)}`],
     ["dup","Same player twice on a card","",x=>`${card(x)} · <b>${esc(x.n)}</b> · ${esc(x.song)}`],
     ["order","Rows out of order","A higher % listed below a lower one",x=>`${card(x)} · <b>${esc(x.n)}</b> · ${esc(x.note)}`],
     ["band","Band name capitalization","The same band written differently",x=>forms(x)],
@@ -7659,7 +7674,7 @@ function typoSection(H){
 // ---------- Admin: scoreboard fix log (issues from the scoreboard checks that went away, found by each site update) ----------
 var FIXLOG=[]/*FIXLOG*/;
 function fixLogSection(){
-  const kinds={zero:"Score of 0",noscore:"Missing score",nopct:"Missing %",dup:"Same player twice",order:"Row out of order",band:"Band name",song:"Song title",player:"Player name",ssl:"Differs from Songs Played"};
+  const kinds={zero:"Score of 0",noscore:"Missing score",nopct:"Missing %",streak:"100% streak",dup:"Same player twice",order:"Row out of order",band:"Band name",song:"Song title",player:"Player name",ssl:"Differs from Songs Played"};
   const rows=FIXLOG.slice().reverse().slice(0,60).map(f=>`<li><small>${new Date(f.d).toLocaleDateString()}</small> · ${kinds[f.k]||f.k} · ${f.w?`<span class="tylink" data-sbw="${f.w}"${f.p!=null?` data-sbp="${f.p}" data-sbn="${esc(f.n||"")}"`:""} title="Open on the Scoreboard">Week ${f.w}${f.p!=null?` · ${PATHS[f.p]} ${esc(f.lv)}`:""}</span> · `:""}${esc(f.t)}</li>`).join("");
   // (part of "Scoreboard checks", at its bottom)
   return `<div class="fixlog ratelogbox"><h4>Scoreboard fix log</h4><p class="dim">Scoreboard check issues that were fixed in the sheet, newest first. Each site update compares the checks with the previous update.</p>${rows?`<ul class="ratelog">${rows}</ul>`:`<p class="dim">Nothing fixed since the log started.</p>`}</div>`;
