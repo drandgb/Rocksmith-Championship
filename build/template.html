@@ -833,7 +833,7 @@ span.hrdn{color:var(--s-red)!important}small.eloin{color:var(--s-green)!importan
 .legendline{color:var(--muted);font-size:.8rem;margin:0}
 .seaspathbar{margin:12px 0 14px}.rkpathin{margin-top:14px}#view-skill .wpathbar.rkpathin,#view-level .wpathbar.rkpathin{justify-content:center}#seaspath .tier.mine b,#rkpath .tier.mine b{color:var(--s-yellow)}#seaspath .tier.mine[aria-pressed="false"],#rkpath .tier.mine[aria-pressed="false"]{opacity:.5}#seaspath .tier.mine[aria-pressed="false"]:hover,#rkpath .tier.mine[aria-pressed="false"]:hover{opacity:.85}#seaspath .tier.mine[aria-pressed="true"],#rkpath .tier.mine[aria-pressed="true"]{background:color-mix(in srgb,var(--s-yellow) 16%,var(--panel2));box-shadow:0 0 0 1px var(--s-yellow)}.wpathbar{display:flex;justify-content:center;align-items:center;gap:10px 16px;flex-wrap:wrap}
 @media (max-width:480px){.wpathbar .seg{display:flex;max-width:100%}.wpathbar .seg button{flex:1 1 auto;min-width:0;white-space:nowrap;padding:8px 9px;font-size:.7rem;letter-spacing:.03em}}
-.shostpick{display:flex;align-items:center;gap:8px;font-size:.82rem;color:var(--muted)}
+.shostpick{display:flex;align-items:center;gap:8px;font-size:.82rem;color:var(--muted)}.shostpick>span{white-space:nowrap}
 .shostpick select{background:var(--panel2);color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:6px 10px;font:inherit;max-width:60vw}
 .shostpick.on select{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
 #wpath button{padding:10px 20px;font-size:.9rem}
@@ -906,13 +906,15 @@ html.acctwait body{visibility:hidden}html.acctwait{background:var(--bg)}html.acc
 @media (max-width:560px){.faqtabs{grid-template-columns:1fr}.faqtabs dd{margin-bottom:6px}}
 
 .navopts{display:flex;align-items:center;gap:8px 16px;margin-left:auto;margin-bottom:6px}.navopts[hidden]{display:none}.navopts .actfilter{margin:0 0 0 auto}
-.navyear{display:flex;align-items:center}.navyear label[hidden]{display:none}
+.navyear{display:flex;align-items:center;gap:8px 14px;flex-wrap:wrap;min-width:0}.navyear select{min-width:0;max-width:100%}.navyear label{min-width:0}.navyear label[hidden]{display:none}.navright[hidden],.navright label[hidden]{display:none}.navright{display:flex;align-items:center;min-width:0}
 .navpath{display:flex;justify-content:center;flex:1 1 auto;min-width:0}.navpath .seg[hidden]{display:none}.navpath .seg{display:flex;max-width:100%}
 @media (max-width:640px){.navopts{flex-wrap:wrap;min-width:0;max-width:100%}.navpath{order:3;flex:1 1 100%;min-width:0}.navpath .seg{width:100%}.navpath .seg button{flex:1 1 auto;min-width:0;white-space:nowrap;padding:8px 4px;font-size:.68rem;letter-spacing:.02em}}
 /* computers: the page tabs share out the full width, and the Year picker (left) and All / Active only toggle (right) get a row of their own under them */
 @media (min-width:641px){.tabrow{flex:1 1 100%}.tabrow button{flex:1 1 auto;text-align:center}.navopts{flex:1 1 100%;margin-top:8px}}
 /* computers: the path picker sits in the exact middle of the row (whatever is on either side, like Songs' wide Selected by picker) */
-@media (min-width:641px){.navopts:not([hidden]){display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr)}.navopts .navyear{grid-column:1;justify-self:start}.navopts .navpath{grid-column:2}.navopts .actfilter{grid-column:3;justify-self:end;margin:0}}
+@media (min-width:641px){.navopts:not([hidden]){display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr)}.navopts .navyear{grid-column:1;justify-self:start}.navopts .navpath{grid-column:2}.navopts .actfilter{grid-column:3;justify-self:end;margin:0}
+  .navopts .navright{grid-column:3;justify-self:end}}
+@media (min-width:641px) and (max-width:1020px){.navopts[data-v="songs"]:not([hidden]){display:flex;flex-wrap:wrap;justify-content:space-between}}   /* Songs on narrower screens: Selected by goes to its own line instead of running into the path buttons */
 #pfilter .s-all[aria-pressed="true"],#wpath .s-all[aria-pressed="true"],#rufilter .s-all[aria-pressed="true"]{background:var(--accent)}
 .ruf{margin-bottom:12px}
 .rulist{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr));column-gap:28px}
@@ -1738,7 +1740,8 @@ footer{color:var(--dim);font-size:.78rem}
       <label class="shostpick" data-yv="players" hidden><span>Year</span><select id="plyear" aria-label="Calendar year"></select></label>
       <label class="shostpick" data-yv="hosting" hidden><span>Year</span><select id="hostyear" aria-label="Calendar year"></select></label>
       <label class="shostpick" data-yv="winners" hidden><span>Year</span><select id="wseason" aria-label="Calendar year"></select></label>
-      <label class="shostpick" data-yv="songs" hidden><span>Selected by</span><select id="shost" aria-label="Only songs selected by this host"><option value="">All hosts</option></select></label></div>
+      <label class="shostpick" data-yv="songs" hidden><span>Year</span><select id="syear" aria-label="Calendar year"><option value="">All years</option></select></label>
+</div>
     <div class="navpath" id="navpath">   <!-- Winners and Songs: the path picker, in the same row as the year and the toggle -->
       <div class="seg" data-yv="winners" hidden role="radiogroup" aria-label="Show winners for" id="wpath">
     <button type="button" data-rp="-1" class="s-all" aria-pressed="true" title="All paths">All</button>
@@ -1753,6 +1756,8 @@ footer{color:var(--dim);font-size:.78rem}
     <button type="button" data-sp="2" class="s-bass" aria-pressed="false">Bass</button>
   </div>
     </div>
+    <div class="navright" id="navright">   <!-- Songs: Selected by, on the right of the row (the Year picker on the left) -->
+      <label class="shostpick" data-yv="songs" hidden><span>Selected by</span><select id="shost" aria-label="Only songs selected by this host"><option value="">All hosts</option></select></label></div>
     <div class="seg actfilter" role="radiogroup" aria-label="Show everyone or active only" id="pfilter">
       <button type="button" data-af="0" class="s-all" aria-pressed="false">All</button>
       <button type="button" data-af="1" class="s-act" aria-pressed="true" title="Active players only">Active</button>
@@ -3906,7 +3911,7 @@ function showView(v){
   tip.hidden=true;
   $("pfilter").hidden=v==="scores"||v==="songs"||v==="thisweek"||v==="rankings"||v==="season"||v==="faq"||v==="level";
   // the Year picker of the Players, Hosts and Winners tabs (and Songs' Selected by) sits on the same row as the All / Active only toggle
-  document.querySelectorAll("#navyear [data-yv],#navpath [data-yv]").forEach(l=>l.hidden=l.dataset.yv!==v); $("navopts").hidden=$("pfilter").hidden&&!document.querySelector(`#navyear [data-yv="${v}"],#navpath [data-yv="${v}"]`);   // (Songs: its Selected by picker, no toggle)
+  document.querySelectorAll("#navyear [data-yv],#navpath [data-yv],#navright [data-yv]").forEach(l=>l.hidden=l.dataset.yv!==v); $("navright").hidden=!$("navright").querySelector(`[data-yv="${v}"]`); $("navopts").dataset.v=v; $("navopts").hidden=$("pfilter").hidden&&!document.querySelector(`#navyear [data-yv="${v}"],#navpath [data-yv="${v}"],#navright [data-yv="${v}"]`);   // (Songs: its Selected by picker, no toggle)
   if(v==="season")setTimeout(()=>{try{renderSeason()}catch(e){console.error(e)}},0);
   if(v==="level")setTimeout(()=>{try{renderLevel()}catch(e){console.error(e)}},0);
   if(v==="skill")setTimeout(()=>{try{renderSkill()}catch(e){console.error(e)}},0);
@@ -5657,6 +5662,7 @@ const IG_LATEST=(()=>{const m={}, norm=s=>String(s).toLowerCase().replace(/\s+/g
   return s=>m[norm(s)]})();
 const splitSong=t=>{const i=t.indexOf(" - ");return i>0?[t.slice(0,i).trim(),t.slice(i+3).trim()]:["Unknown",t.trim()]};
 let sHost=null; // Songs: only the weeks this host hosted (their song picks)
+let sYear=null; // Songs: only the weeks of this calendar year
 let bandAvg=false; // Most popular bands: false = total scores, true = average scores per challenge
 document.addEventListener("click",e=>{const b=e.target.closest("#bpmode button"); if(!b)return; bandAvg=b.dataset.bp==="1"; renderSongs()});
 let songAvg=false; // Most popular songs: false = different players in total, true = average players per challenge
@@ -5720,6 +5726,9 @@ function renderSongs(){
     const pickWeek=c=>{if(c.card!=="G")return c.w; const s=godW[gk(c)]; let w=c.w; while(s.has(w-1))w--; return w};
     for(let i=cards.length-1;i>=0;i--)if(!hw.has(pickWeek(cards[i])))cards.splice(i,1)}
   $("shost").value=sHost||""; $("shost").closest("label").classList.toggle("on",!!sHost);
+  // year filter: only the challenges of weeks that started in that year
+  if(sYear)for(let i=cards.length-1;i>=0;i--)if(yearOfWeek(cards[i].w)!==sYear)cards.splice(i,1);
+  $("syear").value=sYear||""; $("syear").closest("label").classList.toggle("on",!!sYear);
   // known band-name typos in the source sheets
   const ARTIST_FIX={};
   cards.forEach(c=>{if(ARTIST_FIX[c.artist])c.artist=ARTIST_FIX[c.artist]});
@@ -5754,7 +5763,7 @@ function renderSongs(){
     : Object.entries(bands).map(([a,v])=>[a,new Set(v.flatMap(c=>c.who||[])).size,v.reduce((s,c)=>s+(c.n||0),0)]).filter(x=>x[1]>0).sort((a,b)=>b[1]-a[1]||b[2]-a[2]||a[0].localeCompare(b[0])).slice(0,20);   // total: different players, as for songs
   $("b-playedbands").innerHTML=barRows(played.map(x=>[x[0],x[1]]),(n,i)=>STR[(i+2)%6],"",false);
   if(!bandAvg)[...$("b-playedbands").querySelectorAll(".brow")].forEach((r,i)=>{const x=played[i]; if(x)r.dataset.tip=`${x[0]} · ${x[1]} different player${x[1]===1?"":"s"} · ${x[2].toLocaleString()} score${x[2]===1?"":"s"} posted on their songs`});
-  $("bpsub").textContent=bandAvg?`Top 20 · average players per challenge since week __SBMIN__ · bands with ${BP_MIN}+ challenge${BP_MIN===1?"":"s"} · overall average ${(entries/scored.length).toFixed(1)}`:"Top 20 · different players who posted a score on their songs since week __SBMIN__";
+  $("bpsub").textContent=bandAvg?`Top 20 · average players per challenge ${sYear?"in "+sYear:"since week __SBMIN__"} · bands with ${BP_MIN}+ challenge${BP_MIN===1?"":"s"} · overall average ${(entries/scored.length).toFixed(1)}`:`Top 20 · different players who posted a score on their songs ${sYear?"in "+sYear:"since week __SBMIN__"}`;
   document.querySelectorAll("#bpmode button").forEach(b=>b.setAttribute("aria-pressed",(+b.dataset.bp===1)===bandAvg));
   bandDiff(bandAvg);
   setTimeout(()=>{try{markCrowdFav($("view-songs"))}catch(e){}},0);
@@ -5781,7 +5790,7 @@ function renderSongs(){
   lvNote("sl-f",lvlPlayed,"lvp"); lvNote("rl-f",lvlReplay,"lvr");
   // total: different players who posted a score on the song; per challenge: the average number of players on each challenge it was used in
   const topSongs=byLvl(lvlPlayed).map(([sg,v])=>{const tot=new Set(v.flatMap(c=>c.who||[])).size, avg=v.length?v.reduce((t,c)=>t+(c.who||[]).length,0)/v.length:0; return [sg,songAvg?avg:tot,v,tot]}).filter(x=>x[1]>0).sort((a,b)=>b[1]-a[1]||b[3]-a[3]||b[2].length-a[2].length).slice(0,20);
-  $("spsub").textContent=songAvg?"Top 20 · average players per challenge the song was used in, since week __SBMIN__":"Top 20 · different players who posted a score on the song since week __SBMIN__";
+  $("spsub").textContent=songAvg?`Top 20 · average players per challenge the song was used in, ${sYear?"in "+sYear:"since week __SBMIN__"}`:`Top 20 · different players who posted a score on the song ${sYear?"in "+sYear:"since week __SBMIN__"}`;
   document.querySelectorAll("#spmode button").forEach(b=>b.setAttribute("aria-pressed",(+b.dataset.sp===1)===songAvg));
   $("songlist").innerHTML=topSongs.map(([sg,n,v,tot])=>{const [a,ti]=splitSong(sg); const tiers=[...new Set(v.map(c=>c.t))].sort((x,y)=>TIER_ORDER.indexOf(x)-TIER_ORDER.indexOf(y));
     const who={}; v.forEach(c=>(c.who||[]).forEach(n=>{(who[n]=who[n]||new Set()).add(c.p)}));
@@ -6040,6 +6049,7 @@ function activeFilters(){
     if(bandName&&bandSong)f.push([`Band lookup: ${bandSong}`,()=>{bandSong=null;showBand(bandName)}]);
     if(bandName&&bandPathF!=null)f.push([`Band lookup: ${PATHS[bandPathF]}`,()=>{bandPathF=null;showBand(bandName)}]);
   }
+  if(v==="songs"&&sYear)f.push([`Year: ${sYear}`,()=>{sYear=null;renderSongs()}]);
   if(v==="songs"&&sHost)f.push([`Selected by: ${sHost}`,()=>{sHost=null;renderSongs()}]);
   if(v==="scores"&&sbFind)f.push([`Player: ${sbFind}`,()=>{sbFind="";$("sbfind").value="";sbRender()}]);
   if((v==="season"||v==="level"||v==="rankings")&&sbFind)f.push([`Player: ${sbFind}`,()=>{sbFind="";$("sbfind").value=""; plHl()}]);
@@ -6444,6 +6454,9 @@ function addMedalHl(box){
 // ---------- Songs: filter to one host's song picks ----------
 $("shost").innerHTML=`<option value="">All hosts</option>`+hostList.map(h=>`<option value="${esc(h.name)}">${esc(h.name)} (${h.n})</option>`).join("");
 $("shost").addEventListener("change",e=>{sHost=e.target.value||null; bandName=null; renderSongs(); updateBubble()});
+// ---------- Songs: filter to one calendar year ----------
+$("syear").innerHTML=`<option value="">All years</option>`+[...new Set(WEEKS.filter(w=>w[0]<=DATA_WEEK+1).map(w=>w[1].slice(0,4)))].sort().reverse().map(y=>`<option value="${y}">${y}</option>`).join("");
+$("syear").addEventListener("change",e=>{sYear=e.target.value||null; bandName=null; renderSongs(); updateBubble()});
 document.addEventListener("click",e=>{const b=e.target.closest("[data-gosongs]"); if(!b)return; e.stopPropagation(); tip.hidden=true; mcard.hidden=true;
   sHost=b.dataset.gosongs; bandName=null; showView("songs"); renderSongs(); updateBubble(); scrollTo({top:0})},true);
 
