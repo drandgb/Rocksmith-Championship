@@ -3358,8 +3358,13 @@ function hlHostLeaders(w){const out=[], h=(WEEKS.find(x=>x[0]===w)||[])[2]; if(!
     out.push(sole?(wasTop?`@${h} · now leads ${what} alone (${val})`:`@${h} · the new leader in ${what} (${val})`)
                  :`${[h,...tied].sort((x,y)=>x.localeCompare(y,undefined,{sensitivity:"base"})).map(x=>"@"+x).join(", ")} · now tied for the lead in ${what} (${val})`)});
   return out}
-// (each week's highlights are worked out once per visit)
-const HL_PARTS={}; function hlParts(w){return HL_PARTS[w]||(HL_PARTS[w]=hlParts0(w))}
+// Each week's highlights are worked out once: by the build for the weeks the Host tab offers (?mlpre, kept in
+// ML_PRE.hl), otherwise once per visit. The voters' thank-you line is the only part that comes from the database, so
+// it's left as a marker and filled in each time.
+const HL_VOTERS="\u0000voters", HL_PARTS={};
+function hlParts(w){const pre=typeof ML_PRE!=="undefined"&&ML_PRE&&ML_PRE.hl&&ML_PRE.hl[w], P=HL_PARTS[w]||(HL_PARTS[w]=pre||hlParts0(w)), V=ACCT.voters&&ACCT.voters[w];
+  const line=V&&V.size?`🙏 **Thank you** to everyone who submitted their vote for the difficulty ratings of Week ${w}'s songs: ${[...V].sort((a,b)=>a.localeCompare(b,undefined,{sensitivity:"base"})).map(n=>"@"+n).join(", ")}`:null;
+  return P.map(g=>g.flatMap(x=>x===HL_VOTERS?(line?[line]:[]):[x])).filter(g=>g.length)}
 function hlText(w){return hlParts(w).map(g=>g.join("\n").replace(/\*\*/g,"")).join("\n\n")}
 function hlHtml(w){return hlParts(w).map(g=>`<p>${g.map(x=>esc(x).replace(/\*\*(.+?)\*\*/g,"<strong>$1</strong>")).join("<br>")}</p>`).join("")}
 function hlParts0(w){eloBuild(); const I=sbIx(), L=[], G1=[], G2=[], G2b=[], G3=[], G4=[], played=Object.keys(I.wk).filter(k=>I.wk[k].includes(w)), nm=k=>"@"+I.disp[k];   // names with @, as in the forum
@@ -3396,7 +3401,7 @@ function hlParts0(w){eloBuild(); const I=sbIx(), L=[], G1=[], G2=[], G2b=[], G3=
    if(n){let v=null; for(let x=w-1;x>=PRES_START;x--){const c=cnt(x); if(c!=null&&c>=n){v=x;break}}
      if(v==null&&w-PRES_START>52)G4.push(`📈 **${n} players this week**, the most ever!`);
      else if(v!=null&&w-v>52){const yrs=Math.floor((w-v)/52), d=WEEKS[v-1]; G4.push(`📈 **${n} players this week**, the most since Week ${v}${d?` (${fmtShort(d[1])}, ${d[1].slice(0,4)})`:""}, over ${yrs===1?"a year":yrs+" years"} ago!`)}}}
-  {const V=ACCT.voters&&ACCT.voters[w]; if(V&&V.size)G4.push(`🙏 **Thank you** to everyone who submitted their vote for the difficulty ratings of Week ${w}'s songs: ${[...V].sort((a,b)=>a.localeCompare(b,undefined,{sensitivity:"base"})).map(n=>"@"+n).join(", ")}`)}
+  G4.push(HL_VOTERS);   // the voters' thank-you comes from the database when the page is viewed (filled in by hlParts)
   // the last week of a season: announce the new one, with the champions of the one just finished
   const sNow=seasonOf(w), sNext=seasonOf(w+1);
   const sLine=(pi,up)=>{const T=seasonF1(pi,sNow,up), M=seasonImproved(pi,sNow,up);
@@ -3417,7 +3422,7 @@ function hlParts0(w){eloBuild(); const I=sbIx(), L=[], G1=[], G2=[], G2b=[], G3=
 function hlLater(w){setTimeout(()=>{try{hlParts(w)}catch(e){console.error(e)} const el=$("hltext"); if(el&&+el.dataset.w===w)el.innerHTML=hlHtml(w)},60)}
 function hlSection(){const ws=[]; for(let w=ELO_DONE;w>ELO_DONE-6&&w>0;w--)if(SB.weeks[w])ws.push(w); const w=ACCT.hlWeek&&ws.includes(ACCT.hlWeek)?ACCT.hlWeek:ws[0]; if(!w)return "";
   return `<div class="acctsec hlbox"><h3>Weekly highlights <select class="hlsel" data-hlweek>${ws.map(x=>`<option value="${x}"${x===w?" selected":""}>Week ${x}</option>`).join("")}</select></h3>
-    <p class="dim">New players, welcome backs, rank-ups, first medals, newcomers' milestones and the season leaders for Week ${w}, ready to copy into the Week ${w+1} post.</p><div id="hltext" class="hlrich" data-w="${w}">${HL_PARTS[w]?hlHtml(w):(hlLater(w),`<p class="dim">Working out Week ${w}'s highlights…</p>`)}</div><div class="row"><button type="button" class="btn ghost" data-hlcopy>Copy</button><button type="button" class="btn ghost" data-hlcopy="plain">Copy as plain text</button></div></div>`}
+    <p class="dim">New players, welcome backs, rank-ups, first medals, newcomers' milestones and the season leaders for Week ${w}, ready to copy into the Week ${w+1} post.</p><div id="hltext" class="hlrich" data-w="${w}">${HL_PARTS[w]||(typeof ML_PRE!=="undefined"&&ML_PRE&&ML_PRE.hl&&ML_PRE.hl[w])?hlHtml(w):(hlLater(w),`<p class="dim">Working out Week ${w}'s highlights…</p>`)}</div><div class="row"><button type="button" class="btn ghost" data-hlcopy>Copy</button><button type="button" class="btn ghost" data-hlcopy="plain">Copy as plain text</button></div></div>`}
 // ---------- Admin: season introduction, ready to copy into a forum post (for new and current players) ----------
 function siLab(w){const d=weekAt(w-1)[1], q=Math.floor((+d.slice(5,7)-1)/3); return ["Jan–Mar ","Apr–Jun ","Jul–Sep ","Oct–Dec "][q]+d.slice(0,4)}
 function siRange(id,from){let a=null,b=null; for(let w=Math.max(1,from-20);w<from+40;w++){if(siLab(w)===id){if(a==null)a=w; b=w}else if(a!=null)break} return [a,b]}
@@ -6351,6 +6356,9 @@ function mlEnsure(kind,sync){if(ML[kind])return;
     if(i<names.length){if(sync)step(); else setTimeout(step,0)} else {ML[kind].done=true; mlRender(kind)}};
   step()}
 if(ML_PRECOMPUTING){ML_PRE=null; setTimeout(()=>{const out={}; ["win","player","host"].forEach(k=>{delete ML[k]; mlEnsure(k,true); out[k]=mlExport(k)});
+  // the Host tab's weekly highlights (the same weeks hlSection offers)
+  ML_PRE=out;   // (the new medal leaders lines read the medal leaders just worked out)
+  out.hl={}; for(let w=ELO_DONE;w>ELO_DONE-6&&w>0;w--)if(SB.weeks[w])try{out.hl[w]=hlParts0(w)}catch(e){}
   out.twm={}; Object.keys(twMedalCache).forEach(k=>{if(+k.split("|").pop()===TW_MAX)out.twm[k]=twMedalCache[k]});   // This Week's new medals
   const el=document.createElement("script"); el.type="application/json"; el.id="mlpre-out"; el.textContent=JSON.stringify(out).replace(/</g,"\\u003c"); document.body.appendChild(el)},0)}
 // ---------- the website's rating for each recent challenge, worked out by the build (ratings_pre.py, ?rateout) ----------
