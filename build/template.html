@@ -5400,7 +5400,7 @@ const eloD=d=>d>0?`<span class="up">▲${d}</span>`:"";   // Elo losses are neve
 // Winners: top 10 per path (follows All / Active only), with the change over the last 10 weeks
 function renderEloBox(){const el=$("elo-box"); if(!el)return; const w=skW();
   $("elo-sub").innerHTML=`From who finished ahead of whom on every challenge · after Week ${w} · ▲ last 10 weeks · rating color: level, from Bedroom Player to Legend (hover a rating) <span class="elohelp" data-tip="${esc(SK_TIP)}">ⓘ</span>`;
-  el.innerHTML=[0,1,2].map(pi=>{const rows=skTable(pi,w,n=>!activeOnly||isActivePlayer(n)).slice(0,10);
+  el.innerHTML=[0,1,2].map(pi=>{const rows=skTable(pi,w,n=>!activeOnly||isActivePlayer(n)).slice(0,20);   // the top 20
     return `<div class="elocol" style="--pc:${PATH_C[pi]}"><h3>${PATHS[pi]}</h3><ol>${rows.map(([n,v,g],i)=>{const o=skAtE(pi,n,w-10), d=o?Math.round(v-o[1]):null;
       return `<li class="${i===0?"top":""}${i<3?" elo-t"+(i+1):""}${!isActivePlayer(n)?" inactive":""}"><span class="er">${i+1}</span><span class="nm" data-player="${esc(n)}">${esc(n)}</span><span class="ed" data-tip="${esc("Change over the last 10 weeks"+(()=>{const t=d>0?skWhy(pi,n,w-9,w):""; return t?"\n\n"+t:""})())}">${d==null?"":eloD(d)}</span><b class="ev" style="color:${eloBand(v,pi)[2]}" data-tip="${esc(`${eloBandTip(v)} · ${g} games\n\n${skAround(pi,n,w,activeOnly?isActivePlayer:null)}`)}">${Math.round(v)}</b></li>`}).join("")||`<li class="dim">No ratings yet</li>`}</ol></div>`}).join("")}
 // This Week: who gained relative skill (the Skill tab's rating) with the week's scores (provisional while the week runs)
