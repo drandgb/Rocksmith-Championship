@@ -902,14 +902,15 @@ html.acctwait body{visibility:hidden}html.acctwait{background:var(--bg)}html.acc
 @media (max-width:560px){.faqtabs{grid-template-columns:1fr}.faqtabs dd{margin-bottom:6px}}
 
 .navopts{display:flex;align-items:center;gap:8px 16px;margin-left:auto;margin-bottom:6px}.navopts[hidden]{display:none}.navopts .actfilter{margin:0 0 0 auto}
-.navyear{display:flex;align-items:center;gap:8px 14px;flex-wrap:wrap;min-width:0}.navyear select{min-width:0;max-width:100%}.navyear label{min-width:0}.navyear label[hidden]{display:none}
+.navyear{display:flex;align-items:center;gap:8px 14px;flex-wrap:wrap;min-width:0}.navyear select{min-width:0;max-width:100%}.navyear label{min-width:0}.navyear label[hidden]{display:none}.navright[hidden],.navright label[hidden]{display:none}.navright{display:flex;align-items:center;min-width:0}
 .navpath{display:flex;justify-content:center;flex:1 1 auto;min-width:0}.navpath .seg[hidden]{display:none}.navpath .seg{display:flex;max-width:100%}
 @media (max-width:640px){.navopts{flex-wrap:wrap;min-width:0;max-width:100%}.navpath{order:3;flex:1 1 100%;min-width:0}.navpath .seg{width:100%}.navpath .seg button{flex:1 1 auto;min-width:0;white-space:nowrap;padding:8px 4px;font-size:.68rem;letter-spacing:.02em}}
 /* computers: the page tabs share out the full width, and the Year picker (left) and All / Active only toggle (right) get a row of their own under them */
 @media (min-width:641px){.tabrow{flex:1 1 100%}.tabrow button{flex:1 1 auto;text-align:center}.navopts{flex:1 1 100%;margin-top:8px}}
 /* computers: the path picker sits in the exact middle of the row (whatever is on either side, like Songs' wide Selected by picker) */
 @media (min-width:641px){.navopts:not([hidden]){display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr)}.navopts .navyear{grid-column:1;justify-self:start}.navopts .navpath{grid-column:2}.navopts .actfilter{grid-column:3;justify-self:end;margin:0}
-  .navopts[data-v="songs"]:not([hidden]){display:flex;flex-wrap:wrap;justify-content:flex-start}}   /* Songs has two pickers (Year, Selected by): one row that wraps
+  .navopts .navright{grid-column:3;justify-self:end}}
+@media (min-width:641px) and (max-width:1020px){.navopts[data-v="songs"]:not([hidden]){display:flex;flex-wrap:wrap;justify-content:space-between}}   /* Songs on narrower screens: Selected by goes to its own line instead of running into the path buttons */
 #pfilter .s-all[aria-pressed="true"],#wpath .s-all[aria-pressed="true"],#rufilter .s-all[aria-pressed="true"]{background:var(--accent)}
 .ruf{margin-bottom:12px}
 .rulist{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr));column-gap:28px}
@@ -1736,7 +1737,7 @@ footer{color:var(--dim);font-size:.78rem}
       <label class="shostpick" data-yv="hosting" hidden><span>Year</span><select id="hostyear" aria-label="Calendar year"></select></label>
       <label class="shostpick" data-yv="winners" hidden><span>Year</span><select id="wseason" aria-label="Calendar year"></select></label>
       <label class="shostpick" data-yv="songs" hidden><span>Year</span><select id="syear" aria-label="Calendar year"><option value="">All years</option></select></label>
-      <label class="shostpick" data-yv="songs" hidden><span>Selected by</span><select id="shost" aria-label="Only songs selected by this host"><option value="">All hosts</option></select></label></div>
+</div>
     <div class="navpath" id="navpath">   <!-- Winners and Songs: the path picker, in the same row as the year and the toggle -->
       <div class="seg" data-yv="winners" hidden role="radiogroup" aria-label="Show winners for" id="wpath">
     <button type="button" data-rp="-1" class="s-all" aria-pressed="true" title="All paths">All</button>
@@ -1751,6 +1752,8 @@ footer{color:var(--dim);font-size:.78rem}
     <button type="button" data-sp="2" class="s-bass" aria-pressed="false">Bass</button>
   </div>
     </div>
+    <div class="navright" id="navright">   <!-- Songs: Selected by, on the right of the row (the Year picker on the left) -->
+      <label class="shostpick" data-yv="songs" hidden><span>Selected by</span><select id="shost" aria-label="Only songs selected by this host"><option value="">All hosts</option></select></label></div>
     <div class="seg actfilter" role="radiogroup" aria-label="Show everyone or active only" id="pfilter">
       <button type="button" data-af="0" class="s-all" aria-pressed="false">All</button>
       <button type="button" data-af="1" class="s-act" aria-pressed="true" title="Active players only">Active</button>
@@ -3890,7 +3893,7 @@ function showView(v){
   tip.hidden=true;
   $("pfilter").hidden=v==="scores"||v==="songs"||v==="thisweek"||v==="rankings"||v==="season"||v==="faq"||v==="level";
   // the Year picker of the Players, Hosts and Winners tabs (and Songs' Selected by) sits on the same row as the All / Active only toggle
-  document.querySelectorAll("#navyear [data-yv],#navpath [data-yv]").forEach(l=>l.hidden=l.dataset.yv!==v); $("navopts").dataset.v=v; $("navopts").hidden=$("pfilter").hidden&&!document.querySelector(`#navyear [data-yv="${v}"],#navpath [data-yv="${v}"]`);   // (Songs: its Selected by picker, no toggle)
+  document.querySelectorAll("#navyear [data-yv],#navpath [data-yv],#navright [data-yv]").forEach(l=>l.hidden=l.dataset.yv!==v); $("navright").hidden=!$("navright").querySelector(`[data-yv="${v}"]`); $("navopts").dataset.v=v; $("navopts").hidden=$("pfilter").hidden&&!document.querySelector(`#navyear [data-yv="${v}"],#navpath [data-yv="${v}"],#navright [data-yv="${v}"]`);   // (Songs: its Selected by picker, no toggle)
   if(v==="season")setTimeout(()=>{try{renderSeason()}catch(e){console.error(e)}},0);
   if(v==="level")setTimeout(()=>{try{renderLevel()}catch(e){console.error(e)}},0);
   if(v==="skill")setTimeout(()=>{try{renderSkill()}catch(e){console.error(e)}},0);
