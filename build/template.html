@@ -929,7 +929,7 @@ html.acctwait body{visibility:hidden}html.acctwait{background:var(--bg)}html.acc
 .fwbass{display:block;margin-top:4px;font-size:.8rem;color:var(--muted)}
 .hml li.hmdone .hmt{opacity:.55}
 /* Players: head-to-head */
-.h2hctl{align-items:center}.h2hctl input{flex:1 1 140px}.h2hvs{color:var(--muted);font-weight:700;font-size:13px}
+.h2hctl{align-items:center}.h2hctl input,.h2hctl select{flex:1 1 140px;min-width:0}.h2hvs{color:var(--muted);font-weight:700;font-size:13px}
 .h2hrec{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:10px;margin:14px 0 8px}
 .h2hn{display:flex;flex-direction:column;align-items:flex-start;gap:4px;min-width:0}.h2hn.r{align-items:flex-end}.h2hn b{max-width:100%}
 .h2helo{display:block;font-size:11px;font-weight:400;color:var(--muted)}.h2hn b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer}
@@ -1903,7 +1903,7 @@ footer{color:var(--dim);font-size:.78rem}
   </section>
   <section class="panel" id="h2hsec">
     <div class="panel-head"><h2>⚔️ Head-to-head</h2><span class="sub">Every challenge both players played: who finished higher</span></div>
-    <div class="controls h2hctl"><input id="h2a" list="plist" type="search" placeholder="Player" aria-label="First player" autocomplete="off"><span class="h2hvs">vs</span><input id="h2b" list="plist" type="search" placeholder="Player" aria-label="Second player" autocomplete="off"></div>
+    <div class="controls h2hctl"><input id="h2a" list="plist" type="search" placeholder="Player" aria-label="First player" autocomplete="off"><span class="h2hvs">vs</span><select id="h2b" aria-label="Second player" disabled><option value="">Pick the first player</option></select></div>
     <div id="h2hbody"></div>
   </section>
 
@@ -3685,10 +3685,19 @@ function h2hRender(){const a=h2hName($("h2a").value), b=h2hName($("h2b").value),
     <table class="h2ht"><thead><tr><th>Path</th><th class="num">${esc(a)}</th><th class="num">Tied</th><th class="num">${esc(b)}</th></tr></thead><tbody>${paths}</tbody></table>
     <h4>Latest challenges together</h4>
     <table class="h2ht"><thead><tr><th class="num">Wk</th><th>Song</th><th class="num">${esc(a)}</th><th class="num">${esc(b)}</th></tr></thead><tbody>${last}</tbody></table>`}
-["h2a","h2b"].forEach(id=>$(id).addEventListener("input",()=>{const v=$(id).value; if(!v||h2hName(v))h2hRender()}));
+// The second player is a list: active players who played at least one challenge with the first, most shared first
+function h2hOpps(a){const ka=a.toLowerCase(), cnt={}; Object.values(SB.weeks).forEach(ch=>ch.forEach(c=>{if(!c[6].some(e=>h2hNm(e[0])===ka))return;
+    const seen=new Set(); c[6].forEach(e=>{const k=h2hNm(e[0]); if(k!==ka&&!seen.has(k)){seen.add(k); cnt[k]=(cnt[k]||0)+1}})}));
+  return Object.keys(cnt).map(k=>[h2hName(k),cnt[k]]).filter(([n])=>n&&isActivePlayer(n)).sort((x,y)=>y[1]-x[1]||x[0].localeCompare(y[0],undefined,{sensitivity:"base"}))}
+function h2hOptions(keep){const s=$("h2b"), a=h2hName($("h2a").value), cur=keep!=null?keep:s.value;
+  if(!a){s.innerHTML=`<option value="">Pick the first player</option>`; s.disabled=true; return}
+  const L=h2hOpps(a); s.disabled=!L.length;
+  s.innerHTML=L.length?L.map(([n,k])=>`<option value="${esc(n)}">${esc(n)} · ${k} challenge${k===1?"":"s"}</option>`).join(""):`<option value="">No active players played with ${esc(a)}</option>`;
+  if(cur&&L.some(([n])=>n===cur))s.value=cur}
+["h2a","h2b"].forEach(id=>$(id).addEventListener("input",()=>{const v=$(id).value; if(id==="h2a"&&(!v||h2hName(v)))h2hOptions(); if(!v||h2hName(v))h2hRender()}));
 // follows the Player lookup: their usual opponent comes in until you pick someone else
 let h2hPicked=false; $("h2b").addEventListener("input",()=>{h2hPicked=!!$("h2b").value});
-function h2hFollow(n){if(!$("h2a"))return; $("h2a").value=n; if(!h2hPicked||$("h2b").value.toLowerCase()===n.toLowerCase()){$("h2b").value=h2hRival(n)||""; h2hPicked=false} h2hRender()}
+function h2hFollow(n){if(!$("h2a"))return; $("h2a").value=n; const keep=h2hPicked&&$("h2b").value.toLowerCase()!==n.toLowerCase()?$("h2b").value:(h2hPicked=false,h2hRival(n)||""); h2hOptions(keep); h2hRender()}
 function showPlayer(name){
   const p=byName[name];
   if(!p){$("pcard").innerHTML=`<div class="empty">No player named “${esc(name)}”. Pick a name from the list as you type.</div>`;return}
