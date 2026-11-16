@@ -419,6 +419,7 @@ button.clear:hover{border-color:var(--accent)}
 .lvnolin{display:inline-block;margin-top:6px;font:700 .95rem var(--f-display);color:var(--s-green);letter-spacing:.02em}
 .pc .pclv{grid-column:1/-1}.pc .pclv svg{max-height:240px}
 .sbhead .sbthanks{text-align:center;margin:10px 0 4px;font:700 .95rem var(--f-display);color:var(--s-green);letter-spacing:.02em}
+.pc .pnolin.pnin{margin:26px 0 0;text-align:center}
 .pc .pnolin{grid-column:1/-1;margin:14px 0 -6px;font:700 .95rem var(--f-display);color:var(--s-green);letter-spacing:.02em}
 .pbt{width:100%;margin-top:10px;border-collapse:collapse;font-size:.86rem;table-layout:fixed}.pbt th,.pbt td{padding:6px 8px;border-top:1px solid var(--line);text-align:left;vertical-align:top}.pbt thead th{border-top:0;font:700 .68rem var(--f-display);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}.pbt tbody th{width:4.8em;font:800 .74rem var(--f-display);letter-spacing:.06em;text-transform:uppercase}.pbt td.pbx{cursor:pointer}.pbt td.pbx:hover b{color:var(--accent)}.pbt td b{font-family:var(--f-display);font-variant-numeric:tabular-nums}.pbt .sub{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:.74rem}
 .stats .pbx .sub{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:.78rem}
@@ -3766,7 +3767,9 @@ function showPlayer(name){
     ${(()=>{try{return fwPanel(n)}catch(e){return ""}})()}
     ${(()=>{try{return wbPanel(n)}catch(e){return ""}})()}
     <div class="plead" data-n="${esc(n)}">${plLeads(n)}</div>
-      ${(()=>{try{const c=hrChart(n); return `<p class="pcwide pnolin">Remember, progress isn’t linear! 🌱</p>`+(c?hrProfile(n)+`<div class="pcwide">${c}</div>`:hrNote(n))}catch(e){return ""}})()}
+      ${(()=>{try{const c=hrChart(n), pl=`<p class="pcwide pnolin">Remember, progress isn’t linear! 🌱</p>`, pr=c?hrProfile(n):"";
+        // the reminder sits under the Performance table, in the space beside the chart (above everything when there's no table)
+        return pr?pr.replace(/<\/div>$/,`<p class="pnolin pnin">Remember, progress isn’t linear! 🌱</p></div>`)+`<div class="pcwide">${c}</div>`:pl+(c?`<div class="pcwide">${c}</div>`:hrNote(n))}catch(e){return ""}})()}
       ${(()=>{try{const c=lvChart(n); return c?`<div class="pcwide pclv">${c}</div>`:""}catch(e){return ""}})()}
       ${(()=>{try{const c=skChart(n); return c?skProfile(n)+`<div class="pcwide">${c}</div>`:""}catch(e){console.error(e); return ""}})()}
       ${(()=>{try{return hrNextHtml(n)}catch(e){return ""}})()}
