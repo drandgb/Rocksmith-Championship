@@ -224,6 +224,8 @@ button.pill.hostbtn:hover,.pill.hostbtn:hover{background:color-mix(in srgb,var(-
 .legend button:hover{color:var(--fg);border-color:var(--line)}
 .legend button.sel{color:var(--fg);border-color:var(--accent);background:color-mix(in srgb,var(--accent) 12%,transparent)}
 .legend.has-sel button:not(.sel){opacity:.55}
+.tip[popover]{inset:auto;margin:0;color:var(--fg);overflow:hidden}
+.acctdlg{scrollbar-gutter:stable}
 .tip{white-space:pre-line;position:fixed;pointer-events:none;background:var(--panel2);border:1px solid var(--line);padding:6px 9px;border-radius:6px;font-size:.8rem;z-index:10;max-width:min(360px,calc(100vw - 24px));max-height:80vh;overflow:hidden}
 
 /* log */
@@ -3829,6 +3831,13 @@ $("legend").addEventListener("click",e=>{const b=e.target.closest("button[data-h
 ["q","yr","show"].forEach(id=>$(id).addEventListener("input",renderLog));
 
 const tip=$("tip");
+// Over the profile popup the tooltip has to sit above it. It used to be moved inside the popup, which made the popup
+// change size while hovering in Firefox; now it's shown as a popover (above everything, outside the popup) and it follows
+// its hidden attribute. Browsers without popovers still get it moved inside the popup.
+const TIP_POP=typeof tip.showPopover==="function";
+function tipOver(on){if(!TIP_POP){if(on)$("acct").appendChild(tip); else document.body.appendChild(tip); return}
+  if(on)tip.setAttribute("popover","manual"); else{try{tip.hidePopover()}catch(e){} tip.removeAttribute("popover")}}
+if(TIP_POP)new MutationObserver(()=>{if(!tip.hasAttribute("popover"))return; try{if(tip.hidden)tip.hidePopover(); else if(!tip.matches(":popover-open"))tip.showPopover()}catch(e){}}).observe(tip,{attributes:true,attributeFilter:["hidden"]});
 $("tl").addEventListener("mousemove",e=>{
   const c=e.target.closest("[data-w]"); if(!c){tip.hidden=true;return}
   const w=WEEKS[+c.dataset.w];
@@ -8466,9 +8475,9 @@ $("acctbody").addEventListener("click",async e=>{
     await acctRefresh(); acctDraw();
   }finally{b.disabled=false}
 });
-$("acctbtn").addEventListener("click",()=>{acctDraw();$("acct").showModal();$("acct").appendChild(tip)});
-document.addEventListener("click",e=>{if(!e.target.closest("[data-openhost]"))return; ACCT.tab="host"; acctDraw(); $("acct").showModal(); $("acct").appendChild(tip)});
-document.addEventListener("click",e=>{if(!e.target.closest("[data-openyw]"))return; ACCT.tab="week"; acctDraw(); $("acct").showModal(); $("acct").appendChild(tip)});
+$("acctbtn").addEventListener("click",()=>{acctDraw();$("acct").showModal();tipOver(true)});
+document.addEventListener("click",e=>{if(!e.target.closest("[data-openhost]"))return; ACCT.tab="host"; acctDraw(); $("acct").showModal(); tipOver(true)});
+document.addEventListener("click",e=>{if(!e.target.closest("[data-openyw]"))return; ACCT.tab="week"; acctDraw(); $("acct").showModal(); tipOver(true)});
 $("acctclose").addEventListener("click",()=>$("acct").close());
 // hover text inside the dialog (the tip moves into the dialog while it's open, so it shows above it)
 // ✕ on "You've been passed": mark everything up to the newest pass as seen, then hide the alert and clear the badges
@@ -8477,7 +8486,7 @@ document.addEventListener("click",e=>{const b=e.target.closest("[data-seasdismis
 document.addEventListener("click",e=>{const b=e.target.closest("[data-ywdismiss]"); if(!b)return; e.stopPropagation(); const n=b.dataset.ywdismiss, last=ywPasses(n)[0];
   if(last)lsSet(ywKey(n),String(Date.parse(last.t))); ACCT.ywShown=[]; const a=b.closest(".ywalert"); if(a)a.remove(); try{acctBtn()}catch(e){console.error(e)}
   document.querySelectorAll('.accttabs .nbadge[title^="Passed"]').forEach(x=>x.remove())},true);
-$("acct").addEventListener("close",()=>{tip.hidden=true;document.body.appendChild(tip);acctUnmount();ACCT.ywShown=null});
+$("acct").addEventListener("close",()=>{tip.hidden=true;tipOver(false);acctUnmount();ACCT.ywShown=null});
 // links inside the moved lookup cards go to other pages: close the dialog so the page shows
 $("acct").addEventListener("click",e=>{const gv=e.target.closest("[data-goview]");if(gv){$("acct").close();showView(gv.dataset.goview);scrollTo({top:0});return}
   if(e.target.closest("#acct-tw")&&e.target.closest("[data-sbw],[data-goplayer]")){$("acct").close();return}
