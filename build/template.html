@@ -3316,8 +3316,16 @@ function hlEmo(name){const M=[[/^Silver god diamond/,"🥈💎"],[/^Bronze god d
 // the medal leaders' name for a medal, from its hover text (as in mlParse): the medal, with its path when it has one
 function hlMlKey(tip){const p=tip.split(" · "); return p[0]+(PATHS.includes(p[1])?" · "+p[1]:"")}
 // how many of a kind of medal a player added in a week
-function hlGain(n,key,x){let g=0; try{twMedals(n,x,x>DATA_WEEK).forEach(h=>{const tip=((/data-tip="([^"]*)"/.exec(h)||[])[1]||"").replace(/&#39;/g,"'").replace(/&quot;/g,'"').replace(/&amp;/g,"&");
-    if(hlMlKey(tip)===key)g+=+((/\+(\d+) this week/.exec(tip)||[])[1]||0)})}catch(e){} return g}
+// A player's medals in a week, worked out once and kept (working them out is slow, and the highlights ask for the
+// same ones many times): the medal icons, and for each its leaders' name and how many were added that week
+const HL_MED=new Map();
+function hlMed(n,x){const k=n+"|"+x; let r=HL_MED.get(k); if(r)return r; let ms=[]; try{ms=twMedals(n,x,x>DATA_WEEK)}catch(e){}
+  r={ms,g:ms.map(h=>{const tip=((/data-tip="([^"]*)"/.exec(h)||[])[1]||"").replace(/&#39;/g,"'").replace(/&quot;/g,'"').replace(/&amp;/g,"&");
+    return [hlMlKey(tip),+((/\+(\d+) this week/.exec(tip)||[])[1]||0)]})};
+  HL_MED.set(k,r); return r}
+// (medals come with a score that week: a player with none that week added none, so they aren't worked out)
+const HL_PLAYED={}; function hlPlayed(x){return HL_PLAYED[x]||(HL_PLAYED[x]=new Set((SB.weeks[x]||[]).flatMap(c=>[...cardNames(c)])))}
+function hlGain(n,key,x){let g=0; if(!hlPlayed(x).has(String(n).toLowerCase()))return 0; hlMed(n,x).g.forEach(([k,p])=>{if(k===key)g+=p}); return g}
 // New medal leaders in week w. gains: the week's medal counts that went up. The standings today come from the medal
 // leaders (the Winners and Players tabs); anything collected after week w is taken off again, so an older week reads
 // as it stood then. A player is listed when they weren't at the top before the week (alone or tied) and are after it,
@@ -3350,16 +3358,18 @@ function hlHostLeaders(w){const out=[], h=(WEEKS.find(x=>x[0]===w)||[])[2]; if(!
     out.push(sole?(wasTop?`@${h} · now leads ${what} alone (${val})`:`@${h} · the new leader in ${what} (${val})`)
                  :`${[h,...tied].sort((x,y)=>x.localeCompare(y,undefined,{sensitivity:"base"})).map(x=>"@"+x).join(", ")} · now tied for the lead in ${what} (${val})`)});
   return out}
+// (each week's highlights are worked out once per visit)
+const HL_PARTS={}; function hlParts(w){return HL_PARTS[w]||(HL_PARTS[w]=hlParts0(w))}
 function hlText(w){return hlParts(w).map(g=>g.join("\n").replace(/\*\*/g,"")).join("\n\n")}
 function hlHtml(w){return hlParts(w).map(g=>`<p>${g.map(x=>esc(x).replace(/\*\*(.+?)\*\*/g,"<strong>$1</strong>")).join("<br>")}</p>`).join("")}
-function hlParts(w){eloBuild(); const I=sbIx(), L=[], G1=[], G2=[], G2b=[], G3=[], G4=[], played=Object.keys(I.wk).filter(k=>I.wk[k].includes(w)), nm=k=>"@"+I.disp[k];   // names with @, as in the forum
+function hlParts0(w){eloBuild(); const I=sbIx(), L=[], G1=[], G2=[], G2b=[], G3=[], G4=[], played=Object.keys(I.wk).filter(k=>I.wk[k].includes(w)), nm=k=>"@"+I.disp[k];   // names with @, as in the forum
   const both=xs=>xs.length>1?xs.slice(0,-1).join(", ")+" and "+xs[xs.length-1]:xs[0];
   const newc=played.filter(k=>I.wk[k][0]===w).map(nm); if(newc.length)G1.push(`🐣 **Welcome** to our new player${newc.length===1?"":"s"}: ${newc.join(", ")}`);
   const back=played.filter(k=>{const W=I.wk[k], i=W.indexOf(w); return i>0&&w-W[i-1]>=5}).map(k=>{const W=I.wk[k], i=W.indexOf(w); return `${nm(k)} (after ${w-W[i-1]-1} weeks away)`}); if(back.length)G1.push(`🎟️ **Welcome back** to the championship, ${both(back)}!`);
   const ups=(WR.ups||[]).filter(u=>u[4]===w&&LVI.indexOf(u[3])>LVI.indexOf(u[2])).map(u=>`@${u[0]} (${PATHS[u[1]]} ${TIER_NAME[u[2]]||u[2]} → ${TIER_NAME[u[3]]||u[3]})`); if(ups.length)G1.push(`⬆️ **Rank-ups**: ${ups.join(", ")}`);
   // firsts: a medal collected for the first time ever this week, other than the ones the Host tab's player messages already cover
   const gains=[];   // every medal count that went up this week: who, which kind, the new total and how many were added
-  {const fm=[]; played.forEach(k=>{const n=I.disp[k]; let ms=[]; try{ms=twMedals(n,w,w>DATA_WEEK)}catch(e){}
+  {const fm=[]; played.forEach(k=>{const n=I.disp[k]; let ms=hlMed(n,w).ms;
      const got=[]; ms.forEach(h=>{const tip=((/data-tip="([^"]*)"/.exec(h)||[])[1]||"").replace(/&#39;/g,"'").replace(/&quot;/g,'"').replace(/&amp;/g,"&");
        const all=+((/\((\d+) all time\)/.exec(tip)||[])[1]||0), plus=+((/\+(\d+) this week/.exec(tip)||[])[1]||0), name=tip.split(" · ")[0];
        if(all>0&&plus>0&&name)gains.push({n,key:hlMlKey(tip),name,all,plus});
@@ -3403,9 +3413,11 @@ function hlParts(w){eloBuild(); const I=sbIx(), L=[], G1=[], G2=[], G2b=[], G3=[
     if(ln.length)out.push([`🏁 **Season ${seasonNum(sNow)} (${sNow}) leaders after Week ${w}** (week ${w-a+1} of ${b-a+1}):`],...ln)}
   out.push(["**Keep going!**"]);
   return out}
+// the first time, the highlights are worked out just after the tab shows (it takes a few seconds), then filled in
+function hlLater(w){setTimeout(()=>{try{hlParts(w)}catch(e){console.error(e)} const el=$("hltext"); if(el&&+el.dataset.w===w)el.innerHTML=hlHtml(w)},60)}
 function hlSection(){const ws=[]; for(let w=ELO_DONE;w>ELO_DONE-6&&w>0;w--)if(SB.weeks[w])ws.push(w); const w=ACCT.hlWeek&&ws.includes(ACCT.hlWeek)?ACCT.hlWeek:ws[0]; if(!w)return "";
   return `<div class="acctsec hlbox"><h3>Weekly highlights <select class="hlsel" data-hlweek>${ws.map(x=>`<option value="${x}"${x===w?" selected":""}>Week ${x}</option>`).join("")}</select></h3>
-    <p class="dim">New players, welcome backs, rank-ups, first medals, newcomers' milestones and the season leaders for Week ${w}, ready to copy into the Week ${w+1} post.</p><div id="hltext" class="hlrich" data-w="${w}">${hlHtml(w)}</div><div class="row"><button type="button" class="btn ghost" data-hlcopy>Copy</button><button type="button" class="btn ghost" data-hlcopy="plain">Copy as plain text</button></div></div>`}
+    <p class="dim">New players, welcome backs, rank-ups, first medals, newcomers' milestones and the season leaders for Week ${w}, ready to copy into the Week ${w+1} post.</p><div id="hltext" class="hlrich" data-w="${w}">${HL_PARTS[w]?hlHtml(w):(hlLater(w),`<p class="dim">Working out Week ${w}'s highlights…</p>`)}</div><div class="row"><button type="button" class="btn ghost" data-hlcopy>Copy</button><button type="button" class="btn ghost" data-hlcopy="plain">Copy as plain text</button></div></div>`}
 // ---------- Admin: season introduction, ready to copy into a forum post (for new and current players) ----------
 function siLab(w){const d=weekAt(w-1)[1], q=Math.floor((+d.slice(5,7)-1)/3); return ["Jan–Mar ","Apr–Jun ","Jul–Sep ","Oct–Dec "][q]+d.slice(0,4)}
 function siRange(id,from){let a=null,b=null; for(let w=Math.max(1,from-20);w<from+40;w++){if(siLab(w)===id){if(a==null)a=w; b=w}else if(a!=null)break} return [a,b]}
@@ -4624,20 +4636,24 @@ function swordsSvg(col){const sw=`<g stroke="#1a1406" stroke-opacity=".5" stroke
 // Completionist: weeks where the player posted a score on every challenge (every song and path) of the week.
 // A multi-week God challenge they already played in an earlier week of the run counts; one never attempted doesn't.
 // path (0 Lead, 1 Rhythm, 2 Bass): only that path's challenges count (Lead / Rhythm / Bass completionist)
+// (the names on each card and each week's answer are kept, as this runs for every player and every week since Week 2)
+const CARD_NAMES=new WeakMap(), COMPL_W=new Map();
+function cardNames(c){let s=CARD_NAMES.get(c); if(!s){s=new Set(c[6].map(e=>SB.names[e[0]].replace(/[*~]+$/,"").toLowerCase())); CARD_NAMES.set(c,s)} return s}
 function completionistWeeks(name,done,path){
-  const key=name.toLowerCase(), mine=c=>c[6].some(e=>SB.names[e[0]].replace(/[*~]+$/,"").toLowerCase()===key);
+  const key=name.toLowerCase(), mine=c=>cardNames(c).has(key);
   const isGod=l=>/god/i.test(String(l||""));
-  return done.filter(w=>{const cards=(SB.weeks[w]||[]).filter(c=>c[3]&&!/^n\/a$/i.test(c[3])&&(path==null||c[0]===path));
+  return done.filter(w=>{const ck=key+"|"+path+"|"+w; let v=COMPL_W.get(ck); if(v===undefined){v=complWeek(w); COMPL_W.set(ck,v)} return v}).sort((a,b)=>a-b);
+  function complWeek(w){const cards=(SB.weeks[w]||[]).filter(c=>c[3]&&!/^n\/a$/i.test(c[3])&&(path==null||c[0]===path));
     if(!cards.length||!cards.some(mine))return false;
     return cards.every(c=>{if(mine(c))return true; if(!isGod(c[2]))return false;
       const k=acctSongKey(c[3]); // earlier weeks of the same God run
       for(let pw=w-1;;pw--){const pc=(SB.weeks[pw]||[]).find(x=>x[0]===c[0]&&isGod(x[2])&&acctSongKey(x[3])===k); if(!pc)return false; if(mine(pc))return true}});
-  }).sort((a,b)=>a-b);
+  }
 }
 // Played guitar / played bass: finished weeks with at least one Lead or Rhythm score / at least one Bass score
 function instrumentWeeks(name,done){
   const key=name.toLowerCase(), g=[], b=[];
-  done.forEach(w=>{let hg=false,hb=false;(SB.weeks[w]||[]).forEach(c=>{if(!c[6].some(e=>SB.names[e[0]].replace(/[*~]+$/,"").toLowerCase()===key))return; if(c[0]===2)hb=true; else hg=true});
+  done.forEach(w=>{let hg=false,hb=false;(SB.weeks[w]||[]).forEach(c=>{if(!cardNames(c).has(key))return; if(c[0]===2)hb=true; else hg=true});
     if(hg)g.push(w); if(hb)b.push(w)});
   return {g,b};
 }
