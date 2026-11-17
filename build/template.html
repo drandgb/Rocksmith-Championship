@@ -2090,7 +2090,7 @@ footer{color:var(--dim);font-size:.78rem}
       <div class="bars" id="b-featured"></div>
     </section>
     <section class="panel">
-      <div class="panel-head"><h2>Most popular bands</h2><div class="seg bpmode" role="radiogroup" aria-label="Total or per challenge" id="bpmode"><button type="button" data-bp="0" aria-pressed="true">Total</button><button type="button" data-bp="1" aria-pressed="false">Per challenge</button></div><span class="sub" id="bpsub">Top 20 · scores posted on their songs since week 440</span></div>
+      <div class="panel-head"><h2>Most popular bands</h2><div class="seg bpmode" role="radiogroup" aria-label="Total or per challenge" id="bpmode"><button type="button" data-bp="0" aria-pressed="true">Total</button><button type="button" data-bp="1" aria-pressed="false">Per challenge</button></div><span class="sub" id="bpsub">Top 20 · scores posted on their songs since week __SBMIN__</span></div>
       <div class="bars" id="b-playedbands"></div>
     </section>
   </div>
@@ -2200,7 +2200,7 @@ footer{color:var(--dim);font-size:.78rem}
 
   <section class="panel faq" id="faq-stats">
     <div class="panel-head"><h2>📊 The stats</h2></div>
-    <details><summary>What is a win?</summary><p>First place among the players in their own class on a challenge (playing up into the class counts; playing down doesn't). Wins are counted from the scoreboards since week 440.</p></details>
+    <details><summary>What is a win?</summary><p>First place among the players in their own class on a challenge (playing up into the class counts; playing down doesn't). Wins are counted from the scoreboards since week __SBMIN__.</p></details>
     <details><summary>How do Rodman's Rankings work?</summary><p>A rolling score over the last 10 completed weeks, counting your class and above: 10 points for 1st place, 5 for 2nd, 3 for 3rd, 1 for 4th, +1 for a 100% score and +1 for a Master Mode score (played from memory instead of sight-read, and no more than 2% below your own best).</p></details>
     <details><summary>How do seasons work?</summary><p>A season is 13 weeks (a calendar quarter). On each week's main challenge in your class, the top 10 score 25, 18, 15, 12, 10, 8, 6, 4, 2 and 1 season points. Whoever leads each class when the season ends is its season champion. Most improved goes to the biggest player level gain in each class over the season (the level going into the season against the level over its last 12 weeks), for players who play at least half of its weeks; a projected winner starts showing in week 4. Everyone starts each season on zero.</p></details>
     <details><summary>What is Relative skill level?</summary><p>The rating on the Skill tab, one for each path. Every challenge counts as one game where everyone who played it is ranked by accuracy, then streak, then score, so finishing ahead of strong players raises it the most, and winning by a wide margin counts for more than a close win. It's shown on a chess-style scale: a 400-point gap means about 10-to-1 odds, a new player starts at about 325, and an average player whose rating has settled is around 1500. Each rating has a level, from Bedroom Player and Busker up to Headliner, Arena Act, Superstar and Legend. It needs 10 games on a path. This Week shows who gained the most, the Winners tab has the top 10, and your profile has your rating, rank and a chart over time.</p></details>
@@ -3962,7 +3962,7 @@ function renderWinnersPodium(){
   const M=["#f5c84a","#c9d0dc","#d8925a"], where=wPath<0?"":` on ${PATH_WORD[wPath]}`;
   const sorted=winEntries().sort((a,b)=>b[1][1]-a[1][1]);
   const top=sorted.slice(0,3), max=top.length?top[0][1][1]||1:1;
-  $("whof-sub").textContent=`Most challenge wins${where} ${wSeason?`in ${wSeason}`:"since week 440"} · own class or playing up`;
+  $("whof-sub").textContent=`Most challenge wins${where} ${wSeason?`in ${wSeason}`:"since week __SBMIN__"} · own class or playing up`;
   $("wpodium").innerHTML=[1,0,2].filter(i=>top[i]).map(i=>{const [n,v]=top[i], h=Math.round(70+130*v[1]/max);
     return `<div class="pod" style="--m:${M[i]}"><div class="medal">${i+1}</div><div class="pname" data-player="${esc(n)}">${esc(n)}</div><div class="block" style="height:${h}px;animation-delay:${[150,0,300][i]}ms"><b>${v[1]}</b><small>${wPath<0?"challenge":PATH_WORD[wPath]}</small><small>wins</small></div></div>`}).join("");
   $("wmost-sub").textContent=`Top 20 · 1st-place finishes${where}${wSeason?` in ${wSeason}`:""}`;
@@ -3980,7 +3980,7 @@ function renderRankups(){
   document.querySelectorAll("#rufilter button").forEach(b=>b.setAttribute("aria-pressed",+b.dataset.rp===ruPath));
   const list=WR.ups.filter(u=>(ruPath<0||u[1]===ruPath)&&(!activeOnly||isActivePlayer(u[0])));
   const nUp=list.filter(isUp).length, nDown=list.length-nUp;
-  $("ru-sub").textContent=`${nUp} ${ruPath<0?"":PATH_WORD[ruPath]+" "}rank-up${nUp===1?"":"s"}${nDown?` and ${nDown} move${nDown===1?"":"s"} down`:""} since week 440 · newest first`;
+  $("ru-sub").textContent=`${nUp} ${ruPath<0?"":PATH_WORD[ruPath]+" "}rank-up${nUp===1?"":"s"}${nDown?` and ${nDown} move${nDown===1?"":"s"} down`:""} since week __SBMIN__ · newest first`;
   $("rulist").innerHTML=list.map(([n,p,a,b,w])=>{const wk=WEEKS[w-1];return `<li><div class="w"${SB.weeks[w]?` data-sbw="${w}" data-sbp="${p}" data-sbn="${esc(n)}" title="Open Week ${w} on the Scoreboard"`:""}><b>Wk ${w}</b>${wk?fmtShort(wk[1])+", "+wk[1].slice(0,4):""}</div><div class="who"><span data-player="${esc(n)}">${esc(n)}</span><span class="path" style="--pc:${PATH_C[p]}">${PATHS[p]}</span></div><div class="move${LVI.indexOf(b)<LVI.indexOf(a)?" down":""}" title="${TIER_NAME[a]} → ${TIER_NAME[b]}${LVI.indexOf(b)<LVI.indexOf(a)?" (moved down)":""}"><span style="--tc:${TIER_C[a]}">${a}</span><i>${LVI.indexOf(b)<LVI.indexOf(a)?"↘":"↗"}</i><span style="--tc:${TIER_C[b]}">${b}</span></div></li>`}).join("")||`<li class="empty">No rank-ups on this path.</li>`;
 }
 
@@ -5662,7 +5662,8 @@ const IG_LATEST=(()=>{const m={}, norm=s=>String(s).toLowerCase().replace(/\s+/g
   return s=>m[norm(s)]})();
 const splitSong=t=>{const i=t.indexOf(" - ");return i>0?[t.slice(0,i).trim(),t.slice(i+3).trim()]:["Unknown",t.trim()]};
 let sHost=null; // Songs: only the weeks this host hosted (their song picks)
-let sYear=null; // Songs: only the weeks of this calendar year
+// Songs: only the weeks of this calendar year; it opens on the year of the newest week ("All years" shows everything)
+let sYear=((WEEKS.find(w=>w[0]===DATA_WEEK)||WEEKS[WEEKS.length-1]||[])[1]||"").slice(0,4)||null;
 let bandAvg=false; // Most popular bands: false = total scores, true = average scores per challenge
 document.addEventListener("click",e=>{const b=e.target.closest("#bpmode button"); if(!b)return; bandAvg=b.dataset.bp==="1"; renderSongs()});
 let songAvg=false; // Most popular songs: false = different players in total, true = average players per challenge
@@ -5997,7 +5998,7 @@ function showBand(name){songsReady();
         <div><small>Challenges</small><b>${list.length}</b></div>
         <div><small>Different songs</small><b>${songsArr.length}</b></div>
         <div><small>Average rating</small><b>${avg!=null?avg.toFixed(1):"–"}</b></div>
-        <div><small>Scores posted</small><b>${scores}</b><span class="sub"> since wk 440</span></div>
+        <div><small>Scores posted</small><b>${scores}</b><span class="sub"> ${sYear?"in "+sYear:"since wk __SBMIN__"}</span></div>
         <div><small>First featured</small><b${SB.weeks[Math.min(...weeks)]?` data-sbw="${Math.min(...weeks)}" title="Open Week ${Math.min(...weeks)} on the Scoreboard"`:""}>Wk ${Math.min(...weeks)}</b></div>
         <div><small>Latest</small><b${SB.weeks[Math.max(...weeks)]?` data-sbw="${Math.max(...weeks)}" title="Open Week ${Math.max(...weeks)} on the Scoreboard"`:""}>Wk ${Math.max(...weeks)}</b></div>
       </div>
@@ -6456,6 +6457,7 @@ $("shost").innerHTML=`<option value="">All hosts</option>`+hostList.map(h=>`<opt
 $("shost").addEventListener("change",e=>{sHost=e.target.value||null; bandName=null; renderSongs(); updateBubble()});
 // ---------- Songs: filter to one calendar year ----------
 $("syear").innerHTML=`<option value="">All years</option>`+[...new Set(WEEKS.filter(w=>w[0]<=DATA_WEEK+1).map(w=>w[1].slice(0,4)))].sort().reverse().map(y=>`<option value="${y}">${y}</option>`).join("");
+$("syear").value=sYear||""; $("syear").closest("label").classList.toggle("on",!!sYear);   // (the list is filled after the tab may have drawn)
 $("syear").addEventListener("change",e=>{sYear=e.target.value||null; bandName=null; renderSongs(); updateBubble()});
 document.addEventListener("click",e=>{const b=e.target.closest("[data-gosongs]"); if(!b)return; e.stopPropagation(); tip.hidden=true; mcard.hidden=true;
   sHost=b.dataset.gosongs; bandName=null; showView("songs"); renderSongs(); updateBubble(); scrollTo({top:0})},true);
