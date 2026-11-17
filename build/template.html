@@ -3706,7 +3706,7 @@ function h2hOpps(a){const ka=a.toLowerCase(), cnt={}; Object.values(SB.weeks).fo
 function h2hOptions(keep){const s=$("h2b"), a=h2hName($("h2a").value), cur=keep!=null?keep:s.value;
   if(!a){s.innerHTML=`<option value="">Pick the first player</option>`; s.disabled=true; return}
   const L=h2hOpps(a); s.disabled=!L.length;
-  s.innerHTML=L.length?L.map(([n,k])=>`<option value="${esc(n)}">${esc(n)} · ${k} challenge${k===1?"":"s"}</option>`).join(""):`<option value="">No active players played with ${esc(a)}</option>`;
+  s.innerHTML=L.length?L.map(([n,k])=>`<option value="${esc(n)}">${esc(n)} · ${k} challenge${k===1?"":"s"} together</option>`).join(""):`<option value="">No active players played with ${esc(a)}</option>`;
   if(cur&&L.some(([n])=>n===cur))s.value=cur}
 ["h2a","h2b"].forEach(id=>$(id).addEventListener("input",()=>{const v=$(id).value; if(id==="h2a"&&(!v||h2hName(v)))h2hOptions(); if(!v||h2hName(v))h2hRender()}));
 // follows the Player lookup: their usual opponent comes in until you pick someone else
