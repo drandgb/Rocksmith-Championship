@@ -3324,10 +3324,10 @@ function unclaimedSection(){const rows=[], st={}, YR=DATA_WEEK-25;   // st: per 
   const yAgo=Date.now()-365*864e5, y1=rows.findIndex(r=>WEEKS[r.w-1]&&new Date(WEEKS[r.w-1][1]+"T12:00:00").getTime()<=yAgo);
   const li=({w,c,n},i)=>{const L=cardLv(c[2]);
     return `<li style="--pc:${PATH_C[c[0]]}"${i===y1?" data-yr1":""}><span class="dim">Week ${w}${WEEKS[w-1]?" · "+fmt(WEEKS[w-1][1]):""}</span><span class="apath">${PATHS[c[0]]}</span><span class="lvchip" style="--tc:${L==="G"?"var(--t-god)":TIER_C[L]||"var(--muted)"}">${esc(c[2])}</span><span class="asong">${esc(c[3])}</span><span class="dim">${n?`${n} played, none in the class`:"nobody played"}</span></li>`};
-  return `<div class="acctsec unclaimed"><h3>Unclaimed trophies <small>${rows.length} challenge${rows.length===1?"":"s"}${rows.length>10?" · scroll for more":""}</small></h3>
+  return `<div class="acctsec unclaimed"><h3>Unclaimed trophies</h3>
     <p class="dim">Challenges where no ranked player in the class posted a score, so the trophy went unclaimed. Most recent first.</p>
     ${stats}
-    ${rows.length?`<ul class="alist">${rows.map(li).join("")}</ul>`:`<p class="dim">Every trophy has been claimed.</p>`}</div>`;
+    ${rows.length?`<p class="dim" style="margin:12px 0 6px">${rows.length} challenge${rows.length===1?"":"s"}${rows.length>10?" · scroll for more":""}</p><ul class="alist">${rows.map(li).join("")}</ul>`:`<p class="dim">Every trophy has been claimed.</p>`}</div>`;
 }
 // when an Unclaimed trophies list first shows (it can start folded away), scroll it to the year-ago row
 (()=>{if(typeof MutationObserver==="undefined"||typeof ResizeObserver==="undefined")return;
