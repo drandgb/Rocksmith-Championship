@@ -1416,8 +1416,6 @@ footer .updated{display:block;margin-top:4px}
 .rkweeks small{font:700 .66rem var(--f-display);letter-spacing:.16em;text-transform:uppercase;color:#ffb3c0}
 .rkweeks b{font:900 1.15rem var(--f-display);letter-spacing:.04em;background:linear-gradient(180deg,#fff 20%,#ff8a9e 70%,#e31837);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 4px rgba(227,24,55,.6))}
 .rkweeks i{font-style:normal;color:#ff8a9e;font-weight:800}
-.rkup.rknew{background:color-mix(in srgb,var(--accent) 20%,transparent);color:var(--accent);border-color:color-mix(in srgb,var(--accent) 45%,transparent)}
-.rkup.rkfirst{background:color-mix(in srgb,var(--pc) 18%,transparent);color:var(--pc);border-color:color-mix(in srgb,var(--pc) 45%,transparent)}
 .rkupd{font-size:.72rem;color:var(--muted);letter-spacing:.02em}
 @media (max-width:640px){.rkhead #rk-sub{align-items:center;flex-basis:100%;text-align:center}}
 .rkweeks{cursor:pointer;user-select:none}.rkweeks:hover{box-shadow:0 0 14px rgba(227,24,55,.7),inset 0 0 8px rgba(255,255,255,.12)}
@@ -5075,7 +5073,7 @@ let SB_FIRSTP=null;
 function firstTag(n,p,w){try{const I=sbIx(), k=String(n).toLowerCase(), ws=I.wk[k]; if(!ws||!ws.length)return "";
   if(ws[0]===w)return `<span class="rkup rknew" data-tip="${esc(n)}'s first week in the championship">NEW PLAYER</span>`;
   if(!SB_FIRSTP){SB_FIRSTP={}; Object.entries(I.ent).forEach(([kk,L])=>L.forEach(x=>{const q=kk+"|"+x.c[0]; if(!(SB_FIRSTP[q]<=x.w))SB_FIRSTP[q]=x.w}))}
-  return SB_FIRSTP[k+"|"+p]===w?`<span class="rkup rkfirst" style="--pc:${PATH_C[p]}" data-tip="${esc(n)}'s first ${PATHS[p]} score in the championship">FIRST ${PATHS[p].toUpperCase()}</span>`:""}catch(e){return ""}}
+  return SB_FIRSTP[k+"|"+p]===w?`<span class="rkup rkfirst" data-tip="${esc(n)}'s first ${PATHS[p]} score in the championship">FIRST ${PATHS[p].toUpperCase()}</span>`:""}catch(e){return ""}}
 const RU_KEY=new Set(WR.ups.filter(isUp).map(([n,p,a,b,w])=>`${w}|${n}|${p}|${b}`));
 try{const r=localStorage.getItem("rsc-wpath");if(r!==null&&["0","1","2"].includes(r))wPath=+r}catch(e){}
 later(["winners","players"],()=>{renderWinners(); if(window.__twReady)try{renderEloBox()}catch(e){console.error(e)}}); setTimeout(()=>{try{renderEloBox()}catch(e){console.error(e)}},0);
