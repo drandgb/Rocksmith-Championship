@@ -6310,8 +6310,16 @@ function mlParse(html,person,acc){const d=document.createElement("div"); d.inner
   [...d.querySelectorAll(".medal-m")].forEach((m,idx)=>{const tip=m.dataset.tip||""; const parts=tip.split(" · "), name=parts[0]; if(!name)return;
     let key,label,val,unit="×";
     const tm=/^(\d+)-(week|year|win) (.+)$/.exec(name);
-    if(/^\d{4} /.test(name))return; // one medal per calendar year: nothing to rank
-    if(tm){const what=tm[3];
+    // one medal per calendar year: the hosting ones rank who hosted in the most years; the rest have nothing to rank
+    if(/^\d{4} host medal$/.test(name)){const k=acc.hostyears||(acc.hostyears={label:"Most years hosted",unit:" yr",pos:idx,rows:[]});
+      const ys=new Set(); WEEKS.forEach(([w,d,h],i)=>{if(i<=curIdx&&h===person)ys.add(d.slice(0,4))});
+      const prev=k.rows.find(r=>r.n===person); if(prev)prev.icon=m; else k.rows.push({n:person,v:ys.size,t:0,icon:m}); return}   // (the icon: their newest year)
+    if(/^\d{4} /.test(name))return;
+    // Host of the year, Silver and Bronze host of the year: ranked by how many years each host won it
+    const hy=/^(Host|Silver host|Bronze host) of the year \d{4}$/.exec(name);
+    if(hy){const pl=["Host","Silver host","Bronze host"].indexOf(hy[1])+1; key="hoy"+pl; label=`${hy[1]} of the year`; unit="×";
+      val=Object.values(HOST_YEAR).filter(Y=>{const H=pl===1?Y:Y.pod[pl]; return H&&H.who.includes(person)}).length}
+    else if(tm){const what=tm[3];
       if(/play streak medal|^streak medal/.test(what)){key="playstreak";label="Longest play streak";unit=" wk";val=(byName[person]||[])[6]||+tm[1]}
       else if(what==="medal"&&tm[2]==="year"){key="years";label="Years in the championship";unit=" yr";val=+tm[1]}
       else if(what==="win streak medal"){key="winstreak";label="Longest win streak";unit=" wk";val=+tm[1]}
@@ -6343,7 +6351,7 @@ function mlRender(kind){const acc=ML[kind].acc, link=kind==="win"?"data-gowin":k
   // fixed order, like the medal rows: god diamonds, gold/silver/bronze (Lead, Rhythm, Bass), then the rest
   const ORDER=["Masterclass season champion","Advanced season champion","Intermediate season champion","Beginner season champion","Season most improved","Gold god diamond","Silver god diamond","Bronze god diamond","Gold medal","Silver medal","Bronze medal","Triple crown","Close win medal","Rivalry win","Uncrowned","Uncrowned silver","Uncrowned bronze","Most wins in one week","Longest win streak",
     "Years in the championship","Longest play streak","Perfect gem","Kintsugi gem","Played guitar","Played bass","Catch ‘em all","Lead completionist","Rhythm completionist","Bass completionist","Harder, Better, Faster, Stronger","Still got it","Pick of Destiny","Certified Blue","Hee Hee","Elusive nuggies","Beginner perfectionist","Intermediate perfectionist","Advanced perfectionist","Masterclass perfectionist","Perfect God medal","God tier perfectionist",
-    "Most weeks hosted","Longest hosting streak"];
+    "Most weeks hosted","Longest hosting streak","Host of the year","Silver host of the year","Bronze host of the year","Most years hosted"];
   const ordOf=k=>{const [base,path]=k.label.split(" · "); const i=ORDER.indexOf(base); return (i<0?999:i)*4+(path?PATHS.indexOf(path)+1:0)};
   const cards=Object.entries(acc).filter(([,k])=>k.rows.length).sort(([,a],[,b])=>ordOf(a)-ordOf(b)||a.pos-b.pos).map(([key,k])=>{
     // the page's Everyone / Active filter applies here too
