@@ -1066,6 +1066,7 @@ button.clear.sblatest:hover{background:var(--accent);color:var(--accent-ink)}
 .rkup{display:inline-block;margin-left:5px;font:700 .6rem var(--f-display);letter-spacing:.06em;padding:1px 5px;border-radius:4px;background:color-mix(in srgb,var(--s-green) 20%,transparent);color:var(--s-green);border:1px solid color-mix(in srgb,var(--s-green) 45%,transparent);cursor:help;vertical-align:middle}
 .pc .ups{margin-top:10px;font-size:.82rem;color:var(--muted);display:flex;flex-wrap:wrap;gap:6px}
 .pc .ups.pcwide{grid-column:1/-1;margin-top:-6px;align-items:center}
+.pc .ups.pupr{margin-top:14px;align-items:center}
 .newlist{columns:340px auto;column-gap:28px}
 .nrow{display:grid;grid-template-columns:minmax(0,9em) 1fr auto;gap:10px;align-items:center;padding:7px 0;border-bottom:1px solid color-mix(in srgb,var(--line) 55%,transparent);break-inside:avoid;font-size:.86rem}
 .nrow .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -3777,6 +3778,7 @@ function showPlayer(name){
       <div class="scroll"><div class="pres${pYear?" yf":""}" id="ppres">${grid}</div></div>
       <div class="pres-legend"><span><i class="sw" style="background:var(--s-green)"></i>Played</span><span><i class="sw" style="background:var(--panel2)"></i>Missed</span></div>
       <div class="preshint">Tip: click a year on the left of the grid to filter the stats to that year; click it again to show all years.</div>
+      ${(()=>{const u=WR.ups.filter(x=>x[0]===n).sort((a,b)=>b[4]-a[4]||b[1]-a[1]);return u.length?`<div class="ups pupr">Rank changes: ${u.map(([,p,a,b,w])=>`<span class="pill hol rkpath" data-hl="${w}" data-tip="Click to highlight Week ${w}" style="cursor:pointer;--pc:${PATH_C[p]}">${PATHS[p]} ${a}${"BIAM".indexOf(b)<"BIAM".indexOf(a)?"↘":"↗"}${b} · wk ${w}</span>`).join("")}</div>`:""})()}
     </div>
     ${(()=>{try{return fwPanel(n)}catch(e){return ""}})()}
     ${(()=>{try{return wbPanel(n)}catch(e){return ""}})()}
@@ -3787,7 +3789,6 @@ function showPlayer(name){
       ${(()=>{try{const c=lvChart(n); return c?`<div class="pcwide pclv">${c}</div>`:""}catch(e){return ""}})()}
       ${(()=>{try{const c=skChart(n); return c?skProfile(n)+`<div class="pcwide">${c}</div>`:""}catch(e){console.error(e); return ""}})()}
       ${(()=>{try{return hrNextHtml(n)}catch(e){return ""}})()}
-      ${(()=>{const u=WR.ups.filter(x=>x[0]===n).sort((a,b)=>b[4]-a[4]||b[1]-a[1]);return u.length?`<div class="ups pcwide">Rank changes: ${u.map(([,p,a,b,w])=>`<span class="pill hol rkpath" data-hl="${w}" data-tip="Click to highlight Week ${w}" style="cursor:pointer;--pc:${PATH_C[p]}">${PATHS[p]} ${a}${"BIAM".indexOf(b)<"BIAM".indexOf(a)?"↘":"↗"}${b} · wk ${w}</span>`).join("")}</div>`:""})()}
     </div>`;
   $("pq").value=n;
 }
@@ -4054,27 +4055,31 @@ function lvQChip(n,pi){const k=lvKey(n), W=Math.max(DATA_WEEK,cur[0]);   // (the
   const old=lvLast(pi,k,W); if(old){const bd=lvBand(old.v);
     return `<span class="lvc lve" style="--tc:${TIER_C[bd[1]]}" data-tip="${esc(`${PATHS[pi]} player level: ${old.v.toFixed(1)} (${bd[2]}), their last one\nFrom their 12 weeks up to Week ${old.w}. ${have} ${PATHS[pi]} score${have===1?"":"s"} in the last 12 weeks: ${need} more for a new one`)}">${Math.floor(old.v)}</span>`}
   return `<span class="lvc lvq" data-tip="${esc(`No ${PATHS[pi]} player level yet\n${have} ${PATHS[pi]} score${have===1?"":"s"} in the last 12 weeks, 3 needed · ${need} more to get a level`)}">?</span>`}
-// profile chart: the player's level by year on each path, then now (dashed: this site's estimates)
-function lvChart(n){if(typeof LEVEL==="undefined"||!LEVEL||!LEVEL.paths)return ""; const P=lvOf(n); lvEnsure();
-  const ys=LEVEL.years.slice().sort((a,b)=>a-b), cols=[...ys.map(String),"now"];
-  const ser=P.map(p=>p?cols.map(c=>c==="now"?(p.xp||null):(p.y[c]||null)):null);
-  const firstI=Math.min(...ser.filter(Boolean).map(a=>a.findIndex(v=>v!=null)).filter(i=>i>=0)); if(!isFinite(firstI))return "";
-  const C=cols.slice(firstI), S=ser.map(a=>a&&a.slice(firstI)); const all=S.flat().filter(v=>v!=null); if(all.length<2)return "";
+// profile chart: the player's level every 4 weeks on each path (the 12 weeks up to that week, worked out from the scoreboards)
+function lvChart(n){if(typeof LEVEL==="undefined"||!LEVEL||!LEVEL.paths)return ""; lvEnsure(); const k=lvKey(n), E=DATA_WEEK, STEP=4;
+  const wks=[]; for(let w=E;w>=2;w-=STEP)wks.unshift(w);
+  const S=[0,1,2].map(pi=>wks.map(w=>{const v=lvAt(pi,k,w); return v==null?null:v}));
+  const firstI=Math.min(...S.map(a=>a.findIndex(v=>v!=null)).filter(i=>i>=0)); if(!isFinite(firstI))return "";
+  const C=wks.slice(firstI), A=S.map(a=>a.slice(firstI)); const all=A.flat().filter(v=>v!=null); if(all.length<2)return "";
   const W=640,H=190,L=34,R=12,T=14,B=26, lo=Math.max(0,Math.floor((Math.min(...all)-4)/10)*10), hi=Math.min(100,Math.ceil((Math.max(...all)+4)/10)*10);
-  const X=i=>L+(C.length===1?0:i/(C.length-1)*(W-L-R)), Y=v=>T+(1-(v-lo)/(hi-lo))*(H-T-B);
+  const w0=C[0], w1=C[C.length-1], X=w=>L+(w1===w0?0:(w-w0)/(w1-w0)*(W-L-R)), Y=v=>T+(1-(v-lo)/(hi-lo))*(H-T-B);
   let g=""; for(let v=lo;v<=hi;v+=10)g+=`<line x1="${L}" x2="${W-R}" y1="${Y(v).toFixed(1)}" y2="${Y(v).toFixed(1)}" stroke="var(--line)" stroke-width="1"/><text x="${L-6}" y="${(Y(v)+3.5).toFixed(1)}" text-anchor="end" font-size="10" fill="#8b93a7">${v}</text>`;
-  LV_BANDS.forEach(([m,k])=>{if(m>lo&&m<hi)g+=`<line x1="${L}" x2="${W-R}" y1="${Y(m).toFixed(1)}" y2="${Y(m).toFixed(1)}" stroke="${TIER_C[k]}" stroke-width="1" stroke-dasharray="2 4" opacity=".7"/>`});
-  const xl=C.map((c,i)=>(C.length<=9||i%2===0||i===C.length-1)?`<text x="${X(i).toFixed(1)}" y="${H-8}" text-anchor="middle" font-size="10" fill="#8b93a7">${c==="now"?"Now":"’"+c.slice(2)}${lvIsEst(c)?"*":""}</text>`:"").join("");
+  LV_BANDS.forEach(([m,kk])=>{if(m>lo&&m<hi)g+=`<line x1="${L}" x2="${W-R}" y1="${Y(m).toFixed(1)}" y2="${Y(m).toFixed(1)}" stroke="${TIER_C[kk]}" stroke-width="1" stroke-dasharray="2 4" opacity=".7"/>`});
+  // the x axis: a tick at the first week of each year, labelled with the year
+  const wd=w=>(WEEKS[w-1]||[])[1]||"", yrs=[]; for(let w=w0;w<=w1;w++){const y=wd(w).slice(0,4); if(y&&(w===w0||wd(w-1).slice(0,4)!==y))yrs.push([w,y])}
+  const ytk=yrs.filter((x,i)=>yrs.length<=8||i%2===0);
+  let xl=ytk.map(([w,y])=>`<line x1="${X(w).toFixed(1)}" x2="${X(w).toFixed(1)}" y1="${T}" y2="${H-B}" stroke="var(--line)" stroke-width="1" opacity=".6"/><text x="${Math.max(L+8,X(w)).toFixed(1)}" y="${H-8}" text-anchor="${X(w)<L+8?"start":"middle"}" font-size="10" fill="#8b93a7">’${y.slice(2)}</text>`).join("");
+  xl+=`<text x="${W-R}" y="${H-8}" text-anchor="end" font-size="10" fill="#8b93a7">Now</text>`;
+  const dt=w=>{const d=wd(w); return d?new Date(d+"T12:00:00").toLocaleDateString("en-US",{month:"short",year:"numeric"}):""};
   let ln="";
-  S.forEach((a,pi)=>{if(!a)return; let prev=null;
-    a.forEach((v,i)=>{if(v==null)return; if(prev!=null){const est=lvIsEst(C[i])||lvIsEst(C[prev])||(C[i]==="now"&&lvIsEst(C[prev]));
-        ln+=`<line x1="${X(prev).toFixed(1)}" y1="${Y(a[prev]).toFixed(1)}" x2="${X(i).toFixed(1)}" y2="${Y(v).toFixed(1)}" stroke="${ELO_C[pi]}" stroke-width="2.2" stroke-linecap="round"${est?' stroke-dasharray="5 4"':""}/>`}
-      prev=i});
-    a.forEach((v,i)=>{if(v==null)return; const est=lvIsEst(C[i]); ln+=`<circle cx="${X(i).toFixed(1)}" cy="${Y(v).toFixed(1)}" r="3.6" fill="${est?"var(--panel)":ELO_C[pi]}" stroke="${ELO_C[pi]}" stroke-width="2"><title>${PATHS[pi]} · ${C[i]==="now"?"now":C[i]+(est?" (estimate)":"")}: ${v.toFixed(1)} (${lvBand(v)[2]})</title></circle>`})});
-  const leg=[0,1,2].filter(pi=>S[pi]&&S[pi].some(v=>v!=null)).map(pi=>`<span class="lvlg" style="--pc:${ELO_C[pi]}">${PATHS[pi]}</span>`).join("");
+  A.forEach((a,pi)=>{let seg=[];
+    const flush=()=>{if(seg.length>1)ln+=`<polyline points="${seg.join(" ")}" fill="none" stroke="${ELO_C[pi]}" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>`; seg=[]};
+    a.forEach((v,i)=>{if(v==null){flush(); return} seg.push(`${X(C[i]).toFixed(1)},${Y(v).toFixed(1)}`)}); flush();
+    a.forEach((v,i)=>{if(v==null)return; const last=i===a.length-1; ln+=`<circle cx="${X(C[i]).toFixed(1)}" cy="${Y(v).toFixed(1)}" r="${last?3.6:1.8}" fill="${ELO_C[pi]}"><title>${PATHS[pi]} · Week ${C[i]}${dt(C[i])?" ("+dt(C[i])+")":""}: ${v.toFixed(1)} (${lvBand(v)[2]})</title></circle>`})});
+  const leg=[0,1,2].filter(pi=>A[pi].some(v=>v!=null)).map(pi=>`<span class="lvlg" style="--pc:${ELO_C[pi]}">${PATHS[pi]}</span>`).join("");
   return `<div class="elochart lvchart"><div class="echhead"><h4>Player level over the years</h4><span class="echleg">${leg}</span></div>
-    <svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(n)}'s player level by year">${g}${xl}${ln}</svg>
-    <p class="echnote">Rodman’s Player Level (song rating × accuracy) for each year and now · dotted lines: class bands${LV_EST&&LV_EST.length?` · * hollow points and dashed lines: this site’s own estimate for ${LV_EST.slice().sort().join(" and ")}, which Rodman’s sheet doesn’t have yet`:""}</p></div>`}
+    <svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(n)}'s player level over time">${g}${xl}${ln}</svg>
+    <p class="echnote">Player level (song rating × accuracy) every 4 weeks, each point from the 12 weeks up to it, worked out by this site from the scoreboards · gaps: not enough scores on that path · dotted lines: class bands</p></div>`}
 // Level tab extra: the biggest climbers on each path
 function lvExtra(val,what,years,D){const el=$("lv-extra"); if(!el)return; D=D||LEVEL;
   // climbers follow the Now / Last 6 months / By year switch: Now = the last 6 months → now; Last 6 months = the last full
