@@ -5840,6 +5840,7 @@ function renderRecent(){
   // (the tag list sits in the row with the path and difficulty buttons)
   {const tw=$("rectagw"), sel=document.activeElement&&document.activeElement.matches&&document.activeElement.matches("[data-rectag]");
    if(tw&&!sel)tw.innerHTML=tagList.length?`<select data-rectag aria-label="Tag"><option value="">All tags</option>${tagList.map(([g,n])=>`<option value="${esc(g)}"${g===recTag?" selected":""}>🏷 ${esc(tagShow(g))} (${n})</option>`).join("")}</select>`:""}
+  {const st=$("stun"); if(st&&st.value!==recTun){if(recTun&&![...st.options].some(o=>o.value===recTun))st.insertAdjacentHTML("beforeend",`<option>${esc(recTun)}</option>`); st.value=recTun}}
   $("rectun").innerHTML=(recTun?`<span class="tunpill">${esc(recTun)} only</span><button type="button" class="clear" data-rect="" style="padding:1px 8px;font-size:.72rem">Show all tunings</button>`:"");
   const n=Math.max(1,Math.ceil(REC_LIST.length/REC_N)); recPage=Math.max(0,Math.min(recPage,n-1));
   const page=REC_LIST.slice(recPage*REC_N,recPage*REC_N+REC_N);
@@ -5867,14 +5868,14 @@ document.addEventListener("click",e=>{const b=e.target.closest("[data-rect]"); i
 document.addEventListener("click",e=>{const b=e.target.closest("[data-recpg]"); if(!b||b.disabled)return; recPage=+b.dataset.recpg; renderRecent();
   const h=$("recentlist").closest("section"), r=h.getBoundingClientRect(); if(r.top<0)scrollTo({top:scrollY+r.top-70,behavior:"smooth"})});
 // Song lookup: search the titles of every song played (this path, this host), and/or filter by tuning (Song Selection List)
-let sqQ="", sqTun="";
+let sqQ="", sqTun="";   // (sqTun stays empty: the tuning picker filters Recently played)
 function renderSongLookup(){const el=$("sqres"); if(!el)return;
   const groups={}; songCards.forEach(c=>{const k=c.song.toLowerCase(); (groups[k]=groups[k]||{song:c.song,artist:c.artist,title:c.title,cs:[]}).cs.push(c)});
   const G=Object.values(groups), tunes=new Set();
   G.forEach(g=>[0,1,2].forEach(p=>{const t=tuneOf(g.song,p); if(t)tunes.add(t)}));
-  const sel=$("stun"); sel.innerHTML=`<option value="">Any tuning</option>`+[...tunes].sort((a,b)=>a.localeCompare(b)).map(t=>`<option${t===sqTun?" selected":""}>${esc(t)}</option>`).join(""); sel.hidden=!tunes.size;
+  const sel=$("stun"); sel.innerHTML=`<option value="">Any tuning</option>`+[...tunes].sort((a,b)=>a.localeCompare(b)).map(t=>`<option${t===recTun?" selected":""}>${esc(t)}</option>`).join(""); sel.hidden=!tunes.size;
   tagsLoad();
-  if(!sqQ&&!sqTun){el.innerHTML=`<p class="dim sqhint">Type part of a song title or a tag${tunes.size?", or pick a tuning,":""} to find it. ${G.length} different songs played${sPath>=0?` on ${PATHS[sPath]}`:""}.</p>`;return}
+  if(!sqQ&&!sqTun){el.innerHTML=`<p class="dim sqhint">Type part of a song title or a tag to find it. ${G.length} different songs played${sPath>=0?` on ${PATHS[sPath]}`:""}.</p>`;return}
   const q=sqQ.toLowerCase(), paths=g=>[...new Set(g.cs.map(c=>c.p))].sort();
   const hits=G.filter(g=>(!q||g.title.toLowerCase().includes(q)||tagsOf(g.song).some(t=>t.tag.includes(q)))&&(!sqTun||paths(g).some(p=>tuneOf(g.song,p)===sqTun)))
     .sort((a,b)=>Math.max(...b.cs.map(c=>c.w))-Math.max(...a.cs.map(c=>c.w)));
@@ -5973,7 +5974,7 @@ async function tagToggleNew(v){const t=tagNorm(v), k=TAGDLG&&acctSongKey(TAGDLG.
   if((SONG_TAGS||[]).some(r=>r.song===k&&r.path===TAGDLG.path&&r.tag===t&&r.user_id===me))return; await tagToggle(t)}
 document.addEventListener("keydown",e=>{if(e.key==="Enter"&&e.target.matches&&e.target.matches("[data-tagnew]")&&e.target.value.trim()){e.preventDefault(); tagToggleNew(e.target.value)}});
 document.addEventListener("input",e=>{if(e.target.id!=="sq")return; sqQ=e.target.value.trim(); renderSongLookup(); try{markCrowdFav($("sqres"))}catch(err){}});
-document.addEventListener("change",e=>{if(e.target.id!=="stun")return; sqTun=e.target.value; renderSongLookup()});
+document.addEventListener("change",e=>{if(e.target.id!=="stun")return; recTun=e.target.value; recPage=0; renderRecent()});
 function showBand(name){songsReady();
   const list=songCards.filter(c=>c.artist.toLowerCase()===String(name).toLowerCase());
   if(!list.length){$("bcard").innerHTML=`<div class="empty">No challenges for “${esc(name)}”${sPath<0?"":" on "+PATHS[sPath]}. Pick a band from the list as you type.</div>`;return}
