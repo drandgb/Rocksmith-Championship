@@ -1075,13 +1075,13 @@ button.clear.sblatest:hover{background:var(--accent);color:var(--accent-ink)}
 .nrow .val{font:.8rem var(--f-mono);text-align:right;min-width:5.5em;white-space:nowrap}
 @media (prefers-reduced-motion:no-preference){.view:not([hidden]) .nrow .fill{animation:grow .9s cubic-bezier(.2,.8,.2,1) both}}
 .wpres i[data-wk]{cursor:pointer}
-.wpres .wyr{cursor:pointer;border-radius:4px;padding:0 3px;margin-left:-3px}
+.wpres .wyr{cursor:pointer;border-radius:7px;padding:2px 4px;justify-self:start;line-height:1.1}   /* the chosen year: a rounded pill around the year, like the week in the This Week calendar */
 .wpres .wyr:hover{color:var(--fg);background:var(--panel2)}
-.wpres .wyr.sel{color:var(--accent-ink);background:var(--accent);font-weight:700}
+.wpres .wyr.sel{color:var(--accent);background:color-mix(in srgb,var(--accent) 22%,transparent);font-weight:700}
 .wpres.yf i[data-wk]:not(.iny),#ppres.yf i[data-w]:not(.iny){opacity:.22}
-#ppres .pyr{cursor:pointer;border-radius:4px;padding:0 3px;margin-left:-3px}
+#ppres .pyr{cursor:pointer;border-radius:7px;padding:2px 4px;justify-self:start;line-height:1.1}
 #ppres .pyr:hover{color:var(--fg);background:var(--panel2)}
-#ppres .pyr.sel{color:var(--accent-ink);background:var(--accent);font-weight:700}
+#ppres .pyr.sel{color:var(--accent);background:color-mix(in srgb,var(--accent) 22%,transparent);font-weight:700}
 .wleg span[data-hl]{cursor:pointer;padding:2px 6px;margin:-2px -6px;border-radius:6px}
 .wleg span[data-hl]:hover{color:var(--fg);background:var(--panel2)}
 .wleg span[data-hl].act{color:var(--fg);background:color-mix(in srgb,var(--accent) 18%,var(--panel2));box-shadow:inset 0 0 0 1px var(--accent)}
