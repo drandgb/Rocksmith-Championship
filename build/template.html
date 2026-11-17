@@ -2464,7 +2464,8 @@ function weekAt(i){
 function upRow(i){
   const w=weekAt(curIdx+i);
   const hol=w[3]?w[3].split(/,\s*/).map(h=>`<span class="pill hol holf" data-hol="${esc(h)}" title="Show only weeks with ${esc(h)}">${holEmoji(h)}${esc(holName(h))}</span>`).join(""):"";
-  const who=w[2]?(i>0&&w[2]!==LOST?hostBooked(w):`<span class="who" data-name="${esc(w[2])}">${esc(w[2])}</span>`):hostSlot(w,i);
+  const noPill=s=>s.replace(/ <span class="pill signed"[^>]*>SIGNED UP<\/span>/,"");   // Coming up shows the name without the SIGNED UP pill
+  const who=w[2]?(i>0&&w[2]!==LOST?noPill(hostBooked(w)):`<span class="who" data-name="${esc(w[2])}">${esc(w[2])}</span>`):noPill(hostSlot(w,i));
   const yr=w[1].slice(0,4)!==cur[1].slice(0,4)?`<span class="yy">${w[1].slice(0,4)}</span>`:"";
   return `<li class="${i===0?"cur":""}"><div class="wk"><b${i===0&&SB.weeks[w[0]]?` class="sblink" data-sbw="${w[0]}" title="Open Week ${w[0]} on the Scoreboard"`:""}>${w[0]}</b>${fmtShort(w[1])}${yr}</div><div>${who}${i===0?' <span class="sub">· now</span>':""}<div class="meta">${hol}${holEarlyPills(w)}</div></div></li>`;
 }
