@@ -79,6 +79,7 @@ header.top{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-end;justify-con
 #sitetitle .boo{filter:drop-shadow(0 0 6px rgba(220,230,255,.45))}
 #sitetitle .afl{display:inline-block;color:var(--s-yellow);transition:transform .25s}#sitetitle .afl.fix{transform:rotateX(90deg)}
 #sitetitle .tree{filter:drop-shadow(0 0 6px rgba(255,217,94,.45))}
+#sitetitle .leaves i{font-size:.3em}#sitetitle .turkey{display:inline-block;transform-origin:50% 90%}
 #sitetitle .snow{position:absolute;inset:-.4em 0 -.2em;pointer-events:none;overflow:hidden}
 #sitetitle .snow i{position:absolute;top:0;font-style:normal;font-size:.32em;color:#e8f4ff;opacity:0}
 #sitetitle .snow i:nth-child(1){left:8%}#sitetitle .snow i:nth-child(2){left:27%}#sitetitle .snow i:nth-child(3){left:49%}#sitetitle .snow i:nth-child(4){left:70%}#sitetitle .snow i:nth-child(5){left:90%}
@@ -92,9 +93,11 @@ header.top{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-end;justify-con
   #sitetitle .hearts i{animation:heartup 3.4s ease-out infinite}#sitetitle .hearts i:nth-child(2){left:60%;animation-delay:1.7s}
   #sitetitle .clover{animation:rock 3s ease-in-out infinite;transform-origin:50% 90%}
   #sitetitle .chick{animation:hop 1.6s ease-in-out infinite}
+  #sitetitle .turkey{animation:gobble 2.8s ease-in-out infinite}
   #sitetitle .clown{animation:clownin .5s cubic-bezier(.3,1.6,.5,1) both}
   #sitetitle .cat{animation:catwalk 5s ease-out 1 both}
 }
+@keyframes gobble{0%,60%,100%{transform:rotate(0)}66%{transform:rotate(-9deg)}72%{transform:rotate(7deg)}78%{transform:rotate(-5deg)}84%{transform:rotate(0)}}
 @keyframes snowfall{0%{transform:translateY(0) rotate(0);opacity:0}10%{opacity:.9}100%{transform:translateY(2.6em) rotate(180deg);opacity:0}}
 @keyframes fwpop{0%,100%{transform:scale(1)}8%{transform:scale(1.15)}}
 @keyframes spark{0%{transform:translate(0,0) scale(.3);opacity:0}10%{opacity:1}60%{transform:translate(var(--dx),var(--dy)) scale(1);opacity:0}100%{opacity:0}}
@@ -3613,13 +3616,15 @@ document.addEventListener("click",e=>{const b=e.target.closest("[data-hlcopy]");
   const scan=n=>{if(n.nodeType!==1)return; if(n.matches(SEL))add(n); n.querySelectorAll(SEL).forEach(add)};
   scan(document.body); new MutationObserver(ms=>ms.forEach(m=>m.addedNodes.forEach(scan))).observe(document.body,{childList:true,subtree:true})})();
 // ---------- title decorations: the championship's anniversary week gets balloons; the rest of October, a ghost ----------
-const THEME_NAMES={halloween:"👻 Halloween",fri13:"🐈‍⬛ Friday the 13th",xmas:"🎄 Christmas",newyear:"🎆 New Year",valentine:"💘 Valentine's Day",stpat:"🍀 St Patrick's Day",easter:"🐣 Easter",fools:"🤡 April Fools",ann:"🎈 Championship anniversary",mile:"💯 Milestone week (every 100th)",none:"No theme"};
+const THEME_NAMES={halloween:"👻 Halloween",fri13:"🐈‍⬛ Friday the 13th",xmas:"🎄 Christmas",newyear:"🎆 New Year",valentine:"💘 Valentine's Day",stpat:"🍀 St Patrick's Day",thanks:"🦃 Thanksgiving",easter:"🐣 Easter",fools:"🤡 April Fools",ann:"🎈 Championship anniversary",mile:"💯 Milestone week (every 100th)",none:"No theme"};
 // the week a date falls in (from the sheet's weeks, stepping on past its end)
 function weekOfDate(iso){const d=new Date(iso+"T12:00:00"), c=new Date(cur[1]+"T12:00:00"); let i=curIdx+Math.floor((d-c)/(7*864e5)); while(i>0&&weekAt(i)[1]>iso)i--; while(weekAt(i+1)[1]<=iso)i++; return weekAt(i)}
 // the automatic theme for a date: the championship's anniversary week first, then every 100th week, then the holidays
 function autoTheme(iso){const wk=weekOfDate(iso), md=iso.slice(5), y=+iso.slice(0,4), td=new Date(iso+"T12:00:00");
+  // Thanksgiving: the fourth Thursday of November, with the days around it (Monday to Sunday)
+  const n1=new Date(y,10,1,12), tg=new Date(y,10,1+((4-n1.getDay()+7)%7)+21,12), dT=Math.round((td-tg)/864e5);
   const inR=(a,b)=>md>=a&&md<=b, e=easter(y), dE=Math.round((td-new Date(e.getFullYear(),e.getMonth(),e.getDate(),12))/864e5);
-  return /Champ.*Anniversary/i.test(wk[3]||"")?"ann":wk[0]%100===0?"mile":md==="04-01"?"fools":(/Friday the 13th/.test(wk[3]||"")||(td.getDate()===13&&td.getDay()===5))?"fri13":(md==="12-31"||inR("01-01","01-06"))?"newyear":inR("12-01","12-26")?"xmas":inR("02-11","02-17")?"valentine":inR("03-14","03-20")?"stpat":(dE>=-6&&dE<=1)?"easter":md.slice(0,2)==="10"?"halloween":""}
+  return /Champ.*Anniversary/i.test(wk[3]||"")?"ann":wk[0]%100===0?"mile":md==="04-01"?"fools":(/Friday the 13th/.test(wk[3]||"")||(td.getDate()===13&&td.getDay()===5))?"fri13":(md==="12-31"||inR("01-01","01-06"))?"newyear":inR("12-01","12-26")?"xmas":(dT>=-3&&dT<=3)?"thanks":inR("02-11","02-17")?"valentine":inR("03-14","03-20")?"stpat":(dE>=-6&&dE<=1)?"easter":md.slice(0,2)==="10"?"halloween":""}
 // an admin's choice for the date wins (the newest one, if they overlap); "none" switches the theme off
 function themeSet(iso){return (THEMES_DB||[]).filter(t=>t.starts<=iso&&t.ends>=iso).sort((a,b)=>b.id-a.id)[0]||null}
 function themeFor(iso){const o=themeSet(iso); return o?(o.theme==="none"?"":o.theme):autoTheme(iso)}
@@ -3640,6 +3645,7 @@ function titleDeco(){const h=$("sitetitle"); if(!h)return;
     valentine:()=>[T+`<span class="deco hearts" aria-hidden="true">💘<i>💗</i><i>💗</i></span>`,"Happy Valentine's Day!"],
     stpat:()=>[T+`<span class="deco clover" aria-hidden="true">🍀</span>`,"Happy St Patrick's Day!"],
     easter:()=>[T+`<span class="deco chick" aria-hidden="true">🐣</span>`,"Happy Easter!"],
+    thanks:()=>[T+`<span class="deco turkey" aria-hidden="true">🦃</span><span class="snow leaves" aria-hidden="true"><i>🍂</i><i>🍁</i><i>🍂</i><i>🍁</i><i>🍂</i></span>`,"Happy Thanksgiving!"],
     halloween:()=>[T+`<span class="deco boo" aria-hidden="true">👻</span>`,"Happy Halloween!"]};
   if(!D[pick])return; const [html,tt]=D[pick](); h.innerHTML=html; h.title=tt; h.classList.add("deco-"+pick);
   if(pick==="fools")setTimeout(()=>{const u=h.querySelector(".afl"); if(u){u.classList.add("fix"); setTimeout(()=>{u.textContent="a"; u.classList.remove("fix"); u.style.color="inherit"; h.insertAdjacentHTML("beforeend",`<span class="deco clown" title="April Fools!">🤡</span>`)},260)}},2600)}   // (the title corrects itself)
