@@ -2599,7 +2599,7 @@ function bracketCharts(){
     let bands=""; years.forEach(y=>{const idx=ws.map((w,i)=>yr(w)===y?i:-1).filter(i=>i>=0); if(!idx.length)return; const a=idx[0], b=idx[idx.length-1];
       const av=CL.map((c,li)=>idx.reduce((s,i)=>s+cnt[pi][li][i],0)/idx.length);
       bands+=`<rect x="${X(a).toFixed(1)}" y="${T}" width="${Math.max(2,X(b)-X(a)).toFixed(1)}" height="${H-T-B}" fill="transparent" data-tip="${esc(`${PATHS[pi]} · ${y} (weeks ${ws[a]}–${ws[b]})\nAverage ranked players per week:\n`+CL.map((c,li)=>`${TIER_NAME[c]}: ${av[li].toFixed(1)}`).join("\n"))}"/>`+
-        `<text x="${X(a).toFixed(1)}" y="${H-7}" font-size="10" fill="#8b93a7">’${String(y).slice(2)}</text>`});
+        (years.length>1&&X(b)-X(a)<18?"":`<text x="${X(a).toFixed(1)}" y="${H-7}" font-size="10" fill="#8b93a7">’${String(y).slice(2)}</text>`)});   // no label for a year too short to fit one (the first few weeks in 2013)
     const lines=R.map((r,li)=>`<path d="${r.map((v,i)=>(i?"L":"M")+X(i).toFixed(1)+","+Y(v).toFixed(1)).join("")}" fill="none" stroke="${TIER_C[CL[li]]}" stroke-width="2" stroke-linejoin="round"/>`).join("");
     const now=CL.map((c,li)=>`<span class="brnow" style="--tc:${TIER_C[c]}" data-tip="${esc(`${TIER_NAME[c]} ${PATHS[pi]}: ${R[li][R[li].length-1].toFixed(1)} ranked players a week over the last ${AVG} weeks (all-time average ${(cnt[pi][li].reduce((x,y)=>x+y,0)/cnt[pi][li].length).toFixed(1)})`)}"><i></i>${TIER_NAME[c].slice(0,3)} <b>${R[li][R[li].length-1].toFixed(1)}</b></span>`).join("");
     return `<div class="brcol" style="--pc:${PATH_C[pi]}"><h3>${PATHS[pi]}</h3><div class="brnowrow">${now}</div><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Ranked players per class on ${PATHS[pi]}">${g}${lines}${bands}</svg></div>`}).join("")+
