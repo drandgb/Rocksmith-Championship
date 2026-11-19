@@ -3296,11 +3296,11 @@ function lapsedSection(){const tw=TW_MAX, far=52, I=sbIx(), rows=[];
       const c=v!=null?`<span class="lvc lve" style="--tc:${TIER_C[lvBand(v)[1]]}" data-tip="${esc(`${PATHS[pi]} player level when they left: ${v.toFixed(1)} (${lvBand(v)[2]})\nWorked out by the site from their 12 weeks up to Week ${last}`)}">${Math.floor(v)}</span>`
         :`<span class="lvc lvq" data-tip="${esc(`No ${PATHS[pi]} level when they left: fewer than 3 weeks with a score in their last 12 weeks`)}">?</span>`;
       return `<span class="fwlvp" style="--pc:${PATH_C[pi]}">${"LRB"[pi]}${c}</span>`}).join("");
-    rows.push({n,last,gap,cnt:W.length,info,lv})});
+    rows.push({n,last,gap,cnt:W.length,c6:W.filter(w=>w>tw-26).length,info,lv})});
   rows.sort((a,b)=>a.gap-b.gap);
   return `<div class="acctsec fwhost lapsed"><h3>Lapsed players <small>${rows.length} who stopped in the last year${rows.length>10?" · scroll for more":""}</small></h3>
     <p class="dim">Players who haven't posted a score for 4+ weeks, most recent first, with where they were when they left. A message from a host is often all it takes to bring someone back; when they return, their profile shows a Welcome back panel.</p>
-    ${rows.length?`<ul class="alist${rows.length>10?" lpscroll":""}">${rows.map(r=>`<li><span class="fwhn" data-fwp="${esc(r.n)}" title="Open ${esc(r.n)}'s profile">${esc(r.n)}</span><span class="fwlv">${r.lv}</span><span class="dim">last played Week ${r.last}${WEEKS[r.last-1]?" · "+fmt(WEEKS[r.last-1][1]):""} · away ${r.gap-1} weeks · ${r.cnt} week${r.cnt===1?"":"s"} played</span><span class="fwhs">${r.info}</span></li>`).join("")}</ul>`:`<p class="dim">No lapsed players.</p>`}</div>`}
+    ${rows.length?`<ul class="alist${rows.length>10?" lpscroll":""}">${rows.map(r=>`<li><span class="fwhn" data-fwp="${esc(r.n)}" title="Open ${esc(r.n)}'s profile">${esc(r.n)}</span><span class="fwlv">${r.lv}</span><span class="dim">last played Week ${r.last}${WEEKS[r.last-1]?" · "+fmt(WEEKS[r.last-1][1]):""} · away ${r.gap-1} weeks · ${r.cnt} week${r.cnt===1?"":"s"} played · ${r.c6} in the last 6 months</span><span class="fwhs">${r.info}</span></li>`).join("")}</ul>`:`<p class="dim">No lapsed players.</p>`}</div>`}
 
 // Host tab: challenges from finished weeks whose trophy went unclaimed: no one who could win it (a player in the
 // challenge's class, or a new player) posted a score; anyone who played was playing up or down. Most recent first.
