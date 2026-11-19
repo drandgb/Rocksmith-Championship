@@ -3552,7 +3552,8 @@ const rpBadge=()=>rpDue()?`<span class="nbadge" title="It's Saturday: time for t
 document.addEventListener("click",e=>{const b=e.target.closest("[data-rpcopy]"); if(!b)return;
   const k=b.dataset.rpcopy==="fritext"?"rsc-fri-done":/^rp/.test(b.dataset.rpcopy)?"rsc-rp-done":null; if(!k)return;
   lsSet(k,todayKey()); setTimeout(()=>{try{acctBtn(); if($("acct").open)acctDraw()}catch(err){}},1600)});
-function friSection(){const t=friText(); if(!t)return "";
+function friSection(){if(new Date().getDay()!==5)return "";   // only on Fridays (your own time), and not worked out on other days
+  const t=friText(); if(!t)return "";
   return `<div class="adm acctsec hlbox fribox"><h3>Friday post${friBadge()}</h3><p class="dim">A reminder for the forum thread before the weekend: play streaks with no score yet this week, and this week's challenges nobody can win yet, each with the players in that class who've played other challenges this week but not that one.</p>
     <pre id="fritext">${esc(t)}</pre><div class="row"><button type="button" class="btn ghost" data-rpcopy="fritext">Copy post</button></div></div>`}
 // Recruitment posts (Admin tab): links to the recruitment posts already made, newest first, kept in the database
