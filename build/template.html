@@ -3590,7 +3590,7 @@ document.addEventListener("change",async e=>{const i=e.target.closest&&e.target.
   if(error){alert(/permission|policy|posted_on/i.test(error.message)?"Dates can't be changed yet: run build/supabase/recruit_posts.sql in Supabase again.":"Couldn't change the date: "+error.message);return}
   await rpLoad()});
 document.addEventListener("click",e=>{const b=e.target.closest("[data-rpcopy]"); if(!b)return; const t=$(b.dataset.rpcopy).textContent, l=b.textContent; try{navigator.clipboard.writeText(t).then(()=>{b.textContent="Copied ✓"; setTimeout(()=>b.textContent=l,1500)})}catch(err){}});
-function siSection(){const cur=TW_MAX, now=siLab(cur), [,b]=siRange(now,cur), ids=[now]; if(b-cur<4)ids.push(siLab(b+1));   // the next season too, in the last weeks of this one
+function siSection(){const cur=TW_MAX, now=siLab(cur), [a]=siRange(now,cur), ids=[now]; if(cur!==a)return "";   // only in a new season's first week
   const id=ACCT.siId&&ids.includes(ACCT.siId)?ACCT.siId:ids[0];
   return `<div class="adm acctsec hlbox sibox"><h3>Season introduction <select class="hlsel" data-siid>${ids.map(x=>`<option value="${x}"${x===id?" selected":""}>Season ${seasonNum(x)} (${x})</option>`).join("")}</select></h3>
     <p class="dim">What the season is, when it runs, how points are scored and the season awards, ready to copy into a forum post for new and current players.</p><pre id="sitext">${esc(siText(id))}</pre><div class="row"><button type="button" class="btn ghost" data-sicopy>Copy</button></div></div>`}
