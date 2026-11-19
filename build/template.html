@@ -934,6 +934,7 @@ html.acctwait body{visibility:hidden}html.acctwait{background:var(--bg)}html.acc
 .fwhost .alist li{display:flex;flex-wrap:wrap;gap:2px 10px;align-items:baseline;padding:6px 10px;border-left:3px solid var(--s-green);background:var(--panel2);border-radius:6px;font-size:.86rem}.fwhn{font-weight:800;cursor:pointer;text-decoration:underline dotted}.fwhs{flex-basis:100%;font-size:.82rem}
 .fwbass{display:block;margin-top:4px;font-size:.8rem;color:var(--muted)}
 .hml li.hmdone .hmt{opacity:.55}
+.hml .hmbtns{display:flex;gap:6px;flex:none}.hml .hmsentb[disabled]{color:var(--s-green);border-color:color-mix(in srgb,var(--s-green) 45%,transparent);opacity:1;cursor:default}
 /* Players: head-to-head */
 .h2hctl{align-items:center}.h2hctl input,.h2hctl select{flex:1 1 140px;min-width:0}.h2hvs{color:var(--muted);font-weight:700;font-size:13px}
 .h2hrec{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:10px;margin:14px 0 8px}
@@ -7399,6 +7400,8 @@ function hmImprove(w){const key=t=>String(t).toLowerCase().replace(/\s+/g," ").t
 const HM_IMP_KEY="rsc-hm-improved", HM_IMP={st:undefined,t:0};   // st: undefined not loaded · null loading · false no table · {week:{item:1}}
 function hmImpLocal(){try{return JSON.parse(localStorage.getItem(HM_IMP_KEY)||"{}")}catch(e){return {}}}
 function hmImpPosted(){return HM_IMP.st&&typeof HM_IMP.st==="object"?HM_IMP.st:hmImpLocal()}
+const hmSentKey=t=>"sent|"+String(t).toLowerCase().replace(/\s+/g," ").trim().slice(0,400);
+document.addEventListener("click",e=>{const b=e.target.closest("[data-hmsent]"); if(!b||b.disabled)return; hmImpMark(+b.dataset.hmsent,[hmSentKey(b.dataset.hmt)]); hmRedraw()});
 function hmRedraw(){const el=document.querySelector(".acctdlg .hmsec:not(.hmhost)"); if(el)el.outerHTML=hmSection()}
 function hmImpLoad(){if(!ACCT.sb||HM_IMP.st===null||(HM_IMP.st!==undefined&&Date.now()-HM_IMP.t<30000))return; HM_IMP.st=null;
   ACCT.sb.from("improve_posted").select("week,item").gte("week",TW_MAX-2).then(({data,error})=>{HM_IMP.t=Date.now();
@@ -7448,13 +7451,16 @@ function hostMsgSection(){const ws=hmWeeks(); if(!ws.length)return ""; const w=A
   return `<div class="adm acctsec hmsec hmhost"><h3>Host milestones <select class="hlsel" data-hmweek>${ws.map(x=>`<option value="${x}"${x===w?" selected":""}>Week ${x}</option>`).join("")}</select></h3>
     <p class="dim">Thank-you messages for hosts who reached a host medal, ready to copy.</p>${M.length?`<ul class="hml">${M.map(x=>row(x.t,x.what)).join("")}</ul>`:`<p class="dim">No host medal milestones in Week ${w}.</p>`}</div>`}
 function hmSection(){const ws=hmWeeks(); if(!ws.length)return ""; const w=ACCT.hmWeek&&ws.includes(ACCT.hmWeek)?ACCT.hmWeek:ws[0];
-  const W=hmWelcome(w), B=hmBack(w), M=hmMilestones(w).filter(x=>!hmIsHost(x)), U=hmImproveMsgs(w), row=(t,tag)=>`<li><div class="hmt">${tag?`<span class="hmk">${esc(tag)}</span>`:""}${esc(t)}</div><button type="button" class="btn ghost hmcp" data-hmcopy="${esc(t)}">Copy</button></li>`;
+  const W=hmWelcome(w), B=hmBack(w), M=hmMilestones(w).filter(x=>!hmIsHost(x)), U=hmImproveMsgs(w), P=hmImpPosted()[w]||{};
+  // Sent: marks the message as sent, for everyone who posts (saved with the copied improvements, improve_posted.sql)
+  const sent=t=>!!P[hmSentKey(t)], sentBtn=t=>`<button type="button" class="btn ghost hmsentb" data-hmsent="${w}" data-hmt="${esc(t)}"${sent(t)?" disabled":""}>${sent(t)?"Sent ✓":"Sent"}</button>`;
+  const row=(t,tag)=>`<li${sent(t)?' class="hmdone"':""}><div class="hmt">${tag||sent(t)?`<span class="hmk">${esc(sent(t)?(tag?"Sent · "+tag:"Sent"):tag)}</span>`:""}${esc(t)}</div><span class="hmbtns"><button type="button" class="btn ghost hmcp" data-hmcopy="${esc(t)}">Copy</button>${sentBtn(t)}</span></li>`;
   return `<div class="acctsec hmsec"><h3>Messages for players <select class="hlsel" data-hmweek>${ws.map(x=>`<option value="${x}"${x===w?" selected":""}>Week ${x}</option>`).join("")}</select></h3>
     <p class="dim">Ready to copy into a forum reply or message.${w>DATA_WEEK?" This week is still running, so medals can still change.":""}</p>
     <h4>👋 Welcome new players</h4>${W.length?`<ul class="hml">${W.map(x=>row(x.t)).join("")}</ul>`:`<p class="dim">No new players in Week ${w}.</p>`}
     <h4>🔁 Welcome back</h4>${B.length?`<ul class="hml">${B.map(x=>row(x.t,`${x.away} weeks away`)).join("")}</ul>`:`<p class="dim">Nobody back from a break in Week ${w}.</p>`}
     <h4>🎉 Milestones</h4>${M.length?`<ul class="hml">${M.map(x=>row(x.t,x.what)).join("")}</ul>`:`<p class="dim">No milestone medals in Week ${w} yet.</p>`}
-    <h4>📈 Big improvements</h4>${U.length?`<ul class="hml">${U.map(x=>`<li${x.done?' class="hmdone"':""}><div class="hmt"><span class="hmk">${esc(x.done?"Copied · "+x.tag:x.tag)}</span>${esc(x.t)}</div><button type="button" class="btn ghost hmcp" data-hmcopy="${esc(x.t)}" data-hmimp="${w}|${esc(JSON.stringify(x.keys))}">Copy</button></li>`).join("")}</ul>`:`<p class="dim">No improvements of ${HM_IMPROVE}+ points in Week ${w} yet.</p>`}${HM_IMP.st===false?`<p class="dim">Copied messages are only remembered in this browser until build/supabase/improve_posted.sql is run in Supabase.</p>`:""}</div>`}
+    <h4>📈 Big improvements</h4>${U.length?`<ul class="hml">${U.map(x=>`<li${x.done||sent(x.t)?' class="hmdone"':""}><div class="hmt"><span class="hmk">${esc(sent(x.t)?"Sent · "+x.tag:x.done?"Copied · "+x.tag:x.tag)}</span>${esc(x.t)}</div><span class="hmbtns"><button type="button" class="btn ghost hmcp" data-hmcopy="${esc(x.t)}" data-hmimp="${w}|${esc(JSON.stringify(x.keys))}">Copy</button>${sentBtn(x.t)}</span></li>`).join("")}</ul>`:`<p class="dim">No improvements of ${HM_IMPROVE}+ points in Week ${w} yet.</p>`}${HM_IMP.st===false?`<p class="dim">Copied messages are only remembered in this browser until build/supabase/improve_posted.sql is run in Supabase.</p>`:""}</div>`}
 document.addEventListener("change",e=>{const s=e.target.closest("[data-hmweek]"); if(!s)return; ACCT.hmWeek=+s.value; const el=document.querySelector(".acctdlg .hmsec:not(.hmhost)"); if(el)el.outerHTML=hmSection(); const eh=document.querySelector(".acctdlg .hmhost"); if(eh)eh.outerHTML=hostMsgSection()});
 document.addEventListener("click",e=>{const b=e.target.closest("[data-hmcopy]"); if(!b)return; try{navigator.clipboard.writeText(b.dataset.hmcopy).then(()=>{b.textContent="Copied ✓";
   const im=b.dataset.hmimp; if(im){const i=im.indexOf("|"); hmImpMark(+im.slice(0,i),JSON.parse(im.slice(i+1)))}   // a big improvement: remembered, so the next one is new
