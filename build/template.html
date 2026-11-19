@@ -3304,19 +3304,19 @@ function lapsedSection(){const tw=TW_MAX, far=52, I=sbIx(), rows=[];
 
 // Host tab: challenges from finished weeks whose trophy went unclaimed: no one who could win it (a player in the
 // challenge's class, or a new player) posted a score; anyone who played was playing up or down. Most recent first.
-function unclaimedSection(){const rows=[], st={}, YR=DATA_WEEK-25;   // st: per challenge class and path, [all, unclaimed, last 26 weeks (6 months): all, unclaimed]
+function unclaimedSection(){const rows=[], st={}, YR=DATA_WEEK-25, W3=DATA_WEEK-2;   // st: per challenge class and path, [all, unclaimed, last 26 weeks (6 months): all, unclaimed, last 3 weeks: all, unclaimed]
   Object.keys(SB.weeks).map(Number).filter(w=>w<=DATA_WEEK).sort((a,b)=>b-a).forEach(w=>(SB.weeks[w]||[]).slice().sort((a,b)=>a[0]-b[0]||a[1]-b[1]).forEach(c=>{
     if(c[7]||!c[3]||/^n\/a$/i.test(c[3])||/^tribute/i.test(c[2])||/^int(er)?\/adv/i.test(c[2]))return;   // Tribute and Int/Adv Bonus challenges are no longer used
-    const un=!c[6].some(e=>canWin(e)&&e[1]!=null&&!isNaN(+e[1])), s=((st[c[2]]=st[c[2]]||[[0,0,0,0],[0,0,0,0],[0,0,0,0]])[c[0]]);
-    s[0]++; if(un)s[1]++; if(w>=YR){s[2]++; if(un)s[3]++}
+    const un=!c[6].some(e=>canWin(e)&&e[1]!=null&&!isNaN(+e[1])), s=((st[c[2]]=st[c[2]]||[[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0]])[c[0]]);
+    s[0]++; if(un)s[1]++; if(w>=YR){s[2]++; if(un)s[3]++} if(w>=W3){s[4]++; if(un)s[5]++}
     if(!un)return;
     rows.push({w,c,n:c[6].filter(e=>e[1]!=null&&!isNaN(+e[1])).length})}));
   // which are most likely to go unclaimed: the share of each class's challenges on each path, the last 6 months first and all time under it
   const ord=k=>{const i=["Beginner","Intermediate","Advanced","Masterclass","God of"].findIndex(x=>k.startsWith(x)); return i<0||/\//.test(k)?99:i*2+(/bonus/i.test(k)?1:0)};
   const cls=Object.keys(st).sort((a,b)=>ord(a)-ord(b)||a.localeCompare(b)), pc=(a,b)=>b?Math.round(a/b*100):null;
   const top=[]; cls.forEach(k=>st[k].forEach((s,pi)=>{if(s[2]>=5&&s[3])top.push({k,pi,v:s[3]/s[2]})})); top.sort((a,b)=>b.v-a.v);
-  const cell=(k,pi)=>{const s=st[k][pi]; if(!s[0])return `<td class="dim">–</td>`; const v=pc(s[1],s[0]), y=pc(s[3],s[2]);
-    return `<td style="--uh:${y??0}%" data-tip="${esc(`${PATHS[pi]} ${k}${s[2]?`\nLast 6 months: ${s[3]} of ${s[2]} unclaimed (${y}%)`:"\nNone in the last 6 months"}\nAll time: ${s[1]} of ${s[0]} (${v}%)`)}">${y!=null?`<b>${y}%</b> <small>${s[3]}/${s[2]}</small>`:`<b class="dim">–</b>`}<br><small>all time ${v}% · ${s[1]}/${s[0]}</small></td>`};
+  const cell=(k,pi)=>{const s=st[k][pi]; if(!s[0])return `<td class="dim">–</td>`; const v=pc(s[1],s[0]), y=pc(s[3],s[2]), t=pc(s[5],s[4]);
+    return `<td style="--uh:${y??0}%" data-tip="${esc(`${PATHS[pi]} ${k}${s[2]?`\nLast 6 months: ${s[3]} of ${s[2]} unclaimed (${y}%)`:"\nNone in the last 6 months"}${s[4]?`\nLast 3 weeks: ${s[5]} of ${s[4]} (${t}%)`:"\nNone in the last 3 weeks"}\nAll time: ${s[1]} of ${s[0]} (${v}%)`)}">${y!=null?`<b>${y}%</b> <small>${s[3]}/${s[2]}</small>`:`<b class="dim">–</b>`}<br><small>last 3 weeks ${s[4]?`${t}% · ${s[5]}/${s[4]}`:"–"}</small><br><small>all time ${v}% · ${s[1]}/${s[0]}</small></td>`};
   const stats=`<p class="dim" style="margin-top:4px">Most likely to go unclaimed in the last 6 months: ${top.slice(0,3).map(x=>`<b>${PATHS[x.pi]} ${esc(x.k)}</b> (${Math.round(x.v*100)}%)`).join(", ")||"none"}.</p>
     <div class="ucwrap"><table class="uctab"><thead><tr><th></th>${[0,1,2].map(pi=>`<th style="color:${PATH_C[pi]}">${PATHS[pi]}</th>`).join("")}</tr></thead>
     <tbody>${cls.map(k=>{const L=cardLv(k); return `<tr><th><span class="lvchip" style="--tc:${L==="G"?"var(--t-god)":TIER_C[L]||"var(--muted)"}">${esc(k)}</span></th>${[0,1,2].map(pi=>cell(k,pi)).join("")}</tr>`}).join("")}</tbody></table></div>`;
