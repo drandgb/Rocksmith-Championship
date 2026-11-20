@@ -3425,8 +3425,12 @@ function hlParts0(w){eloBuild(); const I=sbIx(), L=[], G1=[], G2=[], G2b=[], G3=
        const what=tip.split("\n")[0].split(" · ").slice(1).filter(x=>!/this week|all time|^\d+ (weeks?|times?)\b|click to|scoreboards since/.test(x)).join(" · ");
        got.push({name,what})});
      got.forEach(g=>{const what=g.what.replace(/, counting everyone not playing down, while/," while").replace(/ \(only players in that class can claim the place\)/,"");   // Uncrowned: short, without the explanation
-       fm.push(`@${n} · ${hlEmo(g.name)} **${g.name}**${what?`: ${what}`:""}`)})});
-   if(fm.length)G2.push(`🎉 **Congratulations** on your first of these medals:`,...fm)}
+       fm.push({n,name:g.name,what})})});
+   // the same medal for several players: together, and only the first one says what it's for
+   const ord=[...new Set(fm.map(x=>x.name))], seen=new Set();
+   const fl=fm.slice().sort((a,b)=>ord.indexOf(a.name)-ord.indexOf(b.name)).map(x=>{const first=!seen.has(x.name); seen.add(x.name);
+     return `@${x.n} · ${hlEmo(x.name)} **${x.name}**${first&&x.what?`: ${x.what}`:""}`});
+   if(fl.length)G2.push(`🎉 **Congratulations** on your first of these medals:`,...fl)}
   // new medal leaders: a player whose count this week took them to the top of a kind of medal, alone or tied
   try{const nl=hlLeaders(w,gains).concat(hlHostLeaders(w)); if(nl.length)G2b.push(`👑 **New medal leaders**:`,...nl)}catch(e){}   // each line starts with the @name, not indented: the forum doesn't tag a name right after the indent
   const nw=played.filter(k=>{const W=I.wk[k]; return W.length===2&&W[1]===w}).map(nm); if(nw.length)G3.push(`🔁 **One more time** (back for a second week): ${nw.join(", ")}`);
