@@ -3401,7 +3401,7 @@ function hlParts(w){const pre=typeof ML_PRE!=="undefined"&&ML_PRE&&ML_PRE.hl&&ML
   const line=V&&V.size?`🙏 **Thank you** to everyone who submitted their vote for the difficulty ratings of Week ${w}'s songs: ${[...V].sort((a,b)=>a.localeCompare(b,undefined,{sensitivity:"base"})).map(n=>"@"+n).join(", ")}`:null;
   return P.map(g=>g.flatMap(x=>x===HL_VOTERS?(line?[line]:[]):[x])).filter(g=>g.length)}
 function hlText(w){return hlParts(w).map(g=>g.join("\n").replace(/\*\*/g,"")).join("\n\n")}
-function hlHtml(w){return hlParts(w).map(g=>`<p>${g.map(x=>esc(x).replace(/\*\*(.+?)\*\*/g,"<strong>$1</strong>")).join("<br>")}</p>`).join("")}
+function hlHtml(w){return hlParts(w).flat().map(x=>`<p>${esc(x).replace(/\*\*(.+?)\*\*/g,"<strong>$1</strong>")}</p>`).join("")}   // every line its own paragraph, so the forum editor can turn each @name into a tag
 function hlParts0(w){eloBuild(); const I=sbIx(), L=[], G1=[], G2=[], G2b=[], G3=[], G4=[], played=Object.keys(I.wk).filter(k=>I.wk[k].includes(w)), nm=k=>"@"+I.disp[k];   // names with @, as in the forum
   const both=xs=>xs.length>1?xs.slice(0,-1).join(", ")+" and "+xs[xs.length-1]:xs[0];
   const newc=played.filter(k=>I.wk[k][0]===w).map(nm); if(newc.length)G1.push(`🐣 **Welcome** to our new player${newc.length===1?"":"s"}: ${newc.join(", ")}`);
