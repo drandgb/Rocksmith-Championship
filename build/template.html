@@ -3477,14 +3477,19 @@ function hlParts0(w){eloBuild(); const I=sbIx(), L=[], G1=[], G2=[], G2b=[], G3=
   return out}
 // the first time, the highlights are worked out just after the tab shows (it takes a few seconds), then filled in
 function hlLater(w){setTimeout(()=>{try{hlParts(w)}catch(e){console.error(e)} const el=$("hltext"); if(el&&+el.dataset.w===w)el.innerHTML=hlHtml(w)},60)}
-// a 📰 badge for this week's host and admins once a week has finished, until its highlights are copied or marked as posted (in this browser)
-document.addEventListener("click",e=>{const b=e.target.closest("[data-hlposted]"); if(!b)return; if(b.dataset.hlposted==="undo")lsSet("rsc-hl-done",""); else lsSet("rsc-hl-done",String(ELO_DONE));
-  try{acctBtn(); if($("acct").open)acctDraw()}catch(err){}});
-function hlDue(){try{return acctOn()&&(isCurHost()||!!ACCT.admin)&&hostTab()&&!!SB.weeks[ELO_DONE]&&lsGet("rsc-hl-done")!==String(ELO_DONE)}catch(e){return false}}
+// a 📰 badge for this week's host and admins once a week has finished, until someone marks its highlights as posted
+// Posted log (bottom of Weekly highlights): who marked which week's highlights posted, and when
+function hlPostLog(){const G=HM_IMP.log||{}, L=Object.keys(G).map(Number).map(w=>[w,(G[w]||[]).find(r=>r.item==="hlposted")]).filter(x=>x[1]).sort((a,b)=>b[0]-a[0]);
+  return `<h4 style="margin-top:14px">🗒️ Posted log</h4>${L.length?`<ul class="ratelog">${L.map(([w,r])=>`<li><small>${esc(new Date(r.at).toLocaleString(undefined,{month:"short",day:"numeric",hour:"numeric",minute:"2-digit"}))}</small> · <b>${esc(r.by_player||"someone")}</b> · Week ${w} highlights</li>`).join("")}</ul>`:`<p class="dim">Nothing marked as posted yet.</p>`}`}
+document.addEventListener("click",e=>{const b=e.target.closest("[data-hlposted]"); if(!b||b.disabled)return;
+  if(!confirm(`Mark the Week ${ELO_DONE} highlights as posted? Everyone sees who marked it, and the 📰 reminder goes.`))return;
+  hmImpMark(ELO_DONE,["hlposted"]); try{acctBtn(); if($("acct").open)acctDraw()}catch(err){}});
+const hlPosted=w=>{try{hmImpLoad(); return (hmImpPosted()[w]||{}).hlposted?((HM_IMP.log||{})[w]||[]).find(r=>r.item==="hlposted")||{}:null}catch(e){return null}};
+function hlDue(){try{return acctOn()&&(isCurHost()||!!ACCT.admin)&&hostTab()&&!!SB.weeks[ELO_DONE]&&!hlPosted(ELO_DONE)}catch(e){return false}}
 const hlBadge=()=>hlDue()?`<span class="nbadge nbemo" title="Week ${ELO_DONE} is finished: copy its Weekly highlights into the Week ${ELO_DONE+1} post">📰</span>`:"";
-function hlSection(){const ws=[]; for(let w=ELO_DONE;w>ELO_DONE-6&&w>0;w--)if(SB.weeks[w])ws.push(w); const w=ACCT.hlWeek&&ws.includes(ACCT.hlWeek)?ACCT.hlWeek:ws[0]; if(!w)return "";
+function hlSection(){const ws=[]; for(let w=ELO_DONE;w>ELO_DONE-6&&w>0;w--)if(SB.weeks[w])ws.push(w); const w=ACCT.hlWeek&&ws.includes(ACCT.hlWeek)?ACCT.hlWeek:ws[0]; if(!w)return ""; const P0=hlPosted(ELO_DONE);
   return `<div class="acctsec hlbox"><h3>Weekly highlights${hlBadge()} <select class="hlsel" data-hlweek>${ws.map(x=>`<option value="${x}"${x===w?" selected":""}>Week ${x}</option>`).join("")}</select></h3>
-    <p class="dim">New players, welcome backs, rank-ups, first medals, newcomers' milestones and the season leaders for Week ${w}, ready to copy into the Week ${w+1} post.</p><div id="hltext" class="hlrich" data-w="${w}">${HL_PARTS[w]||(typeof ML_PRE!=="undefined"&&ML_PRE&&ML_PRE.hl&&ML_PRE.hl[w])?hlHtml(w):(hlLater(w),`<p class="dim">Working out Week ${w}'s highlights…</p>`)}</div><div class="row"><button type="button" class="btn ghost" data-hlcopy>Copy</button><button type="button" class="btn ghost" data-hlcopy="plain">Copy as plain text</button>${w===ELO_DONE?(lsGet("rsc-hl-done")===String(w)?`<button type="button" class="btn ghost" data-hlposted="undo" title="Show the 📰 reminder again">Posted ✓ · undo</button>`:`<button type="button" class="btn ghost" data-hlposted title="Already posted (from another device too): stop the 📰 reminder for Week ${w}">Mark as posted</button>`):""}</div></div>`}
+    <p class="dim">New players, welcome backs, rank-ups, first medals, newcomers' milestones and the season leaders for Week ${w}, ready to copy into the Week ${w+1} post.</p><div id="hltext" class="hlrich" data-w="${w}">${HL_PARTS[w]||(typeof ML_PRE!=="undefined"&&ML_PRE&&ML_PRE.hl&&ML_PRE.hl[w])?hlHtml(w):(hlLater(w),`<p class="dim">Working out Week ${w}'s highlights…</p>`)}</div><div class="row"><button type="button" class="btn ghost" data-hlcopy>Copy</button><button type="button" class="btn ghost" data-hlcopy="plain">Copy as plain text</button>${w===ELO_DONE?(P0?`<button type="button" class="btn ghost" disabled title="Marked as posted">Posted ✓</button>`:`<button type="button" class="btn ghost" data-hlposted title="Once it's in the forum: stop the 📰 reminder for Week ${w}">Mark as posted</button>`):""}</div>${hlPostLog()}</div>`}
 // ---------- Admin: season introduction, ready to copy into a forum post (for new and current players) ----------
 function siLab(w){const d=weekAt(w-1)[1], q=Math.floor((+d.slice(5,7)-1)/3); return ["Jan–Mar ","Apr–Jun ","Jul–Sep ","Oct–Dec "][q]+d.slice(0,4)}
 function siRange(id,from){let a=null,b=null; for(let w=Math.max(1,from-20);w<from+40;w++){if(siLab(w)===id){if(a==null)a=w; b=w}else if(a!=null)break} return [a,b]}
@@ -3663,7 +3668,6 @@ document.addEventListener("click",e=>{const b=e.target.closest("[data-sicopy]");
 document.addEventListener("change",e=>{const s=e.target.closest("[data-hlweek]"); if(!s)return; ACCT.hlWeek=+s.value; const t=document.querySelector(".acctdlg #hltext"), el=t&&t.closest(".hlbox"); if(el)el.outerHTML=hlSection()});
 // Copy: the formatted text (bold kept, for the forum's editor) with the plain text alongside it; "Copy as plain text": the plain text alone
 document.addEventListener("click",e=>{const b=e.target.closest("[data-hlcopy]"); if(!b)return; const w=+$("hltext").dataset.w;
-  if(w===ELO_DONE){lsSet("rsc-hl-done",String(w)); setTimeout(()=>{try{acctBtn(); if($("acct").open)acctDraw()}catch(err){}},1600)}   // copied: the 📰 badge goes
   const plain=hlText(w), lab=b.textContent, ok=()=>{b.textContent="Copied ✓"; setTimeout(()=>b.textContent=lab,1500)};
   try{if(b.dataset.hlcopy!=="plain"&&window.ClipboardItem&&navigator.clipboard.write)
         navigator.clipboard.write([new ClipboardItem({"text/html":new Blob([hlHtml(w)],{type:"text/html"}),"text/plain":new Blob([plain],{type:"text/plain"})})]).then(ok,()=>navigator.clipboard.writeText(plain).then(ok));
@@ -7476,9 +7480,9 @@ function hmImpPosted(){return HM_IMP.st&&typeof HM_IMP.st==="object"?HM_IMP.st:h
 const hmSentKey=t=>"sent|"+String(t).toLowerCase().replace(/\s+/g," ").trim().slice(0,400);
 document.addEventListener("click",e=>{const b=e.target.closest("[data-hmsent]"); if(!b||b.disabled)return; let parts=[]; try{parts=JSON.parse(b.dataset.hmparts||"[]")}catch(x){}
   hmImpMark(+b.dataset.hmsent,[b.dataset.hmt,...parts].map(hmSentKey)); hmRedraw()});   // a joined message marks each of its parts too
-function hmRedraw(){try{acctBtn()}catch(e){} const el=document.querySelector(".acctdlg .hmsec:not(.hmhost)"); if(el){el.outerHTML=hmSection(); try{const t=document.querySelector('.accttabs [data-accttab="admin"]'); if(t){t.querySelectorAll(".nbemo[title*='message']").forEach(x=>x.remove()); const h=hmBadge(); if(h)t.firstChild.after(document.createRange().createContextualFragment(h))}}catch(e){}}}
+function hmRedraw(){try{acctBtn()}catch(e){} try{const t=document.querySelector(".acctdlg #hltext"), h=t&&t.closest(".hlbox"); if(h)h.outerHTML=hlSection(); const T=document.querySelector('.accttabs [data-accttab="host"]'); if(T){T.querySelectorAll(".nbemo[title*='Weekly highlights']").forEach(x=>x.remove()); const g=hlBadge(); if(g)T.firstChild.after(document.createRange().createContextualFragment(g))}}catch(e){} const el=document.querySelector(".acctdlg .hmsec:not(.hmhost)"); if(el){el.outerHTML=hmSection(); try{const t=document.querySelector('.accttabs [data-accttab="admin"]'); if(t){t.querySelectorAll(".nbemo[title*='message']").forEach(x=>x.remove()); const h=hmBadge(); if(h)t.firstChild.after(document.createRange().createContextualFragment(h))}}catch(e){}}}
 function hmImpLoad(){if(!ACCT.sb||HM_IMP.st===null||(HM_IMP.st!==undefined&&Date.now()-HM_IMP.t<30000))return; HM_IMP.st=null;
-  ACCT.sb.from("improve_posted").select("week,item,at,by_player").gte("week",TW_MAX-2).then(({data,error})=>{HM_IMP.t=Date.now();
+  ACCT.sb.from("improve_posted").select("week,item,at,by_player").gte("week",TW_MAX-12).then(({data,error})=>{HM_IMP.t=Date.now();
     if(error){HM_IMP.st=false}else{const P={}, G={}; (data||[]).forEach(r=>{(P[r.week]=P[r.week]||{})[r.item]=1; (G[r.week]=G[r.week]||[]).push(r)}); HM_IMP.st=P; HM_IMP.log=G} hmRedraw()})}
 function hmImpMark(w,keys){
   if(HM_IMP.st&&typeof HM_IMP.st==="object"){const P=HM_IMP.st; P[w]=P[w]||{}; keys.forEach(k=>P[w][k]=1);
