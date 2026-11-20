@@ -3119,7 +3119,7 @@ function goalsPlay(n,G,wk,pl){const p=byName[n]; if(!p)return; const tw=TW_MAX, 
   const thisWk=now?"":" (this week counts)";
   const k=STREAK_STEPS.filter(x=>x<52).find(x=>x>s)||52*(Math.floor(s/52)+1);   // then the year streaks: 52, 104, 156 ...
   // (each goal starts with an emoji; a streak that would be a new medal for them says "medal")
-  if(k)G.push([`🔥 ${k%52?`${k}-week play streak`:`${k/52}-year play streak`}${longest<k?" medal":""}`,`${wk(k-s)} in a row${thisWk}`]);
+  if(k)G.push([`🎸 ${k%52?`${k}-week play streak`:`${k/52}-year play streak`}${longest<k?" medal":""}`,`${wk(k-s)} in a row${thisWk}`]);
   if(longest>s&&longest>=5&&longest+1-s<=12&&(!k||longest+1!==k))G.push([`📈 Beat your longest play streak (${longest} wks)`,`${wk(longest+1-s)} in a row`]);
   const played=(p[3]||0)+(now?1:0), m=GOAL_PLAYED.find(x=>x>played); if(m&&m-played<=10)G.push([`🗓️ ${m} weeks played`,`${wk(m-played)}${thisWk}`]);
   // the season place above them on each path (Lead, Rhythm, Bass): in the class where they're closest to the player ahead
@@ -3133,7 +3133,7 @@ function goalsWin(n,G){const done=SB_W.filter(w=>w<cur[0]).sort((a,b)=>a-b), per
   done.forEach(w=>{run=per[w]&&per[w][1]>0?run+1:0; if(run>best)best=run}); s=run; if(!s)return;
   const k=STREAK_STEPS.find(x=>x>s); if(!k)return; const d=k-s;
   const lead=(SB.weeks[TW_LIVE]||[]).some(c=>{const e=c[6].find(x=>canWin(x)); return e&&SB.names[e[0]].replace(/[*~]+$/,"")===n});
-  G.push([`🏆 ${k}-week win streak${best<k?" medal":""}`,`win a challenge ${d===1?"this week":`${d} more weeks in a row`}${lead?" · you're leading one now":""}`])}
+  G.push([`🔥 ${k}-week win streak${best<k?" medal":""}`,`win a challenge ${d===1?"this week":`${d} more weeks in a row`}${lead?" · you're leading one now":""}`])}
 // hosting: the next hosting medal (total and in a row), and the race for this year's Host of the year
 function goalsHost(n,G,wk,pl){const hw=WEEKS.filter((x,i)=>i<=curIdx&&x[2]===n).map(x=>x[0]); if(!hw.length)return;
   const tot=hw.length, k=HOST_TOTAL_STEPS.find(x=>x>tot); if(k&&k-tot<=10)G.push([`🎤 ${k}-week host medal`,`host ${wk(k-tot)}`]);
