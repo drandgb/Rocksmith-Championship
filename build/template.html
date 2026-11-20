@@ -124,7 +124,7 @@ header.top{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-end;justify-con
 @media (max-width:640px){.links{gap:6px}.links>.forum{flex:1 1 auto;text-align:center;justify-content:center;padding:6px 7px}}
 @media (max-width:400px){.links>.forum{font-size:.8rem;padding:6px 5px}}
 button.forum{background:none;cursor:pointer;font:inherit;font-size:.85rem}
-.refresh.spin{opacity:.6;pointer-events:none}
+
 .forum{white-space:nowrap;color:var(--accent);text-decoration:none;font-size:.85rem;border:1px solid var(--line);padding:6px 10px;border-radius:6px}
 .forum:hover,.forum:focus-visible{border-color:var(--accent);outline:none}
 /* Play here: glows through the six stripe colors */
@@ -1711,10 +1711,10 @@ footer{color:var(--dim);font-size:.78rem}
     </div>
     <nav class="links">
       <button type="button" class="forum acctbtn" id="acctbtn" hidden title="Log in with your email to claim your player profile, see your own stats page, rate songs and sign up to host">👤 Log in</button>
-      <button type="button" class="forum refresh" id="refreshbtn" title="Reloads the site with the newest scores and results, skipping the copy your browser saved">↻ Refresh</button>
       <a class="forum" href="https://docs.google.com/spreadsheets/d/1WN-m8wF0lVkQ4cLWHBa009SkqDoPk0xN-C4-llcrXXs/edit?gid=871655614#gid=871655614" target="_blank" rel="noopener" title="Opens the championship's scoreboard Google Sheet, where every week's challenges, scores and results are recorded. This site's stats come from it">Scoreboard sheet ↗</a>
       <a class="forum" href="https://script.google.com/macros/s/AKfycbwy6vF3XYDZ_s1WeqiHTgBcVgbF8cr2AUQjKH3aRSZYuh32Erc-IstP5Gos-1i_evkm/exec" target="_blank" rel="noopener" title="Opens a form to suggest a song you'd like to see as a future championship challenge">Request a song ↗</a>
       <a class="forum playhere" href="https://customsforge.com/forum/38-rocksmith-championship/" target="_blank" rel="noopener" title="Opens the Rocksmith 2014 Championship forum on CustomsForge, where the weekly challenges are posted and scores are submitted">Play here ↗</a>
+      <a class="forum donate" href="https://www.patreon.com/cw/CustomsForge" target="_blank" rel="noopener" title="Support CustomsForge, home of the championship, on Patreon">Donate ↗</a>
     </nav>
   </header>
   <div class="newhere" id="newhere" hidden>
@@ -6547,15 +6547,6 @@ document.querySelectorAll(".strings i").forEach(s=>{
   const on=()=>{s.classList.remove("on"); void s.offsetWidth; s.classList.add("on")};
   s.addEventListener("mouseenter",on); s.addEventListener("mouseleave",()=>s.classList.remove("on"));
   s.addEventListener("touchstart",()=>{on(); setTimeout(()=>s.classList.remove("on"),700)},{passive:true});
-});
-
-// ---------- Refresh: re-download the page past the browser cache, then reload ----------
-$("refreshbtn").addEventListener("click",async()=>{
-  const b=$("refreshbtn"); b.classList.add("spin"); b.textContent="↻ Refreshing…";
-  const url=location.href.split("#")[0];
-  try{await fetch(url,{cache:"reload"})}catch(e){}           // replaces the saved copy of this page
-  try{if(window.caches)for(const k of await caches.keys())await caches.delete(k)}catch(e){}
-  location.reload();
 });
 
 // ---------- show "Site last updated" and "Scores last updated" in the viewer's own time zone ----------
