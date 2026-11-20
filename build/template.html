@@ -3540,10 +3540,12 @@ function engSection(){const E=engStats(); if(!E.sheet||!E.site)return "";
   // players per week over the last year, with the two start lines
   const ws=[]; for(let w=TW_MAX-60;w<=TW_MAX;w++)if(E.set[w])ws.push(w);
   const mx=Math.max(...ws.map(w=>E.set[w].size)), W=620, H=120, bw=W/ws.length, x=w=>ws.indexOf(w)*bw;
-  const mark=(w,lab)=>ws.includes(w)?`<line x1="${x(w)-1}" x2="${x(w)-1}" y1="4" y2="${H}" stroke="var(--accent)" stroke-dasharray="3 3"/><text x="${x(w)+3}" y="12" fill="var(--accent)" font-size="10">${lab}</text>`:"";
-  const svg=`<svg class="engchart" viewBox="0 0 ${W} ${H+16}" role="img" aria-label="Players per week over the last ${ws.length} weeks">${ws.map(w=>{const h=E.set[w].size/mx*(H-18);
+  // a dashed line where something started; rows 2 and 3 put the label lower so close ones don't overlap; the last week's label goes on its left
+  const mark=(w,lab,row,tip)=>{if(!ws.includes(w))return ""; const end=x(w)+3+lab.length*5.4>W;
+    return `<g><title>${esc(tip||lab)} (Week ${w})</title><line x1="${x(w)-1}" x2="${x(w)-1}" y1="4" y2="${H}" stroke="var(--accent)" stroke-dasharray="3 3"/><text x="${end?x(w)-4:x(w)+3}" y="${12*(row||1)}" fill="var(--accent)" font-size="10"${end?' text-anchor="end"':""}>${lab}</text></g>`};
+  const svg=`<svg class="engchart" viewBox="0 0 ${W} ${H+16}" role="img" aria-label="Players per week over the last ${ws.length} weeks">${ws.map(w=>{const h=E.set[w].size/mx*(H-42);
     return `<rect x="${x(w)+1}" y="${H-h}" width="${bw-2}" height="${h}" rx="1.5" fill="${w===TW_MAX?"var(--muted)":w>=E.tw?"var(--s-green)":w>=E.sw?"var(--s-blue)":"#3a4256"}"><title>Week ${w}${w===TW_MAX?" (so far)":""}: ${E.set[w].size} players</title></rect>`}).join("")}
-    ${mark(E.sw,"Stats sheet")}${mark(E.tw,"Website")}<text x="0" y="${H+13}" fill="var(--muted)" font-size="10">Week ${ws[0]}</text><text x="${W}" y="${H+13}" fill="var(--muted)" font-size="10" text-anchor="end">Week ${TW_MAX} (so far)</text></svg>`;
+    ${mark(E.sw,"Stats sheet")}${mark(engWeekOf("2026-09-06"),"Added to Ignition",2,"Championship added to Ignition (around Sep 6, 2026)")}${mark(E.tw,"Website")}${mark(engWeekOf("2026-11-19"),"GTA VI released",3)}<text x="0" y="${H+13}" fill="var(--muted)" font-size="10">Week ${ws[0]}</text><text x="${W}" y="${H+13}" fill="var(--muted)" font-size="10" text-anchor="end">Week ${TW_MAX} (so far)</text></svg>`;
   return `<div class="adm acctsec engsec"><h3>Engagement</h3>
     <p class="dim">The stats sheet started on ${d(E.sw)} (Week ${E.sw}) and the website on Oct 5, 2026 (Week ${E.tw}). Complete weeks only: Week ${TW_MAX} isn't finished yet. Each change compares with the column to its left.</p>
     ${tbl([{h:"Before the stats sheet",x:E.before},{h:"Stats sheet, before the website",x:E.sheet},{h:"Since the website",x:E.site}])}
