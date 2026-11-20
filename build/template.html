@@ -3420,7 +3420,7 @@ function hlParts0(w){eloBuild(); const I=sbIx(), L=[], G1=[], G2=[], G2b=[], G3=
      const got=[]; ms.forEach(h=>{const tip=((/data-tip="([^"]*)"/.exec(h)||[])[1]||"").replace(/&#39;/g,"'").replace(/&quot;/g,'"').replace(/&amp;/g,"&");
        const all=+((/\((\d+) all time\)/.exec(tip)||[])[1]||0), plus=+((/\+(\d+) this week/.exec(tip)||[])[1]||0), name=tip.split(" · ")[0];
        if(all>0&&plus>0&&name)gains.push({n,key:hlMlKey(tip),name,all,plus});
-       if(!(all>0&&all===plus)||!name||/^(Joined|Played guitar|Played bass|Rivalry win)/.test(name))return; let covered=""; try{covered=hmMsg(n,tip)}catch(e){} if(covered||got.some(g=>g.name===name))return;
+       if(!(all>0&&all===plus)||!name||/^(Joined|Played guitar|Played bass|Rivalry win)/.test(name))return; if(/play streak medal|host medal/i.test(name)||got.some(g=>g.name===name))return;   // (first play streaks have their own line below; host medals go to Host milestones in the Admin tab)
        // what the medal is for: the hover text's first line without the name and the counts
        const what=tip.split("\n")[0].split(" · ").slice(1).filter(x=>!/this week|all time|^\d+ (weeks?|times?)\b|click to|scoreboards since/.test(x)).join(" · ");
        got.push({name,what})});
@@ -7565,12 +7565,12 @@ function hostMsgSection(){const ws=hmWeeks(); if(!ws.length)return ""; const w=A
 let HM_N={k:"",n:0};
 function hmUnsentN(){try{if(!ACCT.admin)return 0; const w=hmWeeks()[0]; if(!w)return 0; hmImpLoad(); const P=hmImpPosted()[w]||{}, k=w+"|"+Object.keys(P).length+"|"+(HM_IMP.t||0);
   if(HM_N.k===k)return HM_N.n; const sent=t=>!!P[hmSentKey(t)];
-  const J=[...hmJoin(hmWelcome(w),sent),...hmJoin(hmBack(w),sent),...hmJoin(hmMilestones(w).filter(x=>!hmIsHost(x)&&!hmInHL(x)),sent)];
+  const J=[...hmJoin(hmWelcome(w),sent),...hmJoin(hmBack(w),sent),];   // (milestones are in Weekly highlights now)
   const n=J.filter(x=>!(x.parts||[x.t]).every(sent)).length;
   HM_N={k,n}; return n}catch(e){return 0}}
 const hmBadge=()=>{const n=hmUnsentN(); return n?`<span class="nbadge nbemo" title="${n} message${n===1?"":"s"} for players not sent yet this week">💬</span>`:""};
 function hmSection(){const ws=hmWeeks(); if(!ws.length)return ""; const w=ACCT.hmWeek&&ws.includes(ACCT.hmWeek)?ACCT.hmWeek:ws[0];
-  const W=hmWelcome(w), B=hmBack(w), M=hmMilestones(w).filter(x=>!hmIsHost(x)&&!hmInHL(x)), U=hmImproveMsgs(w), P=hmImpPosted()[w]||{};
+  const W=hmWelcome(w), B=hmBack(w), M=[], U=hmImproveMsgs(w), P=hmImpPosted()[w]||{};
   // Sent: marks the message as sent, for everyone who posts (saved with the copied improvements, improve_posted.sql)
   const sent=t=>!!P[hmSentKey(t)], sentBtn=(t,parts,done)=>{done=done==null?sent(t):done; return `<button type="button" class="btn ghost hmsentb" data-hmsent="${w}" data-hmt="${esc(t)}"${parts&&parts.length>1?` data-hmparts="${esc(JSON.stringify(parts))}"`:""}${done?" disabled":""}>${done?"Sent ✓":"Sent"}</button>`};
   const Wj=hmJoin(W,sent), Bj=hmJoin(B,sent), Mj=hmJoin(M,sent);
@@ -7581,8 +7581,7 @@ function hmSection(){const ws=hmWeeks(); if(!ws.length)return ""; const w=ACCT.h
     <p class="dim">Ready to copy into a forum reply or message.${w>DATA_WEEK?" This week is still running, so medals can still change.":""}</p>
     <h4>👋 Welcome new players</h4>${W.length?`<ul class="hml">${Wj.map(x=>row(x.t,x.many?`${x.many} players`:"",x.parts)).join("")}</ul>`:`<p class="dim">No new players in Week ${w}.</p>`}
     <h4>🔁 Welcome back</h4>${B.length?`<ul class="hml">${Bj.map(x=>row(x.t,`${x.away} weeks away${x.many?` · ${x.many} players`:""}`,x.parts)).join("")}</ul>`:`<p class="dim">Nobody back from a break in Week ${w}.</p>`}
-    <h4>🎉 Milestones</h4>${M.length?`<ul class="hml">${Mj.map(x=>row(x.t,x.what+(x.many?` · ${x.many} players`:""),x.parts)).join("")}</ul>`:`<p class="dim">No milestone medals in Week ${w} yet.</p>`}
-    <p class="dim">First play streak medals and big improvements are in Weekly highlights.</p>${hmSentLog(w,[...Wj,...Bj,...Mj,...U])}</div>`}
+    <p class="dim">Milestones (first medals and play streaks) and big improvements are in Weekly highlights.</p>${hmSentLog(w,[...Wj,...Bj,...U])}</div>`}
 document.addEventListener("change",e=>{const s=e.target.closest("[data-hmweek]"); if(!s)return; ACCT.hmWeek=+s.value; const el=document.querySelector(".acctdlg .hmsec:not(.hmhost)"); if(el)el.outerHTML=hmSection(); const eh=document.querySelector(".acctdlg .hmhost"); if(eh)eh.outerHTML=hostMsgSection()});
 document.addEventListener("click",e=>{const b=e.target.closest("[data-hmcopy]"); if(!b)return; try{navigator.clipboard.writeText(b.dataset.hmcopy).then(()=>{b.textContent="Copied ✓";
   const im=b.dataset.hmimp; if(im){const i=im.indexOf("|"); hmImpMark(+im.slice(0,i),JSON.parse(im.slice(i+1)))}   // a big improvement: remembered, so the next one is new
