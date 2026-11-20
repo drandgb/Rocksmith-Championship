@@ -673,6 +673,7 @@ a.dl svg,.offpill svg{width:11px;height:11px}
 .acctdlg .typos summary{cursor:pointer;padding:8px 10px;font:700 .82rem var(--f-display);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .acctdlg .typos summary small{font:400 .76rem var(--f-body)}
 .acctdlg .tycount{font:700 .72rem var(--f-mono);color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:1px 7px}
+.acctdlg .tycount.tyred{color:#fff;background:#e5484d;border-color:#e5484d}.nbadge.tybadge.tyred{background:#e5484d;color:#fff}
 .nbadge.nbemo{background:color-mix(in srgb,#ff4d6d 26%,var(--panel));height:19px;min-width:19px;padding:0 4px;font-size:.78rem;box-shadow:inset 0 0 0 1.5px #ff4d6d,0 0 8px rgba(255,77,109,.55)}   /* an emoji-only badge: a red tint inside a red ring (like the yellow Your week badges), so the emoji shows */
 .nbadge.tybadge{background:#f59e0b;color:#1a1204}.nbadge.nbyel{background:color-mix(in srgb,var(--accent) 26%,var(--panel));color:#ffd9b0;box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--accent) 70%,transparent),0 0 6px color-mix(in srgb,var(--accent) 30%,transparent)}
 .acctdlg .typos ul.tylist{list-style:none;margin:0;padding:0 10px 8px;max-height:260px;overflow:auto}
@@ -7794,7 +7795,7 @@ const ZERO_FROM=650;
 function typoScan(){
   if(TYPO_CACHE)return TYPO_CACHE;
   const nm=i=>SB.names[i].replace(/[*~]+$/,""), weeks=Object.keys(SB.weeks).map(Number).filter(w=>w>=440).sort((a,b)=>a-b), NEW=weeks[weeks.length-1];   // the older scoreboards (before 440) aren't checked
-  const out={big:[],year:[],high:[],zero:[],noscore:[],nopct:[],streak:[],dup:[],order:[],band:[],song:[],player:[],ssl:[]};
+  const out={fix:[],big:[],year:[],high:[],zero:[],noscore:[],nopct:[],streak:[],dup:[],order:[],band:[],song:[],player:[],ssl:[]};
   // a 0 score is probably a typo, unless the player puts 0 on most of their entries (some always do)
   const sc={}; weeks.forEach(w=>SB.weeks[w].forEach(c=>c[6].forEach(e=>{const n=nm(e[0]).toLowerCase(), x=sc[n]=sc[n]||[0,0]; x[1]++; if(e[3]===0)x[0]++})));
   const usual=n=>{const x=sc[n.toLowerCase()]; return !(x&&x[0]/x[1]>=.5)};
@@ -7827,6 +7828,11 @@ function typoScan(){
   const pn={}; SB.names.forEach(x=>{const n=x.replace(/[*~]+$/,""); (pn[n.toLowerCase()]=pn[n.toLowerCase()]||new Set()).add(n)});
   Object.values(pn).forEach(set=>{if(set.size>1){const ws=[]; weeks.forEach(w=>SB.weeks[w].forEach(c=>c[6].forEach(e=>{if(set.has(nm(e[0])))ws.push(w)})));
     out.player.push({w:Math.max(...ws),forms:[...set].map(t=>({t,n:0,last:0}))})}});
+  // corrected entries a fetch skipped because they're lower than the sheet's (score_fix.sql): gone once the sheet has the corrected values
+  try{if(SC_FIX===undefined)scFixLoad(); const key=t=>String(t||"").toLowerCase().replace(/[^a-z0-9]+/g,""), same=(a,b)=>a.every((v,i)=>String(v==null?"":v).replace(/[,\s]/g,"")===String(b[i]==null?"":b[i]).replace(/[,\s]/g,"")), show=L=>(L||[]).map(v=>v==null||v===""?"–":typeof v==="number"&&v>=1000?v.toLocaleString("en-US"):v).join(" / ");
+    (SC_FIX||[]).forEach(r=>{const W=SB.weeks[r.week]; if(!W)return; const c=W.find(c=>c[0]===r.path&&key(c[3])===key(r.song)), e=c&&c[6].find(e=>nm(e[0]).toLowerCase()===String(r.player).toLowerCase()), now=e?[e[1],e[2],e[3]]:null;
+      if(now&&same(now,r.fetched||[]))return;
+      out.fix.push({w:r.week,p:r.path,lv:c?c[2]:r.level,n:r.player,song:c?c[3]:r.song,note:`sheet ${show(now||r.sheet)} → corrected ${show(r.fetched)} (% / streak / score)`,byHand:!!r.by_hand})})}catch(e){console.error(e)}
   // scoreboard song names that don't match the Songs Played sheet for the same week (found by the site update)
   ((SB.ssl&&SB.ssl.diff)||[]).forEach(x=>out.ssl.push({w:x.w,sb:x.sb,ssl:x.ssl,why:x.why}));
   const isNew=x=>x.w===NEW||(x.forms&&x.forms.some(f=>f.last===NEW));
@@ -7853,6 +7859,15 @@ const tyDis=(k,x)=>!!(TY_DIS&&TY_DIS[tyKey(k,x)]);
 function tyDisLoad(){if(!acctOn()||!ACCT.sb||TY_DIS===null)return; TY_DIS=null;
   ACCT.sb.from("check_dismiss").select("key,kind,week,label,at,by_player").then(({data,error})=>{TY_DIS=error?false:Object.fromEntries((data||[]).map(r=>[r.key,r])); TYPO_CACHE=null; try{acctBtn(); if($("acct").open)acctDraw()}catch(e){}})}
 const tyDisOk=()=>{if(TY_DIS===undefined)tyDisLoad(); return !!TY_DIS};
+// Requires manual correction (score_fix.sql). SC_FIX: undefined = not loaded, null = loading, false = table not set up, else the rows
+var SC_FIX;
+function scFixLoad(){if(!acctOn()||!ACCT.sb||SC_FIX===null)return; SC_FIX=null;
+  ACCT.sb.from("score_fix").select("week,path,level,song,player,sheet,fetched,by_hand").gte("week",440).then(({data,error})=>{SC_FIX=error?false:(data||[]); TYPO_CACHE=null; try{acctBtn(); if($("acct").open)acctDraw()}catch(e){}})}
+// a fetch's corrections that were lower than the sheet's: saved so they show in the checks until someone fixes the sheet
+async function scFixSave(r){try{const L=r&&r.ok&&Array.isArray(r.conflicts)?r.conflicts:[]; if(!L.length||!ACCT.sb||!ACCT.user)return;
+  const by=ACCT.claim&&ACCT.claim.status==="approved"?ACCT.claim.player:null;
+  const rows=L.map(f=>({key:["fix",r.week,PATHS.indexOf(f.path),String(f.player).toLowerCase(),(f.fetched||[]).join(";")].join("|").slice(0,600),week:+r.week,path:PATHS.indexOf(f.path),level:String(f.level||"").slice(0,60),song:String(f.song||"").slice(0,300),player:String(f.player).slice(0,80),sheet:f.sheet||null,fetched:f.fetched||null,by_hand:!!f.byHand,user_id:ACCT.user.id,by_player:by})).filter(x=>x.path>=0);
+  const {error}=await ACCT.sb.from("score_fix").upsert(rows,{onConflict:"key",ignoreDuplicates:true}); if(!error){SC_FIX=undefined; TYPO_CACHE=null; scFixLoad()}}catch(e){}}
 // the dismiss button's data: the issue's key, kind, week and a short label for the fix log
 const TY_DATA={};
 document.addEventListener("click",async e=>{const b=e.target.closest("[data-tydis]"); if(!b||!TY_DIS)return; e.preventDefault(); const d=TY_DATA[b.dataset.tydis]; if(!d)return; b.disabled=true;
@@ -7873,7 +7888,8 @@ function typoSection(H){
     if(disOn)TY_DATA[id]={key,kind:k,week:x.w||(x.forms&&Math.max(...x.forms.map(f=>f.last||0)))||null,label:plain(body).slice(0,400)};
     return `<li class="${isNew(x)&&!D?"tynew":""}${D?" tydis":""}">${isNew(x)&&!D?'<span class="tytag">new</span>':""}${D?`<span class="tytag tydtag">dismissed</span>`:""}${body}${D?` <small class="dim">· by ${esc(D.by_player||"an admin")}, ${esc(new Date(D.at).toLocaleDateString())}</small>`:""}${disOn?` <button type="button" class="tydbtn" data-tydis="${id}" title="${D?"Show this issue again":"Not a real problem: grey it out and stop counting it"}">${D?"Restore":"Dismiss"}</button>`:""}</li>`};
   const forms=x=>x.forms.map(f=>`“${esc(f.t)}”${f.n?` <small>${f.n}×, last Week ${f.last}</small>`:""}`).join(" vs ");
-  const G=[["big","Placeholder score","Nine digits counting 1 to 9 (like 912,345,678), not a real score",x=>`${card(x)} · <b>${esc(x.n)}</b> · ${esc(x.note)} · ${esc(x.song)}`],
+  const G=[["fix","Requires manual correction","A corrected entry from the Score Assistant is lower than the one on the sheet (for example a streak that was misread too high), so the fetch skipped it. Change it by hand on the sheet",x=>`${card(x)} · <b>${esc(x.n)}</b> · ${esc(x.note)}${x.byHand?' <small class="dim">(approved by hand)</small>':""} · ${esc(x.song)}`],
+    ["big","Placeholder score","Nine digits counting 1 to 9 (like 912,345,678), not a real score",x=>`${card(x)} · <b>${esc(x.n)}</b> · ${esc(x.note)} · ${esc(x.song)}`],
     ["year","Score looks like a year","A score from 1950 to next year is probably the song's release year recorded by mistake",x=>`${card(x)} · <b>${esc(x.n)}</b> · ${esc(x.note)} · ${esc(x.song)}`],
     ["high","Score over 5 million","Could be real, but higher than almost every score (the top ones are about 3.4 million), so worth checking. It still counts until it's corrected",x=>`${card(x)} · <b>${esc(x.n)}</b> · ${esc(x.note)} · ${esc(x.song)}`],
     ["zero","Score of 0","Since week 650 (before that, 0 was often used for a blank score)",x=>`${card(x)} · <b>${esc(x.n)}</b> · ${esc(x.song)}`],
@@ -7889,12 +7905,13 @@ function typoSection(H){
   const total=G.reduce((s,g)=>s+out[g[0]].length,0);
   if(H)return `<div class="acctsec typos hostfix"><h3>🔧 Scoreboard issues in Week ${H.w}${H.live?" so far":""}</h3><p class="dim">Likely typos in ${H.live?"this week's scoreboard so far":"last week's scoreboard"}. Click a week to open it on the Scoreboard; fix it in the sheet and it disappears after the next site update.</p>
     ${total?G.map(([k,t,d,f])=>{const L=out[k]; if(!L.length)return "";
-      return `<details data-tyk="h${H.w}|${k}"${tyOpen("h"+H.w+"|"+k,true)?" open":""}><summary>${t} <span class="tycount">${L.filter(x=>!tyDis(k,x)).length}</span>${d?` <small class="dim">${d}</small>`:""}</summary><ul class="tylist">${L.slice().sort((a,b)=>tyDis(k,a)-tyDis(k,b)).map(x=>row(k,x,f(x))).join("")}</ul></details>`}).join(""):`<p>No likely typos found. 👍</p>`}</div>`;
+      return `<details data-tyk="h${H.w}|${k}"${tyOpen("h"+H.w+"|"+k,true)?" open":""}><summary>${t} <span class="tycount${k==="fix"?" tyred":""}">${L.filter(x=>!tyDis(k,x)).length}</span>${d?` <small class="dim">${d}</small>`:""}</summary><ul class="tylist">${L.slice().sort((a,b)=>tyDis(k,a)-tyDis(k,b)).map(x=>row(k,x,f(x))).join("")}</ul></details>`}).join(""):`<p>No likely typos found. 👍</p>`}</div>`;
   // (the same count as the Admin tab's badge: new issues in the newest week)
   const nNew=(()=>{try{return typoScan().nNew||0}catch(e){return 0}})();
-  return `<div class="adm acctsec typos"><h3>Scoreboard checks${nNew?`<span class="nbadge tybadge" title="${nNew} likely typo${nNew===1?"":"s"} in this week's scoreboard">${nNew}</span>`:""}</h3><p class="dim">Likely typos in the scoreboard sheet, every week since 440. Click a week to open it on the Scoreboard; fix it in the sheet and it disappears after the next site update. <b>New</b> marks issues in the newest week (${NEW}).</p>
+  const fixNew=(()=>{try{return typoScan().out.fix.filter(x=>typoScan().isNew(x)&&!tyDis("fix",x)).length}catch(e){return 0}})();
+  return `<div class="adm acctsec typos"><h3>Scoreboard checks${nNew?`<span class="nbadge tybadge${fixNew?" tyred":""}" title="${nNew} likely typo${nNew===1?"":"s"} in this week's scoreboard">${nNew}</span>`:""}</h3><p class="dim">Likely typos in the scoreboard sheet, every week since 440. Click a week to open it on the Scoreboard; fix it in the sheet and it disappears after the next site update. <b>New</b> marks issues in the newest week (${NEW}).</p>
     ${total?G.map(([k,t,d,f])=>{const L=out[k].slice().sort((a,b)=>(tyDis(k,a)-tyDis(k,b))||(isNew(b)-isNew(a))||b.w-a.w), nd=L.filter(x=>tyDis(k,x)).length, nn=L.filter(x=>isNew(x)&&!tyDis(k,x)).length; if(!L.length)return "";
-      return `<details data-tyk="a|${k}"${tyOpen("a|"+k,!!nn)?" open":""}><summary>${t} <span class="tycount">${L.length-nd}</span>${nd?` <small class="dim">+${nd} dismissed</small>`:""}${nn?`<span class="nbadge tybadge">${nn} new</span>`:""}${d?` <small class="dim">${d}</small>`:""}</summary><ul class="tylist">${L.map(x=>row(k,x,f(x))).join("")}</ul></details>`}).join(""):`<p>No likely typos found.</p>`}${fixLogSection()}</div>`;
+      return `<details data-tyk="a|${k}"${tyOpen("a|"+k,!!nn)?" open":""}><summary>${t} <span class="tycount">${L.length-nd}</span>${nd?` <small class="dim">+${nd} dismissed</small>`:""}${nn?`<span class="nbadge tybadge${k==="fix"?" tyred":""}">${nn} new</span>`:""}${d?` <small class="dim">${d}</small>`:""}</summary><ul class="tylist">${L.map(x=>row(k,x,f(x))).join("")}</ul></details>`}).join(""):`<p>No likely typos found.</p>`}${fixLogSection()}</div>`;
 }
 // ---------- Admin: scoreboard fix log (issues from the scoreboard checks that went away, found by each site update) ----------
 var FIXLOG=[]/*FIXLOG*/;
@@ -8392,7 +8409,7 @@ function acctBtn(){const b=$("acctbtn"); b.hidden=!ACCT.on; try{twGoals()}catch(
   if(!ACCT.ready||ACCT.loading)return;
   // a badge whose data hasn't loaded yet keeps the one already on the button until it has
   const was={}; b.querySelectorAll(".nbadge[data-bk]").forEach(x=>was[x.dataset.bk]=x.outerHTML);
-  const held=(k,f)=>{try{const wait=k==="hl"||k==="hm"?HM_IMP.st===undefined||HM_IMP.st===null:k==="iss"?TY_DIS===undefined||TY_DIS===null:k==="cd"?!WCLOSE_ON:false; return wait?was[k]||"":f()}catch(e){return was[k]||""}};
+  const held=(k,f)=>{try{const wait=k==="hl"||k==="hm"?HM_IMP.st===undefined||HM_IMP.st===null:k==="iss"?TY_DIS===undefined||TY_DIS===null||SC_FIX===undefined||SC_FIX===null:k==="cd"?!WCLOSE_ON:false; return wait?was[k]||"":f()}catch(e){return was[k]||""}};
   b.title=ACCT.claim&&ACCT.claim.status==="approved"?"Opens your profile: your own stats page, last week's medals, your song ratings and your forum signature banner"
     :ACCT.claim?"Opens your profile. Your player claim is waiting for an admin to approve it"
     :ACCT.user?"Opens your profile, where you can claim your player name so you can rate songs and sign up to host"
@@ -8593,7 +8610,7 @@ function fetchSection(){if(!hostRunOk())return ""; const S=FETCH_ST, r=S.res, pl
 document.addEventListener("click",async e=>{const b=e.target.closest("[data-fetchrun]"); if(!b||FETCH_ST.busy||!hostRunOk())return; const what=b.dataset.fetchrun==="add"?"add":"fetch";
   if(!confirm(what==="add"?"Add the scores that were already fetched to the newest week's sheet and update the website? (Nothing is fetched first.)":"Fetch the latest scores, add them to the newest week's sheet and update the website?"))return;
   FETCH_ST={busy:what,res:null,at:0}; hostRunRedraw();
-  const res=await hostRunCall(what,undefined,undefined,()=>{FETCH_ST.checking=true; hostRunRedraw()}); FETCH_ST={busy:"",res,at:Date.now(),what}; hostRunRedraw(); runLogSave(what,res)});
+  const res=await hostRunCall(what,undefined,undefined,()=>{FETCH_ST.checking=true; hostRunRedraw()}); FETCH_ST={busy:"",res,at:Date.now(),what}; hostRunRedraw(); runLogSave(what,res); scFixSave(res)});
 // Update website: the sheet's "Send scoreboard to website now" and "Send full sheet to website now"
 function siteUpSection(){if(!hostRunOk())return ""; const S=SITEUP_ST, r=S.res, full=S.what==="rescan";
   const out=!r?"":r.ok?`<p class="fetchok">✓ ${full?"Full update":"Website update"} started at ${esc(hostRunAt(S.at))} · live in about ${full?5:3} minutes</p>`:`<p class="fetcherr">${esc(r.error||"The update didn't start.")}</p>`;
