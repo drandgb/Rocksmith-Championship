@@ -3754,9 +3754,14 @@ function h2hFollow(n){if(!$("h2a"))return; $("h2a").value=n; const keep=h2hPicke
 function showPlayer(name){
   const p=byName[name];
   if(!p){$("pcard").innerHTML=`<div class="empty">No player named “${esc(name)}”. Pick a name from the list as you type.</div>`;return}
-  const [n,first,latest,played,rate,streak,longest,,tiers]=p;
+  let [n,first,latest,played,rate,streak,longest,,tiers]=p;
   try{h2hFollow(n)}catch(e){console.error(e)}
-  const pres=presOf(p);
+  let pres=presOf(p);
+  // the week in progress: once they've a score on one of its main challenges (not a God challenge), weeks played, play
+  // rate, streaks, latest week and the grid count it straight away (medals and anything ranked against others wait for the week to end)
+  try{const LW=TW_LIVE; if(LW&&LW>(latest||0)&&twEntries(LW).some(x=>x.n===n&&!twIsGod(x.c[2]))){
+    const A=pres.split(""), i=LW-PRES_START; while(A.length<=i)A.push("0"); A[i]="1"; pres=A.join("");
+    streak=latest===LW-1?streak+1:1; longest=Math.max(longest,streak); played++; latest=LW; rate=played/(LW-first+1)}}catch(e){}
   const fw=WEEKS[first-1], lw=WEEKS[latest-1];
   const tierHtml=tiers?["Lead","Rhythm","Bass"].map((k,i)=>{const t=tiers[i].toUpperCase();return `<div class="tier" style="--tc:${TIER_C[t]||"var(--muted)"}"><small>${k}</small><b>${t==="?"?"–":t}</b></div>`}).join(""):`<span class="sub">No skill tiers on the player list</span>`;
   // runs of consecutive played weeks, for highlighting the best and active streaks
