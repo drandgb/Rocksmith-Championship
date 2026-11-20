@@ -7448,14 +7448,14 @@ function hmImpMark(w,keys){
   Object.keys(P).forEach(x=>{if(+x<w-4)delete P[x]}); try{localStorage.setItem(HM_IMP_KEY,JSON.stringify(P))}catch(e){}}
 function hmImproveMsgs(w){try{hmImpLoad()}catch(e){console.error(e)} const P=hmImpPosted()[w]||{}, by={};
   hmImprove(w).forEach(x=>(by[x.n]=by[x.n]||[]).push(x));
-  const on=x=>`${x.song}${x.path?` (${x.path})`:""}`;
+  const on=x=>`${x.song}${x.path?` (${x.path})`:""}`, up=x=>Math.floor(x.d);   // points up, rounded down to a whole number
   return Object.entries(by).map(([n,xs])=>{const fresh=xs.filter(x=>!P[x.k]), again=fresh.length>0&&fresh.length<xs.length, use=fresh.length?fresh:xs;
     let t;
     if(use.length===1){const x=use[0];
-      t=x.first!=null?`${again?"Another big improvement":"Big improvement"} @${n}! From ${x.first}% to ${x.pct}% on ${on(x)} this week, up ${x.d} points 📈`
-        :`${again?"Another big improvement":"Big improvement"} @${n}! ${x.pct}% on ${on(x)}, up ${x.d} points from your best of ${x.b}% before 📈`}
-    else t=`${again?"More big improvements":"Big improvements"} @${n}! ${andList(use.map(x=>x.first!=null?`${on(x)} from ${x.first}% to ${x.pct}%`:`${on(x)} at ${x.pct}%, up from your best of ${x.b}% before`))} this week 📈`;
-    return {n,t,keys:use.map(x=>x.k),done:!fresh.length,top:Math.max(...use.map(x=>x.d)),tag:use.map(x=>`+${x.d}`).join(", ")+" points"}})
+      t=x.first!=null?`${again?"Another big improvement":"Big improvement"} @${n}! From ${x.first}% to ${x.pct}% on ${on(x)} this week, up ${up(x)} points 📈`
+        :`${again?"Another big improvement":"Big improvement"} @${n}! ${x.pct}% on ${on(x)}, up ${up(x)} points from your best of ${x.b}% before 📈`}
+    else t=`${again?"More big improvements":"Big improvements"} @${n}! ${andList(use.map(x=>x.first!=null?`${on(x)} from ${x.first}% to ${x.pct}%, up ${up(x)} points`:`${on(x)} at ${x.pct}%, up ${up(x)} points from your best of ${x.b}% before`))} this week 📈`;
+    return {n,t,keys:use.map(x=>x.k),done:!fresh.length,top:Math.max(...use.map(x=>x.d)),tag:use.map(x=>`+${up(x)}`).join(", ")+" points"}})
     .sort((a,b)=>a.done-b.done||b.top-a.top||a.n.localeCompare(b.n))}
 // milestone medals collected in week w, as encouraging messages: new play streaks and hosting milestones, round numbers
 // (every 50 weeks played, every 25 wins on a path), and firsts (the medal's all-time count is all from this week)
