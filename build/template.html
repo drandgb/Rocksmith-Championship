@@ -3514,6 +3514,9 @@ function friHtml(){const B=friBlocks(); return B?B.map(L=>`<p>${L.join("<br>")}<
 // ---------- Admin: engagement before and since the stats sheet (Jul 11, 2026) and the website (Oct 5, 2026) ----------
 // complete weeks only (the week in progress isn't counted); the same weeks a year earlier show what the season alone does
 const ENG_SHEET="2026-07-11", ENG_SITE="2026-10-05";
+// the events marked on the chart and given a column each in the table (short label, and the longer hover text)
+const ENG_EV=[["2026-07-11","Stats sheet","The stats sheet started (Jul 11, 2026)"],["2026-09-06","Ignition","The championship was added to Ignition (around Sep 6, 2026)"],
+  ["2026-10-05","Website","The website started (Oct 5, 2026)"],["2026-11-19","GTA VI","GTA VI was released (Nov 19, 2026)"]];
 function engWeekOf(d){let w=null; WEEKS.forEach(x=>{if(x[1]<=d)w=x[0]}); return w}
 function engStats(){const nm=i=>SB.names[i].replace(/[*~]+$/,"").toLowerCase(), first={}, set={}, sc={};
   PLAYERS.forEach(p=>{first[p[0].toLowerCase()]=p[1]});
@@ -3525,7 +3528,10 @@ function engStats(){const nm=i=>SB.names[i].replace(/[*~]+$/,"").toLowerCase(), 
     return {a,z,n:ws.length,players:pl,scores:scr,per:scr/pl,newp:av(ws.map(w=>[...set[w]].filter(k=>first[k]===w).length)),
       back:av(ws.filter(w=>set[w-1]).map(w=>[...set[w]].filter(k=>set[w-1].has(k)).length/set[w].size))}};
   const sw=engWeekOf(ENG_SHEET), tw=engWeekOf(ENG_SITE), last=TW_MAX-1;
-  return {sw,tw,last,set,before:win(sw-(tw-sw),sw-1),sheet:win(sw,tw-1),site:win(tw,last),yrSheet:win(sw-52,tw-53),yrSite:win(tw-52,last-52)}}
+  // a column per event: from its week up to the next event's; "Before all": the 12 weeks before the first
+  const ev=ENG_EV.map(([dt,lab,tip])=>({w:engWeekOf(dt),lab,tip})), cols=[{lab:"Before all",tip:"The 12 weeks before the stats sheet started",x:win(ev[0].w-12,ev[0].w-1)}];
+  ev.forEach((e,i)=>{const z=Math.min(i+1<ev.length?ev[i+1].w-1:last,last); cols.push({lab:e.lab,tip:e.tip,w:e.w,x:z>=e.w?win(e.w,z):null})});
+  return {sw,tw,last,set,ev,cols,sheet:win(sw,tw-1),site:win(tw,last),yrSheet:win(sw-52,tw-53),yrSite:win(tw-52,last-52)}}
 function engSection(){const E=engStats(); if(!E.sheet||!E.site)return "";
   const d=w=>{const r=WEEKS.find(x=>x[0]===w); return r?new Date(r[1]+"T12:00:00").toLocaleDateString(undefined,{month:"short",day:"numeric",year:"numeric"}):""};
   const span=x=>x?`Weeks ${x.a}–${x.z} · ${x.n} week${x.n===1?"":"s"}`:"";
@@ -3533,25 +3539,30 @@ function engSection(){const E=engStats(); if(!E.sheet||!E.site)return "";
     ["New players per week",x=>x.newp,x=>x.toFixed(2)],["Came back from the week before",x=>x.back,x=>Math.round(x*100)+"%"]];
   const ch=(v,v0,pct)=>{if(v0==null||!v0)return ""; const c=pct?Math.round((v-v0)*100):Math.round((v/v0-1)*100); return ` <small class="${c>0?"up":c<0?"slip":""}">${c>0?"+":""}${c}${pct?" pts":"%"}</small>`};
   const cell=(x,f,g,prev,pct)=>x?`<td class="num">${g(f(x))}${prev?ch(f(x),f(prev),pct):""}</td>`:`<td class="num">–</td>`;
-  const tbl=(cols)=>`<table class="engt"><thead><tr><th></th>${cols.map(c=>`<th>${c.h}<small>${span(c.x)}</small></th>`).join("")}</tr></thead><tbody>${
+  const tbl=(cols)=>`<table class="engt"><thead><tr><th></th>${cols.map(c=>`<th title="${esc(c.tip||"")}">${c.h}<small>${c.x?span(c.x):c.w?`from Week ${c.w}, none finished yet`:""}</small></th>`).join("")}</tr></thead><tbody>${
     R.map(([lab,f,g],ri)=>`<tr><th>${lab}</th>${cols.map((c,i)=>cell(c.x,f,g,i?cols[i-1].x:null,ri===4)).join("")}</tr>`).join("")}</tbody></table>`;
   const yoy=cols=>`<table class="engt"><thead><tr><th></th>${cols.map(c=>`<th>${c.h}<small>${c.a&&c.b?`Weeks ${c.a.a}–${c.a.z} → ${c.b.a}–${c.b.z}`:""}</small></th>`).join("")}</tr></thead><tbody>${
     R.map(([lab,f,g],ri)=>`<tr><th>${lab}</th>${cols.map(c=>c.a&&c.b?`<td class="num">${g(f(c.a))} → ${g(f(c.b))}${ch(f(c.b),f(c.a),ri===4)}</td>`:`<td class="num">–</td>`).join("")}</tr>`).join("")}</tbody></table>`;
-  // players per week over the last year, with the two start lines
-  const ws=[]; for(let w=TW_MAX-60;w<=TW_MAX;w++)if(E.set[w])ws.push(w);
-  const mx=Math.max(...ws.map(w=>E.set[w].size)), W=620, H=120, bw=W/ws.length, x=w=>ws.indexOf(w)*bw;
-  // a dashed line where something started; rows 2 and 3 put the label lower so close ones don't overlap; the last week's label goes on its left
-  const mark=(w,lab,row,tip)=>{if(!ws.includes(w))return ""; const end=x(w)+3+lab.length*5.4>W;
-    return `<g><title>${esc(tip||lab)} (Week ${w})</title><line x1="${x(w)-1}" x2="${x(w)-1}" y1="4" y2="${H}" stroke="var(--accent)" stroke-dasharray="3 3"/><text x="${end?x(w)-4:x(w)+3}" y="${12*(row||1)}" fill="var(--accent)" font-size="10"${end?' text-anchor="end"':""}>${lab}</text></g>`};
-  const svg=`<svg class="engchart" viewBox="0 0 ${W} ${H+16}" role="img" aria-label="Players per week over the last ${ws.length} weeks">${ws.map(w=>{const h=E.set[w].size/mx*(H-42);
-    return `<rect x="${x(w)+1}" y="${H-h}" width="${bw-2}" height="${h}" rx="1.5" fill="${w===TW_MAX?"var(--muted)":w>=E.tw?"var(--s-green)":w>=E.sw?"var(--s-blue)":"#3a4256"}"><title>Week ${w}${w===TW_MAX?" (so far)":""}: ${E.set[w].size} players</title></rect>`}).join("")}
-    ${mark(E.sw,"Stats sheet")}${mark(engWeekOf("2026-09-06"),"Added to Ignition",2,"Championship added to Ignition (around Sep 6, 2026)")}${mark(E.tw,"Website")}${mark(engWeekOf("2026-11-19"),"GTA VI released",3)}<text x="0" y="${H+13}" fill="var(--muted)" font-size="10">Week ${ws[0]}</text><text x="${W}" y="${H+13}" fill="var(--muted)" font-size="10" text-anchor="end">Week ${TW_MAX} (so far)</text></svg>`;
+  // players per week: 2026 so far, and the same weeks a year earlier on the same scale, with the event lines
+  const wdate=w=>(WEEKS.find(x=>x[0]===w)||[])[1]||"", Y=String(new Date().getFullYear());
+  const ws=[]; for(let w=TW_MAX-60;w<=TW_MAX;w++)if(E.set[w]&&wdate(w).slice(0,4)===Y)ws.push(w);
+  const wsY=ws.map(w=>w-52).filter(w=>E.set[w]);
+  const mx=Math.max(...ws.concat(wsY).map(w=>E.set[w].size)), W=620, H=120;
+  const chart=(L,shift,last)=>{const bw=W/L.length, x=w=>L.indexOf(w)*bw;
+    // a dashed line where something happened (hover for what); every other label is a row lower so close ones don't overlap; a label that would run off the end goes on the line's left
+    const mark=(w,lab,row,tip)=>{if(!L.includes(w))return ""; const end=x(w)+3+lab.length*5.4>W;
+      return `<g${shift?' opacity=".55"':""}><title>${esc(tip||lab)}${shift?`, a year later`:""} (Week ${w+shift})</title><line x1="${x(w)-1}" x2="${x(w)-1}" y1="4" y2="${H}" stroke="var(--accent)" stroke-dasharray="3 3"/><text x="${end?x(w)-4:x(w)+3}" y="${12*(row||1)}" fill="var(--accent)" font-size="10"${end?' text-anchor="end"':""}>${lab}</text></g>`};
+    return `<svg class="engchart" viewBox="0 0 ${W} ${H+16}" role="img" aria-label="Players per week, Weeks ${L[0]} to ${L[L.length-1]}">${L.map(w=>{const h=E.set[w].size/mx*(H-30);
+      return `<rect x="${x(w)+1}" y="${H-h}" width="${bw-2}" height="${h}" rx="1.5" fill="${shift?"#3a4256":w===TW_MAX?"var(--muted)":w>=E.tw?"var(--s-green)":w>=E.sw?"var(--s-blue)":"#3a4256"}"><title>Week ${w}${w===TW_MAX?" (so far)":""}: ${E.set[w].size} players</title></rect>`}).join("")}
+      ${E.ev.map((e,i)=>mark(e.w-shift,e.lab,i%2?2:1,e.tip)).join("")}<text x="0" y="${H+13}" fill="var(--muted)" font-size="10">Week ${L[0]}</text><text x="${W}" y="${H+13}" fill="var(--muted)" font-size="10" text-anchor="end">Week ${L[L.length-1]}${last?" (so far)":""}</text></svg>`};
+  const svg=ws.length?chart(ws,0,true):"", svgY=wsY.length?chart(wsY,52,false):"";
   return `<div class="adm acctsec engsec"><h3>Engagement</h3>
-    <p class="dim">The stats sheet started on ${d(E.sw)} (Week ${E.sw}) and the website on Oct 5, 2026 (Week ${E.tw}). Complete weeks only: Week ${TW_MAX} isn't finished yet. Each change compares with the column to its left.</p>
-    ${tbl([{h:"Before the stats sheet",x:E.before},{h:"Stats sheet, before the website",x:E.sheet},{h:"Since the website",x:E.site}])}
-    <h4>Players per week</h4>${svg}
+    <p class="dim">Each column runs from its event to the next one (“Before all” is the 12 weeks before them). ${E.ev.map((e,i)=>{const t=e.tip.replace(/ \(.*\)$/,""); return `${esc(i&&/^[A-Z][a-z]/.test(t)?t.charAt(0).toLowerCase()+t.slice(1):t)} in Week ${e.w}`}).join(", ")}. Hover a heading or a dashed line for more. Complete weeks only: Week ${TW_MAX} isn't finished yet. Each change compares with the column to its left.</p>
+    ${tbl(E.cols.map(c=>({h:c.lab,tip:c.tip,x:c.x,w:c.w})))}
+    <h4>Players per week so far ${Y}</h4>${svg}
     <h4>Compared with the same weeks a year earlier</h4><p class="dim">2025 → 2026 over the same stretch of weeks, so a seasonal rise isn't mistaken for the sheet's or website's doing.</p>
     ${yoy([{h:"Stats sheet weeks",a:E.yrSheet,b:E.sheet},{h:"Website weeks",a:E.yrSite,b:E.site}])}
+    ${svgY?`<h4>Players per week over the same range ${+Y-1}</h4><p class="dim">The same weeks a year earlier, on the same scale; the dashed lines are where this year's events fall.</p>${svgY}`:""}
     <p class="dim">These show what changed, not why: seasons, song picks and word of mouth play a part too.</p></div>`}
 // the Friday post and the recruitment post remind you on their day: a badge on the profile button, the tab and the
 // section, from Friday (Saturday) in your own time until you copy the post that day
