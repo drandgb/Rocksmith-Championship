@@ -7408,9 +7408,10 @@ function hmWelcome(w){const byName=Object.fromEntries(PLAYERS.map(p=>[p[0].toLow
   return Object.keys(C).filter(n=>{const p=byName[n.toLowerCase()]; return live?!p:(p&&p[1]===w)}).sort((a,b)=>a.localeCompare(b)).map(n=>{const x=C[n], cls=Object.entries(x.p).sort((a,b)=>a[0]-b[0]).map(([pi,L])=>`${TIER_NAME[L]} ${PATHS[pi]}`);
     return {n,t:cls.length?`Welcome to the championship @${n}, you have been placed in ${andList(cls)}. Let us know if you prefer to be placed in a different difficulty bracket.`
       :`Welcome to the championship @${n}! You're playing as a FreeBird for now. Let us know which difficulty bracket you'd like to be placed in.`}})}
-// players back in week w after 4+ weeks away, with a friendly message
-function hmBack(w){const I=sbIx();
-  return Object.keys(I.wk).map(k=>{const W=I.wk[k], i=W.indexOf(w); if(i<1||w-W[i-1]<5)return null; const n=I.disp[k], away=w-W[i-1]-1;
+// players back in week w after missing at least the week before, counted the same way as This Week's "Back from a break"
+// (main challenges only: a week with only a God or bonus challenge doesn't count as played)
+function hmBack(w){const names=[...new Set(twEntries(w).map(x=>x.n))].filter(n=>twPlayed(n,w));
+  return names.map(n=>{const prev=twPlayed(n,w-1)?null:twLastBefore(n,w); if(!prev)return null; const away=w-prev-1;
     return {n,away,t:`Welcome back to the championship, @${n}! Great to see you again after ${away} week${away===1?"":"s"} away 🎸`}}).filter(Boolean).sort((a,b)=>a.n.localeCompare(b.n))}
 // big improvements in week w, at least HM_IMPROVE points: on a song played before on the same path, above the player's
 // best on it before; or within the week, from their first score on a card to their best (WEEKLOG). The bigger jump
