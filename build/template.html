@@ -671,6 +671,7 @@ a.dl svg,.offpill svg{width:11px;height:11px}
 .acctdlg .typos summary{cursor:pointer;padding:8px 10px;font:700 .82rem var(--f-display);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .acctdlg .typos summary small{font:400 .76rem var(--f-body)}
 .acctdlg .tycount{font:700 .72rem var(--f-mono);color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:1px 7px}
+.nbadge.nbemo{background:color-mix(in srgb,#ff4d6d 26%,var(--panel));height:19px;min-width:19px;padding:0 4px;font-size:.78rem;box-shadow:inset 0 0 0 1.5px #ff4d6d,0 0 8px rgba(255,77,109,.55)}   /* an emoji-only badge: a red tint inside a red ring (like the yellow Your week badges), so the emoji shows */
 .nbadge.tybadge{background:#f59e0b;color:#1a1204}.nbadge.nbyel{background:color-mix(in srgb,var(--accent) 26%,var(--panel));color:#ffd9b0;box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--accent) 70%,transparent),0 0 6px color-mix(in srgb,var(--accent) 30%,transparent)}
 .acctdlg .typos ul.tylist{list-style:none;margin:0;padding:0 10px 8px;max-height:260px;overflow:auto}
 .acctdlg .typos ul.tylist li{display:block;padding:5px 0;border-top:1px solid var(--line);font-size:.82rem;line-height:1.45}
@@ -3555,8 +3556,8 @@ const isCurHost=()=>{try{return !!hostIssueWeek()}catch(e){return false}};
 const todayKey=()=>{const d=new Date(); return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate()};
 function friDue(){try{return (isCurHost()||!!ACCT.admin)&&hostTab()&&new Date().getDay()===5&&lsGet("rsc-fri-done")!==todayKey()&&!!friText()}catch(e){return false}}
 function rpDue(){try{return !!ACCT.admin&&new Date().getDay()===6&&lsGet("rsc-rp-done")!==todayKey()}catch(e){return false}}
-const friBadge=()=>friDue()?`<span class="nbadge" title="It's Friday: time for the Friday post">📣</span>`:"";
-const rpBadge=()=>rpDue()?`<span class="nbadge" title="It's Saturday: time for the recruitment post">📢</span>`:"";
+const friBadge=()=>friDue()?`<span class="nbadge nbemo" title="It's Friday: time for the Friday post">📣</span>`:"";
+const rpBadge=()=>rpDue()?`<span class="nbadge nbemo" title="It's Saturday: time for the recruitment post">📢</span>`:"";
 document.addEventListener("click",e=>{const b=e.target.closest("[data-rpcopy]"); if(!b)return;
   const k=b.dataset.rpcopy==="fritext"?"rsc-fri-done":/^rp/.test(b.dataset.rpcopy)?"rsc-rp-done":null; if(!k)return;
   lsSet(k,todayKey()); setTimeout(()=>{try{acctBtn(); if($("acct").open)acctDraw()}catch(err){}},1600)});
