@@ -7460,7 +7460,7 @@ function hmImproveMsgs(w){try{hmImpLoad()}catch(e){console.error(e)} const P=hmI
     if(use.length===1){const x=use[0];
       t=x.first!=null?`${again?"Another big improvement":"Big improvement"} @${n}! From ${x.first}% to ${x.pct}% on ${on(x)} this week, up ${up(x)} points 📈`
         :`${again?"Another big improvement":"Big improvement"} @${n}! ${x.pct}% on ${on(x)}, up ${up(x)} points from your best of ${x.b}% before 📈`}
-    else t=`${again?"More big improvements":"Big improvements"} @${n}! ${andList(use.map(x=>x.first!=null?`${on(x)} from ${x.first}% to ${x.pct}%, up ${up(x)} points`:`${on(x)} at ${x.pct}%, up ${up(x)} points from your best of ${x.b}% before`))} this week 📈`;
+    else t=`${again?"More big improvements":"Big improvements"} @${n}! ${(L=>L.length>2?L.slice(0,-1).join(", ")+", and "+L[L.length-1]:L.join(", and "))(use.map((x,i)=>{const F=i?"f":"F"; return x.first!=null?`${F}rom ${x.first}% to ${x.pct}% on ${on(x)}${i===use.length-1?" this week":""}, up ${up(x)} points`:`${x.pct}% on ${on(x)}, up ${up(x)} points from your best of ${x.b}% before`}))} 📈`;   // each one worded like a single improvement
     return {n,t,keys:use.map(x=>x.k),done:!fresh.length,top:Math.max(...use.map(x=>x.d)),tag:use.map(x=>`+${up(x)}`).join(", ")+" points"}})
     .sort((a,b)=>a.done-b.done||b.top-a.top||a.n.localeCompare(b.n))}
 // milestone medals collected in week w, as encouraging messages: new play streaks and hosting milestones, round numbers
