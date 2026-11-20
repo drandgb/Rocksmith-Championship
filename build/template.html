@@ -7437,10 +7437,11 @@ document.addEventListener("click",e=>{const b=e.target.closest("[data-hmsent]");
   hmImpMark(+b.dataset.hmsent,[b.dataset.hmt,...parts].map(hmSentKey)); hmRedraw()});   // a joined message marks each of its parts too
 function hmRedraw(){const el=document.querySelector(".acctdlg .hmsec:not(.hmhost)"); if(el)el.outerHTML=hmSection()}
 function hmImpLoad(){if(!ACCT.sb||HM_IMP.st===null||(HM_IMP.st!==undefined&&Date.now()-HM_IMP.t<30000))return; HM_IMP.st=null;
-  ACCT.sb.from("improve_posted").select("week,item").gte("week",TW_MAX-2).then(({data,error})=>{HM_IMP.t=Date.now();
-    if(error){HM_IMP.st=false}else{const P={}; (data||[]).forEach(r=>(P[r.week]=P[r.week]||{})[r.item]=1); HM_IMP.st=P} hmRedraw()})}
+  ACCT.sb.from("improve_posted").select("week,item,at,by_player").gte("week",TW_MAX-2).then(({data,error})=>{HM_IMP.t=Date.now();
+    if(error){HM_IMP.st=false}else{const P={}, G={}; (data||[]).forEach(r=>{(P[r.week]=P[r.week]||{})[r.item]=1; (G[r.week]=G[r.week]||[]).push(r)}); HM_IMP.st=P; HM_IMP.log=G} hmRedraw()})}
 function hmImpMark(w,keys){
   if(HM_IMP.st&&typeof HM_IMP.st==="object"){const P=HM_IMP.st; P[w]=P[w]||{}; keys.forEach(k=>P[w][k]=1);
+    const G=HM_IMP.log=HM_IMP.log||{}, at=new Date().toISOString(); G[w]=(G[w]||[]).concat(keys.map(item=>({week:w,item,at,by_player:ACCT.claim&&ACCT.claim.player||null})));
     ACCT.sb.from("improve_posted").upsert(keys.map(item=>({week:w,item,by_player:ACCT.claim&&ACCT.claim.player||null})),{onConflict:"week,item",ignoreDuplicates:true})
       .then(({error})=>{if(error)alert("Couldn't save that it was copied: "+error.message)}); return}
   const P=hmImpLocal(); P[w]=P[w]||{}; keys.forEach(k=>P[w][k]=1);
@@ -7477,6 +7478,12 @@ function hmMilestones(w){const live=w>DATA_WEEK, names=[...new Set(twEntries(w).
   names.forEach(n=>{let ms=[]; try{ms=twMedals(n,w,live)}catch(e){}
     ms.forEach(h=>{const tip=(/data-tip="([^"]*)"/.exec(h)||[])[1]||"", t=hmMsg(n,tip.replace(/&#39;/g,"'").replace(/&quot;/g,'"').replace(/&amp;/g,"&")); if(t&&!out.some(x=>x.t===t))out.push({n,what:tip.split(" · ")[0],t})})});
   return out.sort((a,b)=>a.n.localeCompare(b.n))}
+// Sent log (bottom of Messages for players): who marked which message sent, and when, newest first. One press of
+// Sent saves the message and its parts at the same moment, so those show as one line with the message's own text.
+function hmSentLog(w,msgs){const G=(HM_IMP.log||{})[w]||[], text={}; msgs.forEach(x=>{text[hmSentKey(x.t)]=x.t; (x.parts||[]).forEach(t=>{text[hmSentKey(t)]=text[hmSentKey(t)]||t})});
+  const by={}; G.filter(r=>/^sent\|/.test(r.item)).forEach(r=>{const k=r.at+"|"+(r.by_player||""); (by[k]=by[k]||[]).push(r)});
+  const L=Object.values(by).map(R=>{const r=R.slice().sort((a,b)=>b.item.length-a.item.length)[0]; return {at:r.at,by:r.by_player,t:text[r.item]||r.item.slice(5)}}).sort((a,b)=>b.at.localeCompare(a.at));
+  return `<h4>🗒️ Sent log</h4>${L.length?`<ul class="ratelog">${L.map(x=>`<li><small>${esc(new Date(x.at).toLocaleString(undefined,{month:"short",day:"numeric",hour:"numeric",minute:"2-digit"}))}</small> · <b>${esc(x.by||"someone")}</b> · ${esc(x.t)}</li>`).join("")}</ul>`:`<p class="dim">Nothing marked sent for Week ${w} yet.</p>`}`}
 // joining messages: one player's path variants ("every Lead and Rhythm challenge"), then the same message for several
 // players ("Congratulations @A, @B, and @C, ..."). Sent and not-yet-sent ones are joined separately, so a message
 // that was sent stays as it was; each joined message keeps its parts (x.parts) for the Sent button.
@@ -7516,7 +7523,7 @@ function hmSection(){const ws=hmWeeks(); if(!ws.length)return ""; const w=ACCT.h
     <h4>👋 Welcome new players</h4>${W.length?`<ul class="hml">${Wj.map(x=>row(x.t,x.many?`${x.many} players`:"",x.parts)).join("")}</ul>`:`<p class="dim">No new players in Week ${w}.</p>`}
     <h4>🔁 Welcome back</h4>${B.length?`<ul class="hml">${Bj.map(x=>row(x.t,`${x.away} weeks away${x.many?` · ${x.many} players`:""}`,x.parts)).join("")}</ul>`:`<p class="dim">Nobody back from a break in Week ${w}.</p>`}
     <h4>🎉 Milestones</h4>${M.length?`<ul class="hml">${Mj.map(x=>row(x.t,x.what+(x.many?` · ${x.many} players`:""),x.parts)).join("")}</ul>`:`<p class="dim">No milestone medals in Week ${w} yet.</p>`}
-    <h4>📈 Big improvements</h4>${U.length?`<ul class="hml">${U.map(x=>`<li${x.done||sent(x.t)?' class="hmdone"':""}><div class="hmt"><span class="hmk">${esc(sent(x.t)?"Sent · "+x.tag:x.done?"Copied · "+x.tag:x.tag)}</span>${esc(x.t)}</div><span class="hmbtns"><button type="button" class="btn ghost hmcp" data-hmcopy="${esc(x.t)}" data-hmimp="${w}|${esc(JSON.stringify(x.keys))}">Copy</button>${sentBtn(x.t)}</span></li>`).join("")}</ul>`:`<p class="dim">No improvements of ${HM_IMPROVE}+ points in Week ${w} yet.</p>`}${HM_IMP.st===false?`<p class="dim">Copied messages are only remembered in this browser until build/supabase/improve_posted.sql is run in Supabase.</p>`:""}</div>`}
+    <h4>📈 Big improvements</h4>${U.length?`<ul class="hml">${U.map(x=>`<li${x.done||sent(x.t)?' class="hmdone"':""}><div class="hmt"><span class="hmk">${esc(sent(x.t)?"Sent · "+x.tag:x.done?"Copied · "+x.tag:x.tag)}</span>${esc(x.t)}</div><span class="hmbtns"><button type="button" class="btn ghost hmcp" data-hmcopy="${esc(x.t)}" data-hmimp="${w}|${esc(JSON.stringify(x.keys))}">Copy</button>${sentBtn(x.t)}</span></li>`).join("")}</ul>`:`<p class="dim">No improvements of ${HM_IMPROVE}+ points in Week ${w} yet.</p>`}${HM_IMP.st===false?`<p class="dim">Copied messages are only remembered in this browser until build/supabase/improve_posted.sql is run in Supabase.</p>`:""}${hmSentLog(w,[...Wj,...Bj,...Mj,...U])}</div>`}
 document.addEventListener("change",e=>{const s=e.target.closest("[data-hmweek]"); if(!s)return; ACCT.hmWeek=+s.value; const el=document.querySelector(".acctdlg .hmsec:not(.hmhost)"); if(el)el.outerHTML=hmSection(); const eh=document.querySelector(".acctdlg .hmhost"); if(eh)eh.outerHTML=hostMsgSection()});
 document.addEventListener("click",e=>{const b=e.target.closest("[data-hmcopy]"); if(!b)return; try{navigator.clipboard.writeText(b.dataset.hmcopy).then(()=>{b.textContent="Copied ✓";
   const im=b.dataset.hmimp; if(im){const i=im.indexOf("|"); hmImpMark(+im.slice(0,i),JSON.parse(im.slice(i+1)))}   // a big improvement: remembered, so the next one is new
