@@ -677,6 +677,7 @@ a.dl svg,.offpill svg{width:11px;height:11px}
 .acctdlg .typos ul.tylist li{display:block;padding:5px 0;border-top:1px solid var(--line);font-size:.82rem;line-height:1.45}
 .acctdlg .typos li small{color:var(--muted)}
 .acctdlg .tylink{color:var(--accent);cursor:pointer;font-weight:600}
+.acctdlg .typos li.tydis{opacity:.5}.acctdlg .tytag.tydtag{background:var(--line);color:var(--muted)}.acctdlg .tydbtn{margin-left:6px;font:700 .7rem var(--f-body);color:var(--muted);background:none;border:1px solid var(--line);border-radius:999px;padding:1px 8px;cursor:pointer}.acctdlg .tydbtn:hover{color:var(--text);border-color:var(--muted)}
 .acctdlg .tytag{font:800 .6rem var(--f-display);letter-spacing:.06em;text-transform:uppercase;background:#f59e0b;color:#1a1204;border-radius:999px;padding:1px 6px;margin-right:6px}
 .acctdlg .ratelog{list-style:none;margin:0;padding:0;max-height:320px;overflow:auto}
 .ywalert{border:1px solid color-mix(in srgb,var(--s-red) 55%,transparent);background:color-mix(in srgb,var(--s-red) 9%,transparent);border-radius:10px;padding:10px 12px;margin:12px 0 14px}
@@ -7708,7 +7709,7 @@ function typoScan(){
   // scoreboard song names that don't match the Songs Played sheet for the same week (found by the site update)
   ((SB.ssl&&SB.ssl.diff)||[]).forEach(x=>out.ssl.push({w:x.w,sb:x.sb,ssl:x.ssl,why:x.why}));
   const isNew=x=>x.w===NEW||(x.forms&&x.forms.some(f=>f.last===NEW));
-  const nNew=Object.values(out).flat().filter(isNew).length;
+  const nNew=Object.entries(out).reduce((a,[k,L])=>a+L.filter(x=>isNew(x)&&!tyDis(k,x)).length,0);
   return TYPO_CACHE={out,NEW,nNew,isNew};
 }
 function sslNote(){const i=SB.ssl||{}; return `The song names in the scoreboard and the Song Selection List's Songs Played sheet don't match`+(i.live?"":i.from?` (Songs Played as read on ${new Date(i.from).toLocaleDateString()})`:` (Songs Played copy up to week ${i.last||"?"}; the site couldn't read the live sheet)`)}
@@ -7723,7 +7724,22 @@ function hostIssueWeek(){try{if(!acctOn()||!ACCT.claim||ACCT.claim.status!=="app
 function hostIssueList(){const w=hostIssueWeek(); if(!w)return []; return [hostIssues(w),hostIssues(w+1,true)].filter(H=>H&&(!H.live||SB.weeks[H.w]))}
 const hostIssueN=()=>hostIssueList().reduce((a,H)=>a+H.n,0);
 function hostIssues(wk,live){const w=wk||hostIssueWeek(); if(!w)return null; const {out}=typoScan(), inW=x=>x.w===w||!!(x.forms&&x.forms.some(f=>f.last===w)), o={}; let n=0;
-  for(const k in out){o[k]=out[k].filter(inW); n+=o[k].length} return {w,out:o,n,live:!!live}}
+  tyDisOk(); for(const k in out){o[k]=out[k].filter(inW); n+=o[k].filter(x=>!tyDis(k,x)).length} return {w,out:o,n,live:!!live}}
+// Scoreboard checks: dismissed issues (check_dismiss.sql). TY_DIS: undefined = not loaded, null = loading, false = table not set up, else {key: row}
+var TY_DIS;
+function tyKey(k,x){return (k+"|"+(x.forms?x.forms.map(f=>f.t).join(" / "):[x.w,x.p,x.lv,x.n,x.note,x.song,x.sb,x.ssl].map(v=>v==null?"":String(v)).join("|"))).slice(0,600)}
+const tyDis=(k,x)=>!!(TY_DIS&&TY_DIS[tyKey(k,x)]);
+function tyDisLoad(){if(!acctOn()||!ACCT.sb||TY_DIS===null)return; TY_DIS=null;
+  ACCT.sb.from("check_dismiss").select("key,kind,week,label,at,by_player").then(({data,error})=>{TY_DIS=error?false:Object.fromEntries((data||[]).map(r=>[r.key,r])); TYPO_CACHE=null; try{acctBtn(); if($("acct").open)acctDraw()}catch(e){}})}
+const tyDisOk=()=>{if(TY_DIS===undefined)tyDisLoad(); return !!TY_DIS};
+// the dismiss button's data: the issue's key, kind, week and a short label for the fix log
+const TY_DATA={};
+document.addEventListener("click",async e=>{const b=e.target.closest("[data-tydis]"); if(!b||!TY_DIS)return; e.preventDefault(); const d=TY_DATA[b.dataset.tydis]; if(!d)return; b.disabled=true;
+  let error;
+  if(TY_DIS[d.key])({error}=await ACCT.sb.from("check_dismiss").delete().eq("key",d.key));
+  else ({error}=await ACCT.sb.from("check_dismiss").insert({key:d.key,kind:d.kind,week:d.week||null,label:d.label,user_id:ACCT.user.id,by_player:ACCT.claim&&ACCT.claim.status==="approved"?ACCT.claim.player:null}));
+  if(error){alert("Couldn't save it: "+error.message); b.disabled=false; return}
+  TY_DIS=undefined; tyDisLoad()});
 // Scoreboard checks: remember which groups you opened or closed, so they stay that way when the popup redraws
 var TY_OPEN={};
 const tyOpen=(k,def)=>k in TY_OPEN?TY_OPEN[k]:def;
@@ -7731,7 +7747,10 @@ document.addEventListener("toggle",e=>{const d=e.target; if(d&&d.dataset&&d.data
 function typoSection(H){
   const S=typoScan(), out=H?H.out:S.out, NEW=S.NEW, isNew=H?(()=>false):S.isNew;
   const card=x=>`<span class="tylink" data-sbw="${x.w}" data-sbp="${x.p}" data-sbn="${esc(x.n||"")}" title="Open on the Scoreboard">Week ${x.w} · ${PATHS[x.p]} ${esc(x.lv)}</span>`;
-  const row=(x,body)=>`<li class="${isNew(x)?"tynew":""}">${isNew(x)?'<span class="tytag">new</span>':""}${body}</li>`;
+  const disOn=tyDisOk(), plain=h=>String(h).replace(/<[^>]+>/g,"").replace(/&lt;/g,"<").replace(/&gt;/g,">").replace(/&quot;/g,'"').replace(/&#39;/g,"'").replace(/&amp;/g,"&");
+  const row=(k,x,body)=>{const key=tyKey(k,x), D=TY_DIS&&TY_DIS[key], id=Object.keys(TY_DATA).length+1+"";
+    if(disOn)TY_DATA[id]={key,kind:k,week:x.w||(x.forms&&Math.max(...x.forms.map(f=>f.last||0)))||null,label:plain(body).slice(0,400)};
+    return `<li class="${isNew(x)&&!D?"tynew":""}${D?" tydis":""}">${isNew(x)&&!D?'<span class="tytag">new</span>':""}${D?`<span class="tytag tydtag">dismissed</span>`:""}${body}${D?` <small class="dim">· by ${esc(D.by_player||"an admin")}, ${esc(new Date(D.at).toLocaleDateString())}</small>`:""}${disOn?` <button type="button" class="tydbtn" data-tydis="${id}" title="${D?"Show this issue again":"Not a real problem: grey it out and stop counting it"}">${D?"Restore":"Dismiss"}</button>`:""}</li>`};
   const forms=x=>x.forms.map(f=>`“${esc(f.t)}”${f.n?` <small>${f.n}×, last Week ${f.last}</small>`:""}`).join(" vs ");
   const G=[["big","Placeholder score","Nine digits counting 1 to 9 (like 912,345,678), not a real score",x=>`${card(x)} · <b>${esc(x.n)}</b> · ${esc(x.note)} · ${esc(x.song)}`],
     ["year","Score looks like a year","A score from 1950 to next year is probably the song's release year recorded by mistake",x=>`${card(x)} · <b>${esc(x.n)}</b> · ${esc(x.note)} · ${esc(x.song)}`],
@@ -7749,20 +7768,23 @@ function typoSection(H){
   const total=G.reduce((s,g)=>s+out[g[0]].length,0);
   if(H)return `<div class="acctsec typos hostfix"><h3>🔧 Scoreboard issues in Week ${H.w}${H.live?" so far":""}</h3><p class="dim">Likely typos in ${H.live?"this week's scoreboard so far":"last week's scoreboard"}. Click a week to open it on the Scoreboard; fix it in the sheet and it disappears after the next site update.</p>
     ${total?G.map(([k,t,d,f])=>{const L=out[k]; if(!L.length)return "";
-      return `<details data-tyk="h${H.w}|${k}"${tyOpen("h"+H.w+"|"+k,true)?" open":""}><summary>${t} <span class="tycount">${L.length}</span>${d?` <small class="dim">${d}</small>`:""}</summary><ul class="tylist">${L.map(x=>row(x,f(x))).join("")}</ul></details>`}).join(""):`<p>No likely typos found. 👍</p>`}</div>`;
+      return `<details data-tyk="h${H.w}|${k}"${tyOpen("h"+H.w+"|"+k,true)?" open":""}><summary>${t} <span class="tycount">${L.filter(x=>!tyDis(k,x)).length}</span>${d?` <small class="dim">${d}</small>`:""}</summary><ul class="tylist">${L.slice().sort((a,b)=>tyDis(k,a)-tyDis(k,b)).map(x=>row(k,x,f(x))).join("")}</ul></details>`}).join(""):`<p>No likely typos found. 👍</p>`}</div>`;
   // (the same count as the Admin tab's badge: new issues in the newest week)
   const nNew=(()=>{try{return typoScan().nNew||0}catch(e){return 0}})();
   return `<div class="adm acctsec typos"><h3>Scoreboard checks${nNew?`<span class="nbadge tybadge" title="${nNew} likely typo${nNew===1?"":"s"} in this week's scoreboard">${nNew}</span>`:""}</h3><p class="dim">Likely typos in the scoreboard sheet, every week since 440. Click a week to open it on the Scoreboard; fix it in the sheet and it disappears after the next site update. <b>New</b> marks issues in the newest week (${NEW}).</p>
-    ${total?G.map(([k,t,d,f])=>{const L=out[k].slice().sort((a,b)=>(isNew(b)-isNew(a))||b.w-a.w), nn=L.filter(isNew).length; if(!L.length)return "";
-      return `<details data-tyk="a|${k}"${tyOpen("a|"+k,!!nn)?" open":""}><summary>${t} <span class="tycount">${L.length}</span>${nn?`<span class="nbadge tybadge">${nn} new</span>`:""}${d?` <small class="dim">${d}</small>`:""}</summary><ul class="tylist">${L.map(x=>row(x,f(x))).join("")}</ul></details>`}).join(""):`<p>No likely typos found.</p>`}${fixLogSection()}</div>`;
+    ${total?G.map(([k,t,d,f])=>{const L=out[k].slice().sort((a,b)=>(tyDis(k,a)-tyDis(k,b))||(isNew(b)-isNew(a))||b.w-a.w), nd=L.filter(x=>tyDis(k,x)).length, nn=L.filter(x=>isNew(x)&&!tyDis(k,x)).length; if(!L.length)return "";
+      return `<details data-tyk="a|${k}"${tyOpen("a|"+k,!!nn)?" open":""}><summary>${t} <span class="tycount">${L.length-nd}</span>${nd?` <small class="dim">+${nd} dismissed</small>`:""}${nn?`<span class="nbadge tybadge">${nn} new</span>`:""}${d?` <small class="dim">${d}</small>`:""}</summary><ul class="tylist">${L.map(x=>row(k,x,f(x))).join("")}</ul></details>`}).join(""):`<p>No likely typos found.</p>`}${fixLogSection()}</div>`;
 }
 // ---------- Admin: scoreboard fix log (issues from the scoreboard checks that went away, found by each site update) ----------
 var FIXLOG=[]/*FIXLOG*/;
 function fixLogSection(){
-  const kinds={zero:"Score of 0",noscore:"Missing score",nopct:"Missing %",streak:"100% streak",dup:"Same player twice",order:"Row out of order",band:"Band name",song:"Song title",player:"Player name",ssl:"Differs from Songs Played"};
-  const rows=FIXLOG.slice().reverse().slice(0,60).map(f=>`<li><small>${new Date(f.d).toLocaleDateString()}</small> · ${kinds[f.k]||f.k} · ${f.w?`<span class="tylink" data-sbw="${f.w}"${f.p!=null?` data-sbp="${f.p}" data-sbn="${esc(f.n||"")}"`:""} title="Open on the Scoreboard">Week ${f.w}${f.p!=null?` · ${PATHS[f.p]} ${esc(f.lv)}`:""}</span> · `:""}${esc(f.t)}</li>`).join("");
+  const kinds={big:"Placeholder score",year:"Score looks like a year",high:"Score over 5 million",zero:"Score of 0",noscore:"Missing score",nopct:"Missing %",streak:"100% streak",dup:"Same player twice",order:"Row out of order",band:"Band name",song:"Song title",player:"Player name",ssl:"Differs from Songs Played"};
+  const fixed=FIXLOG.map(f=>({d:new Date(f.d).getTime(),h:`<li><small>${new Date(f.d).toLocaleDateString()}</small> · ${kinds[f.k]||f.k} · ${f.w?`<span class="tylink" data-sbw="${f.w}"${f.p!=null?` data-sbp="${f.p}" data-sbn="${esc(f.n||"")}"`:""} title="Open on the Scoreboard">Week ${f.w}${f.p!=null?` · ${PATHS[f.p]} ${esc(f.lv)}`:""}</span> · `:""}${esc(f.t)}</li>`}));
+  // dismissed issues: who dismissed what and when
+  const dis=TY_DIS?Object.values(TY_DIS).map(r=>({d:new Date(r.at).getTime(),h:`<li><small>${new Date(r.at).toLocaleDateString()}</small> · <b>Dismissed</b> by ${esc(r.by_player||"an admin")} · ${kinds[r.kind]||esc(r.kind)} · ${r.week?`<span class="tylink" data-sbw="${r.week}" title="Open on the Scoreboard">Week ${r.week}</span> · `:""}${esc(r.label||"")}</li>`})):[];
+  const rows=fixed.concat(dis).sort((a,b)=>b.d-a.d).slice(0,60).map(x=>x.h).join("");
   // (part of "Scoreboard checks", at its bottom)
-  return `<div class="fixlog ratelogbox"><h4>Scoreboard fix log</h4><p class="dim">Scoreboard check issues that were fixed in the sheet, newest first. Each site update compares the checks with the previous update.</p>${rows?`<ul class="ratelog">${rows}</ul>`:`<p class="dim">Nothing fixed since the log started.</p>`}</div>`;
+  return `<div class="fixlog ratelogbox"><h4>Scoreboard fix log</h4><p class="dim">Scoreboard check issues that were fixed in the sheet, and those dismissed, newest first. Each site update compares the checks with the previous update.</p>${rows?`<ul class="ratelog">${rows}</ul>`:`<p class="dim">Nothing fixed since the log started.</p>`}</div>`;
 }
 // removing an approved claim: choose whether their ratings stay shown, and whether a new account claiming the same
 // name gets them, and whether their forum banner stays (build/supabase/claim_remove.sql).
