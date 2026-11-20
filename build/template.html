@@ -7428,7 +7428,7 @@ function hmImpPosted(){return HM_IMP.st&&typeof HM_IMP.st==="object"?HM_IMP.st:h
 const hmSentKey=t=>"sent|"+String(t).toLowerCase().replace(/\s+/g," ").trim().slice(0,400);
 document.addEventListener("click",e=>{const b=e.target.closest("[data-hmsent]"); if(!b||b.disabled)return; let parts=[]; try{parts=JSON.parse(b.dataset.hmparts||"[]")}catch(x){}
   hmImpMark(+b.dataset.hmsent,[b.dataset.hmt,...parts].map(hmSentKey)); hmRedraw()});   // a joined message marks each of its parts too
-function hmRedraw(){const el=document.querySelector(".acctdlg .hmsec:not(.hmhost)"); if(el)el.outerHTML=hmSection()}
+function hmRedraw(){try{acctBtn()}catch(e){} const el=document.querySelector(".acctdlg .hmsec:not(.hmhost)"); if(el){el.outerHTML=hmSection(); try{const t=document.querySelector('.accttabs [data-accttab="admin"]'); if(t){t.querySelectorAll(".nbemo[title*='message']").forEach(x=>x.remove()); const h=hmBadge(); if(h)t.firstChild.after(document.createRange().createContextualFragment(h))}}catch(e){}}}
 function hmImpLoad(){if(!ACCT.sb||HM_IMP.st===null||(HM_IMP.st!==undefined&&Date.now()-HM_IMP.t<30000))return; HM_IMP.st=null;
   ACCT.sb.from("improve_posted").select("week,item,at,by_player").gte("week",TW_MAX-2).then(({data,error})=>{HM_IMP.t=Date.now();
     if(error){HM_IMP.st=false}else{const P={}, G={}; (data||[]).forEach(r=>{(P[r.week]=P[r.week]||{})[r.item]=1; (G[r.week]=G[r.week]||[]).push(r)}); HM_IMP.st=P; HM_IMP.log=G} hmRedraw()})}
@@ -7504,6 +7504,15 @@ function hostMsgSection(){const ws=hmWeeks(); if(!ws.length)return ""; const w=A
   const M=hmMilestones(w).filter(hmIsHost), row=(t,tag)=>`<li><div class="hmt">${tag?`<span class="hmk">${esc(tag)}</span>`:""}${esc(t)}</div><button type="button" class="btn ghost hmcp" data-hmcopy="${esc(t)}">Copy</button></li>`;
   return `<div class="adm acctsec hmsec hmhost"><h3>Host milestones <select class="hlsel" data-hmweek>${ws.map(x=>`<option value="${x}"${x===w?" selected":""}>Week ${x}</option>`).join("")}</select></h3>
     <p class="dim">Thank-you messages for hosts who reached a host medal, ready to copy.</p>${M.length?`<ul class="hml">${M.map(x=>row(x.t,x.what)).join("")}</ul>`:`<p class="dim">No host medal milestones in Week ${w}.</p>`}</div>`}
+// how many messages for the current week aren't sent yet (the badge on Messages for players, the Admin tab and the
+// profile button); worked out again only when the week's sent marks change
+let HM_N={k:"",n:0};
+function hmUnsentN(){try{if(!ACCT.admin)return 0; const w=hmWeeks()[0]; if(!w)return 0; hmImpLoad(); const P=hmImpPosted()[w]||{}, k=w+"|"+Object.keys(P).length+"|"+(HM_IMP.t||0);
+  if(HM_N.k===k)return HM_N.n; const sent=t=>!!P[hmSentKey(t)];
+  const J=[...hmJoin(hmWelcome(w),sent),...hmJoin(hmBack(w),sent),...hmJoin(hmMilestones(w).filter(x=>!hmIsHost(x)),sent)];
+  const n=J.filter(x=>!(x.parts||[x.t]).every(sent)).length+hmImproveMsgs(w).filter(x=>!x.done&&!sent(x.t)).length;
+  HM_N={k,n}; return n}catch(e){return 0}}
+const hmBadge=()=>{const n=hmUnsentN(); return n?`<span class="nbadge nbemo" title="${n} message${n===1?"":"s"} for players not sent yet this week">💬</span>`:""};
 function hmSection(){const ws=hmWeeks(); if(!ws.length)return ""; const w=ACCT.hmWeek&&ws.includes(ACCT.hmWeek)?ACCT.hmWeek:ws[0];
   const W=hmWelcome(w), B=hmBack(w), M=hmMilestones(w).filter(x=>!hmIsHost(x)), U=hmImproveMsgs(w), P=hmImpPosted()[w]||{};
   // Sent: marks the message as sent, for everyone who posts (saved with the copied improvements, improve_posted.sql)
@@ -7511,7 +7520,8 @@ function hmSection(){const ws=hmWeeks(); if(!ws.length)return ""; const w=ACCT.h
   const Wj=hmJoin(W,sent), Bj=hmJoin(B,sent), Mj=hmJoin(M,sent);
   // a joined message counts as sent once all its parts were (each part is marked when it's sent)
   const row=(t,tag,parts)=>{const done=parts?parts.every(sent):sent(t); return `<li${done?' class="hmdone"':""}><div class="hmt">${tag||done?`<span class="hmk">${esc(done?(tag?"Sent · "+tag:"Sent"):tag)}</span>`:""}${esc(t)}</div><span class="hmbtns"><button type="button" class="btn ghost hmcp" data-hmcopy="${esc(t)}">Copy</button>${sentBtn(t,parts,done)}</span></li>`};
-  return `<div class="acctsec hmsec"><h3>Messages for players <select class="hlsel" data-hmweek>${ws.map(x=>`<option value="${x}"${x===w?" selected":""}>Week ${x}</option>`).join("")}</select></h3>
+  const nU=hmUnsentN();
+  return `<div class="acctsec hmsec"><h3>Messages for players${nU?`<span class="nbadge tybadge" title="${nU} message${nU===1?"":"s"} not sent yet in Week ${ws[0]}">${nU}</span>`:""} <select class="hlsel" data-hmweek>${ws.map(x=>`<option value="${x}"${x===w?" selected":""}>Week ${x}</option>`).join("")}</select></h3>
     <p class="dim">Ready to copy into a forum reply or message.${w>DATA_WEEK?" This week is still running, so medals can still change.":""}</p>
     <h4>👋 Welcome new players</h4>${W.length?`<ul class="hml">${Wj.map(x=>row(x.t,x.many?`${x.many} players`:"",x.parts)).join("")}</ul>`:`<p class="dim">No new players in Week ${w}.</p>`}
     <h4>🔁 Welcome back</h4>${B.length?`<ul class="hml">${Bj.map(x=>row(x.t,`${x.away} weeks away${x.many?` · ${x.many} players`:""}`,x.parts)).join("")}</ul>`:`<p class="dim">Nobody back from a break in Week ${w}.</p>`}
@@ -8325,7 +8335,7 @@ function acctBtn(){const b=$("acctbtn"); b.hidden=!ACCT.on; try{twGoals()}catch(
   if(sd)b.insertAdjacentHTML("beforeend",`<span class="nbadge nbyel" title="Your season ranking is in danger on ${sd} path${sd===1?"":"s"} · dismiss it in Your week">🏁</span>`);
   // this week's host: likely issues in last week's scoreboard (Host tab)
   try{const L=hostIssueList(), n=hostIssueN(); if(n)b.insertAdjacentHTML("beforeend",`<span class="nbadge nbemo" title="${n} likely scoreboard issue${n===1?"":"s"} in ${L.map(H=>"Week "+H.w).join(" and ")} · see the Host tab">🔧</span>`)}catch(e){}
-  try{b.insertAdjacentHTML("beforeend",friBadge()+rpBadge())}catch(e){}   // Friday post (this week's host and admins), recruitment post (admins)
+  try{b.insertAdjacentHTML("beforeend",friBadge()+rpBadge()+hmBadge())}catch(e){}   // Friday post (this week's host and admins), recruitment post (admins)
   try{const hb=$("twhostbar"); if(hb)hb.hidden=!isCurHost()}catch(e){}   // This Week: Open host settings, for this week's host
   try{const yb=$("twywbar"); if(yb)yb.hidden=!(ACCT.claim&&ACCT.claim.status==="approved")}catch(e){} sbYwShow();   // This Week: Your week, for a player with an approved claim
   try{localStorage.setItem("rsc-acctbtn",b.innerHTML)}catch(e){} // shown straight away on the next visit while the login loads
@@ -8546,7 +8556,7 @@ function acctDraw(msg,err){
   // the passes stay (alert and badges) until you dismiss the alert with its ✕
   if(ACCT.tab==="week"){const n=ACCT.claim.player; ACCT.ywShown=ywUnseen(n)}
   const ywN=appr?ywUnseen(ACCT.claim.player).length:0, sdN=appr?seasUnseen(ACCT.claim.player).length:0;
-  const tabs=`<div class="accttabs" role="tablist">${tb("me","Your profile")}${appr?tb("week",`Your week${ywN?`<span class="nbadge nbyel" title="Passed ${ywN} time${ywN===1?"":"s"} · the ✕ on the alert dismisses it">⬇️${ywN}</span>`:""}${sdN?`<span class="nbadge nbyel" title="Your season ranking is in danger on ${sdN} path${sdN===1?"":"s"} · the ✕ on the alert dismisses it">🏁${sdN}</span>`:""}`):""}${ACCT.claim&&ACCT.claim.status==="approved"?tb("banner","Forum banner"):""}${tb("manage","Manage account")}${hostTab()?tb("host",`Host${(()=>{const L=hostIssueList(), n=hostIssueN(); return n?`<span class="nbadge" title="${n} likely scoreboard issue${n===1?"":"s"} in ${L.map(H=>"Week "+H.w).join(" and ")}">🔧${n}</span>`:""})()}${friBadge()}`):""}${ACCT.admin?tb("admin",`Admin${rpBadge()}${(()=>{const t=typoScan().nNew; return t?`<span class="nbadge tybadge" title="${t} likely typo${t===1?"":"s"} in this week's scoreboard">${t}</span>`:""})()}${pendN?`<span class="nbadge" title="${pendN} claim${pendN===1?"":"s"} waiting for approval">👤${pendN}</span>`:""}`):""}${appr?tb("wrapped","Restringed"):""}</div>`;
+  const tabs=`<div class="accttabs" role="tablist">${tb("me","Your profile")}${appr?tb("week",`Your week${ywN?`<span class="nbadge nbyel" title="Passed ${ywN} time${ywN===1?"":"s"} · the ✕ on the alert dismisses it">⬇️${ywN}</span>`:""}${sdN?`<span class="nbadge nbyel" title="Your season ranking is in danger on ${sdN} path${sdN===1?"":"s"} · the ✕ on the alert dismisses it">🏁${sdN}</span>`:""}`):""}${ACCT.claim&&ACCT.claim.status==="approved"?tb("banner","Forum banner"):""}${tb("manage","Manage account")}${hostTab()?tb("host",`Host${(()=>{const L=hostIssueList(), n=hostIssueN(); return n?`<span class="nbadge" title="${n} likely scoreboard issue${n===1?"":"s"} in ${L.map(H=>"Week "+H.w).join(" and ")}">🔧${n}</span>`:""})()}${friBadge()}`):""}${ACCT.admin?tb("admin",`Admin${hmBadge()}${rpBadge()}${(()=>{const t=typoScan().nNew; return t?`<span class="nbadge tybadge" title="${t} likely typo${t===1?"":"s"} in this week's scoreboard">${t}</span>`:""})()}${pendN?`<span class="nbadge" title="${pendN} claim${pendN===1?"":"s"} waiting for approval">👤${pendN}</span>`:""}`):""}${appr?tb("wrapped","Restringed"):""}</div>`;
   let h=tabs;
   if(ACCT.tab==="admin"){}
   else if(ACCT.tab==="host")h+=`${(()=>{try{return hostIssueList().map(H=>typoSection(H)).join("")}catch(e){console.error(e); return ""}})()}${(()=>{const rb=reactBtn(), run=(()=>{try{return fetchSection()+siteUpSection()}catch(e){console.error(e); return ""}})(), hs=hostSection(!!ACCT.admin);
