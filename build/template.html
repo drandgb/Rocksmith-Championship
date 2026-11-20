@@ -3425,6 +3425,11 @@ function hlParts0(w){eloBuild(); const I=sbIx(), L=[], G1=[], G2=[], G2b=[], G3=
   try{const nl=hlLeaders(w,gains).concat(hlHostLeaders(w)); if(nl.length)G2b.push(`👑 **New medal leaders**:`,...nl)}catch(e){}   // each line starts with the @name, not indented: the forum doesn't tag a name right after the indent
   const nw=played.filter(k=>{const W=I.wk[k]; return W.length===2&&W[1]===w}).map(nm); if(nw.length)G3.push(`🔁 **One more time** (back for a second week): ${nw.join(", ")}`);
   const ht=played.filter(k=>{const W=I.wk[k], i=W.indexOf(w); if(i<2||W[i-1]!==w-1||W[i-2]!==w-2)return false; return !(i>=3&&W[i-3]===w-3)&&W.length<=FW_MAX}).map(nm); if(ht.length)G3.push(`🎩 **Hat trick** (first three weeks in a row): ${ht.join(", ")}`);
+  // first play streak medals reached this week (One more time and Hat trick already say it for the 2- and 3-week ones); these are in the post, not in Messages for players
+  try{const said={2:new Set(nw.map(x=>x.toLowerCase())),3:new Set(ht.map(x=>x.toLowerCase()))}, by={};
+    hmMilestones(w).forEach(x=>{const m=/^(\d+)-week play streak medal/.exec(x.what); if(!m||(said[m[1]]&&said[m[1]].has(("@"+x.n).toLowerCase())))return; (by[m[1]]=by[m[1]]||[]).push("@"+x.n)});
+    const L=Object.keys(by).map(Number).sort((a,b)=>b-a).map(k=>`${both(by[k])} (${k} weeks)`);
+    if(L.length)G3.push(`🔥 **First play streak medals**: ${L.join(", ")}`)}catch(e){}
   // no play streak ended this week: everyone who played last week played again
   {const on=Object.keys(I.wk).filter(k=>I.wk[k].includes(w-1)), kept=on.filter(k=>I.wk[k].includes(w));
    if(on.length&&kept.length===on.length)G4.push(`🔥 **No streaks ended this week**: all ${on.length} players on a play streak kept it going!`)}
@@ -3447,8 +3452,13 @@ function hlParts0(w){eloBuild(); const I=sbIx(), L=[], G1=[], G2=[], G2b=[], G3=
   if(sNow&&sNext&&sNow!==sNext){const ch=[0,1,2].map(pi=>sLine(pi)).filter(Boolean);
     out.push([`🏁 **A new season starts this week: Season ${seasonNum(sNext)} (${sNext})!** Everyone starts on zero points: 25 for a win, 18 for 2nd, down to 1 for 10th on each week's main challenge in your class. Show up every week to keep scoring.`]);
     if(ch.length)out.push([`🏆 **Season ${seasonNum(sNow)} (${sNow}) champions**:`],...ch)}
-  [G1,G2,G2b,G3,G4].forEach(g=>{if(g.length)out.push(g)});
-  if(!(G1.length||G2.length||G2b.length||G3.length||G4.length))out.push(["Nothing to highlight yet."]);
+  // big improvements over the whole week (moved here from Messages for players, so a later, better score isn't missed):
+  // one line per player, starting with the @name; points up rounded down
+  const G2c=[]; try{const by={}; hmImprove(w).forEach(x=>(by[x.n]=by[x.n]||[]).push(x));
+    const L=Object.entries(by).sort((a,b)=>Math.max(...b[1].map(x=>x.d))-Math.max(...a[1].map(x=>x.d))||a[0].localeCompare(b[0])).map(([n,xs])=>`@${n} · `+xs.map(x=>`${x.song}${x.path?` (${x.path})`:""} ${x.first!=null?`from ${x.first}% to ${x.pct}%`:`${x.pct}%, up from a best of ${x.b}% before`} (+${Math.floor(x.d)})`).join(" · "));
+    if(L.length)G2c.push(`📈 **Big improvements** this week (+${HM_IMPROVE} points or more):`,...L)}catch(e){}
+  [G1,G2,G2b,G2c,G3,G4].forEach(g=>{if(g.length)out.push(g)});
+  if(!(G1.length||G2.length||G2b.length||G2c.length||G3.length||G4.length))out.push(["Nothing to highlight yet."]);
   if(sNow&&!(sNext&&sNow!==sNext)){const [a,b]=seasonRange(sNow);
     const ln=[0,1,2].map(pi=>sLine(pi,w)).filter(Boolean);
     if(ln.length)out.push([`🏁 **Season ${seasonNum(sNow)} (${sNow}) leaders after Week ${w}** (week ${w-a+1} of ${b-a+1}):`],...ln)}
@@ -7512,6 +7522,8 @@ function hmJoin(items,isSent){const out=[];
       rest.push({...G[0],n:G.map(x=>x.n).join(", "),t:k.replace("@\u0000",andListO(G.map(x=>"@"+x.n))),parts:G.flatMap(x=>x.parts),many:G.length})});
     out.push(...rest)});
   return out.sort((a,b)=>String(a.n).localeCompare(String(b.n),undefined,{sensitivity:"base"}))}
+// first play streak medals go in Weekly highlights instead
+const hmInHL=x=>/^\d+-week play streak medal/.test(x.what);
 // host medal milestones go to the Admin tab (hostMsgSection); the Host tab gets the players' welcome and milestone messages
 const hmIsHost=x=>/host medal/i.test(x.what);
 function hostMsgSection(){const ws=hmWeeks(); if(!ws.length)return ""; const w=ACCT.hmWeek&&ws.includes(ACCT.hmWeek)?ACCT.hmWeek:ws[0];
@@ -7523,12 +7535,12 @@ function hostMsgSection(){const ws=hmWeeks(); if(!ws.length)return ""; const w=A
 let HM_N={k:"",n:0};
 function hmUnsentN(){try{if(!ACCT.admin)return 0; const w=hmWeeks()[0]; if(!w)return 0; hmImpLoad(); const P=hmImpPosted()[w]||{}, k=w+"|"+Object.keys(P).length+"|"+(HM_IMP.t||0);
   if(HM_N.k===k)return HM_N.n; const sent=t=>!!P[hmSentKey(t)];
-  const J=[...hmJoin(hmWelcome(w),sent),...hmJoin(hmBack(w),sent),...hmJoin(hmMilestones(w).filter(x=>!hmIsHost(x)),sent)];
-  const n=J.filter(x=>!(x.parts||[x.t]).every(sent)).length+hmImproveMsgs(w).filter(x=>!x.done&&!sent(x.t)).length;
+  const J=[...hmJoin(hmWelcome(w),sent),...hmJoin(hmBack(w),sent),...hmJoin(hmMilestones(w).filter(x=>!hmIsHost(x)&&!hmInHL(x)),sent)];
+  const n=J.filter(x=>!(x.parts||[x.t]).every(sent)).length;
   HM_N={k,n}; return n}catch(e){return 0}}
 const hmBadge=()=>{const n=hmUnsentN(); return n?`<span class="nbadge nbemo" title="${n} message${n===1?"":"s"} for players not sent yet this week">💬</span>`:""};
 function hmSection(){const ws=hmWeeks(); if(!ws.length)return ""; const w=ACCT.hmWeek&&ws.includes(ACCT.hmWeek)?ACCT.hmWeek:ws[0];
-  const W=hmWelcome(w), B=hmBack(w), M=hmMilestones(w).filter(x=>!hmIsHost(x)), U=hmImproveMsgs(w), P=hmImpPosted()[w]||{};
+  const W=hmWelcome(w), B=hmBack(w), M=hmMilestones(w).filter(x=>!hmIsHost(x)&&!hmInHL(x)), U=hmImproveMsgs(w), P=hmImpPosted()[w]||{};
   // Sent: marks the message as sent, for everyone who posts (saved with the copied improvements, improve_posted.sql)
   const sent=t=>!!P[hmSentKey(t)], sentBtn=(t,parts,done)=>{done=done==null?sent(t):done; return `<button type="button" class="btn ghost hmsentb" data-hmsent="${w}" data-hmt="${esc(t)}"${parts&&parts.length>1?` data-hmparts="${esc(JSON.stringify(parts))}"`:""}${done?" disabled":""}>${done?"Sent ✓":"Sent"}</button>`};
   const Wj=hmJoin(W,sent), Bj=hmJoin(B,sent), Mj=hmJoin(M,sent);
@@ -7540,7 +7552,7 @@ function hmSection(){const ws=hmWeeks(); if(!ws.length)return ""; const w=ACCT.h
     <h4>👋 Welcome new players</h4>${W.length?`<ul class="hml">${Wj.map(x=>row(x.t,x.many?`${x.many} players`:"",x.parts)).join("")}</ul>`:`<p class="dim">No new players in Week ${w}.</p>`}
     <h4>🔁 Welcome back</h4>${B.length?`<ul class="hml">${Bj.map(x=>row(x.t,`${x.away} weeks away${x.many?` · ${x.many} players`:""}`,x.parts)).join("")}</ul>`:`<p class="dim">Nobody back from a break in Week ${w}.</p>`}
     <h4>🎉 Milestones</h4>${M.length?`<ul class="hml">${Mj.map(x=>row(x.t,x.what+(x.many?` · ${x.many} players`:""),x.parts)).join("")}</ul>`:`<p class="dim">No milestone medals in Week ${w} yet.</p>`}
-    <h4>📈 Big improvements</h4>${U.length?`<ul class="hml">${U.map(x=>`<li${x.done||sent(x.t)?' class="hmdone"':""}><div class="hmt"><span class="hmk">${esc(sent(x.t)?"Sent · "+x.tag:x.done?"Copied · "+x.tag:x.tag)}</span>${esc(x.t)}</div><span class="hmbtns"><button type="button" class="btn ghost hmcp" data-hmcopy="${esc(x.t)}" data-hmimp="${w}|${esc(JSON.stringify(x.keys))}">Copy</button>${sentBtn(x.t)}</span></li>`).join("")}</ul>`:`<p class="dim">No improvements of ${HM_IMPROVE}+ points in Week ${w} yet.</p>`}${HM_IMP.st===false?`<p class="dim">Copied messages are only remembered in this browser until build/supabase/improve_posted.sql is run in Supabase.</p>`:""}${hmSentLog(w,[...Wj,...Bj,...Mj,...U])}</div>`}
+    <p class="dim">First play streak medals and big improvements are in Weekly highlights.</p>${hmSentLog(w,[...Wj,...Bj,...Mj,...U])}</div>`}
 document.addEventListener("change",e=>{const s=e.target.closest("[data-hmweek]"); if(!s)return; ACCT.hmWeek=+s.value; const el=document.querySelector(".acctdlg .hmsec:not(.hmhost)"); if(el)el.outerHTML=hmSection(); const eh=document.querySelector(".acctdlg .hmhost"); if(eh)eh.outerHTML=hostMsgSection()});
 document.addEventListener("click",e=>{const b=e.target.closest("[data-hmcopy]"); if(!b)return; try{navigator.clipboard.writeText(b.dataset.hmcopy).then(()=>{b.textContent="Copied ✓";
   const im=b.dataset.hmimp; if(im){const i=im.indexOf("|"); hmImpMark(+im.slice(0,i),JSON.parse(im.slice(i+1)))}   // a big improvement: remembered, so the next one is new
