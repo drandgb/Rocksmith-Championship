@@ -3402,7 +3402,8 @@ function hlHtml(w){return hlParts(w).map(g=>`<p>${g.map(x=>esc(x).replace(/\*\*(
 function hlParts0(w){eloBuild(); const I=sbIx(), L=[], G1=[], G2=[], G2b=[], G3=[], G4=[], played=Object.keys(I.wk).filter(k=>I.wk[k].includes(w)), nm=k=>"@"+I.disp[k];   // names with @, as in the forum
   const both=xs=>xs.length>1?xs.slice(0,-1).join(", ")+" and "+xs[xs.length-1]:xs[0];
   const newc=played.filter(k=>I.wk[k][0]===w).map(nm); if(newc.length)G1.push(`🐣 **Welcome** to our new player${newc.length===1?"":"s"}: ${newc.join(", ")}`);
-  const back=played.filter(k=>{const W=I.wk[k], i=W.indexOf(w); return i>0&&w-W[i-1]>=5}).map(k=>{const W=I.wk[k], i=W.indexOf(w); return `${nm(k)} (after ${w-W[i-1]-1} weeks away)`}); if(back.length)G1.push(`🎟️ **Welcome back** to the championship, ${both(back)}!`);
+  // everyone back after missing at least the week before, the same as This Week's "Back from a break" and the Welcome back messages
+  const back=hmBack(w).map(x=>`@${x.n} (after ${x.away} week${x.away===1?"":"s"} away)`); if(back.length)G1.push(`🎟️ **Welcome back** to the championship, ${both(back)}!`);
   const ups=(WR.ups||[]).filter(u=>u[4]===w&&LVI.indexOf(u[3])>LVI.indexOf(u[2])).map(u=>`@${u[0]} (${PATHS[u[1]]} ${TIER_NAME[u[2]]||u[2]} → ${TIER_NAME[u[3]]||u[3]})`); if(ups.length)G1.push(`⬆️ **Rank-ups**: ${ups.join(", ")}`);
   // firsts: a medal collected for the first time ever this week, other than the ones the Host tab's player messages already cover
   const gains=[];   // every medal count that went up this week: who, which kind, the new total and how many were added
