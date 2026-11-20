@@ -571,7 +571,7 @@ a.dl svg,.offpill svg{width:11px;height:11px}
 .accttabs button{background:none;border:0;border-bottom:2px solid transparent;color:var(--muted);font:700 .78rem var(--f-display);letter-spacing:.08em;text-transform:uppercase;padding:8px 10px;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
 .accttabs button[aria-selected="true"]{color:var(--fg);border-bottom-color:var(--accent)}
 .nbadge{display:inline-flex;align-items:center;justify-content:center;min-width:17px;height:17px;padding:0 5px;border-radius:9px;background:#ff4d6d;color:#fff;font:800 .66rem/1 var(--f-display);letter-spacing:0;box-shadow:0 0 8px rgba(255,77,109,.6)}
-#acctbtn .nbadge{margin-left:6px;vertical-align:1px}
+#acctbtn .nbadge{margin-left:6px;vertical-align:1px;height:19px;min-width:19px;padding:0 4px;font-size:.78rem;box-sizing:border-box}   /* the profile button: emoji-only badges, all one size */
 .acctdlg .adm li{display:flex;align-items:center;gap:8px;justify-content:space-between;padding:4px 0;font-size:.88rem}
 .acctdlg .adm .alist li{padding:7px 10px;justify-content:flex-start;gap:6px 10px;flex-wrap:wrap}
 .acctdlg .adm ul{list-style:none;margin:4px 0;padding:0;max-height:220px;overflow:auto}
@@ -8293,14 +8293,14 @@ function acctBtn(){const b=$("acctbtn"); b.hidden=!ACCT.on; try{twGoals()}catch(
     :ACCT.user?"Opens your profile, where you can claim your player name so you can rate songs and sign up to host"
     :"Log in with your email to claim your player profile, see your own stats page, rate songs and sign up to host"; b.textContent=ACCT.claim&&ACCT.claim.status==="approved"?"👤 "+ACCT.claim.player:ACCT.user?"👤 Profile":"👤 Log in";
   const n=ACCT.admin?ACCT.claims.filter(c=>c.status==="pending").length:0; // admins: how many claims are waiting
-  if(n)b.insertAdjacentHTML("beforeend",`<span class="nbadge" title="${n} claim${n===1?"":"s"} waiting for approval">👤${n}</span>`);
+  if(n)b.insertAdjacentHTML("beforeend",`<span class="nbadge nbemo" title="${n} claim${n===1?"":"s"} waiting for approval">👤</span>`);   // (the button's badges are emoji only; the count is in the hover text)
   // players: how many times they've been passed on this week's scoreboard since their last visit (Your week tab)
   const yn=ACCT.claim&&ACCT.claim.status==="approved"?ywUnseen(ACCT.claim.player).length:0;
-  if(yn)b.insertAdjacentHTML("beforeend",`<span class="nbadge nbyel" title="Passed ${yn} time${yn===1?"":"s"} on this week's scoreboard · dismiss it in Your week">⬇️${yn}</span>`);
+  if(yn)b.insertAdjacentHTML("beforeend",`<span class="nbadge nbyel" title="Passed ${yn} time${yn===1?"":"s"} on this week's scoreboard · dismiss it in Your week">⬇️</span>`);
   const sd=ACCT.claim&&ACCT.claim.status==="approved"?seasUnseen(ACCT.claim.player).length:0;
-  if(sd)b.insertAdjacentHTML("beforeend",`<span class="nbadge nbyel" title="Your season ranking is in danger on ${sd} path${sd===1?"":"s"} · dismiss it in Your week">🏁${sd}</span>`);
+  if(sd)b.insertAdjacentHTML("beforeend",`<span class="nbadge nbyel" title="Your season ranking is in danger on ${sd} path${sd===1?"":"s"} · dismiss it in Your week">🏁</span>`);
   // this week's host: likely issues in last week's scoreboard (Host tab)
-  try{const L=hostIssueList(), n=hostIssueN(); if(n)b.insertAdjacentHTML("beforeend",`<span class="nbadge" title="${n} likely scoreboard issue${n===1?"":"s"} in ${L.map(H=>"Week "+H.w).join(" and ")} · see the Host tab">🔧${n}</span>`)}catch(e){}
+  try{const L=hostIssueList(), n=hostIssueN(); if(n)b.insertAdjacentHTML("beforeend",`<span class="nbadge nbemo" title="${n} likely scoreboard issue${n===1?"":"s"} in ${L.map(H=>"Week "+H.w).join(" and ")} · see the Host tab">🔧</span>`)}catch(e){}
   try{b.insertAdjacentHTML("beforeend",friBadge()+rpBadge())}catch(e){}   // Friday post (this week's host and admins), recruitment post (admins)
   try{const hb=$("twhostbar"); if(hb)hb.hidden=!isCurHost()}catch(e){}   // This Week: Open host settings, for this week's host
   try{const yb=$("twywbar"); if(yb)yb.hidden=!(ACCT.claim&&ACCT.claim.status==="approved")}catch(e){} sbYwShow();   // This Week: Your week, for a player with an approved claim
