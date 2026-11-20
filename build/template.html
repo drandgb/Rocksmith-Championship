@@ -3458,10 +3458,10 @@ function hlParts0(w){eloBuild(); const I=sbIx(), L=[], G1=[], G2=[], G2b=[], G3=
     out.push([`🏁 **A new season starts this week: Season ${seasonNum(sNext)} (${sNext})!** Everyone starts on zero points: 25 for a win, 18 for 2nd, down to 1 for 10th on each week's main challenge in your class. Show up every week to keep scoring.`]);
     if(ch.length)out.push([`🏆 **Season ${seasonNum(sNow)} (${sNow}) champions**:`],...ch)}
   const G2c=[];
-  // back on top: a win this week after at least 26 weeks without one (any path; a first win ever is in the medals above)
+  // back on top: a win this week after at least 13 weeks (a season) without one (any path; a first win ever is in the medals above)
   try{if(!HL_WINW){HL_WINW={}; Object.keys(SB.weeks).map(Number).sort((a,b)=>a-b).forEach(x=>(SB.weeks[x]||[]).forEach(c=>{if(c[7])return; const e=c[6].find(y=>canWin(y)); if(!e)return;
       const k=SB.names[e[0]].replace(/[*~]+$/,"").trim(), L=HL_WINW[k.toLowerCase()]=HL_WINW[k.toLowerCase()]||{n:k,w:[]}; if(L.w[L.w.length-1]!==x)L.w.push(x)}))}
-    const back=Object.values(HL_WINW).filter(L=>L.w.includes(w)).map(L=>{const prev=L.w.filter(x=>x<w).pop(); return prev&&w-prev>=26?{n:L.n,prev,gap:w-prev}:null}).filter(Boolean).sort((a,b)=>b.gap-a.gap);
+    const back=Object.values(HL_WINW).filter(L=>L.w.includes(w)).map(L=>{const prev=L.w.filter(x=>x<w).pop(); return prev&&w-prev>=13?{n:L.n,prev,gap:w-prev}:null}).filter(Boolean).sort((a,b)=>b.gap-a.gap);
     if(back.length)G2c.push(`🥇 **Back on top**: ${back.map(x=>`@${x.n} (first win since Week ${x.prev}, ${x.gap} weeks ago)`).join(", ")}`)}catch(e){}
   // big improvements over the whole week (moved here from Messages for players, so a later, better score isn't missed):
   // one line per player, starting with the @name; points up rounded down
