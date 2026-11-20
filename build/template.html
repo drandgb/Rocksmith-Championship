@@ -7576,8 +7576,8 @@ function hostBooked(w){
 // ✕ on a week booked in the schedule sheet: the site can't change the sheet, so say who to ask (and drop any site sign-up)
 document.addEventListener("click",async e=>{const x=e.target.closest("[data-hostsheet]"); if(!x)return; e.stopPropagation();
   const wk=+x.dataset.hostsheet, w=weekAt(curIdx+(wk-WEEKS[curIdx][0]));
-  if(ACCT.hostSign[wk]&&ACCT.hostSign[wk].player.toLowerCase()===String(w[2]).toLowerCase()){if(!confirm(`Remove the site sign-up for Week ${wk}? ${w[2]} is also in the schedule sheet, which has to be changed there.`))return;
-    const {error}=await ACCT.sb.from("host_signups").delete().eq("week",wk); if(error){alert("Couldn't remove it: "+error.message);return} await hostLoad(); if($("acct").open)acctDraw(); return}
+  if(ACCT.hostSign[wk]&&ACCT.hostSign[wk].player.toLowerCase()===String(w[2]).toLowerCase()){if(!confirm(`Withdraw ${w[2]} from hosting Week ${wk}? It's taken off the website and the schedule sheet.`))return;
+    const p=ACCT.hostSign[wk].player, {error}=await ACCT.sb.from("host_signups").delete().eq("week",wk); if(error){alert("Couldn't remove it: "+error.message);return} await hostLoad(); if($("acct").open)acctDraw(); hostSchedSync(wk,p); return}
   alert(ACCT.admin&&x.closest(".adm")?`Week ${wk} (${fmtShort(w[1])}) is booked for ${w[2]} in the schedule sheet. Remove it there; the site updates with the next update.`:`Week ${wk} is booked for you in the schedule sheet. Message Rodman to withdraw.`);
 },true);
 function hostOptions(){
@@ -7590,7 +7590,7 @@ function hostSlot(w,i,label,adm){
   label=label||"HOST NEEDED"; adm=!!adm&&ACCT.admin; // admin powers only inside the Admin tab
   const on=typeof ACCT!=="undefined"&&ACCT&&acctOn(), s=on?ACCT.hostSign[w[0]]:null;
   if(s){const mine=ACCT.claim&&ACCT.claim.status==="approved"&&s.player===ACCT.claim.player;
-    return `<span class="who" data-name="${esc(s.player)}">${esc(s.player)}</span> <span class="pill signed" data-tip="${esc(s.player)} signed up to host this week. It's added to the schedule once the admin puts it in the sheet.">SIGNED UP</span>${mine||adm?` <button type="button" class="hostx" data-hostdrop="${w[0]}" title="${mine?"Withdraw your sign-up":"Remove this sign-up"}">✕</button>`:""}`}
+    return `<span class="who" data-name="${esc(s.player)}">${esc(s.player)}</span> <span class="pill signed" data-tip="${esc(s.player)} signed up to host this week. It goes into the schedule sheet straight away and shows here after the next website update.">SIGNED UP</span>${mine||adm?` <button type="button" class="hostx" data-hostdrop="${w[0]}" title="${mine?"Withdraw your sign-up":"Remove this sign-up"}">✕</button>`:""}`}
   if(!on||i>hostAhead())return `<span class="pill open" data-tip="${esc(hostWarnHelp())}">${label}</span>`;
   if(adm)return `<span class="pill open hostbtn" data-tip="Sign someone up to host Week ${w[0]}">${label} · SIGN UP<select data-hostpick="${w[0]}" aria-label="Sign someone up to host Week ${w[0]}"><option value="">Sign up a host…</option>${hostOptions()}</select></span>`;
   if(hostVerified())return `<button type="button" class="pill open hostbtn" data-hostsign="${w[0]}" data-tip="Sign up to host Week ${w[0]}">${label} · SIGN UP</button>`;
@@ -7602,9 +7602,15 @@ async function hostAct(week,player,drop){
     const {error}=await ACCT.sb.from("host_signups").delete().eq("week",week); if(error){alert("Couldn't remove it: "+error.message);return}}
   else{if(!confirm(`Sign ${player===ACCT.claim?.player?"yourself":player} up to host ${when}?`))return;
     const {error}=await ACCT.sb.from("host_signups").insert({week,player,user_id:ACCT.user.id});
-    if(error){alert(/duplicate|unique/i.test(error.message)?"Someone just signed up for that week.":"Couldn't sign up: "+error.message)}}
+    if(error){alert(/duplicate|unique/i.test(error.message)?"Someone just signed up for that week.":"Couldn't sign up: "+error.message); await hostLoad(); if($("acct").open)acctDraw(); return}}
+  const who=drop?(ACCT.hostSign[week]||{}).player:player;
   await hostLoad(); if($("acct").open)acctDraw();
+  hostSchedSync(week,who);
 }
+// copy a sign-up (or a withdrawal) to the Schedule sheet, through the sheet's script; the site shows it after its next update
+async function hostSchedSync(week,player){if(!FETCH_URL||!player)return;
+  const r=await hostRunCall("schedule",undefined,{week,player});
+  if(!r||!r.ok)alert(`The sign-up is saved on the website, but the Schedule sheet wasn't changed: ${r&&r.error||"no answer from the sheet"}`)}
 document.addEventListener("click",e=>{
   const a=e.target.closest("[data-hostsign]"); if(a&&ACCT.claim){e.stopPropagation();hostAct(+a.dataset.hostsign,ACCT.claim.player);return}
   const d=e.target.closest("[data-hostdrop]"); if(d){e.stopPropagation();hostAct(+d.dataset.hostdrop,null,true)}
@@ -7620,7 +7626,7 @@ function hostSection(admin){
     const all=Object.values(ACCT.hostSign).map(s=>({...s})), have=new Set(all.map(s=>s.week));
     for(let i=1;i<=hostAhead();i++){const w=weekAt(curIdx+i); if(w[2]&&w[2]!==LOST&&!have.has(w[0]))all.push({week:w[0],player:w[2],sheet:true})}
     all.sort((a,b)=>a.week-b.week);
-    return `<div class="adm acctsec hostsec"><h3>Host sign-ups</h3><div class="row"><a class="btn ghost" href="${SCHED_URL}" target="_blank" rel="noopener">Open schedule sheet ↗</a></div><p>${all.length?"Upcoming hosts. Add site sign-ups to the schedule sheet; weeks marked “in the schedule sheet” are already there.":"No sign-ups yet."}</p><ul>${all.map(s=>{const w=weekAt(curIdx+(s.week-WEEKS[curIdx][0]));return `<li><span>Week ${s.week} · ${fmtShort(w[1])} · ${(()=>{ // once the week is in the schedule sheet, the sheet's host shows with "in the schedule sheet" (it replaces "signed up by")
+    return `<div class="adm acctsec hostsec"><h3>Host sign-ups</h3><div class="row"><a class="btn ghost" href="${SCHED_URL}" target="_blank" rel="noopener">Open schedule sheet ↗</a></div><p>${all.length?"Upcoming hosts. Site sign-ups go into the schedule sheet by themselves; weeks marked “in the schedule sheet” are already there.":"No sign-ups yet."}</p><ul>${all.map(s=>{const w=weekAt(curIdx+(s.week-WEEKS[curIdx][0]));return `<li><span>Week ${s.week} · ${fmtShort(w[1])} · ${(()=>{ // once the week is in the schedule sheet, the sheet's host shows with "in the schedule sheet" (it replaces "signed up by")
         const inSheet=s.sheet||(w[2]&&w[2]!==LOST); if(inSheet)return `<b>${esc(w[2]||s.player)}</b> <small>in the schedule sheet</small>`;
         const by=ACCT.claims.find(c=>c.user_id===s.user_id);return `<b>${esc(s.player)}</b> ${by&&by.player!==s.player?`<small>signed up by ${esc(by.player)}</small>`:""}`})()}</span><button type="button" class="btn ghost" ${s.sheet?"data-hostsheet":"data-hostdrop"}="${s.week}">Remove</button></li>`}).join("")}</ul>
       <p>Open weeks:</p><ul>${open.map(([w,i])=>`<li><span>Week ${w[0]} · ${fmtShort(w[1])}${hostHol(w)}</span><span class="hslot">${hostSlot(w,i,null,true).replace("HOST NEEDED · SIGN UP","SIGN UP")}</span></li>`).join("")||`<li>Every week in the next ${hostAhead()} has a host.</li>`}</ul></div>`}
@@ -8412,9 +8418,9 @@ const FETCH_URL="https://script.google.com/macros/s/AKfycbzEW2FLXFznFWjW8cKlhMuU
 let FETCH_ST={busy:"",res:null,at:0,what:""}, SITEUP_ST={busy:"",res:null,at:0,what:""};
 const hostRunOk=()=>{try{return !!FETCH_URL&&acctOn()&&(ACCT.admin||hostVerified())}catch(e){return false}};
 const hostRunAt=t=>t?new Date(t).toLocaleTimeString("en-US",{hour:"numeric",minute:"2-digit"}):"";
-async function hostRunCall(action,signal){try{const {data}=await ACCT.sb.auth.getSession(), token=data&&data.session&&data.session.access_token; if(!token)throw new Error("You're not logged in.");
+async function hostRunCall(action,signal,extra){try{const {data}=await ACCT.sb.auth.getSession(), token=data&&data.session&&data.session.access_token; if(!token)throw new Error("You're not logged in.");
     // (a plain-text body, so the browser sends it straight to the script without a separate permission request)
-    const r=await fetch(FETCH_URL,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({action,token}),signal});
+    const r=await fetch(FETCH_URL,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(Object.assign({},extra||{},{action,token})),signal});
     return await r.json()}catch(x){if(x&&x.name==="AbortError")return {ok:false,cancelled:true,error:"Cancelled. If the sheet had already started the update, it will still finish."}; return {ok:false,error:"Couldn't reach the sheet's script: "+(x&&x.message||x)+". If it was running, it may still have finished; check the sheet."}}}
 const hostRunRedraw=()=>{try{if($("acct").open&&(ACCT.tab==="host"||ACCT.tab==="admin"))acctDraw()}catch(x){}};
 function fetchSection(){if(!hostRunOk())return ""; const S=FETCH_ST, r=S.res, pl=(n,w)=>`${n} ${w}${n===1?"":"s"}`;
