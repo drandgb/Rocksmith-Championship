@@ -5154,11 +5154,13 @@ $("rufilter").addEventListener("click",e=>{const b=e.target.closest("button[data
 // rank-up markers on the scoreboard: first week a player appears in their new class
 const LVI="BIAM";
 const isUp=u=>LVI.indexOf(u[3])>LVI.indexOf(u[2]);
-// NEW PLAYER on a player's first week in the championship; FIRST LEAD / RHYTHM / BASS in a later week, on the first
+// NEW PLAYER on a player's first week in the championship; RETURN PLAYER on the week they come back from a break; FIRST LEAD / RHYTHM / BASS in a later week, on the first
 // week they post a score on that path
 let SB_FIRSTP=null;
 function firstTag(n,p,w){try{const I=sbIx(), k=String(n).toLowerCase(), ws=I.wk[k]; if(!ws||!ws.length)return "";
   if(ws[0]===w)return `<span class="rkup rknew" data-tip="${esc(n)}'s first week in the championship">NEW PLAYER</span>`;
+  // RETURN PLAYER: back this week after missing at least the week before
+  try{const prev=twPlayed(n,w-1)?null:twLastBefore(n,w); if(prev){const away=w-prev-1; return `<span class="rkup rknew" data-tip="${esc(n)} is back after ${away} week${away===1?"":"s"} away (last played Week ${prev})">RETURN PLAYER</span>`}}catch(e){}   // (the same test as This Week's Back from a break)
   if(!SB_FIRSTP){SB_FIRSTP={}; Object.entries(I.ent).forEach(([kk,L])=>L.forEach(x=>{const q=kk+"|"+x.c[0]; if(!(SB_FIRSTP[q]<=x.w))SB_FIRSTP[q]=x.w}))}
   return SB_FIRSTP[k+"|"+p]===w?`<span class="rkup rkfirst" data-tip="${esc(n)}'s first ${PATHS[p]} score in the championship">FIRST ${PATHS[p].toUpperCase()}</span>`:""}catch(e){return ""}}
 const RU_KEY=new Set(WR.ups.filter(isUp).map(([n,p,a,b,w])=>`${w}|${n}|${p}|${b}`));
