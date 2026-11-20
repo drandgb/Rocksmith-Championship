@@ -3136,9 +3136,9 @@ function goalsWin(n,G){const done=SB_W.filter(w=>w<cur[0]).sort((a,b)=>a-b), per
   G.push([`🔥 ${k}-week win streak${best<k?" medal":""}`,`win a challenge ${d===1?"this week":`${d} more weeks in a row`}${lead?" · you're leading one now":""}`])}
 // hosting: the next hosting medal (total and in a row), and the race for this year's Host of the year
 function goalsHost(n,G,wk,pl){const hw=WEEKS.filter((x,i)=>i<=curIdx&&x[2]===n).map(x=>x[0]); if(!hw.length)return;
-  const tot=hw.length, k=HOST_TOTAL_STEPS.find(x=>x>tot); if(k&&k-tot<=10)G.push([`🎤 ${k}-week host medal`,`host ${wk(k-tot)}`]);
+  const tot=hw.length, k=HOST_TOTAL_STEPS.find(x=>x>tot); if(k&&k-tot<=10)G.push([`🎙️ ${k}-week host medal`,`host ${wk(k-tot)}`]);
   let run=0, best=0, prev=null; hw.forEach(w=>{run=prev===w-1?run+1:1; prev=w; if(run>best)best=run});
-  if(prev===cur[0]){const ks=HOST_STREAK_STEPS.find(x=>x>run); if(ks)G.push([`🎙️ ${ks}-week hosting streak${best<ks?" medal":""}`,`host ${wk(ks-run)} in a row`])}
+  if(prev===cur[0]){const ks=HOST_STREAK_STEPS.find(x=>x>run); if(ks)G.push([`🎤 ${ks}-week hosting streak${best<ks?" medal":""}`,`host ${wk(ks-run)} in a row`])}
   const y=WEEKS[curIdx][1].slice(0,4), c={}; WEEKS.forEach(([w,d,h],i)=>{if(i<=curIdx&&h&&h!==LOST&&d.startsWith(y))c[h]=(c[h]||0)+1});
   if(!c[n])return; const L=Object.keys(c).sort((a,b)=>c[b]-c[a]||a.localeCompare(b)), top=L[0];
   // placed like a podium (hosts level on weeks share a place): gold, silver or bronze, or the gap to third place
