@@ -3506,12 +3506,13 @@ function friBlocks(){const w=TW_LIVE; if(!SB.weeks[w])return null; const names=t
   // blocks of lines, as HTML (bold and emojis, like Weekly highlights); friText() is the plain text of the same
   const e=x=>esc(x), B=[["🎉 <b>Happy Friday everyone!</b> 1 day left!"]];
   if(stake.length)B.push(["🔥 <b>Streaks at stake:</b>",...stake.map(x=>`${e(at(x.n))} (${x.k} week${x.k===1?"":"s"})`)]);
-  B.push(["🗳️ <b>Thank you</b> to everyone that has submitted their votes for this week's difficulty ratings so far, votes will be averaged tomorrow once the week ends!"]);
   B.push(["👋 Have a great weekend if we don't see you!"]);
+  B.push(["🗳️ <b>Thank you</b> to everyone that has submitted their votes for this week's difficulty ratings so far, votes will be averaged tomorrow once the week ends!"]);
   if(open.length){const L=["🏆 <b>For active players, these trophies are yet to be claimed:</b>"];
     open.forEach(c=>{const lv=cardLv(c[2]), on=new Set(c[6].map(x=>SB.names[x[0]].replace(/[*~]+$/,"").toLowerCase()));
       const could="BIAM".includes(lv)&&lv?names.filter(n=>tiersOf(n).charAt(c[0])===lv&&!on.has(n.toLowerCase())).sort((a,b)=>a.localeCompare(b,undefined,{sensitivity:"base"})):[];
       L.push(`<b>${e(PATHS[c[0]])} ${e(c[2])}:</b> ${e(c[3])}${could.length?` · ${e(could.map(at).join(", "))}`:""}`)}); B.push(L)}
+  B.push(["🎸 And if you've been thinking about joining us, <b>now is the time!</b> Come on in 👋"]);
   return B}
 function friText(){const B=friBlocks(); return B?B.map(L=>L.join("\n")).join("\n\n").replace(/<[^>]+>/g,"").replace(/&lt;/g,"<").replace(/&gt;/g,">").replace(/&quot;/g,'"').replace(/&#39;/g,"'").replace(/&amp;/g,"&"):""}
 function friHtml(){const B=friBlocks(); return B?B.map(L=>`<p>${L.join("<br>")}</p>`).join(""):""}
