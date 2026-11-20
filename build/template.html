@@ -3644,7 +3644,7 @@ document.addEventListener("click",e=>{const b=e.target.closest("[data-sicopy]");
 // first-visit explainer: shown until closed (remembered on this device)
 (function(){const el=$("newhere"); if(!el)return; let seen=false; try{seen=localStorage.getItem("rsc-newhere")==="1"}catch(e){} if(!seen)el.hidden=false;
   $("newherex").addEventListener("click",()=>{el.hidden=true; lsSet("rsc-newhere","1")})})();
-document.addEventListener("change",e=>{const s=e.target.closest("[data-hlweek]"); if(!s)return; ACCT.hlWeek=+s.value; const el=document.querySelector(".acctdlg .hlbox"); if(el)el.outerHTML=hlSection()});
+document.addEventListener("change",e=>{const s=e.target.closest("[data-hlweek]"); if(!s)return; ACCT.hlWeek=+s.value; const t=document.querySelector(".acctdlg #hltext"), el=t&&t.closest(".hlbox"); if(el)el.outerHTML=hlSection()});
 // Copy: the formatted text (bold kept, for the forum's editor) with the plain text alongside it; "Copy as plain text": the plain text alone
 document.addEventListener("click",e=>{const b=e.target.closest("[data-hlcopy]"); if(!b)return; const w=+$("hltext").dataset.w, plain=hlText(w), lab=b.textContent, ok=()=>{b.textContent="Copied ✓"; setTimeout(()=>b.textContent=lab,1500)};
   try{if(b.dataset.hlcopy!=="plain"&&window.ClipboardItem&&navigator.clipboard.write)
@@ -7342,7 +7342,7 @@ async function acctLoadWeek(){
   });
   const S={}; Object.values(best).forEach(x=>(S[x.k]=S[x.k]||[]).push({p:x.p,r:x.r,u:x.u,t:x.t}));
   ACCT.songs=S; ACCT.mine=mine; ACCT.rows=rows; ACCT.voters=voters; sbRender();
-  {const h=document.querySelector(".acctdlg .hlbox"); if(h&&!h.matches(".unusedbox,.rpbox,.sibox"))h.outerHTML=hlSection()}   // the highlights thank the voters
+  {const t=document.querySelector(".acctdlg #hltext"), h=t&&t.closest(".hlbox"); if(h)h.outerHTML=hlSection()}   // the highlights thank the voters (only the Weekly highlights box: other boxes share its look, like the Friday post)
   if($("acct").open&&(ACCT.tab==="host"||ACCT.tab==="admin"))admRateRedraw();
   if($("acct").open&&ACCT.tab==="week"&&!ACCT.rateDrawn){ACCT.rateDrawn=true; try{acctDraw()}catch(e){console.error(e)}}
   {const tw=document.getElementById("acct-tw"); if(tw&&$("acct").open&&ACCT.claim)tw.innerHTML=acctThisWeek(ACCT.claim.player);} if(typeof renderSongs==="function"){if(!$("view-songs").hidden)renderSongs(); else window.__songsStale=true}
