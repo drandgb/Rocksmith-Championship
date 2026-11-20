@@ -3111,42 +3111,43 @@ function goalsPanel(n){const wk=d=>`${d} more week${d===1?"":"s"}`, pl=r=>`#${r}
   try{goalsPlay(n,P,wk,pl)}catch(e){console.error(e)}
   try{goalsWin(n,W)}catch(e){console.error(e)}
   try{goalsHost(n,H,wk,pl)}catch(e){console.error(e)}
-  const S=P.filter(g=>/^Season /.test(g[0]));   // the season card moves from Play to Win
+  const S=P.filter(g=>/^🏁 Season /.test(g[0]));   // the season card moves from Play to Win
   return [["Play",P.filter(g=>!S.includes(g))],["Win",[...S,...W]],["Host",H]].filter(x=>x[1].length)}
 // playing: the next play streak, beating their longest, a weeks-played milestone, the season place above them
 function goalsPlay(n,G,wk,pl){const p=byName[n]; if(!p)return; const tw=TW_MAX, now=twPlayed(n,tw), s=twStreakTo(n,now?tw:tw-1), longest=Math.max(p[6]||0,s);
   if(!now&&!twPlayed(n,tw-1))return;
   const thisWk=now?"":" (this week counts)";
   const k=STREAK_STEPS.filter(x=>x<52).find(x=>x>s)||52*(Math.floor(s/52)+1);   // then the year streaks: 52, 104, 156 ...
-  if(k)G.push([k%52?`${k}-week play streak`:`${k/52}-year play streak`,`${wk(k-s)} in a row${thisWk}${longest<k?" · a new medal":""}`]);
-  if(longest>s&&longest>=5&&longest+1-s<=12&&(!k||longest+1!==k))G.push([`Beat your longest play streak (${longest} wks)`,`${wk(longest+1-s)} in a row`]);
-  const played=(p[3]||0)+(now?1:0), m=GOAL_PLAYED.find(x=>x>played); if(m&&m-played<=10)G.push([`${m} weeks played`,`${wk(m-played)}${thisWk}`]);
+  // (each goal starts with an emoji; a streak that would be a new medal for them says "medal")
+  if(k)G.push([`🔥 ${k%52?`${k}-week play streak`:`${k/52}-year play streak`}${longest<k?" medal":""}`,`${wk(k-s)} in a row${thisWk}`]);
+  if(longest>s&&longest>=5&&longest+1-s<=12&&(!k||longest+1!==k))G.push([`📈 Beat your longest play streak (${longest} wks)`,`${wk(longest+1-s)} in a row`]);
+  const played=(p[3]||0)+(now?1:0), m=GOAL_PLAYED.find(x=>x>played); if(m&&m-played<=10)G.push([`🗓️ ${m} weeks played`,`${wk(m-played)}${thisWk}`]);
   // the season place above them on each path (Lead, Rhythm, Bass): in the class where they're closest to the player ahead
   try{eloBuild(); const id=seasonOf(ELO_DONE), [a,b]=seasonRange(id), left=b-Math.min(b,ELO_DONE), kk=String(n).toLowerCase();
     if(left>0)[0,1,2].forEach(pi=>{let best=null;
       Object.entries(seasonF1(pi,id)).forEach(([c,L])=>{const i=L.findIndex(x=>x.n.toLowerCase()===kk); if(i<1)return; const gap=L[i-1].p-L[i].p;
         if(!best||gap<best.gap)best={gap,c,i,above:L[i-1].n}});
-      if(best)G.push([`Season ${seasonNum(id)}: ${pl(best.i)} in ${PATHS[pi]} ${TIER_NAME[best.c]}`,`${best.gap===0?"level on points with":`${best.gap} point${best.gap===1?"":"s"} behind`} ${best.above} · you're ${pl(best.i+1)} · ${left} week${left===1?"":"s"} left`])})}catch(e){}}
+      if(best)G.push([`🏁 Season ${seasonNum(id)}: ${pl(best.i)} in ${PATHS[pi]} ${TIER_NAME[best.c]}`,`${best.gap===0?"level on points with":`${best.gap} point${best.gap===1?"":"s"} behind`} ${best.above} · you're ${pl(best.i+1)} · ${left} week${left===1?"":"s"} left`])})}catch(e){}}
 // winning: on a win streak (won a challenge last week or more weeks in a row), the next win streak medal
 function goalsWin(n,G){const done=SB_W.filter(w=>w<cur[0]).sort((a,b)=>a-b), per=playerWeekWins(n,-1); let s=0, best=0, run=0;
   done.forEach(w=>{run=per[w]&&per[w][1]>0?run+1:0; if(run>best)best=run}); s=run; if(!s)return;
   const k=STREAK_STEPS.find(x=>x>s); if(!k)return; const d=k-s;
   const lead=(SB.weeks[TW_LIVE]||[]).some(c=>{const e=c[6].find(x=>canWin(x)); return e&&SB.names[e[0]].replace(/[*~]+$/,"")===n});
-  G.push([`${k}-week win streak`,`win a challenge ${d===1?"this week":`${d} more weeks in a row`}${best<k?" · a new medal":""}${lead?" · you're leading one now":""}`])}
+  G.push([`🏆 ${k}-week win streak${best<k?" medal":""}`,`win a challenge ${d===1?"this week":`${d} more weeks in a row`}${lead?" · you're leading one now":""}`])}
 // hosting: the next hosting medal (total and in a row), and the race for this year's Host of the year
 function goalsHost(n,G,wk,pl){const hw=WEEKS.filter((x,i)=>i<=curIdx&&x[2]===n).map(x=>x[0]); if(!hw.length)return;
-  const tot=hw.length, k=HOST_TOTAL_STEPS.find(x=>x>tot); if(k&&k-tot<=10)G.push([`${k}-week host medal`,`host ${wk(k-tot)}`]);
+  const tot=hw.length, k=HOST_TOTAL_STEPS.find(x=>x>tot); if(k&&k-tot<=10)G.push([`🎤 ${k}-week host medal`,`host ${wk(k-tot)}`]);
   let run=0, best=0, prev=null; hw.forEach(w=>{run=prev===w-1?run+1:1; prev=w; if(run>best)best=run});
-  if(prev===cur[0]){const ks=HOST_STREAK_STEPS.find(x=>x>run); if(ks)G.push([`${ks}-week hosting streak`,`host ${wk(ks-run)} in a row${best<ks?" · a new medal":""}`])}
+  if(prev===cur[0]){const ks=HOST_STREAK_STEPS.find(x=>x>run); if(ks)G.push([`🎙️ ${ks}-week hosting streak${best<ks?" medal":""}`,`host ${wk(ks-run)} in a row`])}
   const y=WEEKS[curIdx][1].slice(0,4), c={}; WEEKS.forEach(([w,d,h],i)=>{if(i<=curIdx&&h&&h!==LOST&&d.startsWith(y))c[h]=(c[h]||0)+1});
   if(!c[n])return; const L=Object.keys(c).sort((a,b)=>c[b]-c[a]||a.localeCompare(b)), top=L[0];
   // placed like a podium (hosts level on weeks share a place): gold, silver or bronze, or the gap to third place
   const place=h=>1+L.filter(x=>c[x]>c[h]).length, r=place(n), level=L.filter(x=>x!==n&&c[x]===c[n]), wks=k=>`${k} week${k===1?"":"s"}`;
-  if(r===1){G.push([`Host of the year ${y}`,L[1]&&c[L[1]]===c[n]?`level with ${L[1]} on ${c[n]} weeks`:`you're leading: ${c[n]} weeks hosted · ${L[1]?`${c[n]-c[L[1]]} ahead of ${L[1]}`:"nobody else yet"}`]); return}
+  if(r===1){G.push([`👑 Host of the year ${y}`,L[1]&&c[L[1]]===c[n]?`level with ${L[1]} on ${c[n]} weeks`:`you're leading: ${c[n]} weeks hosted · ${L[1]?`${c[n]-c[L[1]]} ahead of ${L[1]}`:"nobody else yet"}`]); return}
   if(r<=3){const up=L.filter(x=>c[x]>c[n]).pop();   // the host just ahead
-    G.push([`${r===2?"Silver":"Bronze"} host of the year ${y}`,`you're ${pl(r)}${level.length?`, level with ${level[0]}`:""}: ${c[n]} weeks hosted · ${wks(c[up]-c[n])} behind ${up}`]); return}
+    G.push([`👑 ${r===2?"Silver":"Bronze"} host of the year ${y}`,`you're ${pl(r)}${level.length?`, level with ${level[0]}`:""}: ${c[n]} weeks hosted · ${wks(c[up]-c[n])} behind ${up}`]); return}
   const third=L.filter(x=>place(x)<=3).pop(), gap=c[third]-c[n]; if(gap>4)return;   // (only when third place is within reach: 4 weeks or less behind)
-  G.push([`Bronze host of the year ${y}`,`${wks(gap)} behind ${third} for ${pl(place(third))} place · you're ${pl(r)}`])}
+  G.push([`👑 Bronze host of the year ${y}`,`${wks(gap)} behind ${third} for ${pl(place(third))} place · you're ${pl(r)}`])}
 // Within reach sits at the top of This Week for the signed-in player (their own goals, the first thing they see)
 function twGoals(){const el=$("tw-goals"); if(!el)return; let G=[], n="";
   try{if(typeof ACCT!=="undefined"&&ACCT.claim&&ACCT.claim.status==="approved"&&twWeek===TW_LIVE){n=ACCT.claim.player; G=goalsPanel(n)||[]}}catch(e){console.error(e)}
