@@ -3615,7 +3615,7 @@ document.addEventListener("click",e=>{const b=e.target.closest("[data-rpcopy]");
 function friSection(){if(new Date().getDay()!==5)return "";   // only on Fridays (your own time), and not worked out on other days
   const t=friText(); if(!t)return "";
   return `<div class="adm acctsec hlbox fribox"><h3>Friday post${friBadge()}</h3><p class="dim">A reminder for the forum thread before the weekend: play streaks with no score yet this week, and this week's challenges nobody can win yet, each with the players in that class who've played other challenges this week but not that one.</p>
-    <div id="fritext" class="hlrich">${friHtml()}</div><div class="row"><button type="button" class="btn ghost" data-fricopy>Copy</button><button type="button" class="btn ghost" data-fricopy="plain">Copy as plain text</button></div></div>`}
+    <div id="fritext" class="hlrich">${friHtml()}</div><div class="row"><button type="button" class="btn ghost" data-fricopy>Copy</button></div></div>`}
 // Copy: formatted (bold kept, for the forum's editor) with the plain text alongside; marks the Friday post done for today
 document.addEventListener("click",e=>{const b=e.target.closest("[data-fricopy]"); if(!b)return; const plain=friText(), lab=b.textContent, ok=()=>{b.textContent="Copied ✓"; setTimeout(()=>b.textContent=lab,1500)};
   try{if(b.dataset.fricopy!=="plain"&&window.ClipboardItem&&navigator.clipboard.write)
