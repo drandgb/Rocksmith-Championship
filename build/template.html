@@ -3630,7 +3630,7 @@ document.addEventListener("click",e=>{const b=e.target.closest("[data-hlcopy]");
   const scan=n=>{if(n.nodeType!==1)return; if(n.matches(SEL))add(n); n.querySelectorAll(SEL).forEach(add)};
   scan(document.body); new MutationObserver(ms=>ms.forEach(m=>m.addedNodes.forEach(scan))).observe(document.body,{childList:true,subtree:true})})();
 // ---------- title decorations: the championship's anniversary week gets balloons; the rest of October, a ghost ----------
-const THEME_NAMES={halloween:"👻 Halloween",fri13:"🐈‍⬛ Friday the 13th",xmas:"🎄 Christmas",newyear:"🎆 New Year",valentine:"💘 Valentine's Day",stpat:"🍀 St Patrick's Day",thanks:"🦃 Thanksgiving",easter:"🐣 Easter",fools:"🤡 April Fools",ann:"🎈 Championship anniversary",mile:"💯 Milestone week (every 100th)",none:"No theme"};
+const THEME_NAMES={halloween:"👻 Halloween",fri13:"🐈‍⬛ Friday the 13th",xmas:"🎄 Christmas",newyear:"🎆 New Year",valentine:"💘 Valentine's Day",stpat:"🍀 St Patrick's Day",thanks:"🦃 Thanksgiving",easter:"🐣 Easter",fools:"🤡 April Fools",ann:"🎈 Championship Anniversary",mile:"💯 Milestone week (every 100th)",none:"No theme"};
 // the week a date falls in (from the sheet's weeks, stepping on past its end)
 function weekOfDate(iso){const d=new Date(iso+"T12:00:00"), c=new Date(cur[1]+"T12:00:00"); let i=curIdx+Math.floor((d-c)/(7*864e5)); while(i>0&&weekAt(i)[1]>iso)i--; while(weekAt(i+1)[1]<=iso)i++; return weekAt(i)}
 // the automatic theme for a date: the championship's anniversary week first, then every 100th week, then the holidays
