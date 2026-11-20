@@ -3402,6 +3402,7 @@ function hlParts(w){const pre=typeof ML_PRE!=="undefined"&&ML_PRE&&ML_PRE.hl&&ML
   return P.map(g=>g.flatMap(x=>x===HL_VOTERS?(line?[line]:[]):[x])).filter(g=>g.length)}
 function hlText(w){return hlParts(w).map(g=>g.join("\n").replace(/\*\*/g,"")).join("\n\n")}
 function hlHtml(w){return hlParts(w).flat().map(x=>`<p>${esc(x).replace(/\*\*(.+?)\*\*/g,"<strong>$1</strong>")}</p>`).join("")}   // every line its own paragraph, so the forum editor can turn each @name into a tag
+let HL_WINW=null;   // each player's weeks with a win, for "Back on top"
 function hlParts0(w){eloBuild(); const I=sbIx(), L=[], G1=[], G2=[], G2b=[], G3=[], G4=[], played=Object.keys(I.wk).filter(k=>I.wk[k].includes(w)), nm=k=>"@"+I.disp[k];   // names with @, as in the forum
   const both=xs=>xs.length>1?xs.slice(0,-1).join(", ")+" and "+xs[xs.length-1]:xs[0];
   const newc=played.filter(k=>I.wk[k][0]===w).map(nm); if(newc.length)G1.push(`🐣 **Welcome** to our new player${newc.length===1?"":"s"}: ${newc.join(", ")}`);
@@ -3452,9 +3453,15 @@ function hlParts0(w){eloBuild(); const I=sbIx(), L=[], G1=[], G2=[], G2b=[], G3=
   if(sNow&&sNext&&sNow!==sNext){const ch=[0,1,2].map(pi=>sLine(pi)).filter(Boolean);
     out.push([`🏁 **A new season starts this week: Season ${seasonNum(sNext)} (${sNext})!** Everyone starts on zero points: 25 for a win, 18 for 2nd, down to 1 for 10th on each week's main challenge in your class. Show up every week to keep scoring.`]);
     if(ch.length)out.push([`🏆 **Season ${seasonNum(sNow)} (${sNow}) champions**:`],...ch)}
+  const G2c=[];
+  // back on top: a win this week after at least 26 weeks without one (any path; a first win ever is in the medals above)
+  try{if(!HL_WINW){HL_WINW={}; Object.keys(SB.weeks).map(Number).sort((a,b)=>a-b).forEach(x=>(SB.weeks[x]||[]).forEach(c=>{if(c[7])return; const e=c[6].find(y=>canWin(y)); if(!e)return;
+      const k=SB.names[e[0]].replace(/[*~]+$/,"").trim(), L=HL_WINW[k.toLowerCase()]=HL_WINW[k.toLowerCase()]||{n:k,w:[]}; if(L.w[L.w.length-1]!==x)L.w.push(x)}))}
+    const back=Object.values(HL_WINW).filter(L=>L.w.includes(w)).map(L=>{const prev=L.w.filter(x=>x<w).pop(); return prev&&w-prev>=26?{n:L.n,prev,gap:w-prev}:null}).filter(Boolean).sort((a,b)=>b.gap-a.gap);
+    if(back.length)G2c.push(`🥇 **Back on top**: ${back.map(x=>`@${x.n} (first win since Week ${x.prev}, ${x.gap} weeks ago)`).join(", ")}`)}catch(e){}
   // big improvements over the whole week (moved here from Messages for players, so a later, better score isn't missed):
   // one line per player, starting with the @name; points up rounded down
-  const G2c=[]; try{const by={}; hmImprove(w).forEach(x=>(by[x.n]=by[x.n]||[]).push(x));
+  try{const by={}; hmImprove(w).forEach(x=>(by[x.n]=by[x.n]||[]).push(x));
     const L=Object.entries(by).sort((a,b)=>Math.max(...b[1].map(x=>x.d))-Math.max(...a[1].map(x=>x.d))||a[0].localeCompare(b[0])).map(([n,xs])=>`@${n} · `+xs.map(x=>`${x.song}${x.path?` (${x.path})`:""} ${x.first!=null?`from ${x.first}% to ${x.pct}%`:`${x.pct}%, up from a best of ${x.b}% before`} (+${Math.floor(x.d)})`).join(" · "));
     if(L.length)G2c.push(`📈 **Big improvements** this week (+${HM_IMPROVE} points or more):`,...L)}catch(e){}
   [G1,G2,G2b,G2c,G3,G4].forEach(g=>{if(g.length)out.push(g)});
