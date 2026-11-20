@@ -3491,7 +3491,7 @@ document.addEventListener("click",e=>{const b=e.target.closest("[data-hlposted]"
   hmImpMark(ELO_DONE,["hlposted"]); try{acctBtn(); if($("acct").open)acctDraw()}catch(err){}});
 const hlPosted=w=>{try{hmImpLoad(); return (hmImpPosted()[w]||{}).hlposted?((HM_IMP.log||{})[w]||[]).find(r=>r.item==="hlposted")||{}:null}catch(e){return null}};
 function hlDue(){try{return acctOn()&&(isCurHost()||!!ACCT.admin)&&hostTab()&&!!SB.weeks[ELO_DONE]&&!hlPosted(ELO_DONE)}catch(e){return false}}
-const hlBadge=()=>hlDue()?`<span class="nbadge nbemo" title="Week ${ELO_DONE} is finished: copy its Weekly highlights into the Week ${ELO_DONE+1} post">📰</span>`:"";
+const hlBadge=()=>hlDue()?`<span class="nbadge nbemo" data-bk="hl" title="Week ${ELO_DONE} is finished: copy its Weekly highlights into the Week ${ELO_DONE+1} post">📰</span>`:"";
 function hlSection(){const ws=[]; for(let w=ELO_DONE;w>ELO_DONE-6&&w>0;w--)if(SB.weeks[w])ws.push(w); const w=ACCT.hlWeek&&ws.includes(ACCT.hlWeek)?ACCT.hlWeek:ws[0]; if(!w)return ""; const P0=hlPosted(ELO_DONE);
   return `<div class="acctsec hlbox"><h3>Weekly highlights${hlBadge()} <select class="hlsel" data-hlweek>${ws.map(x=>`<option value="${x}"${x===w?" selected":""}>Week ${x}</option>`).join("")}</select></h3>
     <p class="dim">New players, welcome backs, rank-ups, first medals, newcomers' milestones and the season leaders for Week ${w}, ready to copy into the Week ${w+1} post.</p><div id="hltext" class="hlrich" data-w="${w}">${HL_PARTS[w]||(typeof ML_PRE!=="undefined"&&ML_PRE&&ML_PRE.hl&&ML_PRE.hl[w])?hlHtml(w):(hlLater(w),`<p class="dim">Working out Week ${w}'s highlights…</p>`)}</div><div class="row"><button type="button" class="btn ghost" data-hlcopy>Copy</button>${w===ELO_DONE?(P0?`<button type="button" class="btn ghost" disabled title="Marked as posted">Posted ✓</button>`:`<button type="button" class="btn ghost" data-hlposted title="Once it's in the forum: stop the 📰 reminder for Week ${w}">Mark as posted</button>`):""}</div>${hlPostLog()}</div>`}
@@ -3611,8 +3611,8 @@ const isCurHost=()=>{try{return !!hostIssueWeek()}catch(e){return false}};
 const todayKey=()=>{const d=new Date(); return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate()};
 function friDue(){try{return (isCurHost()||!!ACCT.admin)&&hostTab()&&new Date().getDay()===5&&lsGet("rsc-fri-done")!==todayKey()&&!!friText()}catch(e){return false}}
 function rpDue(){try{return !!ACCT.admin&&new Date().getDay()===6&&lsGet("rsc-rp-done")!==todayKey()}catch(e){return false}}
-const friBadge=()=>friDue()?`<span class="nbadge nbemo" title="It's Friday: time for the Friday post">📣</span>`:"";
-const rpBadge=()=>rpDue()?`<span class="nbadge nbemo" title="It's Saturday: time for the recruitment post">📢</span>`:"";
+const friBadge=()=>friDue()?`<span class="nbadge nbemo" data-bk="fri" title="It's Friday: time for the Friday post">📣</span>`:"";
+const rpBadge=()=>rpDue()?`<span class="nbadge nbemo" data-bk="rp" title="It's Saturday: time for the recruitment post">📢</span>`:"";
 document.addEventListener("click",e=>{const b=e.target.closest("[data-rpcopy]"); if(!b)return;
   const k=b.dataset.rpcopy==="fritext"?"rsc-fri-done":/^rp/.test(b.dataset.rpcopy)?"rsc-rp-done":null; if(!k)return;
   lsSet(k,todayKey()); setTimeout(()=>{try{acctBtn(); if($("acct").open)acctDraw()}catch(err){}},1600)});
@@ -7575,7 +7575,7 @@ function hmUnsentN(){try{if(!((isCurHost()||ACCT.admin)&&hostTab()))return 0; co
   const J=[...hmJoin(hmWelcome(w),sent),...hmJoin(hmBack(w),sent),];   // (milestones are in Weekly highlights now)
   const n=J.filter(x=>!(x.parts||[x.t]).every(sent)).length;
   HM_N={k,n}; return n}catch(e){return 0}}
-const hmBadge=()=>{const n=hmUnsentN(); return n?`<span class="nbadge nbemo" title="${n} message${n===1?"":"s"} for players not sent yet this week">💬</span>`:""};
+const hmBadge=()=>{const n=hmUnsentN(); return n?`<span class="nbadge nbemo" data-bk="hm" title="${n} message${n===1?"":"s"} for players not sent yet this week">💬</span>`:""};
 function hmSection(){const ws=hmWeeks(); if(!ws.length)return ""; const w=ACCT.hmWeek&&ws.includes(ACCT.hmWeek)?ACCT.hmWeek:ws[0];
   const W=hmWelcome(w), B=hmBack(w), M=[], U=hmImproveMsgs(w), P=hmImpPosted()[w]||{};
   // Sent: marks the message as sent, for everyone who posts (saved with the copied improvements, improve_posted.sql)
@@ -7668,7 +7668,7 @@ function cetTxt(t){try{const z=new Intl.DateTimeFormat("en-GB",{timeZone:"Europe
 // next week's host (who closes this week): a ⏰ badge until the week close countdown is set
 function cdDue(){try{if(!acctOn()||!ACCT.claim||ACCT.claim.status!=="approved")return false; const w=TW_MAX, r=WEEKS.find(x=>x[0]===w+1), h=(r&&r[2])||(ACCT.hostSign&&ACCT.hostSign[w+1]&&ACCT.hostSign[w+1].player)||"";
   return WCLOSE_ON&&!!h&&String(h).toLowerCase()===ACCT.claim.player.toLowerCase()&&!closeFor(w)}catch(e){return false}}
-const cdBadge=()=>cdDue()?`<span class="nbadge nbemo" title="You host next week: set when Week ${TW_MAX} closes (Week close countdown, Host tab)">⏰</span>`:"";
+const cdBadge=()=>cdDue()?`<span class="nbadge nbemo" data-bk="cd" title="You host next week: set when Week ${TW_MAX} closes (Week close countdown, Host tab)">⏰</span>`:"";
 function closeSection(){const w=TW_MAX, r=closeFor(w), def=nyAt(weekAt(w)[1]), t=r?new Date(r.ends_at):new Date(def);
   if(!canTune(w+1))return "";   // shown only to the next week's host (who closes the week) and admins, who can set it
   const loc=new Date(t.getTime()-t.getTimezoneOffset()*6e4).toISOString().slice(0,16);
@@ -8388,20 +8388,25 @@ function acctProfile(n){
 }
 // header button and dialog
 function acctBtn(){const b=$("acctbtn"); b.hidden=!ACCT.on; try{twGoals()}catch(e){console.error(e)}
+  // while the login is still loading, leave the button as it is (the copy from the last visit), so its badges don't flash off and on
+  if(!ACCT.ready||ACCT.loading)return;
+  // a badge whose data hasn't loaded yet keeps the one already on the button until it has
+  const was={}; b.querySelectorAll(".nbadge[data-bk]").forEach(x=>was[x.dataset.bk]=x.outerHTML);
+  const held=(k,f)=>{try{const wait=k==="hl"||k==="hm"?HM_IMP.st===undefined||HM_IMP.st===null:k==="iss"?TY_DIS===undefined||TY_DIS===null:k==="cd"?!WCLOSE_ON:false; return wait?was[k]||"":f()}catch(e){return was[k]||""}};
   b.title=ACCT.claim&&ACCT.claim.status==="approved"?"Opens your profile: your own stats page, last week's medals, your song ratings and your forum signature banner"
     :ACCT.claim?"Opens your profile. Your player claim is waiting for an admin to approve it"
     :ACCT.user?"Opens your profile, where you can claim your player name so you can rate songs and sign up to host"
     :"Log in with your email to claim your player profile, see your own stats page, rate songs and sign up to host"; b.textContent=ACCT.claim&&ACCT.claim.status==="approved"?"👤 "+ACCT.claim.player:ACCT.user?"👤 Profile":"👤 Log in";
   const n=ACCT.admin?ACCT.claims.filter(c=>c.status==="pending").length:0; // admins: how many claims are waiting
-  if(n)b.insertAdjacentHTML("beforeend",`<span class="nbadge nbemo" title="${n} claim${n===1?"":"s"} waiting for approval">👤</span>`);   // (the button's badges are emoji only; the count is in the hover text)
+  if(n)b.insertAdjacentHTML("beforeend",`<span class="nbadge nbemo" data-bk="cl" title="${n} claim${n===1?"":"s"} waiting for approval">👤</span>`);   // (the button's badges are emoji only; the count is in the hover text)
   // players: how many times they've been passed on this week's scoreboard since their last visit (Your week tab)
   const yn=ACCT.claim&&ACCT.claim.status==="approved"?ywUnseen(ACCT.claim.player).length:0;
-  if(yn)b.insertAdjacentHTML("beforeend",`<span class="nbadge nbyel" title="Passed ${yn} time${yn===1?"":"s"} on this week's scoreboard · dismiss it in Your week">⬇️</span>`);
+  if(yn)b.insertAdjacentHTML("beforeend",`<span class="nbadge nbyel" data-bk="yw" title="Passed ${yn} time${yn===1?"":"s"} on this week's scoreboard · dismiss it in Your week">⬇️</span>`);
   const sd=ACCT.claim&&ACCT.claim.status==="approved"?seasUnseen(ACCT.claim.player).length:0;
-  if(sd)b.insertAdjacentHTML("beforeend",`<span class="nbadge nbyel" title="Your season ranking is in danger on ${sd} path${sd===1?"":"s"} · dismiss it in Your week">🏁</span>`);
+  if(sd)b.insertAdjacentHTML("beforeend",`<span class="nbadge nbyel" data-bk="se" title="Your season ranking is in danger on ${sd} path${sd===1?"":"s"} · dismiss it in Your week">🏁</span>`);
   // this week's host: likely issues in last week's scoreboard (Host tab)
-  try{const L=hostIssueList(), n=hostIssueN(); if(n)b.insertAdjacentHTML("beforeend",`<span class="nbadge nbemo" title="${n} likely scoreboard issue${n===1?"":"s"} in ${L.map(H=>"Week "+H.w).join(" and ")} · see the Host tab">🔧</span>`)}catch(e){}
-  try{b.insertAdjacentHTML("beforeend",friBadge()+rpBadge()+hmBadge()+cdBadge()+hlBadge())}catch(e){}   // Friday post (this week's host and admins), recruitment post (admins)
+  b.insertAdjacentHTML("beforeend",held("iss",()=>{const L=hostIssueList(), n=hostIssueN(); return n?`<span class="nbadge nbemo" data-bk="iss" title="${n} likely scoreboard issue${n===1?"":"s"} in ${L.map(H=>"Week "+H.w).join(" and ")} · see the Host tab">🔧</span>`:""}));
+  b.insertAdjacentHTML("beforeend",held("fri",friBadge)+held("rp",rpBadge)+held("hm",hmBadge)+held("cd",cdBadge)+held("hl",hlBadge));   // Friday post (this week's host and admins), recruitment post (admins)
   try{const hb=$("twhostbar"); if(hb)hb.hidden=!isCurHost()}catch(e){}   // This Week: Open host settings, for this week's host
   try{const yb=$("twywbar"); if(yb)yb.hidden=!(ACCT.claim&&ACCT.claim.status==="approved")}catch(e){} sbYwShow();   // This Week: Your week, for a player with an approved claim
   try{localStorage.setItem("rsc-acctbtn",b.innerHTML)}catch(e){} // shown straight away on the next visit while the login loads
@@ -8417,7 +8422,7 @@ function lookupsToMe(){try{if(LOOKUP_DEF.me||!ACCT.claim||ACCT.claim.status!=="a
     if(WR.wins[n]&&!wPicked){wPicked=true; showWinner(n); markHot()}
     if(typeof hosts!=="undefined"&&hosts[n]&&LOOKUP_DEF.h&&hName===LOOKUP_DEF.h)showHost(n)};
   window.navQuiet?navQuiet(go):go()}catch(e){}}
-async function acctRefresh(){
+async function acctRefresh(){ACCT.loading=(ACCT.loading||0)+1; try{
   const {data:{session}}=await ACCT.sb.auth.getSession(); ACCT.user=session?session.user:null; if(ACCT.user)prefPull();
   const {data:cl}=await ACCT.sb.from("claims").select("user_id,player,status,created_at"); ACCT.claims=cl||[]; ACCT.claimsLoaded=!!cl;
   ACCT.claim=ACCT.user?ACCT.claims.find(c=>c.user_id===ACCT.user.id)||null:null;
@@ -8432,7 +8437,7 @@ async function acctRefresh(){
   ACCT.tuneLog=undefined; ACCT.voteLog=undefined; ACCT.tagLog=undefined; ACCT.runLog=undefined; if(ACCT.admin)await Promise.all([tuneLogLoad(),voteLogLoad(),tagLogLoad(),runLogLoad()]);
   ACCT.admins=undefined; if(ACCT.admin)await adminsLoad();
   ACCT.removed=null; if(ACCT.admin)await removedLoad();
-  await hostLoad(); ACCT.ready=true; acctBtn(); if($("acct").open)acctDraw(); ACCT.songs=null; sbRender();
+  await hostLoad(); ACCT.ready=true;}finally{ACCT.loading--} acctBtn(); if($("acct").open)acctDraw(); ACCT.songs=null; sbRender();
   acctLoadWeek(); // everyone's ratings are public: load them for logged-out visitors too
 }
 
