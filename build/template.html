@@ -275,6 +275,7 @@ button.clear:hover{border-color:var(--accent)}
 .tabs button[aria-selected="true"]{color:var(--fg);border-bottom-color:var(--accent)}
 [hidden]{display:none !important}
 .view{display:flex;flex-direction:column;gap:20px}
+.totop{align-self:center;display:block;margin:18px auto 4px;font:600 .85rem var(--f-body);color:var(--muted);background:none;border:1px solid var(--line);border-radius:999px;padding:7px 16px;cursor:pointer}.totop:hover{color:var(--accent);border-color:var(--accent)}
 /* players page */
 .grid2.even{grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr))}
 .podium{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;align-items:end;max-width:640px;margin:8px auto 0}
@@ -6569,6 +6570,12 @@ document.querySelectorAll(".strings i").forEach(s=>{
   s.addEventListener("touchstart",()=>{on(); setTimeout(()=>s.classList.remove("on"),700)},{passive:true});
 });
 
+// ↑ Back to top: at the bottom of every tab and every profile tab (the profile popup scrolls inside itself)
+const TOTOP=`<button type="button" class="totop" data-totop>↑ Back to top</button>`;
+document.querySelectorAll(".view").forEach(v=>v.insertAdjacentHTML("beforeend",TOTOP));
+document.addEventListener("click",e=>{if(!e.target.closest("[data-totop]"))return; const d=e.target.closest("dialog"), sm=matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth";
+  if(d)d.scrollTo({top:0,behavior:sm}); else window.scrollTo({top:0,behavior:sm})});
+
 // ---------- show "Site last updated" and "Scores last updated" in the viewer's own time zone ----------
 // "Site last updated": the last build in which the page's own code changed. "Scores last updated": the last build in
 // which the scores changed (render.py keeps each time from the previous page until its fingerprint changes).
@@ -8606,7 +8613,7 @@ function acctDraw(msg,err){
     h+=`<div class="adm acctsec"><h3>Claims &amp; roles${pend.length?`<span class="nbadge nbemo" title="${pend.length} claim${pend.length===1?"":"s"} waiting for approval">👤</span>`:""}</h3><div class="ratelogbox"><h4 style="margin-top:4px">Claims</h4></div>${pend.length?`<p class="claimtip">Before approving, message the player on the CustomsForge forum to confirm the claim is really theirs: you can ask them for the verification animal shown next to their claim (they can see it under Manage account).</p>`:""}<p>${pend.length?"Waiting for approval:":"No claims waiting."}</p><ul>${pend.map(c=>`<li><span>${esc(c.player)} ${animalTag(ACCT.animals[c.user_id])} <small>${new Date(c.created_at).toLocaleDateString()}</small></span><span><button type="button" class="btn" data-acct="approve" data-uid="${c.user_id}">Approve</button> <button type="button" class="btn ghost" data-acct="reject" data-uid="${c.user_id}">Reject</button></span></li>`).join("")}</ul>${appr.length?`<p class="apprhead"><span>Approved (${appr.length}):</span><button type="button" class="btn ghost small" data-acct="editclaims">${ACCT.editClaims?"Done":"Edit"}</button></p><ul>${appr.map(c=>`<li><span>${esc(c.player)} ${animalTag(ACCT.animals[c.user_id])}</span>${ACCT.editClaims?`<button type="button" class="btn ghost" data-acct="removeask" data-player="${esc(c.player)}">Remove</button>`:""}</li>`).join("")}</ul>`:""}${removePanel()}${adminsSection()}${claimLogSection()}</div>${(()=>{try{return hostTab()?"":fetchSection().replace('class="acctsec','class="adm acctsec')+siteUpSection().replace('class="acctsec','class="adm acctsec')}catch(e){console.error(e); return ""}})()}${(()=>{try{return themeSection()}catch(e){console.error(e); return ""}})()}${(()=>{try{return siSection()}catch(e){return ""}})()}${(()=>{try{return engSection()}catch(e){console.error(e); return ""}})()}${(()=>{try{return activitySection()}catch(e){console.error(e); return ""}})()}${(()=>{try{return rpSection()}catch(e){return ""}})()}${(()=>{try{return hmSection()}catch(e){return ""}})()}${(()=>{try{return hostMsgSection()}catch(e){return ""}})()}${(()=>{try{return bnaSection()}catch(e){return ""}})()}${tuneLogSection()}${voteLogSection()}${tagLogSection()}${runLogSection()}${removedSection()}${hostTab()?"":hostSection(true)}${typoSection()}${hostTab()?"":`<div class="adm acctsec"><h3>Host tools</h3><p class="dim">The Host tab's tools, here because you haven't hosted a week yet.</p></div>${hostTools()}`}`}
   // redrawing keeps the popup where it was scrolled to (e.g. after changing a rating in the Admin tab)
   const dlg=$("acct"), keep=[dlg.scrollTop,b.scrollTop];
-  b.innerHTML=h+note;
+  b.innerHTML=h+note+TOTOP;   // ↑ Back to top at the bottom of every profile tab
   {const l=b.querySelector(".lapsed .lpscroll"), li=l&&l.children; if(li&&li.length>10)l.style.maxHeight=(li[10].offsetTop-li[0].offsetTop-6)+"px"}   // Lapsed players: 10 rows, then scroll
   if(ACCT.tab===ACCT.lastTab){dlg.scrollTop=keep[0];b.scrollTop=keep[1]} ACCT.lastTab=ACCT.tab;
   if(ACCT.tab==="me"&&ACCT.claim&&ACCT.claim.status==="approved")acctMount(ACCT.claim.player);
