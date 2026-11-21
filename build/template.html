@@ -3484,9 +3484,14 @@ function hlParts0(w){eloBuild(); const I=sbIx(), L=[], G1=[], G2=[], G2b=[], G3=
 // the first time, the highlights are worked out just after the tab shows (it takes a few seconds), then filled in
 function hlLater(w){setTimeout(()=>{try{hlParts(w)}catch(e){console.error(e)} const el=$("hltext"); if(el&&+el.dataset.w===w)el.innerHTML=hlHtml(w)},60)}
 // a 📰 badge for this week's host and admins once a week has finished, until someone marks its highlights as posted
-// Posted log (Admin tab): who marked which week's Weekly highlights or Friday post as posted, and when, newest first
-function hlPostLog(){const G=HM_IMP.log||{}, L=[]; Object.keys(G).forEach(w=>(G[w]||[]).forEach(r=>{if(r.item==="hlposted"||r.item==="friposted")L.push([+w,r])})); L.sort((a,b)=>String(b[1].at).localeCompare(String(a[1].at)));
-  return `<h4 style="margin-top:4px">🗒️ Posted log</h4>${L.length?`<ul class="ratelog">${L.map(([w,r])=>`<li><small>${esc(new Date(r.at).toLocaleString(undefined,{month:"short",day:"numeric",hour:"numeric",minute:"2-digit"}))}</small> · <b>${esc(r.by_player||"someone")}</b> · ${r.item==="friposted"?`Week ${w} Friday post`:`Week ${w} highlights`}</li>`).join("")}</ul>`:`<p class="dim">Nothing marked as posted yet.</p>`}`}
+// Posted log (Admin tab): Weekly highlights, Friday posts and Messages for players marked as posted, with the week,
+// who marked it and when, newest first
+function hlPostLog(){const G=HM_IMP.log||{}, L=[];
+  Object.keys(G).forEach(w=>(G[w]||[]).forEach(r=>{if(r.item==="hlposted"||r.item==="friposted")L.push({at:r.at,by:r.by_player,w:+w,what:r.item==="friposted"?"Friday post":"Weekly highlights"})}));
+  try{const P0=hmImpPosted(); hmWeeks().forEach(w=>{const P=P0[w]||{}, sent=t=>!!P[hmSentKey(t)];
+    hmSentRows(w,[...hmJoin(hmWelcome(w),sent),...hmJoin(hmBack(w),sent),...hmImproveMsgs(w)]).forEach(x=>L.push({at:x.at,by:x.by,w,what:"Message",t:x.t}))})}catch(e){console.error(e)}
+  L.sort((a,b)=>String(b.at).localeCompare(String(a.at)));
+  return L.length?`<ul class="ratelog">${L.map(x=>`<li><small>${esc(new Date(x.at).toLocaleString(undefined,{month:"short",day:"numeric",hour:"numeric",minute:"2-digit"}))}</small> · <b>${esc(x.by||"someone")}</b> posted Week ${x.w} ${x.what}${x.t?`: ${esc(x.t)}`:""}</li>`).join("")}</ul>`:`<p class="dim">Nothing marked as posted yet.</p>`}
 document.addEventListener("click",e=>{const b=e.target.closest("[data-hlposted]"); if(!b||b.disabled)return;
   if(!confirm(`Mark the Week ${ELO_DONE} highlights as posted? Everyone sees who marked it, and the 📰 reminder goes.`))return;
   hmImpMark(ELO_DONE,["hlposted"]); try{acctBtn(); if($("acct").open)acctDraw()}catch(err){}});
@@ -3613,12 +3618,11 @@ const todayKey=()=>{const d=new Date(); return d.getFullYear()+"-"+(d.getMonth()
 // Friday post marked as posted (improve_posted, item "friposted" for the running week): {at, by_player} or null
 const friPosted=w=>{try{hmImpLoad(); return (hmImpPosted()[w]||{}).friposted?((HM_IMP.log||{})[w]||[]).find(r=>r.item==="friposted")||{}:null}catch(e){return null}};
 function friDue(){try{return (isCurHost()||!!ACCT.admin)&&hostTab()&&new Date().getDay()===5&&!friPosted(TW_MAX)&&!!friText()}catch(e){return false}}
-function rpDue(){try{return !!ACCT.admin&&new Date().getDay()===6&&lsGet("rsc-rp-done")!==todayKey()}catch(e){return false}}
+// the recruitment post counts as done once a link for the running week is saved (or one posted today)
+const rpDone=()=>{try{const L=ACCT.rposts||[], today=rpIso(new Date()); return L.some(r=>r.on===today||(()=>{try{return weekOfDate(r.on)[0]===TW_MAX}catch(e){return false}})())}catch(e){return false}};
+function rpDue(){try{if(!ACCT.admin||new Date().getDay()!==6)return false; if(ACCT.rposts===undefined){ACCT.rposts=[]; ACCT.rpLoading=true; rpLoad().finally(()=>{ACCT.rpLoading=false; try{acctBtn()}catch(e){}})} return !ACCT.rpLoading&&ACCT.rposts!=null&&!rpDone()}catch(e){return false}}
 const friBadge=()=>friDue()?`<span class="nbadge nbemo" data-bk="fri" title="It's Friday: time for the Friday post">📣</span>`:"";
 const rpBadge=()=>rpDue()?`<span class="nbadge nbemo" data-bk="rp" title="It's Saturday: time for the recruitment post">📢</span>`:"";
-document.addEventListener("click",e=>{const b=e.target.closest("[data-rpcopy]"); if(!b)return;
-  const k=/^rp/.test(b.dataset.rpcopy)?"rsc-rp-done":null; if(!k)return;
-  lsSet(k,todayKey()); setTimeout(()=>{try{acctBtn(); if($("acct").open)acctDraw()}catch(err){}},1600)});
 function friSection(){if(new Date().getDay()!==5)return "";   // only on Fridays (your own time), and not worked out on other days
   const t=friText(); if(!t)return "";
   return `<div class="adm acctsec hlbox fribox"><h3>Friday post${friBadge()}</h3><p class="dim">A reminder for the forum thread before the weekend: play streaks with no score yet this week, and this week's challenges nobody can win yet, each with the players in that class who've played other challenges this week but not that one.</p>
@@ -3657,7 +3661,7 @@ document.addEventListener("click",async e=>{if(e.target.closest("[data-rpedit]")
     const row={url:v,week:on?(()=>{try{return weekOfDate(on)[0]}catch(x){return TW_MAX}})():TW_MAX,set_by:ACCT.claim&&ACCT.claim.player||null}; if(on)row.posted_on=on;
     const {error}=await ACCT.sb.from("recruit_posts").insert(row);
     if(error){alert(/duplicate|unique/i.test(error.message)?"That link is already in the list.":/relation|does not exist|schema cache/i.test(error.message)?"Not set up yet: run build/supabase/recruit_posts.sql in Supabase.":"Couldn't save it: "+error.message);return}
-    if(!on||on===rpIso(new Date()))lsSet("rsc-rp-done",todayKey())}   // (Saturday's reminder badge is done once today's post is added)
+  }   // (a link for the running week clears Saturday's 📢 reminder)
   else{if(!confirm("Remove this link from the list?"))return; const {error}=await ACCT.sb.from("recruit_posts").delete().eq("id",d.dataset.rpdel); if(error){alert("Couldn't remove it: "+error.message);return}}
   await rpLoad(); try{acctBtn()}catch(x){}});
 // Edit: correcting the date a post was made
@@ -3665,7 +3669,6 @@ document.addEventListener("change",async e=>{const i=e.target.closest&&e.target.
   const {error}=await ACCT.sb.from("recruit_posts").update({posted_on:on,week:(()=>{try{return weekOfDate(on)[0]}catch(x){return null}})()}).eq("id",i.dataset.rpdate);
   if(error){alert(/permission|policy|posted_on/i.test(error.message)?"Dates can't be changed yet: run build/supabase/recruit_posts.sql in Supabase again.":"Couldn't change the date: "+error.message);return}
   await rpLoad()});
-document.addEventListener("click",e=>{const b=e.target.closest("[data-rpcopy]"); if(!b)return; const t=$(b.dataset.rpcopy).textContent, l=b.textContent; try{navigator.clipboard.writeText(t).then(()=>{b.textContent="Copied ✓"; setTimeout(()=>b.textContent=l,1500)})}catch(err){}});
 function siSection(){const cur=TW_MAX, now=siLab(cur), [a]=siRange(now,cur), ids=[now]; if(cur!==a)return "";   // only in a new season's first week
   const id=ACCT.siId&&ids.includes(ACCT.siId)?ACCT.siId:ids[0];
   return `<div class="adm acctsec hlbox sibox"><h3>Season introduction <select class="hlsel" data-siid>${ids.map(x=>`<option value="${x}"${x===id?" selected":""}>Season ${seasonNum(x)} (${x})</option>`).join("")}</select></h3>
@@ -7536,12 +7539,11 @@ function hmMilestones(w){const live=w>DATA_WEEK, names=[...new Set(twEntries(w).
   names.forEach(n=>{let ms=[]; try{ms=twMedals(n,w,live)}catch(e){}
     ms.forEach(h=>{const tip=(/data-tip="([^"]*)"/.exec(h)||[])[1]||"", t=hmMsg(n,tip.replace(/&#39;/g,"'").replace(/&quot;/g,'"').replace(/&amp;/g,"&")); if(t&&!out.some(x=>x.t===t))out.push({n,what:tip.split(" · ")[0],t})})});
   return out.sort((a,b)=>a.n.localeCompare(b.n))}
-// Sent log (bottom of Messages for players): who marked which message sent, and when, newest first. One press of
-// Sent saves the message and its parts at the same moment, so those show as one line with the message's own text.
-function hmSentLog(w,msgs){const G=(HM_IMP.log||{})[w]||[], text={}; msgs.forEach(x=>{text[hmSentKey(x.t)]=x.t; (x.parts||[]).forEach(t=>{text[hmSentKey(t)]=text[hmSentKey(t)]||t})});
+// Messages for players marked sent, as rows for the Posted log: one press of Sent saves the message and its parts at the
+// same moment, so those show as one row with the message's own text
+function hmSentRows(w,msgs){const G=(HM_IMP.log||{})[w]||[], text={}; msgs.forEach(x=>{text[hmSentKey(x.t)]=x.t; (x.parts||[]).forEach(t=>{text[hmSentKey(t)]=text[hmSentKey(t)]||t})});
   const by={}; G.filter(r=>/^sent\|/.test(r.item)).forEach(r=>{const k=r.at+"|"+(r.by_player||""); (by[k]=by[k]||[]).push(r)});
-  const L=Object.values(by).map(R=>{const r=R.slice().sort((a,b)=>b.item.length-a.item.length)[0]; return {at:r.at,by:r.by_player,t:text[r.item]||r.item.slice(5)}}).sort((a,b)=>b.at.localeCompare(a.at));
-  return `<h4>🗒️ Sent log</h4>${L.length?`<ul class="ratelog">${L.map(x=>`<li><small>${esc(new Date(x.at).toLocaleString(undefined,{month:"short",day:"numeric",hour:"numeric",minute:"2-digit"}))}</small> · <b>${esc(x.by||"someone")}</b> · ${esc(x.t)}</li>`).join("")}</ul>`:`<p class="dim">Nothing marked sent for Week ${w} yet.</p>`}`}
+  return Object.values(by).map(R=>{const r=R.slice().sort((a,b)=>b.item.length-a.item.length)[0]; return {at:r.at,by:r.by_player,t:text[r.item]||r.item.slice(5)}})}
 // joining messages: one player's path variants ("every Lead and Rhythm challenge"), then the same message for several
 // players ("Congratulations @A, @B, and @C, ..."). Sent and not-yet-sent ones are joined separately, so a message
 // that was sent stays as it was; each joined message keeps its parts (x.parts) for the Sent button.
@@ -7594,10 +7596,9 @@ function hmSection(){const ws=hmWeeks(); if(!ws.length)return ""; const w=ACCT.h
     <h4>👋 Welcome new players</h4>${W.length?`<ul class="hml">${Wj.map(x=>row(x.t,x.many?`${x.many} players`:"",x.parts)).join("")}</ul>`:`<p class="dim">No new players in Week ${w}.</p>`}
     <h4>🔁 Welcome back</h4>${B.length?`<ul class="hml">${Bj.map(x=>row(x.t,`${x.away} weeks away${x.many?` · ${x.many} players`:""}`,x.parts)).join("")}</ul>`:`<p class="dim">Nobody back from a break in Week ${w}.</p>`}
     <p class="dim">Milestones (first medals and play streaks) and big improvements are in Weekly highlights.</p></div>`}
-// Posted and sent logs (Admin tab): Weekly highlights and Friday posts marked as posted, and Messages for players marked sent
-function postLogSection(){try{hmImpLoad()}catch(e){} let sentL=""; try{const P0=hmImpPosted();
-    sentL=hmWeeks().map(w=>{const P=P0[w]||{}, sent=t=>!!P[hmSentKey(t)]; return hmSentLog(w,[...hmJoin(hmWelcome(w),sent),...hmJoin(hmBack(w),sent),...hmImproveMsgs(w)]).replace("🗒️ Sent log",`🗒️ Sent log · Week ${w}`)}).join("")}catch(e){console.error(e)}
-  return `<div class="adm acctsec postlogs"><h3>Posted &amp; sent log</h3>${HM_IMP.st===false?`<p class="dim">Not set up yet: run build/supabase/improve_posted.sql in Supabase.</p>`:hlPostLog()+sentL}</div>`}
+// Posted log (Admin tab)
+function postLogSection(){try{hmImpLoad()}catch(e){}
+  return `<div class="adm acctsec postlogs"><h3>Posted log</h3>${HM_IMP.st===false?`<p class="dim">Not set up yet: run build/supabase/improve_posted.sql in Supabase.</p>`:hlPostLog()}</div>`}
 document.addEventListener("change",e=>{const s=e.target.closest("[data-hmweek]"); if(!s)return; ACCT.hmWeek=+s.value; const el=document.querySelector(".acctdlg .hmsec:not(.hmhost)"); if(el)el.outerHTML=hmSection(); const eh=document.querySelector(".acctdlg .hmhost"); if(eh)eh.outerHTML=hostMsgSection()});
 document.addEventListener("click",e=>{const b=e.target.closest("[data-hmcopy]"); if(!b)return; try{navigator.clipboard.writeText(b.dataset.hmcopy).then(()=>{b.textContent="Copied ✓";
   const im=b.dataset.hmimp; if(im){const i=im.indexOf("|"); hmImpMark(+im.slice(0,i),JSON.parse(im.slice(i+1)))}   // a big improvement: remembered, so the next one is new
@@ -8402,7 +8403,7 @@ function acctBtn(){const b=$("acctbtn"); b.hidden=!ACCT.on; try{twGoals()}catch(
   if(!ACCT.ready||ACCT.loading)return;
   // a badge whose data hasn't loaded yet keeps the one already on the button until it has
   const was={}; b.querySelectorAll(".nbadge[data-bk]").forEach(x=>was[x.dataset.bk]=x.outerHTML);
-  const held=(k,f)=>{try{const wait=k==="hl"||k==="hm"||k==="fri"?HM_IMP.st===undefined||HM_IMP.st===null:k==="iss"?TY_DIS===undefined||TY_DIS===null:k==="cd"?!WCLOSE_ON:false; return wait?was[k]||"":f()}catch(e){return was[k]||""}};
+  const held=(k,f)=>{try{const wait=k==="rp"?ACCT.rposts===undefined||!!ACCT.rpLoading:k==="hl"||k==="hm"||k==="fri"?HM_IMP.st===undefined||HM_IMP.st===null:k==="iss"?TY_DIS===undefined||TY_DIS===null:k==="cd"?!WCLOSE_ON:false; return wait?was[k]||"":f()}catch(e){return was[k]||""}};
   b.title=ACCT.claim&&ACCT.claim.status==="approved"?"Opens your profile: your own stats page, last week's medals, your song ratings and your forum signature banner"
     :ACCT.claim?"Opens your profile. Your player claim is waiting for an admin to approve it"
     :ACCT.user?"Opens your profile, where you can claim your player name so you can rate songs and sign up to host"
