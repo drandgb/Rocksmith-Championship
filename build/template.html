@@ -3304,6 +3304,14 @@ function seasHl(){try{plHl()}catch(e){console.error(e)}}
 $("view-season").addEventListener("click",e=>{const pb=e.target.closest("[data-profile]"); if(!pb)return; const n=pb.dataset.profile; if(byName[n]){showView("players");showPlayer(n);$("pcard").closest("section").scrollIntoView({block:"start"})}});
 
 // Host tab: players who stopped in the last year (or 2), with where they were when they left
+// how often players came back after being away a while: every absence in the scoreboards (a stretch of weeks with no
+// score), and how many of those that lasted at least t weeks ended with the player playing again. An absence still going
+// counts as not back (yet), so the numbers for long absences are a little low.
+let LP_ODDS=null;
+function lpOdds(t){if(!LP_ODDS){const E=TW_MAX, I=sbIx(), A=[]; Object.values(I.wk).forEach(W=>{const ws=[...new Set(W)].filter(w=>w<=E).sort((a,b)=>a-b);
+    for(let i=0;i<ws.length;i++){const nx=ws[i+1], len=(nx?nx:E+1)-ws[i]-1; if(len>0)A.push([len,!!nx])}}); LP_ODDS={A,m:{}}}
+  if(LP_ODDS.m[t]==null){const L=LP_ODDS.A.filter(a=>a[0]>=t); LP_ODDS.m[t]=L.length>=20?Math.round(L.filter(a=>a[1]).length/L.length*100):null}
+  return LP_ODDS.m[t]}
 function lapsedSection(){const tw=TW_MAX, far=52, I=sbIx(), rows=[];
   Object.entries(I.wk).forEach(([k,W])=>{const last=W[W.length-1], gap=tw-last; if(gap<5||gap>far)return; const n=I.disp[k];
     const paths=[0,1,2].filter(pi=>(I.ent[k]||[]).some(x=>x.c[0]===pi));
@@ -3318,7 +3326,8 @@ function lapsedSection(){const tw=TW_MAX, far=52, I=sbIx(), rows=[];
   rows.sort((a,b)=>a.gap-b.gap);
   return `<div class="acctsec fwhost lapsed"><h3>Lapsed players <small>${rows.length} who stopped in the last year${rows.length>10?" · scroll for more":""}</small></h3>
     <p class="dim">Players who haven't posted a score for 4+ weeks, most recent first, with where they were when they left. A message from a host is often all it takes to bring someone back; when they return, their profile shows a Welcome back panel.</p>
-    ${rows.length?`<ul class="alist${rows.length>10?" lpscroll":""}">${rows.map(r=>`<li><span class="fwhn" data-fwp="${esc(r.n)}" title="Open ${esc(r.n)}'s profile">${esc(r.n)}</span><span class="fwlv">${r.lv}</span><span class="dim">last played Week ${r.last}${WEEKS[r.last-1]?" · "+fmt(WEEKS[r.last-1][1]):""} · away ${r.gap-1} weeks · ${r.cnt} week${r.cnt===1?"":"s"} played · ${r.c6} in the last 6 months</span><span class="fwhs">${r.info}</span></li>`).join("")}</ul>`:`<p class="dim">No lapsed players.</p>`}</div>`}
+    ${(()=>{try{const o=[[13,"3 months"],[26,"6 months"],[52,"1 year"],[104,"2 years"]].map(([t,l])=>[l,lpOdds(t)]).filter(x=>x[1]!=null); return o.length?`<p class="dim lpodds">How many come back, from every absence in the scoreboards: ${o.map(([l,v])=>`away ${l}, <b>${v}%</b>`).join(" · ")}. The biggest drop is in the first 6 months, so that's the best time to reach out.</p>`:""}catch(e){return ""}})()}
+    ${rows.length?`<ul class="alist${rows.length>10?" lpscroll":""}">${rows.map(r=>`<li><span class="fwhn" data-fwp="${esc(r.n)}" title="Open ${esc(r.n)}'s profile">${esc(r.n)}</span><span class="fwlv">${r.lv}</span><span class="dim">last played Week ${r.last}${WEEKS[r.last-1]?" · "+fmt(WEEKS[r.last-1][1]):""} · away ${r.gap-1} weeks${(()=>{const v=lpOdds(r.gap-1); return v!=null?` <span class="lpchance" data-tip="${esc(`Of the players who were away ${r.gap-1}+ weeks, ${v}% came back (every absence in the scoreboards)`)}">(${v}% come back)</span>`:""})()} · ${r.cnt} week${r.cnt===1?"":"s"} played · ${r.c6} in the last 6 months</span><span class="fwhs">${r.info}</span></li>`).join("")}</ul>`:`<p class="dim">No lapsed players.</p>`}</div>`}
 
 // Host tab: challenges from finished weeks whose trophy went unclaimed: no one who could win it (a player in the
 // challenge's class, or a new player) posted a score; anyone who played was playing up or down. Most recent first.
