@@ -323,8 +323,10 @@ button.clear:hover{border-color:var(--accent)}
 .brow .fill::after{content:"";position:absolute;right:0;top:50%;width:12px;height:12px;margin-top:-6px;border-radius:50%;background:var(--fg);box-shadow:0 0 8px var(--c)}
 .brow .val{font-family:var(--f-mono);font-size:.8rem;font-variant-numeric:tabular-nums;text-align:right;min-width:3.5em}
 .brow.top .nm{font-weight:600}
-/* number 1 names in gold, like the season champions */
-#view-players .brow.first .nm,#rk-body li.p1 .nm,.twrkl li.p1 .nm,.lvlist li.p1 .nm,.lvclp li:first-child .nm,#rk-year li:first-child .nm{color:#ffd86b;font-weight:800;text-shadow:0 0 10px rgba(255,216,107,.35)}
+/* the top three names in every ranked list: 1st in gold (like the season champions), 2nd in silver, 3rd in bronze */
+#view-players .brow.first .nm,#view-winners .brow.top:nth-child(1) .nm,#rk-body li.p1 .nm,.twrkl li.p1 .nm,.lvlist li.p1 .nm,.lvclp li:first-child .nm,#rk-year li:first-child .nm,.elocol li.elo-t1 .nm,.lvclp li.elo-t1 .nm{color:#ffd86b;font-weight:800;text-shadow:0 0 10px rgba(255,216,107,.35)}
+:is(#view-players,#view-winners) .brow.top:nth-child(2) .nm,#rk-body li.p2 .nm,.twrkl li.p2 .nm,.lvlist li.p2 .nm,.lvclp li:nth-child(2) .nm,#rk-year li:nth-child(2) .nm,.elocol li.elo-t2 .nm,.lvclp li.elo-t2 .nm{color:#e4e9f2;font-weight:800;text-shadow:0 0 10px rgba(201,208,220,.45)}
+:is(#view-players,#view-winners) .brow.top:nth-child(3) .nm,#rk-body li.p3 .nm,.twrkl li.p3 .nm,.lvlist li.p3 .nm,.lvclp li:nth-child(3) .nm,#rk-year li:nth-child(3) .nm,.elocol li.elo-t3 .nm,.lvclp li.elo-t3 .nm{color:#f0a868;font-weight:800;text-shadow:0 0 10px rgba(216,146,90,.45)}
 :is(#view-players,#view-winners) .brow.top .rk{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;font:700 .7rem var(--f-display);color:#10131a;background:radial-gradient(circle at 35% 30%,color-mix(in srgb,var(--rkm) 45%,#fff),var(--rkm) 65%);box-shadow:0 0 6px color-mix(in srgb,var(--rkm) 45%,transparent)}
 .brow.top:nth-child(1){--rkm:#f5c84a}.brow.top:nth-child(2){--rkm:#c9d0dc}.brow.top:nth-child(3){--rkm:#d8925a}
 .pod .medal{position:relative;overflow:hidden;background:radial-gradient(circle at 32% 28%,color-mix(in srgb,var(--m) 35%,#fff),var(--m) 55%,color-mix(in srgb,var(--m) 75%,#000));text-shadow:0 1px 0 rgba(255,255,255,.35)}
