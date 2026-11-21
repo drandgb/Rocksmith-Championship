@@ -7893,7 +7893,7 @@ function typoSection(H){
       return `<details data-tyk="h${H.w}|${k}"${tyOpen("h"+H.w+"|"+k,true)?" open":""}><summary>${t} <span class="tycount">${L.filter(x=>!tyDis(k,x)).length}</span>${d?` <small class="dim">${d}</small>`:""}</summary><ul class="tylist">${L.slice().sort((a,b)=>tyDis(k,a)-tyDis(k,b)).map(x=>row(k,x,f(x))).join("")}</ul></details>`}).join(""):`<p>No likely typos found. 👍</p>`}</div>`;
   // (the same count as the Admin tab's badge: new issues in the newest week)
   const nNew=(()=>{try{return typoScan().nNew||0}catch(e){return 0}})();
-  return `<div class="adm acctsec typos"><h3>Scoreboard checks${nNew?`<span class="nbadge tybadge" title="${nNew} likely typo${nNew===1?"":"s"} in this week's scoreboard">${nNew}</span>`:""}</h3><p class="dim">Likely typos in the scoreboard sheet, every week since 440. Click a week to open it on the Scoreboard; fix it in the sheet and it disappears after the next site update. <b>New</b> marks issues in the newest week (${NEW}).</p>
+  return `<div class="adm acctsec typos"><h3>Scoreboard checks${nNew?`<span class="nbadge nbemo" title="${nNew} likely typo${nNew===1?"":"s"} in this week's scoreboard">🔍</span>`:""}</h3><p class="dim">Likely typos in the scoreboard sheet, every week since 440. Click a week to open it on the Scoreboard; fix it in the sheet and it disappears after the next site update. <b>New</b> marks issues in the newest week (${NEW}).</p>
     ${total?G.map(([k,t,d,f])=>{const L=out[k].slice().sort((a,b)=>(tyDis(k,a)-tyDis(k,b))||(isNew(b)-isNew(a))||b.w-a.w), nd=L.filter(x=>tyDis(k,x)).length, nn=L.filter(x=>isNew(x)&&!tyDis(k,x)).length; if(!L.length)return "";
       return `<details data-tyk="a|${k}"${tyOpen("a|"+k,!!nn)?" open":""}><summary>${t} <span class="tycount">${L.length-nd}</span>${nd?` <small class="dim">+${nd} dismissed</small>`:""}${nn?`<span class="nbadge tybadge">${nn} new</span>`:""}${d?` <small class="dim">${d}</small>`:""}</summary><ul class="tylist">${L.map(x=>row(k,x,f(x))).join("")}</ul></details>`}).join(""):`<p>No likely typos found.</p>`}${fixLogSection()}</div>`;
 }
@@ -8394,7 +8394,7 @@ function acctBtn(){const b=$("acctbtn"); b.hidden=!ACCT.on; try{twGoals()}catch(
   if(!ACCT.ready||ACCT.loading)return;
   // a badge whose data hasn't loaded yet keeps the one already on the button until it has
   const was={}; b.querySelectorAll(".nbadge[data-bk]").forEach(x=>was[x.dataset.bk]=x.outerHTML);
-  const held=(k,f)=>{try{const wait=k==="hl"||k==="hm"?HM_IMP.st===undefined||HM_IMP.st===null:k==="iss"?TY_DIS===undefined||TY_DIS===null:k==="cd"?!WCLOSE_ON:false; return wait?was[k]||"":f()}catch(e){return was[k]||""}};
+  const held=(k,f)=>{try{const wait=k==="hl"||k==="hm"?HM_IMP.st===undefined||HM_IMP.st===null:k==="iss"||k==="ty"?TY_DIS===undefined||TY_DIS===null:k==="cd"?!WCLOSE_ON:false; return wait?was[k]||"":f()}catch(e){return was[k]||""}};
   b.title=ACCT.claim&&ACCT.claim.status==="approved"?"Opens your profile: your own stats page, last week's medals, your song ratings and your forum signature banner"
     :ACCT.claim?"Opens your profile. Your player claim is waiting for an admin to approve it"
     :ACCT.user?"Opens your profile, where you can claim your player name so you can rate songs and sign up to host"
@@ -8408,6 +8408,8 @@ function acctBtn(){const b=$("acctbtn"); b.hidden=!ACCT.on; try{twGoals()}catch(
   if(sd)b.insertAdjacentHTML("beforeend",`<span class="nbadge nbyel" data-bk="se" title="Your season ranking is in danger on ${sd} path${sd===1?"":"s"} · dismiss it in Your week">🏁</span>`);
   // this week's host: likely issues in last week's scoreboard (Host tab)
   b.insertAdjacentHTML("beforeend",held("iss",()=>{const L=hostIssueList(), n=hostIssueN(); return n?`<span class="nbadge nbemo" data-bk="iss" title="${n} likely scoreboard issue${n===1?"":"s"} in ${L.map(H=>"Week "+H.w).join(" and ")} · see the Host tab">🔧</span>`:""}));
+  // admins: new likely typos in this week's scoreboard (Scoreboard checks, Admin tab)
+  if(ACCT.admin)b.insertAdjacentHTML("beforeend",held("ty",()=>{const t=typoScan().nNew; return t?`<span class="nbadge nbemo" data-bk="ty" title="${t} likely typo${t===1?"":"s"} in this week's scoreboard · see Scoreboard checks in the Admin tab">🔍</span>`:""}));
   b.insertAdjacentHTML("beforeend",held("fri",friBadge)+held("rp",rpBadge)+held("hm",hmBadge)+held("cd",cdBadge)+held("hl",hlBadge));   // Friday post (this week's host and admins), recruitment post (admins)
   try{const hb=$("twhostbar"); if(hb)hb.hidden=!isCurHost()}catch(e){}   // This Week: Open host settings, for this week's host
   try{const yb=$("twywbar"); if(yb)yb.hidden=!(ACCT.claim&&ACCT.claim.status==="approved")}catch(e){} sbYwShow();   // This Week: Your week, for a player with an approved claim
