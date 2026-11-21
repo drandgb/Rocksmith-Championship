@@ -8565,7 +8565,7 @@ document.addEventListener("change",e=>{const i=e.target.closest("[data-bnapv]");
 // its "Faster fetch the latest scores" for the newest week, or to send the scoreboard (or the full sheet) to the website.
 // The script checks that the caller is logged in here as an admin, or as a claimed player who has hosted.
 // FETCH_URL is that script's web app address; while it's empty the sections aren't shown.
-const FETCH_URL="https://script.google.com/macros/s/AKfycbzEW2FLXFznFWjW8cKlhMuUEobKPq4LVxWq9nnYzkbEZXrjkSWiLxVnXFdKj73IPdiTkA/exec";
+const FETCH_URL="https://script.google.com/macros/s/AKfycbwrgj1h9UXB4Syh3BTMe84t_5WLeNMTjAz91m5A2L2Am8sgTq0jpdPnSUAD6QFOxmlBog/exec";
 let FETCH_ST={busy:"",res:null,at:0,what:""}, SITEUP_ST={busy:"",res:null,at:0,what:""};
 const hostRunOk=()=>{try{return !!FETCH_URL&&acctOn()&&(ACCT.admin||hostVerified())}catch(e){return false}};
 const hostRunAt=t=>t?new Date(t).toLocaleTimeString("en-US",{hour:"numeric",minute:"2-digit"}):"";
