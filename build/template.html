@@ -3502,7 +3502,8 @@ document.addEventListener("click",e=>{const b=e.target.closest("[data-hlposted]"
   hmImpMark(ELO_DONE,["hlposted"]); try{acctBtn(); if($("acct").open)acctDraw()}catch(err){}});
 const hlPosted=w=>{try{hmImpLoad(); return (hmImpPosted()[w]||{}).hlposted?((HM_IMP.log||{})[w]||[]).find(r=>r.item==="hlposted")||{}:null}catch(e){return null}};
 function hlDue(){try{return acctOn()&&(isCurHost()||!!ACCT.admin)&&hostTab()&&!!SB.weeks[ELO_DONE]&&!hlPosted(ELO_DONE)}catch(e){return false}}
-const hlBadge=()=>hlDue()?`<span class="nbadge nbemo" data-bk="hl" title="Week ${ELO_DONE} is finished: copy its Weekly highlights into the Week ${ELO_DONE+1} post">📰</span>`:"";
+const hmImpWait=()=>{if(HM_IMP.st!==undefined&&HM_IMP.st!==null)return false; try{hmImpLoad()}catch(e){} return true};   // the posted marks aren't loaded yet
+const hlBadge=()=>!hmImpWait()&&hlDue()?`<span class="nbadge nbemo" data-bk="hl" title="Week ${ELO_DONE} is finished: copy its Weekly highlights into the Week ${ELO_DONE+1} post">📰</span>`:"";
 function hlSection(){const ws=[]; for(let w=ELO_DONE;w>ELO_DONE-6&&w>0;w--)if(SB.weeks[w])ws.push(w); const w=ACCT.hlWeek&&ws.includes(ACCT.hlWeek)?ACCT.hlWeek:ws[0]; if(!w)return ""; const P0=hlPosted(ELO_DONE);
   return `<div class="acctsec hlbox"><h3>Weekly highlights${hlBadge()} <select class="hlsel" data-hlweek>${ws.map(x=>`<option value="${x}"${x===w?" selected":""}>Week ${x}</option>`).join("")}</select></h3>
     <p class="dim">New players, welcome backs, rank-ups, first medals, newcomers' milestones and the season leaders for Week ${w}, ready to copy into the Week ${w+1} post.</p><div id="hltext" class="hlrich" data-w="${w}">${HL_PARTS[w]||(typeof ML_PRE!=="undefined"&&ML_PRE&&ML_PRE.hl&&ML_PRE.hl[w])?hlHtml(w):(hlLater(w),`<p class="dim">Working out Week ${w}'s highlights…</p>`)}</div><div class="row"><button type="button" class="btn ghost" data-hlcopy>Copy</button>${w===ELO_DONE?(P0?`<button type="button" class="btn ghost" disabled title="Marked as posted">Posted ✓</button>`:`<button type="button" class="btn ghost" data-hlposted title="Once it's in the forum: stop the 📰 reminder for Week ${w}">Mark as posted</button>`):""}</div></div>`}
@@ -3626,7 +3627,7 @@ function friDue(){try{return (isCurHost()||!!ACCT.admin)&&hostTab()&&new Date().
 // the recruitment post counts as done once a link for the running week is saved (or one posted today)
 const rpDone=()=>{try{const L=ACCT.rposts||[], today=rpIso(new Date()); return L.some(r=>r.on===today||(()=>{try{return weekOfDate(r.on)[0]===TW_MAX}catch(e){return false}})())}catch(e){return false}};
 function rpDue(){try{if(!ACCT.admin||new Date().getDay()!==6)return false; if(ACCT.rposts===undefined){ACCT.rposts=[]; ACCT.rpLoading=true; rpLoad().finally(()=>{ACCT.rpLoading=false; try{acctBtn()}catch(e){}})} return !ACCT.rpLoading&&ACCT.rposts!=null&&!rpDone()}catch(e){return false}}
-const friBadge=()=>friDue()?`<span class="nbadge nbemo" data-bk="fri" title="It's Friday: time for the Friday post">📣</span>`:"";
+const friBadge=()=>!hmImpWait()&&friDue()?`<span class="nbadge nbemo" data-bk="fri" title="It's Friday: time for the Friday post">📣</span>`:"";
 const rpBadge=()=>rpDue()?`<span class="nbadge nbemo" data-bk="rp" title="It's Saturday: time for the recruitment post">📢</span>`:"";
 function friSection(){if(new Date().getDay()!==5)return "";   // only on Fridays (your own time), and not worked out on other days
   const t=friText(); if(!t)return "";
@@ -7501,7 +7502,11 @@ function hmImpPosted(){return HM_IMP.st&&typeof HM_IMP.st==="object"?HM_IMP.st:h
 const hmSentKey=t=>"sent|"+String(t).toLowerCase().replace(/\s+/g," ").trim().slice(0,400);
 document.addEventListener("click",e=>{const b=e.target.closest("[data-hmsent]"); if(!b||b.disabled)return; let parts=[]; try{parts=JSON.parse(b.dataset.hmparts||"[]")}catch(x){}
   hmImpMark(+b.dataset.hmsent,[b.dataset.hmt,...parts].map(hmSentKey)); hmRedraw()});   // a joined message marks each of its parts too
-function hmRedraw(){try{acctBtn()}catch(e){} try{const t=document.querySelector(".acctdlg #hltext"), h=t&&t.closest(".hlbox"); if(h)h.outerHTML=hlSection(); const T=document.querySelector('.accttabs [data-accttab="host"]'); if(T){T.querySelectorAll(".nbemo[title*='Weekly highlights']").forEach(x=>x.remove()); const g=hlBadge(); if(g)T.firstChild.after(document.createRange().createContextualFragment(g))}}catch(e){} const el=document.querySelector(".acctdlg .hmsec:not(.hmhost)"); if(el){el.outerHTML=hmSection(); try{const t=document.querySelector('.accttabs [data-accttab="host"]'); if(t){t.querySelectorAll(".nbemo[title*='message']").forEach(x=>x.remove()); const h=hmBadge(); if(h)t.firstChild.after(document.createRange().createContextualFragment(h))}}catch(e){}}}
+// the Host tab's label with its badges (redrawn whole once the posted marks have loaded, whichever tab is open)
+function hostTabLabel(){let x=""; try{x=hlBadge()+hmBadge()+cdBadge()+(()=>{const L=hostIssueList(), n=hostIssueN(); return n?`<span class="nbadge nbemo" title="${n} likely scoreboard issue${n===1?"":"s"} in ${L.map(H=>"Week "+H.w).join(" and ")}">🔧</span>`:""})()+friBadge()}catch(e){} return "Host"+x}
+function hmRedraw(){try{acctBtn()}catch(e){} try{const t=document.querySelector(".acctdlg #hltext"), h=t&&t.closest(".hlbox"); if(h)h.outerHTML=hlSection()}catch(e){}
+  const el=document.querySelector(".acctdlg .hmsec:not(.hmhost)"); if(el)try{el.outerHTML=hmSection()}catch(e){}
+  try{const T=document.querySelector('.accttabs [data-accttab="host"]'); if(T){const L=hostTabLabel(); if(T.innerHTML!==L)T.innerHTML=L}}catch(e){}}
 function hmImpLoad(){if(!ACCT.sb||HM_IMP.st===null||(HM_IMP.st!==undefined&&Date.now()-HM_IMP.t<30000))return; HM_IMP.st=null;
   ACCT.sb.from("improve_posted").select("week,item,at,by_player").gte("week",TW_MAX-12).then(({data,error})=>{HM_IMP.t=Date.now();
     if(error){HM_IMP.st=false}else{const P={}, G={}; (data||[]).forEach(r=>{(P[r.week]=P[r.week]||{})[r.item]=1; (G[r.week]=G[r.week]||[]).push(r)}); HM_IMP.st=P; HM_IMP.log=G} hmRedraw()})}
@@ -7587,7 +7592,7 @@ function hmUnsentN(){try{if(!((isCurHost()||ACCT.admin)&&hostTab()))return 0; co
   const J=[...hmJoin(hmWelcome(w),sent),...hmJoin(hmBack(w),sent),];   // (milestones are in Weekly highlights now)
   const n=J.filter(x=>!(x.parts||[x.t]).every(sent)).length;
   HM_N={k,n}; return n}catch(e){return 0}}
-const hmBadge=()=>{const n=hmUnsentN(); return n?`<span class="nbadge nbemo" data-bk="hm" title="${n} message${n===1?"":"s"} for players not sent yet this week">💬</span>`:""};
+const hmBadge=()=>{if(hmImpWait())return ""; const n=hmUnsentN(); return n?`<span class="nbadge nbemo" data-bk="hm" title="${n} message${n===1?"":"s"} for players not sent yet this week">💬</span>`:""};
 function hmSection(){const ws=hmWeeks(); if(!ws.length)return ""; const w=ACCT.hmWeek&&ws.includes(ACCT.hmWeek)?ACCT.hmWeek:ws[0];
   const W=hmWelcome(w), B=hmBack(w), M=[], U=hmImproveMsgs(w), P=hmImpPosted()[w]||{};
   // Sent: marks the message as sent, for everyone who posts (saved with the copied improvements, improve_posted.sql)
@@ -7990,7 +7995,7 @@ function runSummary(what,r){if(!r||!r.ok)return String(r&&r.error||"It didn't ru
   return what==="rescan"?"full update started":"update started"}
 // (the sheet's script saves the entry itself when it finishes, so the page only adds one when it didn't: the request
 // never reached the script, or the script is an older version)
-async function runLogSave(what,r){try{if(!ACCT.sb||r&&(r.logged||r.cancelled))return;
+async function runLogSave(what,r){try{if(!ACCT.sb)return; if(r&&(r.logged||r.cancelled)){if(ACCT.admin)runLogLoad(); return}
     const row={by_player:ACCT.claim&&ACCT.claim.player||null,action:what,ok:!!(r&&r.ok),summary:runSummary(what,r),lines:(r&&Array.isArray(r.log)?r.log:[]).slice(0,200).map(x=>String(x).slice(0,300))};
     const {error}=await ACCT.sb.from("host_runs").insert(row); if(!error&&ACCT.admin)runLogLoad()}catch(e){}}
 async function runLogLoad(){if(!ACCT.sb||!ACCT.admin)return;
@@ -8688,7 +8693,7 @@ function acctDraw(msg,err){
   // the passes stay (alert and badges) until you dismiss the alert with its ✕
   if(ACCT.tab==="week"){const n=ACCT.claim.player; ACCT.ywShown=ywUnseen(n)}
   const ywN=appr?ywUnseen(ACCT.claim.player).length:0, sdN=appr?seasUnseen(ACCT.claim.player).length:0;
-  const tabs=`<div class="accttabs" role="tablist">${tb("me","Your profile")}${appr?tb("week",`Your week${ywN?`<span class="nbadge nbyel" title="Passed ${ywN} time${ywN===1?"":"s"} · the ✕ on the alert dismisses it">⬇️</span>`:""}${sdN?`<span class="nbadge nbyel" title="Your season ranking is in danger on ${sdN} path${sdN===1?"":"s"} · the ✕ on the alert dismisses it">🏁</span>`:""}`):""}${ACCT.claim&&ACCT.claim.status==="approved"?tb("banner","Forum banner"):""}${tb("manage","Manage account")}${hostTab()?tb("host",`Host${hlBadge()}${hmBadge()}${cdBadge()}${(()=>{const L=hostIssueList(), n=hostIssueN(); return n?`<span class="nbadge nbemo" title="${n} likely scoreboard issue${n===1?"":"s"} in ${L.map(H=>"Week "+H.w).join(" and ")}">🔧</span>`:""})()}${friBadge()}`):""}${ACCT.admin?tb("admin",`Admin${rpBadge()}${(()=>{const t=typoScan().nNew; return t?`<span class="nbadge nbemo" title="${t} likely typo${t===1?"":"s"} in this week's scoreboard">🔍</span>`:""})()}${pendN?`<span class="nbadge nbemo" title="${pendN} claim${pendN===1?"":"s"} waiting for approval">👤</span>`:""}`):""}${appr?tb("wrapped","Restringed"):""}</div>`;
+  const tabs=`<div class="accttabs" role="tablist">${tb("me","Your profile")}${appr?tb("week",`Your week${ywN?`<span class="nbadge nbyel" title="Passed ${ywN} time${ywN===1?"":"s"} · the ✕ on the alert dismisses it">⬇️</span>`:""}${sdN?`<span class="nbadge nbyel" title="Your season ranking is in danger on ${sdN} path${sdN===1?"":"s"} · the ✕ on the alert dismisses it">🏁</span>`:""}`):""}${ACCT.claim&&ACCT.claim.status==="approved"?tb("banner","Forum banner"):""}${tb("manage","Manage account")}${hostTab()?tb("host",hostTabLabel()):""}${ACCT.admin?tb("admin",`Admin${rpBadge()}${(()=>{const t=typoScan().nNew; return t?`<span class="nbadge nbemo" title="${t} likely typo${t===1?"":"s"} in this week's scoreboard">🔍</span>`:""})()}${pendN?`<span class="nbadge nbemo" title="${pendN} claim${pendN===1?"":"s"} waiting for approval">👤</span>`:""}`):""}${appr?tb("wrapped","Restringed"):""}</div>`;
   let h=tabs;
   if(ACCT.tab==="admin"){}
   else if(ACCT.tab==="host")h+=`${(()=>{try{return hostIssueList().map(H=>typoSection(H)).join("")}catch(e){console.error(e); return ""}})()}${(()=>{const rb=reactBtn(), run=(()=>{try{return fetchSection()+chkSection()+siteUpSection()}catch(e){console.error(e); return ""}})(), hs=hostSection(!!ACCT.admin);
@@ -8752,7 +8757,7 @@ $("acctbody").addEventListener("change",async e=>{const t=e.target.closest("[dat
   await removedLoad(); ACCT.songs=null; acctDraw()});
 $("acctbody").addEventListener("click",async e=>{
   const fh=e.target.closest("h3.admfoldh"); if(fh){const t=fh.dataset.fold, F=admFolds(), i=F.indexOf(t); if(i<0)F.push(t); else F.splice(i,1); lsSet(ADM_FOLD,F.length?JSON.stringify(F):null); admFold($("acctbody")); return}
-  const tb=e.target.closest("[data-accttab]"); if(tb){ACCT.tab=tb.dataset.accttab; acctDraw(); return}
+  const tb=e.target.closest("[data-accttab]"); if(tb){ACCT.tab=tb.dataset.accttab; acctDraw(); if(ACCT.tab==="admin")runLogLoad(); return}   // (the Fetch & update log is fetched fresh each time the Admin tab opens)
   const cp=e.target.closest("[data-bncopy]"); if(cp&&ACCT.claim){const n=ACCT.claim.player, t=cp.dataset.bncopy==="img"?`${BN_SITE}cards/${bnSlug(n)}.png`:cp.dataset.bncopy==="share"?`${BN_SITE}cards/${bnSlug(n)}.html`:BN_SITE;
     const done=()=>{const o=cp.textContent; cp.textContent="Copied ✓"; setTimeout(()=>{cp.textContent=o},1500)};
     const old=()=>{const ta=document.createElement("textarea"); ta.value=t; ta.style.cssText="position:fixed;opacity:0"; cp.after(ta); ta.select(); try{document.execCommand("copy");done()}catch(_){} ta.remove()};
