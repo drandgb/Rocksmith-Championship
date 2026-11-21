@@ -4752,7 +4752,11 @@ function uniqBoxIds(box){if(!box)return; const map={}; box.querySelectorAll("[id
   if(!Object.keys(map).length)return;
   box.querySelectorAll("*").forEach(el=>{for(const a of ["fill","stroke","filter","clip-path","mask","href","xlink:href","style"]){const v=el.getAttribute(a); if(!v||v.indexOf("#")<0)continue;
     const nv=v.replace(/url\(#([^)]+)\)/g,(m,id)=>map[id]?`url(#${map[id]})`:m).replace(/^#(.+)$/,(m,id)=>map[id]?"#"+map[id]:m); if(nv!==v)el.setAttribute(a,nv)}})}
-function reIds(h){const u=++dgN; return h.replace(/((?:id="|url\(#)(?:laurelg\d|dg\d|celg|lfg|lfl))(?:_\d+)?(?=["\)])/g,"$1_"+u)}
+// a copy of a medal gets its own ids: a gradient referenced by an id that's also on a hidden page (Medal leaders, another
+// profile) doesn't draw in some browsers, so every id in the copy, and every reference to it, gets a new ending
+function reIds(h){const u=++dgN, ids=new Set(); String(h).replace(/\sid="([^"]+)"/g,(m,x)=>{ids.add(x); return m}); if(!ids.size)return h;
+  const ren=x=>x.replace(/_r\d+$/,"")+"_r"+u;
+  return h.replace(/(\sid=")([^"]+)(")/g,(m,a,x,b)=>a+ren(x)+b).replace(/(url\(#|href="#)([^)"]+)(?=[)"])/g,(m,a,x)=>ids.has(x)?a+ren(x):m)}
 function uniqIds(h,ids){const u=++dgN; return ids.reduce((t,id)=>t.replace(new RegExp(`(id="|url\\(#)${id}(?=["\\)])`,"g"),`$1${id}_${u}`),h)}
 function diamondSvg(i,p){const u=++dgN; return diamondSvg0(i,p).replace(/laurelg(\d)/g,"laurelg$1_"+u).replace(/(["#(])dg(\d)/g,"$1dg$2_"+u)}
 function diamondSvg0(i,p){const tint=["#bff6ff","#ecd9ff","#3c9483"][i], deep=["#4fd6ff","#9b5cff","#053b35"][i];
