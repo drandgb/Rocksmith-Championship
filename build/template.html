@@ -3589,7 +3589,7 @@ function friBlocks(){const w=TW_LIVE; if(!SB.weeks[w])return null; const names=t
       ["M","A","I","B"].forEach(c=>{const rank=L=>{const R={}; let r=0; (L||[]).forEach((x,i,A)=>{if(i===0||f1Cmp(A[i-1],x)!==0)r=i+1; R[x.n]=r}); return R}, R0=rank(P[c]), R1=rank(T[c]);
         Object.keys(R0).forEach(n=>{if(R0[n]<=3&&(R1[n]||99)>R0[n]&&!(SB.weeks[lw]||[]).some(cd=>cd[0]===pi&&cd[6].some(e=>e[1]!=null&&pvName(e)===n)))drop.push({n,t:`${PATHS[pi]} ${TIER_NAME[c]}, ${ord(R0[n])} → ${ord(R1[n])}`})})})});
     if(drop.length){const by={}; drop.forEach(x=>{(by[x.n]=by[x.n]||[]).push(x.t)});
-      B.push(["📉 <b>Slipped on the season podium last week:</b> post a score before this week ends to climb back!",...Object.keys(by).sort((x,y)=>x.localeCompare(y,undefined,{sensitivity:"base"})).map(n=>`${e(at(n))} (${e(by[n].join(" · "))})`)])}}}catch(err){console.error(err)}
+      B.push(["📉 <b>Slipped on the season podium last week:</b>",...Object.keys(by).sort((x,y)=>x.localeCompare(y,undefined,{sensitivity:"base"})).map(n=>`${e(at(n))} (${e(by[n].join(" · "))})`),"Post a score before this week ends to climb back!"])}}}catch(err){console.error(err)}
   B.push(["👋 Have a great weekend if we don't see you!"]);
   B.push(["🗳️ <b>Thank you</b> to everyone that has submitted their votes for this week's difficulty ratings so far, votes will be averaged tomorrow once the week ends!"]);
   if(open.length){const L=["🏆 <b>For active players, these trophies are yet to be claimed:</b>"];
