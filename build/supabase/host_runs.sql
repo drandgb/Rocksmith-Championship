@@ -5,7 +5,7 @@ create table if not exists public.host_runs (
   at         timestamptz not null default now(),
   user_id    uuid default auth.uid() references auth.users on delete set null,
   by_player  text,
-  action     text not null check (action in ('fetch','add','update','rescan')),
+  action     text not null check (action in ('fetch','add','update','rescan','correct')),
   ok         boolean not null default false,
   summary    text check (char_length(summary) <= 500),
   lines      jsonb not null default '[]'::jsonb check (jsonb_typeof(lines) = 'array' and pg_column_size(lines) <= 20000)

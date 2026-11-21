@@ -672,6 +672,7 @@ a.dl svg,.offpill svg{width:11px;height:11px}
 .acctdlg .typos details{border:1px solid var(--line);border-radius:8px;margin-top:8px;background:var(--panel2)}
 .acctdlg .typos summary{cursor:pointer;padding:8px 10px;font:700 .82rem var(--f-display);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .acctdlg .typos summary small{font:400 .76rem var(--f-body)}
+.chklist{list-style:none;margin:8px 0 0;padding:0}.chklist li{padding:8px 0;border-top:1px solid var(--line)}.chklist li .btn{margin-top:6px}
 .acctdlg .tycount{font:700 .72rem var(--f-mono);color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:1px 7px}
 .nbadge.nbemo{background:color-mix(in srgb,#ff4d6d 26%,var(--panel));height:19px;min-width:19px;padding:0 4px;font-size:.78rem;box-shadow:inset 0 0 0 1.5px #ff4d6d,0 0 8px rgba(255,77,109,.55)}   /* an emoji-only badge: a red tint inside a red ring (like the yellow Your week badges), so the emoji shows */
 .nbadge.tybadge{background:#f59e0b;color:#1a1204}.nbadge.nbyel{background:color-mix(in srgb,var(--accent) 26%,var(--panel));color:#ffd9b0;box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--accent) 70%,transparent),0 0 6px color-mix(in srgb,var(--accent) 30%,transparent)}
@@ -7968,9 +7969,10 @@ function voteLogSection(){
   return `<div class="adm acctsec" id="admvotelog"><h3>Difficulty ratings log</h3>${L==null?`<p class="dim">The log isn't set up yet (run vote_log.sql in Supabase).</p>`:rows?`<ul class="ratelog">${rows}</ul>`:`<p class="dim">No ratings since the log started.</p>`}</div>`;
 }
 // ---------- Admin: fetch & update log (every Fetch scores / Update website run from the Host tab, with the sheet script's steps; host_runs.sql) ----------
-const RUN_NAME={fetch:"fetched the latest scores",add:"added fetched scores (no fetch)",update:"updated the website",rescan:"ran a full website update"};
+const RUN_NAME={fetch:"fetched the latest scores",add:"added fetched scores (no fetch)",update:"updated the website",rescan:"ran a full website update",correct:"corrected a score"};
 function runSummary(what,r){if(!r||!r.ok)return String(r&&r.error||"It didn't run.").slice(0,480);
   if(what==="fetch"||what==="add")return `Week ${r.week}: ${(r.added||[]).length} new, ${(r.updated||[]).length} updated, ${(r.skipped||[]).length} skipped${r.notMarked?`, ${r.notMarked} still to mark`:""}${(r.unmatched||[]).length?`, ${r.unmatched.length} not on the sheet (no table with that song and path)`:""}`;
+  if(what==="correct")return `Week ${r.week} ${r.path} ${r.level}, ${r.player}: ${(r.from||[]).join(" / ")} → ${(r.to||[]).join(" / ")}`;
   return what==="rescan"?"full update started":"update started"}
 async function runLogSave(what,r){try{if(!ACCT.sb)return;
     const row={by_player:ACCT.claim&&ACCT.claim.player||null,action:what,ok:!!(r&&r.ok),summary:runSummary(what,r),lines:(r&&Array.isArray(r.log)?r.log:[]).slice(0,200).map(x=>String(x).slice(0,300))};
@@ -8569,7 +8571,7 @@ const hostRunOk=()=>{try{return !!FETCH_URL&&acctOn()&&(ACCT.admin||hostVerified
 const hostRunAt=t=>t?new Date(t).toLocaleTimeString("en-US",{hour:"numeric",minute:"2-digit"}):"";
 async function hostRunCall(action,signal,extra,onWait){let token="";
   // each run gets an id; the sheet's script keeps its answer under it, so if the connection drops while it runs (phones often drop long requests) the page asks for the answer instead
-  const runId=/^(fetch|add|update|rescan)$/.test(action)?Date.now().toString(36)+Math.random().toString(36).slice(2,8):"";
+  const runId=/^(fetch|add|update|rescan|check|correct)$/.test(action)?Date.now().toString(36)+Math.random().toString(36).slice(2,8):"";
   const post=(body,sig)=>fetch(FETCH_URL,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(body),signal:sig}).then(r=>r.json());
   const cancelled={ok:false,cancelled:true,error:"Cancelled. If the sheet had already started the update, it will still finish."};
   try{const {data}=await ACCT.sb.auth.getSession(); token=data&&data.session&&data.session.access_token; if(!token)throw new Error("You're not logged in.");
@@ -8594,6 +8596,27 @@ document.addEventListener("click",async e=>{const b=e.target.closest("[data-fetc
   if(!confirm(what==="add"?"Add the scores that were already fetched to the newest week's sheet and update the website? (Nothing is fetched first.)":"Fetch the latest scores, add them to the newest week's sheet and update the website?"))return;
   FETCH_ST={busy:what,res:null,at:0}; hostRunRedraw();
   const res=await hostRunCall(what,undefined,undefined,()=>{FETCH_ST.checking=true; hostRunRedraw()}); FETCH_ST={busy:"",res,at:Date.now(),what}; hostRunRedraw(); runLogSave(what,res)});
+// Check scores against the Score Assistant: scores on the newest week's sheet that don't match the player's best entry in the
+// Score Assistant: higher than every entry (e.g. a misread streak corrected since), or lower than an entry that's already
+// been added (corrected upwards after it was added, so the fetch won't add it again).
+// Correct changes that row to the best entry, sorts the sheet and updates the website (the sheet script's check and correct)
+let CHK_ST={busy:"",res:null,at:0,fix:{}};
+function chkSection(){if(!hostRunOk())return ""; const S=CHK_ST, r=S.res, show=L=>(L||[]).map(v=>v==null||v===""?"–":typeof v==="number"&&v>=1000?v.toLocaleString("en-US"):v).join(" / ");
+  const item=(m,i)=>{const f=S.fix[m.column+"|"+m.player]||{}, done=f.res&&f.res.ok;
+    return `<li><span class="tylink" data-sbw="${r.week}" data-sbp="${PATHS.indexOf(m.path)}" data-sbn="${esc(m.player)}" title="Open on the Scoreboard">${esc(m.path)} ${esc(m.level)}</span> · <b>${esc(m.player)}</b> · ${esc(m.song)}<br><small>sheet ${esc(show(m.sheet))} → best entry ${esc(show(m.best))}${m.direction==="up"?" ▲":m.direction==="down"?" ▼":""} <span class="dim">(% / streak / score · ${m.entries} entr${m.entries===1?"y":"ies"})</span></small>
+      ${done?`<p class="fetchok">✓ Corrected${f.res.site==="queued"?" · website update starts within a minute":" · website update started"}</p>`:`<button type="button" class="btn ghost" data-chkfix="${i}"${f.busy||S.busy?" disabled":""}>${f.busy?"Correcting…":"Correct"}</button>${f.res&&!f.res.ok?`<p class="fetcherr">${esc(f.res.error||"It didn't work.")}</p>`:""}`}</li>`};
+  const out=!r?"":r.ok?(r.mismatches&&r.mismatches.length?`<p class="fetcherr">Week ${esc(String(r.week))} at ${esc(hostRunAt(S.at))}: ${r.mismatches.length} score${r.mismatches.length===1?" doesn't":"s don't"} match the player's best entry in the Score Assistant</p><ul class="chklist">${r.mismatches.map(item).join("")}</ul>`:`<p class="fetchok">✓ Week ${esc(String(r.week))} at ${esc(hostRunAt(S.at))}: every score on the sheet matches the player's best entry in the Score Assistant</p>`)
+    :`<p class="fetcherr">${esc(/Unknown request/.test(r.error||"")?"The sheet's script doesn't have this yet: paste the newest drandTools.gs into the sheet's script and deploy it again.":r.error||"The check didn't finish.")}</p>`;
+  return `<div class="acctsec fetchsec"><h3>Check scores against the Score Assistant</h3><p class="dim">Finds scores on the newest week's sheet that don't match the player's best entry for that song and path in the Score Assistant, counting values corrected there: higher than every entry (for example a streak that was misread too high and corrected since), or lower than an entry that was corrected after it was added. Correct changes the row to their best entry, sorts the sheet and updates the website. Scores with no entry at all (added to the sheet by hand) are left alone.</p><div class="row"><button type="button" class="btn" data-chkrun${S.busy?" disabled":""}>${S.busy?(S.checking?"Connection dropped, checking with the sheet…":"Checking…"):"Check scores"}</button></div>${out}</div>`}
+document.addEventListener("click",async e=>{if(!e.target.closest("[data-chkrun]")||CHK_ST.busy||!hostRunOk())return;
+  CHK_ST={busy:"check",res:null,at:0,fix:{}}; hostRunRedraw();
+  const res=await hostRunCall("check",undefined,undefined,()=>{CHK_ST.checking=true; hostRunRedraw()}); CHK_ST={busy:"",res,at:Date.now(),fix:{}}; hostRunRedraw()});
+document.addEventListener("click",async e=>{const b=e.target.closest("[data-chkfix]"); if(!b||CHK_ST.busy||!hostRunOk())return; const r=CHK_ST.res, m=r&&r.mismatches&&r.mismatches[+b.dataset.chkfix]; if(!m)return;
+  const k=m.column+"|"+m.player; if(CHK_ST.fix[k]&&CHK_ST.fix[k].busy)return;
+  if(!confirm(`Change ${m.player}'s ${m.path} ${m.level} score on the Week${r.week} sheet from ${m.sheet.join(" / ")} to ${m.best.join(" / ")}, sort the sheet and update the website?`))return;
+  CHK_ST.fix[k]={busy:true}; hostRunRedraw();
+  const res=await hostRunCall("correct",undefined,{week:r.week,column:m.column,player:m.player,sheet:m.sheet.map(String)},()=>{});
+  CHK_ST.fix[k]={res}; hostRunRedraw(); runLogSave("correct",res)});
 // Update website: the sheet's "Send scoreboard to website now" and "Send full sheet to website now"
 function siteUpSection(){if(!hostRunOk())return ""; const S=SITEUP_ST, r=S.res, full=S.what==="rescan";
   const out=!r?"":r.ok?`<p class="fetchok">✓ ${full?"Full update":"Website update"} started at ${esc(hostRunAt(S.at))} · live in about ${full?5:3} minutes</p>`:`<p class="fetcherr">${esc(r.error||"The update didn't start.")}</p>`;
@@ -8643,7 +8666,7 @@ function acctDraw(msg,err){
   const tabs=`<div class="accttabs" role="tablist">${tb("me","Your profile")}${appr?tb("week",`Your week${ywN?`<span class="nbadge nbyel" title="Passed ${ywN} time${ywN===1?"":"s"} · the ✕ on the alert dismisses it">⬇️</span>`:""}${sdN?`<span class="nbadge nbyel" title="Your season ranking is in danger on ${sdN} path${sdN===1?"":"s"} · the ✕ on the alert dismisses it">🏁</span>`:""}`):""}${ACCT.claim&&ACCT.claim.status==="approved"?tb("banner","Forum banner"):""}${tb("manage","Manage account")}${hostTab()?tb("host",`Host${hlBadge()}${hmBadge()}${cdBadge()}${(()=>{const L=hostIssueList(), n=hostIssueN(); return n?`<span class="nbadge nbemo" title="${n} likely scoreboard issue${n===1?"":"s"} in ${L.map(H=>"Week "+H.w).join(" and ")}">🔧</span>`:""})()}${friBadge()}`):""}${ACCT.admin?tb("admin",`Admin${rpBadge()}${(()=>{const t=typoScan().nNew; return t?`<span class="nbadge nbemo" title="${t} likely typo${t===1?"":"s"} in this week's scoreboard">🔍</span>`:""})()}${pendN?`<span class="nbadge nbemo" title="${pendN} claim${pendN===1?"":"s"} waiting for approval">👤</span>`:""}`):""}${appr?tb("wrapped","Restringed"):""}</div>`;
   let h=tabs;
   if(ACCT.tab==="admin"){}
-  else if(ACCT.tab==="host")h+=`${(()=>{try{return hostIssueList().map(H=>typoSection(H)).join("")}catch(e){console.error(e); return ""}})()}${(()=>{const rb=reactBtn(), run=(()=>{try{return fetchSection()+siteUpSection()}catch(e){console.error(e); return ""}})(), hs=hostSection(!!ACCT.admin);
+  else if(ACCT.tab==="host")h+=`${(()=>{try{return hostIssueList().map(H=>typoSection(H)).join("")}catch(e){console.error(e); return ""}})()}${(()=>{const rb=reactBtn(), run=(()=>{try{return fetchSection()+chkSection()+siteUpSection()}catch(e){console.error(e); return ""}})(), hs=hostSection(!!ACCT.admin);
       if(!rb||!run)return hs.replace('class="acctsec hostsec"','class="acctsec hostsec hosttop"');
       return `<div class="acctsec hosttop fetchsec"><h3>React app</h3><p class="dim">Opens Week ${Math.max(DATA_WEEK,cur[0])} in the Score Assistant, where the week's scores are checked and approved.</p><div class="row"><a class="btn" href="${reactUrl()}" target="_blank" rel="noopener">Open React App ↗</a></div></div>${run}${hs.replace(rb,"")}`})()}${isCurHost()||ACCT.admin?(()=>{try{return friSection().replace('class="adm acctsec','class="acctsec')}catch(e){console.error(e); return ""}})():""}${hostTools()}`;
   else if(ACCT.tab==="banner")h+=bnTab(ACCT.claim.player);
