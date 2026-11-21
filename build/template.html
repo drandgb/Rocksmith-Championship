@@ -6672,6 +6672,12 @@ let twWeek=TW_MAX;
 function twWeekSel(w){const hi=TW_NEXT||TW_MAX; let o=""; for(let x=hi;x>=TW_MIN;x--)o+=`<option value="${x}"${x===w?" selected":""}>Week ${x}</option>`;
   return `<select class="twwsel" data-twsel aria-label="Week">${o}</select>`}
 document.addEventListener("change",e=>{const s=e.target.closest("[data-twsel]"); if(!s)return; twWeek=+s.value; renderThisWeek()});
+// the picker is as wide as the week it shows, in the title's own lettering (a browser sizes it by its options, in their
+// smaller lettering, which cut "WEEK 682" off)
+function twSelFit(){try{const s=document.querySelector("#tw-title .twwsel"); if(!s||!s.options.length)return; const cs=getComputedStyle(s), m=document.createElement("span");
+  m.style.cssText=`position:absolute;visibility:hidden;white-space:pre;font:${cs.font};letter-spacing:${cs.letterSpacing};text-transform:${cs.textTransform}`; m.textContent=s.options[s.selectedIndex].text;
+  document.body.appendChild(m); s.style.width=Math.ceil(m.getBoundingClientRect().width+30)+"px"; m.remove()}catch(e){}}
+try{document.fonts&&document.fonts.ready.then(twSelFit)}catch(e){}
 let twAnnAll=false; // Anniversaries: false = players who played in the past year, true = everyone
 document.addEventListener("click",e=>{const b=e.target.closest("#annmode button"); if(!b)return; twAnnAll=b.dataset.ann==="1"; renderThisWeek()});
 const twRivLv=["","",""]; // rivals level filter per path ("" = all)
@@ -6842,7 +6848,7 @@ function renderNextPreview(){
   $("twnow").hidden=false; $("twnow").textContent=`Back to this week (${TW_MAX}) ›`;
   $("tw-winsec").hidden=true;
   $("twsb").hidden=false; $("twsb").dataset.sbw=nw; $("twsb").title=`Open week ${nw} on the Scoreboard`;
-  $("tw-title").innerHTML=`${twWeekSel(nw)} <span class="pill nextwk" style="width:auto">UPCOMING</span>`;
+  $("tw-title").innerHTML=`${twWeekSel(nw)} <span class="pill nextwk" style="width:auto">UPCOMING</span>`; twSelFit();
   $("tw-meta").innerHTML=W?`Starts ${fmt(W[1])} at 9 pm CET${host?` · hosted by <span class="nm" data-name="${esc(host)}" data-gohost="${esc(host)}" style="cursor:pointer;font-weight:700;color:var(--fg)">${esc(host)}</span>${W[2]?"":" (signed up)"}`:` · <span data-tip="No host for Week ${nw} in the schedule sheet yet, and nobody has signed up on the site">host needed</span>`}`:"";
   $("tw-seas").hidden=true;
   $("tw-stats").innerHTML=`<span><b>${players.size}</b> player${players.size===1?"":"s"} posted so far</span><span><b>${ents.length}</b> entr${ents.length===1?"y":"ies"}</span>`;
@@ -7004,7 +7010,7 @@ function renderThisWeek(){
   $("twnow").hidden=w===TW_MAX; $("twsb").hidden=!SB.weeks[w]; $("twsb").dataset.sbw=w; $("twsb").title=`Open week ${w} on the Scoreboard`; $("twnow").textContent=`Back to ${TW_LIVE?"this":"the latest"} week (${TW_MAX}) ›`;
   const start=W?new Date(W[1]+"T12:00:00"):null, end=start?new Date(start.getTime()+7*864e5):null;   // a week ends on the day the next one starts
   const left=end?Math.ceil((new Date(W[1]+"T00:00:00").getTime()+7*864e5-Date.now())/864e5):0;
-  $("tw-title").innerHTML=`${twWeekSel(w)}${live?' <span class="pill new" style="width:auto">IN PROGRESS</span>':' <span class="pill done" style="width:auto">CONCLUDED</span>'}`;
+  $("tw-title").innerHTML=`${twWeekSel(w)}${live?' <span class="pill new" style="width:auto">IN PROGRESS</span>':' <span class="pill done" style="width:auto">CONCLUDED</span>'}`; twSelFit();
   $("tw-meta").innerHTML=W?`${fmtShort(W[1])} – ${fmt(iso(end))}${W[2]&&W[2]!==LOST?` · hosted by <span class="nm" data-name="${esc(W[2])}" data-gohost="${esc(W[2])}" style="cursor:pointer;font-weight:700;color:var(--fg)">${esc(W[2])}</span>`:""}${live&&closeFor(w)?"":live&&left>0?` · ${twPl(left,"day")} left`:""}`:"";
   const ents=SB.weeks[w]?twEntries(w):[];
   // back from a break
