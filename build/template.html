@@ -3596,7 +3596,7 @@ function friBlocks(){const w=TW_LIVE; if(!SB.weeks[w])return null; const names=t
     open.forEach(c=>{const lv=cardLv(c[2]), on=new Set(c[6].map(x=>SB.names[x[0]].replace(/[*~]+$/,"").toLowerCase()));
       const could="BIAM".includes(lv)&&lv?names.filter(n=>tiersOf(n).charAt(c[0])===lv&&!on.has(n.toLowerCase())).sort((a,b)=>a.localeCompare(b,undefined,{sensitivity:"base"})):[];
       L.push(`<b>${e(PATHS[c[0]])} ${e(c[2])}:</b> ${e(c[3])}${could.length?` · ${e(could.map(at).join(", "))}`:""}`)}); B.push(L)}
-  B.push(["🎸 And if you've been thinking about joining us, <b>now is the time!</b> You only need to post one score to get started. Come on in 👋"]);
+  B.push(["🎸 And if you've been thinking about joining us, <b>now is the time!</b> You only need to post one score to get started. Come on in 🤘"]);
   return B}
 function friText(){const B=friBlocks(); return B?B.map(L=>L.join("\n")).join("\n\n").replace(/<[^>]+>/g,"").replace(/&lt;/g,"<").replace(/&gt;/g,">").replace(/&quot;/g,'"').replace(/&#39;/g,"'").replace(/&amp;/g,"&"):""}
 function friHtml(){const B=friBlocks(); return B?B.flat().map(x=>`<p>${x}</p>`).join(""):""}   // every line its own paragraph, so the forum editor can turn each @name into a tag
