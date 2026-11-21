@@ -961,6 +961,8 @@ html.acctwait body{visibility:hidden}html.acctwait{background:var(--bg)}html.acc
 .h2ht{width:100%;border-collapse:collapse;font-size:13px;margin:6px 0 4px}.h2ht th,.h2ht td{padding:5px 8px;border-bottom:1px solid var(--line);text-align:left}
 .h2ht thead th{font-size:12px;color:var(--muted);font-weight:600}.h2ht .num{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}.h2ht td.h2hw{color:var(--s-green);font-weight:700}
 .h2ht [data-sbw]{cursor:pointer;text-decoration:underline dotted}
+/* Latest challenges together: from the first player's side, the line is green where they won and red where they lost */
+.h2ht tr.h2hrw td,.h2ht tr.h2hrw td small{color:var(--s-green)}.h2ht tr.h2hrl td,.h2ht tr.h2hrl td small{color:var(--s-red)}.h2ht tr:is(.h2hrw,.h2hrl) td small{opacity:.8}
 .tip .tipnew{color:var(--s-green);font-weight:600}.tip .tipgone{color:var(--s-red)}
 /* This Week: Within reach (the signed-in player's next goals) */
 .twgoals{list-style:none;margin:6px 0 0;padding:0;display:flex;flex-direction:column;gap:6px}
@@ -1220,7 +1222,8 @@ footer .updated{display:block;margin-top:4px}
 #view-season li,#view-season .sc,#view-level .lvlist li,#view-rankings li{cursor:pointer}
 .twseas .tsl .chg{font-size:.7rem;text-shadow:none}.twseas .tsl .chg.up{color:var(--s-green)}.twseas .tsl .chg.new{color:var(--s-yellow)}.twseas .tsl{color:#ffd86b;font-weight:800;text-shadow:0 0 10px rgba(255,216,107,.3)}.panel.twseas{padding:12px}.panel.twseas .twseasin{border:0;background:none;padding:2px 4px}.twseasin{border:1px solid color-mix(in srgb,var(--s-yellow) 35%,var(--line));border-radius:10px;padding:10px 12px;background:color-mix(in srgb,var(--s-yellow) 4%,var(--panel2));cursor:pointer}.twseasin:hover{border-color:var(--s-yellow)}
 .twseas .tsh{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 12px;font-size:.9rem;color:var(--muted)}.twseas .tsn{font:900 1rem var(--f-display);letter-spacing:.06em;text-transform:uppercase;color:#f5c84a}.twseas .golink{margin-left:auto;color:var(--s-yellow);font-weight:600}
-.twseas li.tscl{display:block;padding:6px 0 2px}.twseas li.tsp{grid-template-columns:18px minmax(0,1fr) 2.3em 2.7em 2.4em 2em;gap:4px;font-size:.8rem;padding:1px 0}.twseas .tsr{color:var(--muted);font:600 .7rem var(--f-mono);text-align:right}.twseas .tsn2{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.twseas li.tsp1 .tsn2{color:#ffd86b;font-weight:800}.twseas li.tsp b{color:var(--fg)!important;font-size:.8rem}.twseas li.tsp small{font:600 .7rem var(--f-mono);color:var(--dim);text-align:right}.twseas li.tsp small.up{color:var(--s-green)}.twseas .tsgain{cursor:pointer;text-decoration:underline dotted;text-underline-offset:2px}
+.twseas li.tscl{display:block;padding:6px 0 2px}.twseas li.tsp{grid-template-columns:18px minmax(0,1fr) 2.3em 2.7em 2.4em 2em;gap:4px;font-size:.8rem;padding:1px 0}.twseas .tsr{color:var(--muted);font:600 .7rem var(--f-mono);text-align:right}.twseas .tsn2{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.twseas li.tsp.tsidle{opacity:.42}   /* hasn't posted a score this week yet */
+.twseas li.tsp1 .tsn2{color:#ffd86b;font-weight:800;text-shadow:0 0 10px rgba(255,216,107,.35)}.twseas li.tsp2 .tsn2{color:#e4e9f2;font-weight:800;text-shadow:0 0 10px rgba(201,208,220,.45)}.twseas li.tsp3 .tsn2{color:#f0a868;font-weight:800;text-shadow:0 0 10px rgba(216,146,90,.45)}.twseas li.tsp b{color:var(--fg)!important;font-size:.8rem}.twseas li.tsp small{font:600 .7rem var(--f-mono);color:var(--dim);text-align:right}.twseas li.tsp small.up{color:var(--s-green)}.twseas .tsgain{cursor:pointer;text-decoration:underline dotted;text-underline-offset:2px}
 .twseas .tsnote{font-size:.74rem;color:var(--muted);margin:4px 0 6px}.twseas .tsg{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px 16px}@media(max-width:700px){.twseas .tsg{grid-template-columns:1fr}}
 .twseasin li.tsp{cursor:pointer;border-radius:4px}.twseas .tsmv{font:700 .68rem var(--f-mono);text-align:right}.twseas .tsprev{color:var(--muted);font:600 .74rem var(--f-mono);text-align:right}.twseas li.tsp>b{text-align:right}.twseas li.tsp .tsgain{text-align:left}.twseas .tsmv.up{color:var(--s-green)}.twseas .tsmv.down{color:var(--s-red)}.twseas .tsmv.tsnew{color:#b58cff;font-size:.62rem}.twseasin li.tsp.me{background:color-mix(in srgb,var(--accent) 22%,transparent);box-shadow:0 0 0 1px color-mix(in srgb,var(--accent) 55%,transparent)}.twseas .lvchip{font:700 .64rem var(--f-mono);padding:1px 6px;border-radius:4px;color:#10131a;background:var(--tc);text-align:center}.twseas h4{margin:0 0 3px;font:800 .7rem var(--f-display);letter-spacing:.1em;text-transform:uppercase;color:var(--pc)}.twseas ul{list-style:none;margin:0;padding:0}.twseas li{display:grid;grid-template-columns:44px minmax(0,1fr) auto;align-items:center;gap:6px;font-size:.84rem;padding:2px 0}.twseas .tsl{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.twseas .tslw{display:flex;align-items:center;min-width:0}.twseas li b{font-family:var(--f-display);color:var(--s-green)}
 .sqctl{display:flex;gap:8px;flex-wrap:wrap}.sqctl #sq{flex:1 1 220px}.sqctl select{background:var(--panel2);color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:6px 8px;font:inherit}.sqtbl td small{display:block;color:var(--muted);font-size:.78rem}.sqtbl .sqt{font:600 .74rem var(--f-mono);color:var(--muted);white-space:nowrap}.sqtbl .sqp{font-weight:800;white-space:nowrap}.pth{white-space:nowrap}.sqtbl td.r small{display:block}.sqhint{margin:6px 0 0}
@@ -1606,7 +1609,7 @@ footer .updated{display:block;margin-top:4px}
 #b-hot .track{height:14px;border-radius:7px}
 @media (prefers-reduced-motion:no-preference){#b-hot .fill{background-size:200% 100%;animation:grow .9s cubic-bezier(.2,.8,.2,1) both,burn 2.4s ease-in-out infinite alternate}}
 @keyframes burn{0%{filter:brightness(1) saturate(1)}100%{filter:brightness(1.18) saturate(1.25)}}
-footer{color:var(--dim);font-size:.78rem}
+footer{color:var(--dim);font-size:.78rem;border-top:1px solid var(--line);padding-top:14px;margin-top:14px}   /* a line between Back to top and the notes at the bottom */
 @media (prefers-reduced-motion:no-preference){.tl .c{transition:opacity .15s}}
 
 /* floating "filters on" bubble */
@@ -2444,7 +2447,7 @@ function renderNow(){
    <div class="nowlink" data-sbw="${cur[0]}" title="Open Week ${cur[0]} on the Scoreboard"><div class="k">This week</div><div class="v num">Week ${cur[0]}</div><div class="n">Started ${fmt(cur[1])}</div></div>
    <div${cur[2]&&cur[2]!==LOST?` class="nowlink" data-gohost="${esc(cur[2])}" title="Open ${esc(cur[2])} in Host lookup"`:""}><div class="k">Current host</div><div class="v">${curHost}</div><div class="n">${hostRankNote()}</div></div>
    <div><div class="k">Open slots this month</div><div class="v num">${openM.length} <span class="of">of ${monthWeeks.length}</span></div><div class="n">${openNote}</div></div>
-   <div><div class="k">Running for</div><div class="v num">${span}</div><div class="n">${totalHosted} weeks hosted · ${hostList.length} hosts</div></div>`;
+   <div><div class="k">Running for</div><div class="v num">${span}</div><div class="n" title="${esc(`${totalHosted} of them with a recorded host: weeks 1–16 have no recorded host in the source`)}">${cur[0]} weeks · ${hostList.length} hosts</div></div>`;   // every week so far, this one included (the first 16 have no recorded host)
 }
 
 const HOL_SHORT={"Portugal Restoration of Independence Day":"Portugal Independence Day"}, holName=h=>HOL_SHORT[h]||h;
@@ -2755,9 +2758,13 @@ function yearPlayerStats(y){const ws=yearWeeks(y), last=ws[ws.length-1];
     return {n:p[0],c,best,bestEnd,first,since,joined:ws.includes(p[1]),all:first!=null&&c===since&&b[last-PRES_START]==="1",tot:p[3]}}).filter(x=>x.c>0)}
 function renderRecordsYear(y){const ys=yearPlayerStats(y), ws=yearWeeks(y), M=["#f5c84a","#c9d0dc","#d8925a"], R=34, C=2*Math.PI*R;
   const played=ys.slice().sort((a,b)=>b.c-a.c||b.tot-a.tot).map(x=>[x.n,x.c]);
-  const top=played.slice(0,3), maxP=Math.max(1,top[0]?top[0][1]:1);
+  // when the year's top three are all tied (several players played every week), the podium shows all time instead
+  const tied=played.length&&played.filter(x=>x[1]===played[0][1]).length, allT=tied>=3;
+  const top=allT?RECORDS["Most weeks played"].slice(0,3).map(([n,v])=>[n,numOf(v)]):played.slice(0,3), maxP=Math.max(1,top[0]?top[0][1]:1);
   $("podium").innerHTML=[1,0,2].filter(i=>top[i]).map(i=>{const [n,v]=top[i], h=Math.round(70+130*v/maxP);
-    return `<div class="pod" style="--m:${M[i]}"><div class="medal">${i+1}</div><div class="pname" data-player="${esc(n)}">${esc(n)}</div><div class="block" style="height:${h}px;animation-delay:${[150,0,300][i]}ms"><b>${v}</b><small>weeks</small><small>in ${y}</small></div></div>`}).join("");
+    return `<div class="pod" style="--m:${M[i]}"><div class="medal">${i+1}</div><div class="pname" data-player="${esc(n)}">${esc(n)}</div><div class="block" style="height:${h}px;animation-delay:${[150,0,300][i]}ms"><b>${v}</b><small>weeks</small><small>${allT?"played":"in "+y}</small></div></div>`}).join("");
+  {const pn=$("podium").closest(".panel"), h2=pn&&pn.querySelector(".panel-head h2"), sb=pn&&pn.querySelector(".panel-head .sub");
+    if(allT){if(h2)h2.textContent="Hall of fame · all time"; if(sb)sb.textContent=`Most weeks played, all time · ${tied} players tied for the most weeks in ${y} (${played[0][1]})`}}
   $("b-played").innerHTML=barRows(played.slice(0,20),(n,i)=>STR[i%6]);
   $("b-alltime").innerHTML=barRows(ys.slice().sort((a,b)=>b.best-a.best||b.c-a.c).slice(0,20).map(x=>[x.n,x.best]),(n,i)=>STR[(i+4)%6]," wks");
   const rates=ys.filter(x=>x.since>=Math.min(10,ws.length)).map(x=>[x.n,Math.round(x.c/x.since*1000)/10,x]).sort((a,b)=>b[1]-a[1]||b[2].c-a[2].c).slice(0,20);
@@ -2769,7 +2776,7 @@ function renderRecordsYear(y){const ys=yearPlayerStats(y), ws=yearWeeks(y), M=["
   $("new-h").textContent=`New in ${y}`;
   $("new-sub").textContent=`${nw.length} player${nw.length===1?"":"s"} joined in ${y} · newest first`;
   $("newlist").innerHTML=nw.map(x=>{const w=WEEKS[x.first-1];
-    return `<div class="nrow"><div><span class="nm" data-player="${esc(x.n)}" title="${esc(x.n)}">${esc(x.n)}</span><span class="j">Joined wk ${x.first}${w?" · "+fmtShort(w[1]):""}</span></div><span class="track"><span class="fill" style="width:${Math.max(3,x.c/x.since*100)}%"></span></span><span class="val" title="${x.c} of ${x.since} weeks in ${y}">${x.c}/${x.since}</span></div>`}).join("");
+    return `<div class="nrow"><div><span class="nm" data-player="${esc(x.n)}" title="${esc(x.n)}">${esc(x.n)}</span><span class="j">Joined wk ${x.first}${w?" · "+fmtShort(w[1]):""}</span></div><span class="track"><span class="fill" style="width:${Math.max(3,x.c/x.since*100)}%;background:${x.c/x.since>=.5?"var(--s-green)":"var(--s-red)"}" title="${x.c/x.since>=.5?"Played half or more of the weeks since joining":"Played less than half of the weeks since joining"}"></span></span><span class="val" title="${x.c} of ${x.since} weeks in ${y}">${x.c}/${x.since}</span></div>`}).join("");
 }
 // the sections that only have an all-time view are hidden while a year is picked, and the headings say which year
 function plYearHeads(y){
@@ -2781,7 +2788,7 @@ function plYearHeads(y){
     const sub=$(sel.slice(1)).closest("section").querySelector(".panel-head .sub"); if(sub)sub.textContent=y?yr:all});
   const h=(sel,all,yr)=>{const el=$(sel).closest("section").querySelector(".panel-head h2"); if(el)el.textContent=y?yr:all};
   h("b-alltime","Longest all-time play streaks",`Longest play streaks in ${y}`); h("b-played","Most weeks played",`Most weeks played in ${y}`);
-  h("rings","Highest play rates",`Highest play rates in ${y}`); h("perfect","Perfect attendance",`Perfect attendance in ${y}`); h("podium","Hall of fame",`Hall of fame · ${y}`);
+  h("rings","Highest play rates",`Highest play rates in ${y}`); h("perfect","Perfect attendance",`Perfect attendance in ${y}`); h("podium","Hall of fame",`Hall of fame · ${y}`); h("parts","Players per week",`Players per week · ${y}`);
   $("plyear").value=y||""; $("plyear").closest("label").classList.toggle("on",!!y);
 }
 function renderRecords(){
@@ -3805,7 +3812,7 @@ function h2hRender(){const a=h2hName($("h2a").value), b=h2hName($("h2b").value),
   const paths=[0,1,2].map(pi=>{const gs=G.filter(x=>x.c[0]===pi); if(!gs.length)return ""; const r=rec(gs);
     return `<tr><th style="color:${["var(--s-orange)","var(--s-green)","var(--s-blue)"][pi]}">${PATHS[pi]}${ea[pi]!=null&&eb[pi]!=null?`<small class="h2helo" data-tip="Their Relative skill now on ${PATHS[pi]} (10+ games)">Skill ${ea[pi]} · ${eb[pi]}</small>`:""}</th><td class="num${r.w>r.l?" h2hw":""}">${r.w}</td><td class="num dim">${r.t||""}</td><td class="num${r.l>r.w?" h2hw":""}">${r.l}</td></tr>`}).join("");
   const pct=v=>typeof v==="number"?`${v}%`:"–";
-  const last=G.slice(-10).reverse().map(x=>`<tr><td class="num"><span data-sbw="${x.w}" title="Open Week ${x.w} on the Scoreboard">${x.w}</span></td><td>${esc(x.c[3])} <small class="dim">${PATHS[x.c[0]]||""} · ${esc(x.c[2])}</small></td><td class="num${x.r>0?" h2hw":""}">${pct(x.ea[1])}</td><td class="num${x.r<0?" h2hw":""}">${pct(x.eb[1])}</td></tr>`).join("");
+  const last=G.slice(-10).reverse().map(x=>`<tr class="${x.r>0?"h2hrw":x.r<0?"h2hrl":""}"><td class="num"><span data-sbw="${x.w}" title="Open Week ${x.w} on the Scoreboard">${x.w}</span></td><td>${esc(x.c[3])} <small class="dim">${PATHS[x.c[0]]||""} · ${esc(x.c[2])}</small></td><td class="num${x.r>0?" h2hw":""}">${pct(x.ea[1])}</td><td class="num${x.r<0?" h2hw":""}">${pct(x.eb[1])}</td></tr>`).join("");
   el.innerHTML=`<div class="h2hrec"><div class="h2hn${R.w>R.l?" h2hw":""}"><b class="nm" data-goplayer="${esc(a)}">${esc(a)}</b><span>${R.w}</span></div>
       <div class="h2hmid">${R.t?`${R.t} tied`:""}<small>${tot} challenge${tot===1?"":"s"} together</small></div>
       <div class="h2hn r${R.l>R.w?" h2hw":""}"><b class="nm" data-goplayer="${esc(b)}">${esc(b)}</b><span>${R.l}</span></div></div>
@@ -4734,7 +4741,7 @@ function twSeason(w,live){eloBuild(); const id=seasonOf(w); if(!id)return ""; co
     const rows=["M","A","I","B"].filter(c=>T[c]&&T[c].length).map(c=>{const L=T[c], P={}, R={}; let rk=0, r0=0;
       (B[c]||[]).forEach((x,i,A)=>{P[x.n]=x.p; if(i===0||f1Cmp(A[i-1],x)!==0)r0=i+1; R[x.n]=r0});   // the places before this week, for the ↑ ↓ moves
       const ps=L.map((x,i)=>{if(i===0||f1Cmp(L[i-1],x)!==0)rk=i+1; const g=x.p-(P[x.n]||0), mv=R[x.n]?R[x.n]-rk:null;
-        return `<li class="tsp${rk===1?" tsp1":""}${twSeasFind&&x.n.toLowerCase()===twSeasFind?" me":""}" data-n="${esc(x.n)}"><span class="tsr">${rk}</span><span class="tsn2">${twName(x.n)}</span><small class="tsprev">${g>0?(P[x.n]||0):""}</small>${g>0?`<small class="up tsgain" role="button" tabindex="0" data-tip="${esc(`${proj?`Week ${n} so far`:`Week ${after-a+1} of the season`} · ${PATHS[pi]} ${TIER_NAME[c]}\n`+wkWhy(pi,c,x.n).join("\n")+(proj?"\n(if the week ended now)":""))}">+${g}</small>`:"<small></small>"}<b>${x.p}</b>${mv>0?`<small class="tsmv up" title="Up ${mv} place${mv===1?"":"s"} from #${R[x.n]}">↑${mv}</small>`:mv<0?`<small class="tsmv down" title="Down ${-mv} place${mv===-1?"":"s"} from #${R[x.n]}">↓${-mv}</small>`:before>=a&&!R[x.n]?`<small class="tsmv tsnew">new</small>`:"<small></small>"}</li>`}).join("");
+        return `<li class="tsp${rk<=3?" tsp"+rk:""}${(()=>{try{return proj&&!twPlayed(x.n,w)?" tsidle":""}catch(e){return ""}})()}${twSeasFind&&x.n.toLowerCase()===twSeasFind?" me":""}" data-n="${esc(x.n)}"><span class="tsr">${rk}</span><span class="tsn2">${twName(x.n)}</span><small class="tsprev">${g>0?(P[x.n]||0):""}</small>${g>0?`<small class="up tsgain" role="button" tabindex="0" data-tip="${esc(`${proj?`Week ${n} so far`:`Week ${after-a+1} of the season`} · ${PATHS[pi]} ${TIER_NAME[c]}\n`+wkWhy(pi,c,x.n).join("\n")+(proj?"\n(if the week ended now)":""))}">+${g}</small>`:"<small></small>"}<b>${x.p}</b>${mv>0?`<small class="tsmv up" title="Up ${mv} place${mv===1?"":"s"} from #${R[x.n]}">↑${mv}</small>`:mv<0?`<small class="tsmv down" title="Down ${-mv} place${mv===-1?"":"s"} from #${R[x.n]}">↓${-mv}</small>`:before>=a&&!R[x.n]?`<small class="tsmv tsnew">new</small>`:"<small></small>"}</li>`}).join("");
       return `<li class="tscl"><span class="lvchip" style="--tc:${TIER_C[c]}">${TIER_NAME[c].slice(0,3)}</span></li>${ps}`}).join("");
     return rows?`<div class="tsc" style="--pc:${PATH_C[pi]}"><h4>${PATHS[pi]}</h4><ul>${rows}</ul></div>`:""}).join("");
   const note=proj?`Projected season points if week ${n} ended now (+ points from this week so far)`:`Season points after week ${after-a+1} (+ points that week)`;
@@ -7000,12 +7007,12 @@ function renderTwRk(){const w=twWeek, last=w===TW_LIVE?w-1:w, sec=$("tw-rksec");
   const now=rkCompute(last), prev=rkCompute(last-1), LV=[["M","Masterclass"],["A","Advanced"],["I","Intermediate"],["B","Beginner"]];
   const ranked=o=>{const r=Object.entries(o||{}).sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0],undefined,{sensitivity:"base"})); let k=0; return r.map(([n,p],i)=>{if(i===0||p<r[i-1][1])k=i+1; return [k,n,p]})};
   // laid out like the Season box above: a heading line, then a column per path with each class's leader (shared firsts joined by =)
-  const head=`<div class="tsh"><span class="tsn">👑 Rodman’s Rankings</span><span>weeks ${last-9}–${last}</span></div>`;
+  const head=`<div class="tsh"><span class="tsn">👑 Rodman’s Rankings</span><span>Leaders over weeks ${last-9}–${last}, the last 10 finished weeks${w===TW_LIVE?" · this week counts once it's finished":""}</span></div>`;
   const cols=[0,1,2].map(pi=>{const rows=LV.map(([lv])=>{const N=ranked(now[pi+"|"+lv]), P={}; ranked(prev[pi+"|"+lv]).forEach(([k,n])=>P[n]=k);
       const top=N.filter(x=>x[0]===1); if(!top.length)return "";
       return `<li><span class="lvchip" style="--tc:${TIER_C[lv]}">${TIER_NAME[lv].slice(0,3)}</span><span class="tsl">${top.map(x=>"🥇 "+twName(x[1])).join(" = ")}</span><b>${top[0][2]}</b></li>`}).join("");
     return rows?`<div class="tsc" style="--pc:${PATH_C[pi]}"><h4>${PATHS[pi]}</h4><ul>${rows}</ul></div>`:""}).join("");
-  sec.innerHTML=`<div class="twseasin" data-gorank role="button" tabindex="0" title="Open the Rankings tab">${head}<div class="tsnote">Leaders over the last 10 finished weeks${w===TW_LIVE?" · this week counts once it's finished":""}</div><div class="tsgo"><span class="golink">All rankings ›</span></div><div class="tsg">${cols}</div></div>`;
+  sec.innerHTML=`<div class="twseasin" data-gorank role="button" tabindex="0" title="Open the Rankings tab">${head}<div class="tsgo"><span class="golink">All rankings ›</span></div><div class="tsg">${cols}</div></div>`;
   sec.hidden=false}
 document.addEventListener("click",e=>{if(e.target.closest("[data-goskill]")){showView("skill"); scrollTo({top:0,behavior:"smooth"})}});
 document.addEventListener("click",e=>{if(e.target.closest("[data-gorank]")&&!e.target.closest("[data-player],[data-goplayer],[data-name]")){showView("rankings"); scrollTo({top:0,behavior:"smooth"})}});
