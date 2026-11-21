@@ -1333,13 +1333,18 @@ footer .updated{display:block;margin-top:4px}
 @keyframes notebob{0%,100%{transform:translate(-50%,-50%) rotate(var(--r,0deg)) translateY(0);opacity:.75}50%{transform:translate(-50%,-50%) rotate(calc(var(--r,0deg) * -1)) translateY(-6px);opacity:1}}
 /* This Week: colored glowing rims on boxes that have something in them */
 /* Special medal up for grabs: a gilded trim in the medal's color, a shine running round it, and corner sparkles that twinkle in opposite pairs */
-.panel.twtheme{position:relative;border:2px solid transparent;background:linear-gradient(var(--panel),var(--panel)) padding-box,linear-gradient(115deg,color-mix(in srgb,var(--rc) 55%,#000) 0%,var(--rc) 18%,#fffbe6 26%,var(--rc) 34%,color-mix(in srgb,var(--rc) 55%,#000) 50%,var(--rc) 68%,#fffbe6 76%,var(--rc) 84%,color-mix(in srgb,var(--rc) 55%,#000) 100%) border-box;background-size:100% 100%,300% 100%;background-repeat:no-repeat}
+/* (the moving trim is its own ring layer, cut out with a mask, so the panel itself never repaints: animating the panel's own
+   background made its rounded corners shimmer where the inner fill's edge met the moving gradient) */
+.panel.twtheme{position:relative;border:2px solid transparent;background:var(--panel) padding-box;isolation:isolate}
+.panel.twtheme::before{content:"";position:absolute;inset:-2px;border-radius:inherit;padding:2px;pointer-events:none;z-index:0;
+  background:linear-gradient(115deg,color-mix(in srgb,var(--rc) 55%,#000) 0%,var(--rc) 18%,#fffbe6 26%,var(--rc) 34%,color-mix(in srgb,var(--rc) 55%,#000) 50%,var(--rc) 68%,#fffbe6 76%,var(--rc) 84%,color-mix(in srgb,var(--rc) 55%,#000) 100%) 0 0/300% 100% no-repeat;
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask:linear-gradient(#000 0 0) content-box exclude,linear-gradient(#000 0 0);will-change:background-position}
 .panel.twtheme::after{content:"";position:absolute;inset:5px;border:1px solid color-mix(in srgb,var(--rc) 45%,transparent);border-radius:7px;pointer-events:none}
 .twtheme .trimspk{position:absolute;width:12px;height:12px;background:#fff;clip-path:polygon(50% 0,62% 38%,100% 50%,62% 62%,50% 100%,38% 62%,0 50%,38% 38%);filter:drop-shadow(0 0 3px var(--rc));opacity:.9;pointer-events:none;z-index:1}
 .twtheme .t1{top:-6px;left:-6px}.twtheme .t2{top:-6px;right:-6px}.twtheme .t3{bottom:-6px;left:-6px}.twtheme .t4{bottom:-6px;right:-6px}
 /* the shine slides one repeat of its pattern (half the 300%-wide gradient) and starts over: the gradient doesn't tile, so there's no seam to flicker at the edge */
-@media (prefers-reduced-motion:no-preference){.panel.twtheme{animation:trimshine 1.75s linear infinite}.twtheme .trimspk{opacity:0;animation:sparkle 2.4s ease-in-out infinite}.twtheme .t2,.twtheme .t3{animation-delay:1.2s}}
-@keyframes trimshine{from{background-position:0 0,0% 0}to{background-position:0 0,75% 0}}
+@media (prefers-reduced-motion:no-preference){.panel.twtheme::before{animation:trimshine 1.75s linear infinite}.twtheme .trimspk{opacity:0;animation:sparkle 2.4s ease-in-out infinite}.twtheme .t2,.twtheme .t3{animation-delay:1.2s}}
+@keyframes trimshine{from{background-position:0% 0}to{background-position:75% 0}}
 .panel.glowrim.lit{position:relative;border-color:color-mix(in srgb,var(--rc) 70%,var(--line));box-shadow:0 0 0 1px color-mix(in srgb,var(--rc) 25%,transparent),0 0 14px color-mix(in srgb,var(--rc) 30%,transparent)}
 @media (prefers-reduced-motion:no-preference){.panel.glowrim.lit{animation:rimglow 3.2s ease-in-out infinite}}
 @keyframes rimglow{0%,100%{box-shadow:0 0 0 1px color-mix(in srgb,var(--rc) 22%,transparent),0 0 10px color-mix(in srgb,var(--rc) 22%,transparent)}50%{box-shadow:0 0 0 1px color-mix(in srgb,var(--rc) 40%,transparent),0 0 22px color-mix(in srgb,var(--rc) 42%,transparent)}}
