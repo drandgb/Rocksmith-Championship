@@ -3582,14 +3582,14 @@ function friBlocks(){const w=TW_LIVE; if(!SB.weeks[w])return null; const names=t
   // blocks of lines, as HTML (bold and emojis, like Weekly highlights); friText() is the plain text of the same
   const e=x=>esc(x), B=[["🎉 <b>Happy Friday everyone!</b> 1 day left!"]];
   if(stake.length)B.push(["🔥 <b>Streaks at stake:</b>",...stake.map(x=>`${e(at(x.n))} (${x.k} week${x.k===1?"":"s"})`)]);
-  // season standings: players in their class's top 3 before this week who'd drop a place or more (on the podium or off
-  // it) if the week ended now, and haven't posted a score this week yet
-  try{eloBuild(); const id=seasonOf(w); if(id&&w>ELO_DONE){const a=seasonRange(id)[0], drop=[], ord=i=>["1st","2nd","3rd"][i-1]||i+"th";
-    if(w-1>=a)[0,1,2].forEach(pi=>{const T=seasonF1(pi,id,w,true), P=seasonF1(pi,id,w-1);
+  // season standings: players in their class's top 3 who dropped a place or more (on the podium or off it) in last week's
+  // final standings because they didn't play that path last week
+  try{eloBuild(); const lw=w-1, id=seasonOf(lw); if(id&&lw<=ELO_DONE){const a=seasonRange(id)[0], drop=[], ord=i=>["1st","2nd","3rd"][i-1]||i+"th";
+    if(lw-1>=a)[0,1,2].forEach(pi=>{const T=seasonF1(pi,id,lw), P=seasonF1(pi,id,lw-1);
       ["M","A","I","B"].forEach(c=>{const rank=L=>{const R={}; let r=0; (L||[]).forEach((x,i,A)=>{if(i===0||f1Cmp(A[i-1],x)!==0)r=i+1; R[x.n]=r}); return R}, R0=rank(P[c]), R1=rank(T[c]);
-        Object.keys(R0).forEach(n=>{if(R0[n]<=3&&(R1[n]||99)>R0[n]&&!twPlayed(n,w))drop.push({n,t:`${PATHS[pi]} ${TIER_NAME[c]}, ${ord(R0[n])} → ${ord(R1[n])}${R1[n]>3?", off the podium":""}`})})})});
+        Object.keys(R0).forEach(n=>{if(R0[n]<=3&&(R1[n]||99)>R0[n]&&!(SB.weeks[lw]||[]).some(cd=>cd[0]===pi&&cd[6].some(e=>e[1]!=null&&pvName(e)===n)))drop.push({n,t:`${PATHS[pi]} ${TIER_NAME[c]}, ${ord(R0[n])} → ${ord(R1[n])}`})})})});
     if(drop.length){const by={}; drop.forEach(x=>{(by[x.n]=by[x.n]||[]).push(x.t)});
-      B.push(["📉 <b>Slipping on the season podium:</b> post a score before the week ends to climb back!",...Object.keys(by).sort((x,y)=>x.localeCompare(y,undefined,{sensitivity:"base"})).map(n=>`${e(at(n))} (${e(by[n].join(" · "))})`)])}}}catch(err){console.error(err)}
+      B.push(["📉 <b>Slipped on the season podium last week:</b> post a score before this week ends to climb back!",...Object.keys(by).sort((x,y)=>x.localeCompare(y,undefined,{sensitivity:"base"})).map(n=>`${e(at(n))} (${e(by[n].join(" · "))})`)])}}}catch(err){console.error(err)}
   B.push(["👋 Have a great weekend if we don't see you!"]);
   B.push(["🗳️ <b>Thank you</b> to everyone that has submitted their votes for this week's difficulty ratings so far, votes will be averaged tomorrow once the week ends!"]);
   if(open.length){const L=["🏆 <b>For active players, these trophies are yet to be claimed:</b>"];
