@@ -7936,6 +7936,8 @@ const tyDis=(k,x)=>!!(TY_DIS&&TY_DIS[tyKey(k,x)]);
 function tyDisLoad(){if(!acctOn()||!ACCT.sb||TY_DIS===null)return; TY_DIS=null;
   ACCT.sb.from("check_dismiss").select("key,kind,week,label,at,by_player").then(({data,error})=>{TY_DIS=error?false:Object.fromEntries((data||[]).map(r=>[r.key,r])); TYPO_CACHE=null; try{acctBtn(); if($("acct").open)acctDraw()}catch(e){}})}
 const tyDisOk=()=>{if(TY_DIS===undefined)tyDisLoad(); return !!TY_DIS};
+// the 🔍 count: new likely typos not dismissed; 0 until the dismissals have loaded, so the badge doesn't show and then vanish
+const tyNewN=()=>{if(TY_DIS===undefined||TY_DIS===null){tyDisOk(); return 0} try{return typoScan().nNew||0}catch(e){return 0}};
 // the dismiss button's data: the issue's key, kind, week and a short label for the fix log
 const TY_DATA={};
 document.addEventListener("click",async e=>{const b=e.target.closest("[data-tydis]"); if(!b||!TY_DIS)return; e.preventDefault(); const d=TY_DATA[b.dataset.tydis]; if(!d)return; b.disabled=true;
@@ -7974,7 +7976,7 @@ function typoSection(H){
     ${total?G.map(([k,t,d,f])=>{const L=out[k]; if(!L.length)return "";
       return `<details data-tyk="h${H.w}|${k}"${tyOpen("h"+H.w+"|"+k,true)?" open":""}><summary>${t} <span class="tycount">${L.filter(x=>!tyDis(k,x)).length}</span>${d?` <small class="dim">${d}</small>`:""}</summary><ul class="tylist">${L.slice().sort((a,b)=>tyDis(k,a)-tyDis(k,b)).map(x=>row(k,x,f(x))).join("")}</ul></details>`}).join(""):`<p>No likely typos found. 👍</p>`}</div>`;
   // (the same count as the Admin tab's badge: new issues in the newest week)
-  const nNew=(()=>{try{return typoScan().nNew||0}catch(e){return 0}})();
+  const nNew=tyNewN();
   return `<div class="adm acctsec typos"><h3>Scoreboard checks${nNew?`<span class="nbadge nbemo" title="${nNew} likely typo${nNew===1?"":"s"} in this week's scoreboard">🔍</span>`:""}</h3><p class="dim">Likely typos in the scoreboard sheet, every week since 440. Click a week to open it on the Scoreboard; fix it in the sheet and it disappears after the next site update. <b>New</b> marks issues in the newest week (${NEW}).</p>
     ${total?G.map(([k,t,d,f])=>{const L=out[k].slice().sort((a,b)=>(tyDis(k,a)-tyDis(k,b))||(isNew(b)-isNew(a))||b.w-a.w), nd=L.filter(x=>tyDis(k,x)).length, nn=L.filter(x=>isNew(x)&&!tyDis(k,x)).length; if(!L.length)return "";
       return `<details data-tyk="a|${k}"${tyOpen("a|"+k,!!nn)?" open":""}><summary>${t} <span class="tycount">${L.length-nd}</span>${nd?` <small class="dim">+${nd} dismissed</small>`:""}${nn?`<span class="nbadge tybadge">${nn} new</span>`:""}${d?` <small class="dim">${d}</small>`:""}</summary><ul class="tylist">${L.map(x=>row(k,x,f(x))).join("")}</ul></details>`}).join(""):`<p>No likely typos found.</p>`}${fixLogSection()}</div>`;
@@ -8500,7 +8502,7 @@ function acctBtn(){const b=$("acctbtn"); b.hidden=!ACCT.on; try{twGoals()}catch(
   // this week's host: likely issues in last week's scoreboard (Host tab)
   b.insertAdjacentHTML("beforeend",held("iss",()=>{const L=hostIssueList(), n=hostIssueN(); return n?`<span class="nbadge nbemo" data-bk="iss" title="${n} likely scoreboard issue${n===1?"":"s"} in ${L.map(H=>"Week "+H.w).join(" and ")} · see the Host tab">🔧</span>`:""}));
   // admins: new likely typos in this week's scoreboard (Scoreboard checks, Admin tab)
-  if(ACCT.admin)b.insertAdjacentHTML("beforeend",held("ty",()=>{const t=typoScan().nNew; return t?`<span class="nbadge nbemo" data-bk="ty" title="${t} likely typo${t===1?"":"s"} in this week's scoreboard · see Scoreboard checks in the Admin tab">🔍</span>`:""}));
+  if(ACCT.admin)b.insertAdjacentHTML("beforeend",held("ty",()=>{const t=tyNewN(); return t?`<span class="nbadge nbemo" data-bk="ty" title="${t} likely typo${t===1?"":"s"} in this week's scoreboard · see Scoreboard checks in the Admin tab">🔍</span>`:""}));
   b.insertAdjacentHTML("beforeend",held("fri",friBadge)+held("rp",rpBadge)+held("hm",hmBadge)+held("cd",cdBadge)+held("hl",hlBadge));   // Friday post (this week's host and admins), recruitment post (admins)
   try{const hb=$("twhostbar"); if(hb)hb.hidden=!isCurHost()}catch(e){}   // This Week: Open host settings, for this week's host
   try{const yb=$("twywbar"); if(yb)yb.hidden=!(ACCT.claim&&ACCT.claim.status==="approved")}catch(e){} sbYwShow();   // This Week: Your week, for a player with an approved claim
@@ -8756,7 +8758,7 @@ function acctDraw(msg,err){
   // the passes stay (alert and badges) until you dismiss the alert with its ✕
   if(ACCT.tab==="week"){const n=ACCT.claim.player; ACCT.ywShown=ywUnseen(n)}
   const ywN=appr?ywUnseen(ACCT.claim.player).length:0, sdN=appr?seasUnseen(ACCT.claim.player).length:0;
-  const tabs=`<div class="accttabs" role="tablist">${tb("me","Your profile")}${appr?tb("week",`Your week${ywN?`<span class="nbadge nbyel" title="Passed ${ywN} time${ywN===1?"":"s"} · the ✕ on the alert dismisses it">⬇️</span>`:""}${sdN?`<span class="nbadge nbyel" title="Your season ranking is in danger on ${sdN} path${sdN===1?"":"s"} · the ✕ on the alert dismisses it">🏁</span>`:""}`):""}${ACCT.claim&&ACCT.claim.status==="approved"?tb("banner","Forum banner"):""}${tb("manage","Manage account")}${hostTab()?tb("host",hostTabLabel()):""}${ACCT.admin?tb("admin",`Admin${rpBadge()}${(()=>{const t=typoScan().nNew; return t?`<span class="nbadge nbemo" title="${t} likely typo${t===1?"":"s"} in this week's scoreboard">🔍</span>`:""})()}${pendN?`<span class="nbadge nbemo" title="${pendN} claim${pendN===1?"":"s"} waiting for approval">👤</span>`:""}`):""}${appr?tb("wrapped","Restringed"):""}</div>`;
+  const tabs=`<div class="accttabs" role="tablist">${tb("me","Your profile")}${appr?tb("week",`Your week${ywN?`<span class="nbadge nbyel" title="Passed ${ywN} time${ywN===1?"":"s"} · the ✕ on the alert dismisses it">⬇️</span>`:""}${sdN?`<span class="nbadge nbyel" title="Your season ranking is in danger on ${sdN} path${sdN===1?"":"s"} · the ✕ on the alert dismisses it">🏁</span>`:""}`):""}${ACCT.claim&&ACCT.claim.status==="approved"?tb("banner","Forum banner"):""}${tb("manage","Manage account")}${hostTab()?tb("host",hostTabLabel()):""}${ACCT.admin?tb("admin",`Admin${rpBadge()}${(()=>{const t=tyNewN(); return t?`<span class="nbadge nbemo" title="${t} likely typo${t===1?"":"s"} in this week's scoreboard">🔍</span>`:""})()}${pendN?`<span class="nbadge nbemo" title="${pendN} claim${pendN===1?"":"s"} waiting for approval">👤</span>`:""}`):""}${appr?tb("wrapped","Restringed"):""}</div>`;
   let h=tabs;
   if(ACCT.tab==="admin"){}
   else if(ACCT.tab==="host")h+=`${(()=>{try{return hostIssueList().map(H=>typoSection(H)).join("")}catch(e){console.error(e); return ""}})()}${(()=>{const rb=reactBtn(), run=(()=>{try{return fetchSection()+chkSection()+siteUpSection()}catch(e){console.error(e); return ""}})(), hs=hostSection(!!ACCT.admin);
