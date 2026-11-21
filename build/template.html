@@ -8266,7 +8266,7 @@ function ywList(n){
   const w=TW_MAX, W=WEEKLOG[w], k=n.toLowerCase(), cards={};
   (SB.weeks[w]||[]).forEach(c=>cards[c[0]+"|"+c[1]]=c);
   const rows=W?Object.entries(W.rec).filter(([key])=>key.split("|").slice(2).join("|").toLowerCase()===k).map(([key,[f,b]])=>{const [p,sl]=key.split("|"), c=cards[p+"|"+sl]; return c?{c,p:+p,f,b,d:+(b[0]-f[0]).toFixed(2)}:null}).filter(Boolean):[];
-  if(!rows.length)return `<div class="acctsec yw"><h3>Week ${w} <small>first score → best so far</small></h3><p class="dim">${W?"No scores from you this week yet.":"Your week's scores are recorded from now on: check back after your next score."}</p></div>`;
+  if(!rows.length)return `<div class="acctsec yw"><h3>This week's improvements <small>first score → best so far</small></h3><p class="dim">${W?"No scores from you this week yet.":"Your week's scores are recorded from now on: check back after your next score."}</p></div>`;
   rows.sort((a,b)=>a.p-b.p||a.c[1]-b.c[1]);
   // most improved: the biggest gain this week among everyone on the same challenge (ties share it)
   const topGain={}; Object.entries(W.rec).forEach(([key,[f,b]])=>{const card=key.split("|").slice(0,2).join("|"), d=+(b[0]-f[0]).toFixed(2); if(d>(topGain[card]||0))topGain[card]=d});
@@ -8278,7 +8278,7 @@ function ywList(n){
   const up=rows.filter(r=>r.d>0), same=rows.filter(r=>r.d<=0), best=up.slice().sort((a,b)=>b.d-a.d)[0];
   // grouped by path (Lead, Rhythm, Bass)
   const byPath=L=>[0,1,2].map(pi=>{const g=L.filter(r=>r.p===pi); return g.length?`<h4 class="ywp" style="--pc:${PATH_C[pi]}">${PATHS[pi]}</h4><ul class="ywl">${g.map(li).join("")}</ul>`:""}).join("");
-  return `<div class="acctsec yw"><h3>Week ${w} <small>first score → best so far</small></h3>${up.length?byPath(up):`<p class="dim">No improvements yet this week: replay a challenge to improve.</p>`}
+  return `<div class="acctsec yw"><h3>This week's improvements <small>first score → best so far</small></h3>${up.length?byPath(up):`<p class="dim">No improvements yet this week: replay a challenge to improve.</p>`}
     ${same.length?`<details class="ywsame"><summary>No change on ${same.length} challenge${same.length===1?"":"s"}</summary>${byPath(same)}</details>`:""}
     ${(()=>{const t=rows.filter(r=>r.top).length; return t?`<p class="dim" style="margin-top:6px">You're the most improved player on <b>${t}</b> challenge${t===1?"":"s"} this week.</p>`:""})()}
     ${best?`<p class="dim" style="margin-top:6px">Biggest jump this week: <b>${PATHS[best.p]} ${esc(best.c[2])}</b>, +${best.d.toFixed(2)}${best.b[4]&&best.f[4]&&best.b[4]<best.f[4]?` and up to #${best.b[4]}`:""}.</p>`:""}</div>`;
