@@ -1700,6 +1700,37 @@ footer{color:var(--dim);font-size:.78rem;border-top:1px solid var(--line);paddin
 .bn .bn-st.bn-lv b:has(.bn-gain){display:inline-flex;align-items:center;justify-content:center}.lgsec .lgset{border:1px solid var(--line);border-radius:8px;padding:8px 12px 10px;margin-top:8px}.lgsec h4{margin:0 0 6px;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}.lgsec h4 small{color:var(--muted);font:600 .74rem var(--f-mono)}
 .lgsec ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}.lgsec .lgg{font-size:.88rem;margin-bottom:4px}.lgsec .lgg.done{color:var(--s-green)}
 .lgsec .lgchips{display:flex;flex-wrap:wrap;gap:6px}.lgsec .lgck{display:inline-flex;align-items:center;gap:6px;cursor:pointer;font-size:.88rem}.lgsec .lgck.chip{border:1px solid var(--line);border-radius:999px;padding:3px 10px 3px 6px;font:600 .8rem var(--f-mono)}
+.lgsec .lgpics{display:flex;gap:8px;overflow-x:auto;padding:8px 2px 6px;margin-top:4px;scroll-snap-type:x proximity}
+.lgsec .lgfig{flex:none;margin:0;background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:6px 8px 8px;scroll-snap-align:start;font-family:var(--f-display)}
+.lgsec .lgfig.on{border-color:color-mix(in srgb,var(--s-green) 55%,var(--line))}
+.lgsec .lgfig figcaption{font:700 .9rem var(--f-display);margin-bottom:2px}.lgsec .lgfig.on figcaption{color:var(--s-green)}
+.lgsec .lgpair{display:flex;align-items:center;gap:8px}.lgsec .lgbox{width:78px;height:auto;display:block}.lgsec .lgrs{width:140px;height:auto;display:block;background:linear-gradient(180deg,#0f3346,#070f16);border-radius:6px}
+.lgsec .lgfig svg text{font-family:var(--f-display)}
+.lgsec .lgfig figcaption{display:flex;align-items:center;gap:6px}.lgsec .lgedit{margin-left:auto;border:1px solid var(--line);background:none;color:var(--muted);border-radius:6px;width:26px;height:26px;padding:0;cursor:pointer;font-size:.85rem;line-height:1}
+.lgsec .lgedit:hover,.lgsec .lgedit:focus-visible{color:var(--accent);border-color:var(--accent)}
+.chdlg{max-width:640px}.chdlg h3{font-family:var(--f-display)}
+.chwrap{display:flex;flex-wrap:wrap;gap:24px;align-items:flex-start;margin-top:12px}
+.chboard{--gx:44px;--gy:52px;position:relative;width:calc(5*var(--gx));height:calc(4*var(--gy));margin:44px 40px 12px;flex:none}
+.chstr{position:absolute;top:0;bottom:0;left:calc(var(--i)*var(--gx));width:var(--w);transform:translateX(-50%);background:linear-gradient(90deg,#9aa3b5,#e7eaf2,#9aa3b5);border-radius:2px}
+.chfret{position:absolute;left:-1px;right:-1px;top:calc(var(--j)*var(--gy));height:2px;transform:translateY(-50%);background:#3a4256}
+.chnut{position:absolute;left:-3px;right:-3px;top:-7px;height:9px;background:var(--fg);border-radius:3px}
+.chpos{position:absolute;right:calc(100% + 10px);top:calc(.5*var(--gy));transform:translateY(-50%);font:700 .9rem var(--f-display);color:var(--muted)}
+.chcell{position:absolute;left:calc(var(--i)*var(--gx));top:calc((var(--j) + .5)*var(--gy));width:var(--gx);height:var(--gy);transform:translate(-50%,-50%);display:grid;place-items:center;border:0;background:none;padding:0;cursor:pointer;border-radius:8px}
+button.chcell:hover::after{content:"";width:60%;aspect-ratio:1;border-radius:50%;border:2px dashed color-mix(in srgb,var(--c) 70%,transparent)}
+.chcell:focus-visible,.chmk:focus-visible{outline:2px solid var(--accent)}
+.chdot{width:34px;height:34px;border-radius:50%;background:radial-gradient(circle at 35% 30%,color-mix(in srgb,var(--c) 70%,#fff),var(--c) 60%);box-shadow:0 0 0 2px rgba(0,0,0,.35),0 0 14px color-mix(in srgb,var(--c) 55%,transparent)}
+.chdot input{width:100%;height:100%;border:0;border-radius:50%;background:none;text-align:center;font:800 1.05rem var(--f-display);color:#0d0f14;padding:0}
+.chdot input:focus{outline:3px solid var(--fg);outline-offset:3px}
+.chmk{position:absolute;left:calc(var(--i)*var(--gx));top:-28px;width:var(--gx);height:40px;transform:translate(-50%,-50%);border:0;background:none;cursor:pointer;font:700 1.15rem var(--f-display);color:var(--fg);border-radius:8px}
+.chmk.o{color:var(--c);text-shadow:0 0 10px var(--c)}.chmk.x{color:var(--s-red)}
+.chmk:empty::after{content:"";display:inline-block;width:12px;height:12px;border-radius:50%;border:2px dashed var(--line)}
+.chside{display:flex;flex-direction:column;gap:14px;min-width:0;flex:1 1 220px}
+.chstep{display:flex;align-items:center;gap:8px}.chstep b{font:700 1.1rem var(--f-display);min-width:2ch;text-align:center}
+.chstep button,.chacts button{min-height:40px;min-width:40px;border:1px solid var(--line);background:var(--panel2);color:var(--fg);border-radius:8px;cursor:pointer;font:600 .9rem var(--f-body);padding:0 12px}
+.chstep button{padding:0;font-size:1.1rem}.chstep span{margin-right:auto}
+.chprev .lgrs{width:100%;max-width:300px;height:auto;display:block;margin-top:6px;background:linear-gradient(180deg,#0f3346,#070f16);border-radius:8px}
+.chacts{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}.chacts .chsave{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.chacts button:disabled{opacity:.6;cursor:default}.cherr{color:var(--s-red);margin:10px 0 0}
 .lgsec .lgck.chip:has(input:checked){border-color:var(--s-green);color:var(--s-green);background:color-mix(in srgb,var(--s-green) 10%,transparent)}.lgsec .lgck input{accent-color:var(--s-green);margin:0;width:auto;flex:none;padding:0}
 .bn .bn-gain{display:inline-block;margin-right:6px;font:800 13px/1 var(--f-display);color:#45d17a;white-space:nowrap}.bn .bn-st.bn-lv .bn-gain{color:var(--pc)}   /* the season's level gain in the path's own color: orange Lead, green Rhythm, blue Bass */
 .bn .bn-hot{position:absolute;top:-7px;right:-5px;display:inline-flex;align-items:center;gap:2px;padding:2px 7px 2px 5px;border-radius:999px;font:800 13px/1 var(--f-display);color:#1a0d02;background:linear-gradient(180deg,#ffc24a,#ff7a1a);box-shadow:0 0 8px rgba(255,120,30,.55);border:1px solid #ffd27a}
@@ -8546,15 +8577,96 @@ const LEARN=[{id:"cowboy",t:"Cowboy guitarist",g:[
   {id:"sus4",t:"I can play all sus4 open chords",i:["Asus4","Dsus4","Esus4"]},
   {id:"barre",t:"I can play barre chords"},
   {id:"pinch",t:"I can do a pinch harmonic"}]}];
+// chord pictures for Learning goals: frets low E→high e (x = don't play, 0 = open) and the finger on each string ("-" = none)
+const CHORD_SHAPES={A:["x02220","--123-"],C:["x32010","-32-1-"],D:["xx0232","---132"],E:["022100","-231--"],F:["133211","134211"],G:["320003","21---3"],B:["x24442","-12341"],
+  Am:["x02210","--231-"],Bm:["x24432","-13421"],Cm:["x35543","-13421"],Dm:["xx0231","---231"],Em:["022000","-23---"],
+  A7:["x02020","--2-3-"],B7:["x21202","-213-4"],C7:["x32310","-3241-"],D7:["xx0212","---213"],E7:["020100","-2-1--"],G7:["320001","32---1"],
+  Am7:["x02010","--2-1-"],Bm7:["x24232","-13121"],Dm7:["xx0211","---211"],Em7:["020000","-2----"],
+  Amaj7:["x02120","--213-"],Cmaj7:["x32000","-32---"],Dmaj7:["xx0222","---123"],Fmaj7:["xx3210","--321-"],Gmaj7:["320002","32---1"],
+  A6:["x02222","--1111"],D6:["xx0202","---2-3"],E6:["022120","-2314-"],G6:["320000","21----"],
+  Aadd9:["x02420","--142-"],Cadd9:["x32030","-21-3-"],Eadd9:["024100","-241--"],Gadd9:["320203","21-3-4"],
+  Asus4:["x02230","--123-"],Dsus4:["xx0233","---134"],Esus4:["022200","-234--"]};
+const CH_COL=["#ef4a55","#f5c84a","#3fa0ff","#ff9a2e","#45d17a","#b277ff"];
+// admins' chord fixes (chord_shapes.sql): remembered from the last visit, then refreshed
+let CHORD_FIX={}; try{CHORD_FIX=JSON.parse(localStorage.getItem("rsc-chordfix")||"{}")||{}}catch(e){}
+function chordFixLoad(){if(chordFixLoad.done||!ACCT.sb)return; chordFixLoad.done=1;
+  ACCT.sb.from("chord_shapes").select("*").then(({data,error})=>{if(error||!data)return; const m={}; for(const r of data)m[r.chord]=r; CHORD_FIX=m;
+    try{localStorage.setItem("rsc-chordfix",JSON.stringify(m))}catch(e){} if(ACCT.tab==="learn")acctDraw()})}
+function chordShape(c){const x=CHORD_FIX[c]; if(x&&x.frets){const f=String(x.frets).split(",").map(v=>v==="x"?-1:+v); if(f.length===6&&f.every(v=>v>=-1&&v<=24))return {f,n:[...String(x.fingers||"------").padEnd(6,"-")].slice(0,6),start:Math.max(1,+x.start||1)}}
+  const s=CHORD_SHAPES[c]; if(!s)return null; const f=[...s[0]].map(v=>v==="x"?-1:+v), fr=f.filter(v=>v>0), hi=Math.max(0,...fr);
+  return {f,n:[...s[1]],start:hi>4?Math.min(...fr):1}}
+// the chart: strings run up and down, like a songbook chord box
+function chordBoxSvg(c,S){S=S||chordShape(c); if(!S)return ""; const gx=12,gy=22,x0=22,y0=26,F=4; let h="";
+  h+=S.start===1?`<rect x="${x0-2}" y="${y0-4}" width="${gx*5+4}" height="5" rx="1.5" fill="#e7eaf2"/>`:`<text x="${x0-6}" y="${y0+gy/2+3}" text-anchor="end" font-size="9" font-weight="700" fill="#8c94a8">${S.start}fr</text>`;
+  for(let j=0;j<=F;j++)h+=`<rect x="${x0}" y="${y0+j*gy-.6}" width="${gx*5}" height="1.2" fill="#3a4256"/>`;
+  for(let i=0;i<6;i++){const x=x0+i*gx,v=S.f[i]; h+=`<rect x="${x-(1.5-i*.18)/2}" y="${y0}" width="${1.5-i*.18}" height="${gy*F}" fill="#c9cfdb"/>`;
+    if(v===0)h+=`<circle cx="${x}" cy="${y0-12}" r="4" fill="none" stroke="${CH_COL[i]}" stroke-width="1.6"/>`;
+    if(v<0)h+=`<path d="M${x-3.5} ${y0-15.5}l7 7m0-7l-7 7" stroke="#ef4a55" stroke-width="1.7" stroke-linecap="round"/>`;
+    if(v>0){const y=y0+(v-S.start+.5)*gy; h+=`<circle cx="${x}" cy="${y}" r="5.6" fill="${CH_COL[i]}"/>${S.n[i]!=="-"?`<text x="${x}" y="${y+3.2}" text-anchor="middle" font-size="8.5" font-weight="800" fill="#0d0f14">${S.n[i]}</text>`:""}`}}
+  return `<svg class="lgbox" viewBox="0 0 100 ${y0+gy*F+6}" role="img" aria-label="${esc(c)} chord chart">${h}</svg>`}
+// the Rocksmith view: the chart turned 90° right, low E (red) on top, high e (purple) at the bottom, fret numbers in yellow
+function chordRsSvg(c,S){S=S||chordShape(c); if(!S)return ""; const fw=30,rh=11,pl=22,y0=6,F=4,ex=pl+F*fw; let h=`<rect x="${pl}" y="${y0}" width="${F*fw}" height="${rh*6}" fill="rgba(0,0,0,.35)"/>`;
+  for(let j=0;j<=F;j++){const nut=j===0&&S.start===1; h+=`<rect x="${pl+j*fw-(nut?2:.7)}" y="${y0-2}" width="${nut?4:1.4}" height="${rh*6+4}" fill="${nut?"#e7eaf2":"#7d8aa0"}"/>`}
+  for(let j=0;j<F;j++)h+=`<text x="${pl+(j+.5)*fw}" y="${y0+rh*6+12}" text-anchor="middle" font-size="9" font-weight="700" fill="#f5c84a">${S.start+j}</text>`;
+  for(let i=0;i<6;i++){const y=y0+(i+.5)*rh,v=S.f[i],col=CH_COL[i]; h+=`<rect x="${pl}" y="${y-.8}" width="${F*fw}" height="1.6" fill="${col}" opacity="${v<0?.25:1}"/>`;
+    if(v===0)h+=`<rect x="${pl+3}" y="${y-3}" width="${F*fw-6}" height="6" rx="3" fill="${col}" opacity=".4"/><text x="${pl-10}" y="${y+3}" text-anchor="middle" font-size="8.5" font-weight="800" fill="${col}">0</text>`;
+    if(v<0)h+=`<path d="M${pl-13} ${y-3}l6 6m0-6l-6 6" stroke="#ef4a55" stroke-width="1.5" stroke-linecap="round"/>`;
+    if(v>0){const cx=pl+(v-S.start+.5)*fw; h+=`<rect x="${cx-10}" y="${y-5}" width="20" height="10" rx="2.5" fill="${col}" stroke="rgba(255,255,255,.85)" stroke-width="1"/>${S.n[i]!=="-"?`<text x="${cx}" y="${y+3}" text-anchor="middle" font-size="8" font-weight="800" fill="#0d0f14">${S.n[i]}</text>`:""}`}}
+  return `<svg class="lgrs" viewBox="0 0 ${ex+6} ${y0+rh*6+16}" role="img" aria-label="${esc(c)} chord, Rocksmith view">${h}</svg>`}
+function chordPics(list,isOn){const cards=list.filter(c=>CHORD_SHAPES[c]).map(c=>`<figure class="lgfig${isOn(c)?" on":""}"><figcaption>${esc(c)}${isOn(c)?" ✓":""}${ACCT.admin?`<button type="button" class="lgedit" data-chedit="${esc(c)}" title="Edit the ${esc(c)} chord (admins)" aria-label="Edit ${esc(c)} chord">✎</button>`:""}</figcaption><div class="lgpair">${chordBoxSvg(c)}${chordRsSvg(c)}</div></figure>`).join("");
+  return cards?`<div class="lgpics">${cards}</div>`:""}
+// admins: edit a chord in the chord diagram maker (a dialog over the profile). One fretted note per string; strings with no note are muted (X) or open (O).
+const CHED={};
+function chEdOpen(c){const S=chordShape(c); if(!S)return; Object.assign(CHED,{c,f:[...S.f],n:[...S.n],start:S.start,err:"",busy:0,fresh:null});
+  let d=$("chdlg"); if(!d){document.body.insertAdjacentHTML("beforeend",`<dialog id="chdlg" class="acctdlg chdlg" aria-label="Edit chord"><button type="button" class="dlgx" data-chclose aria-label="Close" title="Close">✕</button><div id="chbody"></div></dialog>`); d=$("chdlg")}
+  chEdDraw(); d.showModal?d.showModal():d.setAttribute("open","")}
+function chEdClose(){const d=$("chdlg"); if(d){d.close?d.close():d.removeAttribute("open")}}
+function chEdShape(){const W=CHED; return {f:W.f.map(v=>v>0&&(v<W.start||v>W.start+3)?-1:v),n:W.n,start:W.start}}
+function chEdDraw(){const W=CHED,F=4; let h=W.start===1?'<div class="chnut"></div>':`<div class="chpos">${W.start}fr</div>`;
+  for(let j=0;j<=F;j++)h+=`<div class="chfret" style="--j:${j}"></div>`;
+  for(let i=0;i<6;i++){const v=W.f[i]; h+=`<div class="chstr" style="--i:${i};--w:${(2.6-i*.3).toFixed(1)}px"></div>`;
+    h+=`<button type="button" class="chmk${v===0?" o":v<0?" x":""}" style="--i:${i};--c:${CH_COL[i]}" data-chmk="${i}" aria-label="String ${6-i}: ${v===0?"open":v<0?"muted":"fretted"}">${v===0?"O":v<0?"✕":""}</button>`;
+    for(let j=0;j<F;j++){const fr=W.start+j;
+      h+=v===fr?`<div class="chcell" style="--i:${i};--j:${j};--c:${CH_COL[i]}" data-chk="${i}-${fr}"><div class="chdot"><input id="chi${i}" value="${W.n[i]==="-"?"":esc(W.n[i])}" maxlength="1" autocomplete="off" aria-label="Finger on string ${6-i}, fret ${fr}"></div></div>`
+        :`<button type="button" class="chcell" style="--i:${i};--j:${j};--c:${CH_COL[i]}" data-chk="${i}-${fr}" aria-label="Put a note on string ${6-i}, fret ${fr}"></button>`}}
+  const fixed=!!CHORD_FIX[W.c];
+  $("chbody").innerHTML=`<h3>Edit ${esc(W.c)}</h3><p class="dim">Click a fret to put a finger there (one per string), then type the finger: 1–4, or T for thumb. Click above a string to switch it between open (O) and muted (✕). Right-click a dot, or press Backspace in an empty dot, to take it off.</p>
+    <div class="chwrap"><div class="chboard">${h}</div>
+      <div class="chside"><div class="chstep"><span class="dim">Starting fret</span><button type="button" data-chstart="-1" aria-label="Lower starting fret">−</button><b>${W.start}</b><button type="button" data-chstart="1" aria-label="Raise starting fret">+</button></div>
+        <div class="chprev"><span class="dim">Rocksmith view</span><div id="chrs">${chordRsSvg(W.c,chEdShape())}</div></div></div></div>
+    ${W.err?`<p class="cherr">${esc(W.err)}</p>`:""}
+    <div class="chacts"><button type="button" class="chsave" data-chsave${W.busy?" disabled":""}>${W.busy?"Saving…":"Save for everyone"}</button>${fixed?`<button type="button" data-chreset${W.busy?" disabled":""} title="Go back to the site's built-in shape for ${esc(W.c)}">Use the built-in shape</button>`:""}<button type="button" data-chclose>Cancel</button></div>
+    ${fixed&&CHORD_FIX[W.c].set_by?`<p class="dim" style="margin-top:8px">Last changed by ${esc(CHORD_FIX[W.c].set_by)}.</p>`:""}`;
+  if(W.fresh!=null){const x=$("chi"+W.fresh); if(x)x.focus(); W.fresh=null}}
+function chEdPrev(){const x=$("chrs"); if(x)x.innerHTML=chordRsSvg(CHED.c,chEdShape())}
+async function chEdSave(reset){const W=CHED; if(!ACCT.admin||!ACCT.sb)return; W.busy=1; W.err=""; chEdDraw(); const S=chEdShape();
+  const row={chord:W.c,frets:S.f.map(v=>v<0?"x":v).join(","),fingers:S.f.map((v,i)=>v>0&&W.n[i]&&W.n[i]!==" "?W.n[i]:"-").join(""),start:W.start,set_by:ACCT.claim&&ACCT.claim.player||null,updated_at:new Date().toISOString()};
+  const {error}=reset?await ACCT.sb.from("chord_shapes").delete().eq("chord",W.c):await ACCT.sb.from("chord_shapes").upsert(row,{onConflict:"chord"});
+  W.busy=0; if(error){W.err=/relation|does not exist|schema cache/i.test(error.message)?"Chord editing isn't set up yet: run build/supabase/chord_shapes.sql once in Supabase.":"Couldn't save: "+error.message; chEdDraw(); return}
+  if(reset)delete CHORD_FIX[W.c]; else CHORD_FIX[W.c]=row; try{localStorage.setItem("rsc-chordfix",JSON.stringify(CHORD_FIX))}catch(e){}
+  chEdClose(); acctDraw()}
+document.addEventListener("click",e=>{const t=e.target;
+  const ed=t.closest("[data-chedit]"); if(ed){e.preventDefault(); if(ACCT.admin)chEdOpen(ed.dataset.chedit); return}
+  if(!t.closest("#chdlg"))return; const W=CHED;
+  if(t.closest("[data-chclose]")){chEdClose(); return}
+  if(t.closest("[data-chsave]")){chEdSave(false); return}
+  if(t.closest("[data-chreset]")){chEdSave(true); return}
+  const st=t.closest("[data-chstart]"); if(st){W.start=Math.min(20,Math.max(1,W.start+ +st.dataset.chstart)); chEdDraw(); return}
+  const mk=t.closest("[data-chmk]"); if(mk){const i=+mk.dataset.chmk; W.f[i]=W.f[i]===0?-1:0; W.n[i]="-"; chEdDraw(); return}
+  const cell=t.closest("button[data-chk]"); if(cell){const [i,fr]=cell.dataset.chk.split("-").map(Number); W.f[i]=fr; W.n[i]="-"; W.fresh=i; chEdDraw()}});
+document.addEventListener("contextmenu",e=>{const cell=e.target.closest("#chdlg div[data-chk]"); if(!cell)return; e.preventDefault(); const i=+cell.dataset.chk.split("-")[0]; CHED.f[i]=-1; CHED.n[i]="-"; chEdDraw()});
+document.addEventListener("input",e=>{const x=e.target.closest("#chdlg .chdot input"); if(!x)return; x.value=x.value.toUpperCase().replace(/[^1-4T]/g,""); CHED.n[+x.id.slice(3)]=x.value||"-"; chEdPrev()});
+document.addEventListener("keydown",e=>{const x=e.target.closest("#chdlg .chdot input"); if(!x)return; const i=+x.id.slice(3);
+  if((e.key==="Backspace"||e.key==="Delete")&&!x.value){e.preventDefault(); CHED.f[i]=-1; CHED.n[i]="-"; chEdDraw()} else if(e.key==="Enter"){e.preventDefault(); x.blur()}});
 function learnLoad(){if(ACCT.learn&&ACCT.user&&ACCT.learn.uid!==ACCT.user.id)ACCT.learn=null; if(ACCT.learn||ACCT.learnBusy||!ACCT.user)return; const uid=ACCT.user.id; ACCT.learnBusy=1;
   ACCT.sb.from("learn_goals").select("item").then(({data,error})=>{ACCT.learnBusy=0; ACCT.learn=error?{uid,err:1,s:new Set()}:{uid,s:new Set((data||[]).map(r=>r.item))}; if(ACCT.tab==="learn")acctDraw()})}
-function learnSection(){if(!ACCT.claim||ACCT.claim.status!=="approved")return ""; learnLoad(); const L=ACCT.learn&&ACCT.user&&ACCT.learn.uid===ACCT.user.id?ACCT.learn:null;
+function learnSection(){if(!ACCT.claim||ACCT.claim.status!=="approved")return ""; learnLoad(); chordFixLoad(); const L=ACCT.learn&&ACCT.user&&ACCT.learn.uid===ACCT.user.id?ACCT.learn:null;
   const box=(k,lab,cls)=>`<label class="lgck${cls||""}"><input type="checkbox" data-learn="${esc(k)}"${L&&L.s.has(k)?" checked":""}${L&&!L.err?"":" disabled"}><span>${esc(lab)}</span></label>`;
   const body=LEARN.map(S=>{const keys=S.g.flatMap(g=>g.i?g.i.map(c=>`${S.id}/${g.id}/${c}`):[`${S.id}/${g.id}`]), n=L?keys.filter(k=>L.s.has(k)).length:0;
     return `<div class="lgset"><h4>${esc(S.t)}<small>${n} of ${keys.length}${n===keys.length?" · done 🤘":""}</small></h4><ul>${S.g.map(g=>{
       if(!g.i)return `<li>${box(`${S.id}/${g.id}`,g.t)}</li>`;
       const all=L&&g.i.every(c=>L.s.has(`${S.id}/${g.id}/${c}`));
-      return `<li><div class="lgg${all?" done":""}">${all?"✓ ":""}${esc(g.t)}:</div><div class="lgchips">${g.i.map(c=>box(`${S.id}/${g.id}/${c}`,c," chip")).join("")}</div></li>`}).join("")}</ul></div>`}).join("");
+      return `<li><div class="lgg${all?" done":""}">${all?"✓ ":""}${esc(g.t)}:</div><div class="lgchips">${g.i.map(c=>box(`${S.id}/${g.id}/${c}`,c," chip")).join("")}</div>${chordPics(g.i,c=>!!(L&&L.s.has(`${S.id}/${g.id}/${c}`)))}</li>`}).join("")}</ul></div>`}).join("");
   return `<div class="acctsec lgsec"><p class="dim">Only you can see this. Check things off as you learn them.${L?(L.err?" Couldn't load your targets right now.":""):" Loading…"}</p>${body}</div>`}
 document.addEventListener("change",async e=>{const c=e.target.closest("input[data-learn]"); if(!c||!ACCT.learn||!ACCT.user)return; const k=c.dataset.learn, on=c.checked; c.disabled=true;
   const {error}=on?await ACCT.sb.from("learn_goals").insert({item:k}):await ACCT.sb.from("learn_goals").delete().match({user_id:ACCT.user.id,item:k});
