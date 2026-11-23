@@ -3508,7 +3508,7 @@ function hlParts0(w){eloBuild(); const I=sbIx(), L=[], G1=[], G2=[], G2b=[], G3=
   const sLine=(pi,up)=>{const T=seasonF1(pi,sNow,up), M=seasonImproved(pi,sNow,up);
     const c=["M","A","I","B"].filter(c=>(T[c]&&T[c].length)||M[c]).map(c=>`**${TIER_NAME[c]}**: ${T[c]&&T[c][0]?`@${T[c][0].n} (${T[c][0].p} pts)`:"no points yet"}${M[c]?` · most improved @${M[c][0].n} (${lvGain(M[c][0].d)} lvl)`:""}`);
     return c.length?[`${["🎸","🎶","🎵"][pi]} **${PATHS[pi]}**`,...c]:null};
-  const out=[[`**Week ${w} Highlights**`]];
+  const out=[[`**Week ${w} Highlights** · Thanks for playing!`]];
   if(sNow&&sNext&&sNow!==sNext){const ch=[0,1,2].map(pi=>sLine(pi)).filter(Boolean);
     out.push([`🏁 **A new season starts this week: Season ${seasonNum(sNext)} (${sNext})!** Everyone starts on zero points: 25 for a win, 18 for 2nd, down to 1 for 10th on each week's main challenge in your class. Show up every week to keep scoring.`]);
     if(ch.length)out.push([`🏆 **Season ${seasonNum(sNow)} (${sNow}) champions**:`],...ch)}
