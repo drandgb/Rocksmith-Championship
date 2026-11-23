@@ -8657,7 +8657,7 @@ const TECH={
   "Half step bend":{fr:5,n:[[6,"bend",1]],tab:["6b7"],tip:"Bend the string up a half step (one fret's worth)"},
   "Full step bend":{fr:5,n:[[6,"bend",2]],tab:["6b8"],tip:"Bend the string up a whole step (two frets' worth)"},
   "1½ step bend":{fr:5,n:[[6,"bend",3]],tab:["6b9"],tip:"Bend the string up a step and a half (three frets' worth)"},
-  "Pre-bend":{tip:"Bend the string up before you pick it, then pick the bent note"},
+  "Pre-bend":{fr:5,n:[[6,"pre",2]],tip:"Bend the string up before you pick it, then pick the bent note"},
   "Slide up":{tip:"Pick the note, then slide your finger up the string to the higher fret without lifting it"},
   "Slide down":{tip:"Pick the note, then slide your finger down the string to the lower fret without lifting it"},
   "Strumming":{tip:"Strum the chord with downstrokes (⊓) and upstrokes (V)"},
@@ -8687,7 +8687,10 @@ function techRsSvg(t,inv){const T=TECH[t]; if(!T)return ""; if(!T.n)return `<svg
     if(m==="trem"){let d=`M${x+8} ${y}`; for(let z=x+12,u=1;z<ex-2;z+=5,u=-u)d+=`L${z} ${y+u*4}`; h+=tail(x,d)}
     if(m==="vib"){let d=`M${x+8} ${y}`; for(let z=x+8;z<=ex-13;z+=10)d+=`q2.5 -6 5 0t5 0`; h+=tail(x,d)}
     if(m==="acc"){defs+=`<filter id="tga" x="-60%" y="-120%" width="220%" height="340%"><feGaussianBlur stdDeviation="2.2"/><feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge></filter>`}
-    h+=m==="harm"||m==="ph"?"":m==="pm"?gem(x,{fill:"#3a1216",st:"#ef4a55",sw:1.6}):m==="fm"?gem(x,{fill:"rgba(0,0,0,.4)",st:col,sw:1.6}):m==="acc"?gem(x,{st:"#fff",sw:1.8,glow:"a"}):gem(x);
+    // pre-bend: the G string's gem already pushed up to where the A string (yellow) sits, with a full bend's two chevrons above it
+    if(m==="pre"){const yp=row(1); h+=`<rect x="${x-10}" y="${yp-5}" width="20" height="10" rx="2.5" fill="${col}" stroke="rgba(255,255,255,.85)" stroke-width="1"/>`;
+      for(let c=0;c<k;c++){const yy=yp+up*(10+c*5); h+=`<path d="M${x-5} ${yy-up*2.5}L${x} ${yy+up*2.5}L${x+5} ${yy-up*2.5}" fill="none" stroke="#fff" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>`}}
+    h+=m==="harm"||m==="ph"||m==="pre"?"":m==="pm"?gem(x,{fill:"#3a1216",st:"#ef4a55",sw:1.6}):m==="fm"?gem(x,{fill:"rgba(0,0,0,.4)",st:col,sw:1.6}):m==="acc"?gem(x,{st:"#fff",sw:1.8,glow:"a"}):gem(x);
     if(m==="pm"||m==="fm")h+=`<path d="M${x-5} ${y-4}l10 8m0-8l-10 8" stroke="${m==="pm"?"#ef4a55":"#fff"}" stroke-width="1.8" stroke-linecap="round"/>`;
     if(m==="harm"||m==="ph"){const c=m==="harm"?col:"#fff"; h+=`<circle cx="${x}" cy="${y}" r="6" fill="#0d0f14" stroke="${c}" stroke-width="2"/><circle cx="${x}" cy="${y}" r="2" fill="${c}"/>`}   // natural: string color · pinch: white
     if(m==="ho"||m==="po"){h+=m==="ho"?`<path d="M${x-4} ${y-15}h8l-4 8z" fill="#fff" stroke="#0d0f14" stroke-width=".6"/>`:`<path d="M${x-4} ${y-7}h8l-4 -8z" fill="#fff" stroke="#0d0f14" stroke-width=".6"/>`;   // ▼ hammer-on, ▲ pull-off
