@@ -8612,7 +8612,7 @@ const LEARN=[{id:"cowboy",t:"Cowboy guitarist",g:[
   {id:"slide",t:"I can slide between notes",i:["Slide up","Slide down"]},
   {id:"strum",t:"I can strum with downstrokes and upstrokes",i:["Strumming"]},
   {id:"mute",t:"I can mute strings",i:["Palm mute","Frethand mute"]},
-  {id:"harm",t:"I can play harmonics",i:["Harmonic","Pinch harmonic"]},
+  {id:"harm",t:"I can play harmonics",i:["Natural harmonic","Pinch harmonic"]},
   {id:"more",t:"I can also play",i:["Tremolo","Vibrato","Sustain","Accent","Tapping"]}]}];
 // chord pictures for Learning goals: frets low E→high e (x = don't play, 0 = open) and the finger on each string ("-" = none)
 const CHORD_SHAPES={A:["x02220","--123-"],C:["x32010","-32-1-"],D:["xx0232","---132"],E:["022100","-231--"],F:["133211","134211"],G:["320003","21---3"],B:["x24442","-12341"],
@@ -8668,7 +8668,7 @@ const TECH={
   "Sustain":{fr:5,n:[[6,"sus"]],tab:["6———"],above:"let ring",tip:"Let the note or chord ring for its full length"},
   "Palm mute":{fr:5,n:[[6,"pm"]],tab:["6 6 6"],above:"P.M.",tip:"Rest the side of your picking hand on the strings near the bridge for a muffled sound"},
   "Frethand mute":{fr:5,n:[[6,"fm"]],tab:["x x x"],tip:"Touch the strings with your fretting hand without pressing them down, for a percussive sound"},
-  "Harmonic":{fr:10,n:[[12,"harm"]],tab:["<12>"],tip:"Touch the string very lightly right over the fret wire when you pick it"},
+  "Natural harmonic":{fr:10,n:[[12,"harm"]],tab:["<12>"],tip:"Touch the string very lightly right over the fret wire when you pick it (no fretting)"},
   "Pinch harmonic":{fr:5,n:[[6,"ph"]],tab:["6"],above:"P.H.",tip:"Graze the string with the thumb of your picking hand right after picking it"},
   "Accent":{fr:5,n:[[6,"acc"]],tab:["6"],above:">",tip:"Play the note louder than the ones around it"},
   "Tapping":{fr:10,n:[[12,"tap"]],tab:["12"],above:"T",tip:"Tap the fret with a finger of your picking hand"}};
@@ -8687,10 +8687,9 @@ function techRsSvg(t,inv){const T=TECH[t]; if(!T)return ""; if(!T.n)return `<svg
     if(m==="trem"){let d=`M${x+8} ${y}`; for(let z=x+12,u=1;z<ex-2;z+=5,u=-u)d+=`L${z} ${y+u*4}`; h+=tail(x,d)}
     if(m==="vib"){let d=`M${x+8} ${y}`; for(let z=x+8;z<=ex-13;z+=10)d+=`q2.5 -6 5 0t5 0`; h+=tail(x,d)}
     if(m==="acc"){defs+=`<filter id="tga" x="-60%" y="-120%" width="220%" height="340%"><feGaussianBlur stdDeviation="2.2"/><feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge></filter>`}
-    h+=m==="pm"?gem(x,{fill:"#3a1216",st:"#ef4a55",sw:1.6}):m==="fm"?gem(x,{fill:"rgba(0,0,0,.4)",st:col,sw:1.6}):m==="acc"?gem(x,{st:"#fff",sw:1.8,glow:"a"}):gem(x);
+    h+=m==="harm"||m==="ph"?"":m==="pm"?gem(x,{fill:"#3a1216",st:"#ef4a55",sw:1.6}):m==="fm"?gem(x,{fill:"rgba(0,0,0,.4)",st:col,sw:1.6}):m==="acc"?gem(x,{st:"#fff",sw:1.8,glow:"a"}):gem(x);
     if(m==="pm"||m==="fm")h+=`<path d="M${x-5} ${y-4}l10 8m0-8l-10 8" stroke="${m==="pm"?"#ef4a55":"#fff"}" stroke-width="1.8" stroke-linecap="round"/>`;
-    if(m==="harm")h+=`<circle cx="${x}" cy="${y}" r="3.4" fill="none" stroke="#fff" stroke-width="1.5"/><circle cx="${x}" cy="${y}" r="1.2" fill="#fff"/>`;
-    if(m==="ph")h+=`<ellipse cx="${x}" cy="${y}" rx="7" ry="3.2" fill="none" stroke="#f5c84a" stroke-width="1.6"/>`;
+    if(m==="harm"||m==="ph"){const c=m==="harm"?col:"#fff"; h+=`<circle cx="${x}" cy="${y}" r="6" fill="#0d0f14" stroke="${c}" stroke-width="2"/><circle cx="${x}" cy="${y}" r="2" fill="${c}"/>`}   // natural: string color · pinch: white
     if(m==="ho"||m==="po"){h+=m==="ho"?`<path d="M${x-4} ${y-15}h8l-4 8z" fill="#fff" stroke="#0d0f14" stroke-width=".6"/>`:`<path d="M${x-4} ${y-7}h8l-4 -8z" fill="#fff" stroke="#0d0f14" stroke-width=".6"/>`;   // ▼ hammer-on, ▲ pull-off
       const px=cx(T.n[ni-1][0]); h+=`<path d="M${px+11} ${y+8}Q${(px+x)/2} ${y+15} ${x-11} ${y+8}" fill="none" stroke="#fff" stroke-width="1" opacity=".7"/>`}
     if(m==="bend")for(let c=0;c<k;c++){const yy=y+up*(10+c*5); h+=`<path d="M${x-5} ${yy-up*2.5}L${x} ${yy+up*2.5}L${x+5} ${yy-up*2.5}" fill="none" stroke="#fff" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>`}   // one chevron per half step
@@ -8711,7 +8710,7 @@ const TECH_TAB={
   "Slide down":{n:[[46,3,"9"],[100,3,"5"]],d:[["slide",46,100,3,0]]},
   "Palm mute":{n:[[38,0,"0"],[66,0,"0"],[94,0,"0"],[122,0,"0"]],d:[["line",34,128,"P.M."]]},
   "Frethand mute":{n:[[52,5,"x"],[52,4,"3"],[52,3,"4"],[52,2,"4"],[52,1,"2"],[52,0,"x"],[96,4,"x"],[96,3,"x"],[96,2,"x"],[96,1,"x"]]},
-  "Harmonic":{n:[[60,3,"<12>"]]},
+  "Natural harmonic":{n:[[60,3,"<12>"]]},
   "Pinch harmonic":{n:[[60,3,"5"]],d:[["above",60,"P.H."]]},
   "Tremolo":{n:[[60,3,"5"]],d:[["trem",60,3]]},
   "Vibrato":{n:[[44,3,"5"]],d:[["vib",44,128]]},
@@ -8788,7 +8787,7 @@ function learnLoad(){if(ACCT.learn&&ACCT.user&&ACCT.learn.uid!==ACCT.user.id)ACC
   ACCT.sb.from("learn_goals").select("item").then(({data,error})=>{ACCT.learnBusy=0; ACCT.learn=error?{uid,err:1,s:new Set()}:{uid,s:new Set((data||[]).map(r=>r.item))};
     // F and B moved from the major chords to barre chords, Bm and Cm to the minor barre chords, pinch harmonic to Techniques, and barre chords and pinch harmonic were single checkboxes: carry old ticks over
     try{const S=ACCT.learn.s;
-      [[["cowboy/maj/F","cowboy/barre"],"cowboy/barre/F"],[["cowboy/maj/B"],"cowboy/barre/B"],[["cowboy/min/Bm"],"cowboy/minb/Bm"],[["cowboy/min/Cm"],"cowboy/minb/Cm"],[["cowboy/pinch","cowboy/pinch/Pinch harmonic"],"tech/harm/Pinch harmonic"]].forEach(([from,to])=>{const old=from.filter(k=>S.has(k)); if(!old.length)return; S.add(to); old.forEach(k=>S.delete(k));
+      [[["cowboy/maj/F","cowboy/barre"],"cowboy/barre/F"],[["cowboy/maj/B"],"cowboy/barre/B"],[["cowboy/min/Bm"],"cowboy/minb/Bm"],[["cowboy/min/Cm"],"cowboy/minb/Cm"],[["cowboy/pinch","cowboy/pinch/Pinch harmonic"],"tech/harm/Pinch harmonic"],[["tech/harm/Harmonic"],"tech/harm/Natural harmonic"]].forEach(([from,to])=>{const old=from.filter(k=>S.has(k)); if(!old.length)return; S.add(to); old.forEach(k=>S.delete(k));
         ACCT.sb.from("learn_goals").upsert({item:to},{onConflict:"user_id,item",ignoreDuplicates:true}).then(()=>ACCT.sb.from("learn_goals").delete().eq("user_id",uid).in("item",old)).then(()=>{},()=>{})})}catch(e){}
     if(ACCT.tab==="learn")acctDraw()})}
 function learnSection(){if(!ACCT.claim||ACCT.claim.status!=="approved")return ""; learnLoad(); chordFixLoad(); const L=ACCT.learn&&ACCT.user&&ACCT.learn.uid===ACCT.user.id?ACCT.learn:null;
