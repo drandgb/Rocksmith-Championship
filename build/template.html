@@ -972,6 +972,7 @@ html.acctwait body{visibility:hidden}html.acctwait{background:var(--bg)}html.acc
 .twgoals li .fwt{flex:0 1 auto;min-width:0}
 .twgoalh{margin:12px 0 4px;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}.twgoalh:first-of-type{margin-top:4px}
 .twgoals .fwt{font-weight:700}.twgoals .nwr{color:var(--muted);font-size:13px}
+.twgoals li.gdone{border-color:color-mix(in srgb,var(--s-green) 45%,var(--line))}.twgoals .gck{display:inline-grid;place-items:center;width:16px;height:16px;margin-right:7px;border-radius:4px;background:var(--s-green);color:#10131a;font:900 11px/1 var(--f-display);vertical-align:1px}.twgoals .gnext{color:var(--s-green);font-size:13px}
 /* Admin: engagement before and since the stats sheet and the website */
 .engt{width:100%;border-collapse:collapse;font-size:13px;margin:8px 0 4px}.engt th,.engt td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
 .engt thead th{font-size:12px;color:var(--muted);font-weight:600}.engt thead th small{display:block;font-weight:400;font-size:11px;opacity:.8}
@@ -3150,15 +3151,16 @@ function goalsPlay(n,G,wk,pl){const p=byName[n]; if(!p)return; const tw=TW_MAX, 
   const thisWk=now?"":" (this week counts)";
   const k=STREAK_STEPS.filter(x=>x<52).find(x=>x>s)||52*(Math.floor(s/52)+1);   // then the year streaks: 52, 104, 156 ...
   // (each goal starts with an emoji; a streak that would be a new medal for them says "medal")
-  if(k)G.push([`⏳ ${k%52?`${k}-week play streak`:`${k/52}-year play streak`}${longest<k?" medal":""}`,`${wk(k-s)} in a row${thisWk}`]);
-  if(longest>s&&longest>=5&&longest+1-s<=12&&(!k||longest+1!==k))G.push([`📈 Beat your longest play streak (${longest} wks)`,`${wk(longest+1-s)} in a row`]);
-  const played=(p[3]||0)+(now?1:0), m=GOAL_PLAYED.find(x=>x>played); if(m&&m-played<=10)G.push([`🗓️ ${m} weeks played`,`${wk(m-played)}${thisWk}`]);
+  if(k)G.push([`⏳ ${k%52?`${k}-week play streak`:`${k/52}-year play streak`}${longest<k?" medal":""}`,`${wk(k-s)} in a row${thisWk}`,now]);
+  if(longest>s&&longest>=5&&longest+1-s<=12&&(!k||longest+1!==k))G.push([`📈 Beat your longest play streak (${longest} wks)`,`${wk(longest+1-s)} in a row`,now]);
+  const played=(p[3]||0)+(now?1:0), m=GOAL_PLAYED.find(x=>x>played); if(m&&m-played<=10)G.push([`🗓️ ${m} weeks played`,`${wk(m-played)}${thisWk}`,now]);
   // the season place above them on each path (Lead, Rhythm, Bass): in the class where they're closest to the player ahead
   try{eloBuild(); const id=seasonOf(ELO_DONE), [a,b]=seasonRange(id), left=b-Math.min(b,ELO_DONE), kk=String(n).toLowerCase();
     if(left>0)[0,1,2].forEach(pi=>{let best=null;
       Object.entries(seasonF1(pi,id)).forEach(([c,L])=>{const i=L.findIndex(x=>x.n.toLowerCase()===kk); if(i<1)return; const gap=L[i-1].p-L[i].p;
         if(!best||gap<best.gap)best={gap,c,i,above:L[i-1].n}});
-      if(best)G.push([`🏁 Season ${seasonNum(id)}: ${pl(best.i)} in ${PATHS[pi]} ${TIER_NAME[best.c]}`,`${best.gap===0?"level on points with":`${best.gap} point${best.gap===1?"":"s"} behind`} ${best.above} · you're ${pl(best.i+1)} · ${left} week${left===1?"":"s"} left`])})}catch(e){}}
+      if(best)G.push([`🏁 Season ${seasonNum(id)}: ${pl(best.i)} in ${PATHS[pi]} ${TIER_NAME[best.c]}`,`${best.gap===0?"level on points with":`${best.gap} point${best.gap===1?"":"s"} behind`} ${best.above} · you're ${pl(best.i+1)} · ${left} week${left===1?"":"s"} left`,
+        (SB.weeks[tw]||[]).some(cd=>cd[0]===pi&&cd[6].some(e=>e[1]!=null&&pvName(e).toLowerCase()===kk))])})}catch(e){}}   // (done this week: a score on that path)
 // winning: on a win streak (won a challenge last week or more weeks in a row), the next win streak medal
 function goalsWin(n,G){const done=SB_W.filter(w=>w<cur[0]).sort((a,b)=>a-b), per=playerWeekWins(n,-1); let s=0, best=0, run=0;
   done.forEach(w=>{run=per[w]&&per[w][1]>0?run+1:0; if(run>best)best=run}); s=run; if(!s)return;
@@ -3166,7 +3168,8 @@ function goalsWin(n,G){const done=SB_W.filter(w=>w<cur[0]).sort((a,b)=>a-b), per
   const lead=(SB.weeks[TW_LIVE]||[]).some(c=>{const e=c[6].find(x=>canWin(x)); return e&&SB.names[e[0]].replace(/[*~]+$/,"")===n});
   G.push([`🔥 ${k}-week win streak${best<k?" medal":""}`,`win a challenge ${d===1?"this week":`${d} more weeks in a row`}${lead?" · you're leading one now":""}`])}
 // hosting: the next hosting medal (total and in a row), and the race for this year's Host of the year
-function goalsHost(n,G,wk,pl){const hw=WEEKS.filter((x,i)=>i<=curIdx&&x[2]===n).map(x=>x[0]); if(!hw.length)return;
+function goalsHost(n,G0,wk,pl){const hw=WEEKS.filter((x,i)=>i<=curIdx&&x[2]===n).map(x=>x[0]); if(!hw.length)return;
+  const G={push:g=>G0.push([...g,WEEKS[curIdx][2]===n])};   // (done this week: hosting it)
   const tot=hw.length, k=HOST_TOTAL_STEPS.find(x=>x>tot); if(k&&k-tot<=10)G.push([`🎙️ ${k}-week host medal`,`host ${wk(k-tot)}`]);
   let run=0, best=0, prev=null; hw.forEach(w=>{run=prev===w-1?run+1:1; prev=w; if(run>best)best=run});
   if(prev===cur[0]){const ks=HOST_STREAK_STEPS.find(x=>x>run); if(ks)G.push([`🎤 ${ks}-week hosting streak${best<ks?" medal":""}`,`host ${wk(ks-run)} in a row`])}
@@ -3184,7 +3187,7 @@ function twGoals(){const el=$("tw-goals"); if(!el)return; let G=[], n="";
   try{if(typeof ACCT!=="undefined"&&ACCT.claim&&ACCT.claim.status==="approved"&&twWeek===TW_LIVE){n=ACCT.claim.player; G=goalsPanel(n)||[]}}catch(e){console.error(e)}
   el.hidden=!G.length; if(!G.length){el.innerHTML=""; return}
   const fold=lsGet(GOALS_FOLD)===String(TW_MAX);
-  el.innerHTML=`<div class="panel-head dlhead" data-goals="fold" title="${fold?"Show":"Hide"} the list"><h2>🎯 Within reach - Keep going!<span class="dlarw">${fold?"▸":"▾"}</span></h2></div>${fold?"":G.map(([sec,gs])=>`<h4 class="twgoalh">${sec}</h4><ul class="twgoals">${gs.map(([t,r])=>`<li><span class="fwt">${esc(t)}</span><span class="nwr">${esc(r)}</span></li>`).join("")}</ul>`).join("")}`}
+  el.innerHTML=`<div class="panel-head dlhead" data-goals="fold" title="${fold?"Show":"Hide"} the list"><h2>🎯 Within reach - Keep going!<span class="dlarw">${fold?"▸":"▾"}</span></h2></div>${fold?"":G.map(([sec,gs])=>`<h4 class="twgoalh">${sec}</h4><ul class="twgoals">${gs.map(([t,r,d])=>`<li${d?` class="gdone"`:""}><span class="fwt">${d?`<span class="gck" title="Done this week">✓</span>`:""}${esc(t)}</span><span class="nwr">${esc(r)}</span>${d?`<span class="gnext">Come back next week to keep working on this goal</span>`:""}</li>`).join("")}</ul>`).join("")}`}
 // clicking the Within reach heading hides or shows its list (remembered for the current week, like the download list)
 const GOALS_FOLD="rsc-goals-fold";
 document.addEventListener("click",e=>{if(e.target.closest("#tw-goals [data-goals=fold]")){lsSet(GOALS_FOLD,lsGet(GOALS_FOLD)===String(TW_MAX)?null:String(TW_MAX)); twGoals()}});
