@@ -8595,15 +8595,16 @@ function rankupSection(n){
 }
 // Learning goals (its own tab in your profile): things to check off as you learn them, saved to your login (learn_goals.sql); only you see them
 const LEARN=[{id:"cowboy",t:"Cowboy guitarist",g:[
-  {id:"maj",t:"I can play all major chords from memory",i:["A","C","D","E","G"]},
-  {id:"min",t:"I can play all minor chords from memory",i:["Am","Bm","Cm","Dm","Em"]},
+  {id:"maj",t:"I can play all open major chords from memory",i:["A","C","D","E","G"]},
+  {id:"barre",t:"I can play barre chords",i:["F","B"]},
+  {id:"min",t:"I can play all open minor chords from memory",i:["Am","Dm","Em"]},
+  {id:"minb",t:"I can play all minor barre chords from memory",i:["Bm","Cm"]},
   {id:"dom7",t:"I can play all dominant 7th open chords",i:["A7","B7","C7","D7","E7","G7"]},
   {id:"min7",t:"I can play all minor 7th open chords from memory",i:["Am7","Bm7","Dm7","Em7"]},
   {id:"maj7",t:"I can play all major 7th open chords",i:["Amaj7","Cmaj7","Dmaj7","Fmaj7","Gmaj7"]},
   {id:"six",t:"I can play all 6th open chords",i:["A6","D6","E6","G6"]},
   {id:"add9",t:"I can play all add9 open chords",i:["Aadd9","Cadd9","Eadd9","Gadd9"]},
   {id:"sus4",t:"I can play all sus4 open chords",i:["Asus4","Dsus4","Esus4"]},
-  {id:"barre",t:"I can play barre chords",i:["F","B"]},
   {id:"pinch",t:"I can do a pinch harmonic",i:["Pinch harmonic"]}]},
   {id:"tech",t:"Techniques",g:[
   {id:"bend",t:"I can bend strings",i:["Half step bend","Full step bend","1½ step bend","Pre-bend"]},
@@ -8784,9 +8785,9 @@ document.addEventListener("keydown",e=>{const x=e.target.closest("#chdlg .chdot 
   if((e.key==="Backspace"||e.key==="Delete")&&!x.value){e.preventDefault(); CHED.f[i]=-1; CHED.n[i]="-"; chEdDraw()} else if(e.key==="Enter"){e.preventDefault(); x.blur()}});
 function learnLoad(){if(ACCT.learn&&ACCT.user&&ACCT.learn.uid!==ACCT.user.id)ACCT.learn=null; if(ACCT.learn||ACCT.learnBusy||!ACCT.user)return; const uid=ACCT.user.id; ACCT.learnBusy=1;
   ACCT.sb.from("learn_goals").select("item").then(({data,error})=>{ACCT.learnBusy=0; ACCT.learn=error?{uid,err:1,s:new Set()}:{uid,s:new Set((data||[]).map(r=>r.item))};
-    // F and B moved from the major chords to barre chords, and barre chords and pinch harmonic were single checkboxes: carry old ticks over
+    // F and B moved from the major chords to barre chords, Bm and Cm to the minor barre chords, and barre chords and pinch harmonic were single checkboxes: carry old ticks over
     try{const S=ACCT.learn.s;
-      [[["cowboy/maj/F","cowboy/barre"],"cowboy/barre/F"],[["cowboy/maj/B"],"cowboy/barre/B"],[["cowboy/pinch"],"cowboy/pinch/Pinch harmonic"]].forEach(([from,to])=>{const old=from.filter(k=>S.has(k)); if(!old.length)return; S.add(to); old.forEach(k=>S.delete(k));
+      [[["cowboy/maj/F","cowboy/barre"],"cowboy/barre/F"],[["cowboy/maj/B"],"cowboy/barre/B"],[["cowboy/min/Bm"],"cowboy/minb/Bm"],[["cowboy/min/Cm"],"cowboy/minb/Cm"],[["cowboy/pinch"],"cowboy/pinch/Pinch harmonic"]].forEach(([from,to])=>{const old=from.filter(k=>S.has(k)); if(!old.length)return; S.add(to); old.forEach(k=>S.delete(k));
         ACCT.sb.from("learn_goals").upsert({item:to},{onConflict:"user_id,item",ignoreDuplicates:true}).then(()=>ACCT.sb.from("learn_goals").delete().eq("user_id",uid).in("item",old)).then(()=>{},()=>{})})}catch(e){}
     if(ACCT.tab==="learn")acctDraw()})}
 function learnSection(){if(!ACCT.claim||ACCT.claim.status!=="approved")return ""; learnLoad(); chordFixLoad(); const L=ACCT.learn&&ACCT.user&&ACCT.learn.uid===ACCT.user.id?ACCT.learn:null;
