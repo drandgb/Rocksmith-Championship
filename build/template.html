@@ -3462,16 +3462,19 @@ function hlParts0(w){eloBuild(); const I=sbIx(), L=[], G1=[], G2=[], G2b=[], G3=
      const got=[]; ms.forEach(h=>{const tip=((/data-tip="([^"]*)"/.exec(h)||[])[1]||"").replace(/&#39;/g,"'").replace(/&quot;/g,'"').replace(/&amp;/g,"&");
        const all=+((/\((\d+) all time\)/.exec(tip)||[])[1]||0), plus=+((/\+(\d+) this week/.exec(tip)||[])[1]||0), name=tip.split(" · ")[0];
        if(all>0&&plus>0&&name)gains.push({n,key:hlMlKey(tip),name,all,plus});
-       if(!(all>0&&all===plus)||!name||/^(Joined|Played guitar|Played bass|Rivalry win)/.test(name))return; if(/play streak medal|host medal/i.test(name)||got.some(g=>g.name===name))return;   // (first play streaks have their own line below; host medals go to Host milestones in the Admin tab)
+       if(!(all>0&&all===plus)||!name||/^(Joined|Played guitar|Played bass|Rivalry win|1-win week trophy$)/.test(name))return;   // (a first 1-win week comes with a first gold medal, so it isn't listed) if(/play streak medal|host medal/i.test(name)||got.some(g=>g.name===name))return;   // (first play streaks have their own line below; host medals go to Host milestones in the Admin tab)
        // what the medal is for: the hover text's first line without the name and the counts
        const what=tip.split("\n")[0].split(" · ").slice(1).filter(x=>!/this week|all time|^\d+ (weeks?|times?)\b|click to|scoreboards since/.test(x)).join(" · ");
        got.push({name,what})});
      got.forEach(g=>{const what=g.what.replace(/, counting everyone not playing down, while/," while").replace(/ \(only players in that class can claim the place\)/,"");   // Uncrowned: short, without the explanation
        fm.push({n,name:g.name,what})})});
    // the same medal for several players: together, and only the first one says what it's for
-   const ord=[...new Set(fm.map(x=>x.name))], seen=new Set();
-   const fl=fm.slice().sort((a,b)=>ord.indexOf(a.name)-ord.indexOf(b.name)).map(x=>{const first=!seen.has(x.name); seen.add(x.name);
-     return `@${x.n} · ${hlEmo(x.name)} **${x.name}**${first&&x.what?`: ${x.what}`:""}`});
+   // (gold, then silver, then bronze, together where the first of them would have been)
+   let ord=[...new Set(fm.map(x=>x.name))]; {const MED=["Gold medal","Silver medal","Bronze medal"], i=ord.findIndex(x=>MED.includes(x)); if(i>=0){const rest=ord.filter(x=>!MED.includes(x)), at=ord.slice(0,i).filter(x=>!MED.includes(x)).length; ord=[...rest.slice(0,at),...MED.filter(x=>ord.includes(x)),...rest.slice(at)]}}
+   // one line per medal: everyone who got it for the first time, then what it's for
+   const andL=L=>L.length<2?L.join(""):L.slice(0,-1).join(", ")+" and "+L[L.length-1];
+   const fl=ord.map(name=>{const who=[...new Set(fm.filter(x=>x.name===name).map(x=>x.n))], what0=(fm.find(x=>x.name===name&&x.what)||{}).what, what=who.length>1&&what0?what0.replace(/^(Lead|Rhythm|Bass) · /,"").replace(/ on an? (Lead|Rhythm|Bass) challenge/," on a challenge"):what0;   // (several players: the path was only the first one's)
+     return `${andL(who.map(n=>"@"+n))} · ${hlEmo(name)} **${name}**${what?`: ${what}`:""}`});
    if(fl.length)G2.push(`🎉 **Congratulations** on your first of these medals:`,...fl)}
   // new medal leaders: a player whose count this week took them to the top of a kind of medal, alone or tied
   try{const nl=hlLeaders(w,gains).concat(hlHostLeaders(w)); if(nl.length)G2b.push(`👑 **New medal leaders**:`,...nl)}catch(e){}   // each line starts with the @name, not indented: the forum doesn't tag a name right after the indent
