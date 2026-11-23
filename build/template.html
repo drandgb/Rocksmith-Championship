@@ -7086,7 +7086,9 @@ function nwSeason(n,w){eloBuild(); const id=seasonOf(w); if(!id)return ""; const
 // ...and in Rodman's Rankings (the 10 weeks up to that week, worked out like the Rankings tab's latest weeks)
 function nwRodman(n,w){const now=rkCompute(w), prev=rkCompute(w-1), key=n.toLowerCase();
   const rank=(o,k)=>{const r=Object.entries(o||{}).sort((x,y)=>y[1]-x[1]); const i=r.findIndex(([m])=>m.toLowerCase()===k); if(i<0)return null; return {r:1+r.filter(x=>x[1]>r[i][1]).length,p:r[i][1]}};
-  const rows=[0,1,2].map(pi=>{let best=null; ["M","A","I","B"].forEach(c=>{const x=rank(now[pi+"|"+c],key); if(x&&(!best||x.r<best.r))best={...x,c}}); if(!best)return "";
+  const P=byName[twCanon(lvKey(n))]||byName[n], own=P?String(P[8]||"").toUpperCase():"";
+  const rows=[0,1,2].map(pi=>{let best=null; const oc=own.charAt(pi), ox=TIER_NAME[oc]?rank(now[pi+"|"+oc],key):null; if(ox)best={...ox,c:oc};   // your own class first
+    else ["M","A","I","B"].forEach(c=>{const x=rank(now[pi+"|"+c],key); if(x&&(!best||x.r<best.r))best={...x,c}}); if(!best)return "";
     const o=rank(prev[pi+"|"+best.c],key), d=best.p-(o?o.p:0);
     return `<li class="${best.r<=3?"elo-t"+best.r:""}" style="--pc:${PATH_C[pi]}"><span class="nwp">${PATHS[pi]}</span><b class="nwv">${best.p}<small> pts</small></b><span class="nwd" data-tip="How your points changed with Week ${w} (the 10-week window moved on a week)">${d>0?`<span class="up">▲${d}</span>`:d<0?`<span class="dn">▼${-d}</span>`:"–"}</span><span class="nwr">${nwTag(best.c)}${nwMv(o?o.r:null,best.r)}</span></li>`}).join("");
   return rows?`<div class="nwelo"><div class="nwelo-h">Rodman’s Rankings after Week ${w}</div><div class="nwelo-s">Points over Weeks ${w-9}–${w} in your class · ▲▼ change with Week ${w} · your place</div><ul>${rows}</ul></div>`:""}
