@@ -3174,6 +3174,10 @@ function goalsWin(n,G){const done=SB_W.filter(w=>w<cur[0]).sort((a,b)=>a-b), per
 // hosting: the next hosting medal (total and in a row), and the race for this year's Host of the year
 function goalsHost(n,G0,wk,pl){const hw=WEEKS.filter((x,i)=>i<=curIdx&&x[2]===n).map(x=>x[0]); if(!hw.length)return;
   const G={push:g=>G0.push([...g,WEEKS[curIdx][2]===n])};   // (done this week: hosting it)
+  // signed up to host an upcoming week (the schedule sheet or a sign-up on the site), with when they last hosted
+  {const now=WEEKS[curIdx][0], last=hw[hw.length-1], ago=now-last;
+    const up=WEEKS.some((x,i)=>i>curIdx&&x[2]===n)||(()=>{try{return acctOn()&&Object.values(ACCT.hostSign||{}).some(r=>r&&r.player===n&&r.week>now)}catch(e){return false}})();
+    G0.push([`📅 Signed up to host at least 1 upcoming week`,`last hosted Week ${last}${ago>0?` · ${ago} week${ago===1?"":"s"} ago`:" · this week"}`,up])}
   const tot=hw.length, k=HOST_TOTAL_STEPS.find(x=>x>tot); if(k&&k-tot<=10)G.push([`🎙️ ${k}-week host medal`,`host ${wk(k-tot)}`]);
   let run=0, best=0, prev=null; hw.forEach(w=>{run=prev===w-1?run+1:1; prev=w; if(run>best)best=run});
   if(prev===cur[0]){const ks=HOST_STREAK_STEPS.find(x=>x>run); if(ks)G.push([`🎤 ${ks}-week hosting streak${best<ks?" medal":""}`,`host ${wk(ks-run)} in a row`])}
