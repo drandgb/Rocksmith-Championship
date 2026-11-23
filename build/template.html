@@ -1706,6 +1706,7 @@ footer{color:var(--dim);font-size:.78rem;border-top:1px solid var(--line);paddin
 .lgsec .lgfig{flex:none;margin:0;background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:6px 8px 8px;scroll-snap-align:start;font-family:var(--f-display)}
 .lgsec .lgfig .lgtab{width:190px;height:auto;display:block;background:linear-gradient(180deg,#141a26,#0b0f16);border-radius:6px}
 .lgsec .lgtip{margin:6px 0 4px;padding:7px 10px;border-left:3px solid var(--accent);background:color-mix(in srgb,var(--accent) 10%,transparent);border-radius:4px;font-weight:600;font-size:.9rem;color:var(--fg)}
+.lgsec .lgdesc{margin:-2px 0 4px;font-size:.84rem;color:var(--muted)}
 .lgsec .lgjump{display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin:8px 0 2px;font-size:.82rem;color:var(--muted)}.lgsec .lgset{scroll-margin-top:10px}
 .lgsec .lgview{margin:8px 0 4px;width:max-content;max-width:100%}.lgsec .lgview .s-all[aria-pressed="true"]{background:var(--accent)}@media (max-width:620px){.lgsec .lgview{width:100%}.lgsec .lgview button{flex:1 1 auto;padding:7px 4px;font-size:.62rem;letter-spacing:.04em;line-height:1.2;white-space:nowrap}}.lgsec .lgfig .lgbox{width:104px}.lgsec .lgfig .lgrs{width:190px}
 .lgsec .lgpics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));overflow:visible}.lgsec .lgpair{min-width:0}.lgsec .lgfig .lgrs,.lgsec .lgfig .lgtab{width:100%;max-width:190px}.lgsec .lgfig{min-width:0}.lgsec .lgfig .lgbox{max-width:104px;width:70%}.lgsec .lgexp{margin:6px 2px 0;font:400 .78rem/1.35 var(--f-body);color:var(--muted);text-align:center}.lgsec .lgpair.lgstack{flex-direction:column;gap:8px}.lgsec .lgfig .lgfret{width:100%;max-width:280px;height:auto;display:block;background:linear-gradient(180deg,#0f3346,#070f16);border-radius:6px;padding:4px 0}.lgsec .lgpair>svg{flex:0 1 auto;min-width:0}   /* up to 4 cards a row, then wrap */
@@ -8598,7 +8599,7 @@ function rankupSection(n){
 // Learning goals (its own tab in your profile): things to check off as you learn them, saved to your login (learn_goals.sql); only you see them
 const LEARN=[{id:"cowboy",t:"Cowboy guitarist",g:[
   {id:"maj",t:"I can play open major chords from memory",i:["C","A","G","E","D"]},
-  {id:"barre",t:"I can play major barre chords from memory",i:["F","B"]},
+  {id:"barre",t:"I can play major barre chords from memory",i:["F","B"],d:"Barre chords can be difficult to get right, but they are worth it because (unlike open chords) you can move them up and down the fretboard to get the same chord for a different root note!"},
   {id:"min",t:"I can play open minor chords from memory",i:["Am","Dm","Em"]},
   {id:"minb",t:"I can play minor barre chords from memory",i:["Bm","Cm","Fm","Gm"]},
   {id:"dom7",t:"I can play open dominant 7th chords from memory",i:["A7","B7","C7","D7","E7","G7"]},
@@ -8815,7 +8816,7 @@ function learnSection(){if(!ACCT.claim||ACCT.claim.status!=="approved")return ""
     return `<div class="lgset" id="lgset-${S.id}"><h4>${esc(S.t)}<small>${n} of ${keys.length}${n===keys.length?" · done 🤘":""}</small></h4>${S.id==="cowboy"?`<p class="lgtip">Remember to mute the strings that you're not playing! There are many different ways to play the same chords, these are just one.</p>`:""}<ul>${S.g.map(g=>{
       if(!g.i)return `<li>${box(`${S.id}/${g.id}`,g.t)}</li>`;
       const all=L&&g.i.every(c=>L.s.has(`${S.id}/${g.id}/${c}`));
-      return `<li><div class="lgg${all?" done":""}">${all?"✓ ":""}${esc(g.t)}:</div>${(()=>{const np=g.i.filter(c=>!CHORD_SHAPES[c]&&!TECH[c]&&!FRET_STR[c]); return np.length?`<div class="lgchips">${np.map(c=>box(`${S.id}/${g.id}/${c}`,c," chip")).join("")}</div>`:""})()}${chordPics(g.i,c=>!!(L&&L.s.has(`${S.id}/${g.id}/${c}`)),c=>L&&!L.err?`${S.id}/${g.id}/${c}`:null)}</li>`}).join("")}</ul></div>`}).join("");
+      return `<li><div class="lgg${all?" done":""}">${all?"✓ ":""}${esc(g.t)}:</div>${g.d?`<p class="lgdesc">${esc(g.d)}</p>`:""}${(()=>{const np=g.i.filter(c=>!CHORD_SHAPES[c]&&!TECH[c]&&!FRET_STR[c]); return np.length?`<div class="lgchips">${np.map(c=>box(`${S.id}/${g.id}/${c}`,c," chip")).join("")}</div>`:""})()}${chordPics(g.i,c=>!!(L&&L.s.has(`${S.id}/${g.id}/${c}`)),c=>L&&!L.err?`${S.id}/${g.id}/${c}`:null)}</li>`}).join("")}</ul></div>`}).join("");
   return `<div class="acctsec lgsec"><p class="dim">Only you can see this. Check things off as you learn them.${L?(L.err?" Couldn't load your targets right now.":""):" Loading…"}</p><div class="lgjump">Jump to: ${[["cowboy","Chords"],["fret","Strings"],["tech","Techniques"]].map(([k,t])=>`<button type="button" class="clear" data-lgjump="${k}">${t}</button>`).join("")}</div><div class="seg lgview" role="radiogroup" aria-label="Chord pictures">${[["chart","Chord diagram"],["rs","RS2014"],["rsinv","RS2014 inverted"]].map(([k,t])=>`<button type="button" class="s-all" data-lgview="${k}" aria-pressed="${LG_VIEW===k}">${t}</button>`).join("")}</div>${body}</div>`}
 async function learnSet(k,on){if(!ACCT.learn||!ACCT.user)return false;
   const {error}=on?await ACCT.sb.from("learn_goals").insert({item:k}):await ACCT.sb.from("learn_goals").delete().match({user_id:ACCT.user.id,item:k});
