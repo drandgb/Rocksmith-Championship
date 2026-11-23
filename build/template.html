@@ -1707,7 +1707,7 @@ footer{color:var(--dim);font-size:.78rem;border-top:1px solid var(--line);paddin
 .lgsec .lgfig .lgtab{width:190px;height:auto;display:block;background:linear-gradient(180deg,#141a26,#0b0f16);border-radius:6px}
 .lgsec .lgtip{margin:6px 0 4px;padding:7px 10px;border-left:3px solid var(--accent);background:color-mix(in srgb,var(--accent) 10%,transparent);border-radius:4px;font-weight:600;font-size:.9rem;color:var(--fg)}
 .lgsec .lgview{margin:8px 0 4px;width:max-content;max-width:100%}.lgsec .lgview .s-all[aria-pressed="true"]{background:var(--accent)}@media (max-width:620px){.lgsec .lgview{width:100%}.lgsec .lgview button{flex:1 1 auto;padding:7px 4px;font-size:.62rem;letter-spacing:.04em;line-height:1.2;white-space:nowrap}}.lgsec .lgfig .lgbox{width:104px}.lgsec .lgfig .lgrs{width:190px}
-.lgsec .lgpics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));overflow:visible}.lgsec .lgpair{min-width:0}.lgsec .lgfig .lgrs,.lgsec .lgfig .lgtab{width:100%;max-width:190px}.lgsec .lgfig{min-width:0}.lgsec .lgfig .lgbox{max-width:104px;width:70%}.lgsec .lgpair>svg{flex:0 1 auto;min-width:0}   /* up to 4 cards a row, then wrap */
+.lgsec .lgpics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));overflow:visible}.lgsec .lgpair{min-width:0}.lgsec .lgfig .lgrs,.lgsec .lgfig .lgtab{width:100%;max-width:190px}.lgsec .lgfig{min-width:0}.lgsec .lgfig .lgbox{max-width:104px;width:70%}.lgsec .lgfig .lgfret{width:100%;max-width:280px;height:auto;display:block;background:linear-gradient(180deg,#0f3346,#070f16);border-radius:6px;padding:4px 0}.lgsec .lgpair>svg{flex:0 1 auto;min-width:0}   /* up to 4 cards a row, then wrap */
 @media (max-width:900px){.lgsec .lgpics{grid-template-columns:repeat(2,minmax(0,1fr))}}@media (max-width:600px){.lgsec .lgpics{grid-template-columns:minmax(0,1fr)}}   /* phones: one card a row */.lgsec .lgpair{justify-content:center;min-width:190px}
 .lgsec .lgfig.on{border-color:color-mix(in srgb,var(--s-green) 55%,var(--line))}
 .lgsec .lgfig figcaption{font:700 .9rem var(--f-display);margin-bottom:2px}.lgsec .lgfig.on figcaption{color:var(--s-green)}
@@ -8607,6 +8607,8 @@ const LEARN=[{id:"cowboy",t:"Cowboy guitarist",g:[
   {id:"six",t:"I can play open 6th chords from memory",i:["A6","D6","E6","G6"]},
   {id:"add9",t:"I can play open add9 chords from memory",i:["Aadd9","Cadd9","Eadd9","Gadd9"]},
   {id:"sus4",t:"I can play open sus4 chords from memory",i:["Asus4","Dsus4","Esus4"]}]},
+  {id:"fret",t:"Learning the fretboard",g:[
+  {id:"notes",t:"I know the notes on each string from memory",i:["E strings","A string","D string","G string","B string"]}]},
   {id:"tech",t:"Techniques",g:[
   {id:"bend",t:"I can bend strings",i:["Half step bend","Full step bend","1½ step bend","Pre-bend"]},
   {id:"legato",t:"I can play hammer-ons and pull-offs",i:["Hammer-on","Pull-off"]},
@@ -8738,10 +8740,22 @@ function techTabSvg(t){const T=TECH_TAB[t]; if(!T)return ""; const W=148,x0=18,x
     if(k==="up")h+=`<path d="M${m[1]-3.5} ${top-7}L${m[1]} ${top}L${m[1]+3.5} ${top-7}" fill="none" stroke="${RED}" stroke-width="1.4"/>`});
   T.n.forEach(([x,s,t])=>{const y=ys(s), w=t.length*5.4+3; h+=`<rect x="${x-w/2}" y="${y-5}" width="${w}" height="10" fill="#10141c"/><text x="${x}" y="${y+3.3}" text-anchor="middle" font-size="9.5" font-weight="800" fill="${FG}">${esc(t)}</text>`});
   return `<svg class="lgtab" viewBox="0 0 ${W} 88" role="img" aria-label="${esc(t)}, tab">${h}</svg>`}
+// Learning the fretboard: the natural notes (no sharps or flats) on each string from the open string to fret 11,
+// drawn on a lane in the string's color (the two E strings share a card: red low E and purple high e)
+const FRET_STR={"E strings":[0,5],"A string":[1],"D string":[2],"G string":[3],"B string":[4]};
+function fretSvg(t){const S=FRET_STR[t]; if(!S)return ""; const NN=["C","C♯","D","D♯","E","F","F♯","G","G♯","A","A♯","B"], OPEN=[4,9,2,7,11,4], fw=21, pl=22, rh=26, y0=8, W=pl+11*fw+6, H=y0+rh*S.length+14;
+  let h=`<rect x="${pl}" y="${y0-4}" width="${11*fw}" height="${rh*S.length}" rx="3" fill="rgba(0,0,0,.35)"/>`;
+  for(let j=0;j<=11;j++)h+=`<rect x="${pl+j*fw-(j?.6:1.8)}" y="${y0-4}" width="${j?1.2:3.6}" height="${rh*S.length}" fill="${j?"#5c6880":"#e7eaf2"}"/>`;
+  for(let f=1;f<=11;f++)h+=`<text x="${pl+(f-.5)*fw}" y="${H-3}" text-anchor="middle" font-size="7.5" font-weight="700" fill="#f5c84a">${f}</text>`;
+  S.forEach((si,r)=>{const y=y0-4+rh*(r+.5), col=CH_COL[si];
+    h+=`<rect x="${pl}" y="${y-.8}" width="${11*fw}" height="1.6" fill="${col}"/>`;
+    for(let f=0;f<=11;f++){const n=NN[(OPEN[si]+f)%12]; if(n.length>1)continue; const x=f?pl+(f-.5)*fw:pl-11;
+      h+=`<circle cx="${x}" cy="${y}" r="8" fill="${f?col:"#0d0f14"}" stroke="${f?"rgba(255,255,255,.85)":col}" stroke-width="${f?1:1.6}"/><text x="${x}" y="${y+3.4}" text-anchor="middle" font-size="9.5" font-weight="800" fill="${f?"#0d0f14":col}">${si===5&&!f?"e":n}</text>`}});
+  return `<svg class="lgfret" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(t)}: the notes from the open string to fret 11">${h}</svg>`}
 // which picture the chord cards show (remembered on this device): the chord chart, the Rocksmith 2014 view, or it inverted
 var LG_VIEW=(()=>{try{const v=localStorage.getItem("rsc-lgview"); return ["chart","rs","rsinv"].includes(v)?v:"chart"}catch(e){return "chart"}})();
 document.addEventListener("click",e=>{const b=e.target.closest("[data-lgview]"); if(!b)return; LG_VIEW=b.dataset.lgview; try{localStorage.setItem("rsc-lgview",LG_VIEW)}catch(e){} acctDraw()});
-function chordPics(list,isOn,keyOf){const cards=list.filter(c=>CHORD_SHAPES[c]||TECH[c]).map(c=>{const tq=!!TECH[c];const k=keyOf&&keyOf(c); return `<figure class="lgfig${isOn(c)?" on":""}"${k?` data-learnfig="${esc(k)}" role="checkbox" aria-checked="${isOn(c)}" tabindex="0" title="${tq?esc(TECH[c].tip)+"\n\n":""}${isOn(c)?`Click to uncheck ${esc(c)}`:`Click when you can play ${esc(c)}`}"`:""}><figcaption><span class="lgfsp"></span><span class="lgfn">${esc(c)}${isOn(c)?" ✓":""}</span>${ACCT.admin&&!tq?`<button type="button" class="lgedit" data-chedit="${esc(c)}" title="Edit the ${esc(c)} chord (admins)" aria-label="Edit ${esc(c)} chord">✎</button>`:`<span class="lgfsp"></span>`}</figcaption><div class="lgpair">${tq?(LG_VIEW==="chart"?techTabSvg(c):techRsSvg(c,LG_VIEW==="rsinv")):LG_VIEW==="chart"?chordBoxSvg(c):chordRsSvg(c,null,LG_VIEW==="rsinv")}</div></figure>`}).join("");
+function chordPics(list,isOn,keyOf){const cards=list.filter(c=>CHORD_SHAPES[c]||TECH[c]||FRET_STR[c]).map(c=>{const tq=!!TECH[c]||!!FRET_STR[c];const k=keyOf&&keyOf(c); return `<figure class="lgfig${isOn(c)?" on":""}"${k?` data-learnfig="${esc(k)}" role="checkbox" aria-checked="${isOn(c)}" tabindex="0" title="${TECH[c]?esc(TECH[c].tip)+"\n\n":""}${isOn(c)?`Click to uncheck ${esc(c)}`:`Click when you can play ${esc(c)}`}"`:""}><figcaption><span class="lgfsp"></span><span class="lgfn">${esc(c)}${isOn(c)?" ✓":""}</span>${ACCT.admin&&!tq?`<button type="button" class="lgedit" data-chedit="${esc(c)}" title="Edit the ${esc(c)} chord (admins)" aria-label="Edit ${esc(c)} chord">✎</button>`:`<span class="lgfsp"></span>`}</figcaption><div class="lgpair">${FRET_STR[c]?fretSvg(c):tq?(LG_VIEW==="chart"?techTabSvg(c):techRsSvg(c,LG_VIEW==="rsinv")):LG_VIEW==="chart"?chordBoxSvg(c):chordRsSvg(c,null,LG_VIEW==="rsinv")}</div></figure>`}).join("");
   return cards?`<div class="lgpics">${cards}</div>`:""}
 // admins: edit a chord in the chord diagram maker (a dialog over the profile). One fretted note per string; strings with no note are muted (X) or open (O).
 const CHED={};
@@ -8799,7 +8813,7 @@ function learnSection(){if(!ACCT.claim||ACCT.claim.status!=="approved")return ""
     return `<div class="lgset"><h4>${esc(S.t)}<small>${n} of ${keys.length}${n===keys.length?" · done 🤘":""}</small></h4><ul>${S.g.map(g=>{
       if(!g.i)return `<li>${box(`${S.id}/${g.id}`,g.t)}</li>`;
       const all=L&&g.i.every(c=>L.s.has(`${S.id}/${g.id}/${c}`));
-      return `<li><div class="lgg${all?" done":""}">${all?"✓ ":""}${esc(g.t)}:</div>${(()=>{const np=g.i.filter(c=>!CHORD_SHAPES[c]&&!TECH[c]); return np.length?`<div class="lgchips">${np.map(c=>box(`${S.id}/${g.id}/${c}`,c," chip")).join("")}</div>`:""})()}${chordPics(g.i,c=>!!(L&&L.s.has(`${S.id}/${g.id}/${c}`)),c=>L&&!L.err?`${S.id}/${g.id}/${c}`:null)}</li>`}).join("")}</ul></div>`}).join("");
+      return `<li><div class="lgg${all?" done":""}">${all?"✓ ":""}${esc(g.t)}:</div>${(()=>{const np=g.i.filter(c=>!CHORD_SHAPES[c]&&!TECH[c]&&!FRET_STR[c]); return np.length?`<div class="lgchips">${np.map(c=>box(`${S.id}/${g.id}/${c}`,c," chip")).join("")}</div>`:""})()}${chordPics(g.i,c=>!!(L&&L.s.has(`${S.id}/${g.id}/${c}`)),c=>L&&!L.err?`${S.id}/${g.id}/${c}`:null)}</li>`}).join("")}</ul></div>`}).join("");
   return `<div class="acctsec lgsec"><p class="dim">Only you can see this. Check things off as you learn them.${L?(L.err?" Couldn't load your targets right now.":""):" Loading…"}</p><p class="lgtip">Remember to mute the strings that you're not playing!</p><div class="seg lgview" role="radiogroup" aria-label="Chord pictures">${[["chart","Chord diagram"],["rs","RS2014"],["rsinv","RS2014 inverted"]].map(([k,t])=>`<button type="button" class="s-all" data-lgview="${k}" aria-pressed="${LG_VIEW===k}">${t}</button>`).join("")}</div>${body}</div>`}
 async function learnSet(k,on){if(!ACCT.learn||!ACCT.user)return false;
   const {error}=on?await ACCT.sb.from("learn_goals").insert({item:k}):await ACCT.sb.from("learn_goals").delete().match({user_id:ACCT.user.id,item:k});
