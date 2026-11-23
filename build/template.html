@@ -8822,7 +8822,7 @@ function learnLoad(){if(ACCT.learn&&ACCT.user&&ACCT.learn.uid!==ACCT.user.id)ACC
     if(ACCT.tab==="learn")acctDraw()})}
 // Try playing this song: a random song that uses only chords you've checked off, or those plus one more
 const LG_SONGS=[["Mazzy Star - Fade Into You",["A","Em","Bm"]],["The Cranberries - Zombie",["Em","C","G","D/F#"]],["Nickelback - Photograph",["E5","Badd11","D6add9","Aadd9"]],
-  ["Nirvana - Smells Like Teen Spirit",["F5","A#5","G#5","C#5"]],["Radiohead - Creep",["G","B","C","Cm"]],["John Denver",["G","Em","D","C"]]];
+  ["Nirvana - Smells Like Teen Spirit",["F5","A#5","G#5","C#5"]],["Radiohead - Creep",["G","B","C","Cm"]],["John Denver - Take Me Home, Country Roads",["G","Em","D","C"]]];
 var LG_SONG=null;
 function lgSongHtml(L){if(!L||L.err)return ""; const know=new Set([...L.s].map(k=>k.split("/").pop()).filter(c=>CHORD_SHAPES[c]));
   const ok=LG_SONGS.map((x,i)=>({i,new:x[1].filter(c=>!know.has(c))})).filter(x=>x.new.length<=1&&x.new.length<LG_SONGS[x.i][1].length); if(!ok.length)return "";
