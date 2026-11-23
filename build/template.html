@@ -8652,8 +8652,7 @@ function chordRsSvg(c,S,inv){S=S||chordShape(c); if(!S)return ""; const fw=30,rh
   for(let j=0;j<F;j++)h+=`<text x="${pl+(j+.5)*fw}" y="${y0+rh*6+12}" text-anchor="middle" font-size="9" font-weight="700" fill="#f5c84a">${S.start+j}</text>`;
   // each string that's played (inverted: high e, purple, on top); a string that isn't played isn't drawn, and open strings glow
   for(let i=0;i<6;i++){const y=y0+((inv?5-i:i)+.5)*rh,v=S.f[i],col=CH_COL[i]; if(v<0)continue;
-    h+=`<rect x="${pl}" y="${y-.8}" width="${F*fw}" height="1.6" fill="${col}"/>`;
-    if(v===0)h+=`<rect x="${pl+3}" y="${y-3}" width="${F*fw-6}" height="6" rx="3" fill="${col}" opacity=".4"/>`;
+    if(v===0)h+=`<rect x="${pl}" y="${y-.8}" width="${F*fw}" height="1.6" fill="${col}"/><rect x="${pl+3}" y="${y-3}" width="${F*fw-6}" height="6" rx="3" fill="${col}" opacity=".4"/>`;   // only open strings get a line, so a fretted string isn't mistaken for one
     if(v>0){const cx=pl+(v-S.start+.5)*fw; h+=`<rect x="${cx-10}" y="${y-5}" width="20" height="10" rx="2.5" fill="${col}" stroke="rgba(255,255,255,.85)" stroke-width="1"/>${S.n[i]!=="-"?`<text x="${cx}" y="${y+3}" text-anchor="middle" font-size="8" font-weight="800" fill="#0d0f14">${S.n[i]}</text>`:""}`}}
   return `<svg class="lgrs" viewBox="0 0 ${ex+6} ${y0+rh*6+16}" role="img" aria-label="${esc(c)} chord, Rocksmith view${inv?", inverted":""}">${h}</svg>`}
 // technique pictures for Learning goals, in the same three views as the chords: tab, the Rocksmith 2014 view and it inverted.
