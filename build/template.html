@@ -8840,7 +8840,7 @@ function bnSeasonGain(n,pi){try{eloBuild(); const id=seasonOf(Math.min(TW_MAX,EL
   return l0!=null&&l1!=null&&l1-l0>=.05?l1-l0:null}catch(e){return null}}
 const BN_MED_MAX=8;   // every banner holds up to 8 medals, spaced the same way, so they never get squeezed
 function bannerHtml(n){
-  const p=byName[n]; if(!p)return ""; const T=String(p[8]||"").split(""), v=wv(n,-1)||[0,0,0];
+  const p=byName[n]; if(!p)return ""; const T=String(p[8]||"").split(""), v=(WR.wins[n]||[]).reduce((a,x)=>[a[0]+x[0],a[1]+x[1],a[2]+x[2]],[0,0,0]);   // all-time wins (not the year picked on the Winners tab)
   const tier=t=>t&&t!=="?"?t:"–", tc=t=>TIER_C[t]||"#8b93a7";
   // best Rodman's Rankings place on each path
   const key=n.toLowerCase(), rk={};
