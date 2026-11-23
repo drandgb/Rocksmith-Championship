@@ -6841,7 +6841,7 @@ function twMedals0(n,w,live){
     let t=tp.split("\n\n")[0].replace(/ · click to highlight$/,"")   /* (the profile's career list after a blank line is dropped too) */.replace(/ (?:· )?\d+ times?$/,"");
     // rivalry wins: who they beat that week, on which path, and the challenge score
     if(/^Rivalry win/.test(t)){const me=twCanon(n), beat=[0,1,2].map(pi=>{const r=rivalsOfWeek(w,pi)[me]; return r&&r.w>r.l?`${r.them} on ${PATHS[pi]} (${r.w}–${r.l})`:""}).filter(Boolean);
-      if(beat.length)t=`Rivalry win · beat ${beat.join(", ")} · their closest rival of the week (same rank, ranked challenges)`}
+      if(beat.length)t=`Rivalry win · beat ${beat.join(", ")} · closest rival of the week (same rank, ranked challenges)`}
     // which songs the medal came from this week
     const fin=twFinishes(n,w), lvOf=c=>{const L=cardLv(c[2]); return L&&L!=="G"?TIER_NAME[L]:c[2]};
     const list=xs=>xs.map(x=>`• ${x.c[3]} (${x.god?x.c[2]:`${PATHS[x.c[0]]}, ${lvOf(x.c)}`})${x.gain||""}`).join("\n");
