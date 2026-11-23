@@ -6902,7 +6902,11 @@ function renderHostWarn(){
   if(w[2]||signed){el.hidden=true;return}
   el.hidden=false;
   const act=hostSlot(w,1,"HOST NEEDED"), can=/data-host(sign|pick)/.test(act);
-  el.innerHTML=`<span class="ic">⚠</span><div><b>Host still needed for next week!</b><small>Week ${w[0]} starts ${fmt(w[1])} and nobody has signed up to host it yet.${can?"":" "+hostWarnHelp()}</small></div>${can?act.replace(/HOST NEEDED · SIGN UP/,"SIGN UP TO HOST"):""}`;
+  el.innerHTML=`<span class="ic">⚠</span><div><b>Host still needed for next week!</b><small>Week ${w[0]} starts ${fmt(w[1])} and nobody has signed up to host it yet.${can?"":" "+hostWarnHelp()}${(()=>{try{
+    // logged in as someone who has hosted before: how long since their last week
+    if(!acctOn()||!ACCT.claim||ACCT.claim.status!=="approved")return ""; const me=ACCT.claim.player.toLowerCase();
+    let i=curIdx; while(i>=0&&!(WEEKS[i][2]&&WEEKS[i][2].toLowerCase()===me))i--; if(i<0)return "";
+    const n=WEEKS[curIdx][0]-WEEKS[i][0]; return n>0?`<br>It's been ${n} week${n===1?"":"s"} since you last hosted.`:""}catch(e){return ""}})()}</small></div>${can?act.replace(/HOST NEEDED · SIGN UP/,"SIGN UP TO HOST"):""}`;
 }
 // the week started on Saturday and its scoreboard sheet still has no scores once Saturday is over: say so, and point to the
 // forum post (it's linked once a host has added it)
