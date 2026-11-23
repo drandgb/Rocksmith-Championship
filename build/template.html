@@ -1706,7 +1706,8 @@ footer{color:var(--dim);font-size:.78rem;border-top:1px solid var(--line);paddin
 .lgsec .lgfig figcaption{font:700 .9rem var(--f-display);margin-bottom:2px}.lgsec .lgfig.on figcaption{color:var(--s-green)}
 .lgsec .lgpair{display:flex;align-items:center;gap:8px}.lgsec .lgbox{width:78px;height:auto;display:block}.lgsec .lgrs{width:140px;height:auto;display:block;background:linear-gradient(180deg,#0f3346,#070f16);border-radius:6px}
 .lgsec .lgfig svg text{font-family:var(--f-display)}
-.lgsec .lgfig figcaption{display:flex;align-items:center;gap:6px}.lgsec .lgedit{margin-left:auto;border:1px solid var(--line);background:none;color:var(--muted);border-radius:6px;width:26px;height:26px;padding:0;cursor:pointer;font-size:.85rem;line-height:1}
+.lgsec .lgfig figcaption{display:grid;grid-template-columns:26px 1fr 26px;align-items:center;gap:6px}.lgsec .lgfig .lgfn{text-align:center}
+.lgsec .lgfig[data-learnfig]{cursor:pointer}.lgsec .lgfig[data-learnfig]:hover{border-color:color-mix(in srgb,var(--s-green) 35%,var(--line))}.lgsec .lgfig[data-learnfig]:focus-visible{outline:2px solid var(--s-green);outline-offset:2px}.lgsec .lgedit{margin-left:auto;border:1px solid var(--line);background:none;color:var(--muted);border-radius:6px;width:26px;height:26px;padding:0;cursor:pointer;font-size:.85rem;line-height:1}
 .lgsec .lgedit:hover,.lgsec .lgedit:focus-visible{color:var(--accent);border-color:var(--accent)}
 .chdlg{max-width:640px}.chdlg h3{font-family:var(--f-display)}
 .chwrap{display:flex;flex-wrap:wrap;gap:24px;align-items:flex-start;margin-top:12px}
@@ -8613,7 +8614,7 @@ function chordRsSvg(c,S){S=S||chordShape(c); if(!S)return ""; const fw=30,rh=11,
     if(v<0)h+=`<path d="M${pl-13} ${y-3}l6 6m0-6l-6 6" stroke="#ef4a55" stroke-width="1.5" stroke-linecap="round"/>`;
     if(v>0){const cx=pl+(v-S.start+.5)*fw; h+=`<rect x="${cx-10}" y="${y-5}" width="20" height="10" rx="2.5" fill="${col}" stroke="rgba(255,255,255,.85)" stroke-width="1"/>${S.n[i]!=="-"?`<text x="${cx}" y="${y+3}" text-anchor="middle" font-size="8" font-weight="800" fill="#0d0f14">${S.n[i]}</text>`:""}`}}
   return `<svg class="lgrs" viewBox="0 0 ${ex+6} ${y0+rh*6+16}" role="img" aria-label="${esc(c)} chord, Rocksmith view">${h}</svg>`}
-function chordPics(list,isOn){const cards=list.filter(c=>CHORD_SHAPES[c]).map(c=>`<figure class="lgfig${isOn(c)?" on":""}"><figcaption>${esc(c)}${isOn(c)?" ✓":""}${ACCT.admin?`<button type="button" class="lgedit" data-chedit="${esc(c)}" title="Edit the ${esc(c)} chord (admins)" aria-label="Edit ${esc(c)} chord">✎</button>`:""}</figcaption><div class="lgpair">${chordBoxSvg(c)}${chordRsSvg(c)}</div></figure>`).join("");
+function chordPics(list,isOn,keyOf){const cards=list.filter(c=>CHORD_SHAPES[c]).map(c=>{const k=keyOf&&keyOf(c); return `<figure class="lgfig${isOn(c)?" on":""}"${k?` data-learnfig="${esc(k)}" role="checkbox" aria-checked="${isOn(c)}" tabindex="0" title="${isOn(c)?`Click to uncheck ${esc(c)}`:`Click when you can play ${esc(c)}`}"`:""}><figcaption><span class="lgfsp"></span><span class="lgfn">${esc(c)}${isOn(c)?" ✓":""}</span>${ACCT.admin?`<button type="button" class="lgedit" data-chedit="${esc(c)}" title="Edit the ${esc(c)} chord (admins)" aria-label="Edit ${esc(c)} chord">✎</button>`:`<span class="lgfsp"></span>`}</figcaption><div class="lgpair">${chordBoxSvg(c)}${chordRsSvg(c)}</div></figure>`}).join("");
   return cards?`<div class="lgpics">${cards}</div>`:""}
 // admins: edit a chord in the chord diagram maker (a dialog over the profile). One fretted note per string; strings with no note are muted (X) or open (O).
 const CHED={};
@@ -8666,12 +8667,18 @@ function learnSection(){if(!ACCT.claim||ACCT.claim.status!=="approved")return ""
     return `<div class="lgset"><h4>${esc(S.t)}<small>${n} of ${keys.length}${n===keys.length?" · done 🤘":""}</small></h4><ul>${S.g.map(g=>{
       if(!g.i)return `<li>${box(`${S.id}/${g.id}`,g.t)}</li>`;
       const all=L&&g.i.every(c=>L.s.has(`${S.id}/${g.id}/${c}`));
-      return `<li><div class="lgg${all?" done":""}">${all?"✓ ":""}${esc(g.t)}:</div><div class="lgchips">${g.i.map(c=>box(`${S.id}/${g.id}/${c}`,c," chip")).join("")}</div>${chordPics(g.i,c=>!!(L&&L.s.has(`${S.id}/${g.id}/${c}`)))}</li>`}).join("")}</ul></div>`}).join("");
+      return `<li><div class="lgg${all?" done":""}">${all?"✓ ":""}${esc(g.t)}:</div>${(()=>{const np=g.i.filter(c=>!CHORD_SHAPES[c]); return np.length?`<div class="lgchips">${np.map(c=>box(`${S.id}/${g.id}/${c}`,c," chip")).join("")}</div>`:""})()}${chordPics(g.i,c=>!!(L&&L.s.has(`${S.id}/${g.id}/${c}`)),c=>L&&!L.err?`${S.id}/${g.id}/${c}`:null)}</li>`}).join("")}</ul></div>`}).join("");
   return `<div class="acctsec lgsec"><p class="dim">Only you can see this. Check things off as you learn them.${L?(L.err?" Couldn't load your targets right now.":""):" Loading…"}</p>${body}</div>`}
-document.addEventListener("change",async e=>{const c=e.target.closest("input[data-learn]"); if(!c||!ACCT.learn||!ACCT.user)return; const k=c.dataset.learn, on=c.checked; c.disabled=true;
+async function learnSet(k,on){if(!ACCT.learn||!ACCT.user)return false;
   const {error}=on?await ACCT.sb.from("learn_goals").insert({item:k}):await ACCT.sb.from("learn_goals").delete().match({user_id:ACCT.user.id,item:k});
-  if(error&&!(on&&/duplicate/i.test(error.message))){alert("Couldn't save that: "+error.message); c.checked=!on; c.disabled=false; return}
-  on?ACCT.learn.s.add(k):ACCT.learn.s.delete(k); acctDraw()});
+  if(error&&!(on&&/duplicate/i.test(error.message))){alert("Couldn't save that: "+error.message); return false}
+  on?ACCT.learn.s.add(k):ACCT.learn.s.delete(k); acctDraw(); return true}
+document.addEventListener("change",async e=>{const c=e.target.closest("input[data-learn]"); if(!c||!ACCT.learn||!ACCT.user)return; const on=c.checked; c.disabled=true;
+  if(!await learnSet(c.dataset.learn,on)){c.checked=!on; c.disabled=false}});
+// a chord card is its own checkbox: click it (or Space/Enter) to check the chord off (the ✎ edit button doesn't)
+const lgFigGo=f=>{if(f.dataset.busy)return; f.dataset.busy=1; learnSet(f.dataset.learnfig,f.getAttribute("aria-checked")!=="true").then(()=>{delete f.dataset.busy})};
+document.addEventListener("click",e=>{const f=e.target.closest(".lgfig[data-learnfig]"); if(!f||e.target.closest("[data-chedit]"))return; lgFigGo(f)});
+document.addEventListener("keydown",e=>{const f=e.target.closest&&e.target.closest(".lgfig[data-learnfig]"); if(!f||e.target!==f||(e.key!==" "&&e.key!=="Enter"))return; e.preventDefault(); lgFigGo(f)});
 function acctProfile(n){
   // the #1 medal-leader chips get their own section, just above Player profile (hidden inside the card here)
   const leads=plLeads(n);
