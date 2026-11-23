@@ -4308,9 +4308,10 @@ function lvExtra(val,what,years,D){const el=$("lv-extra"); if(!el)return; D=D||L
   // Now: this year against last year; Last 6 months: the level 6 months ago against the level now (both worked out by the site
   // the same way, from the 12 weeks up to each point)
   if(lvMode==="now"){const y1=ey[0], y0=y1-1; A=p=>p.y[y0]; B=p=>p.y[y1]; la=lvYl(y0); lb=lvYl(y1); ha=yh(y0); hb=yh(y1)}
-  else if(lvMode==="m6"){const W1=DATA_WEEK, W0=W1-26; A=(p,pi)=>lvAt(pi,lvKey(p.n),W0); B=(p,pi)=>lvAt(pi,lvKey(p.n),W1); la=ha=`6 months ago (Week ${W0})`; lb=hb=`now (Week ${W1})`}
+  else if(lvMode==="m6"){const at=LV_AT&&LV_AT<DATA_WEEK?LV_AT:null, W1=at||DATA_WEEK, W0=W1-26; A=(p,pi)=>lvAt(pi,lvKey(p.n),W0); B=(p,pi)=>lvAt(pi,lvKey(p.n),W1); la=ha=`6 months before (Week ${W0})`; lb=hb=at?`Week ${W1}`:`now (Week ${W1})`; if(!at)la=ha=`6 months ago (Week ${W0})`}   // (follows the week slider)
   else{const y1=+lvYear, y0=y1-1; A=p=>p.y[y0]; B=p=>p.y[y1]; la=lvYl(y0); lb=lvYl(y1); ha=yh(y0); hb=yh(y1); if(!years.includes(y0))none=`No year before ${y1} to compare with`}
-  const cl=D.paths.map((L,pi)=>L.map(p=>{const a=A(p,pi), b=B(p,pi); return a&&b?{n:p.n,a,b,d:b-a}:null}).filter(x=>x&&x.d>0).sort((x,y)=>y.d-x.d));   // everyone who climbed, biggest first
+  const cl=D.paths.map((L,pi)=>{const seen=new Set(); return L.slice().sort((x,y)=>(twCanon(y.n)===y.n)-(twCanon(x.n)===x.n)).filter(p=>{const k=lvKey(p.n); if(seen.has(k))return false; seen.add(k); return true})   // one row per player (an old name like AndreCardoso goes with ALSRC)
+    .map(p=>{const a=A(p,pi), b=B(p,pi); return a&&b?{n:twCanon(p.n),a,b,d:b-a}:null}).filter(x=>x&&x.d>0).sort((x,y)=>y.d-x.d)});   // everyone who climbed, biggest first
   el.innerHTML=`<section class="panel lvcl"><div class="panel-head"><h2>📈 Biggest climbers</h2><span class="sub">${none?"":`${ha} → ${hb}`}</span></div>${none?`<p class="dim">${none}</p>`:`
       <div class="lvclg">${cl.map((L,pi)=>`<div class="lvclp" style="--pc:${ELO_C[pi]}"><h4>${PATHS[pi]}</h4>${L.length?`<ol>${L.map((x,i)=>{return `<li class="${i<3?"elo-t"+(i+1):""}" data-tip="${esc(x.n)} · ${PATHS[pi]}\n${la}: ${x.a.toFixed(1)}\n${lb}: ${x.b.toFixed(1)}"><span class="er">${i+1}</span><span class="nm" data-player="${esc(x.n)}">${esc(x.n)}</span><b class="up">+${x.d.toFixed(1)}</b><small>${x.a.toFixed(1)} → ${x.b.toFixed(1)}</small></li>`}).join("")}</ol>`:`<p class="dim">Nobody climbed</p>`}</div>`).join("")}</div>`}
 </section>`}
@@ -4625,10 +4626,10 @@ function renderLevel(){
   document.querySelectorAll("#lvmode button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.lvm===lvMode));
   const val=p=>lvMode==="now"?p.xp:lvMode==="m6"?p.m6:p.y[lvYear];
   const what=lvMode==="now"?"now":lvMode==="m6"?"over the last 6 months":`in ${lvYl(lvYear)}`;
-  try{lvExtra(val,what,years,D)}catch(e){console.error(e)}
-  // the slider over the three tables (Last 6 months): the levels as they were after any week
+  // the slider over the three tables (Last 6 months): the levels as they were after any week (Biggest climbers follows it too)
   const lvW=lvWeekSlider(), DD=lvW.at?lvCalcAtC(lvW.at):D, yAt=lvW.at?lvYearOf(lvW.at):0, ys=lvW.at?years.filter(y=>+y<yAt):years;
   const what2=lvW.at?`over the 6 months to Week ${lvW.at}`:what;
+  try{lvExtra(val,what,years,DD)}catch(e){console.error(e)}
   $("lv-body").innerHTML=DD.paths.map((L,pi)=>{const rows=L.filter(p=>val(p)).sort((a,b)=>val(b)-val(a)); const max=Math.max(90,...rows.map(val));
     let rk=0; const body=rows.map((p,i)=>{const v=val(p); if(i===0||v<val(rows[i-1]))rk=i+1; const b=lvBand(v), tr=lvMode==="now"&&p.m6?v-p.m6:null;
       return `<li class="${rk<=3?"p"+rk:""}" data-tip="${esc(lvTip(p,ys))}"><span class="rr">${rk}</span><span class="nm" data-player="${esc(p.n)}">${esc(p.n)}</span><span class="lvbar" style="--tc:${TIER_C[b[1]]}"><i style="width:${(v/max*100).toFixed(1)}%"></i></span><b class="lvv" style="color:${TIER_C[b[1]]}">${v.toFixed(1)}</b><span class="lvtr ${tr==null||Math.abs(tr)<.5?"":tr>0?"up":"down"}">${tr==null||Math.abs(tr)<.5?"":tr>0?"▲":"▼"}</span><span class="lvspw" style="color:${TIER_C[b[1]]}">${lvSpark(p,ys)}</span></li>`}).join("");
