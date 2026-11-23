@@ -146,6 +146,7 @@ button.forum{background:none;cursor:pointer;font:inherit;font-size:.85rem}
 .twwarn{display:flex;align-items:center;gap:12px;margin:0 0 14px;padding:12px 16px;border-radius:12px;background:color-mix(in srgb,var(--s-red) 14%,var(--panel));border:1px solid color-mix(in srgb,var(--s-red) 60%,transparent);color:var(--fg)}
 .twwarn[hidden]{display:none}
 .twwarn .ic{font-size:1.4rem;color:var(--s-red);line-height:1}
+.twwarn small a{color:var(--fg);text-decoration:underline}.twwarn a.hostbtn{text-decoration:none}
 .twwarn b{display:block;color:var(--s-red);font-family:var(--f-display);letter-spacing:.08em;text-transform:uppercase;font-size:.95rem}
 .twwarn small{color:var(--muted);font-size:.8rem}
 .twwarn>div{flex:1;min-width:0}
@@ -1950,6 +1951,7 @@ footer{color:var(--dim);font-size:.78rem;border-top:1px solid var(--line);paddin
 
   <div class="view" id="view-thisweek" role="tabpanel" aria-labelledby="tab-thisweek" hidden>
   <div class="twwarn" id="twwarn" role="alert" hidden></div>
+  <div class="twwarn" id="twsbempty" role="status" hidden></div>
   <div class="cdbanner" id="cdbanner" hidden></div>
   <section class="panel nwnote" id="twnote" hidden></section>
   <section class="panel goalsec" id="tw-goals" hidden></section>
@@ -6900,6 +6902,14 @@ function renderHostWarn(){
   const act=hostSlot(w,1,"HOST NEEDED"), can=/data-host(sign|pick)/.test(act);
   el.innerHTML=`<span class="ic">⚠</span><div><b>Host still needed for next week!</b><small>Week ${w[0]} starts ${fmt(w[1])} and nobody has signed up to host it yet.${can?"":" "+hostWarnHelp()}</small></div>${can?act.replace(/HOST NEEDED · SIGN UP/,"SIGN UP TO HOST"):""}`;
 }
+// the week started on Saturday and its scoreboard sheet still has no scores once Saturday is over: say so, and point to the
+// forum post (it's linked once a host has added it)
+function renderSbEmpty(){const el=$("twsbempty"); if(!el)return; try{const w=WEEKS[curIdx], wk=w&&w[0];
+    const empty=wk&&!(SB.weeks[wk]||[]).some(c=>(c[6]||[]).some(e=>e[1]!=null)), sun=w&&new Date(w[1]+"T00:00:00").getTime()+864e5;
+    if(!empty||Date.now()<sun){el.hidden=true; return}
+    const r=typeof WPOSTS!=="undefined"&&WPOSTS[wk];
+    el.hidden=false; el.innerHTML=`<span class="ic">⏳</span><div><b>Score collection has not started yet, check back later!</b><small>The scoreboard sheet is empty; you can see scores on ${r?`<a href="${esc(r.url)}" target="_blank" rel="noopener">this week's forum post</a>`:"this week's forum post"} for now.</small></div>${(()=>{try{return acctOn()&&(ACCT.admin||isCurHost())?`<a class="pill open hostbtn" href="${reactUrl()}" target="_blank" rel="noopener" title="Week ${wk} in the Score Assistant, where the week's scores are checked and approved">OPEN REACT APP ↗</a>`:""}catch(e){return ""}})()}`}catch(e){el.hidden=true}}   // (the button: admins and this week's host)
+{const _rhw=renderHostWarn; renderHostWarn=function(){const r=_rhw.apply(this,arguments); renderSbEmpty(); return r}}
 // next week's preview (the › arrow past the current week, once next week's tab is on the scoreboard sheet)
 function renderNextPreview(){
   const el=$("twpreview"), nw=TW_NEXT, ch=nw&&SB.weeks[nw]; if(!el)return;
@@ -7574,7 +7584,7 @@ const hmSentKey=t=>"sent|"+String(t).toLowerCase().replace(/\s+/g," ").trim().sl
 document.addEventListener("click",e=>{const b=e.target.closest("[data-hmsent]"); if(!b||b.disabled)return; let parts=[]; try{parts=JSON.parse(b.dataset.hmparts||"[]")}catch(x){}
   hmImpMark(+b.dataset.hmsent,[b.dataset.hmt,...parts].map(hmSentKey)); hmRedraw()});   // a joined message marks each of its parts too
 // the Host tab's label with its badges (redrawn whole once the posted marks have loaded, whichever tab is open)
-function hostTabLabel(){let x=""; try{x=hlBadge()+hmBadge()+cdBadge()+(()=>{const L=hostIssueList(), n=hostIssueN(); return n?`<span class="nbadge nbemo" title="${n} likely scoreboard issue${n===1?"":"s"} in ${L.map(H=>"Week "+H.w).join(" and ")}">🔧</span>`:""})()+friBadge()}catch(e){} return "Host"+x}
+function hostTabLabel(){let x=""; try{x=hlBadge()+hmBadge()+cdBadge()+(()=>{const L=hostIssueList(), n=hostIssueN(); return n?`<span class="nbadge nbemo" title="${n} likely scoreboard issue${n===1?"":"s"} in ${L.map(H=>"Week "+H.w).join(" and ")}">🔧</span>`:""})()+friBadge()+lkBadge()}catch(e){} return "Host"+x}
 function hmRedraw(){try{acctBtn()}catch(e){} try{const t=document.querySelector(".acctdlg #hltext"), h=t&&t.closest(".hlbox"); if(h)h.outerHTML=hlSection()}catch(e){}
   const el=document.querySelector(".acctdlg .hmsec:not(.hmhost)"); if(el)try{el.outerHTML=hmSection()}catch(e){}
   try{const T=document.querySelector('.accttabs [data-accttab="host"]'); if(T){const L=hostTabLabel(); if(T.innerHTML!==L)T.innerHTML=L}}catch(e){}}
@@ -7717,12 +7727,15 @@ setInterval(()=>document.querySelectorAll("[data-cd] .cdt").forEach(el=>{el.text
 // for any week they pick).
 const WLINK={post:{table:"week_posts",title:"Forum post",what:"forum post",bar:"twforumbar",btn:"twforum"},
              sheet:{table:"week_sheets",title:"Scoreboard sheet",what:"scoreboard sheet",bar:"twsheetbar",btn:"twsheet"}};
-var WPOSTS={}, WSHEETS={};
+var WPOSTS={}, WSHEETS={}, WL_LOADED=false;
 const wlData=k=>k==="post"?WPOSTS:WSHEETS;
 async function postsLoad(){if(!ACCT.sb)return;
   await Promise.all(Object.entries(WLINK).map(async([k,L])=>{try{const {data,error}=await ACCT.sb.from(L.table).select("week,url,set_by"); if(error)return;
     const o={}; (data||[]).forEach(r=>{if(/^https?:\/\//i.test(r.url||""))o[r.week]=r}); if(k==="post")WPOSTS=o; else WSHEETS=o}catch(e){}}));
-  forumBar(); sbYwShow(); if($("acct").open&&(ACCT.tab==="host"||ACCT.tab==="admin"))acctDraw()}
+  WL_LOADED=true; forumBar(); sbYwShow(); try{renderSbEmpty(); acctBtn(); hmRedraw()}catch(e){} if($("acct").open&&(ACCT.tab==="host"||ACCT.tab==="admin"))acctDraw()}
+// 🔗 for the host and admins: the new week's forum post or scoreboard sheet link hasn't been added yet (once the links have loaded)
+function lkMissing(){try{if(!WL_LOADED||!acctOn()||!(ACCT.admin||canTune(TW_MAX)))return []; return Object.keys(WLINK).filter(k=>!wlData(k)[TW_MAX])}catch(e){return []}}
+const lkBadge=()=>{const M=lkMissing(); return M.length?`<span class="nbadge nbemo" data-bk="lk" title="Add Week ${TW_MAX}'s ${M.map(k=>WLINK[k].what).join(" and ")} link · Host tab">🔗</span>`:""};
 function forumBar(){try{const w=typeof twWeek!=="undefined"?twWeek:TW_MAX;
   Object.entries(WLINK).forEach(([k,L])=>{const r=wlData(k)[w], bar=$(L.bar); if(!bar)return; bar.hidden=!r; if(r)$(L.btn).href=r.url})}catch(e){}
   // Play here (top of the page) opens the current week's forum post once it's added, otherwise the championship forum
@@ -7732,7 +7745,7 @@ function forumBar(){try{const w=typeof twWeek!=="undefined"?twWeek:TW_MAX;
 function linkSection(k){const L=WLINK[k], D=wlData(k), adm=!!ACCT.admin; if(!adm&&!canTune(TW_MAX))return "";
   const sel=ACCT.linkW&&ACCT.linkW[k], w=adm&&sel?sel:TW_MAX, r=D[w];
   const weeks=Object.keys(SB.weeks).map(Number).concat([TW_MAX]).filter((x,i,a)=>a.indexOf(x)===i).sort((a,b)=>b-a);
-  return `<div class="acctsec postsec"><h3>${L.title}</h3>
+  return `<div class="acctsec postsec"><h3>${L.title}${lkMissing().includes(k)?`<span class="nbadge nbemo" title="Week ${TW_MAX}'s ${L.what} link isn't added yet">🔗</span>`:""}</h3>
     ${adm?`<div class="row"><label class="dim" for="linkw-${k}" style="align-self:center;margin-right:6px">Week</label><div class="wkdd" data-wkdd="${k}"><button type="button" class="wkdd-b" id="linkw-${k}" aria-haspopup="listbox" aria-expanded="false">Week ${w}${D[w]?" ✓":""}<span aria-hidden="true">▾</span></button><ul class="wkdd-l" role="listbox" hidden>${weeks.map(x=>`<li role="option" data-wkopt="${x}" aria-selected="${x===w}">Week ${x}${D[x]?" ✓":""}</li>`).join("")}</ul></div></div>`:""}
     <p class="dim">The link to Week ${w}'s ${L.what}${r?`: <a href="${esc(r.url)}" target="_blank" rel="noopener">${esc(r.url)}</a>${r.set_by?` (added by ${esc(r.set_by)})`:""}`:". Not added yet."}</p>
     <div class="row"><input type="url" id="linkurl-${k}" placeholder="https://" value="${r?esc(r.url):""}" style="flex:1;min-width:0"><button type="button" class="btn" data-linkset="${k}|${w}">Save</button>${r?`<button type="button" class="btn ghost" data-linkclear="${k}|${w}">Clear</button>`:""}</div></div>`}
@@ -8490,12 +8503,12 @@ function acctProfile(n){
   return `<div class="acctsec acctlead"${leads?"":" hidden"}><div id="acct-lead" class="plead" data-n="${esc(n)}">${leads}</div></div><div class="acctsec"><h3>Player profile</h3><div id="acct-p"></div></div>${WR.wins[n]?`<div class="acctsec"><h3>Win profile</h3><div id="acct-w"></div></div>`:""}${hosts[n]?`<div class="acctsec"><h3>Host profile</h3><div id="acct-h"></div></div>`:""}`;
 }
 // header button and dialog
-function acctBtn(){const b=$("acctbtn"); b.hidden=!ACCT.on; try{twGoals()}catch(e){console.error(e)}
+function acctBtn(){const b=$("acctbtn"); b.hidden=!ACCT.on; try{renderSbEmpty()}catch(e){} try{twGoals()}catch(e){console.error(e)}
   // while the login is still loading, leave the button as it is (the copy from the last visit), so its badges don't flash off and on
   if(!ACCT.ready||ACCT.loading)return;
   // a badge whose data hasn't loaded yet keeps the one already on the button until it has
   const was={}; b.querySelectorAll(".nbadge[data-bk]").forEach(x=>was[x.dataset.bk]=x.outerHTML);
-  const held=(k,f)=>{try{const wait=k==="rp"?ACCT.rposts===undefined||!!ACCT.rpLoading:k==="hl"||k==="hm"||k==="fri"?HM_IMP.st===undefined||HM_IMP.st===null:k==="iss"||k==="ty"?TY_DIS===undefined||TY_DIS===null:k==="cd"?!WCLOSE_ON:false; return wait?was[k]||"":f()}catch(e){return was[k]||""}};
+  const held=(k,f)=>{try{const wait=k==="lk"?!WL_LOADED:k==="rp"?ACCT.rposts===undefined||!!ACCT.rpLoading:k==="hl"||k==="hm"||k==="fri"?HM_IMP.st===undefined||HM_IMP.st===null:k==="iss"||k==="ty"?TY_DIS===undefined||TY_DIS===null:k==="cd"?!WCLOSE_ON:false; return wait?was[k]||"":f()}catch(e){return was[k]||""}};
   b.title=ACCT.claim&&ACCT.claim.status==="approved"?"Opens your profile: your own stats page, last week's medals, your song ratings and your forum signature banner"
     :ACCT.claim?"Opens your profile. Your player claim is waiting for an admin to approve it"
     :ACCT.user?"Opens your profile, where you can claim your player name so you can rate songs and sign up to host"
@@ -8511,6 +8524,7 @@ function acctBtn(){const b=$("acctbtn"); b.hidden=!ACCT.on; try{twGoals()}catch(
   b.insertAdjacentHTML("beforeend",held("iss",()=>{const L=hostIssueList(), n=hostIssueN(); return n?`<span class="nbadge nbemo" data-bk="iss" title="${n} likely scoreboard issue${n===1?"":"s"} in ${L.map(H=>"Week "+H.w).join(" and ")} · see the Host tab">🔧</span>`:""}));
   // admins: new likely typos in this week's scoreboard (Scoreboard checks, Admin tab)
   if(ACCT.admin)b.insertAdjacentHTML("beforeend",held("ty",()=>{const t=tyNewN(); return t?`<span class="nbadge nbemo" data-bk="ty" title="${t} likely typo${t===1?"":"s"} in this week's scoreboard · see Scoreboard checks in the Admin tab">🔍</span>`:""}));
+  b.insertAdjacentHTML("beforeend",held("lk",lkBadge));
   b.insertAdjacentHTML("beforeend",held("fri",friBadge)+held("rp",rpBadge)+held("hm",hmBadge)+held("cd",cdBadge)+held("hl",hlBadge));   // Friday post (this week's host and admins), recruitment post (admins)
   try{const hb=$("twhostbar"); if(hb)hb.hidden=!isCurHost()}catch(e){}   // This Week: Open host settings, for this week's host
   try{const yb=$("twywbar"); if(yb)yb.hidden=!(ACCT.claim&&ACCT.claim.status==="approved")}catch(e){} sbYwShow();   // This Week: Your week, for a player with an approved claim
