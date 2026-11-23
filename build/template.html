@@ -8694,9 +8694,11 @@ function techRsSvg(t,inv){const T=TECH[t]; if(!T)return ""; if(!T.n)return `<svg
     // pre-bend: the G string's gem already pushed up to where the A string (yellow) sits, with a full bend's two chevrons above it
     if(m==="pre"){const yp=row(1); h+=`<rect x="${x-10}" y="${yp-5}" width="20" height="10" rx="2.5" fill="${col}" stroke="rgba(255,255,255,.85)" stroke-width="1"/>`;
       for(let c=0;c<k;c++){const yy=yp+up*(10+c*5); h+=`<path d="M${x-5} ${yy-up*2.5}L${x} ${yy+up*2.5}L${x+5} ${yy-up*2.5}" fill="none" stroke="#fff" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>`}}
-    h+=m==="harm"||m==="ph"||m==="pre"?"":m==="pm"?gem(x,{fill:"#3a1216",st:"#ef4a55",sw:1.6}):m==="fm"?gem(x,{fill:"rgba(0,0,0,.4)",st:col,sw:1.6}):m==="acc"?gem(x,{st:"#fff",sw:1.8,glow:"a"}):gem(x);
+    h+=m==="pre"?"":m==="harm"||m==="ph"?gem(x,{fill:"#1a0f10",st:col,sw:1.6}):m==="pm"?gem(x,{fill:"#3a1216",st:"#ef4a55",sw:1.6}):m==="fm"?gem(x,{fill:"rgba(0,0,0,.4)",st:col,sw:1.6}):m==="acc"?gem(x,{st:"#fff",sw:1.8,glow:"a"}):gem(x);
     if(m==="pm"||m==="fm")h+=`<path d="M${x-5} ${y-4}l10 8m0-8l-10 8" stroke="${m==="pm"?"#ef4a55":"#fff"}" stroke-width="1.8" stroke-linecap="round"/>`;
-    if(m==="harm"||m==="ph"){const c=m==="harm"?col:"#fff"; h+=`<circle cx="${x}" cy="${y}" r="6" fill="#0d0f14" stroke="${c}" stroke-width="2"/><circle cx="${x}" cy="${y}" r="2" fill="${c}"/>`}   // natural: string color · pinch: white
+    // harmonics sit on a gem like the game's: natural is a ring with a dot in the middle, pinch is a flat disc
+    if(m==="harm")h+=`<circle cx="${x}" cy="${y}" r="4.2" fill="${col}" stroke="#fff" stroke-width="1.6"/><circle cx="${x}" cy="${y}" r="1.4" fill="#fff"/>`;
+    if(m==="ph")h+=`<ellipse cx="${x}" cy="${y}" rx="8.5" ry="3.6" fill="${col}" stroke="#fff" stroke-width="1.2"/><ellipse cx="${x}" cy="${y}" rx="3.6" ry="1.5" fill="#0d0f14" stroke="#fff" stroke-width=".6"/>`;
     if(m==="ho"||m==="po")h+=m==="ho"?`<path d="M${x-3.6} ${y-3}h7.2l-3.6 6z" fill="#fff"/>`:`<path d="M${x-3.6} ${y+3}h7.2l-3.6 -6z" fill="#fff"/>`;   // one gem with the triangle inside: ▼ hammer-on, ▲ pull-off
     if(m==="bend")for(let c=0;c<k;c++){const yy=y+up*(10+c*5); h+=`<path d="M${x-5} ${yy-up*2.5}L${x} ${yy+up*2.5}L${x+5} ${yy-up*2.5}" fill="none" stroke="#fff" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>`}   // one chevron per half step
     if(m==="tap")h+=`<path d="M${x} ${y-7}l-5 -6h3v-6h4v6h3z" fill="#b277ff" stroke="#fff" stroke-width=".7"/>`});
