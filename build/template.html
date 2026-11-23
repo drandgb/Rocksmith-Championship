@@ -1702,6 +1702,7 @@ footer{color:var(--dim);font-size:.78rem;border-top:1px solid var(--line);paddin
 .lgsec .lgchips{display:flex;flex-wrap:wrap;gap:6px}.lgsec .lgck{display:inline-flex;align-items:center;gap:6px;cursor:pointer;font-size:.88rem}.lgsec .lgck.chip{border:1px solid var(--line);border-radius:999px;padding:3px 10px 3px 6px;font:600 .8rem var(--f-mono)}
 .lgsec .lgpics{display:flex;gap:8px;overflow-x:auto;padding:8px 2px 6px;margin-top:4px;scroll-snap-type:x proximity}
 .lgsec .lgfig{flex:none;margin:0;background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:6px 8px 8px;scroll-snap-align:start;font-family:var(--f-display)}
+.lgsec .lgfig .lgtab{width:190px;height:auto;display:block;background:linear-gradient(180deg,#141a26,#0b0f16);border-radius:6px}
 .lgsec .lgview{margin:8px 0 4px;width:max-content;max-width:100%}.lgsec .lgview .s-all[aria-pressed="true"]{background:var(--accent)}@media (max-width:620px){.lgsec .lgview{width:100%}.lgsec .lgview button{flex:1 1 0;padding:7px 6px;font-size:.68rem;line-height:1.2}}.lgsec .lgfig .lgbox{width:104px}.lgsec .lgfig .lgrs{width:190px}.lgsec .lgpair{justify-content:center;min-width:190px}
 .lgsec .lgfig.on{border-color:color-mix(in srgb,var(--s-green) 55%,var(--line))}
 .lgsec .lgfig figcaption{font:700 .9rem var(--f-display);margin-bottom:2px}.lgsec .lgfig.on figcaption{color:var(--s-green)}
@@ -8594,7 +8595,13 @@ const LEARN=[{id:"cowboy",t:"Cowboy guitarist",g:[
   {id:"add9",t:"I can play all add9 open chords",i:["Aadd9","Cadd9","Eadd9","Gadd9"]},
   {id:"sus4",t:"I can play all sus4 open chords",i:["Asus4","Dsus4","Esus4"]},
   {id:"barre",t:"I can play barre chords",i:["F"]},
-  {id:"pinch",t:"I can do a pinch harmonic"}]}];
+  {id:"pinch",t:"I can do a pinch harmonic",i:["Pinch harmonic"]}]},
+  {id:"tech",t:"Techniques",g:[
+  {id:"bend",t:"I can bend strings",i:["Half step bend","Full step bend","1½ step bend"]},
+  {id:"legato",t:"I can play hammer-ons and pull-offs",i:["Hammer-on","Pull-off"]},
+  {id:"mute",t:"I can mute strings",i:["Palm mute","Frethand mute"]},
+  {id:"harm",t:"I can play harmonics",i:["Harmonic"]},
+  {id:"more",t:"I can also play",i:["Tremolo","Vibrato","Sustain","Accent","Tapping"]}]}];
 // chord pictures for Learning goals: frets low E→high e (x = don't play, 0 = open) and the finger on each string ("-" = none)
 const CHORD_SHAPES={A:["x02220","--123-"],C:["x32010","-32-1-"],D:["xx0232","---132"],E:["022100","-231--"],F:["133211","134211"],G:["320003","21---3"],B:["x24442","-12341"],
   Am:["x02210","--231-"],Bm:["x24432","-13421"],Cm:["x35543","-13421"],Dm:["xx0231","---231"],Em:["022000","-23---"],
@@ -8631,10 +8638,58 @@ function chordRsSvg(c,S,inv){S=S||chordShape(c); if(!S)return ""; const fw=30,rh
     if(v<0)h+=`<path d="M${pl-13} ${y-3}l6 6m0-6l-6 6" stroke="#ef4a55" stroke-width="1.5" stroke-linecap="round"/>`;
     if(v>0){const cx=pl+(v-S.start+.5)*fw; h+=`<rect x="${cx-10}" y="${y-5}" width="20" height="10" rx="2.5" fill="${col}" stroke="rgba(255,255,255,.85)" stroke-width="1"/>${S.n[i]!=="-"?`<text x="${cx}" y="${y+3}" text-anchor="middle" font-size="8" font-weight="800" fill="#0d0f14">${S.n[i]}</text>`:""}`}}
   return `<svg class="lgrs" viewBox="0 0 ${ex+6} ${y0+rh*6+16}" role="img" aria-label="${esc(c)} chord, Rocksmith view${inv?", inverted":""}">${h}</svg>`}
+// technique pictures for Learning goals, in the same three views as the chords: tab, the Rocksmith 2014 view and it inverted.
+// Each is drawn on the G string (orange): o.s = string (0 low E … 5 high e), o.fr = first fret shown, o.n = the notes (fret, mark)
+const TECH={
+  "Half step bend":{fr:5,n:[[6,"bend",1]],tab:["6b7"],tip:"Bend the string up a half step (one fret's worth)"},
+  "Full step bend":{fr:5,n:[[6,"bend",2]],tab:["6b8"],tip:"Bend the string up a whole step (two frets' worth)"},
+  "1½ step bend":{fr:5,n:[[6,"bend",3]],tab:["6b9"],tip:"Bend the string up a step and a half (three frets' worth)"},
+  "Hammer-on":{fr:5,n:[[5,""],[7,"ho"]],tab:["5h7"],tip:"Fret and pick the first note, then hit the next fret hard enough with another finger to make it sound without picking"},
+  "Pull-off":{fr:5,n:[[7,""],[5,"po"]],tab:["7p5"],tip:"Hold both frets and pick, then pull the top finger off so the lower note rings without picking"},
+  "Tremolo":{fr:5,n:[[6,"trem"]],tab:["6"],above:"T.P.",tip:"Pick the note again and again, as fast as you can"},
+  "Vibrato":{fr:5,n:[[6,"vib"]],tab:["6~~~"],tip:"Wiggle the fretting finger to make the note waver"},
+  "Sustain":{fr:5,n:[[6,"sus"]],tab:["6———"],above:"let ring",tip:"Let the note or chord ring for its full length"},
+  "Palm mute":{fr:5,n:[[6,"pm"]],tab:["6 6 6"],above:"P.M.",tip:"Rest the side of your picking hand on the strings near the bridge for a muffled sound"},
+  "Frethand mute":{fr:5,n:[[6,"fm"]],tab:["x x x"],tip:"Touch the strings with your fretting hand without pressing them down, for a percussive sound"},
+  "Harmonic":{fr:10,n:[[12,"harm"]],tab:["<12>"],tip:"Touch the string very lightly right over the fret wire when you pick it"},
+  "Pinch harmonic":{fr:5,n:[[6,"ph"]],tab:["6"],above:"P.H.",tip:"Graze the string with the thumb of your picking hand right after picking it"},
+  "Accent":{fr:5,n:[[6,"acc"]],tab:["6"],above:">",tip:"Play the note louder than the ones around it"},
+  "Tapping":{fr:10,n:[[12,"tap"]],tab:["12"],above:"T",tip:"Tap the fret with a finger of your picking hand"}};
+// the Rocksmith 2014 view: the same lane as the chord pictures (red low E on top; inverted: purple high e on top)
+function techRsSvg(t,inv){const T=TECH[t]; if(!T)return ""; const fw=30,rh=11,pl=22,y0=6,F=4,ex=pl+F*fw, si=3, row=i=>y0+((inv?5-i:i)+.5)*rh, cx=f=>pl+(f-T.fr+.5)*fw, col=CH_COL[si];
+  let h=`<rect x="${pl}" y="${y0}" width="${F*fw}" height="${rh*6}" fill="rgba(0,0,0,.35)"/>`;
+  for(let j=0;j<=F;j++)h+=`<rect x="${pl+j*fw-.7}" y="${y0-2}" width="1.4" height="${rh*6+4}" fill="#7d8aa0"/>`;
+  for(let j=0;j<F;j++)h+=`<text x="${pl+(j+.5)*fw}" y="${y0+rh*6+12}" text-anchor="middle" font-size="9" font-weight="700" fill="#f5c84a">${T.fr+j}</text>`;
+  for(let i=0;i<6;i++)h+=`<rect x="${pl}" y="${row(i)-.8}" width="${F*fw}" height="1.6" fill="${CH_COL[i]}" opacity="${i===si?1:.3}"/>`;
+  const y=row(si), up=inv?1:-1;   // (a bend pushes toward the low E side of the lane)
+  const gem=(x,o)=>`<rect x="${x-10}" y="${y-5}" width="20" height="10" rx="2.5" fill="${o&&o.fill||col}" stroke="${o&&o.st||"rgba(255,255,255,.85)"}" stroke-width="${o&&o.sw||1}"${o&&o.glow?` filter="url(#tg${o.glow})"`:""}/>`;
+  const tail=(x,d)=>`<path d="${d}" fill="none" stroke="${col}" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round" opacity=".9"/>`;
+  let defs="";
+  T.n.forEach(([f,m,k],ni)=>{const x=cx(f);
+    if(m==="sus"){h+=`<rect x="${x}" y="${y-3}" width="${ex-x-3}" height="6" rx="3" fill="${col}" opacity=".45"/>`}
+    if(m==="trem"){let d=`M${x+8} ${y}`; for(let z=x+12,u=1;z<ex-2;z+=5,u=-u)d+=`L${z} ${y+u*4}`; h+=tail(x,d)}
+    if(m==="vib"){let d=`M${x+8} ${y}`; for(let z=x+8;z<=ex-13;z+=10)d+=`q2.5 -6 5 0t5 0`; h+=tail(x,d)}
+    if(m==="acc"){defs+=`<filter id="tga" x="-60%" y="-120%" width="220%" height="340%"><feGaussianBlur stdDeviation="2.2"/><feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge></filter>`}
+    h+=m==="pm"?gem(x,{fill:"#3a1216",st:"#ef4a55",sw:1.6}):m==="fm"?gem(x,{fill:"rgba(0,0,0,.4)",st:col,sw:1.6}):m==="acc"?gem(x,{st:"#fff",sw:1.8,glow:"a"}):gem(x);
+    if(m==="pm"||m==="fm")h+=`<path d="M${x-5} ${y-4}l10 8m0-8l-10 8" stroke="${m==="pm"?"#ef4a55":"#fff"}" stroke-width="1.8" stroke-linecap="round"/>`;
+    if(m==="harm")h+=`<circle cx="${x}" cy="${y}" r="3.4" fill="none" stroke="#fff" stroke-width="1.5"/><circle cx="${x}" cy="${y}" r="1.2" fill="#fff"/>`;
+    if(m==="ph")h+=`<ellipse cx="${x}" cy="${y}" rx="7" ry="3.2" fill="none" stroke="#f5c84a" stroke-width="1.6"/>`;
+    if(m==="ho"||m==="po"){h+=m==="ho"?`<path d="M${x-4} ${y-15}h8l-4 8z" fill="#fff" stroke="#0d0f14" stroke-width=".6"/>`:`<path d="M${x-4} ${y-7}h8l-4 -8z" fill="#fff" stroke="#0d0f14" stroke-width=".6"/>`;   // ▼ hammer-on, ▲ pull-off
+      const px=cx(T.n[ni-1][0]); h+=`<path d="M${px+11} ${y+8}Q${(px+x)/2} ${y+15} ${x-11} ${y+8}" fill="none" stroke="#fff" stroke-width="1" opacity=".7"/>`}
+    if(m==="bend")for(let c=0;c<k;c++){const yy=y+up*(10+c*5); h+=`<path d="M${x-5} ${yy-up*2.5}L${x} ${yy+up*2.5}L${x+5} ${yy-up*2.5}" fill="none" stroke="#fff" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>`}   // one chevron per half step
+    if(m==="tap")h+=`<path d="M${x} ${y-7}l-5 -6h3v-6h4v6h3z" fill="#b277ff" stroke="#fff" stroke-width=".7"/>`});
+  return `<svg class="lgrs" viewBox="0 0 ${ex+6} ${y0+rh*6+16}" role="img" aria-label="${esc(t)}, Rocksmith view${inv?", inverted":""}">${defs?`<defs>${defs}</defs>`:""}${h}</svg>`}
+// tab: six lines (high e on top), the notes on the G string, and any marking above
+function techTabSvg(t){const T=TECH[t]; if(!T)return ""; const W=150,x0=14,y0=22,gy=9, ys=i=>y0+(5-i)*gy; let h="";
+  ["E","A","D","G","B","e"].forEach((s,i)=>{h+=`<text x="${x0-5}" y="${ys(i)+3}" text-anchor="end" font-size="7.5" font-weight="700" fill="#8c94a8">${s}</text><rect x="${x0}" y="${ys(i)-.5}" width="${W-x0-6}" height="1" fill="#566079"/>`});
+  const txt=T.tab[0], y=ys(3), x=x0+18;
+  h+=`<rect x="${x-3}" y="${y-5}" width="${txt.length*6.2+6}" height="10" fill="#0e1118"/><text x="${x}" y="${y+3.3}" font-size="9.5" font-weight="800" fill="${CH_COL[3]}" font-family="var(--f-mono)">${esc(txt)}</text>`;
+  if(T.above)h+=`<text x="${x}" y="${y0-9}" font-size="8.5" font-weight="800" fill="#e7eaf2">${esc(T.above)}</text>`;
+  return `<svg class="lgtab" viewBox="0 0 ${W} ${y0+gy*5+10}" role="img" aria-label="${esc(t)}, tab">${h}</svg>`}
 // which picture the chord cards show (remembered on this device): the chord chart, the Rocksmith 2014 view, or it inverted
 var LG_VIEW=(()=>{try{const v=localStorage.getItem("rsc-lgview"); return ["chart","rs","rsinv"].includes(v)?v:"chart"}catch(e){return "chart"}})();
 document.addEventListener("click",e=>{const b=e.target.closest("[data-lgview]"); if(!b)return; LG_VIEW=b.dataset.lgview; try{localStorage.setItem("rsc-lgview",LG_VIEW)}catch(e){} acctDraw()});
-function chordPics(list,isOn,keyOf){const cards=list.filter(c=>CHORD_SHAPES[c]).map(c=>{const k=keyOf&&keyOf(c); return `<figure class="lgfig${isOn(c)?" on":""}"${k?` data-learnfig="${esc(k)}" role="checkbox" aria-checked="${isOn(c)}" tabindex="0" title="${isOn(c)?`Click to uncheck ${esc(c)}`:`Click when you can play ${esc(c)}`}"`:""}><figcaption><span class="lgfsp"></span><span class="lgfn">${esc(c)}${isOn(c)?" ✓":""}</span>${ACCT.admin?`<button type="button" class="lgedit" data-chedit="${esc(c)}" title="Edit the ${esc(c)} chord (admins)" aria-label="Edit ${esc(c)} chord">✎</button>`:`<span class="lgfsp"></span>`}</figcaption><div class="lgpair">${LG_VIEW==="chart"?chordBoxSvg(c):chordRsSvg(c,null,LG_VIEW==="rsinv")}</div></figure>`}).join("");
+function chordPics(list,isOn,keyOf){const cards=list.filter(c=>CHORD_SHAPES[c]||TECH[c]).map(c=>{const tq=!!TECH[c];const k=keyOf&&keyOf(c); return `<figure class="lgfig${isOn(c)?" on":""}"${k?` data-learnfig="${esc(k)}" role="checkbox" aria-checked="${isOn(c)}" tabindex="0" title="${tq?esc(TECH[c].tip)+"\n\n":""}${isOn(c)?`Click to uncheck ${esc(c)}`:`Click when you can play ${esc(c)}`}"`:""}><figcaption><span class="lgfsp"></span><span class="lgfn">${esc(c)}${isOn(c)?" ✓":""}</span>${ACCT.admin&&!tq?`<button type="button" class="lgedit" data-chedit="${esc(c)}" title="Edit the ${esc(c)} chord (admins)" aria-label="Edit ${esc(c)} chord">✎</button>`:`<span class="lgfsp"></span>`}</figcaption><div class="lgpair">${tq?(LG_VIEW==="chart"?techTabSvg(c):techRsSvg(c,LG_VIEW==="rsinv")):LG_VIEW==="chart"?chordBoxSvg(c):chordRsSvg(c,null,LG_VIEW==="rsinv")}</div></figure>`}).join("");
   return cards?`<div class="lgpics">${cards}</div>`:""}
 // admins: edit a chord in the chord diagram maker (a dialog over the profile). One fretted note per string; strings with no note are muted (X) or open (O).
 const CHED={};
@@ -8681,9 +8736,10 @@ document.addEventListener("keydown",e=>{const x=e.target.closest("#chdlg .chdot 
   if((e.key==="Backspace"||e.key==="Delete")&&!x.value){e.preventDefault(); CHED.f[i]=-1; CHED.n[i]="-"; chEdDraw()} else if(e.key==="Enter"){e.preventDefault(); x.blur()}});
 function learnLoad(){if(ACCT.learn&&ACCT.user&&ACCT.learn.uid!==ACCT.user.id)ACCT.learn=null; if(ACCT.learn||ACCT.learnBusy||!ACCT.user)return; const uid=ACCT.user.id; ACCT.learnBusy=1;
   ACCT.sb.from("learn_goals").select("item").then(({data,error})=>{ACCT.learnBusy=0; ACCT.learn=error?{uid,err:1,s:new Set()}:{uid,s:new Set((data||[]).map(r=>r.item))};
-    // F moved from the major chords to barre chords (which used to be a single checkbox): carry either tick over to it
-    try{const S=ACCT.learn.s, old=["cowboy/maj/F","cowboy/barre"].filter(k=>S.has(k)); if(old.length){S.add("cowboy/barre/F"); old.forEach(k=>S.delete(k));
-      ACCT.sb.from("learn_goals").upsert({item:"cowboy/barre/F"},{onConflict:"user_id,item",ignoreDuplicates:true}).then(()=>ACCT.sb.from("learn_goals").delete().eq("user_id",uid).in("item",old)).then(()=>{},()=>{})}}catch(e){}
+    // F moved from the major chords to barre chords, and barre chords and pinch harmonic were single checkboxes: carry old ticks over
+    try{const S=ACCT.learn.s;
+      [[["cowboy/maj/F","cowboy/barre"],"cowboy/barre/F"],[["cowboy/pinch"],"cowboy/pinch/Pinch harmonic"]].forEach(([from,to])=>{const old=from.filter(k=>S.has(k)); if(!old.length)return; S.add(to); old.forEach(k=>S.delete(k));
+        ACCT.sb.from("learn_goals").upsert({item:to},{onConflict:"user_id,item",ignoreDuplicates:true}).then(()=>ACCT.sb.from("learn_goals").delete().eq("user_id",uid).in("item",old)).then(()=>{},()=>{})})}catch(e){}
     if(ACCT.tab==="learn")acctDraw()})}
 function learnSection(){if(!ACCT.claim||ACCT.claim.status!=="approved")return ""; learnLoad(); chordFixLoad(); const L=ACCT.learn&&ACCT.user&&ACCT.learn.uid===ACCT.user.id?ACCT.learn:null;
   const box=(k,lab,cls)=>`<label class="lgck${cls||""}"><input type="checkbox" data-learn="${esc(k)}"${L&&L.s.has(k)?" checked":""}${L&&!L.err?"":" disabled"}><span>${esc(lab)}</span></label>`;
@@ -8691,7 +8747,7 @@ function learnSection(){if(!ACCT.claim||ACCT.claim.status!=="approved")return ""
     return `<div class="lgset"><h4>${esc(S.t)}<small>${n} of ${keys.length}${n===keys.length?" · done 🤘":""}</small></h4><ul>${S.g.map(g=>{
       if(!g.i)return `<li>${box(`${S.id}/${g.id}`,g.t)}</li>`;
       const all=L&&g.i.every(c=>L.s.has(`${S.id}/${g.id}/${c}`));
-      return `<li><div class="lgg${all?" done":""}">${all?"✓ ":""}${esc(g.t)}:</div>${(()=>{const np=g.i.filter(c=>!CHORD_SHAPES[c]); return np.length?`<div class="lgchips">${np.map(c=>box(`${S.id}/${g.id}/${c}`,c," chip")).join("")}</div>`:""})()}${chordPics(g.i,c=>!!(L&&L.s.has(`${S.id}/${g.id}/${c}`)),c=>L&&!L.err?`${S.id}/${g.id}/${c}`:null)}</li>`}).join("")}</ul></div>`}).join("");
+      return `<li><div class="lgg${all?" done":""}">${all?"✓ ":""}${esc(g.t)}:</div>${(()=>{const np=g.i.filter(c=>!CHORD_SHAPES[c]&&!TECH[c]); return np.length?`<div class="lgchips">${np.map(c=>box(`${S.id}/${g.id}/${c}`,c," chip")).join("")}</div>`:""})()}${chordPics(g.i,c=>!!(L&&L.s.has(`${S.id}/${g.id}/${c}`)),c=>L&&!L.err?`${S.id}/${g.id}/${c}`:null)}</li>`}).join("")}</ul></div>`}).join("");
   return `<div class="acctsec lgsec"><p class="dim">Only you can see this. Check things off as you learn them.${L?(L.err?" Couldn't load your targets right now.":""):" Loading…"}</p><div class="seg lgview" role="radiogroup" aria-label="Chord pictures">${[["chart","Chord diagram"],["rs","Rocksmith 2014"],["rsinv","Rocksmith 2014 inverted"]].map(([k,t])=>`<button type="button" class="s-all" data-lgview="${k}" aria-pressed="${LG_VIEW===k}">${t}</button>`).join("")}</div>${body}</div>`}
 async function learnSet(k,on){if(!ACCT.learn||!ACCT.user)return false;
   const {error}=on?await ACCT.sb.from("learn_goals").insert({item:k}):await ACCT.sb.from("learn_goals").delete().match({user_id:ACCT.user.id,item:k});
