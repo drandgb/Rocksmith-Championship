@@ -1,4 +1,4 @@
--- Learning targets: the ones each player has checked off in their profile. Only you can see or change your own.
+-- Learning goals: the ones each player has checked off in the Learning goals tab of their profile. Only you can see or change your own.
 -- Run once in the Supabase SQL editor.
 create table if not exists public.learn_goals (
   user_id  uuid not null default auth.uid() references auth.users on delete cascade,
