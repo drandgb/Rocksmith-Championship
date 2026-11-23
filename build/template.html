@@ -2134,7 +2134,7 @@ footer{color:var(--dim);font-size:.78rem;border-top:1px solid var(--line);paddin
   </section>
 
   <section class="panel">
-    <div class="panel-head"><h2>Most replayed songs</h2><span class="sub">Top 20 · songs brought back the most times · a multi-week God challenge counts once</span></div>
+    <div class="panel-head"><h2>Most replayed songs</h2><span class="sub">Top 20 · songs brought back the most times · a multi-week god challenge counts once</span></div>
     <div class="lvfilter" id="rl-f"></div>
     <ol class="songlist" id="replaylist"></ol>
   </section>
@@ -3011,10 +3011,10 @@ function medalsFor(p,bitsOv){
      iRow+=(`<span class="medal-m wm" style="--ec:${col};cursor:pointer" data-all="${ws.join(",")}" data-hl="${ws.join(",")}" data-tip="${lab} · weeks with at least ${what}, any level · ${ws.length} week${ws.length===1?"":"s"} (scoreboards since Week ${SB_W[0]}) · click to highlight">${clefSvg(k)}<b>${ws.length}</b></span>`)});}
   let cRow="";
   {const cw=completionistWeeks(n,doneM);
-   if(cw.length)cRow=(`<span class="medal-m wm" style="--ec:#f5c84a;cursor:pointer" data-all="${cw.join(",")}" data-hl="${cw.join(",")}" data-tip="Catch ‘em all · posted a score on every challenge of the week, every song on every path (a multi-week God challenge already played earlier in its run counts) · ${cw.length} week${cw.length===1?"":"s"} · click to highlight">${completionistSvg()}<b>${cw.length}</b></span>`);
+   if(cw.length)cRow=(`<span class="medal-m wm" style="--ec:#f5c84a;cursor:pointer" data-all="${cw.join(",")}" data-hl="${cw.join(",")}" data-tip="Catch ‘em all · posted a score on every challenge of the week, every song on every path (a multi-week god challenge already played earlier in its run counts) · ${cw.length} week${cw.length===1?"":"s"} · click to highlight">${completionistSvg()}<b>${cw.length}</b></span>`);
    // Lead, Rhythm and Bass completionist: every challenge on that one path (a full Catch ‘em all week counts for all three)
    [0,1,2].forEach(pp=>{const pw=completionistWeeks(n,doneM,pp); if(!pw.length)return; const col=COMP_PATH[pp][1];
-     cRow+=`<span class="medal-m wm" style="--ec:${col};cursor:pointer" data-all="${pw.join(",")}" data-hl="${pw.join(",")}" data-tip="${PATHS[pp]} completionist · posted a score on every ${PATHS[pp]} challenge of the week, every class (a multi-week God challenge already played earlier in its run counts) · ${pw.length} week${pw.length===1?"":"s"} · click to highlight">${completionistSvg(pp)}<b>${pw.length}</b></span>`});}
+     cRow+=`<span class="medal-m wm" style="--ec:${col};cursor:pointer" data-all="${pw.join(",")}" data-hl="${pw.join(",")}" data-tip="${PATHS[pp]} completionist · posted a score on every ${PATHS[pp]} challenge of the week, every class (a multi-week god challenge already played earlier in its run counts) · ${pw.length} week${pw.length===1?"":"s"} · click to highlight">${completionistSvg(pp)}<b>${pw.length}</b></span>`});}
   {const hw=hbfsWins(n,doneM); if(hw.length){const ws=hw.map(x=>x.w);
     cRow+=uniqIds(`<span class="medal-m wm" style="--ec:#ffa13a;cursor:pointer" data-all="${ws.join(",")}" data-hl="${[...new Set(ws)].join(",")}" data-tip="Harder, Better, Faster, Stronger · beat your own score from the last time you played the same challenge (a higher %, then a longer note streak, then a higher score) · ${hw.length} time${hw.length===1?"":"s"} · click to highlight${esc("\n\n"+hw.slice().sort((a,b)=>b.w-a.w).slice(0,12).map(hbfsLine).join("\n")+(hw.length>12?`\n… and ${hw.length-12} more`:""))}">${hbfsSvg()}<b>${hw.length}</b></span>`,["hbfg"])}}
   {const sw=sgaWins(n,doneM); if(sw.length){const ws=sw.map(x=>x.w);
