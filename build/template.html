@@ -8661,8 +8661,8 @@ const TECH={
   "Slide up":{tip:"Pick the note, then slide your finger up the string to the higher fret without lifting it"},
   "Slide down":{tip:"Pick the note, then slide your finger down the string to the lower fret without lifting it"},
   "Strumming":{tip:"Strum the chord with downstrokes (⊓) and upstrokes (V)"},
-  "Hammer-on":{fr:5,n:[[5,""],[7,"ho"]],tab:["5h7"],tip:"Fret and pick the first note, then hit the next fret hard enough with another finger to make it sound without picking"},
-  "Pull-off":{fr:5,n:[[7,""],[5,"po"]],tab:["7p5"],tip:"Hold both frets and pick, then pull the top finger off so the lower note rings without picking"},
+  "Hammer-on":{fr:5,n:[[7,"ho"]],tab:["5h7"],tip:"Fret and pick the first note, then hit the next fret hard enough with another finger to make it sound without picking"},
+  "Pull-off":{fr:5,n:[[5,"po"]],tab:["7p5"],tip:"Hold both frets and pick, then pull the top finger off so the lower note rings without picking"},
   "Tremolo":{fr:5,n:[[6,"trem"]],tab:["6"],above:"T.P.",tip:"Pick the note again and again, as fast as you can"},
   "Vibrato":{fr:5,n:[[6,"vib"]],tab:["6~~~"],tip:"Wiggle the fretting finger to make the note waver"},
   "Sustain":{fr:5,n:[[6,"sus"]],tab:["6———"],above:"let ring",tip:"Let the note or chord ring for its full length"},
@@ -8693,8 +8693,7 @@ function techRsSvg(t,inv){const T=TECH[t]; if(!T)return ""; if(!T.n)return `<svg
     h+=m==="harm"||m==="ph"||m==="pre"?"":m==="pm"?gem(x,{fill:"#3a1216",st:"#ef4a55",sw:1.6}):m==="fm"?gem(x,{fill:"rgba(0,0,0,.4)",st:col,sw:1.6}):m==="acc"?gem(x,{st:"#fff",sw:1.8,glow:"a"}):gem(x);
     if(m==="pm"||m==="fm")h+=`<path d="M${x-5} ${y-4}l10 8m0-8l-10 8" stroke="${m==="pm"?"#ef4a55":"#fff"}" stroke-width="1.8" stroke-linecap="round"/>`;
     if(m==="harm"||m==="ph"){const c=m==="harm"?col:"#fff"; h+=`<circle cx="${x}" cy="${y}" r="6" fill="#0d0f14" stroke="${c}" stroke-width="2"/><circle cx="${x}" cy="${y}" r="2" fill="${c}"/>`}   // natural: string color · pinch: white
-    if(m==="ho"||m==="po"){h+=m==="ho"?`<path d="M${x-4} ${y-15}h8l-4 8z" fill="#fff" stroke="#0d0f14" stroke-width=".6"/>`:`<path d="M${x-4} ${y-7}h8l-4 -8z" fill="#fff" stroke="#0d0f14" stroke-width=".6"/>`;   // ▼ hammer-on, ▲ pull-off
-      const px=cx(T.n[ni-1][0]); h+=`<path d="M${px+11} ${y+8}Q${(px+x)/2} ${y+15} ${x-11} ${y+8}" fill="none" stroke="#fff" stroke-width="1" opacity=".7"/>`}
+    if(m==="ho"||m==="po")h+=m==="ho"?`<path d="M${x-3.6} ${y-3}h7.2l-3.6 6z" fill="#fff"/>`:`<path d="M${x-3.6} ${y+3}h7.2l-3.6 -6z" fill="#fff"/>`;   // one gem with the triangle inside: ▼ hammer-on, ▲ pull-off
     if(m==="bend")for(let c=0;c<k;c++){const yy=y+up*(10+c*5); h+=`<path d="M${x-5} ${yy-up*2.5}L${x} ${yy+up*2.5}L${x+5} ${yy-up*2.5}" fill="none" stroke="#fff" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>`}   // one chevron per half step
     if(m==="tap")h+=`<path d="M${x} ${y-7}l-5 -6h3v-6h4v6h3z" fill="#b277ff" stroke="#fff" stroke-width=".7"/>`});
   return `<svg class="lgrs" viewBox="0 0 ${ex+6} ${y0+rh*6+16}" role="img" aria-label="${esc(t)}, Rocksmith view${inv?", inverted":""}">${defs?`<defs>${defs}</defs>`:""}${h}</svg>`}
