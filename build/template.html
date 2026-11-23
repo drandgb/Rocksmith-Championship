@@ -2075,6 +2075,7 @@ button.chcell:hover::after{content:"";width:60%;aspect-ratio:1;border-radius:50%
     <div class="wpathbar rkpathin"><div class="seg" role="radiogroup" aria-label="Show" id="lvmode"><button type="button" data-lvm="m6" class="s-all" aria-pressed="true">Last 6 months</button><button type="button" data-lvm="year" class="s-all" aria-pressed="false">By year</button></div><label class="shostpick" id="lvyrl" hidden><span>Year</span><select id="lvyear" aria-label="Year"></select></label></div>
   </section>
   <div class="lvextra" id="lv-extra"></div>
+  <div class="tswk lvwk" id="lv-wk"></div>
   <div id="lv-body" class="rkbody"></div>
   <section class="panel lvscale" id="lv-scale" hidden></section>
   </div>
@@ -4620,15 +4621,30 @@ function renderLevel(){
   const val=p=>lvMode==="now"?p.xp:lvMode==="m6"?p.m6:p.y[lvYear];
   const what=lvMode==="now"?"now":lvMode==="m6"?"over the last 6 months":`in ${lvYl(lvYear)}`;
   try{lvExtra(val,what,years,D)}catch(e){console.error(e)}
-  $("lv-body").innerHTML=D.paths.map((L,pi)=>{const rows=L.filter(p=>val(p)).sort((a,b)=>val(b)-val(a)); const max=Math.max(90,...rows.map(val));
+  // the slider over the three tables (Last 6 months): the levels as they were after any week
+  const lvW=lvWeekSlider(), DD=lvW.at?lvCalcAtC(lvW.at):D, yAt=lvW.at?lvYearOf(lvW.at):0, ys=lvW.at?years.filter(y=>+y<yAt):years;
+  const what2=lvW.at?`over the 6 months to Week ${lvW.at}`:what;
+  $("lv-body").innerHTML=DD.paths.map((L,pi)=>{const rows=L.filter(p=>val(p)).sort((a,b)=>val(b)-val(a)); const max=Math.max(90,...rows.map(val));
     let rk=0; const body=rows.map((p,i)=>{const v=val(p); if(i===0||v<val(rows[i-1]))rk=i+1; const b=lvBand(v), tr=lvMode==="now"&&p.m6?v-p.m6:null;
-      return `<li class="${rk<=3?"p"+rk:""}" data-tip="${esc(lvTip(p,years))}"><span class="rr">${rk}</span><span class="nm" data-player="${esc(p.n)}">${esc(p.n)}</span><span class="lvbar" style="--tc:${TIER_C[b[1]]}"><i style="width:${(v/max*100).toFixed(1)}%"></i></span><b class="lvv" style="color:${TIER_C[b[1]]}">${v.toFixed(1)}</b><span class="lvtr ${tr==null||Math.abs(tr)<.5?"":tr>0?"up":"down"}">${tr==null||Math.abs(tr)<.5?"":tr>0?"▲":"▼"}</span><span class="lvspw" style="color:${TIER_C[b[1]]}">${lvSpark(p,years)}</span></li>`}).join("");
-    return `<section class="panel rkpath" style="--pc:${PATH_C[pi]}"><div class="panel-head"><h2>${PATHS[pi]}</h2><span class="sub">${rows.length} player${rows.length===1?"":"s"} ${what}</span></div>${rows.length?`<ol class="lvlist">${body}</ol>`:`<div class="empty">Nobody ${what}</div>`}</section>`}).join("");
+      return `<li class="${rk<=3?"p"+rk:""}" data-tip="${esc(lvTip(p,ys))}"><span class="rr">${rk}</span><span class="nm" data-player="${esc(p.n)}">${esc(p.n)}</span><span class="lvbar" style="--tc:${TIER_C[b[1]]}"><i style="width:${(v/max*100).toFixed(1)}%"></i></span><b class="lvv" style="color:${TIER_C[b[1]]}">${v.toFixed(1)}</b><span class="lvtr ${tr==null||Math.abs(tr)<.5?"":tr>0?"up":"down"}">${tr==null||Math.abs(tr)<.5?"":tr>0?"▲":"▼"}</span><span class="lvspw" style="color:${TIER_C[b[1]]}">${lvSpark(p,ys)}</span></li>`}).join("");
+    return `<section class="panel rkpath" style="--pc:${PATH_C[pi]}"><div class="panel-head"><h2>${PATHS[pi]}</h2><span class="sub">${rows.length} player${rows.length===1?"":"s"} ${what2}</span></div>${rows.length?`<ol class="lvlist">${body}</ol>`:`<div class="empty">Nobody ${what2}</div>`}</section>`}).join("");
   if(lvMode==="year"&&lvIsEst(lvYear))$("lv-body").insertAdjacentHTML("afterbegin",`<p class="lvestn">${lvAst()} <span data-tip="${esc("* "+LV_EST_NOTE)}">${esc(LV_EST_SHORT)}</span></p>`);
   try{const h=levelScaleSection(); $("lv-scale").innerHTML=h; $("lv-scale").hidden=!h}catch(e){console.error(e)}
   lvHl();
 }
 function lvHl(){try{plHl()}catch(e){console.error(e)}}
+// Level tab slider (Last 6 months only): the week the three tables show; null = now
+var LV_AT=null;
+const lvCalcAtC=w=>(lvCalcAtC.m=lvCalcAtC.m||{})[w]||(lvCalcAtC.m[w]=lvCalcAt(w));
+function lvWeekSlider(){const box=$("lv-wk"); if(!box)return {}; const show=lvMode==="m6"; box.hidden=!show; if(!show)return {};
+  const ws=Object.keys(SB.weeks).map(Number).filter(w=>w<=DATA_WEEK), wMax=DATA_WEEK, wMin=Math.min(wMax,Math.min(...ws)+25), at=LV_AT&&LV_AT>=wMin&&LV_AT<wMax?LV_AT:null;
+  const dt=w=>{const x=WEEKS.find(y=>y[0]===w); return x?" · "+fmt(x[1]):""};
+  if(!box.querySelector("input"))box.innerHTML=`<input type="range" id="lv-wkr" step="1" aria-label="Week shown"><div class="tswkl"><span id="lv-wkt"></span><button type="button" class="clear" id="lv-wknow" hidden>Show now</button></div>`;
+  const inp=box.querySelector("input"); inp.min=wMin; inp.max=wMax; if(document.activeElement!==inp)inp.value=at||wMax;
+  $("lv-wkt").innerHTML=at?`<b>After Week ${at}</b>${dt(at)}`:`Now · after Week ${wMax}${dt(wMax)}`; $("lv-wknow").hidden=!at;
+  return {at}}
+document.addEventListener("input",e=>{if(e.target.id!=="lv-wkr")return; const v=+e.target.value; LV_AT=v>=+e.target.max?null:v; renderLevel()});
+document.addEventListener("click",e=>{if(!e.target.closest("#lv-wknow"))return; LV_AT=null; renderLevel()});
 $("lvmode").addEventListener("click",e=>{const b=e.target.closest("[data-lvm]"); if(!b)return; lvMode=b.dataset.lvm; renderLevel()});
 $("lvyear").addEventListener("change",e=>{lvYear=e.target.value; renderLevel()});
 // hover text on the Level tab (player rows, the weeks pill, the * on estimated years)
