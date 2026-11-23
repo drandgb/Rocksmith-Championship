@@ -8664,9 +8664,9 @@ const TECH={
   "Full step bend":{fr:5,n:[[6,"bend",2]],tab:["6b8"],tip:"Bend the string up a whole step (two frets' worth)"},
   "1½ step bend":{fr:5,n:[[6,"bend",3]],tab:["6b9"],tip:"Bend the string up a step and a half (three frets' worth)"},
   "Pre-bend":{fr:5,n:[[6,"pre",2]],tip:"Bend the string up before you pick it, then pick the bent note"},
-  "Slide up":{tip:"Pick the note, then slide your finger up the string to the higher fret without lifting it"},
-  "Slide down":{tip:"Pick the note, then slide your finger down the string to the lower fret without lifting it"},
-  "Strumming":{tip:"Strum the chord with downstrokes (⊓) and upstrokes (V)"},
+  "Slide up":{fr:5,s:2,n:[[5,"slu",8]],tip:"Pick the note, then slide your finger up the string to the higher fret without lifting it"},
+  "Slide down":{fr:5,n:[[8,"sld",5]],tip:"Pick the note, then slide your finger down the string to the lower fret without lifting it"},
+  "Strumming":{none:1,tip:"Strum the chord with downstrokes (⊓) and upstrokes (V)"},
   "Hammer-on":{fr:5,n:[[7,"ho"]],tab:["5h7"],tip:"Fret and pick the first note, then hit the next fret hard enough with another finger to make it sound without picking"},
   "Pull-off":{fr:5,n:[[5,"po"]],tab:["7p5"],tip:"Hold both frets and pick, then pull the top finger off so the lower note rings without picking"},
   "Tremolo":{fr:5,n:[[6,"trem"]],tab:["6"],above:"T.P.",tip:"Pick the note again and again, as fast as you can"},
@@ -8679,7 +8679,7 @@ const TECH={
   "Accent":{fr:5,n:[[6,"acc"]],tab:["6"],above:">",tip:"Play the note louder than the ones around it"},
   "Tapping":{fr:10,n:[[12,"tap"]],tab:["12"],above:"T",tip:"Tap the fret with a finger of your picking hand"}};
 // the Rocksmith 2014 view: the same lane as the chord pictures (red low E on top; inverted: purple high e on top)
-function techRsSvg(t,inv){const T=TECH[t]; if(!T)return ""; if(!T.n)return `<svg class="lgrs" viewBox="0 0 148 88" role="img" aria-label="${esc(t)}: no Rocksmith picture"></svg>`;   /* (left blank) */ const fw=30,rh=11,pl=22,y0=6,F=4,ex=pl+F*fw, si=3, row=i=>y0+((inv?5-i:i)+.5)*rh, cx=f=>pl+(f-T.fr+.5)*fw, col=CH_COL[si];
+function techRsSvg(t,inv){const T=TECH[t]; if(!T)return ""; if(!T.n)return `<svg class="lgrs" viewBox="0 0 148 88" role="img" aria-label="${esc(t)}: no Rocksmith picture">${T.none?`<text x="74" y="47" text-anchor="middle" font-size="9.5" font-weight="700" fill="#8c94a8">Notation doesn't exist in-game</text>`:""}</svg>`;   /* (left blank, or a note when the game has no notation for it) */ const fw=30,rh=11,pl=22,y0=6,F=4,ex=pl+F*fw, si=T.s!=null?T.s:3, row=i=>y0+((inv?5-i:i)+.5)*rh, cx=f=>pl+(f-T.fr+.5)*fw, col=CH_COL[si];
   let h=`<rect x="${pl}" y="${y0}" width="${F*fw}" height="${rh*6}" fill="rgba(0,0,0,.35)"/>`;
   for(let j=0;j<=F;j++)h+=`<rect x="${pl+j*fw-.7}" y="${y0-2}" width="1.4" height="${rh*6+4}" fill="#7d8aa0"/>`;
   for(let j=0;j<F;j++)h+=`<text x="${pl+(j+.5)*fw}" y="${y0+rh*6+12}" text-anchor="middle" font-size="9" font-weight="700" fill="#f5c84a">${T.fr+j}</text>`;
@@ -8696,6 +8696,7 @@ function techRsSvg(t,inv){const T=TECH[t]; if(!T)return ""; if(!T.n)return `<svg
     // pre-bend: the G string's gem already pushed up to where the A string (yellow) sits, with a full bend's two chevrons above it
     if(m==="pre"){const yp=row(1); h+=`<rect x="${x-10}" y="${yp-5}" width="20" height="10" rx="2.5" fill="${col}" stroke="rgba(255,255,255,.85)" stroke-width="1"/>`;
       for(let c=0;c<k;c++){const yy=yp+up*(10+c*5); h+=`<path d="M${x-5} ${yy-up*2.5}L${x} ${yy+up*2.5}L${x+5} ${yy-up*2.5}" fill="none" stroke="#fff" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>`}}
+    if(m==="slu"||m==="sld"){const tx=cx(k), dir=tx>x?1:-1, lift=up*9; h+=`<path d="M${x+dir*9} ${y-1.5}C${x+dir*22} ${y+lift} ${tx-dir*8} ${y+lift*1.1} ${tx+dir*6} ${y+lift*1.15}" fill="none" stroke="${col}" stroke-width="3" stroke-linecap="round" opacity=".85"/><path d="M${x+dir*9} ${y-1.5}C${x+dir*22} ${y+lift} ${tx-dir*8} ${y+lift*1.1} ${tx+dir*6} ${y+lift*1.15}" fill="none" stroke="#fff" stroke-width=".8" stroke-linecap="round" opacity=".7"/>`}   // slide: a tail curving off toward the fret it ends on
     h+=m==="pre"?"":m==="harm"||m==="ph"?gem(x,{fill:"#1a0f10",st:col,sw:1.6}):m==="pm"?gem(x,{fill:"#3a1216",st:"#ef4a55",sw:1.6}):m==="fm"?gem(x,{fill:"rgba(0,0,0,.4)",st:col,sw:1.6}):m==="acc"?gem(x,{st:"#fff",sw:1.8,glow:"a"}):gem(x);
     if(m==="pm"||m==="fm")h+=`<path d="M${x-5} ${y-4}l10 8m0-8l-10 8" stroke="${m==="pm"?"#ef4a55":"#fff"}" stroke-width="1.8" stroke-linecap="round"/>`;
     // harmonics sit on a gem like the game's: natural is a ring with a dot in the middle, pinch is a flat disc
