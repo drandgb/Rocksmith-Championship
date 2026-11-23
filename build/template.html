@@ -476,6 +476,7 @@ button.clear:hover{border-color:var(--accent)}
 .seg button:last-child{border-right:0}
 .tsabout{margin:6px auto 2px;font-size:.88rem;max-width:880px;text-align:center}
 .tswk{max-width:560px;margin:12px auto 4px;padding:0 4px}.tswk input{width:100%;accent-color:var(--s-orange);margin:0;padding:0;height:22px;cursor:pointer}
+.tswk.lvwk{max-width:none;width:100%;padding:0;box-sizing:border-box}
 .tswk .tswkl{display:flex;justify-content:center;align-items:center;gap:10px;font:600 .8rem var(--f-mono);color:var(--muted);min-height:26px}.tswk .tswkl b{color:var(--fg)}
 
 #view-skill .wpathbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
@@ -4639,9 +4640,13 @@ function renderLevel(){
 function lvHl(){try{plHl()}catch(e){console.error(e)}}
 // Level tab slider (Last 6 months only): the week the three tables show; null = now
 var LV_AT=null;
+// the first week with a level to show (a rated score in at least 3 weeks): the slider starts there
+function lvFirstWeek(){if(lvFirstWeek.w)return lvFirstWeek.w; const ws=Object.keys(SB.weeks).map(Number).filter(w=>w<=DATA_WEEK).sort((a,b)=>a-b);
+  const r0=ws.find(w=>(SB.weeks[w]||[]).some(c=>!c[7]&&c[4]!=null&&c[3]&&!/^n\/a$/i.test(c[3])&&c[6].some(e=>e[1]!=null)))||ws[0];
+  let w=r0; while(w<DATA_WEEK&&!lvCalcAtC(w).paths.some(L=>L.some(p=>p.m6)))w++; return lvFirstWeek.w=w}
 const lvCalcAtC=w=>(lvCalcAtC.m=lvCalcAtC.m||{})[w]||(lvCalcAtC.m[w]=lvCalcAt(w));
 function lvWeekSlider(){const box=$("lv-wk"); if(!box)return {}; const show=lvMode==="m6"; box.hidden=!show; if(!show)return {};
-  const ws=Object.keys(SB.weeks).map(Number).filter(w=>w<=DATA_WEEK), wMax=DATA_WEEK, wMin=Math.min(wMax,Math.min(...ws)+25), at=LV_AT&&LV_AT>=wMin&&LV_AT<wMax?LV_AT:null;
+  const wMax=DATA_WEEK, wMin=lvFirstWeek(), at=LV_AT&&LV_AT>=wMin&&LV_AT<wMax?LV_AT:null;
   const dt=w=>{const x=WEEKS.find(y=>y[0]===w); return x?" · "+fmt(x[1]):""};
   if(!box.querySelector("input"))box.innerHTML=`<input type="range" id="lv-wkr" step="1" aria-label="Week shown"><div class="tswkl"><span id="lv-wkt"></span><button type="button" class="clear" id="lv-wknow" hidden>Show now</button></div>`;
   const inp=box.querySelector("input"); inp.min=wMin; inp.max=wMax; if(document.activeElement!==inp)inp.value=at||wMax;
