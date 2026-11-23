@@ -14,7 +14,7 @@
 # If the claims can't be read, nothing is changed.
 import html as htmlmod, json, os, re, shutil, sys, urllib.parse, urllib.request
 
-BANNER_VERSION = 59  # bump to redraw every banner after a design change
+BANNER_VERSION = 60  # bump to redraw every banner after a design change
 
 root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 stamp_only = "--stamp" in sys.argv
