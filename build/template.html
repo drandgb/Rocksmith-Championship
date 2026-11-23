@@ -3119,13 +3119,14 @@ const ratedOf=c=>c[4]!=null&&c[4]!==""&&!isNaN(+c[4])?+c[4]:null;
 // Next rung: this week's challenges that would raise a player's skill rating if they score 95% on them
 function hrNext(n,pi){const k=String(n).toLowerCase(), tw=TW_MAX, E=(sbIx().ent[k]||[]);
   const s=hrSeries(n,pi); if(!s.length||s[s.length-1][1]==null)return null; if(!E.some(x=>x.c[0]===pi&&x.w>tw-8))return null;   // only for players active on this path
-  const rs=E.filter(x=>x.c[0]===pi&&x.w>tw-26&&x.pc>=95&&ratedOf(x.c)!=null).map(x=>ratedOf(x.c)).sort((a,b)=>b-a);
-  const r1=rs[0], r2=rs[1], base=r2!=null?r2:s[s.length-1][1], done=new Set(E.filter(x=>x.w===tw&&x.pc>=95).map(x=>x.c[0]+"|"+x.c[1]));
+  const rE=E.filter(x=>x.c[0]===pi&&x.w>tw-26&&x.pc>=95&&ratedOf(x.c)!=null).sort((a,b)=>ratedOf(b.c)-ratedOf(a.c)||b.w-a.w), rs=rE.map(x=>ratedOf(x.c));
+  const r1=rs[0], r2=rs[1], s1=rE[0], s2=rE[1], base=r2!=null?r2:s[s.length-1][1], done=new Set(E.filter(x=>x.w===tw&&x.pc>=95).map(x=>x.c[0]+"|"+x.c[1]));
   const opts=(SB.weeks[tw]||[]).filter(c=>c[0]===pi&&!c[7]&&c[3]&&!/^n\/a$/i.test(c[3])&&ratedOf(c)!=null&&!done.has(c[0]+"|"+c[1])).map(c=>{const x=ratedOf(c);
     const nv=r1==null?x:x>r1?r1:r2==null?Math.min(x,r1):x>r2?x:r2; return {c,x,nv,g:nv-base}}).filter(o=>o.g>.04).sort((a,b)=>a.x-b.x);
-  return opts.length?{base,r1,r2,opts}:null}
+  return opts.length?{base,r1,r2,s1,s2,opts}:null}
 // hover text for a Next rung row: why a 95% here moves the skill rating as far as it does
-function hrNextWhy(pi,N,o){const f=v=>(+v).toFixed(1), x=o.x, P=PATHS[pi], now=`Your ${P} Performance is ${f(N.base)}`+(N.r1!=null&&N.r2!=null?`: your best 95%+ songs in the last 6 months are rated ${f(N.r1)} and ${f(N.r2)}, and it's the second-best that counts.`:".");
+function hrNextWhy(pi,N,o){const f=v=>(+v).toFixed(1), x=o.x, P=PATHS[pi], sg=z=>z?` (${z.c[3]})`:"";   // the song behind each rating
+  const now=`Your ${P} Performance is ${f(N.base)}`+(N.r1!=null&&N.r2!=null?`: your best 95%+ songs in the last 6 months are rated ${f(N.r1)}${sg(N.s1)} and ${f(N.r2)}${sg(N.s2)}, and it's the second-best that counts.`:".");
   if(N.r1!=null&&x>N.r1)return `${now}\n\nA 95% on this ${f(x)} would become your best, and your old best (${f(N.r1)}) would become your second-best, so your Performance would go ${f(N.base)} → ${f(o.nv)}.\n\nIt takes two: a second 95% on a song rated above ${f(N.r1)} would lift it again (to ${f(x)} with another ${f(x)}).`;
   return N.r1!=null&&x===N.r1?`${now}\n\nA 95% on this ${f(x)} would give you two 95%s at ${f(x)}, so your second-best would be ${f(x)} and your Performance would go ${f(N.base)} → ${f(o.nv)}.`:`${now}\n\nA 95% on this ${f(x)} would become your second-best, so your Performance would go ${f(N.base)} → ${f(o.nv)}.`}
 function hrNextHtml(n,asSec){const rows=[0,1,2].map(pi=>{const N=hrNext(n,pi); if(!N)return "";
