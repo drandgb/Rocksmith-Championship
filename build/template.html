@@ -1702,6 +1702,7 @@ footer{color:var(--dim);font-size:.78rem;border-top:1px solid var(--line);paddin
 .lgsec .lgchips{display:flex;flex-wrap:wrap;gap:6px}.lgsec .lgck{display:inline-flex;align-items:center;gap:6px;cursor:pointer;font-size:.88rem}.lgsec .lgck.chip{border:1px solid var(--line);border-radius:999px;padding:3px 10px 3px 6px;font:600 .8rem var(--f-mono)}
 .lgsec .lgpics{display:flex;gap:8px;overflow-x:auto;padding:8px 2px 6px;margin-top:4px;scroll-snap-type:x proximity}
 .lgsec .lgfig{flex:none;margin:0;background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:6px 8px 8px;scroll-snap-align:start;font-family:var(--f-display)}
+.lgsec .lgview{margin:8px 0 4px;width:max-content;max-width:100%}.lgsec .lgview .s-all[aria-pressed="true"]{background:var(--accent)}@media (max-width:620px){.lgsec .lgview{width:100%}.lgsec .lgview button{flex:1 1 0;padding:7px 6px;font-size:.68rem;line-height:1.2}}.lgsec .lgfig .lgbox{width:104px}.lgsec .lgfig .lgrs{width:190px}.lgsec .lgpair{justify-content:center;min-width:190px}
 .lgsec .lgfig.on{border-color:color-mix(in srgb,var(--s-green) 55%,var(--line))}
 .lgsec .lgfig figcaption{font:700 .9rem var(--f-display);margin-bottom:2px}.lgsec .lgfig.on figcaption{color:var(--s-green)}
 .lgsec .lgpair{display:flex;align-items:center;gap:8px}.lgsec .lgbox{width:78px;height:auto;display:block}.lgsec .lgrs{width:140px;height:auto;display:block;background:linear-gradient(180deg,#0f3346,#070f16);border-radius:6px}
@@ -8622,15 +8623,18 @@ function chordBoxSvg(c,S){S=S||chordShape(c); if(!S)return ""; const gx=12,gy=22
     if(v>0){const y=y0+(v-S.start+.5)*gy; h+=`<circle cx="${x}" cy="${y}" r="5.6" fill="${CH_COL[i]}"/>${S.n[i]!=="-"?`<text x="${x}" y="${y+3.2}" text-anchor="middle" font-size="8.5" font-weight="800" fill="#0d0f14">${S.n[i]}</text>`:""}`}}
   return `<svg class="lgbox" viewBox="0 0 100 ${y0+gy*F+6}" role="img" aria-label="${esc(c)} chord chart">${h}</svg>`}
 // the Rocksmith view: the chart turned 90° right, low E (red) on top, high e (purple) at the bottom, fret numbers in yellow
-function chordRsSvg(c,S){S=S||chordShape(c); if(!S)return ""; const fw=30,rh=11,pl=22,y0=6,F=4,ex=pl+F*fw; let h=`<rect x="${pl}" y="${y0}" width="${F*fw}" height="${rh*6}" fill="rgba(0,0,0,.35)"/>`;
+function chordRsSvg(c,S,inv){S=S||chordShape(c); if(!S)return ""; const fw=30,rh=11,pl=22,y0=6,F=4,ex=pl+F*fw; let h=`<rect x="${pl}" y="${y0}" width="${F*fw}" height="${rh*6}" fill="rgba(0,0,0,.35)"/>`;
   for(let j=0;j<=F;j++){const nut=j===0&&S.start===1; h+=`<rect x="${pl+j*fw-(nut?2:.7)}" y="${y0-2}" width="${nut?4:1.4}" height="${rh*6+4}" fill="${nut?"#e7eaf2":"#7d8aa0"}"/>`}
   for(let j=0;j<F;j++)h+=`<text x="${pl+(j+.5)*fw}" y="${y0+rh*6+12}" text-anchor="middle" font-size="9" font-weight="700" fill="#f5c84a">${S.start+j}</text>`;
-  for(let i=0;i<6;i++){const y=y0+(i+.5)*rh,v=S.f[i],col=CH_COL[i]; h+=`<rect x="${pl}" y="${y-.8}" width="${F*fw}" height="1.6" fill="${col}" opacity="${v<0?.25:1}"/>`;
+  for(let i=0;i<6;i++){const y=y0+((inv?5-i:i)+.5)*rh,v=S.f[i],col=CH_COL[i];   // (inverted: high e, purple, on top) h+=`<rect x="${pl}" y="${y-.8}" width="${F*fw}" height="1.6" fill="${col}" opacity="${v<0?.25:1}"/>`;
     if(v===0)h+=`<rect x="${pl+3}" y="${y-3}" width="${F*fw-6}" height="6" rx="3" fill="${col}" opacity=".4"/><text x="${pl-10}" y="${y+3}" text-anchor="middle" font-size="8.5" font-weight="800" fill="${col}">0</text>`;
     if(v<0)h+=`<path d="M${pl-13} ${y-3}l6 6m0-6l-6 6" stroke="#ef4a55" stroke-width="1.5" stroke-linecap="round"/>`;
     if(v>0){const cx=pl+(v-S.start+.5)*fw; h+=`<rect x="${cx-10}" y="${y-5}" width="20" height="10" rx="2.5" fill="${col}" stroke="rgba(255,255,255,.85)" stroke-width="1"/>${S.n[i]!=="-"?`<text x="${cx}" y="${y+3}" text-anchor="middle" font-size="8" font-weight="800" fill="#0d0f14">${S.n[i]}</text>`:""}`}}
-  return `<svg class="lgrs" viewBox="0 0 ${ex+6} ${y0+rh*6+16}" role="img" aria-label="${esc(c)} chord, Rocksmith view">${h}</svg>`}
-function chordPics(list,isOn,keyOf){const cards=list.filter(c=>CHORD_SHAPES[c]).map(c=>{const k=keyOf&&keyOf(c); return `<figure class="lgfig${isOn(c)?" on":""}"${k?` data-learnfig="${esc(k)}" role="checkbox" aria-checked="${isOn(c)}" tabindex="0" title="${isOn(c)?`Click to uncheck ${esc(c)}`:`Click when you can play ${esc(c)}`}"`:""}><figcaption><span class="lgfsp"></span><span class="lgfn">${esc(c)}${isOn(c)?" ✓":""}</span>${ACCT.admin?`<button type="button" class="lgedit" data-chedit="${esc(c)}" title="Edit the ${esc(c)} chord (admins)" aria-label="Edit ${esc(c)} chord">✎</button>`:`<span class="lgfsp"></span>`}</figcaption><div class="lgpair">${chordBoxSvg(c)}${chordRsSvg(c)}</div></figure>`}).join("");
+  return `<svg class="lgrs" viewBox="0 0 ${ex+6} ${y0+rh*6+16}" role="img" aria-label="${esc(c)} chord, Rocksmith view${inv?", inverted":""}">${h}</svg>`}
+// which picture the chord cards show (remembered on this device): the chord chart, the Rocksmith 2014 view, or it inverted
+var LG_VIEW=(()=>{try{const v=localStorage.getItem("rsc-lgview"); return ["chart","rs","rsinv"].includes(v)?v:"chart"}catch(e){return "chart"}})();
+document.addEventListener("click",e=>{const b=e.target.closest("[data-lgview]"); if(!b)return; LG_VIEW=b.dataset.lgview; try{localStorage.setItem("rsc-lgview",LG_VIEW)}catch(e){} acctDraw()});
+function chordPics(list,isOn,keyOf){const cards=list.filter(c=>CHORD_SHAPES[c]).map(c=>{const k=keyOf&&keyOf(c); return `<figure class="lgfig${isOn(c)?" on":""}"${k?` data-learnfig="${esc(k)}" role="checkbox" aria-checked="${isOn(c)}" tabindex="0" title="${isOn(c)?`Click to uncheck ${esc(c)}`:`Click when you can play ${esc(c)}`}"`:""}><figcaption><span class="lgfsp"></span><span class="lgfn">${esc(c)}${isOn(c)?" ✓":""}</span>${ACCT.admin?`<button type="button" class="lgedit" data-chedit="${esc(c)}" title="Edit the ${esc(c)} chord (admins)" aria-label="Edit ${esc(c)} chord">✎</button>`:`<span class="lgfsp"></span>`}</figcaption><div class="lgpair">${LG_VIEW==="chart"?chordBoxSvg(c):chordRsSvg(c,null,LG_VIEW==="rsinv")}</div></figure>`}).join("");
   return cards?`<div class="lgpics">${cards}</div>`:""}
 // admins: edit a chord in the chord diagram maker (a dialog over the profile). One fretted note per string; strings with no note are muted (X) or open (O).
 const CHED={};
@@ -8684,7 +8688,7 @@ function learnSection(){if(!ACCT.claim||ACCT.claim.status!=="approved")return ""
       if(!g.i)return `<li>${box(`${S.id}/${g.id}`,g.t)}</li>`;
       const all=L&&g.i.every(c=>L.s.has(`${S.id}/${g.id}/${c}`));
       return `<li><div class="lgg${all?" done":""}">${all?"✓ ":""}${esc(g.t)}:</div>${(()=>{const np=g.i.filter(c=>!CHORD_SHAPES[c]); return np.length?`<div class="lgchips">${np.map(c=>box(`${S.id}/${g.id}/${c}`,c," chip")).join("")}</div>`:""})()}${chordPics(g.i,c=>!!(L&&L.s.has(`${S.id}/${g.id}/${c}`)),c=>L&&!L.err?`${S.id}/${g.id}/${c}`:null)}</li>`}).join("")}</ul></div>`}).join("");
-  return `<div class="acctsec lgsec"><p class="dim">Only you can see this. Check things off as you learn them.${L?(L.err?" Couldn't load your targets right now.":""):" Loading…"}</p>${body}</div>`}
+  return `<div class="acctsec lgsec"><p class="dim">Only you can see this. Check things off as you learn them.${L?(L.err?" Couldn't load your targets right now.":""):" Loading…"}</p><div class="seg lgview" role="radiogroup" aria-label="Chord pictures">${[["chart","Chord diagram"],["rs","Rocksmith 2014"],["rsinv","Rocksmith 2014 inverted"]].map(([k,t])=>`<button type="button" class="s-all" data-lgview="${k}" aria-pressed="${LG_VIEW===k}">${t}</button>`).join("")}</div>${body}</div>`}
 async function learnSet(k,on){if(!ACCT.learn||!ACCT.user)return false;
   const {error}=on?await ACCT.sb.from("learn_goals").insert({item:k}):await ACCT.sb.from("learn_goals").delete().match({user_id:ACCT.user.id,item:k});
   if(error&&!(on&&/duplicate/i.test(error.message))){alert("Couldn't save that: "+error.message); return false}
