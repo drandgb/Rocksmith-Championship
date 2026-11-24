@@ -8621,7 +8621,7 @@ const LEARN=[{id:"cowboy",t:"Cowboy guitarist",g:[
   {id:"notes",t:"I know the notes on each string from memory",i:["E strings","A string","D string","G string","B string"]}]},
   {id:"scales",t:"Scales",g:[
   {id:"major",t:"The Major Scale",i:["Major 1","Major 2","Major 3","Major 4","Major 5"],d:"Shown in G major: the ringed notes are the root, G."},
-  {id:"minor",t:"The Minor Scale",i:["Minor 1","Minor 2","Minor 3","Minor 4","Minor 5"],d:"Shown in G minor: the ringed notes are the root, G."}]},
+  {id:"minor",t:"The Minor Scale",i:["Minor 1","Minor 2","Minor 3","Minor 4","Minor 5"],d:"Shown in A minor: the ringed notes are the root, A."}]},
   {id:"tech",t:"Techniques",g:[
   {id:"more",t:"I can play these basic techniques",i:["Tremolo","Vibrato","Sustain","Accent","Tapping"]},
   {id:"bend",t:"I can bend strings",i:["Half step bend","Full step bend","1½ step bend","Pre-bend"]},
@@ -8767,20 +8767,20 @@ function fretSvg(t,one){const S=one!=null?[one]:FRET_STR[t]; if(!S)return "";   
     for(let f=0;f<=11;f++){const n=NN[(OPEN[si]+f)%12]; if(n.length>1)continue; const x=f?pl+(f-.5)*fw:pl-11;
       h+=`<circle cx="${x}" cy="${y}" r="8" fill="${f?col:"#0d0f14"}" stroke="${f?"rgba(255,255,255,.85)":col}" stroke-width="${f?1:1.6}"/><text x="${x}" y="${y+3.4}" text-anchor="middle" font-size="9.5" font-weight="800" fill="${f?"#0d0f14":col}">${si===5&&!f?"e":n}</text>`}});
   return `<svg class="lgfret" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(t)}: the notes from the open string to fret 11">${h}</svg>`}
-// Scales: the five positions of the major and minor scales (both shown in G), as [string 0 low E … 5 high e, fret] pairs;
-// the root notes (G) get a ring. n: the card's name, fl: name the notes with flats (G minor has B♭ and E♭)
+// Scales: the five positions of the major scale (in G) and the minor scale (in A, no sharps or flats), as [string 0 low E … 5 high e, fret]
+// pairs; the root notes get a ring. n: the card's name, root: the root note (0 C … 11 B, G when not given), fl: name the notes with flats
 const SCALES={
   "Major 1":{n:"Position 1",p:[[0,3],[0,5],[1,2],[1,3],[1,5],[2,2],[2,4],[2,5],[3,2],[3,4],[3,5],[4,3],[4,5],[5,2],[5,3],[5,5]]},
   "Major 2":{n:"Position 2",p:[[0,5],[0,7],[0,8],[1,5],[1,7],[2,4],[2,5],[2,7],[3,4],[3,5],[3,7],[4,5],[4,7],[4,8],[5,5],[5,7],[5,8]]},
   "Major 3":{n:"Position 3",p:[[0,7],[0,8],[0,10],[1,7],[1,9],[1,10],[2,7],[2,9],[2,10],[3,7],[3,9],[4,7],[4,8],[4,10],[5,7],[5,8],[5,10]]},
   "Major 4":{n:"Position 4",p:[[0,10],[0,12],[1,9],[1,10],[1,12],[2,9],[2,10],[2,12],[3,9],[3,11],[3,12],[4,10],[4,12],[4,13],[5,10],[5,12]]},
   "Major 5":{n:"Position 5",p:[[0,12],[0,14],[0,15],[1,12],[1,14],[1,15],[2,12],[2,14],[3,11],[3,12],[3,14],[4,12],[4,13],[4,15],[5,12],[5,14],[5,15]]},
-  "Minor 1":{n:"Position 1",fl:1,p:[[0,3],[0,5],[0,6],[1,3],[1,5],[1,6],[2,3],[2,5],[3,2],[3,3],[3,5],[4,3],[4,4],[4,6],[5,3],[5,5],[5,6]]},
-  "Minor 2":{n:"Position 2",fl:1,p:[[0,5],[0,6],[0,8],[1,5],[1,6],[1,8],[2,5],[2,7],[2,8],[3,5],[3,7],[3,8],[4,6],[4,8],[5,5],[5,6],[5,8]]},
-  "Minor 3":{n:"Position 3",fl:1,p:[[0,8],[0,10],[0,11],[1,8],[1,10],[2,7],[2,8],[2,10],[3,7],[3,8],[3,10],[4,8],[4,10],[4,11],[5,8],[5,10],[5,11]]},
-  "Minor 4":{n:"Position 4",fl:1,p:[[0,10],[0,11],[0,13],[1,10],[1,12],[1,13],[2,10],[2,12],[2,13],[3,10],[3,12],[4,10],[4,11],[4,13],[5,10],[5,11],[5,13]]},
-  "Minor 5":{n:"Position 5",fl:1,p:[[0,13],[0,15],[1,12],[1,13],[1,15],[2,12],[2,13],[2,15],[3,12],[3,14],[3,15],[4,13],[4,15],[4,16],[5,13],[5,15]]}};
-function scaleSvg(t,view){const S=SCALES[t]; if(!S)return ""; const P=S.p, NN=S.fl?["C","D♭","D","E♭","E","F","G♭","G","A♭","A","B♭","B"]:["C","C♯","D","D♯","E","F","F♯","G","G♯","A","A♯","B"], OPEN=[4,9,2,7,11,4], ROOT=7;
+  "Minor 1":{n:"Position 1",root:9,p:[[0,5],[0,7],[0,8],[1,5],[1,7],[1,8],[2,5],[2,7],[3,4],[3,5],[3,7],[4,5],[4,6],[4,8],[5,5],[5,7],[5,8]]},
+  "Minor 2":{n:"Position 2",root:9,p:[[0,7],[0,8],[0,10],[1,7],[1,8],[1,10],[2,7],[2,9],[2,10],[3,7],[3,9],[3,10],[4,8],[4,10],[5,7],[5,8],[5,10]]},
+  "Minor 3":{n:"Position 3",root:9,p:[[0,10],[0,12],[0,13],[1,10],[1,12],[2,9],[2,10],[2,12],[3,9],[3,10],[3,12],[4,10],[4,12],[4,13],[5,10],[5,12],[5,13]]},
+  "Minor 4":{n:"Position 4",root:9,p:[[0,12],[0,13],[0,15],[1,12],[1,14],[1,15],[2,12],[2,14],[2,15],[3,12],[3,14],[4,12],[4,13],[4,15],[5,12],[5,13],[5,15]]},
+  "Minor 5":{n:"Position 5",root:9,p:[[0,3],[0,5],[1,2],[1,3],[1,5],[2,2],[2,3],[2,5],[3,2],[3,4],[3,5],[4,3],[4,5],[4,6],[5,3],[5,5]]}};
+function scaleSvg(t,view){const S=SCALES[t]; if(!S)return ""; const P=S.p, NN=S.fl?["C","D♭","D","E♭","E","F","G♭","G","A♭","A","B♭","B"]:["C","C♯","D","D♯","E","F","F♯","G","G♯","A","A♯","B"], OPEN=[4,9,2,7,11,4], ROOT=S.root!=null?S.root:7;
   const lo=Math.min(...P.map(x=>x[1])), hi=Math.max(...P.map(x=>x[1])), f0=Math.max(1,lo), nf=Math.max(5,hi-f0+1), fw=Math.min(30,150/nf), pl=14, rh=12, y0=6, W=pl+nf*fw+8, H=y0+rh*6+14, top=view==="rs";
   const row=s=>y0+((top?s:5-s)+.5)*rh, cx=f=>pl+(f-f0+.5)*fw;
   let h=`<rect x="${pl}" y="${y0}" width="${nf*fw}" height="${rh*6}" fill="rgba(0,0,0,.35)"/>`;
@@ -8789,7 +8789,7 @@ function scaleSvg(t,view){const S=SCALES[t]; if(!S)return ""; const P=S.p, NN=S.
   for(let s=0;s<6;s++)h+=`<rect x="${pl}" y="${row(s)-.6}" width="${nf*fw}" height="1.2" fill="${CH_COL[s]}" opacity=".55"/>`;
   P.forEach(([s,f])=>{const n=(OPEN[s]+f)%12, x=cx(f), y=row(s), r=n===ROOT;
     h+=`<circle cx="${x}" cy="${y}" r="5.4" fill="${CH_COL[s]}" stroke="${r?"#fff":"rgba(0,0,0,.35)"}" stroke-width="${r?1.8:.6}"/><text x="${x}" y="${y+2.6}" text-anchor="middle" font-size="6.6" font-weight="800" fill="#0d0f14">${NN[n].replace("♯","#").replace("♭","b")}</text>`});
-  return `<svg class="lgrs lgscale" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(S.n)} of the ${S.fl?"minor":"major"} scale">${h}</svg>`}
+  return `<svg class="lgrs lgscale" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(S.n)} of the ${S.root===9?"minor":"major"} scale">${h}</svg>`}
 // which picture the chord cards show (remembered on this device): the chord chart, the Rocksmith 2014 view, or it inverted
 var LG_VIEW=(()=>{try{const v=localStorage.getItem("rsc-lgview"); return ["chart","rs","rsinv"].includes(v)?v:"chart"}catch(e){return "chart"}})();
 document.addEventListener("click",e=>{const j=e.target.closest("[data-lgjump]"); if(!j)return; const t=$("lgset-"+j.dataset.lgjump); if(t)t.scrollIntoView({behavior:"smooth",block:"start"})});   // the Jump to links at the top
