@@ -8785,7 +8785,7 @@ const SCALES={
 // bass: the same positions on the four bass strings (tuned like the guitar's lowest four)
 Object.keys(SCALES).slice().forEach(k=>{const S=SCALES[k]; SCALES["Bass "+k]={...S,b:1,p:S.p.filter(x=>x[0]<=3)}});
 function scaleSvg(t,view){const S=SCALES[t]; if(!S)return ""; const P=S.p, ns=S.b?4:6, NN=S.fl?["C","D♭","D","E♭","E","F","G♭","G","A♭","A","B♭","B"]:["C","C♯","D","D♯","E","F","F♯","G","G♯","A","A♯","B"], OPEN=[4,9,2,7,11,4], ROOT=7, DEG=S.minor?{0:"R",2:"2",3:"b3",5:"4",7:"5",8:"b6",10:"b7"}:{0:"R",2:"2",4:"3",5:"4",7:"5",9:"6",11:"7"};   // each dot shows its scale degree (R = the root)
-  const lo=Math.min(...P.map(x=>x[1])), hi=Math.max(...P.map(x=>x[1])), f0=Math.max(1,lo), nf=Math.max(5,hi-f0+1), fw=Math.min(30,150/nf), pl=14, rh=12, y0=6, W=pl+nf*fw+8, H=y0+rh*ns+14, top=view==="rs";
+  const lo=Math.min(...P.map(x=>x[1])), hi=Math.max(...P.map(x=>x[1])), f0=Math.max(1,lo), nf=hi-f0+1,   /* (only the frets the position uses, so no empty fret at the end) */ fw=Math.min(30,150/Math.max(5,nf)), pl=14+Math.max(0,5-nf)*fw/2,   /* (a 4-fret position keeps the same size, centered) */ rh=12, y0=6, W=pl*2-14+nf*fw+8, H=y0+rh*ns+14, top=view==="rs";
   const row=s=>y0+((top?s:ns-1-s)+.5)*rh, cx=f=>pl+(f-f0+.5)*fw;
   let h=`<rect x="${pl}" y="${y0}" width="${nf*fw}" height="${rh*ns}" fill="rgba(0,0,0,.35)"/>`;
   for(let j=0;j<=nf;j++){const nut=j===0&&f0===1; h+=`<rect x="${pl+j*fw-(nut?2:.6)}" y="${y0-2}" width="${nut?4:1.2}" height="${rh*ns+4}" fill="${nut?"#e7eaf2":"#5c6880"}"/>`}
