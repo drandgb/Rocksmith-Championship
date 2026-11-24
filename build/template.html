@@ -8895,9 +8895,13 @@ const LG_SAME={"D/F#":"D"}, LG_SAME_NOTE={"D/F#":"Note: D/F# is just D with F# p
 const LG_CAPO={"John Legend - All of Me":1,"Coldplay - Viva la Vida":1,"Tom Petty - Free Fallin'":1,"Ben E. King - Stand By Me":2,"Tracy Chapman - Fast Car":2,"John Denver - Take Me Home, Country Roads":2};
 const lgCapoNote=t=>LG_CAPO[t]?`Note: to play along with the recording, put a capo on the ${LG_CAPO[t]===1?"1st":"2nd"} fret and play these same chord shapes. A capo clamps all the strings at that fret, which raises every chord by ${LG_CAPO[t]===1?"one fret":"two frets"} without changing how you finger them.`:"";
 // a sharp or flat chord counts as known when you know the barre shape (no open strings) of its natural version: move it a fret up or down
-const lgNat=c=>{const m=/^([A-G])([#b])(.*)$/.exec(c); if(!m)return null; const n=m[1]+m[3], S=CHORD_SHAPES[n]; return S&&!/0/.test(S[0])?{n,up:m[2]==="#"}:null};
+// (a sharp is also the next letter's flat: A#5 = Bb5, the B5 shape a fret down, when the A5 shape uses open strings)
+const lgNat=c=>{const m=/^([A-G])([#b])(.*)$/.exec(c); if(!m)return null; const mov=n=>{const S=CHORD_SHAPES[n]; return S&&!/0/.test(S[0])};
+  const n=m[1]+m[3]; if(mov(n))return {n,up:m[2]==="#"};
+  const L="CDEFGAB", i=L.indexOf(m[1]), o=m[2]==="#"?L[(i+1)%7]+m[3]:L[(i+6)%7]+m[3], half=m[2]==="#"?"EB".includes(m[1]):"CF".includes(m[1]);
+  return !half&&mov(o)?{n:o,up:m[2]!=="#",alt:(m[2]==="#"?L[(i+1)%7]+"b":L[(i+6)%7]+"#")+m[3]}:null};
 const lgKnows=(know,c)=>know.has(c)||(LG_SAME[c]&&know.has(LG_SAME[c]))||(()=>{const N=lgNat(c); return !!(N&&know.has(N.n))})();
-const lgNatNote=c=>{const N=lgNat(c); return N?`Note: ${c} is the ${N.n} barre shape moved one fret ${N.up?"up (a sharp raises it a half step)":"down (a flat lowers it a half step)"}. Barre shapes have no open strings, so they move anywhere on the neck.`:""};
+const lgNatNote=c=>{const N=lgNat(c); return N?`Note: ${c}${N.alt?` (the same chord as ${N.alt})`:""} is the ${N.n} shape moved one fret ${N.up?"up (a sharp raises it a half step)":"down (a flat lowers it a half step)"}. Shapes with no open strings move anywhere on the neck.`:""};
 function lgSongHtml(L){if(!L||L.err)return ""; const know=new Set([...L.s].map(k=>k.split("/").pop()).filter(c=>CHORD_SHAPES[c]));
   const ok=LG_SONGS.map((x,i)=>({i,new:x[1].filter(c=>!lgKnows(know,c))})).filter(x=>x.new.length<=1&&x.new.length<LG_SONGS[x.i][1].length); if(!ok.length)return "";
   if(LG_SONG==null||!ok.some(x=>x.i===LG_SONG))LG_SONG=ok[Math.floor(Math.random()*ok.length)].i;
