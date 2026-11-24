@@ -8623,7 +8623,9 @@ const LEARN=[{id:"cowboy",t:"Cowboy guitarist",g:[
   {id:"fret",t:"Learning the fretboard",g:[
   {id:"notes",t:"I know the notes on each string from memory",i:["E strings","A string","D string","G string","B string"]}]},
   {id:"scales",t:"Scales",g:[
+  {id:"pmajor",t:"The Major Pentatonic Scale",i:["PMajor 1","PMajor 2","PMajor 3","PMajor 4","PMajor 5"],d:"Shown in G major pentatonic: the major scale without its 4 and 7, so five notes (R, 2, 3, 5, 6). R (ringed) is the root, G."},
   {id:"major",t:"The Major Scale",i:["Major 1","Major 2","Major 3","Major 4","Major 5"],d:"Shown in G major: the numbers are the scale degrees, and R (ringed) is the root, G."},
+  {id:"pminor",t:"The Minor Pentatonic Scale",i:["PMinor 1","PMinor 2","PMinor 3","PMinor 4","PMinor 5"],d:"Shown in G minor pentatonic: the minor scale without its 2 and b6, so five notes (R, b3, 4, 5, b7). R (ringed) is the root, G."},
   {id:"minor",t:"The Minor Scale",i:["Minor 1","Minor 2","Minor 3","Minor 4","Minor 5"],d:"Shown in G minor: the numbers are the scale degrees, and R (ringed) is the root, G."}]},
   {id:"tech",t:"Techniques",g:[
   {id:"more",t:"I can play these basic techniques",i:["Tremolo","Vibrato","Sustain","Accent","Tapping"]},
@@ -8785,9 +8787,15 @@ const SCALES={
   "Minor 3":{n:"Position 3",minor:1,p:[[0,8],[0,10],[0,11],[1,8],[1,10],[2,7],[2,8],[2,10],[3,7],[3,8],[3,10],[4,8],[4,10],[4,11],[5,8],[5,10],[5,11]]},
   "Minor 4":{n:"Position 4",minor:1,p:[[0,10],[0,11],[0,13],[1,10],[1,12],[1,13],[2,10],[2,12],[2,13],[3,10],[3,12],[4,10],[4,11],[4,13],[5,10],[5,11],[5,13]]},
   "Minor 5":{n:"Position 5",minor:1,p:[[0,13],[0,15],[1,12],[1,13],[1,15],[2,12],[2,13],[2,15],[3,12],[3,14],[3,15],[4,13],[4,15],[4,16],[5,13],[5,15]]}};
+// the pentatonic scales (in G): two notes on each string, each position starting on the next scale note up the low E string
+(()=>{const OP=[40,45,50,55,59,64];
+  [["PMajor",[0,2,4,7,9],[3,5,7,10,12]],["PMinor",[0,3,5,7,10],[3,6,8,10,13]]].forEach(([k,iv,starts])=>starts.forEach((f0,i)=>{
+    let p=OP[0]+f0; const nx=q=>{do q++; while(!iv.includes((q-43+1200)%12)); return q}, pts=[];
+    for(let st=0;st<6;st++){pts.push([st,p-OP[st]]); p=nx(p); pts.push([st,p-OP[st]]); p=nx(p)}
+    SCALES[k+" "+(i+1)]={n:"Position "+(i+1),minor:k==="PMinor"?1:undefined,pent:iv,p:pts}}))})();
 // bass: the same positions on the four bass strings (tuned like the guitar's lowest four)
 Object.keys(SCALES).slice().forEach(k=>{const S=SCALES[k]; SCALES["Bass "+k]={...S,b:1,p:S.p.filter(x=>x[0]<=3)}});
-function scaleSvg(t,view){const S=SCALES[t]; if(!S)return ""; const P=S.p, ns=S.b?4:6, NN=S.fl?["C","D♭","D","E♭","E","F","G♭","G","A♭","A","B♭","B"]:["C","C♯","D","D♯","E","F","F♯","G","G♯","A","A♯","B"], OPEN=[4,9,2,7,11,4], ROOT=7, DEG=S.minor?{0:"R",2:"2",3:"b3",5:"4",7:"5",8:"b6",10:"b7"}:{0:"R",2:"2",4:"3",5:"4",7:"5",9:"6",11:"7"};   // each dot shows its scale degree (R = the root)
+function scaleSvg(t,view){const S=SCALES[t]; if(!S)return ""; const P=S.p, ns=S.b?4:6, NN=S.fl?["C","D♭","D","E♭","E","F","G♭","G","A♭","A","B♭","B"]:["C","C♯","D","D♯","E","F","F♯","G","G♯","A","A♯","B"], OPEN=[4,9,2,7,11,4], ROOT=7, DEG=Object.fromEntries(Object.entries(S.minor?{0:"R",2:"2",3:"b3",5:"4",7:"5",8:"b6",10:"b7"}:{0:"R",2:"2",4:"3",5:"4",7:"5",9:"6",11:"7"}).filter(([k])=>!S.pent||S.pent.includes(+k)));   /* (pentatonic: only its five notes) */   // each dot shows its scale degree (R = the root)
   const lo=Math.min(...P.map(x=>x[1])), hi=Math.max(...P.map(x=>x[1])), f0=Math.max(1,lo), nf=hi-f0+1+(hi-f0+1<5&&[...Array(ns).keys()].every(st=>DEG[(OPEN[st]+hi+1-ROOT+120)%12]==null)?1:0),   /* (an extra empty fret only when no scale note would sit on it, so there's never a gap where you'd expect one) */ fw=Math.min(30,150/Math.max(5,nf)), pl=14+Math.max(0,5-nf)*fw/2,   /* (a 4-fret position keeps the same size, centered) */ rh=12, y0=6, W=pl*2-14+nf*fw+8, H=y0+rh*ns+14, top=view==="rs";
   const row=s=>y0+((top?s:ns-1-s)+.5)*rh, cx=f=>pl+(f-f0+.5)*fw;
   let h=`<rect x="${pl}" y="${y0}" width="${nf*fw}" height="${rh*ns}" fill="rgba(0,0,0,.35)"/>`;
@@ -8796,7 +8804,7 @@ function scaleSvg(t,view){const S=SCALES[t]; if(!S)return ""; const P=S.p, ns=S.
   for(let s=0;s<ns;s++)h+=`<rect x="${pl}" y="${row(s)-.6}" width="${nf*fw}" height="1.2" fill="${CH_COL[s]}" opacity=".55"/>`;
   P.forEach(([s,f])=>{const n=(OPEN[s]+f)%12, x=cx(f), y=row(s), r=n===ROOT;
     h+=`<circle cx="${x}" cy="${y}" r="5.4" fill="${CH_COL[s]}" stroke="${r?"#fff":"rgba(0,0,0,.35)"}" stroke-width="${r?1.8:.6}"/><text x="${x}" y="${y+2.6}" text-anchor="middle" font-size="6.4" font-weight="800" fill="#0d0f14">${DEG[(n-ROOT+12)%12]}</text>`});
-  return `<svg class="lgrs lgscale" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(S.n)} of the ${S.minor?"minor":"major"} scale">${h}</svg>`}
+  return `<svg class="lgrs lgscale" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(S.n)} of the ${S.minor?"minor":"major"}${S.pent?" pentatonic":""} scale">${h}</svg>`}
 // which picture the chord cards show (remembered on this device): the chord chart, the Rocksmith 2014 view, or it inverted
 var LG_VIEW=(()=>{try{const v=localStorage.getItem("rsc-lgview"); return ["chart","rs","rsinv"].includes(v)?v:"chart"}catch(e){return "chart"}})();
 document.addEventListener("click",e=>{const j=e.target.closest("[data-lgjump]"); if(!j)return; const t=$("lgset-"+j.dataset.lgjump); if(t)t.scrollIntoView({behavior:"smooth",block:"start"})});   // the Jump to links at the top
@@ -8874,7 +8882,9 @@ document.addEventListener("click",e=>{if(!e.target.closest("[data-lgsong]"))retu
 const LEARN_BASS=[
   {id:"bfret",t:"Learning the fretboard",g:[{id:"notes",t:"I know the notes on each string from memory",i:["Bass E","Bass A","Bass D","Bass G"]}]},
   {id:"bscales",t:"Scales",g:[
+    {id:"pmajor",t:"The Major Pentatonic Scale",i:["Bass PMajor 1","Bass PMajor 2","Bass PMajor 3","Bass PMajor 4","Bass PMajor 5"],d:"Shown in G major pentatonic: the major scale without its 4 and 7, so five notes (R, 2, 3, 5, 6). R (ringed) is the root, G."},
     {id:"major",t:"The Major Scale",i:["Bass Major 1","Bass Major 2","Bass Major 3","Bass Major 4","Bass Major 5"],d:"Shown in G major: the numbers are the scale degrees, and R (ringed) is the root, G."},
+    {id:"pminor",t:"The Minor Pentatonic Scale",i:["Bass PMinor 1","Bass PMinor 2","Bass PMinor 3","Bass PMinor 4","Bass PMinor 5"],d:"Shown in G minor pentatonic: the minor scale without its 2 and b6, so five notes (R, b3, 4, 5, b7). R (ringed) is the root, G."},
     {id:"minor",t:"The Minor Scale",i:["Bass Minor 1","Bass Minor 2","Bass Minor 3","Bass Minor 4","Bass Minor 5"],d:"Shown in G minor: the numbers are the scale degrees, and R (ringed) is the root, G."}]},
   {id:"btech",t:"Techniques",g:[
     {id:"more",t:"I can play these basic techniques",i:["Tremolo","Vibrato","Sustain","Accent","Tapping"]},
