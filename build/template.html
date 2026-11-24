@@ -8698,7 +8698,7 @@ function techRsSvg(t,inv,bass){const T=TECH[t]; if(!T)return ""; if(!T.n)return 
   const tail=(x,d)=>`<path d="${d}" fill="none" stroke="${col}" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round" opacity=".9"/>`;
   let defs="";
   T.n.forEach(([f,m,k],ni)=>{const x=cx(f);
-    if(m==="sus"){h+=`<rect x="${x}" y="${y-3}" width="${ex-x-3}" height="6" rx="3" fill="${col}" opacity=".45"/>`}
+    if(m==="sus"){h+=`<rect x="${x}" y="${y-3}" width="${ex-x-3}" height="6" rx="3" fill="${col}" opacity=".9"/>`}   // (as solid as the vibrato and tremolo tails)
     if(m==="trem"){let d=`M${x+8} ${y}`; for(let z=x+12,u=1;z<ex-2;z+=5,u=-u)d+=`L${z} ${y+u*4}`; h+=tail(x,d)}
     if(m==="vib"){let d=`M${x+8} ${y}`; for(let z=x+8;z<=ex-13;z+=10)d+=`q2.5 -6 5 0t5 0`; h+=tail(x,d)}
     if(m==="acc"){defs+=`<filter id="tga" x="-60%" y="-120%" width="220%" height="340%"><feGaussianBlur stdDeviation="2.2"/><feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge></filter>`}
