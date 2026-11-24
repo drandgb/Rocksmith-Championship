@@ -8620,7 +8620,7 @@ const LEARN=[{id:"cowboy",t:"Cowboy guitarist",g:[
   {id:"fret",t:"Learning the fretboard",g:[
   {id:"notes",t:"I know the notes on each string from memory",i:["E strings","A string","D string","G string","B string"]}]},
   {id:"scales",t:"Scales",g:[
-  {id:"major",t:"The Major Scale",i:["Major 1","Major 2","Major 3","Major 4","Major 5"],d:"Shown in G major: the numbers are the scale degrees, and R (ringed) is the root, G."},
+  {id:"major",t:"The Major Scale",i:["Major 1","Major 2","Major 3","Major 4","Major 5"],d:"Shown in C major: the numbers are the scale degrees, and R (ringed) is the root, C."},
   {id:"minor",t:"The Minor Scale",i:["Minor 1","Minor 2","Minor 3","Minor 4","Minor 5"],d:"Shown in A minor: the numbers are the scale degrees, and R (ringed) is the root, A."}]},
   {id:"tech",t:"Techniques",g:[
   {id:"more",t:"I can play these basic techniques",i:["Tremolo","Vibrato","Sustain","Accent","Tapping"]},
@@ -8767,14 +8767,14 @@ function fretSvg(t,one){const S=one!=null?[one]:FRET_STR[t]; if(!S)return "";   
     for(let f=0;f<=11;f++){const n=NN[(OPEN[si]+f)%12]; if(n.length>1)continue; const x=f?pl+(f-.5)*fw:pl-11;
       h+=`<circle cx="${x}" cy="${y}" r="8" fill="${f?col:"#0d0f14"}" stroke="${f?"rgba(255,255,255,.85)":col}" stroke-width="${f?1:1.6}"/><text x="${x}" y="${y+3.4}" text-anchor="middle" font-size="9.5" font-weight="800" fill="${f?"#0d0f14":col}">${si===5&&!f?"e":n}</text>`}});
   return `<svg class="lgfret" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(t)}: the notes from the open string to fret 11">${h}</svg>`}
-// Scales: the five positions of the major scale (in G) and the minor scale (in A, no sharps or flats), as [string 0 low E … 5 high e, fret]
+// Scales: the five positions of the major scale (in C) and the minor scale (in A), neither with sharps or flats, as [string 0 low E … 5 high e, fret]
 // pairs; the root notes get a ring. n: the card's name, root: the root note (0 C … 11 B, G when not given), fl: name the notes with flats
 const SCALES={
-  "Major 1":{n:"Position 1",p:[[0,3],[0,5],[1,2],[1,3],[1,5],[2,2],[2,4],[2,5],[3,2],[3,4],[3,5],[4,3],[4,5],[5,2],[5,3],[5,5]]},
-  "Major 2":{n:"Position 2",p:[[0,5],[0,7],[0,8],[1,5],[1,7],[2,4],[2,5],[2,7],[3,4],[3,5],[3,7],[4,5],[4,7],[4,8],[5,5],[5,7],[5,8]]},
-  "Major 3":{n:"Position 3",p:[[0,7],[0,8],[0,10],[1,7],[1,9],[1,10],[2,7],[2,9],[2,10],[3,7],[3,9],[4,7],[4,8],[4,10],[5,7],[5,8],[5,10]]},
-  "Major 4":{n:"Position 4",p:[[0,10],[0,12],[1,9],[1,10],[1,12],[2,9],[2,10],[2,12],[3,9],[3,11],[3,12],[4,10],[4,12],[4,13],[5,10],[5,12]]},
-  "Major 5":{n:"Position 5",p:[[0,12],[0,14],[0,15],[1,12],[1,14],[1,15],[2,12],[2,14],[3,11],[3,12],[3,14],[4,12],[4,13],[4,15],[5,12],[5,14],[5,15]]},
+  "Major 1":{n:"Position 1",root:0,p:[[0,8],[0,10],[1,7],[1,8],[1,10],[2,7],[2,9],[2,10],[3,7],[3,9],[3,10],[4,8],[4,10],[5,7],[5,8],[5,10]]},
+  "Major 2":{n:"Position 2",root:0,p:[[0,10],[0,12],[0,13],[1,10],[1,12],[2,9],[2,10],[2,12],[3,9],[3,10],[3,12],[4,10],[4,12],[4,13],[5,10],[5,12],[5,13]]},
+  "Major 3":{n:"Position 3",root:0,p:[[0,12],[0,13],[0,15],[1,12],[1,14],[1,15],[2,12],[2,14],[2,15],[3,12],[3,14],[4,12],[4,13],[4,15],[5,12],[5,13],[5,15]]},
+  "Major 4":{n:"Position 4",root:0,p:[[0,3],[0,5],[1,2],[1,3],[1,5],[2,2],[2,3],[2,5],[3,2],[3,4],[3,5],[4,3],[4,5],[4,6],[5,3],[5,5]]},
+  "Major 5":{n:"Position 5",root:0,p:[[0,5],[0,7],[0,8],[1,5],[1,7],[1,8],[2,5],[2,7],[3,4],[3,5],[3,7],[4,5],[4,6],[4,8],[5,5],[5,7],[5,8]]},
   "Minor 1":{n:"Position 1",root:9,p:[[0,5],[0,7],[0,8],[1,5],[1,7],[1,8],[2,5],[2,7],[3,4],[3,5],[3,7],[4,5],[4,6],[4,8],[5,5],[5,7],[5,8]]},
   "Minor 2":{n:"Position 2",root:9,p:[[0,7],[0,8],[0,10],[1,7],[1,8],[1,10],[2,7],[2,9],[2,10],[3,7],[3,9],[3,10],[4,8],[4,10],[5,7],[5,8],[5,10]]},
   "Minor 3":{n:"Position 3",root:9,p:[[0,10],[0,12],[0,13],[1,10],[1,12],[2,9],[2,10],[2,12],[3,9],[3,10],[3,12],[4,10],[4,12],[4,13],[5,10],[5,12],[5,13]]},
@@ -8869,7 +8869,7 @@ document.addEventListener("click",e=>{if(!e.target.closest("[data-lgsong]"))retu
 const LEARN_BASS=[
   {id:"bfret",t:"Learning the fretboard",g:[{id:"notes",t:"I know the notes on each string from memory",i:["Bass E","Bass A","Bass D","Bass G"]}]},
   {id:"bscales",t:"Scales",g:[
-    {id:"major",t:"The Major Scale",i:["Bass Major 1","Bass Major 2","Bass Major 3","Bass Major 4","Bass Major 5"],d:"Shown in G major: the numbers are the scale degrees, and R (ringed) is the root, G."},
+    {id:"major",t:"The Major Scale",i:["Bass Major 1","Bass Major 2","Bass Major 3","Bass Major 4","Bass Major 5"],d:"Shown in C major: the numbers are the scale degrees, and R (ringed) is the root, C."},
     {id:"minor",t:"The Minor Scale",i:["Bass Minor 1","Bass Minor 2","Bass Minor 3","Bass Minor 4","Bass Minor 5"],d:"Shown in A minor: the numbers are the scale degrees, and R (ringed) is the root, A."}]},
   {id:"btech",t:"Techniques",g:[
     {id:"more",t:"I can play these basic techniques",i:["Tremolo","Vibrato","Sustain","Accent","Tapping"]},
