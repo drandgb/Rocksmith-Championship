@@ -8604,19 +8604,19 @@ function rankupSection(n){
 }
 // Learning goals (its own tab in your profile): things to check off as you learn them, saved to your login (learn_goals.sql); only you see them
 const LEARN=[{id:"cowboy",t:"Cowboy guitarist",g:[
-  {id:"maj",t:"I can play open major chords from memory",i:["C","A","G","E","D"]},
+  {id:"maj",t:"I can play open major chords from memory",i:["C","A","G","E","D"],d:"Open chords use one or more open strings (played without pressing any fret). A major chord uses scale degrees 1, 3 and 5."},
   {id:"barre",t:"I can play major barre chords from memory",i:["B","F"],d:"Barre chords can be difficult to get right, but they are worth it because (unlike open chords) you can move them up and down the fretboard to get the same type of chord for a different root note!"},
-  {id:"min",t:"I can play open minor chords from memory",i:["Am","Dm","Em"]},
-  {id:"minb",t:"I can play minor barre chords from memory",i:["Bm","Cm","Fm","Gm"]},
-  {id:"dom7",t:"I can play open dominant 7th chords from memory",i:["A7","B7","C7","D7","E7","G7"]},
-  {id:"min7",t:"I can play open minor 7th chords from memory",i:["Am7","Dm7","Em7"]},
-  {id:"min7b",t:"I can play minor 7th barre chords from memory",i:["Bm7"]},
-  {id:"maj7",t:"I can play open major 7th chords from memory",i:["Amaj7","Cmaj7","Dmaj7","Fmaj7","Gmaj7"]},
-  {id:"six",t:"I can play open 6th chords from memory",i:["A6","D6","E6","G6"]},
-  {id:"add9",t:"I can play open add9 chords from memory",i:["Aadd9","Cadd9","Eadd9","Gadd9"]},
-  {id:"sus4",t:"I can play open sus4 chords from memory",i:["Asus4","Dsus4","Esus4"]}]},
+  {id:"min",t:"I can play open minor chords from memory",i:["Am","Dm","Em"],d:"Open chords use one or more open strings. A minor chord uses scale degrees 1, b3 and 5."},
+  {id:"minb",t:"I can play minor barre chords from memory",i:["Bm","Cm","Fm","Gm"],d:"A minor barre chord uses scale degrees 1, b3 and 5, with no open strings, so like the major barre chords you can move it up and down the fretboard."},
+  {id:"dom7",t:"I can play open dominant 7th chords from memory",i:["A7","B7","C7","D7","E7","G7"],d:"A dominant 7th chord uses scale degrees 1, 3, 5 and b7."},
+  {id:"min7",t:"I can play open minor 7th chords from memory",i:["Am7","Dm7","Em7"],d:"A minor 7th chord uses scale degrees 1, b3, 5 and b7."},
+  {id:"min7b",t:"I can play minor 7th barre chords from memory",i:["Bm7"],d:"The minor 7th (1, b3, 5, b7) as a barre chord, with no open strings, so you can move it up and down the fretboard."},
+  {id:"maj7",t:"I can play open major 7th chords from memory",i:["Amaj7","Cmaj7","Dmaj7","Fmaj7","Gmaj7"],d:"A major 7th chord uses scale degrees 1, 3, 5 and 7."},
+  {id:"six",t:"I can play open 6th chords from memory",i:["A6","D6","E6","G6"],d:"A 6th chord uses scale degrees 1, 3, 5 and 6."},
+  {id:"add9",t:"I can play open add9 chords from memory",i:["Aadd9","Cadd9","Eadd9","Gadd9"],d:"An add9 chord is a major chord (1, 3, 5) with the 9th (the 2nd, an octave up) added."},
+  {id:"sus4",t:"I can play open sus4 chords from memory",i:["Asus4","Dsus4","Esus4"],d:"A sus4 chord swaps the 3rd for the 4th: scale degrees 1, 4 and 5."}]},
   {id:"rock",t:"Rockstar",g:[
-  {id:"power",t:"I can play power chords from memory",i:["E5","A5","D5","F5","G5"]}]},
+  {id:"power",t:"I can play power chords from memory",i:["E5","A5","D5","F5","G5"],d:"A power chord uses only the root and the 5th (1 and 5), often with the root doubled an octave up. It's neither major nor minor."}]},
   {id:"fret",t:"Learning the fretboard",g:[
   {id:"notes",t:"I know the notes on each string from memory",i:["E strings","A string","D string","G string","B string"]}]},
   {id:"scales",t:"Scales",g:[
