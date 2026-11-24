@@ -8729,6 +8729,7 @@ const TECH_TAB={
   "Slide up":{n:[[46,3,"5"],[100,3,"9"]],d:[["slide",46,100,3,1]]},
   "Slide down":{n:[[46,3,"9"],[100,3,"5"]],d:[["slide",46,100,3,0]]},
   "Palm mute":{n:[[38,0,"0"],[66,0,"0"],[94,0,"0"],[122,0,"0"]],d:[["line",34,128,"P.M."]]},
+  "Bass Frethand mute":{n:[[46,3,"x"],[74,3,"x"],[102,3,"x"],[130,3,"x"]]},
   "Frethand mute":{n:[[52,5,"x"],[52,4,"3"],[52,3,"4"],[52,2,"4"],[52,1,"2"],[52,0,"x"],[96,4,"x"],[96,3,"x"],[96,2,"x"],[96,1,"x"]]},
   "Natural harmonic":{n:[[60,3,"<12>"]]},
   "Pinch harmonic":{n:[[60,3,"12"]],d:[["above",60,"P.H."]]},
@@ -8738,7 +8739,7 @@ const TECH_TAB={
   "Accent":{n:[[60,3,"5"]],d:[["above",60,">"]]},
   "Tapping":{n:[[42,4,"12"],[78,4,"5"],[110,4,"8"]],d:[["arc",42,110,4,"T"]]},
   "Strumming":{n:[34,62,90,104,118,132].flatMap(x=>[[x,5,"x"],[x,4,"x"],[x,3,"x"],[x,2,"5"],[x,1,"5"],[x,0,"3"]]),d:[["down",34],["down",62],["down",90],["up",104],["down",118],["up",132]]}};
-function techTabSvg(t,bass){const T=TECH_TAB[t]; if(!T)return ""; const ns=bass?4:6, W=148,x0=18,x1=142,y0=30,gy=10.5, ys=s=>y0+(ns-1-Math.min(s,ns-1))*gy, RED="#ef4a55", FG="#e7eaf2"; let h="";
+function techTabSvg(t,bass){const T=(bass&&TECH_TAB["Bass "+t])||TECH_TAB[t];   /* (bass: its own version when there is one) */ if(!T)return ""; const ns=bass?4:6, W=148,x0=18,x1=142,y0=30,gy=10.5, ys=s=>y0+(ns-1-Math.min(s,ns-1))*gy, RED="#ef4a55", FG="#e7eaf2"; let h="";
   ["E","A","D","G","B","e"].slice(0,ns).forEach((s,i)=>{h+=`<text x="${x0-5}" y="${ys(i)+3}" text-anchor="end" font-size="8" font-weight="800" fill="${CH_COL[i]}">${s}</text><rect x="${x0}" y="${ys(i)-.55}" width="${x1-x0}" height="1.1" fill="#6b768c"/>`});
   h+=`<rect x="${x0-1.6}" y="${ys(ns-1)-.6}" width="3.2" height="${gy*(ns-1)+1.2}" fill="#c9cfdb"/><rect x="${x1-.6}" y="${ys(ns-1)-.6}" width="1.2" height="${gy*(ns-1)+1.2}" fill="#c9cfdb"/>`;
   const top=ys(ns-1)-6, arrow=(x,y)=>`<path d="M${x-3} ${y+5}L${x} ${y}L${x+3} ${y+5}z" fill="${FG}"/>`;
