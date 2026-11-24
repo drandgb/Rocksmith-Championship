@@ -8610,7 +8610,7 @@ const LEARN=[{id:"cowboy",t:"Cowboy guitarist",g:[
   {id:"maj",t:"I can play open major chords from memory",i:["C","A","G","E","D"],d:"Open chords use one or more open strings (played without pressing any fret). A major chord uses scale degrees 1, 3 and 5."},
   {id:"barre",t:"I can play major barre chords from memory",i:["B","F"],d:"Barre chords can be difficult to get right, but they are worth it because (unlike open chords) you can move them up and down the fretboard to get the same type of chord for a different root note!"},
   {id:"min",t:"I can play open minor chords from memory",i:["Am","Dm","Em"],d:"Open chords use one or more open strings. A minor chord uses scale degrees 1, b3 and 5."},
-  {id:"minb",t:"I can play minor barre chords from memory",i:["Bm","Cm","Fm","Gm"],d:"A minor barre chord uses scale degrees 1, b3 and 5, with no open strings, so like the major barre chords you can move it up and down the fretboard."},
+  {id:"minb",t:"I can play minor barre chords from memory",i:["Bm","Fm","Gm"],d:"A minor barre chord uses scale degrees 1, b3 and 5, with no open strings, so like the major barre chords you can move it up and down the fretboard."},
   {id:"dom7",t:"I can play open dominant 7th chords from memory",i:["A7","B7","C7","D7","E7","G7"],d:"A dominant 7th chord uses scale degrees 1, 3, 5 and b7."},
   {id:"min7",t:"I can play open minor 7th chords from memory",i:["Am7","Dm7","Em7"],d:"A minor 7th chord uses scale degrees 1, b3, 5 and b7."},
   {id:"min7b",t:"I can play minor 7th barre chords from memory",i:["Bm7"],d:"The minor 7th (1, b3, 5, b7) as a barre chord, with no open strings, so you can move it up and down the fretboard."},
@@ -8619,7 +8619,7 @@ const LEARN=[{id:"cowboy",t:"Cowboy guitarist",g:[
   {id:"add9",t:"I can play open add9 chords from memory",i:["Aadd9","Cadd9","Eadd9","Gadd9"],d:"An add9 chord is a major chord (1, 3, 5) with the 9th (the 2nd, an octave up) added."},
   {id:"sus4",t:"I can play open sus4 chords from memory",i:["Asus4","Dsus4","Esus4"],d:"A sus4 chord swaps the 3rd for the 4th: scale degrees 1, 4 and 5."}]},
   {id:"rock",t:"Rockstar",g:[
-  {id:"power",t:"I can play power chords from memory",i:["A5","B5","C5","D5","E5","F5","G5"],d:"A power chord uses only the root and the 5th (1 and 5), often with the root doubled an octave up. It's neither major nor minor."}]},
+  {id:"power",t:"I can play power chords from memory",i:["A5","B5","D5","E5","F5","G5"],d:"A power chord uses only the root and the 5th (1 and 5), often with the root doubled an octave up. It's neither major nor minor."}]},
   {id:"fret",t:"Learning the fretboard",g:[
   {id:"notes",t:"I know the notes on each string from memory",i:["E strings","A string","D string","G string","B string"]}]},
   {id:"scales",t:"Scales",g:[
@@ -8637,7 +8637,7 @@ const LEARN=[{id:"cowboy",t:"Cowboy guitarist",g:[
   {id:"harm",t:"I can play harmonics",i:["Natural harmonic","Pinch harmonic"]}]}];
 // chord pictures for Learning goals: frets low E→high e (x = don't play, 0 = open) and the finger on each string ("-" = none)
 const CHORD_SHAPES={A:["x02220","--123-"],C:["x32010","-32-1-"],D:["xx0232","---132"],E:["022100","-231--"],F:["133211","134211"],G:["320003","21---3"],B:["x24442","-12341"],
-  Am:["x02210","--231-"],Bm:["x24432","-13421"],Cm:["x35543","-13421"],Fm:["133111","134111"],Gm:["355333","134111"],E5:["022xxx","-12---"],A5:["x022xx","--12--"],D5:["xx023x","---13-"],F5:["133xxx","134---"],G5:["355xxx","134---"],B5:["x244xx","-134--"],C5:["x355xx","-134--"],Dm:["xx0231","---231"],Em:["022000","-23---"],
+  Am:["x02210","--231-"],Bm:["x24432","-13421"],Fm:["133111","134111"],Gm:["xx5786","--1342"],E5:["022xxx","-12---"],A5:["x022xx","--12--"],D5:["xx023x","---13-"],F5:["133xxx","134---"],G5:["xx578x","--134-"],B5:["x244xx","-134--"],Dm:["xx0231","---231"],Em:["022000","-23---"],
   A7:["x02020","--2-3-"],B7:["x21202","-213-4"],C7:["x32310","-3241-"],D7:["xx0212","---213"],E7:["020100","-2-1--"],G7:["320001","32---1"],
   Am7:["x02010","--2-1-"],Bm7:["x24232","-13121"],Dm7:["xx0211","---211"],Em7:["020000","-2----"],
   Amaj7:["x02120","--213-"],Cmaj7:["x32000","-32---"],Dmaj7:["xx0222","---123"],Fmaj7:["xx3210","--321-"],Gmaj7:["320002","32---1"],
@@ -8894,25 +8894,22 @@ const LG_SAME={"D/F#":"D"}, LG_SAME_NOTE={"D/F#":"Note: D/F# is just D with F# p
 // songs recorded in a higher key: the same chord shapes with a capo play along with the recording
 const LG_CAPO={"John Legend - All of Me":1,"Coldplay - Viva la Vida":1,"Tom Petty - Free Fallin'":1,"Ben E. King - Stand By Me":2,"Tracy Chapman - Fast Car":2,"John Denver - Take Me Home, Country Roads":2};
 const lgCapoNote=t=>LG_CAPO[t]?`Note: to play along with the recording, put a capo on the ${LG_CAPO[t]===1?"1st":"2nd"} fret and play these same chord shapes. A capo clamps all the strings at that fret, which raises every chord by ${LG_CAPO[t]===1?"one fret":"two frets"} without changing how you finger them.`:"";
-// a sharp or flat chord counts as known when you know the barre shape (no open strings) of its natural version: move it a fret up or down
-// (a sharp is also the next letter's flat: A#5 = Bb5, the B5 shape a fret down, when the A5 shape uses open strings)
-const lgNat=c=>{const m=/^([A-G])([#b])(.*)$/.exec(c); if(!m)return null; const mov=n=>{const S=CHORD_SHAPES[n]; return S&&!/0/.test(S[0])};
-  const n=m[1]+m[3]; if(mov(n))return {n,up:m[2]==="#"};
-  const L="CDEFGAB", i=L.indexOf(m[1]), o=m[2]==="#"?L[(i+1)%7]+m[3]:L[(i+6)%7]+m[3], half=m[2]==="#"?"EB".includes(m[1]):"CF".includes(m[1]);
-  return !half&&mov(o)?{n:o,up:m[2]!=="#",alt:(m[2]==="#"?L[(i+1)%7]+"b":L[(i+6)%7]+"#")+m[3]}:null};
-// every power chord is the same movable shape: knowing any one without open strings (F5, G5, B5, C5) covers them all
-const LG_PWR=["F5","G5","B5","C5"], lgPwr=c=>{const m=/^([A-G])([#b]?)5$/.exec(c); if(!m)return null; const pc=({C:0,D:2,E:4,F:5,G:7,A:9,B:11}[m[1]]+(m[2]==="#"?1:m[2]==="b"?-1:0)+12)%12;
-  return {e:(pc-4+12)%12||12,a:(pc-9+12)%12||12}};
-const lgKnows=(know,c)=>know.has(c)||(LG_SAME[c]&&know.has(LG_SAME[c]))||(()=>{const N=lgNat(c); return !!(N&&know.has(N.n))})()||(!!lgPwr(c)&&LG_PWR.some(x=>know.has(x)));
-const lgPwrNote=c=>{const P=lgPwr(c); if(!P)return ""; const ord=x=>x+(x%10===1&&x!==11?"st":x%10===2&&x!==12?"nd":x%10===3&&x!==13?"rd":"th");
-  const [a,b]=P.e<=P.a?[`the low E string at the ${ord(P.e)} fret`,`the A string at the ${ord(P.a)} fret`]:[`the A string at the ${ord(P.a)} fret`,`the low E string at the ${ord(P.e)} fret`];
-  return `Note: ${c} is the same power chord shape as F5, G5, B5 or C5, slid so the root is on ${a} (or ${b}). Every power chord uses this one movable shape.`};
-const lgNatNote=c=>{const N=lgNat(c); return N?`Note: ${c}${N.alt?` (the same chord as ${N.alt})`:""} is the ${N.n} shape moved one fret ${N.up?"up (a sharp raises it a half step)":"down (a flat lowers it a half step)"}. Shapes with no open strings move anywhere on the neck.`:""};
+// a chord with no card of its own counts as known when you know a card of the same type with no open strings: slide that shape so its root
+// (on the shape's lowest played string) lands on the chord's root. Shapes with their roots on different strings are different shapes.
+const LG_OPEN=[4,9,2,7,11,4], LG_STR=["low E","A","D","G","B","high E"], lgPc=r=>({C:0,D:2,E:4,F:5,G:7,A:9,B:11}[r[0]]+(r[1]==="#"?1:r[1]==="b"?-1:0)+12)%12;
+const lgMove=c=>{const m=/^([A-G][#b]?)([^/]*)$/.exec(c); if(!m)return []; const out=[];
+  for(const n in CHORD_SHAPES){const k=/^([A-G][#b]?)([^/]*)$/.exec(n), S=CHORD_SHAPES[n][0]; if(n===c||!k||k[2]!==m[2]||/0/.test(S))continue;
+    const st=[...S].findIndex(x=>x!=="x"), f=(lgPc(m[1])-LG_OPEN[st]+12)%12||12; out.push({n,st,f,d:f-(+S[st])})}
+  return out.sort((x,y)=>x.f-y.f||x.st-y.st)};
+const lgKnows=(know,c)=>know.has(c)||(LG_SAME[c]&&know.has(LG_SAME[c]))||(!CHORD_SHAPES[c]&&lgMove(c).some(x=>know.has(x.n)));
+const lgMoveNote=(know,c)=>{const M=lgMove(c), x=M.find(y=>know.has(y.n))||M[0]; if(!x)return ""; const ord=v=>v+(v%10===1&&v!==11?"st":v%10===2&&v!==12?"nd":v%10===3&&v!==13?"rd":"th");
+  const r=c.match(/^[A-G][#b]?/)[0], L="CDEFGAB", i=L.indexOf(r[0]), alt=r[1]==="#"&&!"EB".includes(r[0])?L[(i+1)%7]+"b":r[1]==="b"&&!"CF".includes(r[0])?L[(i+6)%7]+"#":"";
+  return `Note: ${c}${alt?` (the same chord as ${alt}${c.slice(r.length)})`:""} is the ${x.n} shape (root on the ${LG_STR[x.st]} string) moved ${x.d>0?"up":"down"} ${Math.abs(x.d)} fret${Math.abs(x.d)===1?"":"s"}, so its root is at the ${ord(x.f)} fret. Shapes with no open strings move anywhere on the neck.`};
 function lgSongHtml(L){if(!L||L.err)return ""; const know=new Set([...L.s].map(k=>k.split("/").pop()).filter(c=>CHORD_SHAPES[c]));
   const ok=LG_SONGS.map((x,i)=>({i,new:x[1].filter(c=>!lgKnows(know,c))})).filter(x=>x.new.length<=1&&x.new.length<LG_SONGS[x.i][1].length); if(!ok.length)return "";
   if(LG_SONG==null||!ok.some(x=>x.i===LG_SONG))LG_SONG=ok[Math.floor(Math.random()*ok.length)].i;
-  const [t,cs]=LG_SONGS[LG_SONG], nw=cs.filter(c=>!lgKnows(know,c)), notes=cs.filter(c=>LG_SAME_NOTE[c]).map(c=>LG_SAME_NOTE[c]).concat(cs.filter(c=>!CHORD_SHAPES[c]&&(lgNat(c)||lgPwr(c))).map(c=>lgPwr(c)&&!(lgNat(c)&&know.has(lgNat(c).n))?lgPwrNote(c):lgNatNote(c))).concat(lgCapoNote(t)||[]);
-  return `<div class="lgsong"><div class="lgsongtop"><span class="lgsongh">🎸 Try playing this song</span>${ok.length>1?`<button type="button" class="clear" data-lgsong>Another song</button>`:""}</div><b>${esc(t)}</b><span class="lgsongc">${cs.map(c=>`<span class="${lgKnows(know,c)?"k":"n"}"${lgKnows(know,c)?"":` title="A chord you haven't checked off yet"`}>${esc(c)}</span>`).join("")}</span>${nw.length?(()=>{const j=CHORD_SHAPES[nw[0]]?nw[0]:lgNat(nw[0])&&lgNat(nw[0]).n; return `<small>One new chord to learn: ${j?`<button type="button" class="lgnewc" data-lgnewc="${esc(j)}" title="Show ${esc(j)} in the chords below">${j===nw[0]?`Jump to ${esc(j)}`:`${esc(nw[0])} · Jump to ${esc(j)}`}</button>`:esc(nw[0])}</small>`})():`<small>You know all of its chords!</small>`}${notes.map(x=>`<p class="lgsongn">${esc(x)}</p>`).join("")}</div>`}
+  const [t,cs]=LG_SONGS[LG_SONG], nw=cs.filter(c=>!lgKnows(know,c)), notes=cs.filter(c=>LG_SAME_NOTE[c]).map(c=>LG_SAME_NOTE[c]).concat(cs.filter(c=>!CHORD_SHAPES[c]&&lgMove(c).length).map(c=>lgMoveNote(know,c))).concat(lgCapoNote(t)||[]);
+  return `<div class="lgsong"><div class="lgsongtop"><span class="lgsongh">🎸 Try playing this song</span>${ok.length>1?`<button type="button" class="clear" data-lgsong>Another song</button>`:""}</div><b>${esc(t)}</b><span class="lgsongc">${cs.map(c=>`<span class="${lgKnows(know,c)?"k":"n"}"${lgKnows(know,c)?"":` title="A chord you haven't checked off yet"`}>${esc(c)}</span>`).join("")}</span>${nw.length?(()=>{const j=CHORD_SHAPES[nw[0]]?nw[0]:(lgMove(nw[0])[0]||{}).n; return `<small>One new chord to learn: ${j?`<button type="button" class="lgnewc" data-lgnewc="${esc(j)}" title="Show ${esc(j)} in the chords below">${j===nw[0]?`Jump to ${esc(j)}`:`${esc(nw[0])} · Jump to ${esc(j)}`}</button>`:esc(nw[0])}</small>`})():`<small>You know all of its chords!</small>`}${notes.map(x=>`<p class="lgsongn">${esc(x)}</p>`).join("")}</div>`}
 // the new chord's name jumps down to its card
 document.addEventListener("click",e=>{const b=e.target.closest("[data-lgnewc]"); if(!b)return; const c=b.dataset.lgnewc, f=[...document.querySelectorAll(".lgsec .lgfig[data-learnfig]")].find(x=>x.dataset.learnfig.split("/").pop()===c); if(f)f.scrollIntoView({behavior:"smooth",block:"center"})});
 document.addEventListener("click",e=>{if(!e.target.closest("[data-lgsong]"))return; const L=ACCT.learn; if(!L)return; const know=new Set([...L.s].map(k=>k.split("/").pop()));
