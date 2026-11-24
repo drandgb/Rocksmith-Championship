@@ -8757,7 +8757,7 @@ function techTabSvg(t){const T=TECH_TAB[t]; if(!T)return ""; const W=148,x0=18,x
   return `<svg class="lgtab" viewBox="0 0 ${W} 88" role="img" aria-label="${esc(t)}, tab">${h}</svg>`}
 // Learning the fretboard: the natural notes (no sharps or flats) on each string from the open string to fret 11,
 // drawn on a lane in the string's color (the two E strings share a card: red low E and purple high e)
-const FRET_STR={"E strings":[0,5],"A string":[1],"D string":[2],"G string":[3],"B string":[4]};
+const FRET_STR={"E strings":[0,5],"A string":[1],"D string":[2],"G string":[3],"B string":[4],"Bass E":[0],"Bass A":[1],"Bass D":[2],"Bass G":[3]};
 function fretSvg(t,one){const S=one!=null?[one]:FRET_STR[t]; if(!S)return "";   /* (one string per picture: the two E strings aren't next to each other) */ const NN=["C","C♯","D","D♯","E","F","F♯","G","G♯","A","A♯","B"], OPEN=[4,9,2,7,11,4], fw=21, pl=22, rh=26, y0=8, W=pl+11*fw+6, H=y0+rh*S.length+14;
   let h=`<rect x="${pl}" y="${y0-4}" width="${11*fw}" height="${rh*S.length}" rx="3" fill="rgba(0,0,0,.35)"/>`;
   for(let j=0;j<=11;j++)h+=`<rect x="${pl+j*fw-(j?.6:1.8)}" y="${y0-4}" width="${j?1.2:3.6}" height="${rh*S.length}" fill="${j?"#5c6880":"#e7eaf2"}"/>`;
@@ -8780,13 +8780,15 @@ const SCALES={
   "Minor 3":{n:"Position 3",root:9,p:[[0,10],[0,12],[0,13],[1,10],[1,12],[2,9],[2,10],[2,12],[3,9],[3,10],[3,12],[4,10],[4,12],[4,13],[5,10],[5,12],[5,13]]},
   "Minor 4":{n:"Position 4",root:9,p:[[0,12],[0,13],[0,15],[1,12],[1,14],[1,15],[2,12],[2,14],[2,15],[3,12],[3,14],[4,12],[4,13],[4,15],[5,12],[5,13],[5,15]]},
   "Minor 5":{n:"Position 5",root:9,p:[[0,3],[0,5],[1,2],[1,3],[1,5],[2,2],[2,3],[2,5],[3,2],[3,4],[3,5],[4,3],[4,5],[4,6],[5,3],[5,5]]}};
-function scaleSvg(t,view){const S=SCALES[t]; if(!S)return ""; const P=S.p, NN=S.fl?["C","D♭","D","E♭","E","F","G♭","G","A♭","A","B♭","B"]:["C","C♯","D","D♯","E","F","F♯","G","G♯","A","A♯","B"], OPEN=[4,9,2,7,11,4], ROOT=S.root!=null?S.root:7;
-  const lo=Math.min(...P.map(x=>x[1])), hi=Math.max(...P.map(x=>x[1])), f0=Math.max(1,lo), nf=Math.max(5,hi-f0+1), fw=Math.min(30,150/nf), pl=14, rh=12, y0=6, W=pl+nf*fw+8, H=y0+rh*6+14, top=view==="rs";
-  const row=s=>y0+((top?s:5-s)+.5)*rh, cx=f=>pl+(f-f0+.5)*fw;
-  let h=`<rect x="${pl}" y="${y0}" width="${nf*fw}" height="${rh*6}" fill="rgba(0,0,0,.35)"/>`;
-  for(let j=0;j<=nf;j++){const nut=j===0&&f0===1; h+=`<rect x="${pl+j*fw-(nut?2:.6)}" y="${y0-2}" width="${nut?4:1.2}" height="${rh*6+4}" fill="${nut?"#e7eaf2":"#5c6880"}"/>`}
+// bass: the same positions on the four bass strings (tuned like the guitar's lowest four)
+Object.keys(SCALES).slice().forEach(k=>{const S=SCALES[k]; SCALES["Bass "+k]={...S,b:1,p:S.p.filter(x=>x[0]<=3)}});
+function scaleSvg(t,view){const S=SCALES[t]; if(!S)return ""; const P=S.p, ns=S.b?4:6, NN=S.fl?["C","D♭","D","E♭","E","F","G♭","G","A♭","A","B♭","B"]:["C","C♯","D","D♯","E","F","F♯","G","G♯","A","A♯","B"], OPEN=[4,9,2,7,11,4], ROOT=S.root!=null?S.root:7;
+  const lo=Math.min(...P.map(x=>x[1])), hi=Math.max(...P.map(x=>x[1])), f0=Math.max(1,lo), nf=Math.max(5,hi-f0+1), fw=Math.min(30,150/nf), pl=14, rh=12, y0=6, W=pl+nf*fw+8, H=y0+rh*ns+14, top=view==="rs";
+  const row=s=>y0+((top?s:ns-1-s)+.5)*rh, cx=f=>pl+(f-f0+.5)*fw;
+  let h=`<rect x="${pl}" y="${y0}" width="${nf*fw}" height="${rh*ns}" fill="rgba(0,0,0,.35)"/>`;
+  for(let j=0;j<=nf;j++){const nut=j===0&&f0===1; h+=`<rect x="${pl+j*fw-(nut?2:.6)}" y="${y0-2}" width="${nut?4:1.2}" height="${rh*ns+4}" fill="${nut?"#e7eaf2":"#5c6880"}"/>`}
   for(let j=0;j<nf;j++)h+=`<text x="${pl+(j+.5)*fw}" y="${H-3}" text-anchor="middle" font-size="7.5" font-weight="700" fill="#f5c84a">${f0+j}</text>`;
-  for(let s=0;s<6;s++)h+=`<rect x="${pl}" y="${row(s)-.6}" width="${nf*fw}" height="1.2" fill="${CH_COL[s]}" opacity=".55"/>`;
+  for(let s=0;s<ns;s++)h+=`<rect x="${pl}" y="${row(s)-.6}" width="${nf*fw}" height="1.2" fill="${CH_COL[s]}" opacity=".55"/>`;
   P.forEach(([s,f])=>{const n=(OPEN[s]+f)%12, x=cx(f), y=row(s), r=n===ROOT;
     h+=`<circle cx="${x}" cy="${y}" r="5.4" fill="${CH_COL[s]}" stroke="${r?"#fff":"rgba(0,0,0,.35)"}" stroke-width="${r?1.8:.6}"/><text x="${x}" y="${y+2.6}" text-anchor="middle" font-size="6.6" font-weight="800" fill="#0d0f14">${NN[n].replace("♯","#").replace("♭","b")}</text>`});
   return `<svg class="lgrs lgscale" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(S.n)} of the ${S.root===9?"minor":"major"} scale">${h}</svg>`}
@@ -8794,7 +8796,8 @@ function scaleSvg(t,view){const S=SCALES[t]; if(!S)return ""; const P=S.p, NN=S.
 var LG_VIEW=(()=>{try{const v=localStorage.getItem("rsc-lgview"); return ["chart","rs","rsinv"].includes(v)?v:"chart"}catch(e){return "chart"}})();
 document.addEventListener("click",e=>{const j=e.target.closest("[data-lgjump]"); if(!j)return; const t=$("lgset-"+j.dataset.lgjump); if(t)t.scrollIntoView({behavior:"smooth",block:"start"})});   // the Jump to links at the top
 document.addEventListener("click",e=>{const b=e.target.closest("[data-lgview]"); if(!b)return; LG_VIEW=b.dataset.lgview; try{localStorage.setItem("rsc-lgview",LG_VIEW)}catch(e){} acctDraw()});
-function chordPics(list,isOn,keyOf){const cards=list.filter(c=>CHORD_SHAPES[c]||TECH[c]||FRET_STR[c]||SCALES[c]).map(c=>{const tq=!!TECH[c]||!!FRET_STR[c]||!!SCALES[c];const k=keyOf&&keyOf(c); return `<figure class="lgfig${isOn(c)?" on":""}"${k?` data-learnfig="${esc(k)}" role="checkbox" aria-checked="${isOn(c)}" tabindex="0" title="${TECH[c]?esc(TECH[c].tip)+"\n\n":""}${isOn(c)?`Click to uncheck ${esc(SCALES[c]?SCALES[c].n:c)}`:`Click when you can play ${esc(SCALES[c]?SCALES[c].n:c)}`}"`:""}><figcaption><span class="lgfsp"></span><span class="lgfn">${esc(SCALES[c]?SCALES[c].n:c)}${isOn(c)?" ✓":""}</span>${ACCT.admin&&!tq?`<button type="button" class="lgedit" data-chedit="${esc(c)}" title="Edit the ${esc(c)} chord (admins)" aria-label="Edit ${esc(c)} chord">✎</button>`:`<span class="lgfsp"></span>`}</figcaption><div class="lgpair${FRET_STR[c]&&FRET_STR[c].length>1?" lgstack":""}">${SCALES[c]?scaleSvg(c,LG_VIEW):FRET_STR[c]?FRET_STR[c].map(si=>fretSvg(c,si)).join(""):tq?(LG_VIEW==="chart"?techTabSvg(c):techRsSvg(c,LG_VIEW==="rsinv")):LG_VIEW==="chart"?chordBoxSvg(c):chordRsSvg(c,null,LG_VIEW==="rsinv")}</div>${TECH[c]&&TECH[c].tip?`<p class="lgexp">${esc(TECH[c].tip)}</p>`:""}</figure>`}).join("");
+const lgName=c=>SCALES[c]?SCALES[c].n:/^Bass [EADG]$/.test(c)?c.slice(5)+" string":c;
+function chordPics(list,isOn,keyOf){const cards=list.filter(c=>CHORD_SHAPES[c]||TECH[c]||FRET_STR[c]||SCALES[c]).map(c=>{const tq=!!TECH[c]||!!FRET_STR[c]||!!SCALES[c];const k=keyOf&&keyOf(c); return `<figure class="lgfig${isOn(c)?" on":""}"${k?` data-learnfig="${esc(k)}" role="checkbox" aria-checked="${isOn(c)}" tabindex="0" title="${TECH[c]?esc(TECH[c].tip)+"\n\n":""}${isOn(c)?`Click to uncheck ${esc(lgName(c))}`:`Click when you can play ${esc(lgName(c))}`}"`:""}><figcaption><span class="lgfsp"></span><span class="lgfn">${esc(lgName(c))}${isOn(c)?" ✓":""}</span>${ACCT.admin&&!tq?`<button type="button" class="lgedit" data-chedit="${esc(c)}" title="Edit the ${esc(c)} chord (admins)" aria-label="Edit ${esc(c)} chord">✎</button>`:`<span class="lgfsp"></span>`}</figcaption><div class="lgpair${FRET_STR[c]&&FRET_STR[c].length>1?" lgstack":""}">${SCALES[c]?scaleSvg(c,LG_VIEW):FRET_STR[c]?FRET_STR[c].map(si=>fretSvg(c,si)).join(""):tq?(LG_VIEW==="chart"?techTabSvg(c):techRsSvg(c,LG_VIEW==="rsinv")):LG_VIEW==="chart"?chordBoxSvg(c):chordRsSvg(c,null,LG_VIEW==="rsinv")}</div>${TECH[c]&&TECH[c].tip?`<p class="lgexp">${esc(TECH[c].tip)}</p>`:""}</figure>`}).join("");
   return cards?`<div class="lgpics">${cards}</div>`:""}
 // admins: edit a chord in the chord diagram maker (a dialog over the profile). One fretted note per string; strings with no note are muted (X) or open (O).
 const CHED={};
@@ -8862,14 +8865,32 @@ function lgSongHtml(L){if(!L||L.err)return ""; const know=new Set([...L.s].map(k
 document.addEventListener("click",e=>{const b=e.target.closest("[data-lgnewc]"); if(!b)return; const c=b.dataset.lgnewc, f=[...document.querySelectorAll(".lgsec .lgfig[data-learnfig]")].find(x=>x.dataset.learnfig.split("/").pop()===c); if(f)f.scrollIntoView({behavior:"smooth",block:"center"})});
 document.addEventListener("click",e=>{if(!e.target.closest("[data-lgsong]"))return; const L=ACCT.learn; if(!L)return; const know=new Set([...L.s].map(k=>k.split("/").pop()));
   const ok=LG_SONGS.map((x,i)=>({i,n:x[1].filter(c=>!lgKnows(know,c)).length})).filter(x=>x.n<=1&&x.n<LG_SONGS[x.i][1].length&&x.i!==LG_SONG); if(ok.length)LG_SONG=ok[Math.floor(Math.random()*ok.length)].i; acctDraw()});
+// the bass goals, and the Guitar/Bass toggle (starts on whichever the player has played more challenges on; remembered on this device)
+const LEARN_BASS=[
+  {id:"bfret",t:"Learning the fretboard",g:[{id:"notes",t:"I know the notes on each string from memory",i:["Bass E","Bass A","Bass D","Bass G"]}]},
+  {id:"bscales",t:"Scales",g:[
+    {id:"major",t:"The Major Scale",i:["Bass Major 1","Bass Major 2","Bass Major 3","Bass Major 4","Bass Major 5"],d:"Shown in G major: the ringed notes are the root, G."},
+    {id:"minor",t:"The Minor Scale",i:["Bass Minor 1","Bass Minor 2","Bass Minor 3","Bass Minor 4","Bass Minor 5"],d:"Shown in A minor: the ringed notes are the root, A."}]},
+  {id:"btech",t:"Techniques",g:[
+    {id:"more",t:"I can play these basic techniques",i:["Tremolo","Vibrato","Sustain","Accent","Tapping"]},
+    {id:"bend",t:"I can bend strings",i:["Half step bend","Full step bend"]},
+    {id:"legato",t:"I can play hammer-ons and pull-offs",i:["Hammer-on","Pull-off"]},
+    {id:"slide",t:"I can slide between notes",i:["Slide up","Slide down"]},
+    {id:"mute",t:"I can mute strings",i:["Palm mute","Frethand mute"]},
+    {id:"harm",t:"I can play harmonics",i:["Natural harmonic"]}]}];
+var LG_INST=(()=>{try{return localStorage.getItem("rsc-lginst")}catch(e){return null}})();
+function lgInst(n){if(LG_INST==="guitar"||LG_INST==="bass")return LG_INST;
+  try{const E=sbIx().ent[String(n).toLowerCase()]||[]; let b=0,g=0; E.forEach(x=>x.c[0]===2?b++:g++); return b>g?"bass":"guitar"}catch(e){return "guitar"}}
+document.addEventListener("click",e=>{const b=e.target.closest("[data-lginst]"); if(!b)return; LG_INST=b.dataset.lginst; try{localStorage.setItem("rsc-lginst",LG_INST)}catch(e){} acctDraw()});
 function learnSection(){if(!ACCT.claim||ACCT.claim.status!=="approved")return ""; learnLoad(); chordFixLoad(); const L=ACCT.learn&&ACCT.user&&ACCT.learn.uid===ACCT.user.id?ACCT.learn:null;
   const box=(k,lab,cls)=>`<label class="lgck${cls||""}"><input type="checkbox" data-learn="${esc(k)}"${L&&L.s.has(k)?" checked":""}${L&&!L.err?"":" disabled"}><span>${esc(lab)}</span></label>`;
-  const body=LEARN.map(S=>{const keys=S.g.flatMap(g=>g.i?g.i.map(c=>`${S.id}/${g.id}/${c}`):[`${S.id}/${g.id}`]), n=L?keys.filter(k=>L.s.has(k)).length:0;
+  const inst=lgInst(ACCT.claim.player), bass=inst==="bass";
+  const body=(bass?LEARN_BASS:LEARN).map(S=>{const keys=S.g.flatMap(g=>g.i?g.i.map(c=>`${S.id}/${g.id}/${c}`):[`${S.id}/${g.id}`]), n=L?keys.filter(k=>L.s.has(k)).length:0;
     return `<div class="lgset" id="lgset-${S.id}"><h4>${esc(S.t)}<small>${n} of ${keys.length}${n===keys.length?" · done 🤘":""}</small></h4>${S.id==="cowboy"?`<p class="lgtip">Remember to mute the strings that you're not playing! There are many different ways to play the same chords, these are just one.</p>`:""}<ul>${S.g.map(g=>{
       if(!g.i)return `<li>${box(`${S.id}/${g.id}`,g.t)}</li>`;
       const all=L&&g.i.every(c=>L.s.has(`${S.id}/${g.id}/${c}`));
       return `<li><div class="lgg${all?" done":""}">${all?"✓ ":""}${esc(g.t)}:</div>${g.d?`<p class="lgdesc">${esc(g.d)}</p>`:""}${(()=>{const np=g.i.filter(c=>!CHORD_SHAPES[c]&&!TECH[c]&&!FRET_STR[c]&&!SCALES[c]); return np.length?`<div class="lgchips">${np.map(c=>box(`${S.id}/${g.id}/${c}`,c," chip")).join("")}</div>`:""})()}${chordPics(g.i,c=>!!(L&&L.s.has(`${S.id}/${g.id}/${c}`)),c=>L&&!L.err?`${S.id}/${g.id}/${c}`:null)}</li>`}).join("")}</ul></div>`}).join("");
-  return `<div class="acctsec lgsec"><p class="dim">Only you can see this. Check things off as you learn them.${L?(L.err?" Couldn't load your targets right now.":""):" Loading…"}</p>${lgSongHtml(L)}<div class="lgjump">Jump to: ${[["cowboy","Chords"],["fret","Strings"],["scales","Scales"],["tech","Techniques"]].map(([k,t])=>`<button type="button" class="clear" data-lgjump="${k}">${t}</button>`).join("")}</div><div class="seg lgview" role="radiogroup" aria-label="Chord pictures">${[["chart","Chord diagram"],["rs","RS2014"],["rsinv","RS2014 inverted"]].map(([k,t])=>`<button type="button" class="s-all" data-lgview="${k}" aria-pressed="${LG_VIEW===k}">${t}</button>`).join("")}</div>${body}</div>`}
+  return `<div class="acctsec lgsec"><p class="dim">Only you can see this. Check things off as you learn them.${L?(L.err?" Couldn't load your targets right now.":""):" Loading…"}</p><div class="seg lgview lginst" role="radiogroup" aria-label="Instrument">${[["guitar","Guitar"],["bass","Bass"]].map(([k,t])=>`<button type="button" class="s-all" data-lginst="${k}" aria-pressed="${inst===k}">${t}</button>`).join("")}</div>${bass?"":lgSongHtml(L)}<div class="lgjump">Jump to: ${(bass?[["bfret","Strings"],["bscales","Scales"],["btech","Techniques"]]:[["cowboy","Chords"],["fret","Strings"],["scales","Scales"],["tech","Techniques"]]).map(([k,t])=>`<button type="button" class="clear" data-lgjump="${k}">${t}</button>`).join("")}</div><div class="seg lgview" role="radiogroup" aria-label="Chord pictures">${[["chart","Chord diagram"],["rs","RS2014"],["rsinv","RS2014 inverted"]].map(([k,t])=>`<button type="button" class="s-all" data-lgview="${k}" aria-pressed="${LG_VIEW===k}">${t}</button>`).join("")}</div>${body}</div>`}
 async function learnSet(k,on){if(!ACCT.learn||!ACCT.user)return false;
   const {error}=on?await ACCT.sb.from("learn_goals").insert({item:k}):await ACCT.sb.from("learn_goals").delete().match({user_id:ACCT.user.id,item:k});
   if(error&&!(on&&/duplicate/i.test(error.message))){alert("Couldn't save that: "+error.message); return false}
