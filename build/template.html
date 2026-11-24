@@ -8286,9 +8286,12 @@ function activitySection(){const A=ACTIVITY; if(!A||!A.n)return "";
      const scores=!sc||!mine.sc||sc!==mine.sc;
      shown=true; const b=document.createElement("button"); b.type="button"; b.className="freshbar"; b.textContent=scores?"🎸 New scores are in · tap to refresh":"✨ Site update · tap to refresh";
      b.addEventListener("click",()=>{try{sessionStorage.setItem("rsc-refresh-y",JSON.stringify({h:location.hash,y:scrollY}))}catch(e){} location.reload()}); document.body.appendChild(b); freshTop()}).catch(()=>{})};
-  // the pill sits in the top layer (a popover), so it shows above an open profile or other dialog; re-raised whenever a dialog opens after it
-  function freshTop(){const b=document.querySelector(".freshbar"); if(!b||!b.showPopover)return; try{b.popover="manual"; if(b.matches(":popover-open"))b.hidePopover(); b.showPopover()}catch(e){}}
+  // the pill sits in the top layer (a popover), so it shows above an open profile or other dialog; re-raised whenever a dialog opens after it.
+  // An open dialog makes everything outside it unclickable, so the pill moves inside the topmost open dialog (and back out when it closes)
+  function freshTop(){const b=document.querySelector(".freshbar"); if(!b)return; const D=[...document.querySelectorAll("dialog[open]")].filter(d=>{try{return d.matches(":modal")}catch(e){return true}}), host=D.length?D[D.length-1]:document.body;
+    try{if(b.matches&&b.matches(":popover-open"))b.hidePopover()}catch(e){} if(b.parentNode!==host)host.appendChild(b); if(!b.showPopover)return; try{b.popover="manual"; b.showPopover()}catch(e){}}
   try{const sm=HTMLDialogElement.prototype.showModal; HTMLDialogElement.prototype.showModal=function(){const r=sm.apply(this,arguments); freshTop(); return r}}catch(e){}
+  document.addEventListener("close",()=>setTimeout(freshTop),true);
  // after a tap to refresh: scroll back to where you were once the page has drawn
  try{const st=JSON.parse(sessionStorage.getItem("rsc-refresh-y")||"null"); sessionStorage.removeItem("rsc-refresh-y");
    if(st&&st.h===location.hash&&st.y>0){if("scrollRestoration" in history)history.scrollRestoration="manual"; let moved=false; ["wheel","touchstart","keydown"].forEach(ev=>addEventListener(ev,()=>moved=true,{once:true,passive:true}));
