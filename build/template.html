@@ -8727,7 +8727,7 @@ function techRsSvg(t,inv,bass){const T=TECH[t]; if(!T)return ""; if(!T.n)return 
     if(m==="pm"||m==="fm")h+=`<path d="M${x-5} ${y-4}l10 8m0-8l-10 8" stroke="${m==="pm"?col:"#fff"}" stroke-width="1.8" stroke-linecap="round"/>`;
     // harmonics sit on a gem like the game's: natural is a ring with a dot in the middle, pinch is a flat disc
     if(m==="harm")h+=`<circle cx="${x}" cy="${y}" r="4.2" fill="${col}" stroke="#fff" stroke-width="1.6"/><circle cx="${x}" cy="${y}" r="1.4" fill="#fff"/>`;
-    if(m==="ph")h+=`<ellipse cx="${x}" cy="${y}" rx="8.5" ry="3.6" fill="${col}" stroke="#fff" stroke-width="1.2"/><ellipse cx="${x}" cy="${y}" rx="3.6" ry="1.5" fill="#0d0f14" stroke="#fff" stroke-width=".6"/>`;
+    if(m==="ph")h+=`<ellipse cx="${x}" cy="${y}" rx="8.5" ry="3.6" fill="${col}"/><ellipse cx="${x}" cy="${y}" rx="3.6" ry="1.5" fill="#0d0f14"/>`;   // pinch: no white, only the string's color
     if(m==="ho"||m==="po")h+=m==="ho"?`<path d="M${x-3.6} ${y-3}h7.2l-3.6 6z" fill="#fff"/>`:`<path d="M${x-3.6} ${y+3}h7.2l-3.6 -6z" fill="#fff"/>`;   // one gem with the triangle inside: ▼ hammer-on, ▲ pull-off
     if(m==="bend")for(let c=0;c<k;c++){const yy=y+up*(10+c*5); h+=`<path d="M${x-5} ${yy-up*2.5}L${x} ${yy+up*2.5}L${x+5} ${yy-up*2.5}" fill="none" stroke="#fff" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>`}   // one chevron per half step
     if(m==="tap")h+=`<path d="M${x} ${y-7}l-5 -6h3v-6h4v6h3z" fill="#b277ff" stroke="#fff" stroke-width=".7"/>`});
