@@ -8627,6 +8627,11 @@ const LEARN=[{id:"cowboy",t:"Cowboy guitarist",g:[
   {id:"major",t:"The Major Scale",i:["Major 1","Major 2","Major 3","Major 4","Major 5"],d:"Shown in G major: the numbers are the scale degrees, and R (ringed) is the root, G."},
   {id:"pminor",t:"The Minor Pentatonic Scale",i:["PMinor 1","PMinor 2","PMinor 3","PMinor 4","PMinor 5"],d:"Shown in G minor pentatonic: the minor scale without its 2 and b6, so five notes (R, b3, 4, 5, b7). R (ringed) is the root, G."},
   {id:"minor",t:"The Minor Scale",i:["Minor 1","Minor 2","Minor 3","Minor 4","Minor 5"],d:"Shown in G minor: the numbers are the scale degrees, and R (ringed) is the root, G."}]},
+  {id:"triads",t:"Fretboard wizard",g:[
+  {id:"majtri",t:"I can play major triads from memory",i:["G triad","G triad 1st","G triad 2nd"],d:"A triad is just the three notes of a chord (here a major chord: 1, 3 and 5), played on the G, B and high E strings. Shown in G: in root position the root is the lowest note, in 1st inversion the 3rd is, and in 2nd inversion the 5th is. With no open strings, each shape moves anywhere on the fretboard."},
+  {id:"mintri",t:"I can play minor triads from memory",i:["Gm triad","Gm triad 1st","Gm triad 2nd"],d:"The same three positions for a minor triad (1, b3 and 5), shown in G minor."},
+  {id:"dimtri",t:"I can play diminished triads from memory",i:["Gdim triad","Gdim triad 1st","Gdim triad 2nd"],d:"A diminished triad uses scale degrees 1, b3 and b5, shown in G diminished."},
+  {id:"augtri",t:"I can play augmented triads from memory",i:["Gaug triad","Gaug triad 1st","Gaug triad 2nd"],d:"An augmented triad uses scale degrees 1, 3 and #5, shown in G augmented. Its notes are evenly spaced, so all three positions are the same shape, 4 frets apart."}]},
   {id:"tech",t:"Techniques",g:[
   {id:"more",t:"I can play these basic techniques",i:["Tremolo","Vibrato","Sustain","Accent","Tapping"]},
   {id:"bend",t:"I can bend strings",i:["Half step bend","Full step bend","1½ step bend","Pre-bend"]},
@@ -8635,7 +8640,7 @@ const LEARN=[{id:"cowboy",t:"Cowboy guitarist",g:[
   {id:"strum",t:"I can strum with downstrokes and upstrokes",i:["Strumming"]},
   {id:"mute",t:"I can mute strings",i:["Palm mute","Frethand mute"]},
   {id:"harm",t:"I can play harmonics",i:["Natural harmonic","Pinch harmonic"]}]}];
-// chord pictures for Learning goals: frets low E→high e (x = don't play, 0 = open) and the finger on each string ("-" = none)
+// chord pictures for Learning goals: frets low E→high e (x = don't play, 0 = open; comma-separated when a fret has two digits) and the finger on each string ("-" = none)
 const CHORD_SHAPES={A:["x02220","--123-"],C:["x32010","-32-1-"],D:["xx0232","---132"],E:["022100","-231--"],F:["133211","134211"],G:["320003","21---3"],B:["x24442","-12341"],
   Am:["x02210","--231-"],Bm:["x24432","-13421"],Fm:["133111","134111"],Gm:["xx5786","--1342"],E5:["022xxx","-12---"],A5:["x022xx","--12--"],D5:["xx023x","---13-"],F5:["133xxx","134---"],G5:["xx578x","--134-"],B5:["x244xx","-134--"],Dm:["xx0231","---231"],Em:["022000","-23---"],
   A7:["x02020","--2-3-"],B7:["x21202","-213-4"],C7:["x32310","-3241-"],D7:["xx0212","---213"],E7:["020100","-2-1--"],G7:["320001","32---1"],
@@ -8643,7 +8648,11 @@ const CHORD_SHAPES={A:["x02220","--123-"],C:["x32010","-32-1-"],D:["xx0232","---
   Amaj7:["x02120","--213-"],Cmaj7:["x32000","-32---"],Dmaj7:["xx0222","---123"],Fmaj7:["xx3210","--321-"],Gmaj7:["320002","32---1"],
   A6:["x02222","--1111"],D6:["xx0202","---2-3"],E6:["022120","-2314-"],G6:["320000","21----"],
   Aadd9:["x02420","--142-"],Cadd9:["x32030","-21-3-"],Eadd9:["024100","-241--"],Gadd9:["320203","21-3-4"],
-  Asus4:["x02230","--123-"],Dsus4:["xx0233","---134"],Esus4:["022200","-234--"]};
+  Asus4:["x02230","--123-"],
+  "G triad":["x,x,x,12,12,10","---341"],"G triad 1st":["xxx433","---211"],"G triad 2nd":["xxx787","---132"],
+  "Gm triad":["x,x,x,12,11,10","---321"],"Gm triad 1st":["xxx333","---111"],"Gm triad 2nd":["xxx786","---231"],
+  "Gdim triad":["x,x,x,12,11,9","---431"],"Gdim triad 1st":["xxx323","---213"],"Gdim triad 2nd":["xxx686","---132"],
+  "Gaug triad":["x,x,x,12,12,11","---231"],"Gaug triad 1st":["xxx443","---231"],"Gaug triad 2nd":["xxx887","---231"],Dsus4:["xx0233","---134"],Esus4:["022200","-234--"]};
 const CH_COL=["#ef4a55","#f5c84a","#3fa0ff","#ff9a2e","#45d17a","#b277ff"];
 // admins' chord fixes (chord_shapes.sql): remembered from the last visit, then refreshed
 let CHORD_FIX={}; try{CHORD_FIX=JSON.parse(localStorage.getItem("rsc-chordfix")||"{}")||{}}catch(e){}
@@ -8651,7 +8660,7 @@ function chordFixLoad(){if(chordFixLoad.done||!ACCT.sb)return; chordFixLoad.done
   ACCT.sb.from("chord_shapes").select("*").then(({data,error})=>{if(error||!data)return; const m={}; for(const r of data)m[r.chord]=r; CHORD_FIX=m;
     try{localStorage.setItem("rsc-chordfix",JSON.stringify(m))}catch(e){} if(ACCT.tab==="learn")acctDraw()})}
 function chordShape(c){const x=CHORD_FIX[c]; if(x&&x.frets){const f=String(x.frets).split(",").map(v=>v==="x"?-1:+v); if(f.length===6&&f.every(v=>v>=-1&&v<=24))return {f,n:[...String(x.fingers||"------").padEnd(6,"-")].slice(0,6),start:Math.max(1,+x.start||1)}}
-  const s=CHORD_SHAPES[c]; if(!s)return null; const f=[...s[0]].map(v=>v==="x"?-1:+v), fr=f.filter(v=>v>0), hi=Math.max(0,...fr);
+  const s=CHORD_SHAPES[c]; if(!s)return null; const f=(s[0].includes(",")?s[0].split(","):[...s[0]]).map(v=>v==="x"?-1:+v), fr=f.filter(v=>v>0), hi=Math.max(0,...fr);
   return {f,n:[...s[1]],start:hi>4?Math.min(...fr):1}}
 // the chart: strings run up and down, like a songbook chord box
 function chordBoxSvg(c,S){S=S||chordShape(c); if(!S)return ""; const gx=12,gy=22,x0=22,y0=26,F=4; let h="";
@@ -8809,7 +8818,8 @@ function scaleSvg(t,view){const S=SCALES[t]; if(!S)return ""; const P=S.p, ns=S.
 var LG_VIEW=(()=>{try{const v=localStorage.getItem("rsc-lgview"); return ["chart","rs","rsinv"].includes(v)?v:"chart"}catch(e){return "chart"}})();
 document.addEventListener("click",e=>{const j=e.target.closest("[data-lgjump]"); if(!j)return; const t=$("lgset-"+j.dataset.lgjump); if(t)t.scrollIntoView({behavior:"smooth",block:"start"})});   // the Jump to links at the top
 document.addEventListener("click",e=>{const b=e.target.closest("[data-lgview]"); if(!b)return; LG_VIEW=b.dataset.lgview; try{localStorage.setItem("rsc-lgview",LG_VIEW)}catch(e){} acctDraw()});
-const lgName=c=>SCALES[c]?SCALES[c].n:/^Bass [EADG]$/.test(c)?c.slice(5)+" string":c;
+const LG_TRI={"G triad":"G (root position)","G triad 1st":"G/B (1st inversion)","G triad 2nd":"G/D (2nd inversion)","Gm triad":"Gm (root position)","Gm triad 1st":"Gm/Bb (1st inversion)","Gm triad 2nd":"Gm/D (2nd inversion)","Gdim triad":"Gdim (root position)","Gdim triad 1st":"Gdim/Bb (1st inversion)","Gdim triad 2nd":"Gdim/Db (2nd inversion)","Gaug triad":"G+ (root position)","Gaug triad 1st":"G+/B (1st inversion)","Gaug triad 2nd":"G+/D# (2nd inversion)"};
+const lgName=c=>LG_TRI[c]||(SCALES[c]?SCALES[c].n:/^Bass [EADG]$/.test(c)?c.slice(5)+" string":c);
 function chordPics(list,isOn,keyOf){const cards=list.filter(c=>CHORD_SHAPES[c]||TECH[c]||FRET_STR[c]||SCALES[c]).map(c=>{const tq=!!TECH[c]||!!FRET_STR[c]||!!SCALES[c];const k=keyOf&&keyOf(c); return `<figure class="lgfig${isOn(c)?" on":""}"${k?` data-learnfig="${esc(k)}" role="checkbox" aria-checked="${isOn(c)}" tabindex="0" title="${TECH[c]?esc(TECH[c].tip)+"\n\n":""}${isOn(c)?`Click to uncheck ${esc(lgName(c))}`:`Click when you can play ${esc(lgName(c))}`}"`:""}><figcaption><span class="lgfsp"></span><span class="lgfn">${esc(lgName(c))}${isOn(c)?" ✓":""}</span>${ACCT.admin&&!tq?`<button type="button" class="lgedit" data-chedit="${esc(c)}" title="Edit the ${esc(c)} chord (admins)" aria-label="Edit ${esc(c)} chord">✎</button>`:`<span class="lgfsp"></span>`}</figcaption><div class="lgpair${FRET_STR[c]&&FRET_STR[c].length>1?" lgstack":""}">${SCALES[c]?scaleSvg(c,LG_VIEW):FRET_STR[c]?FRET_STR[c].map(si=>fretSvg(c,si)).join(""):tq?(LG_VIEW==="chart"?techTabSvg(c,LG_BASS):techRsSvg(c,LG_VIEW==="rsinv",LG_BASS)):LG_VIEW==="chart"?chordBoxSvg(c):chordRsSvg(c,null,LG_VIEW==="rsinv")}</div>${TECH[c]&&TECH[c].tip?`<p class="lgexp">${esc(TECH[c].tip)}</p>`:""}</figure>`}).join("");
   return cards?`<div class="lgpics">${cards}</div>`:""}
 // admins: edit a chord in the chord diagram maker (a dialog over the profile). One fretted note per string; strings with no note are muted (X) or open (O).
@@ -8942,7 +8952,7 @@ function learnSection(){if(!ACCT.claim||ACCT.claim.status!=="approved")return ""
       if(!g.i)return `<li>${box(`${S.id}/${g.id}`,g.t)}</li>`;
       const all=L&&g.i.every(c=>L.s.has(`${S.id}/${g.id}/${c}`));
       return `<li><div class="lgg${all?" done":""}">${all?"✓ ":""}${esc(g.t)}:</div>${g.d?`<p class="lgdesc">${esc(g.d)}</p>`:""}${(()=>{const np=g.i.filter(c=>!CHORD_SHAPES[c]&&!TECH[c]&&!FRET_STR[c]&&!SCALES[c]); return np.length?`<div class="lgchips">${np.map(c=>box(`${S.id}/${g.id}/${c}`,c," chip")).join("")}</div>`:""})()}${chordPics(g.i,c=>!!(L&&L.s.has(`${S.id}/${g.id}/${c}`)),c=>L&&!L.err?`${S.id}/${g.id}/${c}`:null)}</li>`}).join("")}</ul></div>`}).join("");
-  return `<div class="acctsec lgsec"><p class="dim">Only you can see this. Check things off as you learn them.${L?(L.err?" Couldn't load your targets right now.":""):" Loading…"}</p><div class="seg lgview lginst" role="radiogroup" aria-label="Instrument">${[["guitar","Guitar"],["bass","Bass"]].map(([k,t])=>`<button type="button" class="s-all" data-lginst="${k}" aria-pressed="${inst===k}">${t}</button>`).join("")}</div>${bass?"":lgSongHtml(L)}<div class="lgjump">Jump to: ${(bass?[["bfret","Strings"],["bscales","Scales"],["btech","Techniques"]]:[["cowboy","Chords"],["fret","Strings"],["scales","Scales"],["tech","Techniques"]]).map(([k,t])=>`<button type="button" class="clear" data-lgjump="${k}">${t}</button>`).join("")}</div><div class="seg lgview" role="radiogroup" aria-label="Chord pictures">${[["chart","Chord diagram"],["rs","RS2014"],["rsinv","RS2014 inverted"]].map(([k,t])=>`<button type="button" class="s-all" data-lgview="${k}" aria-pressed="${LG_VIEW===k}">${t}</button>`).join("")}</div>${body}</div>`}
+  return `<div class="acctsec lgsec"><p class="dim">Only you can see this. Check things off as you learn them.${L?(L.err?" Couldn't load your targets right now.":""):" Loading…"}</p><div class="seg lgview lginst" role="radiogroup" aria-label="Instrument">${[["guitar","Guitar"],["bass","Bass"]].map(([k,t])=>`<button type="button" class="s-all" data-lginst="${k}" aria-pressed="${inst===k}">${t}</button>`).join("")}</div>${bass?"":lgSongHtml(L)}<div class="lgjump">Jump to: ${(bass?[["bfret","Strings"],["bscales","Scales"],["btech","Techniques"]]:[["cowboy","Chords"],["fret","Strings"],["scales","Scales"],["triads","Triads"],["tech","Techniques"]]).map(([k,t])=>`<button type="button" class="clear" data-lgjump="${k}">${t}</button>`).join("")}</div><div class="seg lgview" role="radiogroup" aria-label="Chord pictures">${[["chart","Chord diagram"],["rs","RS2014"],["rsinv","RS2014 inverted"]].map(([k,t])=>`<button type="button" class="s-all" data-lgview="${k}" aria-pressed="${LG_VIEW===k}">${t}</button>`).join("")}</div>${body}</div>`}
 async function learnSet(k,on){if(!ACCT.learn||!ACCT.user)return false;
   const {error}=on?await ACCT.sb.from("learn_goals").insert({item:k}):await ACCT.sb.from("learn_goals").delete().match({user_id:ACCT.user.id,item:k});
   if(error&&!(on&&/duplicate/i.test(error.message))){alert("Couldn't save that: "+error.message); return false}
