@@ -8891,11 +8891,14 @@ const LG_SONGS=[["Mazzy Star - Fade Into You",["A","Em","Bm"]],["The Cranberries
 var LG_SONG=null;
 // chords that count as one you know (D/F# is D with F# on the low E string), and a note shown under a song that uses them
 const LG_SAME={"D/F#":"D"}, LG_SAME_NOTE={"D/F#":"Note: D/F# is just D with F# played with the thumb on the low E string."};
+// songs recorded in a higher key: the same chord shapes with a capo play along with the recording
+const LG_CAPO={"John Legend - All of Me":1,"Coldplay - Viva la Vida":1,"Tom Petty - Free Fallin'":1,"Ben E. King - Stand By Me":2,"Tracy Chapman - Fast Car":2,"John Denver - Take Me Home, Country Roads":2};
+const lgCapoNote=t=>LG_CAPO[t]?`Note: to play along with the recording, put a capo on the ${LG_CAPO[t]===1?"1st":"2nd"} fret and play these same chord shapes. A capo clamps all the strings at that fret, which raises every chord by ${LG_CAPO[t]===1?"one fret":"two frets"} without changing how you finger them.`:"";
 const lgKnows=(know,c)=>know.has(c)||(LG_SAME[c]&&know.has(LG_SAME[c]));
 function lgSongHtml(L){if(!L||L.err)return ""; const know=new Set([...L.s].map(k=>k.split("/").pop()).filter(c=>CHORD_SHAPES[c]));
   const ok=LG_SONGS.map((x,i)=>({i,new:x[1].filter(c=>!lgKnows(know,c))})).filter(x=>x.new.length<=1&&x.new.length<LG_SONGS[x.i][1].length); if(!ok.length)return "";
   if(LG_SONG==null||!ok.some(x=>x.i===LG_SONG))LG_SONG=ok[Math.floor(Math.random()*ok.length)].i;
-  const [t,cs]=LG_SONGS[LG_SONG], nw=cs.filter(c=>!lgKnows(know,c)), notes=cs.filter(c=>LG_SAME_NOTE[c]).map(c=>LG_SAME_NOTE[c]);
+  const [t,cs]=LG_SONGS[LG_SONG], nw=cs.filter(c=>!lgKnows(know,c)), notes=cs.filter(c=>LG_SAME_NOTE[c]).map(c=>LG_SAME_NOTE[c]).concat(lgCapoNote(t)||[]);
   return `<div class="lgsong"><div class="lgsongtop"><span class="lgsongh">🎸 Try playing this song</span>${ok.length>1?`<button type="button" class="clear" data-lgsong>Another song</button>`:""}</div><b>${esc(t)}</b><span class="lgsongc">${cs.map(c=>`<span class="${lgKnows(know,c)?"k":"n"}"${lgKnows(know,c)?"":` title="A chord you haven't checked off yet"`}>${esc(c)}</span>`).join("")}</span>${nw.length?`<small>One new chord to learn: ${CHORD_SHAPES[nw[0]]?`<button type="button" class="lgnewc" data-lgnewc="${esc(nw[0])}" title="Show ${esc(nw[0])} in the chords below">Jump to ${esc(nw[0])}</button>`:esc(nw[0])}</small>`:`<small>You know all of its chords!</small>`}${notes.map(x=>`<p class="lgsongn">${esc(x)}</p>`).join("")}</div>`}
 // the new chord's name jumps down to its card
 document.addEventListener("click",e=>{const b=e.target.closest("[data-lgnewc]"); if(!b)return; const c=b.dataset.lgnewc, f=[...document.querySelectorAll(".lgsec .lgfig[data-learnfig]")].find(x=>x.dataset.learnfig.split("/").pop()===c); if(f)f.scrollIntoView({behavior:"smooth",block:"center"})});
