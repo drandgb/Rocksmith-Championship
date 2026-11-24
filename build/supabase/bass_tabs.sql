@@ -1,13 +1,23 @@
--- Bass tabs for the Learning goals tab's "Try playing this song" (bass): a short tab admins add for each song.
+-- Bass tabs for the Learning goals tab's "Try playing this song" (bass): a short tab admins add for each song,
+-- and the song's key and scale when an admin changes them from the built-in ones.
 -- Anyone can read them; only admins (rows in public.admins) can add, change or remove them.
--- Run once in the Supabase SQL editor.
+-- Run in the Supabase SQL editor. Safe to run again: it adds the key and scale columns to an existing table.
 
 create table if not exists public.bass_tabs (
   song       text primary key,                                  -- the song as listed on the site, e.g. 'Queen - Another One Bites the Dust'
-  tab        text not null check (char_length(tab) <= 1500),    -- the tab as typed, shown in a fixed-width font
+  tab        text check (char_length(tab) <= 1500),             -- the tab, shown in a fixed-width font (empty when only the key changed)
+  root       text,                                              -- changed key's root note, e.g. 'D' or 'F#' (empty = the built-in one)
+  scale      text check (scale in ('major','minor','pmajor','pminor')),   -- changed scale (empty = the built-in one)
   set_by     text,                                              -- player name of the admin who saved it
   updated_at timestamptz not null default now()
 );
+
+-- for a table made before the key and scale were added
+alter table public.bass_tabs add column if not exists root text;
+alter table public.bass_tabs add column if not exists scale text;
+alter table public.bass_tabs alter column tab drop not null;
+alter table public.bass_tabs drop constraint if exists bass_tabs_scale_check;
+alter table public.bass_tabs add constraint bass_tabs_scale_check check (scale in ('major','minor','pmajor','pminor'));
 
 alter table public.bass_tabs enable row level security;
 
