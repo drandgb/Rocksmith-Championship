@@ -8864,7 +8864,22 @@ function learnLoad(){if(ACCT.learn&&ACCT.user&&ACCT.learn.uid!==ACCT.user.id)ACC
     if(ACCT.tab==="learn")acctDraw()})}
 // Try playing this song: a random song that uses only chords you've checked off, or those plus one more
 const LG_SONGS=[["Mazzy Star - Fade Into You",["A","Em","Bm"]],["The Cranberries - Zombie",["Em","C","G","D/F#"]],["Nickelback - Photograph",["E5","Badd11","D6add9","Aadd9"]],
-  ["Nirvana - Smells Like Teen Spirit",["F5","A#5","G#5","C#5"]],["Radiohead - Creep",["G","B","C","Cm"]],["John Denver - Take Me Home, Country Roads",["G","Em","D","C"]]];
+  ["Nirvana - Smells Like Teen Spirit",["F5","A#5","G#5","C#5"]],["Radiohead - Creep",["G","B","C","Cm"]],["John Denver - Take Me Home, Country Roads",["G","Em","D","C"]],
+  ["Ben E. King - Stand By Me",["G","Em","C","D"]],
+  ["Bob Dylan - Knockin' on Heaven's Door",["G","D","Am","C"]],
+  ["The Beatles - Let It Be",["C","G","Am","F"]],
+  ["The Beatles - Love Me Do",["G","C","D"]],
+  ["Bob Marley - Three Little Birds",["A","D","E"]],
+  ["Lynyrd Skynyrd - Sweet Home Alabama",["D","C","G"]],
+  ["Johnny Cash - Ring of Fire",["G","C","D"]],
+  ["Creedence Clearwater Revival - Bad Moon Rising",["D","A","G"]],
+  ["Green Day - Good Riddance (Time of Your Life)",["G","Cadd9","D","Em"]],
+  ["Neil Young - Heart of Gold",["Em","C","D","G"]],
+  ["Tracy Chapman - Fast Car",["Cmaj7","G","Em","D"]],
+  ["Tom Petty - Free Fallin'",["D","Dsus4","A","Asus4"]],
+  ["The Troggs - Wild Thing",["A","D","E","G"]],
+  ["Ritchie Valens - La Bamba",["C","F","G"]],
+  ["Bill Withers - Ain't No Sunshine",["Am","Em","G","Dm"]]];
 var LG_SONG=null;
 // chords that count as one you know (D/F# is D with F# on the low E string), and a note shown under a song that uses them
 const LG_SAME={"D/F#":"D"}, LG_SAME_NOTE={"D/F#":"Note: D/F# is just D with F# played with the thumb on the low E string."};
