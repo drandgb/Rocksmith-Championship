@@ -8851,7 +8851,7 @@ const LG_SONGS=[["Mazzy Star - Fade Into You",["A","Em","Bm"]],["The Cranberries
   ["Nirvana - Smells Like Teen Spirit",["F5","A#5","G#5","C#5"]],["Radiohead - Creep",["G","B","C","Cm"]],["John Denver - Take Me Home, Country Roads",["G","Em","D","C"]]];
 var LG_SONG=null;
 // chords that count as one you know (D/F# is D with F# on the low E string), and a note shown under a song that uses them
-const LG_SAME={"D/F#":"D"}, LG_SAME_NOTE={"D/F#":"D/F# is just D with F# played with the thumb on the low E string."};
+const LG_SAME={"D/F#":"D"}, LG_SAME_NOTE={"D/F#":"Note: D/F# is just D with F# played with the thumb on the low E string."};
 const lgKnows=(know,c)=>know.has(c)||(LG_SAME[c]&&know.has(LG_SAME[c]));
 function lgSongHtml(L){if(!L||L.err)return ""; const know=new Set([...L.s].map(k=>k.split("/").pop()).filter(c=>CHORD_SHAPES[c]));
   const ok=LG_SONGS.map((x,i)=>({i,new:x[1].filter(c=>!lgKnows(know,c))})).filter(x=>x.new.length<=1&&x.new.length<LG_SONGS[x.i][1].length); if(!ok.length)return "";
