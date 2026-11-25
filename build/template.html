@@ -3208,13 +3208,21 @@ function goalsPlay(n,G,wk,pl){const p=byName[n]; if(!p)return; const tw=TW_MAX, 
   if(k)G.push([`⏳ ${k%52?`${k}-week play streak`:`${k/52}-year play streak`}${longest<k?" medal":""}`,`${wk(k-s)} in a row${thisWk}`,now]);
   if(longest>s&&longest>=5&&longest+1-s<=12&&(!k||longest+1!==k))G.push([`📈 Beat your longest play streak (${longest} wks)`,`${wk(longest+1-s)} in a row`,now]);
   const played=(p[3]||0)+(now?1:0), m=GOAL_PLAYED.find(x=>x>played); if(m&&m-played<=10)G.push([`🗓️ ${m} weeks played`,`${wk(m-played)}${thisWk}`,now]);
-  // the season place above them on each path (Lead, Rhythm, Bass): in the class where they're closest to the player ahead
-  try{eloBuild(); const id=seasonOf(ELO_DONE), [a,b]=seasonRange(id), left=b-Math.min(b,ELO_DONE), kk=String(n).toLowerCase();
+  // the season place above them on each path (Lead, Rhythm, Bass): in the class where they're closest to the player ahead, or keeping
+  // first place when they're top of a class after last week. Done this week only with a score in that class (not just on that path),
+  // with their place and points from this week so far and where that would put them
+  try{eloBuild(); const id=seasonOf(ELO_DONE), [a,b]=seasonRange(id), left=b-Math.min(b,ELO_DONE), kk=String(n).toLowerCase(), th=k=>k+(["st","nd","rd"][((k+90)%100-10)%10-1]||"th");
     if(left>0)[0,1,2].forEach(pi=>{let best=null;
-      Object.entries(seasonF1(pi,id)).forEach(([c,L])=>{const i=L.findIndex(x=>x.n.toLowerCase()===kk); if(i<1)return; const gap=L[i-1].p-L[i].p;
-        if(!best||gap<best.gap)best={gap,c,i,above:L[i-1].n}});
-      if(best)G.push([`🏁 Season ${seasonNum(id)}: ${pl(best.i)} in ${PATHS[pi]} ${TIER_NAME[best.c]}`,`${best.gap===0?"level on points with":`${best.gap} point${best.gap===1?"":"s"} behind`} ${best.above} · you're ${pl(best.i+1)} · ${left} week${left===1?"":"s"} left`,
-        (SB.weeks[tw]||[]).some(cd=>cd[0]===pi&&cd[6].some(e=>e[1]!=null&&pvName(e).toLowerCase()===kk))])})}catch(e){}}   // (done this week: a score on that path)
+      Object.entries(seasonF1(pi,id)).forEach(([c,L])=>{const i=L.findIndex(x=>x.n.toLowerCase()===kk); if(i<0||(i===0&&L.length<2))return; const gap=i?L[i-1].p-L[i].p:L[0].p-L[1].p;
+        const o={gap,c,i,other:L[i?i-1:1].n}; if(!best||((i===0)!==(best.i===0)?i===0:gap<best.gap))best=o});
+      if(!best)return;
+      const mine=(SB.weeks[tw]||[]).filter(cd=>cd[0]===pi&&!cd[7]&&cardLv(cd[2])===best.c&&!/bonus/i.test(cd[2])).map(cd=>{const el=cd[6].filter(e=>e[1]!=null&&canWin(e)), k=el.findIndex(e=>pvName(e).toLowerCase()===kk); return k<0?null:{k,song:cd[3]}}).filter(Boolean);
+      let wk="";
+      if(mine.length){const gain=mine.reduce((t,x)=>t+(x.k<10?F1_PTS[x.k]:0),0), LL=(seasonF1(pi,id,undefined,true)[best.c]||[]), r=LL.findIndex(x=>x.n.toLowerCase()===kk)+1;
+        wk=` · this week so far: ${mine.map(x=>`${th(x.k+1)} on ${x.song}`).join(", ")} (+${gain} point${gain===1?"":"s"})${r?` · would ${r===best.i+1?"keep":"put"} you ${pl(r)}`:""}`}
+      const t=best.i===0?`🏁 Season ${seasonNum(id)}: maintain first place in ${PATHS[pi]} ${TIER_NAME[best.c]}`:`🏁 Season ${seasonNum(id)}: ${pl(best.i)} in ${PATHS[pi]} ${TIER_NAME[best.c]}`;
+      const r0=best.i===0?`${best.gap===0?"level on points with":`${best.gap} point${best.gap===1?"":"s"} ahead of`} ${best.other}`:`${best.gap===0?"level on points with":`${best.gap} point${best.gap===1?"":"s"} behind`} ${best.other} · you're ${pl(best.i+1)}`;
+      G.push([t,`${r0} · ${left} week${left===1?"":"s"} left${wk}`,mine.length>0])})}catch(e){}}   // (done this week: a score in that class)
 // winning: on a win streak (won a challenge last week or more weeks in a row), the next win streak medal
 function goalsWin(n,G){const done=SB_W.filter(w=>w<cur[0]).sort((a,b)=>a-b), per=playerWeekWins(n,-1); let s=0, best=0, run=0;
   done.forEach(w=>{run=per[w]&&per[w][1]>0?run+1:0; if(run>best)best=run}); s=run; if(!s)return;
