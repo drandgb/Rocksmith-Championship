@@ -976,7 +976,7 @@ html.acctwait body{visibility:hidden}html.acctwait{background:var(--bg)}html.acc
 .twgoals li .fwt{flex:0 1 auto;min-width:0}
 .twgoalh{margin:12px 0 4px;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}.twgoalh:first-of-type{margin-top:4px}
 .twgoals .fwt{font-weight:700}.twgoals .nwr{color:var(--muted);font-size:13px}
-.twgoals .gself{border:0;padding:0;cursor:pointer}.twgoals .gself.goff{background:transparent;box-shadow:inset 0 0 0 1.5px var(--muted)}.twgoals .gself:hover{filter:brightness(1.15)}.twgoals li.gdone{border-color:color-mix(in srgb,var(--s-green) 45%,var(--line))}.twgoals .gck{display:inline-grid;place-items:center;width:16px;height:16px;margin-right:7px;border-radius:4px;background:var(--s-green);color:#10131a;font:900 11px/1 var(--f-display);vertical-align:1px}.twgoals .gnext{color:var(--s-green);font-size:13px}
+.twgoals .greach{margin-top:8px}.twgoals .greach .lgpics{display:flex!important;flex-wrap:wrap;gap:10px}.twgoals .greach .lgfig{flex:0 1 340px;min-width:0;max-width:100%}.twgoals .gself{border:0;padding:0;cursor:pointer}.twgoals .gself.goff{background:transparent;box-shadow:inset 0 0 0 1.5px var(--muted)}.twgoals .gself:hover{filter:brightness(1.15)}.twgoals li.gdone{border-color:color-mix(in srgb,var(--s-green) 45%,var(--line))}.twgoals .gck{display:inline-grid;place-items:center;width:16px;height:16px;margin-right:7px;border-radius:4px;background:var(--s-green);color:#10131a;font:900 11px/1 var(--f-display);vertical-align:1px}.twgoals .gnext{color:var(--s-green);font-size:13px}
 /* Admin: engagement before and since the stats sheet and the website */
 .engt{width:100%;border-collapse:collapse;font-size:13px;margin:8px 0 4px}.engt th,.engt td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
 .engt thead th{font-size:12px;color:var(--muted);font-weight:600}.engt thead th small{display:block;font-weight:400;font-size:11px;opacity:.8}
@@ -3225,9 +3225,14 @@ function goalsLearn(n,G){const L=typeof ACCT!=="undefined"&&ACCT.learn; if(!L){t
   const keys=(sets,ids)=>ids.flatMap(id=>{const st=sets.find(x=>x.id===id); return st?st.g.flatMap(g=>g.i.map(i=>({k:`${id}/${g.id}/${i}`,g,i}))):[]});
   const newThisWeek=K=>K.some(x=>S.has(x.k)&&(T.get(x.k)||0)>=since);
   const nm=x=>/scales$/.test(x.k.split("/")[0])?`${x.g.t.replace(/^The /,"")}, ${lgName(x.i)}`:lgName(x.i);   /* a scale position with its scale's name */
-  const one=(K,learn,review,rk,tag)=>{const nx=K.find(x=>!S.has(x.k)); if(nx){G.push([`${learn}${tag}: ${nm(nx)}`,`${/scales$/.test(nx.k.split("/")[0])?"":`next up in "${nx.g.t.replace(/:$/,"")}" · `}check it off in Learning goals`,newThisWeek(K)]); return}
-    if(!review||!K.length)return; const r=K[wk%K.length], key=`wk/${wk}/${rk}`; G.push([`${review}${tag}: ${nm(r)}`,`play it from memory, then check this off`,S.has(key),key])};
+  const card=(x,tick)=>{const prev=LG_BASS; LG_BASS=LEARN_BASS.some(st=>st.id===x.k.split("/")[0]); try{return chordPics([x.i],()=>S.has(x.k),()=>tick?x.k:null)}finally{LG_BASS=prev}};
+  const one=(K,learn,review,rk,tag)=>{const nx=K.find(x=>!S.has(x.k)); if(nx){G.push([`${learn}${tag}: ${nm(nx)}`,`${/scales$/.test(nx.k.split("/")[0])?"":`next up in "${nx.g.t.replace(/:$/,"")}" · `}click the card to check it off`,newThisWeek(K),null,card(nx,1)]); return}
+    if(!review||!K.length)return; const r=K[wk%K.length], key=`wk/${wk}/${rk}`; G.push([`${review}${tag}: ${nm(r)}`,`play it from memory, then check this off`,S.has(key),key,card(r,0)])};
   if(gtr)one(keys(LEARN,["cowboy","rock","triads"]),"🎸 Learn a new chord","🔁 Review a chord","chord","");
+  {const GS=keys(LEARN,["fret"]), BS=keys(LEARN_BASS,["bfret"]), nmS=["E","A","D","G","B"];
+    const i=nmS.findIndex((x,j)=>(gtr&&GS[j]&&!S.has(GS[j].k))||(bass&&BS[j]&&!S.has(BS[j].k)));
+    if(i>=0){const g=gtr&&GS[i]&&!S.has(GS[i].k)?GS[i]:null, b=bass&&BS[i]&&!S.has(BS[i].k)?BS[i]:null;
+      G.push([`🗺️ Learn the notes on the ${nmS[i]} string${g&&i===0?"s":""}${both?` (${g&&b?"guitar and bass":g?"guitar":"bass"})`:""}`,`natural notes only · click ${g&&b?"each card":"the card"} to check it off`,newThisWeek([...(gtr?GS:[]),...(bass?BS:[])]),null,(g?card(g,1):"")+(b?card(b,1):"")])}}
   if(gtr)one(keys(LEARN,["scales"]),"🎼 Learn a new scale position","🔁 Review a scale","scale",both?" (guitar)":"");
   if(bass)one(keys(LEARN_BASS,["bscales"]),"🎼 Learn a new scale position","🔁 Review a scale","bscale",both?" (bass)":"");
   if(gtr)one(keys(LEARN,["tech"]),"🎯 Learn a new technique",null,"",both?" (guitar)":"");
@@ -3265,7 +3270,7 @@ function twGoals(){const el=$("tw-goals"); if(!el)return; let G=[], n="";
   try{if(typeof ACCT!=="undefined"&&ACCT.claim&&ACCT.claim.status==="approved"&&twWeek===TW_LIVE){n=ACCT.claim.player; G=goalsPanel(n)||[]}}catch(e){console.error(e)}
   el.hidden=!G.length; if(!G.length){el.innerHTML=""; return}
   const fold=lsGet(GOALS_FOLD)===String(TW_MAX);
-  el.innerHTML=`<div class="panel-head dlhead" data-goals="fold" title="${fold?"Show":"Hide"} the list"><h2>🎯 Within reach - Keep going!<span class="dlarw">${fold?"▸":"▾"}</span></h2></div>${fold?"":G.map(([sec,gs])=>`<h4 class="twgoalh">${sec}</h4><ul class="twgoals">${gs.map(([t,r,d,sk])=>`<li${d?` class="gdone"`:""}><span class="fwt">${sk?`<button type="button" class="gck gself${d?"":" goff"}" data-gself="${esc(sk)}" aria-pressed="${!!d}" title="${d?"Done this week (click to undo)":"Check this off when you've done it"}">${d?"✓":""}</button>`:d?`<span class="gck" title="Done this week">✓</span>`:""}${esc(t)}</span><span class="nwr">${esc(r)}</span>${d?`<span class="gnext">Come back next week to keep working on this goal</span>`:""}</li>`).join("")}</ul>`).join("")}`}
+  el.innerHTML=`<div class="panel-head dlhead" data-goals="fold" title="${fold?"Show":"Hide"} the list"><h2>🎯 Within reach - Keep going!<span class="dlarw">${fold?"▸":"▾"}</span></h2></div>${fold?"":G.map(([sec,gs])=>`<h4 class="twgoalh">${sec}</h4><ul class="twgoals">${gs.map(([t,r,d,sk,cd])=>`<li${d?` class="gdone"`:""}><span class="fwt">${sk?`<button type="button" class="gck gself${d?"":" goff"}" data-gself="${esc(sk)}" aria-pressed="${!!d}" title="${d?"Done this week (click to undo)":"Check this off when you've done it"}">${d?"✓":""}</button>`:d?`<span class="gck" title="Done this week">✓</span>`:""}${esc(t)}</span><span class="nwr">${esc(r)}</span>${cd?`<div class="lgsec greach">${cd}</div>`:""}${d?`<span class="gnext">Come back next week to keep working on this goal</span>`:""}</li>`).join("")}</ul>`).join("")}`}
 // clicking the Within reach heading hides or shows its list (remembered for the current week, like the download list)
 const GOALS_FOLD="rsc-goals-fold";
 document.addEventListener("click",async e=>{const b=e.target.closest("#tw-goals [data-gself]"); if(!b||b.disabled||!ACCT.learn)return; b.disabled=true; await learnSet(b.dataset.gself,!ACCT.learn.s.has(b.dataset.gself)); b.disabled=false});
