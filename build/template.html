@@ -3200,7 +3200,7 @@ function goalsPanel(n){const wk=d=>`${d} more week${d===1?"":"s"}`, pl=r=>`#${r}
   const Lr=[]; try{goalsLearn(n,Lr)}catch(e){console.error(e)}
   const Sk=[]; try{goalsSkill(n,Sk)}catch(e){console.error(e)}
   const S=P.filter(g=>/^🏁 Season /.test(g[0]));   // the season card moves from Play to Win
-  return [["Play",P.filter(g=>!S.includes(g))],["Win",[...S,...W]],["Host",H],["Learn",Lr],["Skill check",Sk]].filter(x=>x[1].length)}
+  return [["Play",P.filter(g=>!S.includes(g))],["Win",[...S,...W]],["Host",H],["Learn",Lr],["Sight-reading skill check",Sk]].filter(x=>x[1].length)}
 // playing: the next play streak, beating their longest, a weeks-played milestone, the season place above them
 function goalsPlay(n,G,wk,pl){const p=byName[n]; if(!p)return; const tw=TW_MAX, now=twPlayed(n,tw), s=twStreakTo(n,now?tw:tw-1), longest=Math.max(p[6]||0,s);
   if(!now&&!twPlayed(n,tw-1))return;
