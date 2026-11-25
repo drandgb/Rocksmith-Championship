@@ -3198,8 +3198,9 @@ function goalsPanel(n){const wk=d=>`${d} more week${d===1?"":"s"}`, pl=r=>`#${r}
   try{goalsWin(n,W)}catch(e){console.error(e)}
   try{goalsHost(n,H,wk,pl)}catch(e){console.error(e)}
   const Lr=[]; try{goalsLearn(n,Lr)}catch(e){console.error(e)}
+  const Sk=[]; try{goalsSkill(n,Sk)}catch(e){console.error(e)}
   const S=P.filter(g=>/^🏁 Season /.test(g[0]));   // the season card moves from Play to Win
-  return [["Play",P.filter(g=>!S.includes(g))],["Win",[...S,...W]],["Host",H],["Learn",Lr]].filter(x=>x[1].length)}
+  return [["Play",P.filter(g=>!S.includes(g))],["Win",[...S,...W]],["Host",H],["Learn",Lr],["Skill check",Sk]].filter(x=>x[1].length)}
 // playing: the next play streak, beating their longest, a weeks-played milestone, the season place above them
 function goalsPlay(n,G,wk,pl){const p=byName[n]; if(!p)return; const tw=TW_MAX, now=twPlayed(n,tw), s=twStreakTo(n,now?tw:tw-1), longest=Math.max(p[6]||0,s);
   if(!now&&!twPlayed(n,tw-1))return;
@@ -3257,6 +3258,22 @@ function goalsLearn(n,G){const L=typeof ACCT!=="undefined"&&ACCT.learn; if(!L){t
   if(bass){try{lgBassSongHtml(L)}catch(e){} /* only a song with a saved tab: the one the Learning goals tab shows, or (admins, who also see songs without one there) one that has a tab */
     const tabbed=i=>!!(BASS_TABS[LG_BSONGS[i][0]]||{}).tab, P=(lgBPool(L)||[]).filter(tabbed), bi=LG_BSONG!=null&&P.includes(LG_BSONG)?LG_BSONG:P.length?P[wk%P.length]:null;
     const x=bi!=null&&lgBS(bi), key=`wk/${wk}/bsong`; if(x){const tb=(BASS_TABS[x[0]]||{}).tab; G.push([`🎵 Practice a song${both?" (bass)":""}: ${x[0]}`,`key of ${x[1]} ${/minor/.test(x[2])?"minor":"major"} · ${BT_SCN[x[2]]}`,S.has(key),key,tb?`<button type="button" class="btn ghost small gtabbtn" data-gtab="${esc(x[0])}">🎼 Open tab</button>`:""])}}}
+// skill check (for the signed-in player): on each path, the arrangement they did weakest on (lowest place that week) out of the ones
+// played at least 3 months ago, to replay; with their most recent scores on it to compare. They tick it themselves when they've
+// replayed it (saved like the Learning goals, as skill/<path>/<song>); the one ticked this week stays until next week, then the next weakest
+function goalsSkill(n,G){const L=typeof ACCT!=="undefined"&&ACCT.learn; if(!L){try{learnLoad()}catch(e){} return} if(L.err)return;
+  const kk=String(n).toLowerCase(), E=(()=>{try{return sbIx().ent[kk]||[]}catch(e){return []}})(), S=L.s, T=L.t||new Map(), since=nyAt(WEEKS[curIdx][1]), old=TW_MAX-13;
+  const th=k=>k+(["st","nd","rd"][((k+90)%100-10)%10-1]||"th");
+  [0,1,2].forEach(pi=>{const mine=E.filter(x=>x.c[0]===pi&&!/bonus/i.test(x.c[2])&&x.c[3]); if(!mine.length)return;
+    const place=x=>{const el=x.c[6].filter(e=>e[1]!=null&&!isNaN(+e[1])), i=el.indexOf(x.e); return {i,n:el.length}};
+    const key=x=>`skill/${pi}/${x.c[3]}`;
+    const cand=mine.filter(x=>x.w<=old).map(x=>({x,p:place(x)})).filter(o=>o.p.i>=0);
+    const done=cand.filter(o=>S.has(key(o.x))&&(T.get(key(o.x))||0)>=since).sort((a,b)=>T.get(key(b.x))-T.get(key(a.x)))[0];
+    const pick=done||cand.filter(o=>!S.has(key(o.x))).sort((a,b)=>(b.p.n>1?b.p.i/(b.p.n-1):0)-(a.p.n>1?a.p.i/(a.p.n-1):0)||a.x.pc-b.x.pc||a.x.w-b.x.w)[0];
+    if(!pick)return; const x=pick.x, song=x.c[3], k=key(x);
+    const sc=e=>`${+e[1]}%${e[2]!=null&&e[2]!==""?` · streak ${e[2]}`:""}${+e[3]>0?` · ${fmtNum(e[3])}`:""}`;
+    const recent=mine.filter(y=>y.c[3]===song).sort((a,b)=>b.w-a.w).slice(0,3).map(y=>{const P=place(y); return `Week ${y.w}: ${sc(y.e)} (${th(P.i+1)} of ${P.n})`});
+    G.push([`🧪 Replay ${song} (${PATHS[pi]})`,`your weakest from 3+ months ago · ${recent.length>1?"your latest scores":"your score"}: ${recent.join("; ")} · replay it and see if you've improved`,S.has(k),k])})}
 // winning: on a win streak (won a challenge last week or more weeks in a row), the next win streak medal
 function goalsWin(n,G){const done=SB_W.filter(w=>w<cur[0]).sort((a,b)=>a-b), per=playerWeekWins(n,-1); let s=0, best=0, run=0;
   done.forEach(w=>{run=per[w]&&per[w][1]>0?run+1:0; if(run>best)best=run}); s=run; if(!s)return;
