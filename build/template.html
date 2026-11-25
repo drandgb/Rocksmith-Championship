@@ -3226,13 +3226,16 @@ function goalsLearn(n,G){const L=typeof ACCT!=="undefined"&&ACCT.learn; if(!L){t
   const newThisWeek=K=>K.some(x=>S.has(x.k)&&(T.get(x.k)||0)>=since);
   const nm=x=>/scales$/.test(x.k.split("/")[0])?`${x.g.t.replace(/^The /,"")}, ${lgName(x.i)}`:lgName(x.i);   /* a scale position with its scale's name */
   const card=(x,tick)=>{const prev=LG_BASS; LG_BASS=LEARN_BASS.some(st=>st.id===x.k.split("/")[0]); try{return chordPics([x.i],()=>S.has(x.k),()=>tick?x.k:null)}finally{LG_BASS=prev}};
-  const one=(K,learn,review,rk,tag)=>{const nx=K.find(x=>!S.has(x.k)); if(nx){G.push([`${learn}${tag}: ${nm(nx)}`,`${/scales$/.test(nx.k.split("/")[0])?"":`next up in "${nx.g.t.replace(/:$/,"")}" · `}click the card to check it off`,newThisWeek(K),null,card(nx,1)]); return}
+  /* the one checked off this week stays the goal until next week (the latest, if more than one) */
+  const wkDone=K=>K.filter(x=>S.has(x.k)&&(T.get(x.k)||0)>=since).sort((a,b)=>T.get(b.k)-T.get(a.k))[0];
+  const one=(K,learn,review,rk,tag)=>{const nx=wkDone(K)||K.find(x=>!S.has(x.k)); if(nx){G.push([`${learn}${tag}: ${nm(nx)}`,S.has(nx.k)?`checked off this week · the next one shows up next week`:`${/scales$/.test(nx.k.split("/")[0])?"":`next up in "${nx.g.t.replace(/:$/,"")}" · `}click the card to check it off`,newThisWeek(K),null,card(nx,1)]); return}
     if(!review||!K.length)return; const r=K[wk%K.length], key=`wk/${wk}/${rk}`; G.push([`${review}${tag}: ${nm(r)}`,`play it from memory, then check this off`,S.has(key),key,card(r,0)])};
   if(gtr)one(keys(LEARN,["cowboy","rock","triads"]),"🎸 Learn a new chord","🔁 Review a chord","chord","");
   {const GS=keys(LEARN,["fret"]), BS=keys(LEARN_BASS,["bfret"]), nmS=["E","A","D","G","B"];
-    const i=nmS.findIndex((x,j)=>(gtr&&GS[j]&&!S.has(GS[j].k))||(bass&&BS[j]&&!S.has(BS[j].k)));
-    if(i>=0){const g=gtr&&GS[i]&&!S.has(GS[i].k)?GS[i]:null, b=bass&&BS[i]&&!S.has(BS[i].k)?BS[i]:null;
-      G.push([`🗺️ Learn the notes on the ${nmS[i]} string${g&&i===0?"s":""}${both?` (${g&&b?"guitar and bass":g?"guitar":"bass"})`:""}`,`natural notes only · click ${g&&b?"each card":"the card"} to check it off`,newThisWeek([...(gtr?GS:[]),...(bass?BS:[])]),null,(g?card(g,1):"")+(b?card(b,1):"")])}}
+    const wd=wkDone([...(gtr?GS:[]),...(bass?BS:[])]), wi=wd?(GS.includes(wd)?GS:BS).indexOf(wd):-1;   /* a string checked off this week stays until next week */
+    const i=wi>=0?wi:nmS.findIndex((x,j)=>(gtr&&GS[j]&&!S.has(GS[j].k))||(bass&&BS[j]&&!S.has(BS[j].k)));
+    if(i>=0){const keep=x=>x&&(!S.has(x.k)||(T.get(x.k)||0)>=since), g=gtr&&keep(GS[i])?GS[i]:null, b=bass&&keep(BS[i])?BS[i]:null;
+      G.push([`🗺️ Learn the notes on the ${nmS[i]} string${g&&i===0?"s":""}${both?` (${g&&b?"guitar and bass":g?"guitar":"bass"})`:""}`,(g?[g]:[]).concat(b?[b]:[]).every(x=>S.has(x.k))?`checked off this week · the next string shows up next week`:`natural notes only · click ${g&&b?"each card":"the card"} to check it off`,newThisWeek([...(gtr?GS:[]),...(bass?BS:[])]),null,(g?card(g,1):"")+(b?card(b,1):"")])}}
   if(gtr)one(keys(LEARN,["scales"]),"🎼 Learn a new scale position","🔁 Review a scale","scale",both?" (guitar)":"");
   if(bass)one(keys(LEARN_BASS,["bscales"]),"🎼 Learn a new scale position","🔁 Review a scale","bscale",both?" (bass)":"");
   if(gtr)one(keys(LEARN,["tech"]),"🎯 Learn a new technique",null,"",both?" (guitar)":"");
