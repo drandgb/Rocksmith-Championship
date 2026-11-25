@@ -3254,7 +3254,9 @@ function goalsLearn(n,G){const L=typeof ACCT!=="undefined"&&ACCT.learn; if(!L){t
   if(bass)one(keys(LEARN_BASS,["btech"]),"🎯 Learn a new technique",null,"",both?" (bass)":"");
   // this week's songs: the same ones the Learning goals tab shows
   if(gtr){try{lgSongHtml(L)}catch(e){} const x=LG_SONG!=null&&LG_SONGS[LG_SONG], key=`wk/${wk}/song`; if(x)G.push([`🎵 Practice a song${both?" (guitar)":""}: ${x[0]}`,`chords: ${x[1].join(" ")}`,S.has(key),key])}
-  if(bass){try{lgBassSongHtml(L)}catch(e){} const x=LG_BSONG!=null&&lgBS(LG_BSONG), key=`wk/${wk}/bsong`; if(x&&(lgBPool(L)||[]).includes(LG_BSONG)){const tb=(BASS_TABS[x[0]]||{}).tab; G.push([`🎵 Practice a song${both?" (bass)":""}: ${x[0]}`,`key of ${x[1]} ${/minor/.test(x[2])?"minor":"major"} · ${BT_SCN[x[2]]}`,S.has(key),key,tb?`<pre class="lgbtab">${esc(tb)}</pre>`:""])}}}
+  if(bass){try{lgBassSongHtml(L)}catch(e){} /* only a song with a saved tab: the one the Learning goals tab shows, or (admins, who also see songs without one there) one that has a tab */
+    const tabbed=i=>!!(BASS_TABS[LG_BSONGS[i][0]]||{}).tab, P=(lgBPool(L)||[]).filter(tabbed), bi=LG_BSONG!=null&&P.includes(LG_BSONG)?LG_BSONG:P.length?P[wk%P.length]:null;
+    const x=bi!=null&&lgBS(bi), key=`wk/${wk}/bsong`; if(x){const tb=(BASS_TABS[x[0]]||{}).tab; G.push([`🎵 Practice a song${both?" (bass)":""}: ${x[0]}`,`key of ${x[1]} ${/minor/.test(x[2])?"minor":"major"} · ${BT_SCN[x[2]]}`,S.has(key),key,tb?`<pre class="lgbtab">${esc(tb)}</pre>`:""])}}}
 // winning: on a win streak (won a challenge last week or more weeks in a row), the next win streak medal
 function goalsWin(n,G){const done=SB_W.filter(w=>w<cur[0]).sort((a,b)=>a-b), per=playerWeekWins(n,-1); let s=0, best=0, run=0;
   done.forEach(w=>{run=per[w]&&per[w][1]>0?run+1:0; if(run>best)best=run}); s=run; if(!s)return;
