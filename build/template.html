@@ -3228,8 +3228,8 @@ function goalsLearn(n,G){const L=typeof ACCT!=="undefined"&&ACCT.learn; if(!L){t
   const one=(K,learn,review,rk,tag)=>{const nx=K.find(x=>!S.has(x.k)); if(nx){G.push([`${learn}${tag}: ${nm(nx)}`,`${/scales$/.test(nx.k.split("/")[0])?"":`next up in "${nx.g.t.replace(/:$/,"")}" · `}check it off in Learning goals`,newThisWeek(K)]); return}
     if(!review||!K.length)return; const r=K[wk%K.length], key=`wk/${wk}/${rk}`; G.push([`${review}${tag}: ${nm(r)}`,`play it from memory, then check this off`,S.has(key),key])};
   if(gtr)one(keys(LEARN,["cowboy","rock","triads"]),"🎸 Learn a new chord","🔁 Review a chord","chord","");
-  if(gtr)one(keys(LEARN,["scales"]),"🎼 Learn a new scale","🔁 Review a scale","scale",both?" (guitar)":"");
-  if(bass)one(keys(LEARN_BASS,["bscales"]),"🎼 Learn a new scale","🔁 Review a scale","bscale",both?" (bass)":"");
+  if(gtr)one(keys(LEARN,["scales"]),"🎼 Learn a new scale position","🔁 Review a scale","scale",both?" (guitar)":"");
+  if(bass)one(keys(LEARN_BASS,["bscales"]),"🎼 Learn a new scale position","🔁 Review a scale","bscale",both?" (bass)":"");
   if(gtr)one(keys(LEARN,["tech"]),"🎯 Learn a new technique",null,"",both?" (guitar)":"");
   if(bass)one(keys(LEARN_BASS,["btech"]),"🎯 Learn a new technique",null,"",both?" (bass)":"");
   // this week's songs: the same ones the Learning goals tab shows
