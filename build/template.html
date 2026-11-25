@@ -3267,7 +3267,9 @@ function goalsSkill(n,G){const L=typeof ACCT!=="undefined"&&ACCT.learn; if(!L){t
   [0,1,2].forEach(pi=>{const mine=E.filter(x=>x.c[0]===pi&&!/bonus/i.test(x.c[2])&&x.c[3]); if(!mine.length)return;
     const place=x=>{const el=x.c[6].filter(e=>e[1]!=null&&!isNaN(+e[1])), i=el.indexOf(x.e); return {i,n:el.length}};
     const key=x=>`skill/${pi}/${x.c[3]}`;
-    const cand=mine.filter(x=>x.w<=old).map(x=>({x,p:place(x)})).filter(o=>o.p.i>=0);
+    /* not above their current class on that path (the class of their latest score in their own class there) */
+    const O="BIAMG", lv=x=>O.indexOf(cardLv(x.c[2])), own=mine.filter(x=>x.e[4]===0), cur=own.length?lv(own.reduce((a,b)=>b.w>a.w?b:a)):4;
+    const cand=mine.filter(x=>x.w<=old&&lv(x)>=0&&lv(x)<=cur).map(x=>({x,p:place(x)})).filter(o=>o.p.i>=0);
     const done=cand.filter(o=>S.has(key(o.x))&&(T.get(key(o.x))||0)>=since).sort((a,b)=>T.get(key(b.x))-T.get(key(a.x)))[0];
     const pick=done||cand.filter(o=>!S.has(key(o.x))).sort((a,b)=>(b.p.n>1?b.p.i/(b.p.n-1):0)-(a.p.n>1?a.p.i/(a.p.n-1):0)||a.x.pc-b.x.pc||a.x.w-b.x.w)[0];
     if(!pick)return; const x=pick.x, song=x.c[3], k=key(x);
