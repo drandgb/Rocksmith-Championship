@@ -8185,13 +8185,25 @@ function wmSection(){if(!WM_DATA||!(WM_DATA.songs||[]).length)return `<div class
     const part=kind=>{const S=P.slots.filter(s=>s.cls===cls&&s.kind===kind), N=P.none.filter(n=>n.cls===cls&&n.kind===kind), K=kind==="bonus"?P.skips.filter(n=>n.cls===cls):[];
       if(!S.length&&!N.length&&!K.length)return ""; return `${kind==="bonus"?`<h5>Bonus</h5>`:""}<ul class="wml">${S.map(slot).join("")}</ul>${N.length?`<p class="dim wmnote">No song left for ${N.map(n=>PATHS[n.pi]).join(", ")}${kind==="bonus"?" bonus":""}.</p>`:""}${K.map(k=>`<p class="dim wmnote">${PATHS[k.pi]} bonus left out: ${esc(k.why)}.</p>`).join("")}`};
     return `<div class="wmcls"><h4 style="color:${WM_CC[cls]}">${WM_CLS[cls]}</h4>${part("main")}${part("bonus")}</div>`}).join("");
-  return `<div class="acctsec wmsec"><h3>Week Maker <button type="button" class="btn ghost small" data-wmshuf title="Suggest a different week">🔀 Shuffle</button></h3>
-    <p class="dim">A proposed week from the Song Selection List (${WM_DATA.songs.length} songs, read ${esc(String(WM_DATA.from||"").slice(0,10))}). Songs never played come first, then ones not played for over a year. It stays the same on all your devices until you shuffle.</p>
+  return `<div class="acctsec wmsec"><h3>Week Maker <button type="button" class="btn ghost small" data-wmshuf title="Suggest a different week">🔀 Shuffle</button><button type="button" class="btn ghost small" data-wmcopy title="Copies the proposal as cells: click cell C5 on the Song Selection List's NewWeek tab and paste">📋 Copy for the NewWeek tab</button></h3>
+    <p class="dim">A proposed week from the Song Selection List (${WM_DATA.songs.length} songs, read ${esc(String(WM_DATA.from||"").slice(0,10))}). Songs never played come first, then ones not played for over a year. It stays the same on all your devices until you shuffle. To use it, press 📋, click cell C5 on the NewWeek tab and paste: it fills Artist, Song Title, Rating, Tuning and Selected by for Lead, Rhythm and Bass (add the download links there yourself).</p>
     ${WM.err?`<p class="err">Your Week Maker can't be saved yet: run build/supabase/week_maker.sql once in Supabase. (${esc(WM.err)})</p>`:WM.saveErr?`<p class="err">Couldn't save: ${esc(WM.saveErr)}</p>`:""}
     <div class="wmopts"><label><input type="checkbox" data-wmopt="bonus"${WM.opts.bonus?" checked":""}> Bonus songs</label>${god?`<span class="dim">A God of… challenge is in progress.</span>`:`<label><input type="checkbox" data-wmopt="god"${WM.opts.god?" checked":""}> Propose a God of… song</label>`}</div>
     <div class="wmfavs"><b>Favorite tab authors</b> ${(WM.favs||[]).map(a=>`<span class="wmchip">${esc(a)}<button type="button" data-wmunfav="${esc(a)}" aria-label="Remove ${esc(a)}">✕</button></span>`).join("")}
       <span class="wmadd"><input id="wmfavin" list="wmauthors" placeholder="Add a tab author"><datalist id="wmauthors">${authors.map(a=>`<option value="${esc(a)}">`).join("")}</datalist><button type="button" class="btn ghost small" data-wmaddfav>Add</button></span></div>
     ${blocks}</div>`}
+// the proposal as cells for the Song Selection List's NewWeek tab, pasted at C5: Artist, Song Title, Rating, Tuning, Selected by for
+// each path's Beginner … Masterclass Bonus and God of… rows (C5:G13 Lead, C16:G24 Rhythm, C27:G35 Bass), with the rows between left
+// as the tab has them (the Rhythm headings, blanks). The download link column is left for the host.
+function wmSheetTsv(P){const by=(ACCT.claim&&ACCT.claim.player)||"", L=[], cell=v=>String(v==null?"":v).replace(/[\t\n]/g," ");
+  const row=(pi,cls,kind)=>{const s=P.slots.find(x=>x.cls===cls&&x.kind===kind&&x.paths.includes(pi)); if(!s)return ["","","","",""];
+    let tu=""; try{tu=tuneOf(`${s.a} - ${s.t}`,pi)||""}catch(e){} return [s.a,s.t,s.r[pi],tu,by]};
+  [0,1,2].forEach(pi=>{if(pi===1)L.push(["","","","",""],["Artist","Song Title","Rating","Tuning","Selected by"]); if(pi===2)L.push(["","","","",""],["","","","",""]);
+    ["B","I","A","M"].forEach(c=>{L.push(row(pi,c,"main"),row(pi,c,"bonus"))}); L.push(row(pi,"G","main"))});
+  return L.map(r=>r.map(cell).join("\t")).join("\n")}
+document.addEventListener("click",async e=>{const b=e.target.closest("[data-wmcopy]"); if(!b||!WM||!WM.prop)return; const t=wmSheetTsv(WM.prop);
+  try{await navigator.clipboard.writeText(t)}catch(x){const a=document.createElement("textarea"); a.value=t; document.body.appendChild(a); a.select(); try{document.execCommand("copy")}catch(y){} a.remove()}
+  b.textContent="Copied ✓"; setTimeout(()=>{b.textContent="📋 Copy for the NewWeek tab"},2500)});
 document.addEventListener("click",e=>{if(!WM||WM.busy)return; const t=e.target;
   if(t.closest("[data-wmshuf]")){WM.prop=wmMake(Math.floor(Math.random()*2**31)); wmSave(); acctDraw(); return}
   const f=t.closest("[data-wmfav]"), u=t.closest("[data-wmunfav]"), ad=t.closest("[data-wmaddfav]");
