@@ -976,7 +976,7 @@ html.acctwait body{visibility:hidden}html.acctwait{background:var(--bg)}html.acc
 .twgoals li .fwt{flex:0 1 auto;min-width:0}
 .twgoalh{margin:12px 0 4px;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}.twgoalh:first-of-type{margin-top:4px}
 .twgoals .fwt{font-weight:700}.twgoals .nwr{color:var(--muted);font-size:13px}
-.twgoals li.gdone{border-color:color-mix(in srgb,var(--s-green) 45%,var(--line))}.twgoals .gck{display:inline-grid;place-items:center;width:16px;height:16px;margin-right:7px;border-radius:4px;background:var(--s-green);color:#10131a;font:900 11px/1 var(--f-display);vertical-align:1px}.twgoals .gnext{color:var(--s-green);font-size:13px}
+.twgoals .greach{margin-top:8px}.twgoals .greach .lgpics{display:flex!important;flex-wrap:wrap;gap:10px}.twgoals .greach .lgfig{flex:0 1 340px;min-width:0;max-width:100%}.twgoals .gself{border:0;padding:0;cursor:pointer}.twgoals .gself.goff{background:transparent;box-shadow:inset 0 0 0 1.5px var(--muted)}.twgoals .gself:hover{filter:brightness(1.15)}.twgoals li.gdone{border-color:color-mix(in srgb,var(--s-green) 45%,var(--line))}.twgoals .gck{display:inline-grid;place-items:center;width:16px;height:16px;margin-right:7px;border-radius:4px;background:var(--s-green);color:#10131a;font:900 11px/1 var(--f-display);vertical-align:1px}.twgoals .gnext{color:var(--s-green);font-size:13px}
 /* Admin: engagement before and since the stats sheet and the website */
 .engt{width:100%;border-collapse:collapse;font-size:13px;margin:8px 0 4px}.engt th,.engt td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
 .engt thead th{font-size:12px;color:var(--muted);font-weight:600}.engt thead th small{display:block;font-weight:400;font-size:11px;opacity:.8}
@@ -3197,8 +3197,9 @@ function goalsPanel(n){const wk=d=>`${d} more week${d===1?"":"s"}`, pl=r=>`#${r}
   try{goalsPlay(n,P,wk,pl)}catch(e){console.error(e)}
   try{goalsWin(n,W)}catch(e){console.error(e)}
   try{goalsHost(n,H,wk,pl)}catch(e){console.error(e)}
+  const Lr=[]; try{goalsLearn(n,Lr)}catch(e){console.error(e)}
   const S=P.filter(g=>/^🏁 Season /.test(g[0]));   // the season card moves from Play to Win
-  return [["Play",P.filter(g=>!S.includes(g))],["Win",[...S,...W]],["Host",H]].filter(x=>x[1].length)}
+  return [["Play",P.filter(g=>!S.includes(g))],["Win",[...S,...W]],["Host",H],["Learn",Lr]].filter(x=>x[1].length)}
 // playing: the next play streak, beating their longest, a weeks-played milestone, the season place above them
 function goalsPlay(n,G,wk,pl){const p=byName[n]; if(!p)return; const tw=TW_MAX, now=twPlayed(n,tw), s=twStreakTo(n,now?tw:tw-1), longest=Math.max(p[6]||0,s);
   if(!now&&!twPlayed(n,tw-1))return;
@@ -3226,6 +3227,33 @@ function goalsPlay(n,G,wk,pl){const p=byName[n]; if(!p)return; const tw=TW_MAX, 
       const t=best.i===0?`🏁 Season ${seasonNum(id)}: maintain first place in ${PATHS[pi]} ${TIER_NAME[best.c]}`:`🏁 Season ${seasonNum(id)}: ${pl(best.i)} in ${PATHS[pi]} ${TIER_NAME[best.c]}`;
       const r0=best.i===0?`${best.gap===0?"level on points with":`${best.gap} point${best.gap===1?"":"s"} ahead of`} ${best.other}`:`${best.gap===0?"level on points with":`${best.gap} point${best.gap===1?"":"s"} behind`} ${best.other} · you're ${pl(best.i+1)}`;
       G.push([t,`${r0} · ${left} week${left===1?"":"s"} left${wk}`,mine.length>0])})}catch(e){}}   // (done this week: a score in that class)
+// learning (from Learning goals, for the signed-in player): the next chord, scale position and technique to check off (done this week:
+// checking a new one off), or a chord or scale to review once they're all checked off, and this week's song to practice on guitar and bass.
+// Reviewing and practicing are checked off here by the player (saved like the other goals, as wk/<week>/...)
+function goalsLearn(n,G){const L=typeof ACCT!=="undefined"&&ACCT.learn; if(!L){try{learnLoad()}catch(e){} return} if(L.err)return;
+  const E=(()=>{try{return sbIx().ent[String(n).toLowerCase()]||[]}catch(e){return []}})(), gtr=E.some(x=>x.c[0]!==2), bass=E.some(x=>x.c[0]===2); if(!gtr&&!bass)return;
+  const S=L.s, T=L.t||new Map(), since=nyAt(WEEKS[curIdx][1]), wk=TW_MAX, both=gtr&&bass;
+  const keys=(sets,ids)=>ids.flatMap(id=>{const st=sets.find(x=>x.id===id); return st?st.g.flatMap(g=>g.i.map(i=>({k:`${id}/${g.id}/${i}`,g,i}))):[]});
+  const newThisWeek=K=>K.some(x=>S.has(x.k)&&(T.get(x.k)||0)>=since);
+  const nm=x=>/scales$/.test(x.k.split("/")[0])?`${x.g.t.replace(/^The /,"")}, ${lgName(x.i)}`:lgName(x.i);   /* a scale position with its scale's name */
+  const card=(x,tick)=>{const prev=LG_BASS; LG_BASS=LEARN_BASS.some(st=>st.id===x.k.split("/")[0]); try{return chordPics([x.i],()=>S.has(x.k),()=>tick?x.k:null)}finally{LG_BASS=prev}};
+  /* the one checked off this week stays the goal until next week (the latest, if more than one) */
+  const wkDone=K=>K.filter(x=>S.has(x.k)&&(T.get(x.k)||0)>=since).sort((a,b)=>T.get(b.k)-T.get(a.k))[0];
+  const one=(K,learn,review,rk,tag)=>{const nx=wkDone(K)||K.find(x=>!S.has(x.k)); if(nx){G.push([`${learn}${tag}: ${nm(nx)}`,S.has(nx.k)?`checked off this week · the next one shows up next week`:`${/scales$/.test(nx.k.split("/")[0])?"":`next up in "${nx.g.t.replace(/:$/,"")}" · `}click the card to check it off`,newThisWeek(K),null,card(nx,1)]); return}
+    if(!review||!K.length)return; const r=K[wk%K.length], key=`wk/${wk}/${rk}`; G.push([`${review}${tag}: ${nm(r)}`,`play it from memory, then check this off`,S.has(key),key,card(r,0)])};
+  if(gtr)one(keys(LEARN,["cowboy","rock","triads"]),"🎸 Learn a new chord","🔁 Review a chord","chord","");
+  {const GS=keys(LEARN,["fret"]), BS=keys(LEARN_BASS,["bfret"]), nmS=["E","A","D","G","B"];
+    const wd=wkDone([...(gtr?GS:[]),...(bass?BS:[])]), wi=wd?(GS.includes(wd)?GS:BS).indexOf(wd):-1;   /* a string checked off this week stays until next week */
+    const i=wi>=0?wi:nmS.findIndex((x,j)=>(gtr&&GS[j]&&!S.has(GS[j].k))||(bass&&BS[j]&&!S.has(BS[j].k)));
+    if(i>=0){const keep=x=>x&&(!S.has(x.k)||(T.get(x.k)||0)>=since), g=gtr&&keep(GS[i])?GS[i]:null, b=bass&&keep(BS[i])?BS[i]:null;
+      G.push([`🗺️ Learn the notes on the ${nmS[i]} string${g&&i===0?"s":""}${both?` (${g&&b?"guitar and bass":g?"guitar":"bass"})`:""}`,(g?[g]:[]).concat(b?[b]:[]).every(x=>S.has(x.k))?`checked off this week · the next string shows up next week`:`natural notes only · click ${g&&b?"each card":"the card"} to check it off`,newThisWeek([...(gtr?GS:[]),...(bass?BS:[])]),null,(g?card(g,1):"")+(b?card(b,1):"")])}}
+  if(gtr)one(keys(LEARN,["scales"]),"🎼 Learn a new scale position","🔁 Review a scale","scale",both?" (guitar)":"");
+  if(bass)one(keys(LEARN_BASS,["bscales"]),"🎼 Learn a new scale position","🔁 Review a scale","bscale",both?" (bass)":"");
+  if(gtr)one(keys(LEARN,["tech"]),"🎯 Learn a new technique",null,"",both?" (guitar)":"");
+  if(bass)one(keys(LEARN_BASS,["btech"]),"🎯 Learn a new technique",null,"",both?" (bass)":"");
+  // this week's songs: the same ones the Learning goals tab shows
+  if(gtr){try{lgSongHtml(L)}catch(e){} const x=LG_SONG!=null&&LG_SONGS[LG_SONG], key=`wk/${wk}/song`; if(x)G.push([`🎵 Practice a song${both?" (guitar)":""}: ${x[0]}`,`chords: ${x[1].join(" ")}`,S.has(key),key])}
+  if(bass){try{lgBassSongHtml(L)}catch(e){} const x=LG_BSONG!=null&&lgBS(LG_BSONG), key=`wk/${wk}/bsong`; if(x&&(lgBPool(L)||[]).includes(LG_BSONG))G.push([`🎵 Practice a song${both?" (bass)":""}: ${x[0]}`,`key of ${x[1]} ${/minor/.test(x[2])?"minor":"major"} · ${BT_SCN[x[2]]}`,S.has(key),key])}}
 // winning: on a win streak (won a challenge last week or more weeks in a row), the next win streak medal
 function goalsWin(n,G){const done=SB_W.filter(w=>w<cur[0]).sort((a,b)=>a-b), per=playerWeekWins(n,-1); let s=0, best=0, run=0;
   done.forEach(w=>{run=per[w]&&per[w][1]>0?run+1:0; if(run>best)best=run}); s=run; if(!s)return;
@@ -3256,9 +3284,10 @@ function twGoals(){const el=$("tw-goals"); if(!el)return; let G=[], n="";
   try{if(typeof ACCT!=="undefined"&&ACCT.claim&&ACCT.claim.status==="approved"&&twWeek===TW_LIVE){n=ACCT.claim.player; G=goalsPanel(n)||[]}}catch(e){console.error(e)}
   el.hidden=!G.length; if(!G.length){el.innerHTML=""; return}
   const fold=lsGet(GOALS_FOLD)===String(TW_MAX);
-  el.innerHTML=`<div class="panel-head dlhead" data-goals="fold" title="${fold?"Show":"Hide"} the list"><h2>🎯 Within reach - Keep going!<span class="dlarw">${fold?"▸":"▾"}</span></h2></div>${fold?"":G.map(([sec,gs])=>`<h4 class="twgoalh">${sec}</h4><ul class="twgoals">${gs.map(([t,r,d])=>`<li${d?` class="gdone"`:""}><span class="fwt">${d?`<span class="gck" title="Done this week">✓</span>`:""}${esc(t)}</span><span class="nwr">${esc(r)}</span>${d?`<span class="gnext">Come back next week to keep working on this goal</span>`:""}</li>`).join("")}</ul>`).join("")}`}
+  el.innerHTML=`<div class="panel-head dlhead" data-goals="fold" title="${fold?"Show":"Hide"} the list"><h2>🎯 Within reach - Keep going!<span class="dlarw">${fold?"▸":"▾"}</span></h2></div>${fold?"":G.map(([sec,gs])=>`<h4 class="twgoalh">${sec}</h4><ul class="twgoals">${gs.map(([t,r,d,sk,cd])=>`<li${d?` class="gdone"`:""}><span class="fwt">${sk?`<button type="button" class="gck gself${d?"":" goff"}" data-gself="${esc(sk)}" aria-pressed="${!!d}" title="${d?"Done this week (click to undo)":"Check this off when you've done it"}">${d?"✓":""}</button>`:d?`<span class="gck" title="Done this week">✓</span>`:""}${esc(t)}</span><span class="nwr">${esc(r)}</span>${cd?`<div class="lgsec greach">${cd}</div>`:""}${d?`<span class="gnext">Come back next week to keep working on this goal</span>`:""}</li>`).join("")}</ul>`).join("")}`}
 // clicking the Within reach heading hides or shows its list (remembered for the current week, like the download list)
 const GOALS_FOLD="rsc-goals-fold";
+document.addEventListener("click",async e=>{const b=e.target.closest("#tw-goals [data-gself]"); if(!b||b.disabled||!ACCT.learn)return; b.disabled=true; await learnSet(b.dataset.gself,!ACCT.learn.s.has(b.dataset.gself)); b.disabled=false});
 document.addEventListener("click",e=>{if(e.target.closest("#tw-goals [data-goals=fold]")){lsSet(GOALS_FOLD,lsGet(GOALS_FOLD)===String(TW_MAX)?null:String(TW_MAX)); twGoals()}});
 
 // Welcome back: a player back after 4+ weeks away, for their first 4 weeks back
@@ -8880,12 +8909,12 @@ document.addEventListener("input",e=>{const x=e.target.closest("#chdlg .chdot in
 document.addEventListener("keydown",e=>{const x=e.target.closest("#chdlg .chdot input"); if(!x)return; const i=+x.id.slice(3);
   if((e.key==="Backspace"||e.key==="Delete")&&!x.value){e.preventDefault(); CHED.f[i]=-1; CHED.n[i]="-"; chEdDraw()} else if(e.key==="Enter"){e.preventDefault(); x.blur()}});
 function learnLoad(){if(ACCT.learn&&ACCT.user&&ACCT.learn.uid!==ACCT.user.id)ACCT.learn=null; if(ACCT.learn||ACCT.learnBusy||!ACCT.user)return; const uid=ACCT.user.id; ACCT.learnBusy=1;
-  ACCT.sb.from("learn_goals").select("item").then(({data,error})=>{ACCT.learnBusy=0; ACCT.learn=error?{uid,err:1,s:new Set()}:{uid,s:new Set((data||[]).map(r=>r.item))};
+  ACCT.sb.from("learn_goals").select("item,done_at").then(({data,error})=>{ACCT.learnBusy=0; ACCT.learn=error?{uid,err:1,s:new Set(),t:new Map()}:{uid,s:new Set((data||[]).map(r=>r.item)),t:new Map((data||[]).map(r=>[r.item,Date.parse(r.done_at)||0]))};
     // F and B moved from the major chords to barre chords, Bm and Cm to the minor barre chords, Bm7 to the minor 7th barre chords, pinch harmonic to Techniques, and barre chords and pinch harmonic were single checkboxes: carry old ticks over
     try{const S=ACCT.learn.s;
       [[["cowboy/maj/F","cowboy/barre"],"cowboy/barre/F"],[["cowboy/maj/B"],"cowboy/barre/B"],[["cowboy/min/Bm"],"cowboy/minb/Bm"],[["cowboy/min/Cm"],"cowboy/minb/Cm"],[["cowboy/min7/Bm7"],"cowboy/min7b/Bm7"],[["cowboy/pinch","cowboy/pinch/Pinch harmonic"],"tech/harm/Pinch harmonic"],[["tech/harm/Harmonic"],"tech/harm/Natural harmonic"]].forEach(([from,to])=>{const old=from.filter(k=>S.has(k)); if(!old.length)return; S.add(to); old.forEach(k=>S.delete(k));
         ACCT.sb.from("learn_goals").upsert({item:to},{onConflict:"user_id,item",ignoreDuplicates:true}).then(()=>ACCT.sb.from("learn_goals").delete().eq("user_id",uid).in("item",old)).then(()=>{},()=>{})})}catch(e){}
-    if(ACCT.tab==="learn")acctDraw()})}
+    if(ACCT.tab==="learn")acctDraw(); try{twGoals()}catch(e){}})}
 // Try playing this song: a random song that uses only chords you've checked off, or those plus one more
 const LG_SONGS=[["Mazzy Star - Fade Into You",["A","Em","Bm"]],["The Cranberries - Zombie",["Em","C","G","D/F#"]],["Nickelback - Photograph",["E5","Badd11","D6add9","Aadd9"]],
   ["Nirvana - Smells Like Teen Spirit",["F5","A#5","G#5","C#5"]],["Radiohead - Creep",["G","B","C","Cm"]],["John Denver - Take Me Home, Country Roads",["G","Em","D","C"]],
@@ -8912,7 +8941,9 @@ const LG_SONGS=[["Mazzy Star - Fade Into You",["A","Em","Bm"]],["The Cranberries
   ["Bob Marley - No Woman, No Cry",["C","G","Am","F"]],
   ["Men at Work - Down Under",["Bm","A","G","D"]],
   ["a-ha - Take On Me",["A","E","F#m","D"]]];
-var LG_SONG=null, LG_SONG_MORE=false, LG_SONG_SKIP=null, LG_SONG_RANK=LG_SONGS.map(()=>Math.random());
+const LG_PICK=(()=>{try{const o=JSON.parse(localStorage.getItem("rsc-lgsong")||"null"); return o&&o.w===TW_MAX?o:{}}catch(e){return {}}})();
+const lgPickSave=()=>{try{localStorage.setItem("rsc-lgsong",JSON.stringify({w:TW_MAX,g:LG_SONG,m:LG_SONG_MORE,b:LG_BSONG}))}catch(e){}};
+var LG_SONG=LG_PICK.g!=null?LG_PICK.g:null, LG_SONG_MORE=!!LG_PICK.m, LG_SONG_SKIP=null, LG_SONG_RANK=LG_SONGS.map(()=>Math.random());
 // chords that count as one you know (D/F# is D with F# on the low E string), and a note shown under a song that uses them
 const LG_SAME={"D/F#":"D"}, LG_SAME_NOTE={"D/F#":"Note: D/F# is just D with F# played with the thumb on the low E string."};
 // songs recorded in a higher key: the same chord shapes with a capo play along with the recording
@@ -8935,7 +8966,7 @@ function lgSongHtml(L){if(!L||L.err)return ""; const know=new Set([...L.s].map(k
   more.sort((a,b)=>a.new.length-b.new.length||LG_SONG_RANK[a.i]-LG_SONG_RANK[b.i]);
   const pick=a=>{const b=a.length>1?a.filter(x=>x.i!==LG_SONG_SKIP):a; return b[Math.floor(Math.random()*b.length)].i};
   if(LG_SONG_MORE&&!more.length)LG_SONG_MORE=false; if(!LG_SONG_MORE&&!ok.length){if(!more.length)return ""; LG_SONG_MORE=true}
-  const pool=LG_SONG_MORE?more:ok; if(LG_SONG==null||!pool.some(x=>x.i===LG_SONG))LG_SONG=LG_SONG_MORE?more[(more.findIndex(x=>x.i===LG_SONG_SKIP)+1)%more.length].i:pick(pool); LG_SONG_SKIP=null;
+  const pool=LG_SONG_MORE?more:ok; if(LG_SONG==null||!pool.some(x=>x.i===LG_SONG))LG_SONG=LG_SONG_MORE?more[(more.findIndex(x=>x.i===LG_SONG_SKIP)+1)%more.length].i:pick(pool); LG_SONG_SKIP=null; lgPickSave();
   const [t,cs]=LG_SONGS[LG_SONG], nw=cs.filter(c=>!lgKnows(know,c)), notes=cs.filter(c=>LG_SAME_NOTE[c]).map(c=>LG_SAME_NOTE[c]).concat(cs.filter(c=>!CHORD_SHAPES[c]&&lgMove(c).length).map(c=>lgMoveNote(know,c))).concat(lgCapoNote(t)||[]);
   return `<div class="lgsong"><div class="lgsongtop"><span class="lgsongh">🎸 Try playing this song</span><span class="lgsongbtns">${ok.length>(LG_SONG_MORE?0:1)?`<button type="button" class="clear" data-lgsong title="Another song using only chords you know" aria-label="Another song">🔀</button>`:""}${more.length>(LG_SONG_MORE?1:0)?`<button type="button" class="clear" data-lgsongnew title="Next song with new chords to learn (fewest new chords first)" aria-label="A song with new chords to learn">🆕</button>`:""}</span></div><b>${esc(t)}</b><span class="lgsongc">${cs.map(c=>`<span class="${lgKnows(know,c)?"k":"n"}"${lgKnows(know,c)?"":` title="A chord you haven't checked off yet"`}>${esc(c)}</span>`).join("")}</span>${nw.length?`<small>${nw.length===1?"One new chord":`${nw.length} new chords`} to learn: ${nw.map(c=>{const j=CHORD_SHAPES[c]?c:(lgMove(c)[0]||{}).n; return j?`<button type="button" class="lgnewc" data-lgnewc="${esc(j)}" title="Show ${esc(j)} in the chords below">${j===c?`Jump to ${esc(j)}`:`${esc(c)} · Jump to ${esc(j)}`}</button>`:`<span class="lgnewx">${esc(c)}</span>`}).join(" ")}</small>`:`<small>You know all of its chords!</small>`}${notes.map(x=>`<p class="lgsongn">${esc(x)}</p>`).join("")}</div>`}
 // the new chord's name jumps down to its card
@@ -8946,7 +8977,7 @@ document.addEventListener("click",e=>{const a=e.target.closest("[data-lgsong]"),
 const LG_BSONGS=[["The White Stripes - Seven Nation Army","E","minor"],["Queen - Another One Bites the Dust","E","pminor"],["Ben E. King - Stand By Me","A","major"],
   ["Cream - Sunshine of Your Love","D","pminor"],["The Police - Walking on the Moon","D","minor"],["Billie Eilish - Bad Guy","G","minor"],
   ["Gotye - Somebody That I Used to Know","D","minor"],["Michael Jackson - Billie Jean","F#","pminor"],["Deep Purple - Smoke on the Water","G","pminor"]];
-var LG_BSONG=null, BTAB_ED=null, BKEY_ED=null; let BASS_TABS={}; try{BASS_TABS=JSON.parse(localStorage.getItem("rsc-basstabs")||"{}")||{}}catch(e){}
+var LG_BSONG=LG_PICK.b!=null?LG_PICK.b:null, BTAB_ED=null, BKEY_ED=null; let BASS_TABS={}; try{BASS_TABS=JSON.parse(localStorage.getItem("rsc-basstabs")||"{}")||{}}catch(e){}
 function bassTabLoad(force){if((bassTabLoad.done&&!force)||!ACCT.sb)return; bassTabLoad.done=1;
   ACCT.sb.from("bass_tabs").select("*").then(({data,error})=>{if(error||!data)return; const m={}; for(const r of data)m[r.song]=r; BASS_TABS=m;
     try{localStorage.setItem("rsc-basstabs",JSON.stringify(m))}catch(e){} if(ACCT.tab==="learn")acctDraw()})}
@@ -8984,7 +9015,7 @@ const btCheckLine=song=>{const C=btCheck(song); if(!C)return ""; const b=Object.
 // the songs to pick from: players only get songs that have a tab (admins see them all, to fill them in); ones in a scale you've checked come first
 function lgBPool(L){const all=LG_BSONGS.map((x,i)=>i).filter(i=>ACCT.admin||(BASS_TABS[LG_BSONGS[i][0]]||{}).tab), known=all.filter(i=>lgBKnows(L,lgBS(i)[2])); return known.length?known:all}
 function lgBassSongHtml(L){if(!L||L.err)return ""; const pool=lgBPool(L); if(!pool.length)return "";
-  if(LG_BSONG==null||!pool.includes(LG_BSONG))LG_BSONG=pool[Math.floor(Math.random()*pool.length)];
+  if(LG_BSONG==null||!pool.includes(LG_BSONG))LG_BSONG=pool[Math.floor(Math.random()*pool.length)]; lgPickSave();
   const [t,r,id]=lgBS(LG_BSONG), G=LEARN_BASS.find(x=>x.id==="bscales").g.find(x=>x.id===id), kn=lgBKnows(L,id), key=r+(/minor/.test(id)?" minor":" major");
   const f=(lgPc(r)-4+12)%12, ord=v=>v+(v===1?"st":v===2?"nd":v===3?"rd":"th"), where=f===0?"the E string's 12th fret (or open)":`the E string's ${ord(f)} fret`;
   const tab=BASS_TABS[t]&&BASS_TABS[t].tab, ed=BTAB_ED===t;
@@ -9041,7 +9072,7 @@ function learnSection(){if(!ACCT.claim||ACCT.claim.status!=="approved")return ""
 async function learnSet(k,on){if(!ACCT.learn||!ACCT.user)return false;
   const {error}=on?await ACCT.sb.from("learn_goals").insert({item:k}):await ACCT.sb.from("learn_goals").delete().match({user_id:ACCT.user.id,item:k});
   if(error&&!(on&&/duplicate/i.test(error.message))){alert("Couldn't save that: "+error.message); return false}
-  on?ACCT.learn.s.add(k):ACCT.learn.s.delete(k); acctDraw(); return true}
+  on?ACCT.learn.s.add(k):ACCT.learn.s.delete(k); if(ACCT.learn.t)on?ACCT.learn.t.set(k,Date.now()):ACCT.learn.t.delete(k); acctDraw(); try{twGoals()}catch(e){} return true}
 document.addEventListener("change",async e=>{const c=e.target.closest("input[data-learn]"); if(!c||!ACCT.learn||!ACCT.user)return; const on=c.checked; c.disabled=true;
   if(!await learnSet(c.dataset.learn,on)){c.checked=!on; c.disabled=false}});
 // a chord card is its own checkbox: click it (or Space/Enter) to check the chord off (the ✎ edit button doesn't)
