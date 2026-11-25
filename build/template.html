@@ -7315,7 +7315,7 @@ function renderThisWeek(){
   {const html=!live&&w<=DATA_WEEK?twWinnersPost(w):""; $("tw-winsec").hidden=!html; $("tw-winpost").innerHTML=html;}
   // lists
   $("tw-back-sub").textContent=`Played week ${w} after missing week ${w-1}`;
-  $("tw-back").innerHTML=back.length?back.map(x=>`<li>${twName(x.n)}<span class="dt">last played ${twWk(x.prev)}</span><span class="rt">${x.gap>=52?`${(x.gap/52).toFixed(1).replace(/\.0$/,"")} yr`:twPl(x.gap,"wk")}<small>away</small></span></li>`).join(""):twEmpty(live?"Nobody back from a break yet.":"Nobody came back from a break this week.");
+  $("tw-back").innerHTML=back.length?back.map(x=>`<li>${twName(x.n)}<span class="dt">last played ${twWkS(x.prev)}</span><span class="rt">${x.gap>=52?`${(x.gap/52).toFixed(1).replace(/\.0$/,"")} yr`:twPl(x.gap,"wk")}<small>away</small></span></li>`).join(""):twEmpty(live?"Nobody back from a break yet.":"Nobody came back from a break this week.");
   $("tw-new-sub").textContent=live?"First scores ever, so far":"First week in the championship";
   // starting rank per path: the level they played at their own class (no * mark); playing up or down doesn't count
   // a FreeBird's scores carry the ~ mark: they show as F
