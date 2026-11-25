@@ -3218,12 +3218,13 @@ function goalsPlay(n,G,wk,pl){const p=byName[n]; if(!p)return; const tw=TW_MAX, 
         const o={gap,c,i,other:L[i?i-1:1].n}; if(!best||((i===0)!==(best.i===0)?i===0:gap<best.gap))best=o});
       if(!best)return;
       const mine=(SB.weeks[tw]||[]).filter(cd=>cd[0]===pi&&!cd[7]&&cardLv(cd[2])===best.c&&!/bonus/i.test(cd[2])).map(cd=>{const el=cd[6].filter(e=>e[1]!=null&&canWin(e)), k=el.findIndex(e=>pvName(e).toLowerCase()===kk); return k<0?null:{k,song:cd[3]}}).filter(Boolean);
-      let wk="";
+      const songs=(SB.weeks[tw]||[]).filter(cd=>cd[0]===pi&&!cd[7]&&cardLv(cd[2])===best.c&&!/bonus/i.test(cd[2])).map(cd=>cd[3]).filter(Boolean);   /* this week's arrangement(s) in that class */
+      let wk=songs.length?` · this week's song${songs.length===1?"":"s"}: ${songs.join(", ")}`:"";
       if(mine.length){const gain=mine.reduce((t,x)=>t+(x.k<10?F1_PTS[x.k]:0),0), LL=(seasonF1(pi,id,undefined,true)[best.c]||[]), r=LL.findIndex(x=>x.n.toLowerCase()===kk)+1;
-        wk=` · this week so far: ${mine.map(x=>`${th(x.k+1)} on ${x.song}`).join(", ")} (+${gain} point${gain===1?"":"s"})${r?` · would ${r===best.i+1?"keep":"put"} you ${pl(r)}`:""}`}
+        wk+=` · this week so far: ${mine.map(x=>songs.length>1?`${th(x.k+1)} on ${x.song}`:`${th(x.k+1)}`).join(", ")} (+${gain} point${gain===1?"":"s"})${r?` · would ${r===best.i+1?"keep":"put"} you ${pl(r)}`:""}`}
       else{const L0=seasonF1(pi,id)[best.c]||[], LL=(seasonF1(pi,id,undefined,true)[best.c]||[]), r=LL.findIndex(x=>x.n.toLowerCase()===kk)+1;   /* not played it yet, and others have moved past */
         const past=LL.slice(0,Math.max(0,r-1)).filter(x=>{const j=L0.findIndex(y=>y.n===x.n); return j<0||j>best.i}).map(x=>x.n);
-        if(r>best.i+1&&past.length)wk=` · this week so far: you haven't played ${PATHS[pi]} ${TIER_NAME[best.c]} yet · ${(q=>q.length>1?q.slice(0,-1).join(", ")+" and "+q[q.length-1]:q[0])(past.length>3?[...past.slice(0,3),`${past.length-3} more`]:past)} ${past.length===1?"has":"have"} moved past you · you'd drop to ${pl(r)}`}
+        if(r>best.i+1&&past.length)wk+=` · this week so far: you haven't played ${PATHS[pi]} ${TIER_NAME[best.c]} yet · ${(q=>q.length>1?q.slice(0,-1).join(", ")+" and "+q[q.length-1]:q[0])(past.length>3?[...past.slice(0,3),`${past.length-3} more`]:past)} ${past.length===1?"has":"have"} moved past you · you'd drop to ${pl(r)}`}
       const t=best.i===0?`🏁 Season ${seasonNum(id)}: maintain first place in ${PATHS[pi]} ${TIER_NAME[best.c]}`:`🏁 Season ${seasonNum(id)}: ${pl(best.i)} in ${PATHS[pi]} ${TIER_NAME[best.c]}`;
       const r0=best.i===0?`${best.gap===0?"level on points with":`${best.gap} point${best.gap===1?"":"s"} ahead of`} ${best.other}`:`${best.gap===0?"level on points with":`${best.gap} point${best.gap===1?"":"s"} behind`} ${best.other} · you're ${pl(best.i+1)}`;
       G.push([t,`${r0} · ${left} week${left===1?"":"s"} left${wk}`,mine.length>0])})}catch(e){}}   // (done this week: a score in that class)
@@ -3253,7 +3254,7 @@ function goalsLearn(n,G){const L=typeof ACCT!=="undefined"&&ACCT.learn; if(!L){t
   if(bass)one(keys(LEARN_BASS,["btech"]),"🎯 Learn a new technique",null,"",both?" (bass)":"");
   // this week's songs: the same ones the Learning goals tab shows
   if(gtr){try{lgSongHtml(L)}catch(e){} const x=LG_SONG!=null&&LG_SONGS[LG_SONG], key=`wk/${wk}/song`; if(x)G.push([`🎵 Practice a song${both?" (guitar)":""}: ${x[0]}`,`chords: ${x[1].join(" ")}`,S.has(key),key])}
-  if(bass){try{lgBassSongHtml(L)}catch(e){} const x=LG_BSONG!=null&&lgBS(LG_BSONG), key=`wk/${wk}/bsong`; if(x&&(lgBPool(L)||[]).includes(LG_BSONG))G.push([`🎵 Practice a song${both?" (bass)":""}: ${x[0]}`,`key of ${x[1]} ${/minor/.test(x[2])?"minor":"major"} · ${BT_SCN[x[2]]}`,S.has(key),key])}}
+  if(bass){try{lgBassSongHtml(L)}catch(e){} const x=LG_BSONG!=null&&lgBS(LG_BSONG), key=`wk/${wk}/bsong`; if(x&&(lgBPool(L)||[]).includes(LG_BSONG)){const tb=(BASS_TABS[x[0]]||{}).tab; G.push([`🎵 Practice a song${both?" (bass)":""}: ${x[0]}`,`key of ${x[1]} ${/minor/.test(x[2])?"minor":"major"} · ${BT_SCN[x[2]]}`,S.has(key),key,tb?`<pre class="lgbtab">${esc(tb)}</pre>`:""])}}}
 // winning: on a win streak (won a challenge last week or more weeks in a row), the next win streak medal
 function goalsWin(n,G){const done=SB_W.filter(w=>w<cur[0]).sort((a,b)=>a-b), per=playerWeekWins(n,-1); let s=0, best=0, run=0;
   done.forEach(w=>{run=per[w]&&per[w][1]>0?run+1:0; if(run>best)best=run}); s=run; if(!s)return;
