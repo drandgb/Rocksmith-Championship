@@ -112,3 +112,45 @@ if read_any:
     json.dump(tunings, open(tcache, "w"))
 print(f"songsel: {len(tunings)} songs with tunings in all")
 json.dump(tunings, open("tunings.json", "w"))
+
+# Week Maker (Host tab area of the profile): the songs on the Song Selection List tab with their tab author and difficulty
+# ratings, for proposing a week. Only artist, title, author, the Lead/Rhythm/Bass ratings (the first rating, averaged with the
+# second tester's when there is one), the date added and the initial tester are kept. Written to weekmaker.json; the saved copy is used if it can't be read.
+WM_GID = os.environ.get("SSL_WM_GID", "783523676")
+wcache = "cache/weekmaker.json"
+def _rating(*vals):
+    if (vals[0] or "").strip().upper() == "X": return None   # no such arrangement
+    nums = []
+    for v in vals:
+        v = (v or "").strip().replace(",", ".")
+        m = re.fullmatch(r"(\d+(?:\.\d+)?)\s*(?:-|–|to)\s*(\d+(?:\.\d+)?)", v)
+        if m: nums.append((float(m.group(1)) + float(m.group(2))) / 2); continue
+        if re.fullmatch(r"\d+(?:\.\d+)?", v): nums.append(float(v))
+    if not nums: return None
+    r = sum(nums) / len(nums)
+    return min(10.0, max(1.0, round(r * 2) / 2))
+try:
+    wurl = f"https://docs.google.com/spreadsheets/d/{SSL_ID}/export?format=csv&gid={WM_GID}"
+    text = urllib.request.urlopen(wurl, timeout=60).read().decode("utf-8")
+    if text.lstrip().startswith("<"): raise ValueError("not shared (got a sign-in page)")
+    rows = list(csv.reader(io.StringIO(text)))
+    hdr = next(i for i, r in enumerate(rows[:6]) if len(r) > 2 and r[1].strip().lower() == "artist" and r[2].strip().lower() == "title")
+    h = [(c or "").strip().lower() for c in rows[hdr]]
+    ca = next((i for i, c in enumerate(h) if "author" in c), None)
+    cd = next((i for i, c in enumerate(h) if "date added" in c), None)
+    songs = []
+    for r in rows[hdr + 1:]:
+        g = lambda i: (r[i].strip() if i is not None and i < len(r) else "")
+        a, t = g(1), g(2)
+        if not a or not t: continue
+        rt = [_rating(g(4 + p), g(8 + p)) for p in range(3)]
+        if not any(x is not None for x in rt): continue
+        songs.append([a, t, g(ca), rt, g(cd), g(0)])   # ... and the initial tester (for the rating confidence)
+    if len(songs) < 50: raise ValueError(f"only {len(songs)} songs found")
+    wm = {"from": datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="minutes"), "songs": songs}
+    json.dump(wm, open(wcache, "w"))
+    print(f"songsel: {len(songs)} songs for the Week Maker")
+except Exception as e:
+    wm = json.load(open(wcache)) if os.path.exists(wcache) else None
+    print("songsel: couldn't read the Song Selection List for the Week Maker, using the saved copy:", e)
+json.dump(wm, open("weekmaker.json", "w"))
