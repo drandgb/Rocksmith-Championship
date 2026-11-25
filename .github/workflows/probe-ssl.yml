@@ -13,14 +13,14 @@ jobs:
           python3 - <<'PY'
           import csv, io, urllib.request
           ID="1HzgY90kLwyGqzJ-R64v8lmpeQMMhhxwGwUlenepIgms"
-          for gid in ["783523676"]:
+          for gid in ["1230431597"]:
               url=f"https://docs.google.com/spreadsheets/d/{ID}/export?format=csv&gid={gid}"
               t=urllib.request.urlopen(url,timeout=60).read().decode("utf-8")
               rows=list(csv.reader(io.StringIO(t)))
               print("gid",gid,"rows",len(rows),"cols",max(len(r) for r in rows))
-              for i,r in enumerate(rows[:6]): print(i,[c[:40] for c in r])
+              for i,r in enumerate(rows[:40]): print(i,[c[:40] for c in r])
               # how filled each column is
               n=max(len(r) for r in rows)
               print("filled per column:",[sum(1 for r in rows if i<len(r) and r[i].strip()) for i in range(n)])
-              for i,r in enumerate(rows[6:9]): print("sample",i,[c[:30] for c in r])
+              pass
           PY
