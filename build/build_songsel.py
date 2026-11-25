@@ -115,7 +115,8 @@ json.dump(tunings, open("tunings.json", "w"))
 
 # Week Maker (Host tab area of the profile): the songs on the Song Selection List tab with their tab author and difficulty
 # ratings, for proposing a week. Only artist, title, author, the Lead/Rhythm/Bass ratings (the first rating, averaged with the
-# second tester's when there is one), the date added and the initial tester are kept. Written to weekmaker.json; the saved copy is used if it can't be read.
+# second tester's when there is one), the date added, the initial tester and the download link (as written in the sheet, for
+# pasting into the NewWeek tab; it's never opened or checked) are kept. Written to weekmaker.json; the saved copy is used if it can't be read.
 WM_GID = os.environ.get("SSL_WM_GID", "783523676")
 wcache = "cache/weekmaker.json"
 def _rating(*vals):
@@ -145,7 +146,7 @@ try:
         if not a or not t: continue
         rt = [_rating(g(4 + p), g(8 + p)) for p in range(3)]
         if not any(x is not None for x in rt): continue
-        songs.append([a, t, g(ca), rt, g(cd), g(0)])   # ... and the initial tester (for the rating confidence)
+        songs.append([a, t, g(ca), rt, g(cd), g(0), g(3)])   # ... the initial tester (for the rating confidence) and the download link as written in the sheet
     if len(songs) < 50: raise ValueError(f"only {len(songs)} songs found")
     wm = {"from": datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="minutes"), "songs": songs}
     json.dump(wm, open(wcache, "w"))
