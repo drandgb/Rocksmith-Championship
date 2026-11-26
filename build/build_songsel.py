@@ -146,7 +146,7 @@ try:
         if not a or not t: continue
         rt = [_rating(g(4 + p), g(8 + p)) for p in range(3)]
         if not any(x is not None for x in rt): continue
-        songs.append([a, t, g(ca), rt, g(cd), g(0), g(3)])   # ... the initial tester (for the rating confidence) and the download link as written in the sheet
+        songs.append([a, t, g(ca), rt, g(cd), g(0), g(3), g(11)])   # (the last item: the second tester, when there is one)   # ... the initial tester (for the rating confidence) and the download link as written in the sheet
     if len(songs) < 50: raise ValueError(f"only {len(songs)} songs found")
     # songs already played (the Songs Played tab), for the option to fill empty bonus spots with songs played over a year ago:
     # [song, [Lead, Rhythm, Bass ratings, each from the latest row that has it], download link id, last week played]. Songs marked as
