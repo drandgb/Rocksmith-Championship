@@ -8190,6 +8190,21 @@ function wmRepair(P){const key=s=>tuneKey(`${s.a} - ${s.t}`), RS=new Set(P.rejSp
         if(go)break}
       if(go)break}}
   return P}
+// after the first fill: for each picked song that leaves an arrangement unused, try the week without it (its spots refilled, a bonus
+// put back for it left out again); keep the change when the week has fewer empty spots, or as many and fewer unused arrangements
+function wmUnused(P){const by=new Map(); P.slots.forEach(s=>{const k=tuneKey(`${s.a} - ${s.t}`); if(!by.has(k))by.set(k,{r:s.r,u:new Set()}); s.paths.forEach(pi=>by.get(k).u.add(pi))});
+  let n=0; const bad=[]; by.forEach((v,k)=>{const u=[0,1,2].filter(pi=>v.r[pi]!=null&&!v.u.has(pi)).length; if(u){n+=u; bad.push(k)}}); return {n,bad}}
+function wmImprove(P,seed){for(let round=0;round<3;round++){let better=false;
+  for(const k of wmUnused(P).bad){const cur=wmUnused(P).n, empty=(P.none||[]).length, mine=P.slots.filter(s=>tuneKey(`${s.a} - ${s.t}`)===k); if(!mine.length)continue;
+    const Q=JSON.parse(JSON.stringify(P)); Q.slots=Q.slots.filter(s=>tuneKey(`${s.a} - ${s.t}`)!==k);
+    (Q.kept||[]).filter(x=>x.song===`${mine[0].a} - ${mine[0].t}`).forEach(x=>{Q.kept=Q.kept.filter(y=>y!==x); Q.skips.push({cls:x.cls,pi:x.pi,why:x.why})});
+    const spots=mine.flatMap(s=>s.paths.map(pi=>({pi,cls:s.cls,kind:s.kind}))).filter(o=>!(Q.skips||[]).some(x=>x.kind!=="main"&&o.kind==="bonus"&&x.cls===o.cls&&x.pi===o.pi));
+    const used=new Set(Q.slots.map(s=>tuneKey(`${s.a} - ${s.t}`)).concat([k])), pool=wmPool(wmRnd(seed+round*31+7),[...(Q.rej||[]),k],Q.rejSpot);
+    ["main","bonus"].forEach(kind=>{const o=spots.filter(x=>x.kind===kind); if(o.length){const F=wmFill(pool,used,kind,o); Q.slots.push(...F.out); Q.none=(Q.none||[]).concat(F.none)}});
+    wmRepair(Q); const after=wmUnused(Q).n, e2=(Q.none||[]).length;
+    if(e2<empty||(e2===empty&&after<cur)){Object.assign(P,Q); better=true}}
+  if(!better)break}
+  return P}
 function wmRankUp(P){const key=s=>`${s.a} - ${s.t}`, find=(cls,kind,pi)=>P.slots.find(s=>s.cls===cls&&s.kind===kind&&s.paths.includes(pi));
   const put=(src,cls,kind,pi)=>{const e=P.slots.find(s=>key(s)===key(src)&&s.cls===cls&&s.kind===kind); if(e){if(!e.paths.includes(pi))e.paths=[...e.paths,pi].sort()} else P.slots.push({...src,cls,kind,paths:[pi]})};
   for(const cls of ["B","I","A","M"])for(const pi of [0,1,2]){const m=find(cls,"main",pi), b=find(cls,"bonus",pi); if(!m||!b||!(b.r[pi]>m.r[pi]))continue;
@@ -8201,7 +8216,7 @@ function wmMake(seed,rej,rejSpot){const o=WM.opts||{}, fav=new Set((WM.favs||[])
   const main=classes.flatMap(cls=>[0,1,2].map(pi=>({pi,cls})));
   const bonus=o.bonus?["B","I","A","M"].flatMap(cls=>[0,1,2].filter(pi=>{const why=wmBonusSkip(pi,cls); if(why)skips.push({cls,pi,why}); return !why}).map(pi=>({pi,cls}))):[];
   [["main",main],["bonus",bonus]].forEach(([kind,open])=>{if(!open.length)return; const F=wmFill(pool,used,kind,open); slots.push(...F.out); none.push(...F.none)});
-  return wmRankUp(wmRepair({seed,week:TW_MAX,opts:{bonus:!!o.bonus,god:!!o.god},favs:[...fav].sort(),slots,skips,none,rej:[...(rej||[])],rejSpot:[...(rejSpot||[])]}))}
+  return wmRankUp(wmImprove(wmRepair({seed,week:TW_MAX,opts:{bonus:!!o.bonus,god:!!o.god},favs:[...fav].sort(),slots,skips,none,rej:[...(rej||[])],rejSpot:[...(rejSpot||[])]}),seed))}
 // ✕ on a pick: that song is left out from now on, and only the spots it filled are filled again (the rest of the proposal stays)
 function wmReject(i){const P=WM.prop, s=P&&P.slots[i]; if(!s)return; const k=tuneKey(`${s.a} - ${s.t}`); P.rej=[...new Set([...(P.rej||[]),k])];
   const mine=P.slots.filter(x=>tuneKey(`${x.a} - ${x.t}`)===k), rest=P.slots.filter(x=>tuneKey(`${x.a} - ${x.t}`)!==k), used=new Set(rest.map(x=>tuneKey(`${x.a} - ${x.t}`)));
