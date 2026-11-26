@@ -3,7 +3,7 @@ on:
   push:
     branches: [probe-ssl]
 permissions:
-  contents: read
+  contents: write
 jobs:
   probe:
     runs-on: ubuntu-24.04
@@ -15,8 +15,11 @@ jobs:
           curl -sL "https://docs.google.com/spreadsheets/d/$ID/export?format=csv&gid=783523676" -o out/ssl.csv
           curl -sL "https://docs.google.com/spreadsheets/d/$ID/gviz/tq?tqx=out:csv&sheet=Songs%20Played" -o out/played.csv
           wc -l out/*.csv
-      - uses: actions/upload-artifact@v4
+      - uses: actions/checkout@v4
         with:
-          name: ssl
-          path: out
-          retention-days: 1
+          path: repo
+      - name: Save them on this branch
+        run: |
+          cd repo && mkdir -p probe && cp ../out/*.csv probe/
+          git config user.name drand && git config user.email 265650645+drandgb@users.noreply.github.com
+          git add probe && git commit -qm "Temporary: SSL and Songs Played copies" && git push -q
