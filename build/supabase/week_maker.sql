@@ -5,7 +5,7 @@
 create table if not exists public.week_maker (
   user_id    uuid primary key default auth.uid() references auth.users(id) on delete cascade,
   favs       jsonb not null default '[]'::jsonb,   -- favorite tab authors
-  opts       jsonb not null default '{}'::jsonb,   -- {"bonus": true/false, "god": true/false, "never": [songs never to suggest], "oldFill": true/false, "block": [blocked tab authors], "conf": true/false}
+  opts       jsonb not null default '{}'::jsonb,   -- {"bonus": true/false, "god": true/false, "never": [songs never to suggest], "oldFill": true/false, "block": [blocked tab authors], "conf": true/false, "estd": true/false}
   proposal   jsonb,                                -- the proposed week (songs per class and path)
   updated_at timestamptz not null default now()
 );
