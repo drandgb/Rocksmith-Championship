@@ -8170,22 +8170,30 @@ function wmFill(pool,used,kind,open){const out=[], O=new Set(open.map(o=>o.pi+"|
     [...new Set(bf.map(pi=>wmCls(best.r[pi])))].forEach(cls=>out.push({cls,kind,paths:bf.filter(pi=>wmCls(best.r[pi])===cls),a:best.a,t:best.t,au:best.au,r:best.r,te:best.te,lp:best.lp}));
     bf.forEach(pi=>O.delete(pi+"|"+wmCls(best.r[pi])))}
   return {out,none:[...O].map(k=>{const [pi,cls]=k.split("|"); return {cls,kind,pi:+pi}})}}
+// the harder song (higher rating) in a class is the main song and the easier one the bonus: when a path's bonus is rated higher than
+// its main song, they swap, as whole songs when that leaves no path easier, otherwise just on that path
+function wmRankUp(P){const key=s=>`${s.a} - ${s.t}`, find=(cls,kind,pi)=>P.slots.find(s=>s.cls===cls&&s.kind===kind&&s.paths.includes(pi));
+  const put=(src,cls,kind,pi)=>{const e=P.slots.find(s=>key(s)===key(src)&&s.cls===cls&&s.kind===kind); if(e){if(!e.paths.includes(pi))e.paths=[...e.paths,pi].sort()} else P.slots.push({...src,cls,kind,paths:[pi]})};
+  for(const cls of ["B","I","A","M"])for(const pi of [0,1,2]){const m=find(cls,"main",pi), b=find(cls,"bonus",pi); if(!m||!b||!(b.r[pi]>m.r[pi]))continue;
+    if(m.paths.length===b.paths.length&&m.paths.every(q=>b.paths.includes(q)&&b.r[q]>=m.r[q])){m.kind="bonus"; b.kind="main"; continue}
+    m.paths=m.paths.filter(q=>q!==pi); b.paths=b.paths.filter(q=>q!==pi); put(b,cls,"main",pi); put(m,cls,"bonus",pi)}
+  P.slots=P.slots.filter(s=>s.paths.length); return P}
 function wmMake(seed,rej,rejSpot){const o=WM.opts||{}, fav=new Set((WM.favs||[]).map(x=>x.toLowerCase())), used=new Set(), slots=[], skips=[], none=[];
   const pool=wmPool(wmRnd(seed),rej,rejSpot), classes=["B","I","A","M"].concat(o.god&&!wmGodOn()?["G"]:[]);
   const main=classes.flatMap(cls=>[0,1,2].map(pi=>({pi,cls})));
   const bonus=o.bonus?["B","I","A","M"].flatMap(cls=>[0,1,2].filter(pi=>{const why=wmBonusSkip(pi,cls); if(why)skips.push({cls,pi,why}); return !why}).map(pi=>({pi,cls}))):[];
   [["main",main],["bonus",bonus]].forEach(([kind,open])=>{if(!open.length)return; const F=wmFill(pool,used,kind,open); slots.push(...F.out); none.push(...F.none)});
-  return {seed,week:TW_MAX,opts:{bonus:!!o.bonus,god:!!o.god},favs:[...fav].sort(),slots,skips,none,rej:[...(rej||[])],rejSpot:[...(rejSpot||[])]}}
+  return wmRankUp({seed,week:TW_MAX,opts:{bonus:!!o.bonus,god:!!o.god},favs:[...fav].sort(),slots,skips,none,rej:[...(rej||[])],rejSpot:[...(rejSpot||[])]})}
 // ✕ on a pick: that song is left out from now on, and only the spots it filled are filled again (the rest of the proposal stays)
 function wmReject(i){const P=WM.prop, s=P&&P.slots[i]; if(!s)return; const k=tuneKey(`${s.a} - ${s.t}`); P.rej=[...new Set([...(P.rej||[]),k])];
   const mine=P.slots.filter(x=>tuneKey(`${x.a} - ${x.t}`)===k), rest=P.slots.filter(x=>tuneKey(`${x.a} - ${x.t}`)!==k), used=new Set(rest.map(x=>tuneKey(`${x.a} - ${x.t}`)));
   const F=wmFill(wmPool(Math.random,P.rej,P.rejSpot),used,s.kind,mine.flatMap(x=>x.paths.map(pi=>({pi,cls:x.cls}))));
-  P.slots=rest.concat(F.out); P.none=(P.none||[]).concat(F.none)}
+  P.slots=rest.concat(F.out); P.none=(P.none||[]).concat(F.none); wmRankUp(P)}
 // ✕ → one spot: the song comes out of just that path + class (it stays everywhere else) and another song fills it
 function wmRejectSpot(i,pi){const P=WM.prop, s=P&&P.slots[i]; if(!s||!s.paths.includes(pi))return; const k=tuneKey(`${s.a} - ${s.t}`);
   P.rejSpot=[...new Set([...(P.rejSpot||[]),`${k}|${pi}|${s.cls}`])]; s.paths=s.paths.filter(x=>x!==pi); if(!s.paths.length)P.slots.splice(i,1);
   const used=new Set(P.slots.map(x=>tuneKey(`${x.a} - ${x.t}`))), F=wmFill(wmPool(Math.random,P.rej,P.rejSpot),used,s.kind,[{pi,cls:s.cls}]);
-  P.slots=P.slots.concat(F.out); P.none=(P.none||[]).concat(F.none)}
+  P.slots=P.slots.concat(F.out); P.none=(P.none||[]).concat(F.none); wmRankUp(P)}
 function wmLoad(){if(WM||!ACCT.sb||!ACCT.user)return; WM={busy:1};
   ACCT.sb.from("week_maker").select("*").eq("user_id",ACCT.user.id).maybeSingle().then(({data,error})=>{
     WM={err:error?error.message:null,favs:(data&&data.favs)||[],opts:(data&&data.opts)||{bonus:false,god:false},prop:(data&&data.proposal)||null}; if(ACCT.tab==="wm")acctDraw()})}
