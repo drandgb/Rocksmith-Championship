@@ -148,7 +148,32 @@ try:
         if not any(x is not None for x in rt): continue
         songs.append([a, t, g(ca), rt, g(cd), g(0), g(3)])   # ... the initial tester (for the rating confidence) and the download link as written in the sheet
     if len(songs) < 50: raise ValueError(f"only {len(songs)} songs found")
-    wm = {"from": datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="minutes"), "songs": songs}
+    # songs already played (the Songs Played tab), for the option to fill empty bonus spots with songs played over a year ago:
+    # [song, [Lead, Rhythm, Bass ratings, each from the latest row that has it], download link id, last week played]. Songs marked as
+    # turned into official DLC are left out.
+    old = {}
+    try:
+        purl = f"https://docs.google.com/spreadsheets/d/{SSL_ID}/gviz/tq?tqx=out:csv&sheet=Songs%20Played"
+        prow = list(csv.reader(io.StringIO(urllib.request.urlopen(purl, timeout=60).read().decode("utf-8"))))
+        num = lambda v: (float(v) if re.fullmatch(r"\d+(?:\.\d+)?", (v or "").strip()) else None)
+        for r in prow[1:]:
+            g = lambda i: (r[i].strip() if i < len(r) else "")
+            m = re.fullmatch(r"(\d+)(?:\.0+)?", g(0))
+            if not m or not g(1) or g(35).upper().startswith("Y"): continue
+            w, song = int(m.group(1)), g(1)
+            rt = [num(g(3)), num(g(5)), num(g(7))]
+            lk = re.search(r"/cdlc/(\d+)", g(9))
+            k = re.sub(r"[^a-z0-9]+", " ", song.lower()).strip()
+            o = old.setdefault(k, [song, [None, None, None], None, 0, [0, 0, 0]])   # (the last item: which week each rating is from)
+            for p in range(3):
+                if rt[p] is not None and w >= o[4][p]: o[1][p], o[4][p] = rt[p], w
+            if lk and (o[2] is None or w >= o[3]): o[2] = int(lk.group(1))
+            if w >= o[3]: o[0], o[3] = song, w
+        old = [v[:4] for v in old.values() if any(x is not None for x in v[1])]
+        print(f"songsel: {len(old)} played songs for the Week Maker")
+    except Exception as e:
+        print("songsel: couldn't read Songs Played for the Week Maker:", e); old = []
+    wm = {"from": datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="minutes"), "songs": songs, "old": old}
     json.dump(wm, open(wcache, "w"))
     print(f"songsel: {len(songs)} songs for the Week Maker")
 except Exception as e:

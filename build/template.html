@@ -8153,18 +8153,23 @@ const wmGodOn=()=>(SB.weeks[TW_MAX]||[]).some(c=>!c[7]&&cardLv(c[2])==="G");
 function wmBonusSkip(pi,cls){const B=[]; Object.keys(SB.weeks).map(Number).filter(w=>w<=ELO_DONE).sort((a,b)=>b-a).some(w=>{(SB.weeks[w]||[]).forEach(c=>{if(c[0]===pi&&!c[7]&&/bonus/i.test(c[2])&&cardLv(c[2])===cls)B.push(c)}); return B.length>=4});
   const L=B.slice(0,4); if(!L.length)return null; const u=L.filter(c=>!c[6].some(e=>e[1]!=null&&canWin(e))).length;
   return u*4>=L.length?`${u} of the last ${L.length} ${PATHS[pi]} ${WM_CLS[cls]} bonus troph${L.length===1?"y":"ies"} went unclaimed`:null}
-function wmPool(rnd,rej,rejSpot){const fav=new Set((WM.favs||[]).map(x=>x.toLowerCase())), last=wmLast(), conf=wmConf(), R=new Set([...(rej||[]),...(((WM.opts||{}).never)||[]).map(x=>x.k)]), RS=new Set(rejSpot||[]);
+// songs already played (from the Songs Played tab), only for filling empty bonus spots: those last played over a year ago that aren't
+// on the Song Selection List any more
+function wmOld(rnd,last){const on=new Set(((WM_DATA&&WM_DATA.songs)||[]).map(s=>tuneKey(`${s[0]} - ${s[1]}`)));
+  return ((WM_DATA&&WM_DATA.old)||[]).map(o=>{const i=o[0].indexOf(" - "), k=tuneKey(o[0]), lp=Math.max(last[k]||0,o[3]||0)||null;
+    return {a:i>0?o[0].slice(0,i):o[0],t:i>0?o[0].slice(i+3):"",au:"",r:o[1],te:"",k,lp,tier:lp&&lp<=TW_MAX-52?1:2,fav:false,cf:0,rn:rnd(),id:o[2]}}).filter(x=>!on.has(x.k))}
+function wmPool(rnd,rej,rejSpot,withOld){const fav=new Set((WM.favs||[]).map(x=>x.toLowerCase())), last=wmLast(), conf=wmConf(), R=new Set([...(rej||[]),...(((WM.opts||{}).never)||[]).map(x=>x.k)]), RS=new Set(rejSpot||[]);
   return ((WM_DATA&&WM_DATA.songs)||[]).map(s=>{const k=tuneKey(`${s[0]} - ${s[1]}`), lp=last[k]; return {a:s[0],t:s[1],au:s[2]||"",r:s[3],te:s[5]||"",k,lp:lp||null,tier:lp==null?0:lp<=TW_MAX-52?1:2,
-    fav:fav.has((s[2]||"").toLowerCase()),cf:(conf[(s[5]||"").toLowerCase()]||{lv:0}).lv,rn:rnd()}}).filter(x=>x.tier<2&&!R.has(x.k)).map(x=>(x.no=new Set([0,1,2].filter(pi=>RS.has(`${x.k}|${pi}|${wmCls(x.r[pi])}`))),x))}
+    fav:fav.has((s[2]||"").toLowerCase()),cf:(conf[(s[5]||"").toLowerCase()]||{lv:0}).lv,rn:rnd()}}).concat(withOld?wmOld(rnd,last):[]).filter(x=>x.tier<2&&!R.has(x.k)).map(x=>(x.no=new Set([0,1,2].filter(pi=>RS.has(`${x.k}|${pi}|${wmCls(x.r[pi])}`))),x))}
 // fill open path + class spots (main or bonus) with songs from the pool. A song can fill different classes on different paths
 // (e.g. Lead Advanced and Bass Beginner), and songs are mixed and matched (one for Lead, another for Rhythm and Bass) rather than
 // needing one song for all three. Order: songs that leave none of their arrangements unused, then never played (then not played
 // for over a year), then fewer unused arrangements, then songs that fill more spots, then favorite tab authors, then the tester's rating confidence.
 // Returns the picks (one entry per song and class) and any spot left without a song.
-function wmFill(pool,used,kind,open){const out=[], O=new Set(open.map(o=>o.pi+"|"+o.cls));
+function wmFill(pool,used,kind,open,loose){const out=[], O=new Set(open.map(o=>o.pi+"|"+o.cls));
   const fits=x=>[0,1,2].filter(pi=>O.has(pi+"|"+wmCls(x.r[pi]))&&!(x.no&&x.no.has(pi))), unused=(x,f)=>[0,1,2].filter(pi=>x.r[pi]!=null&&!f.includes(pi)).length;
   for(;;){let best=null, bf=null;
-    for(const x of pool){if(used.has(x.k))continue; const f=fits(x); if(!f.length||(kind==="bonus"&&unused(x,f)))continue;   /* a bonus only goes to a song it leaves nothing unused for */
+    for(const x of pool){if(used.has(x.k))continue; const f=fits(x); if(!f.length||(kind==="bonus"&&!loose&&unused(x,f)))continue;   /* a bonus only goes to a song it leaves nothing unused for */
       if(!best||((unused(x,f)>0)-(unused(best,bf)>0)||x.tier-best.tier||unused(x,f)-unused(best,bf)||bf.length-f.length||best.fav-x.fav||best.cf-x.cf||x.rn-best.rn)<0){best=x; bf=f}}
     if(!best)break; used.add(best.k);
     [...new Set(bf.map(pi=>wmCls(best.r[pi])))].forEach(cls=>out.push({cls,kind,paths:bf.filter(pi=>wmCls(best.r[pi])===cls),a:best.a,t:best.t,au:best.au,r:best.r,te:best.te,lp:best.lp}));
@@ -8216,7 +8221,9 @@ function wmMake(seed,rej,rejSpot){const o=WM.opts||{}, fav=new Set((WM.favs||[])
   const main=classes.flatMap(cls=>[0,1,2].map(pi=>({pi,cls})));
   const bonus=o.bonus?["B","I","A","M"].flatMap(cls=>[0,1,2].filter(pi=>{const why=wmBonusSkip(pi,cls); if(why)skips.push({cls,pi,why}); return !why}).map(pi=>({pi,cls}))):[];
   [["main",main],["bonus",bonus]].forEach(([kind,open])=>{if(!open.length)return; const F=wmFill(pool,used,kind,open); slots.push(...F.out); none.push(...F.none)});
-  return wmRankUp(wmImprove(wmRepair({seed,week:TW_MAX,opts:{bonus:!!o.bonus,god:!!o.god},favs:[...fav].sort(),slots,skips,none,rej:[...(rej||[])],rejSpot:[...(rejSpot||[])]}),seed))}
+  if(o.oldFill){const left=none.filter(n=>n.kind==="bonus"); if(left.length){const F=wmFill(wmPool(wmRnd(seed+99),rej,rejSpot,true).filter(x=>x.tier===1),used,"bonus",left.map(n=>({pi:n.pi,cls:n.cls})),true);
+    F.out.forEach(x=>x.old=1); slots.push(...F.out); const keep=new Set(F.none.map(n=>`${n.pi}|${n.cls}`)); none.splice(0,none.length,...none.filter(n=>n.kind!=="bonus"||keep.has(`${n.pi}|${n.cls}`)))}}
+  return wmRankUp(wmImprove(wmRepair({seed,week:TW_MAX,opts:{bonus:!!o.bonus,god:!!o.god,oldFill:!!o.oldFill},favs:[...fav].sort(),slots,skips,none,rej:[...(rej||[])],rejSpot:[...(rejSpot||[])]}),seed))}
 // ✕ on a pick: that song is left out from now on, and only the spots it filled are filled again (the rest of the proposal stays)
 function wmReject(i){const P=WM.prop, s=P&&P.slots[i]; if(!s)return; const k=tuneKey(`${s.a} - ${s.t}`); P.rej=[...new Set([...(P.rej||[]),k])];
   const mine=P.slots.filter(x=>tuneKey(`${x.a} - ${x.t}`)===k), rest=P.slots.filter(x=>tuneKey(`${x.a} - ${x.t}`)!==k), used=new Set(rest.map(x=>tuneKey(`${x.a} - ${x.t}`)));
@@ -8234,17 +8241,18 @@ function wmSave(){if(!WM||WM.err||!ACCT.user)return; ACCT.sb.from("week_maker").
   .then(({error})=>{if(error){WM.saveErr=error.message; if(ACCT.tab==="wm")acctDraw()}})}
 // the saved proposal stays until 🔀, unless the options or favorites changed or one of its songs has been played since
 function wmCurrent(){const P=WM.prop, last=wmLast(), o=WM.opts||{}, favs=(WM.favs||[]).map(x=>x.toLowerCase()).sort();
-  const stale=!P||!P.slots||P.opts.bonus!==!!o.bonus||P.opts.god!==!!o.god||JSON.stringify(P.favs||[])!==JSON.stringify(favs)||P.slots.some(s=>(last[tuneKey(`${s.a} - ${s.t}`)]||0)>=P.week);
+  const stale=!P||!P.slots||P.opts.bonus!==!!o.bonus||P.opts.god!==!!o.god||!!P.opts.oldFill!==!!o.oldFill||JSON.stringify(P.favs||[])!==JSON.stringify(favs)||P.slots.some(s=>(last[tuneKey(`${s.a} - ${s.t}`)]||0)>=P.week);
   if(stale){WM.prop=wmMake(P&&P.seed&&P.slots&&!P.slots.some(s=>(last[tuneKey(`${s.a} - ${s.t}`)]||0)>=P.week)?P.seed:Math.floor(Math.random()*2**31),P&&P.week===TW_MAX?P.rej:[],P&&P.week===TW_MAX?P.rejSpot:[]); wmSave()} return WM.prop}
 // the song's download link as written on the Song Selection List (shown as the Ignition pill, like the Scoreboard's)
-const wmLink=s=>{const k=tuneKey(`${s.a} - ${s.t}`), x=((WM_DATA&&WM_DATA.songs)||[]).find(y=>tuneKey(`${y[0]} - ${y[1]}`)===k); return (x&&x[6])||""};
+const wmLink=s=>{const k=tuneKey(`${s.a} - ${s.t}`), x=((WM_DATA&&WM_DATA.songs)||[]).find(y=>tuneKey(`${y[0]} - ${y[1]}`)===k); if(x&&x[6])return x[6];
+  const o=((WM_DATA&&WM_DATA.old)||[]).find(y=>tuneKey(y[0])===k); return o&&o[2]?`https://ignition4.customsforge.com/cdlc/${o[2]}`:""};
 function wmSection(){if(!WM_DATA||!(WM_DATA.songs||[]).length)return `<div class="acctsec"><h3>Week Maker</h3><p class="dim">The Song Selection List hasn't been read yet. It's read on the next site update.</p></div>`;
   wmLoad(); if(!WM||WM.busy)return `<div class="acctsec"><h3>Week Maker</h3><p class="dim">Loading…</p></div>`;
   if(!ACCT.rows)try{acctLoadWeek().then(()=>{if(ACCT.tab==="wm")acctDraw()})}catch(e){}
   const P=wmCurrent(), conf=wmConf(), fav=new Set((WM.favs||[]).map(x=>x.toLowerCase())), god=wmGodOn(), tune=(s,pi)=>{try{return tuneOf(`${s.a} - ${s.t}`,pi)}catch(e){return ""}};
   const authors=[...new Set(WM_DATA.songs.map(s=>s[2]).filter(Boolean))].sort((a,b)=>a.localeCompare(b,undefined,{sensitivity:"base"}));
   /* a song's rated arrangements it isn't used for this week, and why */
-  const unusedOf=s=>{const k=tuneKey(`${s.a} - ${s.t}`), used=new Set(P.slots.filter(x=>tuneKey(`${x.a} - ${x.t}`)===k).flatMap(x=>x.paths));
+  const unusedOf=s=>{if(s.lp)return []; const k=tuneKey(`${s.a} - ${s.t}`), used=new Set(P.slots.filter(x=>tuneKey(`${x.a} - ${x.t}`)===k).flatMap(x=>x.paths));
     return [0,1,2].filter(pi=>s.r[pi]!=null&&!used.has(pi)).map(pi=>{const c=wmCls(s.r[pi]);
       return `${PATHS[pi]} ${s.r[pi]} (${c==="G"?(P.opts.god?"God of… already has a song":"no God of… song this week"):P.skips.some(x=>x.cls===c&&x.pi===pi)&&P.slots.some(x=>x.cls===c&&x.kind==="main"&&x.paths.includes(pi))?`${WM_CLS[c]} already has a song and its bonus is left out`:`${WM_CLS[c]} already has a song`})`})};
   const slot=s=>{const si=P.slots.indexOf(s), un=unusedOf(s), c=conf[(s.te||"").toLowerCase()]||{n:0,lv:0}, tu=[...new Set(s.paths.map(pi=>tune(s,pi)).filter(Boolean))];
@@ -8259,15 +8267,15 @@ function wmSection(){if(!WM_DATA||!(WM_DATA.songs||[]).length)return `<div class
     <p class="dim">A proposed week from the Song Selection List (${WM_DATA.songs.length} songs, read ${esc(String(WM_DATA.from||"").slice(0,10))}). Songs never played come first, then ones not played for over a year. It stays the same on all your devices until you shuffle. To use it, press 📋, click cell H5 on the NewWeek tab and paste: it puts each song's download link in its row for Lead, Rhythm and Bass.</p>
     ${WM_RC.res?WM_RC.res.ok?`<p class="fetchok">✓ Rechecking the Song Selection List (started ${esc(hostRunAt(WM_RC.at))}). The new list is in about 3 minutes: reload the page then.</p>`:`<p class="fetcherr">${esc(WM_RC.res.error||"The recheck didn't start.")}</p>`:""}
     ${WM.err?`<p class="err">Your Week Maker can't be saved yet: run build/supabase/week_maker.sql once in Supabase. (${esc(WM.err)})</p>`:WM.saveErr?`<p class="err">Couldn't save: ${esc(WM.saveErr)}</p>`:""}
-    <div class="wmopts"><label><input type="checkbox" data-wmopt="bonus"${WM.opts.bonus?" checked":""}> Bonus songs</label>${god?`<span class="dim">A God of… challenge is in progress.</span>`:`<label><input type="checkbox" data-wmopt="god"${WM.opts.god?" checked":""}> Propose a God of… song</label>`}</div>
+    <div class="wmopts"><label><input type="checkbox" data-wmopt="bonus"${WM.opts.bonus?" checked":""}> Bonus songs</label>${WM.opts.bonus?`<label title="Bonus spots no never-played song can fill without leaving an arrangement unused get a song last played over a year ago"><input type="checkbox" data-wmopt="oldFill"${WM.opts.oldFill?" checked":""}> Fill empty bonus spots with songs played over a year ago</label>`:""}${god?`<span class="dim">A God of… challenge is in progress.</span>`:`<label><input type="checkbox" data-wmopt="god"${WM.opts.god?" checked":""}> Propose a God of… song</label>`}</div>
     <div class="wmfavs"><b>Favorite tab authors</b> ${(WM.favs||[]).map(a=>`<span class="wmchip">${esc(a)}<button type="button" data-wmunfav="${esc(a)}" aria-label="Remove ${esc(a)}">✕</button></span>`).join("")}
       <span class="wmadd"><input id="wmfavin" list="wmauthors" placeholder="Add a tab author"><datalist id="wmauthors">${authors.map(a=>`<option value="${esc(a)}">`).join("")}</datalist><button type="button" class="btn ghost small" data-wmaddfav>Add</button></span></div>
     ${blocks}${(WM.opts.never||[]).length?`<details class="wmnever"><summary>Never suggested (${WM.opts.never.length})</summary>${WM.opts.never.map(x=>`<span class="wmchip">${esc(x.n)}<button type="button" data-wmunnever="${esc(x.k)}" aria-label="Suggest ${esc(x.n)} again" title="Suggest it again">✕</button></span>`).join("")}</details>`:""}</div>`}
 // the proposal's download links for the Song Selection List's NewWeek tab, pasted at H5 (the tab fills in the rest from each link):
 // one link per row for each path's Beginner … Masterclass Bonus and God of… rows (H5:H13 Lead, H16:H24 Rhythm, H27:H35 Bass), the
 // rows between as the tab has them. A row without a song is pasted empty. The links are copied as written in the sheet.
-function wmSheetTsv(P){const L=[], link=new Map(((WM_DATA&&WM_DATA.songs)||[]).map(x=>[tuneKey(`${x[0]} - ${x[1]}`),x[6]||""]));
-  const row=(pi,cls,kind)=>{const s=P.slots.find(x=>x.cls===cls&&x.kind===kind&&x.paths.includes(pi)); return s?String(link.get(tuneKey(`${s.a} - ${s.t}`))||"").replace(/\s+/g,""):""};
+function wmSheetTsv(P){const L=[];
+  const row=(pi,cls,kind)=>{const s=P.slots.find(x=>x.cls===cls&&x.kind===kind&&x.paths.includes(pi)); return s?String(wmLink(s)||"").replace(/\s+/g,""):""};
   [0,1,2].forEach(pi=>{if(pi===1)L.push("","Ignition4 download link"); if(pi===2)L.push("","");
     ["B","I","A","M"].forEach(c=>{L.push(row(pi,c,"main"),row(pi,c,"bonus"))}); L.push(row(pi,"G","main"))});
   return L.join("\n")}
