@@ -8169,9 +8169,10 @@ function wmPool(rnd,rej,rejSpot,withOld){const useConf=(WM.opts||{}).conf!==fals
 // Returns the picks (one entry per song and class) and any spot left without a song.
 function wmFill(pool,used,kind,open,loose){const out=[], O=new Set(open.map(o=>o.pi+"|"+o.cls));
   const fits=x=>[0,1,2].filter(pi=>O.has(pi+"|"+wmCls(x.r[pi]))&&!(x.no&&x.no.has(pi))), unused=(x,f)=>[0,1,2].filter(pi=>x.r[pi]!=null&&!f.includes(pi)).length,
+    gOpen=open.some(o=>o.cls==="G"), wasteG=(x,f)=>gOpen&&[0,1,2].some(pi=>x.r[pi]!=null&&!f.includes(pi)&&wmCls(x.r[pi])==="G"),   /* while God of… is proposed, a song is left out if it would leave a God of… arrangement unused */
     eOn=!!(WM.opts||{}).estd, es=(x,f)=>eOn&&f.every(pi=>{try{return /^e standard$/i.test(tuneOf(`${x.a} - ${x.t}`,pi))}catch(e){return false}})?1:0;   /* E Standard on every path it fills (when that option is on) */
   for(;;){let best=null, bf=null;
-    for(const x of pool){if(used.has(x.k))continue; const f=fits(x); if(!f.length||(kind==="bonus"&&!loose&&unused(x,f)))continue;   /* a bonus only goes to a song it leaves nothing unused for */
+    for(const x of pool){if(used.has(x.k))continue; const f=fits(x); if(!f.length||(kind==="bonus"&&!loose&&unused(x,f))||wasteG(x,f))continue;   /* a bonus only goes to a song it leaves nothing unused for */
       if(!best||((unused(x,f)>0)-(unused(best,bf)>0)||x.tier-best.tier||es(best,bf)-es(x,f)||unused(x,f)-unused(best,bf)||bf.length-f.length||best.fav-x.fav||best.cf-x.cf||x.rn-best.rn)<0){best=x; bf=f}}
     if(!best)break; used.add(best.k);
     [...new Set(bf.map(pi=>wmCls(best.r[pi])))].forEach(cls=>out.push({cls,kind,paths:bf.filter(pi=>wmCls(best.r[pi])===cls),a:best.a,t:best.t,au:best.au,r:best.r,te:best.te,te2:best.te2||"",lp:best.lp}));
@@ -8246,7 +8247,8 @@ function wmSave(){if(!WM||WM.err||!ACCT.user)return; ACCT.sb.from("week_maker").
   .then(({error})=>{if(error){WM.saveErr=error.message; if(ACCT.tab==="wm")acctDraw()}})}
 // the saved proposal stays until 🔀, unless the options or favorites changed or one of its songs has been played since
 function wmCurrent(){const P=WM.prop, last=wmLast(), o=WM.opts||{}, favs=(WM.favs||[]).map(x=>x.toLowerCase()).sort();
-  const stale=!P||!P.slots||P.opts.bonus!==!!o.bonus||P.opts.god!==!!o.god||!!P.opts.oldFill!==!!o.oldFill||(P.opts.conf!==false)!==(o.conf!==false)||!!P.opts.estd!==!!o.estd||JSON.stringify(P.favs||[])!==JSON.stringify(favs)||JSON.stringify(P.block||[])!==JSON.stringify(((o.block)||[]).map(x=>x.toLowerCase()).sort())||P.slots.some(s=>(last[tuneKey(`${s.a} - ${s.t}`)]||0)>=P.week);
+  const gWaste=P&&P.slots&&P.opts&&P.opts.god&&P.slots.some(x=>x.paths.some(pi=>wmCls(x.r[pi])==="G")&&[0,1,2].some(pi=>x.r[pi]!=null&&wmCls(x.r[pi])==="G"&&!P.slots.some(y=>tuneKey(`${y.a} - ${y.t}`)===tuneKey(`${x.a} - ${x.t}`)&&y.paths.includes(pi))));   /* a saved week from before God of… songs had to use all their God of… arrangements */
+  const stale=gWaste||!P||!P.slots||P.opts.bonus!==!!o.bonus||P.opts.god!==!!o.god||!!P.opts.oldFill!==!!o.oldFill||(P.opts.conf!==false)!==(o.conf!==false)||!!P.opts.estd!==!!o.estd||JSON.stringify(P.favs||[])!==JSON.stringify(favs)||JSON.stringify(P.block||[])!==JSON.stringify(((o.block)||[]).map(x=>x.toLowerCase()).sort())||P.slots.some(s=>(last[tuneKey(`${s.a} - ${s.t}`)]||0)>=P.week);
   if(P&&P.slots&&!stale)wmMerge(P);
   if(stale){WM.prop=wmMake(P&&P.seed&&P.slots&&!P.slots.some(s=>(last[tuneKey(`${s.a} - ${s.t}`)]||0)>=P.week)?P.seed:Math.floor(Math.random()*2**31),P&&P.week===TW_MAX?P.rej:[],P&&P.week===TW_MAX?P.rejSpot:[]); wmSave()} return WM.prop}
 // the song's download link as written on the Song Selection List (shown as the Ignition pill, like the Scoreboard's)
