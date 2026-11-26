@@ -8156,24 +8156,31 @@ function wmBonusSkip(pi,cls){const B=[]; Object.keys(SB.weeks).map(Number).filte
 function wmPool(rnd,rej){const fav=new Set((WM.favs||[]).map(x=>x.toLowerCase())), last=wmLast(), conf=wmConf(), R=new Set(rej||[]);
   return ((WM_DATA&&WM_DATA.songs)||[]).map(s=>{const k=tuneKey(`${s[0]} - ${s[1]}`), lp=last[k]; return {a:s[0],t:s[1],au:s[2]||"",r:s[3],te:s[5]||"",k,lp:lp||null,tier:lp==null?0:lp<=TW_MAX-52?1:2,
     fav:fav.has((s[2]||"").toLowerCase()),cf:(conf[(s[5]||"").toLowerCase()]||{lv:0}).lv,rn:rnd()}}).filter(x=>x.tier<2&&!R.has(x.k))}
-// fill the given paths of one class (main or bonus) with songs from the pool, best first; returns the new picks and any path left without a song
-function wmFill(pool,used,cls,kind,need){const out=[], none=[];
-  while(need.length){const fit=x=>need.filter(pi=>wmCls(x.r[pi])===cls);
-    const C=pool.filter(x=>!used.has(x.k)&&fit(x).length).sort((a,b)=>a.tier-b.tier||fit(b).length-fit(a).length||b.fav-a.fav||b.cf-a.cf||a.rn-b.rn);
-    if(!C.length){need.forEach(pi=>none.push({cls,kind,pi})); break}
-    const x=C[0], ps=fit(x); used.add(x.k); out.push({cls,kind,paths:ps,a:x.a,t:x.t,au:x.au,r:x.r,te:x.te,lp:x.lp}); need=need.filter(pi=>!ps.includes(pi))}
-  return {out,none}}
+// fill open path + class spots (main or bonus) with songs from the pool. A song can fill different classes on different paths
+// (e.g. Lead Advanced and Bass Beginner), and songs are mixed and matched (one for Lead, another for Rhythm and Bass) rather than
+// needing one song for all three. Order: never played first (then not played for over a year), then songs that leave none of their
+// arrangements unused, then songs that fill more spots, then favorite tab authors, then the tester's rating confidence.
+// Returns the picks (one entry per song and class) and any spot left without a song.
+function wmFill(pool,used,kind,open){const out=[], O=new Set(open.map(o=>o.pi+"|"+o.cls));
+  const fits=x=>[0,1,2].filter(pi=>O.has(pi+"|"+wmCls(x.r[pi]))), unused=(x,f)=>[0,1,2].filter(pi=>x.r[pi]!=null&&!f.includes(pi)).length;
+  for(;;){let best=null, bf=null;
+    for(const x of pool){if(used.has(x.k))continue; const f=fits(x); if(!f.length)continue;
+      if(!best||(x.tier-best.tier||unused(x,f)-unused(best,bf)||bf.length-f.length||best.fav-x.fav||best.cf-x.cf||x.rn-best.rn)<0){best=x; bf=f}}
+    if(!best)break; used.add(best.k);
+    [...new Set(bf.map(pi=>wmCls(best.r[pi])))].forEach(cls=>out.push({cls,kind,paths:bf.filter(pi=>wmCls(best.r[pi])===cls),a:best.a,t:best.t,au:best.au,r:best.r,te:best.te,lp:best.lp}));
+    bf.forEach(pi=>O.delete(pi+"|"+wmCls(best.r[pi])))}
+  return {out,none:[...O].map(k=>{const [pi,cls]=k.split("|"); return {cls,kind,pi:+pi}})}}
 function wmMake(seed,rej){const o=WM.opts||{}, fav=new Set((WM.favs||[]).map(x=>x.toLowerCase())), used=new Set(), slots=[], skips=[], none=[];
-  const pool=wmPool(wmRnd(seed),rej);
-  const classes=["B","I","A","M"].concat(o.god&&!wmGodOn()?["G"]:[]);
-  classes.forEach(cls=>["main"].concat(o.bonus&&cls!=="G"?["bonus"]:[]).forEach(kind=>{let need=[0,1,2];
-    if(kind==="bonus")need=need.filter(pi=>{const why=wmBonusSkip(pi,cls); if(why)skips.push({cls,pi,why}); return !why});
-    const F=wmFill(pool,used,cls,kind,need); slots.push(...F.out); none.push(...F.none)}));
+  const pool=wmPool(wmRnd(seed),rej), classes=["B","I","A","M"].concat(o.god&&!wmGodOn()?["G"]:[]);
+  const main=classes.flatMap(cls=>[0,1,2].map(pi=>({pi,cls})));
+  const bonus=o.bonus?["B","I","A","M"].flatMap(cls=>[0,1,2].filter(pi=>{const why=wmBonusSkip(pi,cls); if(why)skips.push({cls,pi,why}); return !why}).map(pi=>({pi,cls}))):[];
+  [["main",main],["bonus",bonus]].forEach(([kind,open])=>{if(!open.length)return; const F=wmFill(pool,used,kind,open); slots.push(...F.out); none.push(...F.none)});
   return {seed,week:TW_MAX,opts:{bonus:!!o.bonus,god:!!o.god},favs:[...fav].sort(),slots,skips,none,rej:[...(rej||[])]}}
-// ✕ on a pick: that song is left out from now on and only its paths are filled again (the rest of the proposal stays)
+// ✕ on a pick: that song is left out from now on, and only the spots it filled are filled again (the rest of the proposal stays)
 function wmReject(i){const P=WM.prop, s=P&&P.slots[i]; if(!s)return; const k=tuneKey(`${s.a} - ${s.t}`); P.rej=[...new Set([...(P.rej||[]),k])];
-  const used=new Set(P.slots.filter((x,j)=>j!==i).map(x=>tuneKey(`${x.a} - ${x.t}`))), F=wmFill(wmPool(Math.random,P.rej),used,s.cls,s.kind,s.paths.slice());
-  P.slots.splice(i,1,...F.out); P.none=(P.none||[]).concat(F.none)}
+  const mine=P.slots.filter(x=>tuneKey(`${x.a} - ${x.t}`)===k), rest=P.slots.filter(x=>tuneKey(`${x.a} - ${x.t}`)!==k), used=new Set(rest.map(x=>tuneKey(`${x.a} - ${x.t}`)));
+  const F=wmFill(wmPool(Math.random,P.rej),used,s.kind,mine.flatMap(x=>x.paths.map(pi=>({pi,cls:x.cls}))));
+  P.slots=rest.concat(F.out); P.none=(P.none||[]).concat(F.none)}
 function wmLoad(){if(WM||!ACCT.sb||!ACCT.user)return; WM={busy:1};
   ACCT.sb.from("week_maker").select("*").eq("user_id",ACCT.user.id).maybeSingle().then(({data,error})=>{
     WM={err:error?error.message:null,favs:(data&&data.favs)||[],opts:(data&&data.opts)||{bonus:false,god:false},prop:(data&&data.proposal)||null}; if(ACCT.tab==="wm")acctDraw()})}
