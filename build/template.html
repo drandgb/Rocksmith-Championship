@@ -8215,7 +8215,10 @@ function wmRankUp(P){const key=s=>`${s.a} - ${s.t}`, find=(cls,kind,pi)=>P.slots
   for(const cls of ["B","I","A","M"])for(const pi of [0,1,2]){const m=find(cls,"main",pi), b=find(cls,"bonus",pi); if(!m||!b||!(b.r[pi]>m.r[pi]))continue;
     if(m.paths.length===b.paths.length&&m.paths.every(q=>b.paths.includes(q)&&b.r[q]>=m.r[q])){m.kind="bonus"; b.kind="main"; continue}
     m.paths=m.paths.filter(q=>q!==pi); b.paths=b.paths.filter(q=>q!==pi); put(b,cls,"main",pi); put(m,cls,"bonus",pi)}
-  P.slots=P.slots.filter(s=>s.paths.length); return P}
+  P.slots=P.slots.filter(s=>s.paths.length); return wmMerge(P)}
+// one row per song, class and main/bonus: rows for the same song (split while filling or swapping) are joined
+function wmMerge(P){const out=[]; P.slots.forEach(s=>{const k=tuneKey(`${s.a} - ${s.t}`), e=out.find(x=>tuneKey(`${x.a} - ${x.t}`)===k&&x.cls===s.cls&&x.kind===s.kind);
+  if(e)e.paths=[...new Set([...e.paths,...s.paths])].sort(); else out.push({...s,paths:[...s.paths]})}); P.slots=out; return P}
 function wmMake(seed,rej,rejSpot){const o=WM.opts||{}, fav=new Set((WM.favs||[]).map(x=>x.toLowerCase())), used=new Set(), slots=[], skips=[], none=[];
   const pool=wmPool(wmRnd(seed),rej,rejSpot), classes=["B","I","A","M"].concat(o.god&&!wmGodOn()?["G"]:[]);
   const main=classes.flatMap(cls=>[0,1,2].map(pi=>({pi,cls})));
@@ -8242,6 +8245,7 @@ function wmSave(){if(!WM||WM.err||!ACCT.user)return; ACCT.sb.from("week_maker").
 // the saved proposal stays until 🔀, unless the options or favorites changed or one of its songs has been played since
 function wmCurrent(){const P=WM.prop, last=wmLast(), o=WM.opts||{}, favs=(WM.favs||[]).map(x=>x.toLowerCase()).sort();
   const stale=!P||!P.slots||P.opts.bonus!==!!o.bonus||P.opts.god!==!!o.god||!!P.opts.oldFill!==!!o.oldFill||JSON.stringify(P.favs||[])!==JSON.stringify(favs)||JSON.stringify(P.block||[])!==JSON.stringify(((o.block)||[]).map(x=>x.toLowerCase()).sort())||P.slots.some(s=>(last[tuneKey(`${s.a} - ${s.t}`)]||0)>=P.week);
+  if(P&&P.slots&&!stale)wmMerge(P);
   if(stale){WM.prop=wmMake(P&&P.seed&&P.slots&&!P.slots.some(s=>(last[tuneKey(`${s.a} - ${s.t}`)]||0)>=P.week)?P.seed:Math.floor(Math.random()*2**31),P&&P.week===TW_MAX?P.rej:[],P&&P.week===TW_MAX?P.rejSpot:[]); wmSave()} return WM.prop}
 // the song's download link as written on the Song Selection List (shown as the Ignition pill, like the Scoreboard's)
 const wmLink=s=>{const k=tuneKey(`${s.a} - ${s.t}`), x=((WM_DATA&&WM_DATA.songs)||[]).find(y=>tuneKey(`${y[0]} - ${y[1]}`)===k); if(x&&x[6])return x[6];
