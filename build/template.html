@@ -8304,17 +8304,17 @@ document.addEventListener("click",e=>{if(!WM||WM.busy)return; const t=e.target;
   const rs=t.closest("[data-wmrjspot]"); if(rs&&WM.prop){const [i,pi]=rs.dataset.wmrjspot.split("|").map(Number); WM_RJ=null; wmRejectSpot(i,pi); wmSave(); acctDraw(); return}
   const nv=t.closest("[data-wmnever]"); if(nv&&WM.prop){const s=WM.prop.slots[+nv.dataset.wmnever]; if(!s)return; const k=tuneKey(`${s.a} - ${s.t}`);
     WM.opts={...WM.opts,never:(WM.opts.never||[]).filter(x=>x.k!==k).concat([{k,n:`${s.a} - ${s.t}`}])}; WM_RJ=null; wmReject(+nv.dataset.wmnever); WM.prop.opts={...WM.prop.opts}; wmSave(); acctDraw(); return}
-  const un=t.closest("[data-wmunnever]"); if(un){WM.opts={...WM.opts,never:(WM.opts.never||[]).filter(x=>x.k!==un.dataset.wmunnever)}; wmSave(); acctDraw(); return}
+  const un=t.closest("[data-wmunnever]"); if(un){const nm=((WM.opts.never||[]).find(x=>x.k===un.dataset.wmunnever)||{}).n||"this song"; if(!confirm(`Suggest ${nm} again?`))return; WM.opts={...WM.opts,never:(WM.opts.never||[]).filter(x=>x.k!==un.dataset.wmunnever)}; wmSave(); acctDraw(); return}
   const ra=t.closest("[data-wmrjall]"); if(ra&&WM.prop){WM_RJ=null; wmReject(+ra.dataset.wmrjall); wmSave(); acctDraw(); return}
   if(t.closest("[data-wmrjx]")){WM_RJ=null; acctDraw(); return}
   const f=t.closest("[data-wmfav]"), u=t.closest("[data-wmunfav]"), ad=t.closest("[data-wmaddfav]");
-  if(f||u||ad){const a=(f?f.dataset.wmfav:u?u.dataset.wmunfav:($("wmfavin")||{}).value||"").trim(); if(!a)return; const L=(WM.favs||[]).filter(x=>x.toLowerCase()!==a.toLowerCase());
+  if(f||u||ad){const a=(f?f.dataset.wmfav:u?u.dataset.wmunfav:($("wmfavin")||{}).value||"").trim(); if(!a)return; if(u&&!confirm(`Remove ${a} from your favorite tab authors?`))return; const L=(WM.favs||[]).filter(x=>x.toLowerCase()!==a.toLowerCase());
     WM.favs=(u||(f&&f.classList.contains("on")))?L:L.concat([a]); wmSave(); acctDraw()}});
 document.addEventListener("keydown",e=>{if(e.key==="Enter"&&e.target.id==="wmfavin"){e.preventDefault(); const b=document.querySelector("[data-wmaddfav]"); if(b)b.click()}
   if(e.key==="Enter"&&e.target.id==="wmblockin"){e.preventDefault(); const b=document.querySelector("[data-wmaddblock]"); if(b)b.click()}});
 // blocking a tab author (also takes them off favorites); the week is remade without their songs
 document.addEventListener("click",e=>{if(!WM||WM.busy)return; const ab=e.target.closest("[data-wmaddblock]"), ba=e.target.closest("[data-wmblockau]"), ub=e.target.closest("[data-wmunblock]"); if(!ab&&!ba&&!ub)return;
-  const a=(ba?ba.dataset.wmblockau:ub?ub.dataset.wmunblock:($("wmblockin")||{}).value||"").trim(); if(!a)return; const L=(WM.opts.block||[]).filter(x=>x.toLowerCase()!==a.toLowerCase());
+  const a=(ba?ba.dataset.wmblockau:ub?ub.dataset.wmunblock:($("wmblockin")||{}).value||"").trim(); if(!a)return; if(ub&&!confirm(`Unblock ${a}?`))return; const L=(WM.opts.block||[]).filter(x=>x.toLowerCase()!==a.toLowerCase());
   WM.opts={...WM.opts,block:ub?L:L.concat([a])}; if(!ub)WM.favs=(WM.favs||[]).filter(x=>x.toLowerCase()!==a.toLowerCase()); WM_RJ=null; wmSave(); acctDraw()});
 var WM_DET={fav:false,block:false};   /* the favorite and blocked tab author lists start folded; open or closed stays while the page is open */
 document.addEventListener("toggle",e=>{const d=e.target; if(d&&d.dataset&&d.dataset.wmdet)WM_DET[d.dataset.wmdet]=d.open},true);
