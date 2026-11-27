@@ -8160,7 +8160,7 @@ function wmOld(rnd,last){const on=new Set(((WM_DATA&&WM_DATA.songs)||[]).map(s=>
   return ((WM_DATA&&WM_DATA.old)||[]).map(o=>{const i=o[0].indexOf(" - "), k=tuneKey(o[0]), lp=Math.max(last[k]||0,o[3]||0)||null;
     return {a:i>0?o[0].slice(0,i):o[0],t:i>0?o[0].slice(i+3):"",au:"",r:o[1],te:"",k,lp,tier:lp&&lp<=TW_MAX-52?1:2,fav:false,cf:0,rn:rnd(),id:o[2]}}).filter(x=>!on.has(x.k))}
 function wmPool(rnd,rej,rejSpot,withOld){const useConf=(WM.opts||{}).conf!==false, blk=new Set((((WM.opts||{}).block)||[]).map(x=>x.toLowerCase())), fav=new Set((WM.favs||[]).map(x=>x.toLowerCase())), last=wmLast(), conf=wmConf(), R=new Set([...(rej||[]),...(((WM.opts||{}).never)||[]).map(x=>x.k)]), RS=new Set(rejSpot||[]);
-  return ((WM_DATA&&WM_DATA.songs)||[]).map(s=>{const k=tuneKey(`${s[0]} - ${s[1]}`), lp=last[k]; return {a:s[0],t:s[1],au:s[2]||"",r:s[3],te:s[5]||"",te2:s[7]||"",k,lp:lp||null,tier:lp==null?0:lp<=TW_MAX-52?1:2,
+  return ((WM_DATA&&WM_DATA.songs)||[]).map(s=>{const k=tuneKey(`${s[0]} - ${s[1]}`), lp=last[k]; return {a:s[0],t:s[1],au:s[2]||"",r:s[3],te:s[5]||"",te2:s[7]||"",ln:((/\/cdlc\/(\d+)/.exec(s[6]||"")||[])[1])||"",k,lp:lp||null,tier:lp==null?0:lp<=TW_MAX-52?1:2,
     fav:fav.has((s[2]||"").toLowerCase()),cf:useConf?(conf[(s[5]||"").toLowerCase()]||{lv:0}).lv+(s[7]?1+(conf[s[7].toLowerCase()]||{lv:0}).lv:0):0,rn:rnd()}}).concat(withOld?wmOld(rnd,last):[]).filter(x=>x.tier<2&&!R.has(x.k)&&!blk.has((x.au||"").toLowerCase())).map(x=>(x.no=new Set([0,1,2].filter(pi=>RS.has(`${x.k}|${pi}|${wmCls(x.r[pi])}`))),x))}
 // fill open path + class spots (main or bonus) with songs from the pool. A song can fill different classes on different paths
 // (e.g. Lead Advanced and Bass Beginner), and songs are mixed and matched (one for Lead, another for Rhythm and Bass) rather than
@@ -8175,7 +8175,7 @@ function wmFill(pool,used,kind,open,loose){const out=[], O=new Set(open.map(o=>o
     for(const x of pool){if(used.has(x.k))continue; const f=fits(x); if(!f.length||(kind==="bonus"&&!loose&&unused(x,f))||wasteG(x,f))continue;   /* a bonus only goes to a song it leaves nothing unused for */
       if(!best||((unused(x,f)>0)-(unused(best,bf)>0)||x.tier-best.tier||es(best,bf)-es(x,f)||unused(x,f)-unused(best,bf)||bf.length-f.length||best.fav-x.fav||best.cf-x.cf||x.rn-best.rn)<0){best=x; bf=f}}
     if(!best)break; used.add(best.k);
-    [...new Set(bf.map(pi=>wmCls(best.r[pi])))].forEach(cls=>out.push({cls,kind,paths:bf.filter(pi=>wmCls(best.r[pi])===cls),a:best.a,t:best.t,au:best.au,r:best.r,te:best.te,te2:best.te2||"",lp:best.lp}));
+    [...new Set(bf.map(pi=>wmCls(best.r[pi])))].forEach(cls=>out.push({cls,kind,paths:bf.filter(pi=>wmCls(best.r[pi])===cls),a:best.a,t:best.t,au:best.au,r:best.r,te:best.te,te2:best.te2||"",ln:best.ln||"",lp:best.lp}));
     bf.forEach(pi=>O.delete(pi+"|"+wmCls(best.r[pi])))}
   return {out,none:[...O].map(k=>{const [pi,cls]=k.split("|"); return {cls,kind,pi:+pi}})}}
 // the harder song (higher rating) in a class is the main song and the easier one the bonus: when a path's bonus is rated higher than
@@ -8250,7 +8250,18 @@ function wmLoad(){if(WM||!ACCT.sb||!ACCT.user)return; WM={busy:1};
 function wmSave(){if(!WM||WM.err||!ACCT.user)return; ACCT.sb.from("week_maker").upsert({user_id:ACCT.user.id,favs:WM.favs,opts:WM.opts,proposal:WM.prop,updated_at:new Date().toISOString()},{onConflict:"user_id"})
   .then(({error})=>{if(error){WM.saveErr=error.message; if(ACCT.tab==="wm")acctDraw()}})}
 // the saved proposal stays until 🔀 (also as weeks go by), unless the options or favorites changed; locked songs stay either way
-function wmCurrent(){const P=WM.prop, last=wmLast(), o=WM.opts||{}, favs=(WM.favs||[]).map(x=>x.toLowerCase()).sort();
+// a saved week's songs are brought up to date with the Song Selection List (a fixed artist or title, tab author, ratings or testers), locked or not:
+// found by their Ignition link, or else by name (a small typo fixed in the title still finds it)
+function wmFresh(P){if(!P||!P.slots)return false; const S=(WM_DATA&&WM_DATA.songs)||[], id=u=>((/\/cdlc\/(\d+)/.exec(u||"")||[])[1])||"", tk=x=>tuneKey(x||"");
+  const lev=(a,b)=>{if(Math.abs(a.length-b.length)>2)return 9; let d=[...Array(b.length+1).keys()]; for(let i=1;i<=a.length;i++){const e=[i]; for(let j=1;j<=b.length;j++)e[j]=Math.min(d[j]+1,e[j-1]+1,d[j-1]+(a[i-1]===b[j-1]?0:1)); d=e} return d[b.length]};
+  let ch=false; const ren={};
+  P.slots.forEach(s=>{if(s.old)return; const k=tuneKey(`${s.a} - ${s.t}`);
+    let x=(s.ln&&S.find(y=>id(y[6])===s.ln))||S.find(y=>tuneKey(`${y[0]} - ${y[1]}`)===k);
+    if(!x){const c=S.filter(y=>tk(y[0])===tk(s.a)&&(tk(y[1]).startsWith(tk(s.t))||tk(s.t).startsWith(tk(y[1]))||lev(tk(y[1]),tk(s.t))<=2)); if(c.length===1)x=c[0]}
+    if(!x)return; const n={a:x[0],t:x[1],au:x[2]||"",r:x[3],te:x[5]||"",te2:x[7]||"",ln:id(x[6])};
+    if(Object.keys(n).some(f=>JSON.stringify(s[f]==null?"":s[f])!==JSON.stringify(n[f]==null?"":n[f]))){const k2=tuneKey(`${n.a} - ${n.t}`); if(k2!==k)ren[k]=k2; Object.assign(s,n); ch=true}});
+  if(Object.keys(ren).length)P.locked=(P.locked||[]).map(k=>ren[k]||k); return ch}
+function wmCurrent(){if(wmFresh(WM.prop))wmSave(); const P=WM.prop, last=wmLast(), o=WM.opts||{}, favs=(WM.favs||[]).map(x=>x.toLowerCase()).sort();
   const gWaste=P&&P.slots&&P.opts&&P.opts.god&&P.slots.some(x=>x.paths.some(pi=>wmCls(x.r[pi])==="G")&&[0,1,2].some(pi=>x.r[pi]!=null&&wmCls(x.r[pi])==="G"&&!P.slots.some(y=>tuneKey(`${y.a} - ${y.t}`)===tuneKey(`${x.a} - ${x.t}`)&&y.paths.includes(pi))));   /* a saved week from before God of… songs had to use all their God of… arrangements */
   const stale=gWaste||!P||!P.slots||P.opts.bonus!==!!o.bonus||P.opts.god!==!!o.god||!!P.opts.oldFill!==!!o.oldFill||(P.opts.conf!==false)!==(o.conf!==false)||!!P.opts.estd!==!!o.estd||JSON.stringify(P.favs||[])!==JSON.stringify(favs)||JSON.stringify(P.block||[])!==JSON.stringify(((o.block)||[]).map(x=>x.toLowerCase()).sort());
   if(P&&P.slots&&!stale)wmMerge(P);
