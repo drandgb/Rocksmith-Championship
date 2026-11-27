@@ -9332,7 +9332,7 @@ function acctBtn(){const b=$("acctbtn"); b.hidden=!ACCT.on; try{renderSbEmpty()}
   if(!ACCT.ready||ACCT.loading)return;
   // a badge whose data hasn't loaded yet keeps the one already on the button until it has
   const was={}; b.querySelectorAll(".nbadge[data-bk]").forEach(x=>was[x.dataset.bk]=x.outerHTML);
-  const held=(k,f)=>{try{const wait=k==="lk"?!WL_LOADED:k==="rp"?ACCT.rposts===undefined||!!ACCT.rpLoading:k==="hl"||k==="hm"||k==="fri"?HM_IMP.st===undefined||HM_IMP.st===null:k==="iss"||k==="ty"?TY_DIS===undefined||TY_DIS===null:k==="cd"?!WCLOSE_ON:false; return wait?was[k]||"":f()}catch(e){return was[k]||""}};
+  const held=(k,f)=>{try{const wait=k==="lk"?!WL_LOADED:k==="rp"?ACCT.rposts===undefined||!!ACCT.rpLoading:k==="hl"||k==="hm"||k==="fri"?HM_IMP.st===undefined||HM_IMP.st===null:k==="iss"||k==="ty"?TY_DIS===undefined||TY_DIS===null:k==="cd"?!WCLOSE_ON:false; if(wait){try{f()}catch(e){} return was[k]||""} return f()}catch(e){return was[k]||""}};   /* while waiting, f() still runs once so the data it needs starts loading (the button is redrawn when it arrives); otherwise a badge kept from the last visit stayed until the profile was opened */
   b.title=ACCT.claim&&ACCT.claim.status==="approved"?"Opens your profile: your own stats page, last week's medals, your song ratings and your forum signature banner"
     :ACCT.claim?"Opens your profile. Your player claim is waiting for an admin to approve it"
     :ACCT.user?"Opens your profile, where you can claim your player name so you can rate songs and sign up to host"
