@@ -8259,21 +8259,22 @@ function wmCurrent(){const P=WM.prop, last=wmLast(), o=WM.opts||{}, favs=(WM.fav
 const wmLink=s=>{const k=tuneKey(`${s.a} - ${s.t}`), x=((WM_DATA&&WM_DATA.songs)||[]).find(y=>tuneKey(`${y[0]} - ${y[1]}`)===k); if(x&&x[6])return x[6];
   const o=((WM_DATA&&WM_DATA.old)||[]).find(y=>tuneKey(y[0])===k); return o&&o[2]?`https://ignition4.customsforge.com/cdlc/${o[2]}`:""};
 const wmAz=L=>[...(L||[])].sort((a,b)=>a.localeCompare(b,undefined,{sensitivity:"base"}));   // tab author chips in A–Z order (ignoring case)
-// 🔗: a song from the Song Selection List or the Songs Played sheet, found by its Ignition link, takes the main spot of each of its
-// arrangements' classes (God of… only when a God of… song is proposed); songs there give up that spot. It's locked so 🔀 keeps it.
+// 🔗: a song from the Song Selection List or the Songs Played sheet, found by its Ignition link, takes the main (or bonus) spot of each of its
+// arrangements' classes (God of… only when a God of… song is proposed, and never as a bonus); songs there give up that spot. It's locked so 🔀 keeps it.
 var WM_LN={open:false};
-function wmAddLink(u){const P=wmCurrent(), id=((/\/cdlc\/(\d+)/.exec(u||"")||[])[1]); if(!id)return "That isn't an Ignition link.";
+function wmAddLink(id,kind){kind=kind==="bonus"?"bonus":"main"; const P=wmCurrent();
   const S=((WM_DATA&&WM_DATA.songs)||[]).find(y=>((/\/cdlc\/(\d+)/.exec(y[6]||"")||[])[1])===id), o=S?null:((WM_DATA&&WM_DATA.old)||[]).find(y=>String(y[2])===id);
-  if(!S&&!o)return "That song isn't on the Song Selection List or the Songs Played sheet.";
+  if(!S&&!o)return {err:`Link ${id} isn't on the Song Selection List or the Songs Played sheet.`};
   const i=o?o[0].indexOf(" - "):0, x=S?{a:S[0],t:S[1],au:S[2]||"",r:S[3],te:S[5]||"",te2:S[7]||"",ln:id}:{a:i>0?o[0].slice(0,i):o[0],t:i>0?o[0].slice(i+3):"",au:"",r:o[1],te:"",te2:"",ln:id,old:1};
   const k=tuneKey(`${x.a} - ${x.t}`); x.lp=wmLast()[k]||(o&&o[3])||null;
   const god=P.opts.god&&!wmGodOn(), by={};
-  [0,1,2].forEach(pi=>{if(x.r[pi]==null)return; const c=wmCls(x.r[pi]); if(c==="G"&&!god)return; (by[c]=by[c]||[]).push(pi)});
-  if(!Object.keys(by).length)return "That song has no arrangement for a spot this week.";
+  [0,1,2].forEach(pi=>{if(x.r[pi]==null)return; const c=wmCls(x.r[pi]); if(c==="G"&&!god)return; if(c==="G"&&kind==="bonus")return; (by[c]=by[c]||[]).push(pi)});
+  if(!Object.keys(by).length)return {err:`${x.a} - ${x.t} has no arrangement for a ${kind==="bonus"?"bonus ":""}spot this week.`};
   P.slots=P.slots.filter(s=>tuneKey(`${s.a} - ${s.t}`)!==k);
-  Object.entries(by).forEach(([c,ps])=>{P.slots.forEach(s=>{if(s.cls===c&&s.kind==="main")s.paths=s.paths.filter(q=>!ps.includes(q))});
-    P.none=(P.none||[]).filter(n=>!(n.cls===c&&n.kind==="main"&&ps.includes(n.pi))); P.slots.push({...x,cls:c,kind:"main",paths:ps})});
-  P.slots=P.slots.filter(s=>s.paths.length); P.rej=(P.rej||[]).filter(r=>r!==k); P.locked=[...new Set([...(P.locked||[]),k])]; wmMerge(P); WM_RJ=null; wmSave(); return ""}
+  Object.entries(by).forEach(([c,ps])=>{P.slots.forEach(s=>{if(s.cls===c&&s.kind===kind)s.paths=s.paths.filter(q=>!ps.includes(q))});
+    P.none=(P.none||[]).filter(n=>!(n.cls===c&&n.kind===kind&&ps.includes(n.pi))); if(kind==="bonus")P.skips=(P.skips||[]).filter(n=>!(n.cls===c&&ps.includes(n.pi)));
+    P.slots.push({...x,cls:c,kind,paths:ps})});
+  P.slots=P.slots.filter(s=>s.paths.length); P.rej=(P.rej||[]).filter(r=>r!==k); P.locked=[...new Set([...(P.locked||[]),k])]; wmMerge(P); WM_RJ=null; wmSave(); return {song:`${x.a} - ${x.t}`}}
 function wmSection(){if(!WM_DATA||!(WM_DATA.songs||[]).length)return `<div class="acctsec"><h3>Week Maker</h3><p class="dim">The Song Selection List hasn't been read yet. It's read on the next site update.</p></div>`;
   wmLoad(); if(!WM||WM.busy)return `<div class="acctsec"><h3>Week Maker</h3><p class="dim">Loading…</p></div>`;
   if(!ACCT.rows)try{acctLoadWeek().then(()=>{if(ACCT.tab==="wm")acctDraw()})}catch(e){}
@@ -8294,7 +8295,7 @@ function wmSection(){if(!WM_DATA||!(WM_DATA.songs||[]).length)return `<div class
       if(!S.length&&!N.length&&!K.length)return ""; return `${kind==="bonus"?`<h5>Bonus</h5>`:""}<ul class="wml">${S.map(slot).join("")}</ul>${N.length?`<p class="dim wmnote">${kind==="bonus"?`No ${N.map(n=>PATHS[n.pi]).join(", ")} bonus: every song left would leave one of its arrangements unused.`:`No song left for ${N.map(n=>PATHS[n.pi]).join(", ")}.`}</p>`:""}${K.map(k=>`<p class="dim wmnote">${PATHS[k.pi]} bonus left out: ${esc(k.why)}.</p>`).join("")}${kind==="bonus"?(P.kept||[]).filter(k=>k.cls===cls).map(k=>`<p class="dim wmnote">${PATHS[k.pi]} bonus kept even though ${esc(k.why)}, so the ${PATHS[k.pi]} arrangement of ${esc(k.song)} isn't left unused.</p>`).join(""):""}`};
     return `<div class="wmcls"><h4 style="color:${WM_CC[cls]}">${WM_CLS[cls]}</h4>${part("main")}${part("bonus")}</div>`}).join("");
   return `<div class="acctsec wmsec"><h3>Week Maker <button type="button" class="btn ghost small" data-wmshuf title="Suggest a different week">🔀 Shuffle</button><button type="button" class="btn ghost small" data-wmlinkbtn aria-expanded="${!!WM_LN.open}" title="Paste a song's Ignition link to put it in the week">🔗</button>${hostRunOk()?`<button type="button" class="btn ghost small" data-wmrecheck${WM_RC.busy?" disabled":""} title="Runs a website update now, which re-reads the Song Selection List (about 3 minutes)">${WM_RC.busy?"Starting…":"🔄 Recheck the list"}</button>`:""}<a class="btn ghost small" href="https://docs.google.com/spreadsheets/d/1HzgY90kLwyGqzJ-R64v8lmpeQMMhhxwGwUlenepIgms/edit?gid=783523676#gid=783523676" target="_blank" rel="noopener" title="Open the Song Selection List spreadsheet">📄 Open SSL</a><button type="button" class="btn ghost small" data-wmcopy title="Copies the proposal's download links: click cell H5 on the Song Selection List's NewWeek tab and paste">📋 Copy links for the NewWeek tab</button></h3>
-    ${WM_LN.open?`<div class="wmlink"><input id="wmlinkin" type="url" placeholder="Paste an Ignition link" value="${esc(WM_LN.v||"")}"><button type="button" class="btn ghost small" data-wmlinkgo>Add</button>${WM_LN.msg?`<span class="dim">${esc(WM_LN.msg)}</span>`:""}</div>`:""}
+    ${WM_LN.open?`<div class="wmlink"><input id="wmlinkin" type="text" placeholder="Paste one or more Ignition links" value="${esc(WM_LN.v||"")}"><button type="button" class="btn ghost small" data-wmlinkgo="main">Add as main</button><button type="button" class="btn ghost small" data-wmlinkgo="bonus">Add as bonus</button>${WM_LN.msg?`<span class="dim">${esc(WM_LN.msg)}</span>`:""}</div>`:""}
     <p class="dim">A proposed week from the Song Selection List (${WM_DATA.songs.length} songs, read ${esc(String(WM_DATA.from||"").slice(0,10))}). Songs never played come first, then ones not played for over a year. It stays the same on all your devices until you shuffle. To use it, press 📋, click cell H5 on the NewWeek tab and paste: it puts each song's download link in its row for Lead, Rhythm and Bass.</p>
     ${WM_RC.res?WM_RC.res.ok?`<p class="fetchok">✓ Rechecking the Song Selection List (started ${esc(hostRunAt(WM_RC.at))}). The new list is in about 3 minutes: reload the page then.</p>`:`<p class="fetcherr">${esc(WM_RC.res.error||"The recheck didn't start.")}</p>`:""}
     ${WM.err?`<p class="err">Your Week Maker can't be saved yet: run build/supabase/week_maker.sql once in Supabase. (${esc(WM.err)})</p>`:WM.saveErr?`<p class="err">Couldn't save: ${esc(WM.saveErr)}</p>`:""}
@@ -8321,7 +8322,10 @@ document.addEventListener("click",async e=>{const b=e.target.closest("[data-wmco
   b.textContent="Copied ✓"; setTimeout(()=>{b.textContent="📋 Copy links for the NewWeek tab"},2500)});
 document.addEventListener("click",e=>{if(!WM||WM.busy)return; const t=e.target;
   if(t.closest("[data-wmlinkbtn]")){WM_LN={open:!WM_LN.open}; acctDraw(); if(WM_LN.open){const i=$("wmlinkin"); if(i)i.focus()} return}
-  if(t.closest("[data-wmlinkgo]")){const v=(($("wmlinkin")||{}).value||"").trim(), r=wmAddLink(v); WM_LN=r?{open:true,v,msg:r}:{open:false}; acctDraw(); return}
+  const lg=t.closest("[data-wmlinkgo]"); if(lg){const v=(($("wmlinkin")||{}).value||"").trim(), ids=[...v.matchAll(/\/cdlc\/(\d+)/g)].map(m=>m[1]);
+    if(!ids.length){WM_LN={open:true,v,msg:"That isn't an Ignition link."}; acctDraw(); return}
+    const bad=[], ok=[]; ids.forEach(id=>{const r=wmAddLink(id,lg.dataset.wmlinkgo); if(r.err)bad.push(r.err); else ok.push(r.song)});
+    WM_LN={open:true,v:"",msg:[ok.length?`Added ${ok.join(", ")}.`:"",...bad].filter(Boolean).join(" ")}; acctDraw(); const i=$("wmlinkin"); if(i)i.focus(); return}
   if(t.closest("[data-wmshuf]")){const P=WM.prop, same=P&&P.week===TW_MAX; WM_RJ=null; WM.prop=wmMake(Math.floor(Math.random()*2**31),same?P.rej:[],same?P.rejSpot:[],wmLocked(P)); wmSave(); acctDraw(); return}
   const lk=t.closest("[data-wmlock]"); if(lk&&WM.prop){const P=WM.prop, s=P.slots[+lk.dataset.wmlock]; if(!s)return; const k=tuneKey(`${s.a} - ${s.t}`), L=P.locked||[];
     P.locked=L.includes(k)?L.filter(x=>x!==k):L.concat([k]); wmSave(); acctDraw(); return}
