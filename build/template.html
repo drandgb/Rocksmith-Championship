@@ -8159,9 +8159,13 @@ function wmBonusSkip(pi,cls){const B=[]; Object.keys(SB.weeks).map(Number).filte
 function wmOld(rnd,last){const on=new Set(((WM_DATA&&WM_DATA.songs)||[]).map(s=>tuneKey(`${s[0]} - ${s[1]}`)));
   return ((WM_DATA&&WM_DATA.old)||[]).map(o=>{const i=o[0].indexOf(" - "), k=tuneKey(o[0]), lp=Math.max(last[k]||0,o[3]||0)||null;
     return {a:i>0?o[0].slice(0,i):o[0],t:i>0?o[0].slice(i+3):"",au:"",r:o[1],te:"",k,lp,tier:lp&&lp<=TW_MAX-52?1:2,fav:false,cf:0,rn:rnd(),id:o[2]}}).filter(x=>!on.has(x.k))}
+// blocked artists, and blocked tunings (a song with any of its rated arrangements in a blocked tuning is left out)
+const wmLow=L=>(L||[]).map(x=>String(x).toLowerCase().trim());
+function wmBlockedX(x){const o=WM.opts||{}, A=wmLow(o.blockArt), T=wmLow(o.blockTun); if(A.includes((x.a||"").toLowerCase().trim()))return true; if(!T.length)return false;
+  return [0,1,2].some(pi=>{if(x.r[pi]==null)return false; let t=""; try{t=tuneOf(`${x.a} - ${x.t}`,pi)}catch(e){} return !!t&&T.includes(t.toLowerCase())})}
 function wmPool(rnd,rej,rejSpot,withOld){const useConf=(WM.opts||{}).conf!==false, blk=new Set((((WM.opts||{}).block)||[]).map(x=>x.toLowerCase())), fav=new Set((WM.favs||[]).map(x=>x.toLowerCase())), last=wmLast(), conf=wmConf(), R=new Set([...(rej||[]),...(((WM.opts||{}).never)||[]).map(x=>x.k)]), RS=new Set(rejSpot||[]);
   return ((WM_DATA&&WM_DATA.songs)||[]).map(s=>{const k=tuneKey(`${s[0]} - ${s[1]}`), lp=last[k]; return {a:s[0],t:s[1],au:s[2]||"",r:s[3],te:s[5]||"",te2:s[7]||"",ln:((/\/cdlc\/(\d+)/.exec(s[6]||"")||[])[1])||"",k,lp:lp||null,tier:lp==null?0:lp<=TW_MAX-52?1:2,
-    fav:fav.has((s[2]||"").toLowerCase()),cf:useConf?(conf[(s[5]||"").toLowerCase()]||{lv:0}).lv+(s[7]?1+(conf[s[7].toLowerCase()]||{lv:0}).lv:0):0,rn:rnd()}}).concat(withOld?wmOld(rnd,last):[]).filter(x=>x.tier<2&&!R.has(x.k)&&!blk.has((x.au||"").toLowerCase())).map(x=>(x.no=new Set([0,1,2].filter(pi=>RS.has(`${x.k}|${pi}|${wmCls(x.r[pi])}`))),x))}
+    fav:fav.has((s[2]||"").toLowerCase()),cf:useConf?(conf[(s[5]||"").toLowerCase()]||{lv:0}).lv+(s[7]?1+(conf[s[7].toLowerCase()]||{lv:0}).lv:0):0,rn:rnd()}}).concat(withOld?wmOld(rnd,last):[]).filter(x=>x.tier<2&&!R.has(x.k)&&!wmBlockedX(x)&&!blk.has((x.au||"").toLowerCase())).map(x=>(x.no=new Set([0,1,2].filter(pi=>RS.has(`${x.k}|${pi}|${wmCls(x.r[pi])}`))),x))}
 // fill open path + class spots (main or bonus) with songs from the pool. A song can fill different classes on different paths
 // (e.g. Lead Advanced and Bass Beginner), and songs are mixed and matched (one for Lead, another for Rhythm and Bass) rather than
 // needing one song for all three. Order: songs that leave none of their arrangements unused, then never played (then not played
@@ -8231,7 +8235,7 @@ function wmMake(seed,rej,rejSpot,keep){const o=WM.opts||{}, fav=new Set((WM.favs
   [["main",main],["bonus",bonus]].forEach(([kind,open])=>{if(!open.length)return; const F=wmFill(pool,used,kind,open); slots.push(...F.out); none.push(...F.none)});
   if(o.oldFill){const left=none.filter(n=>n.kind==="bonus"); if(left.length){const F=wmFill(wmPool(wmRnd(seed+99),rej,rejSpot,true).filter(x=>x.tier===1),used,"bonus",left.map(n=>({pi:n.pi,cls:n.cls})),true);
     F.out.forEach(x=>x.old=1); slots.push(...F.out); const keep=new Set(F.none.map(n=>`${n.pi}|${n.cls}`)); none.splice(0,none.length,...none.filter(n=>n.kind!=="bonus"||keep.has(`${n.pi}|${n.cls}`)))}}
-  return wmRankUp(wmImprove(wmRepair({seed,week:TW_MAX,opts:{bonus:!!o.bonus,god:!!o.god,oldFill:!!o.oldFill,conf:o.conf!==false,estd:!!o.estd},favs:[...fav].sort(),block:((o.block)||[]).map(x=>x.toLowerCase()).sort(),slots,skips,none,rej:[...(rej||[])],rejSpot:[...(rejSpot||[])],locked:[...used].filter(k=>keep.some(s=>tuneKey(`${s.a} - ${s.t}`)===k))}),seed))}
+  return wmRankUp(wmImprove(wmRepair({seed,week:TW_MAX,opts:{bonus:!!o.bonus,god:!!o.god,oldFill:!!o.oldFill,conf:o.conf!==false,estd:!!o.estd},favs:[...fav].sort(),block:((o.block)||[]).map(x=>x.toLowerCase()).sort(),blockX:[wmLow(o.blockArt).sort(),wmLow(o.blockTun).sort()],slots,skips,none,rej:[...(rej||[])],rejSpot:[...(rejSpot||[])],locked:[...used].filter(k=>keep.some(s=>tuneKey(`${s.a} - ${s.t}`)===k))}),seed))}
 // the locked songs' rows of a proposal (they stay put through 🔀 and option changes)
 const wmLocked=P=>{const L=new Set((P&&P.locked)||[]); return P&&P.slots?P.slots.filter(s=>L.has(tuneKey(`${s.a} - ${s.t}`))):[]};
 // ✕ on a pick: that song is left out from now on, and only the spots it filled are filled again (the rest of the proposal stays)
@@ -8263,7 +8267,7 @@ function wmFresh(P){if(!P||!P.slots)return false; const S=(WM_DATA&&WM_DATA.song
   if(Object.keys(ren).length)P.locked=(P.locked||[]).map(k=>ren[k]||k); return ch}
 function wmCurrent(){if(wmFresh(WM.prop))wmSave(); const P=WM.prop, last=wmLast(), o=WM.opts||{}, favs=(WM.favs||[]).map(x=>x.toLowerCase()).sort();
   const gWaste=P&&P.slots&&P.opts&&P.opts.god&&P.slots.some(x=>x.paths.some(pi=>wmCls(x.r[pi])==="G")&&[0,1,2].some(pi=>x.r[pi]!=null&&wmCls(x.r[pi])==="G"&&!P.slots.some(y=>tuneKey(`${y.a} - ${y.t}`)===tuneKey(`${x.a} - ${x.t}`)&&y.paths.includes(pi))));   /* a saved week from before God of… songs had to use all their God of… arrangements */
-  const stale=gWaste||!P||!P.slots||P.opts.bonus!==!!o.bonus||P.opts.god!==!!o.god||!!P.opts.oldFill!==!!o.oldFill||(P.opts.conf!==false)!==(o.conf!==false)||!!P.opts.estd!==!!o.estd||JSON.stringify(P.favs||[])!==JSON.stringify(favs)||JSON.stringify(P.block||[])!==JSON.stringify(((o.block)||[]).map(x=>x.toLowerCase()).sort());
+  const stale=gWaste||!P||!P.slots||P.opts.bonus!==!!o.bonus||P.opts.god!==!!o.god||!!P.opts.oldFill!==!!o.oldFill||(P.opts.conf!==false)!==(o.conf!==false)||!!P.opts.estd!==!!o.estd||JSON.stringify(P.favs||[])!==JSON.stringify(favs)||JSON.stringify(P.block||[])!==JSON.stringify(((o.block)||[]).map(x=>x.toLowerCase()).sort())||JSON.stringify(P.blockX||[[],[]])!==JSON.stringify([wmLow(o.blockArt).sort(),wmLow(o.blockTun).sort()]);
   if(P&&P.slots&&!stale)wmMerge(P);
   if(stale){WM.prop=wmMake(P&&P.seed&&P.slots?P.seed:Math.floor(Math.random()*2**31),P&&P.week===TW_MAX?P.rej:[],P&&P.week===TW_MAX?P.rejSpot:[],wmLocked(P)); wmSave()} return WM.prop}
 // the song's download link as written on the Song Selection List (shown as the Ignition pill, like the Scoreboard's)
@@ -8326,6 +8330,10 @@ function wmSection(){if(!WM_DATA||!(WM_DATA.songs||[]).length)return `<div class
       <span class="wmadd"><input id="wmfavin" list="wmauthors" placeholder="Add a tab author"><datalist id="wmauthors">${authors.map(a=>`<option value="${esc(a)}">`).join("")}</datalist><button type="button" class="btn ghost small" data-wmaddfav>Add</button></span></div></details>
     <details class="wmfold" data-wmdet="block"${WM_DET.block?" open":""}><summary>Blocked tab authors (${(WM.opts.block||[]).length})</summary><div class="wmfavs">${wmAz(WM.opts.block).map(a=>`<span class="wmchip wmblk">${esc(a)}<button type="button" data-wmunblock="${esc(a)}" aria-label="Unblock ${esc(a)}" title="Suggest their songs again">✕</button></span>`).join("")}
       <span class="wmadd"><input id="wmblockin" list="wmauthors" placeholder="Block a tab author"><button type="button" class="btn ghost small" data-wmaddblock>Block</button></span></div></details>
+    ${[["art","blockArt","Blocked artists","Block an artist","wmartists"],["tun","blockTun","Blocked tunings","Block a tuning","wmtunings"]].map(([d,f,h,ph,dl])=>`<details class="wmfold" data-wmdet="${d}"${WM_DET[d]?" open":""}><summary>${h} (${(WM.opts[f]||[]).length})</summary><div class="wmfavs">${wmAz(WM.opts[f]).map(a=>`<span class="wmchip wmblk">${esc(a)}<button type="button" data-wmunblk="${f}" data-v="${esc(a)}" aria-label="Unblock ${esc(a)}" title="Suggest these songs again">✕</button></span>`).join("")}
+      <span class="wmadd"><input id="wmin-${f}" list="${dl}" placeholder="${ph}"><button type="button" class="btn ghost small" data-wmaddblk="${f}">Block</button></span></div></details>`).join("")}
+    <datalist id="wmartists">${[...new Set(WM_DATA.songs.map(s=>s[0]).filter(Boolean))].sort((a,b)=>a.localeCompare(b,undefined,{sensitivity:"base"})).map(a=>`<option value="${esc(a)}">`).join("")}</datalist>
+    <datalist id="wmtunings">${[...new Set(Object.values(TUNINGS||{}).flat().map(t=>tuneCap(t)).filter(Boolean))].sort().map(a=>`<option value="${esc(a)}">`).join("")}</datalist>
     ${(()=>{const b=[["main","Fill empty main spots"],["bonus","Fill empty bonus spots"]].filter(([k])=>wmEmpty(P,k).length);
       return b.length?`<div class="wmfill">${b.map(([k,l])=>`<button type="button" class="btn ghost small" data-wmfill="${k}" title="Fills them with songs that leave none of their arrangements unused">${l} (${wmEmpty(P,k).length})</button>${WM_FILLMSG[k]==="none"?`<span class="dim">No song left fills them without leaving an arrangement unused.</span>`:""}`).join("")}</div>`:""})()}
     ${blocks}${(WM.opts.never||[]).length?`<details class="wmnever"><summary>Never suggested (${WM.opts.never.length})</summary>${WM.opts.never.map(x=>`<span class="wmchip">${esc(x.n)}<button type="button" data-wmunnever="${esc(x.k)}" aria-label="Suggest ${esc(x.n)} again" title="Suggest it again">✕</button></span>`).join("")}</details>`:""}</div>`}
@@ -8372,7 +8380,12 @@ document.addEventListener("keydown",e=>{if(e.key==="Enter"&&e.target.id==="wmfav
 document.addEventListener("click",e=>{if(!WM||WM.busy)return; const ab=e.target.closest("[data-wmaddblock]"), ba=e.target.closest("[data-wmblockau]"), ub=e.target.closest("[data-wmunblock]"); if(!ab&&!ba&&!ub)return;
   const a=(ba?ba.dataset.wmblockau:ub?ub.dataset.wmunblock:($("wmblockin")||{}).value||"").trim(); if(!a)return; if(ub&&!confirm(`Unblock ${a}?`))return; const L=(WM.opts.block||[]).filter(x=>x.toLowerCase()!==a.toLowerCase());
   WM.opts={...WM.opts,block:ub?L:L.concat([a])}; if(!ub)WM.favs=(WM.favs||[]).filter(x=>x.toLowerCase()!==a.toLowerCase()); WM_RJ=null; wmSave(); acctDraw()});
-var WM_DET={fav:false,block:false};   /* the favorite and blocked tab author lists start folded; open or closed stays while the page is open */
+var WM_DET={fav:false,block:false,art:false,tun:false};
+// blocked artists and tunings: add (from the box) or unblock (✕, after a confirm); the week is remade without them, locked songs stay
+document.addEventListener("click",e=>{if(!WM||WM.busy)return; const ad=e.target.closest("[data-wmaddblk]"), un=e.target.closest("[data-wmunblk]"); if(!ad&&!un)return;
+  const f=(ad||un).dataset[ad?"wmaddblk":"wmunblk"], v=(un?un.dataset.v:(($("wmin-"+f)||{}).value||"")).trim(); if(!v)return; if(un&&!confirm(`Unblock ${v}?`))return;
+  const L=(WM.opts[f]||[]).filter(x=>x.toLowerCase()!==v.toLowerCase()); WM.opts={...WM.opts,[f]:un?L:L.concat([v])}; WM_RJ=null; wmSave(); acctDraw()});
+document.addEventListener("keydown",e=>{const m=/^wmin-(blockArt|blockTun)$/.exec(e.target.id||""); if(e.key==="Enter"&&m){e.preventDefault(); const b=document.querySelector(`[data-wmaddblk="${m[1]}"]`); if(b)b.click()}});   /* the favorite and blocked tab author lists start folded; open or closed stays while the page is open */
 document.addEventListener("toggle",e=>{const d=e.target; if(d&&d.dataset&&d.dataset.wmdet)WM_DET[d.dataset.wmdet]=d.open},true);
 document.addEventListener("change",e=>{const c=e.target.closest("[data-wmopt]"); if(!c||!WM)return; WM.opts={...WM.opts,[c.dataset.wmopt]:c.checked}; acctDraw()});
 // Weekly highlights and Messages for players: only this week's host and admins
