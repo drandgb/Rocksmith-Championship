@@ -119,6 +119,10 @@ json.dump(tunings, open("tunings.json", "w"))
 # pasting into the NewWeek tab; it's never opened or checked) are kept. Written to weekmaker.json; the saved copy is used if it can't be read.
 WM_GID = os.environ.get("SSL_WM_GID", "783523676")
 wcache = "cache/weekmaker.json"
+# "?": the arrangement exists but hasn't been tested yet (no rating from either tester); a song with one is left out of Week Maker
+def _untested(*vals):
+    if (vals[0] or "").strip().upper() == "X": return False
+    return _rating(*vals) is None and any("?" in (v or "") for v in vals)
 def _rating(*vals):
     if (vals[0] or "").strip().upper() == "X": return None   # no such arrangement
     nums = []
@@ -146,6 +150,7 @@ try:
         if not a or not t: continue
         rt = [_rating(g(4 + p), g(8 + p)) for p in range(3)]
         if not any(x is not None for x in rt): continue
+        if any(_untested(g(4 + p), g(8 + p)) for p in range(3)): continue   # an arrangement still untested ("?"): not suggested at all
         songs.append([a, t, g(ca), rt, g(cd), g(0), g(3), g(11)])   # (the last item: the second tester, when there is one)   # ... the initial tester (for the rating confidence) and the download link as written in the sheet
     if len(songs) < 50: raise ValueError(f"only {len(songs)} songs found")
     # songs already played (the Songs Played tab), for the option to fill empty bonus spots with songs played over a year ago:
