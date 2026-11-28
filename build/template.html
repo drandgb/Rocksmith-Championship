@@ -7106,8 +7106,8 @@ function renderSbEmpty(){const el=$("twsbempty"); if(!el)return; try{const w=WEE
 function renderNextPreview(){
   const el=$("twpreview"), nw=TW_NEXT, ch=nw&&SB.weeks[nw]; if(!el)return;
   const on=!!ch&&twWeek===nw;
-  // in the preview, only the week header and the preview show
-  [...$("view-thisweek").children].forEach(c=>{if(c.id==="twpreview"||c.classList.contains("twhead")||c.id==="twwarn")return; c.classList.toggle("twpv-hide",on)});
+  // in the preview, only the week header, the preview and the download list show
+  [...$("view-thisweek").children].forEach(c=>{if(c.id==="twpreview"||c.classList.contains("twhead")||c.id==="twwarn"||c.id==="twdl")return; c.classList.toggle("twpv-hide",on)});
   if(!on){el.hidden=true;return false}
   const W=weekAt(curIdx+(nw-cur[0])), sg=acctOn()&&ACCT.hostSign[nw]?ACCT.hostSign[nw].player:null, host=W&&W[2]&&W[2]!==LOST?W[2]:sg;
   const ents=ch.flatMap(c=>c[6]), players=new Set(ents.map(e=>SB.names[e[0]].replace(/[*~]+$/,"")));
