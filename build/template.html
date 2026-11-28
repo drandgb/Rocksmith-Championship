@@ -1312,7 +1312,7 @@ footer .updated{display:block;margin-top:4px}
 .twl .riv .rt{order:2}
 .twl .hot{color:var(--s-orange)}
 /* dead-even rivals: a glowing, slowly shifting rim */
-.twl li.riv.even{position:relative;border:2px solid transparent;padding:7px 9px;background:linear-gradient(var(--panel2),var(--panel2)) padding-box,linear-gradient(120deg,#ffd36e,#ff7eb6,#8f7bff,#3fd0e0,#ffd36e) border-box;background-size:100% 100%,300% 300%;box-shadow:0 0 12px rgba(255,126,182,.55),0 0 26px rgba(143,123,255,.4)}
+.twl li.riv.even{position:relative;border:2px solid transparent;padding:7px 9px;background:linear-gradient(var(--panel2),var(--panel2)) padding-box,linear-gradient(120deg,#ffd36e,#ff7eb6,#8f7bff,#3fd0e0,#ffd36e) border-box;background-size:100% 100%,300% 300%;background-repeat:no-repeat;box-shadow:0 0 12px rgba(255,126,182,.55),0 0 26px rgba(143,123,255,.4)}
 .twl li.riv.even .rt{color:#ffd36e}
 .evenbadge{flex-basis:100%;order:-1;font:700 .62rem var(--f-display);letter-spacing:.1em;text-transform:uppercase;color:#ffd36e;text-shadow:0 0 8px rgba(255,211,110,.6)}
 @media (prefers-reduced-motion:no-preference){.twl li.riv.even{animation:evenrim 4s linear infinite}}
@@ -1339,7 +1339,7 @@ footer .updated{display:block;margin-top:4px}
 
 /* Hall of fame: a victorious gold rim with musical notes dancing around the border */
 .panel.hof{position:relative;border:2px solid transparent;
-  background:linear-gradient(var(--panel),var(--panel)) padding-box,linear-gradient(120deg,#f5c84a,#fff1b8,#d8925a,#f5c84a,#c9d0dc,#f5c84a) border-box;background-size:100% 100%,300% 300%;
+  background:linear-gradient(var(--panel),var(--panel)) padding-box,linear-gradient(120deg,#f5c84a,#fff1b8,#d8925a,#f5c84a,#c9d0dc,#f5c84a) border-box;background-size:100% 100%,300% 300%;background-repeat:no-repeat;
   box-shadow:0 0 0 1px rgba(245,200,74,.25),0 0 22px rgba(245,200,74,.35),0 0 48px rgba(255,170,60,.18),inset 0 0 30px rgba(245,200,74,.07)}
 @media (prefers-reduced-motion:no-preference){.panel.hof{animation:hofrim 6s linear infinite,hofglow 3.4s ease-in-out infinite}}
 @keyframes hofrim{0%{background-position:0 0,0% 50%}50%{background-position:0 0,100% 50%}100%{background-position:0 0,0% 50%}}
@@ -1374,8 +1374,9 @@ footer .updated{display:block;margin-top:4px}
 .panel.starry.lit::after{transform:scale(-1,-1);opacity:.6}
 @media (prefers-reduced-motion:no-preference){.panel.starry.lit::before{animation:twinkle 2.4s ease-in-out infinite}.panel.starry.lit::after{animation:twinkle 2.4s ease-in-out 1.2s infinite}}
 @keyframes twinkle{0%,100%{opacity:.25}50%{opacity:1}}
+/* (the moving rims don't repeat their 300% gradient: a repeated copy showed as a flashing sliver at the right edge) */
 /* Back from a break: a tropical rim (palm green, lagoon, hibiscus, mango) with a palm and a flower */
-.panel.vacation.lit{position:relative;border:2px solid transparent;background:linear-gradient(var(--panel),var(--panel)) padding-box,linear-gradient(120deg,#2ecc71,#00c2c7,#3fd0e0,#ff5e8a,#ffb703,#2ecc71) border-box;background-size:100% 100%,300% 300%;box-shadow:0 0 14px rgba(0,194,199,.3),0 0 26px rgba(255,94,138,.15)}
+.panel.vacation.lit{position:relative;border:2px solid transparent;background:linear-gradient(var(--panel),var(--panel)) padding-box,linear-gradient(120deg,#2ecc71,#00c2c7,#3fd0e0,#ff5e8a,#ffb703,#2ecc71) border-box;background-size:100% 100%,300% 300%;background-repeat:no-repeat;box-shadow:0 0 14px rgba(0,194,199,.3),0 0 26px rgba(255,94,138,.15)}
 .panel.vacation.lit::before{content:"🌴";position:absolute;top:-12px;right:10px;font-size:20px;filter:drop-shadow(0 2px 3px rgba(0,0,0,.5))}
 .panel.vacation.lit::after{content:"🌺";position:absolute;bottom:-11px;left:10px;font-size:17px;filter:drop-shadow(0 2px 3px rgba(0,0,0,.5))}
 @media (prefers-reduced-motion:no-preference){.panel.vacation.lit{animation:vacay 7s linear infinite}.panel.vacation.lit::before{animation:sway 3.4s ease-in-out infinite;transform-origin:50% 100%}}
@@ -1409,7 +1410,7 @@ footer .updated{display:block;margin-top:4px}
 /* Rodman's Rankings */
 /* Rodman's Rankings header: a red, black and white rim with charging bulls, a magic wand, sparkles and lightning */
 .panel.rkhead{position:relative;border:2px solid transparent;
-  background:linear-gradient(var(--panel),var(--panel)) padding-box,linear-gradient(120deg,#ce1141,#111,#e31837,#fff,#a30d2d,#111,#ff4d6d,#ce1141) border-box;background-size:100% 100%,300% 300%;
+  background:linear-gradient(var(--panel),var(--panel)) padding-box,linear-gradient(120deg,#ce1141,#111,#e31837,#fff,#a30d2d,#111,#ff4d6d,#ce1141) border-box;background-size:100% 100%,300% 300%;background-repeat:no-repeat;
   box-shadow:0 0 0 1px rgba(206,17,65,.3),0 0 22px rgba(206,17,65,.4),0 0 46px rgba(160,10,40,.35),inset 0 0 30px rgba(206,17,65,.12)}
 @media (prefers-reduced-motion:no-preference){.panel.rkhead{animation:hofrim 7s linear infinite,rkglow 3.6s ease-in-out infinite}}
 @keyframes rkglow{0%,100%{box-shadow:0 0 0 1px rgba(206,17,65,.25),0 0 18px rgba(206,17,65,.35),0 0 40px rgba(160,10,40,.3),inset 0 0 26px rgba(206,17,65,.1)}50%{box-shadow:0 0 0 1px rgba(255,90,110,.5),0 0 30px rgba(227,24,55,.55),0 0 64px rgba(200,20,50,.45),inset 0 0 36px rgba(206,17,65,.18)}}
