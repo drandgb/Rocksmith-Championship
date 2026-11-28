@@ -3700,7 +3700,8 @@ document.addEventListener("click",e=>{const b=e.target.closest("[data-hlposted]"
   if(!confirm(`Mark the Week ${ELO_DONE} highlights as posted? Everyone sees who marked it, and the 📰 reminder goes.`))return;
   hmImpMark(ELO_DONE,["hlposted"]); try{acctBtn(); if($("acct").open)acctDraw()}catch(err){}});
 const hlPosted=w=>{try{hmImpLoad(); return (hmImpPosted()[w]||{}).hlposted?((HM_IMP.log||{})[w]||[]).find(r=>r.item==="hlposted")||{}:null}catch(e){return null}};
-function hlDue(){try{return acctOn()&&(isCurHost()||!!ACCT.admin)&&hostTab()&&!!SB.weeks[ELO_DONE]&&!hlPosted(ELO_DONE)}catch(e){return false}}
+// (only once the forum post the highlights go in, Week ELO_DONE+1's, has its link added)
+function hlDue(){try{return acctOn()&&(isCurHost()||!!ACCT.admin)&&hostTab()&&!!SB.weeks[ELO_DONE]&&!!WPOSTS[ELO_DONE+1]&&!hlPosted(ELO_DONE)}catch(e){return false}}
 const hmImpWait=()=>{if(HM_IMP.st!==undefined&&HM_IMP.st!==null)return false; try{hmImpLoad()}catch(e){} return true};   // the posted marks aren't loaded yet
 const hlBadge=()=>!hmImpWait()&&hlDue()?`<span class="nbadge nbemo" data-bk="hl" title="Week ${ELO_DONE} is finished: copy its Weekly highlights into the Week ${ELO_DONE+1} post">📰</span>`:"";
 function hlSection(){const ws=[]; for(let w=ELO_DONE;w>ELO_DONE-6&&w>0;w--)if(SB.weeks[w])ws.push(w); const w=ACCT.hlWeek&&ws.includes(ACCT.hlWeek)?ACCT.hlWeek:ws[0]; if(!w)return ""; const P0=hlPosted(ELO_DONE);
