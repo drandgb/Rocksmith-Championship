@@ -3316,7 +3316,7 @@ function twGoals(){const el=$("tw-goals"); if(!el)return; let G=[], n="";
   try{if(claimed&&twWeek===TW_LIVE){n=A.claim.player; G=goalsPanel(n)||[]}}catch(e){console.error(e)}
   el.hidden=!G.length; if(!G.length){el.innerHTML=""; if(A&&A.ready&&!claimed)try{localStorage.removeItem(GOALS_CACHE)}catch(e){} return}
   const fold=lsGet(GOALS_FOLD)===String(TW_MAX);
-  el.innerHTML=`<div class="panel-head dlhead" data-goals="fold" title="${fold?"Show":"Hide"} the list"><h2>🎯 Within reach - Keep going!<span class="dlarw">${fold?"▸":"▾"}</span></h2></div>${fold?"":G.map(([sec,gs])=>`<h4 class="twgoalh">${sec}</h4><ul class="twgoals">${gs.map(([t,r,d,sk,cd])=>`<li${d?` class="gdone"`:""}><span class="fwt">${sk?`<button type="button" class="gck gself${d?"":" goff"}" data-gself="${esc(sk)}" aria-pressed="${!!d}" title="${d?"Done this week (click to undo)":"Check this off when you've done it"}">${d?"✓":""}</button>`:d?`<span class="gck" title="Done this week">✓</span>`:""}${esc(t)}</span><span class="nwr">${esc(r)}</span>${cd?`<div class="lgsec greach">${cd}</div>`:""}${d?`<span class="gnext">Come back next week to keep working on this goal</span>`:""}</li>`).join("")}</ul>`).join("")}`;
+  el.innerHTML=`<div class="panel-head dlhead" data-goals="fold" title="${fold?"Show":"Hide"} the list"><h2>🎯 Within reach - Keep going!<span class="dlarw">${fold?"▸":"▾"}</span></h2></div>${fold?"":G.map(([sec,gs])=>{const sf=goalsSubFold().includes(sec); return `<h4 class="twgoalh dlhead" data-goalsub="${esc(sec)}" title="${sf?"Show":"Hide"} these">${sec}<span class="dlarw">${sf?"▸":"▾"}</span></h4>${sf?"":`<ul class="twgoals">${gs.map(([t,r,d,sk,cd])=>`<li${d?` class="gdone"`:""}><span class="fwt">${sk?`<button type="button" class="gck gself${d?"":" goff"}" data-gself="${esc(sk)}" aria-pressed="${!!d}" title="${d?"Done this week (click to undo)":"Check this off when you've done it"}">${d?"✓":""}</button>`:d?`<span class="gck" title="Done this week">✓</span>`:""}${esc(t)}</span><span class="nwr">${esc(r)}</span>${cd?`<div class="lgsec greach">${cd}</div>`:""}${d?`<span class="gnext">Come back next week to keep working on this goal</span>`:""}</li>`).join("")}</ul>`}`}).join("")}`;
   if(A&&A.learn&&!A.learn.err)try{localStorage.setItem(GOALS_CACHE,JSON.stringify({w:TW_MAX,h:el.innerHTML}))}catch(e){}}
 // clicking the Within reach heading hides or shows its list (remembered for the current week, like the download list)
 const GOALS_FOLD="rsc-goals-fold";
@@ -3328,6 +3328,10 @@ document.addEventListener("click",e=>{const b=e.target.closest("[data-gtab]"); i
 function gtabStack(t){const L=String(t).split("\n").map(x=>/^([A-Za-z]#?)\|(.*)\|\s*$/.exec(x.trim())); if(!L.every(Boolean))return t; const M=L.map(m=>m[2].split("|"));
   const n=Math.max(...M.map(x=>x.length)); return Array.from({length:n},(_,k)=>L.map((m,i)=>`${m[1]}|${M[i][k]||""}|`).join("\n")).join("\n\n")}
 document.addEventListener("click",async e=>{const b=e.target.closest("#tw-goals [data-gself]"); if(!b||b.disabled||!ACCT.learn)return; b.disabled=true; await learnSet(b.dataset.gself,!ACCT.learn.s.has(b.dataset.gself)); b.disabled=false});
+// each part (Play, Win, Host, Learn, …) can be hidden or shown the same way by clicking its heading (remembered until shown again)
+const GOALS_SUB="rsc-goals-sub", goalsSubFold=()=>{try{return JSON.parse(lsGet(GOALS_SUB)||"[]")}catch(e){return []}};
+document.addEventListener("click",e=>{const h=e.target.closest("#tw-goals [data-goalsub]"); if(!h)return; const k=h.dataset.goalsub, L=goalsSubFold().filter(x=>x!==k);
+  if(L.length===goalsSubFold().length)L.push(k); lsSet(GOALS_SUB,L.length?JSON.stringify(L):null); twGoals()});
 document.addEventListener("click",e=>{if(e.target.closest("#tw-goals [data-goals=fold]")){lsSet(GOALS_FOLD,lsGet(GOALS_FOLD)===String(TW_MAX)?null:String(TW_MAX)); twGoals()}});
 
 // Welcome back: a player back after 4+ weeks away, for their first 4 weeks back
