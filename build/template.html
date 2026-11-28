@@ -7960,10 +7960,10 @@ document.addEventListener("click",async e=>{const s=e.target.closest("[data-link
 // a time in Central European time, for the countdown box: "Sat 9:00 PM CET" (CEST in summer)
 function cetTxt(t){try{const z=new Intl.DateTimeFormat("en-GB",{timeZone:"Europe/Berlin",timeZoneName:"short"}).formatToParts(t).find(x=>x.type==="timeZoneName").value;
   return t.toLocaleString(undefined,{timeZone:"Europe/Berlin",weekday:"short",hour:"numeric",minute:"2-digit"})+" "+(/^(CET|CEST)$/.test(z)?z:"CET")}catch(e){return ""}}
-// next week's host (who closes this week): a ⏰ badge until the week close countdown is set
-function cdDue(){try{if(!acctOn()||!ACCT.claim||ACCT.claim.status!=="approved")return false; const w=TW_MAX, r=WEEKS.find(x=>x[0]===w+1), h=(r&&r[2])||(ACCT.hostSign&&ACCT.hostSign[w+1]&&ACCT.hostSign[w+1].player)||"";
+// next week's host (who closes this week) and admins: a ⏰ badge until the week close countdown is set
+function cdDue(){try{if(!acctOn())return false; if(ACCT.admin)return WCLOSE_ON&&!closeFor(TW_MAX); if(!ACCT.claim||ACCT.claim.status!=="approved")return false; const w=TW_MAX, r=WEEKS.find(x=>x[0]===w+1), h=(r&&r[2])||(ACCT.hostSign&&ACCT.hostSign[w+1]&&ACCT.hostSign[w+1].player)||"";
   return WCLOSE_ON&&!!h&&String(h).toLowerCase()===ACCT.claim.player.toLowerCase()&&!closeFor(w)}catch(e){return false}}
-const cdBadge=()=>cdDue()?`<span class="nbadge nbemo" data-bk="cd" title="You host next week: set when Week ${TW_MAX} closes (Week close countdown, Host tab)">⏰</span>`:"";
+const cdBadge=()=>cdDue()?`<span class="nbadge nbemo" data-bk="cd" title="${ACCT.admin?"The countdown isn't set yet":"You host next week"}: set when Week ${TW_MAX} closes (Week close countdown, Host tab)">⏰</span>`:"";
 function closeSection(){const w=TW_MAX, r=closeFor(w), def=nyAt(weekAt(w)[1]), t=r?new Date(r.ends_at):new Date(def);
   if(!canTune(w+1))return "";   // shown only to the next week's host (who closes the week) and admins, who can set it
   const loc=new Date(t.getTime()-t.getTimezoneOffset()*6e4).toISOString().slice(0,16);
