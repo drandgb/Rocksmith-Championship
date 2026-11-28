@@ -7,7 +7,7 @@ from old_layout import read_old
 PARSE_VER = 2   # 2: the older layouts (weeks 2-435) are read too, and name fonts are kept for every week
 
 MODE = os.environ.get("MODE", "full")
-QUICK_WEEKS = int(os.environ.get("QUICK_WEEKS", "2"))   # how many of the newest week tabs a quick run re-reads
+QUICK_WEEKS = int(os.environ.get("QUICK_WEEKS", "3"))   # how many of the newest week tabs a quick run re-reads
 wb = openpyxl.load_workbook("board.xlsx", read_only=True, data_only=True)
 tabs = {int(m.group(1)): n for n in wb.sheetnames if (m := re.fullmatch(r"Week(\d+)", n))}
 # the first weeks are kept in tabs named "Copy of Week NN"
