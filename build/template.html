@@ -7929,19 +7929,24 @@ async function postsLoad(){if(!ACCT.sb)return;
   await Promise.all(Object.entries(WLINK).map(async([k,L])=>{try{const {data,error}=await ACCT.sb.from(L.table).select("week,url,set_by"); if(error)return;
     const o={}; (data||[]).forEach(r=>{if(/^https?:\/\//i.test(r.url||""))o[r.week]=r}); if(k==="post")WPOSTS=o; else WSHEETS=o}catch(e){}}));
   WL_LOADED=true; forumBar(); sbYwShow(); try{renderSbEmpty(); acctBtn(); hmRedraw()}catch(e){} if($("acct").open&&(ACCT.tab==="host"||ACCT.tab==="admin"))acctDraw()}
-// 🔗 for the host and admins: the new week's forum post or scoreboard sheet link hasn't been added yet (once the links have loaded)
-function lkMissing(){try{if(!WL_LOADED||!acctOn()||!(ACCT.admin||canTune(TW_MAX)))return []; return Object.keys(WLINK).filter(k=>!wlData(k)[TW_MAX])}catch(e){return []}}
-const lkBadge=()=>{const M=lkMissing(); return M.length?`<span class="nbadge nbemo" data-bk="lk" title="Add Week ${TW_MAX}'s ${M.map(k=>WLINK[k].what).join(" and ")} link · Host tab">🔗</span>`:""};
+// 🔗 for the host and admins: the week's forum post or scoreboard sheet link hasn't been added yet (once the links have loaded):
+// the current week (its host and admins) and the upcoming week once its songs are on the scoreboard sheet (its host and admins)
+const lkWeeks=()=>[TW_MAX].concat(TW_NEXT?[TW_NEXT]:[]).filter(w=>{try{return acctOn()&&(ACCT.admin||canTune(w))}catch(e){return false}});
+function lkMissingW(){try{if(!WL_LOADED)return []; return lkWeeks().flatMap(w=>Object.keys(WLINK).filter(k=>!wlData(k)[w]).map(k=>({k,w})))}catch(e){return []}}
+function lkMissing(){return [...new Set(lkMissingW().map(m=>m.k))]}
+const lkBadge=()=>{const M=lkMissingW(); return M.length?`<span class="nbadge nbemo" data-bk="lk" title="Links to add (Host tab): ${[...new Set(M.map(m=>m.w))].map(w=>`Week ${w}: ${M.filter(m=>m.w===w).map(m=>WLINK[m.k].what).join(" and ")}`).join(" · ")}">🔗</span>`:""};
 function forumBar(){try{const w=typeof twWeek!=="undefined"?twWeek:TW_MAX;
   Object.entries(WLINK).forEach(([k,L])=>{const r=wlData(k)[w], bar=$(L.bar); if(!bar)return; bar.hidden=!r; if(r)$(L.btn).href=r.url})}catch(e){}
   // Play here (top of the page) opens the current week's forum post once it's added, otherwise the championship forum
   try{const ph=document.querySelector("a.playhere"), r=WPOSTS[TW_MAX]; if(ph){ph.dataset.forum=ph.dataset.forum||ph.href; ph.dataset.title=ph.dataset.title||ph.title;
     ph.href=r?r.url:ph.dataset.forum; ph.title=r?`Opens this week's forum post (Week ${TW_MAX}) on CustomsForge, where the songs are posted and scores are submitted`:ph.dataset.title}}catch(e){}}
 {const _rtw=renderThisWeek; renderThisWeek=function(){const r=_rtw.apply(this,arguments); forumBar(); return r}}
-function linkSection(k){const L=WLINK[k], D=wlData(k), adm=!!ACCT.admin; if(!adm&&!canTune(TW_MAX))return "";
-  const sel=ACCT.linkW&&ACCT.linkW[k], w=adm&&sel?sel:TW_MAX, r=D[w];
+function linkSection(k){const L=WLINK[k], D=wlData(k), adm=!!ACCT.admin, mine=lkWeeks(); if(!adm&&!mine.length)return "";
+  // the week it opens on: the one picked (admins any week, a host the weeks they host), else one of theirs still missing this link
+  const sel=ACCT.linkW&&ACCT.linkW[k], miss=mine.filter(x=>!D[x]), w=sel&&(adm||mine.includes(sel))?sel:miss[0]||mine[mine.length-1]||TW_MAX, r=D[w];
   const weeks=Object.keys(SB.weeks).map(Number).concat([TW_MAX]).filter((x,i,a)=>a.indexOf(x)===i).sort((a,b)=>b-a);
-  return `<div class="acctsec postsec"><h3>${L.title}${lkMissing().includes(k)?`<span class="nbadge nbemo" title="Week ${TW_MAX}'s ${L.what} link isn't added yet">🔗</span>`:""}</h3>
+  return `<div class="acctsec postsec"><h3>${L.title}${lkMissing().includes(k)?`<span class="nbadge nbemo" title="${lkMissingW().filter(m=>m.k===k).map(m=>`Week ${m.w}'s`).join(" and ")} ${L.what} link isn't added yet">🔗</span>`:""}</h3>
+    ${!adm&&mine.length>1?`<div class="row">${mine.map(x=>`<button type="button" class="btn ${x===w?"":"ghost "}small" data-linkwk="${k}|${x}">Week ${x}${D[x]?" ✓":""}</button>`).join(" ")}</div>`:""}
     ${adm?`<div class="row"><label class="dim" for="linkw-${k}" style="align-self:center;margin-right:6px">Week</label><div class="wkdd" data-wkdd="${k}"><button type="button" class="wkdd-b" id="linkw-${k}" aria-haspopup="listbox" aria-expanded="false">Week ${w}${D[w]?" ✓":""}<span aria-hidden="true">▾</span></button><ul class="wkdd-l" role="listbox" hidden>${weeks.map(x=>`<li role="option" data-wkopt="${x}" aria-selected="${x===w}">Week ${x}${D[x]?" ✓":""}</li>`).join("")}</ul></div></div>`:""}
     <p class="dim">The link to Week ${w}'s ${L.what}${r?`: <a href="${esc(r.url)}" target="_blank" rel="noopener">${esc(r.url)}</a>${r.set_by?` (added by ${esc(r.set_by)})`:""}`:". Not added yet."}</p>
     <div class="row"><input type="url" id="linkurl-${k}" placeholder="https://" value="${r?esc(r.url):""}" style="flex:1;min-width:0"><button type="button" class="btn" data-linkset="${k}|${w}">Save</button>${r?`<button type="button" class="btn ghost" data-linkclear="${k}|${w}">Clear</button>`:""}</div></div>`}
@@ -7953,10 +7958,11 @@ document.addEventListener("click",e=>{const dd=e.target.closest(".wkdd"), o=e.ta
   const b=e.target.closest(".wkdd-b"); if(!b)return; const l=b.nextElementSibling, open=b.getAttribute("aria-expanded")==="true";
   l.hidden=open; b.setAttribute("aria-expanded",String(!open));
   if(!open){const s=l.querySelector('[aria-selected="true"]'); if(s)l.scrollTop=s.offsetTop-4}});
+document.addEventListener("click",e=>{const b=e.target.closest("[data-linkwk]"); if(!b)return; const [k,x]=b.dataset.linkwk.split("|"); ACCT.linkW=Object.assign(ACCT.linkW||{},{[k]:+x}); acctDraw()});
 document.addEventListener("keydown",e=>{if(e.key!=="Escape")return; const l=document.querySelector(".wkdd-l:not([hidden])"); if(l){l.hidden=true; l.previousElementSibling.setAttribute("aria-expanded","false"); e.stopPropagation(); e.preventDefault()}},true);
 document.addEventListener("click",async e=>{const s=e.target.closest("[data-linkset]"), c=e.target.closest("[data-linkclear]"); if(!s&&!c)return;
   const [k,ws]=(s?s.dataset.linkset:c.dataset.linkclear).split("|"), w=+ws, L=WLINK[k]; if(!L)return;
-  if(!ACCT.admin&&!(canTune(w)&&w===TW_MAX)){alert(`Only this week's host or an admin can add the ${L.what}.`);return}
+  if(!ACCT.admin&&!(canTune(w)&&(w===TW_MAX||w===TW_NEXT))){alert(`Only that week's host or an admin can add the ${L.what}.`);return}
   if(s){const v=($("linkurl-"+k).value||"").trim(); if(!/^https?:\/\/\S+$/i.test(v)){alert(`Paste the ${L.what}'s full address (starting with https://).`);return}
     const {error}=await ACCT.sb.from(L.table).upsert({week:w,url:v,set_by:ACCT.claim&&ACCT.claim.player||null,updated_at:new Date().toISOString()},{onConflict:"week"}); if(error){alert("Couldn't save it: "+error.message);return}}
   else{const {error}=await ACCT.sb.from(L.table).delete().eq("week",w); if(error){alert("Couldn't clear it: "+error.message);return}}
